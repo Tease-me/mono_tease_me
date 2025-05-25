@@ -1,0 +1,9 @@
+.auth-footer span {
+  color: #ff4d6d;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.auth-footer span:hover {
+  opacity: 0.8;
+}
