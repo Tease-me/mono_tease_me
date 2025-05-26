@@ -15,7 +15,7 @@ export default function CallScreen() {
 
   const [callStatus, setCallStatus] = useState("Calling...");
   const [callTime, setCallTime] = useState(0);
-  const ringtoneRef = useRef(new Audio("/assets/audio/ringtone.wav"));
+  const ringtoneRef = useRef(new Audio("/audio/ringtone.wav")); // ✅ Corrigido aqui!
   const audioRef = useRef(new Audio());
 
   useEffect(() => {
