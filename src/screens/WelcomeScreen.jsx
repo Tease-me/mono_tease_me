@@ -2,6 +2,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import oliviaImage from "../assets/image/avatar.png";
+import BackgroundGradient from "../components/BackgroundGradient";
 import "./WelcomeScreen.css";
 
 export default function WelcomeScreen({ isVideo, name }) {
@@ -9,7 +10,7 @@ export default function WelcomeScreen({ isVideo, name }) {
 
   return (
     <div className="welcome-screen">
-      <div className="background-gradient"></div>
+      <BackgroundGradient />
 
       <div className="content">
         <div className="profile-container">

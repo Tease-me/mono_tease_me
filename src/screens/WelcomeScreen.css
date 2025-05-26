@@ -1,9 +1,8 @@
-/* screens/WelcomeScreen.css */
 body,
 html {
   margin: 0;
   padding: 0;
-  background-color: #1e2127;
+  background-color: transparent;
   font-family: "Arial", sans-serif;
   color: #ffffff;
 }
@@ -16,54 +15,6 @@ html {
   align-items: center;
   overflow: hidden;
   position: relative;
-}
-
-.background-gradient {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-      circle at 5% 5%,
-      rgba(255, 77, 109, 0.25),
-      transparent 40%
-    ),
-    radial-gradient(
-      circle at 95% 10%,
-      rgba(255, 120, 50, 0.15),
-      transparent 20%
-    ),
-    radial-gradient(
-      circle at 90% 100%,
-      rgba(255, 77, 109, 0.2),
-      transparent 40%
-    ),
-    radial-gradient(circle at 5% 90%, rgba(255, 77, 109, 0.2), transparent 20%),
-    radial-gradient(circle at center, rgba(30, 33, 39, 0.85), #1e2127 90%);
-  z-index: 0;
-}
-@media (max-width: 767px) {
-  .background-gradient {
-    background: radial-gradient(
-        circle at 10% 10%,
-        rgba(255, 77, 109, 0.4),
-        transparent 0%
-      ),
-      radial-gradient(
-        circle at 90% 15%,
-        rgba(255, 120, 50, 0.3),
-        transparent 0%
-      ),
-      radial-gradient(
-        circle at 85% 85%,
-        rgba(255, 77, 109, 0.35),
-        transparent 0%
-      ),
-      radial-gradient(
-        circle at 15% 85%,
-        rgba(255, 77, 109, 0.35),
-        transparent 0%
-      ),
-      radial-gradient(circle at center, rgba(30, 33, 39, 0.9), #1e2127 90%);
-  }
 }
 
 .content {

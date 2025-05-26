@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import BackgroundGradient from "../../components/BackgroundGradient";
 import "./Signup.css";
 
 export default function Signup01() {
@@ -7,6 +8,7 @@ export default function Signup01() {
 
   return (
     <div className="auth-container">
+      <BackgroundGradient />
       <div className="auth-content">
         <h2 className="auth-title">Create your Account</h2>
         <form className="auth-form">

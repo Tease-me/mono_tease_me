@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import BackgroundGradient from "../components/BackgroundGradient";
 import "./LoginScreen.css";
 
 export default function LoginScreen() {
@@ -7,9 +8,12 @@ export default function LoginScreen() {
 
   return (
     <div className="auth-container">
-      <div className="auth-content">
-        <h2 className="auth-title">Login to your Account</h2>
+      <BackgroundGradient />
 
+      <div className="auth-content">
+        {" "}
+        {/* Adicionado corretamente aqui */}
+        <h2 className="auth-title">Login to your Account</h2>
         <form className="auth-form">
           <input type="email" placeholder="Email" className="auth-input" />
           <input
@@ -23,6 +27,7 @@ export default function LoginScreen() {
           </label>
 
           <button
+            type="button"
             className="btn-primary"
             onClick={() => navigate("/home")}
             style={{ marginTop: "15px" }}

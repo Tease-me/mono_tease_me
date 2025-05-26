@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import BackgroundGradient from "../../components/BackgroundGradient";
 import "./Signup.css";
 
 export default function Signup03() {
@@ -15,6 +16,7 @@ export default function Signup03() {
 
   return (
     <div className="auth-container">
+      <BackgroundGradient />
       <div className="auth-content success-screen">
         <div className="success-icon">🎉</div>
         <h2 className="auth-title">Congratulations!</h2>
