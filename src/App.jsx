@@ -15,7 +15,7 @@ function App() {
       <Routes>
         <Route
           path="/"
-          element={<WelcomeScreen isVideo={false} name="Olivia F." />}
+          element={<WelcomeScreen name="@@@NAME_GIRL@@@ 💋" />}
         />
         <Route path="/signup" element={<Signup01 />} />
         <Route path="/signup/profile" element={<Signup02 />} />

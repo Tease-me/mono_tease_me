@@ -5,7 +5,7 @@ import oliviaImage from "../assets/image/avatar.png";
 import BackgroundGradient from "../components/BackgroundGradient";
 import "./WelcomeScreen.css";
 
-export default function WelcomeScreen({ isVideo, name }) {
+export default function WelcomeScreen({name }) {
   const navigate = useNavigate();
 
   return (
@@ -14,18 +14,12 @@ export default function WelcomeScreen({ isVideo, name }) {
 
       <div className="content">
         <div className="profile-container">
-          {isVideo ? (
+         
             <video autoPlay loop muted className="profile-media">
               <source src={oliviaImage} type="video/mp4" />
               Your browser doesn't support video.
             </video>
-          ) : (
-            <img
-              src={oliviaImage}
-              alt={`Profile of ${name}`}
-              className="profile-media"
-            />
-          )}
+        
           <div className="hearts-overlay">
             <span className="heart">❤️</span>
             <span className="heart">❤️</span>
