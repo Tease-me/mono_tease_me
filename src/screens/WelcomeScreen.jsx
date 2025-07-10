@@ -2,6 +2,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import oliviaImage from "../assets/image/avatar.png";
+import oliviaVideo from "../assets/video/avatar_video.mp4";
 import BackgroundGradient from "../components/BackgroundGradient";
 import styles from "./WelcomeScreen.module.css";
 
@@ -14,9 +15,8 @@ export default function WelcomeScreen({ name }) {
 
       <div className={styles["content"]}>
         <div className={styles["profile-container"]}>
-
           <video autoPlay loop muted className={styles["profile-media"]}>
-            <source src={oliviaImage} type="video/mp4" />
+            <source src={oliviaVideo} type="video/mp4" />
             Your browser doesn't support video.
           </video>
 

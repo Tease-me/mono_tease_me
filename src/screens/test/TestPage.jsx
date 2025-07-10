@@ -1,13 +1,15 @@
+import BackgroundGradient from '../../components/BackgroundGradient';
 import './TestPage.module.css';
 
 const TestPage = ({ }) => {
 
     return (
         <div className="test-page">
-            <div class="flex w-full flex-col">
-                <div class="card bg-base-300 rounded-box grid h-20 place-items-center">content</div>
-                <div class="divider">OR</div>
-                <div class="card bg-base-300 rounded-box grid h-20 place-items-center">content</div>
+            <BackgroundGradient />
+            <div className="center items-center justify-center">
+                <div className="card bg-base-300 rounded-box grid h-20 place-items-center">content</div>
+                <div className="divider">OR</div>
+                <div className="card bg-base-300 rounded-box grid h-20 place-items-center">content</div>
             </div>
         </div>
     );
