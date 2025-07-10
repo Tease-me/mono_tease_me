@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import avatar from "../assets/image/avatar.png";
 import BackgroundGradient from "../components/BackgroundGradient";
-import "./ChatScreen.css";
+import styles from "./ChatScreen.module.css";
 
 const contacts = [
   {
@@ -66,31 +66,31 @@ export default function ChatScreen() {
   };
 
   return (
-    <div className="chat-container">
+    <div className={styles["chat-container"]}>
       <BackgroundGradient />
-      <div className="chat-content">
-        <header className="chat-header">
-          <button className="back-btn" onClick={() => navigate("/home")}>
+      <div className={styles["chat-content"]}>
+        <header className={styles["chat-header"]}>
+          <button className={styles["back-btn"]} onClick={() => navigate("/home")}>
             ←
           </button>
           <h2>Inbox</h2>
-          <button className="menu-button">⋯</button>
+          <button className={styles["menu-button"]}>⋯</button>
         </header>
 
-        <div className="chat-messages-container">
-          <img src={user?.img} alt={user?.name} className="chat-avatar" />
-          <h3 className="chat-user-name">{user?.name}</h3>
+        <div className={styles["chat-messages-container"]}>
+          <img src={user?.img} alt={user?.name} className={styles["chat-avatar"]} />
+          <h3 className={styles["chat-user-name"]}>{user?.name}</h3>
 
-          <div className="messages">
+          <div className={styles["messages"]}>
             {messages.map((msg) => (
               <div key={msg.id} className={`message ${msg.sender}`}>
                 {msg.text}
-                <span className="time">{msg.time}</span>
+                <span className={styles["time"]}>{msg.time}</span>
               </div>
             ))}
           </div>
 
-          <div className="chat-input-area">
+          <div className={styles["chat-input-area"]}>
             <input
               type="text"
               placeholder="Message..."
@@ -98,12 +98,12 @@ export default function ChatScreen() {
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             />
-            <button className="voice-btn">🎙️</button>
-            <button className="send-btn" onClick={sendMessage}>
+            <button className={styles["voice-btn"]}>🎙️</button>
+            <button className={styles["send-btn"]} onClick={sendMessage}>
               ➤
             </button>
             <button
-              className="call-btn"
+              className={styles["call-btn"]}
               onClick={() => navigate(`/call/${conversation_id}`)}
             >
               📞 Call

@@ -9,6 +9,8 @@ import Signup01 from "./screens/signup/Signup01";
 import Signup02 from "./screens/signup/Signup02";
 import Signup03 from "./screens/signup/Signup03";
 import WelcomeScreen from "./screens/WelcomeScreen";
+import TestPage from "./screens/test/TestPage";
+
 function App() {
   return (
     <BrowserRouter>
@@ -16,6 +18,10 @@ function App() {
         <Route
           path="/"
           element={<WelcomeScreen name="@@@NAME_GIRL@@@ 💋" />}
+        />
+         <Route
+          path="/test"
+          element={<TestPage />}
         />
         <Route path="/signup" element={<Signup01 />} />
         <Route path="/signup/profile" element={<Signup02 />} />

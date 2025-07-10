@@ -1,3 +1,41 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+@plugin "daisyui/theme" {
+  name: "TeaseMe";
+  default: false;
+  prefersdark: false;
+  color-scheme: "light";
+  --color-base-100: #1F222A;
+  --color-base-200: #181A20;
+  --color-base-300: #181A20;
+  --color-base-content: oklch(98% 0.003 247.858);
+  --color-primary: #FF4D67;
+  --color-primary-content: #FFFFFF;
+  --color-secondary: #35383F;
+  --color-secondary-content: #FFFFFF;
+  --color-accent: #FF981F;
+  --color-accent-content: oklch(98% 0.003 247.858);
+  --color-neutral: oklch(27% 0.006 286.033);
+  --color-neutral-content: oklch(92% 0.004 286.32);
+  --color-info: oklch(68% 0.169 237.323);
+  --color-info-content: oklch(29% 0.066 243.157);
+  --color-success: oklch(69% 0.17 162.48);
+  --color-success-content: oklch(26% 0.051 172.552);
+  --color-warning: oklch(79% 0.184 86.047);
+  --color-warning-content: oklch(28% 0.066 53.813);
+  --color-error: oklch(64% 0.246 16.439);
+  --color-error-content: oklch(27% 0.105 12.094);
+  --radius-selector: 1rem;
+  --radius-field: 0.5rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 0.5px;
+  --depth: 1;
+  --noise: 0;
+}
+
 #root {
   max-width: 1280px;
 }

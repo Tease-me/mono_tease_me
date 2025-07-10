@@ -158,7 +158,8 @@ html {
   }
 
   .chat-header {
-    display: none; /* esconder header em desktop */
+    display: none;
+    /* esconder header em desktop */
   }
 
   .chat-avatar {

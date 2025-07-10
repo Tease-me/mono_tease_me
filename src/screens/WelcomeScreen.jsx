@@ -3,39 +3,39 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import oliviaImage from "../assets/image/avatar.png";
 import BackgroundGradient from "../components/BackgroundGradient";
-import "./WelcomeScreen.css";
+import styles from "./WelcomeScreen.module.css";
 
-export default function WelcomeScreen({name }) {
+export default function WelcomeScreen({ name }) {
   const navigate = useNavigate();
 
   return (
-    <div className="welcome-screen">
+    <div className={styles["welcome-screen"]}>
       <BackgroundGradient />
 
-      <div className="content">
-        <div className="profile-container">
-         
-            <video autoPlay loop muted className="profile-media">
-              <source src={oliviaImage} type="video/mp4" />
-              Your browser doesn't support video.
-            </video>
-        
-          <div className="hearts-overlay">
-            <span className="heart">❤️</span>
-            <span className="heart">❤️</span>
-            <span className="heart">❤️</span>
+      <div className={styles["content"]}>
+        <div className={styles["profile-container"]}>
+
+          <video autoPlay loop muted className={styles["profile-media"]}>
+            <source src={oliviaImage} type="video/mp4" />
+            Your browser doesn't support video.
+          </video>
+
+          <div className={styles["hearts-overlay"]}>
+            <span className={styles["heart"]}>❤️</span>
+            <span className={styles["heart"]}>❤️</span>
+            <span className={styles["heart"]}>❤️</span>
           </div>
         </div>
 
-        <h2 className="join-text">Join {name} on</h2>
-        <h1 className="brand">
+        <h2 className={styles["join-text"]}>Join {name} on</h2>
+        <h1 className={styles["brand"]}>
           Tease<span>Me</span>
         </h1>
 
-        <p className="signup-text">
+        <p className={styles["signup-text"]}>
           Don't have an account?{" "}
           <span
-            className="signup-link"
+            className={styles["signup-link"]}
             onClick={() => navigate("/signup")}
             style={{ cursor: "pointer", color: "#ff4d6d" }}
           >
@@ -43,11 +43,11 @@ export default function WelcomeScreen({name }) {
           </span>
         </p>
 
-        <div className="divider">
+        <div className={styles["divider"]}>
           <span>or</span>
         </div>
 
-        <button className="email-button" onClick={() => navigate("/login")}>
+        <button className={styles["email-button"]} onClick={() => navigate("/login")}>
           Sign in with email
         </button>
       </div>

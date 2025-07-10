@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import avatar from "../assets/image/avatar.png";
 import BackgroundGradient from "../components/BackgroundGradient";
-import "./CallScreen.css";
+import styles from "./CallScreen.module.css";
 
 const ELEVENLABS_API_KEY =
   "sk_a883dc5b73fefbdf423b935034b9b114274230c25c190c7e";
@@ -93,23 +93,23 @@ export default function CallScreen() {
   };
 
   return (
-    <div className="call-container">
+    <div className={styles["call-container"]}>
       <BackgroundGradient />
-      <div className="call-content">
-        <img src={avatar} alt="AI Avatar" className="call-avatar" />
-        <h2 className="call-name">Olivia F. (AI)</h2>
-        <p className="call-status">{callStatus}</p>
+      <div className={styles["call-content"]}>
+        <img src={avatar} alt="AI Avatar" className={styles["call-avatar"]} />
+        <h2 className={styles["call-name"]}>Olivia F. (AI)</h2>
+        <p className={styles["call-status"]}>{callStatus}</p>
         {callStatus === "Connected" && (
-          <p className="call-time">{formatTime(callTime)}</p>
+          <p className={styles["call-time"]}>{formatTime(callTime)}</p>
         )}
 
-        <div className="call-actions">
-          <button className="call-action-btn mute-btn">🔇</button>
-          <button className="call-action-btn video-btn">🎥</button>
-          <button className="call-action-btn speaker-btn">🔈</button>
+        <div className={styles["call-actions"]}>
+          <button className={styles["call-action-btn mute-btn"]}>🔇</button>
+          <button className={styles["call-action-btn video-btn"]}>🎥</button>
+          <button className={styles["call-action-btn speaker-btn"]}>🔈</button>
         </div>
 
-        <button className="end-call-btn" onClick={endCall}>
+        <button className={styles["end-call-btn"]} onClick={endCall}>
           📞 End Call
         </button>
       </div>
