@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import avatar from "../../assets/image/avatar.png";
 import BackgroundGradient from "../../components/BackgroundGradient";
-import "./HomeScreen.css";
+import styles from "./HomeScreen.module.css";
 
 const contacts = [
   {
@@ -80,13 +80,13 @@ export default function HomeScreen() {
   }, []);
 
   return (
-    <div className="home-container">
+    <div className={styles["home-container"]}>
       <BackgroundGradient />
-      <div className="home-content">
-        <header className="home-header">
+      <div className={styles["home-content"]}>
+        <header className={styles["home-header"]}>
           <h2>Good Evening Max,</h2>
           <button
-            className="menu-button"
+            className={styles["menu-button"]}
             onClick={() => setMenuOpen((prev) => !prev)}
             ref={buttonRef}
           >
@@ -94,23 +94,23 @@ export default function HomeScreen() {
           </button>
 
           {menuOpen && (
-            <div className="dropdown-menu" ref={menuRef}>
-              <div className="dropdown-item">
+            <div className={styles["dropdown-menu"]} ref={menuRef}>
+              <div className={styles["dropdown-item"]}>
                 <span>👤</span> My Profile
               </div>
-              <div className="divider"></div>
-              <div className="dropdown-item">
+              <div className={styles["divider"]}></div>
+              <div className={styles["dropdown-item"]}>
                 <span>🧩</span> Subscriptions
               </div>
-              <div className="divider"></div>
-              <div className="dropdown-item">
+              <div className={styles["divider"]}></div>
+              <div className={styles["dropdown-item"]}>
                 <span>⚠️</span> Support
               </div>
             </div>
           )}
         </header>
 
-        <nav className="tabs">
+        <nav className={styles["tabs"]}>
           <span
             className={`tab ${activeTab === "contacts" ? "active" : ""}`}
             onClick={() => setActiveTab("contacts")}
@@ -128,19 +128,18 @@ export default function HomeScreen() {
         {activeTab === "contacts" && (
           <>
             <input
-              className="search-input"
+              className={styles["search-input"]}
               placeholder="🔍 Search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
 
-            <div className="vertical-scroll">
+            <div className={styles["vertical-scroll"]}>
               {filteredContacts.map((contact) => (
                 <div
                   key={contact.id}
-                  className={`contact-card ${
-                    contact.featured ? "highlight" : ""
-                  }`}
+                  className={`contact-card ${contact.featured ? "highlight" : ""
+                    }`}
                   onClick={() => navigate(`/chat/${contact.id}`)}
                 >
                   <img src={contact.img} alt={contact.name} />
@@ -163,15 +162,15 @@ export default function HomeScreen() {
 
         {activeTab === "suggested" && (
           <>
-            <div className="suggested-images horizontal-scroll">
+            <div className={styles["suggested-images horizontal-scroll"]}>
               {contacts.slice(0, 5).map((contact) => (
                 <img key={contact.id} src={contact.img} alt={contact.name} />
               ))}
             </div>
 
-            <div className="vertical-scroll">
+            <div className={styles["vertical-scroll"]}>
               {contacts.map((contact) => (
-                <div key={contact.id} className="contact-card">
+                <div key={contact.id} className={styles["contact-card"]}>
                   <img src={contact.img} alt={contact.name} />
                   <div>
                     <h4>{contact.name}</h4>
@@ -179,7 +178,7 @@ export default function HomeScreen() {
                       {contact.username} | {contact.likes} likes
                     </p>
                   </div>
-                  <button className="trial-btn">Trial</button>
+                  <button className={styles["trial-btn"]}>Trial</button>
                 </div>
               ))}
             </div>

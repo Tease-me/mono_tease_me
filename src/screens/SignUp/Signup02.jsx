@@ -1,46 +1,46 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import BackgroundGradient from "../../components/BackgroundGradient";
-import "./Signup.css";
+import styles from "./Signup.module.css";
 
 export default function Signup02() {
   const navigate = useNavigate();
 
   return (
-    <div className="auth-container">
+    <div className={styles["auth-container"]}>
       <BackgroundGradient />
-      <div className="auth-content">
-        <h2 className="auth-title">Fill Your Profile</h2>
+      <div className={styles["auth-content"]}>
+        <h2 className={styles["auth-title"]}>Fill Your Profile</h2>
 
-        <form className="auth-form">
-          <div className="profile-picture-container">
-            <div className="profile-picture-placeholder"></div>
-            <button className="edit-picture-btn">📷</button>
+        <form className={styles["auth-form"]}>
+          <div className={styles["profile-picture-container"]}>
+            <div className={styles["profile-picture-placeholder"]}></div>
+            <button className={styles["edit-picture-btn"]}>📷</button>
           </div>
 
-          <div className="gender-selection">
-            <button type="button" className="gender-btn active">
+          <div className={styles["gender-selection"]}>
+            <button type="button" className={styles["gender-btn active"]}>
               Male ♂️
             </button>
-            <button type="button" className="gender-btn">
+            <button type="button" className={styles["gender-btn"]}>
               Female ♀️
             </button>
           </div>
 
-          <input type="text" placeholder="Name" className="auth-input" />
+          <input type="text" placeholder="Name" className={styles["auth-input"]} />
           <input
             type="date"
             placeholder="Date of Birth"
-            className="auth-input"
+            className={styles["auth-input"]}
           />
-          <input type="text" placeholder="Nickname" className="auth-input" />
+          <input type="text" placeholder="Nickname" className={styles["auth-input"]} />
 
-          <div className="auth-buttons">
-            <button className="btn-back" onClick={() => navigate("/signup")}>
+          <div className={styles["auth-buttons"]}>
+            <button className={styles["btn-back"]} onClick={() => navigate("/signup")}>
               Back
             </button>
             <button
-              className="btn-primary"
+              className={styles["btn-primary"]}
               onClick={() => navigate("/signup/success")}
             >
               Continue

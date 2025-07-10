@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import BackgroundGradient from "../../components/BackgroundGradient";
-import "./Signup.css";
+import styles from "./Signup.module.css";
 
 export default function Signup03() {
   const navigate = useNavigate();
@@ -15,13 +15,13 @@ export default function Signup03() {
   }, [navigate]);
 
   return (
-    <div className="auth-container">
+    <div className={styles["auth-container"]}>
       <BackgroundGradient />
-      <div className="auth-content success-screen">
-        <div className="success-icon">🎉</div>
-        <h2 className="auth-title">Congratulations!</h2>
+      <div className={clsx(styles["auth-content"], styles["success-screen"])}>
+        <div className={styles["success-icon"]}>🎉</div>
+        <h2 className={styles["auth-title"]}>Congratulations!</h2>
         <p>Your account is ready to use. You'll be redirected shortly.</p>
-        <div className="loading-spinner"></div>
+        <div className={styles["loading-spinner"]}></div>
       </div>
     </div>
   );
