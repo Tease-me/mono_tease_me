@@ -9,19 +9,21 @@ import Signup02 from "./screens/signup/Signup02";
 import Signup03 from "./screens/signup/Signup03";
 import WelcomeScreen from "./screens/WelcomeScreen";
 import TestPage from "./screens/test/TestPage";
+import VoiceCall from "./screens/messaging/VoiceCall";
 
 function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
         <Route
-          path="/"
+          path="*"
           element={<WelcomeScreen name="Olivia F." />}
         />
         <Route
           path="/test"
           element={<TestPage />}
         />
+        <Route path="/voice" element={<VoiceCall />} />
         <Route path="/signup" element={<Signup01 />} />
         <Route path="/signup/profile" element={<Signup02 />} />
         <Route path="/signup/success" element={<Signup03 />} />
