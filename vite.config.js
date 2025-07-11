@@ -5,7 +5,7 @@ import path from "path";
 import svgr from "vite-plugin-svgr";
 
 export default defineConfig({
-  plugins: [tailwindcss(), react(), svgr({ include: '**/*.svg', }),],
+  plugins: [tailwindcss(), react(), svgr(),],
   server: {
     port: 3000,
   },

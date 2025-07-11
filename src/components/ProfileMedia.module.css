@@ -49,6 +49,9 @@
 
 .hearts-overlay .heart-image {
     position: absolute;
+    color: #EA1E61;
+    animation: float 3s ease-in-out infinite;
+    --rotate: 0deg;
 }
 
 .hearts-overlay .heart-image:nth-child(1) {
@@ -56,7 +59,10 @@
     left: 0;
     width: 36px;
     z-index: -1;
-    transform: rotate(-45deg);
+    color: #35383F;
+    --rotate: -45deg;
+    animation-delay: 0s;
+    transform: translateY(0) rotate(var(--rotate));
     transition: transform 0.3s ease;
 }
 
@@ -64,7 +70,9 @@
     top: 0;
     right: 0;
     width: 50px;
-    transform: rotate(45deg);
+    --rotate: 45deg;
+    animation-delay: 0.5s;
+    transform: translateY(0) rotate(var(--rotate));
     transition: transform 0.3s ease;
 }
 
@@ -72,7 +80,9 @@
     bottom: 0;
     left: 0;
     width: 50px;
-    transform: rotate(-18deg);
+    --rotate: -18deg;
+    animation-delay: 1s;
+    transform: translateY(0) rotate(var(--rotate));
     transition: transform 0.3s ease;
 }
 
@@ -81,13 +91,30 @@
     right: 0;
     z-index: -1;
     width: 36px;
-    transform: rotate(20deg);
+    --rotate: 20deg;
+    animation-delay: 1.5s;
+    transform: translateY(0) rotate(var(--rotate));
     transition: transform 0.3s ease;
+    color: #35383F;
 }
 
 @media (min-width: 768px) {
     .profile-container {
         width: 200px;
         height: 200px;
+    }
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0) rotate(var(--rotate));
+    }
+
+    50% {
+        transform: translateY(-10px) rotate(var(--rotate));
+    }
+
+    100% {
+        transform: translateY(0) rotate(var(--rotate));
     }
 }

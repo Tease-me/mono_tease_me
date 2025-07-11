@@ -2,8 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import styles from "./ProfileMedia.module.css";
 
 import foregroundFilter from "../assets/image/avatar_filter.png";
-// If using SVGR, import as a React component:
-import HeartIcon from "../assets/heart.svg?react";
+import HeartIcon from "../assets/Heart.svg?react";
 import clsx from 'clsx';
 
 interface ProfileMediaProps extends React.HTMLAttributes<HTMLDivElement> {
