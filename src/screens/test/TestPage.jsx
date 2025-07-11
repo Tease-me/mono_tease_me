@@ -1,16 +1,16 @@
+import ProfileMedia from '@/components/ProfileMedia';
 import BackgroundGradient from '../../components/BackgroundGradient';
 import './TestPage.module.css';
+import oliviaImage from "@/assets/image/avatar.png"
+import oliviaVideo from "@/assets/video/avatar_video.mp4";
 
 const TestPage = ({ }) => {
 
     return (
         <div className="test-page">
             <BackgroundGradient />
-            <div className="center items-center justify-center">
-                <div className="card bg-base-300 rounded-box grid h-20 place-items-center">content</div>
-                <div className="divider">OR</div>
-                <div className="card bg-base-300 rounded-box grid h-20 place-items-center">content</div>
-            </div>
+            <ProfileMedia mediaType='video' imageSrc={oliviaImage} videoSrc={oliviaVideo} />
+            <ProfileMedia mediaType='image' imageSrc={oliviaImage} videoSrc={oliviaVideo} />
         </div>
     );
 };

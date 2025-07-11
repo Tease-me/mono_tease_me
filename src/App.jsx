@@ -5,9 +5,9 @@ import CallScreen from "./screens/CallScreen";
 import ChatScreen from "./screens/ChatScreen";
 import HomeScreen from "./screens/home/HomeScreen";
 import LoginScreen from "./screens/LoginScreen";
-import Signup01 from "./screens/SignUp/Signup01";
-import Signup02 from "./screens/SignUp/Signup02";
-import Signup03 from "./screens/SignUp/Signup03";
+import Signup01 from "./screens/signup/Signup01";
+import Signup02 from "./screens/signup/Signup02";
+import Signup03 from "./screens/signup/Signup03";
 import WelcomeScreen from "./screens/WelcomeScreen";
 import TestPage from "./screens/test/TestPage";
 

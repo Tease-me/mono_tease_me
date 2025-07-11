@@ -5,6 +5,7 @@ import oliviaImage from "../assets/image/avatar.png";
 import oliviaVideo from "../assets/video/avatar_video.mp4";
 import BackgroundGradient from "../components/BackgroundGradient";
 import styles from "./WelcomeScreen.module.css";
+import ProfileMedia from "@/components/ProfileMedia";
 
 export default function WelcomeScreen({ name }) {
   const navigate = useNavigate();
@@ -14,18 +15,7 @@ export default function WelcomeScreen({ name }) {
       <BackgroundGradient />
 
       <div className={styles["content"]}>
-        <div className={styles["profile-container"]}>
-          <video autoPlay loop muted className={styles["profile-media"]}>
-            <source src={oliviaVideo} type="video/mp4" />
-            Your browser doesn't support video.
-          </video>
-
-          <div className={styles["hearts-overlay"]}>
-            <span className={styles["heart"]}>❤️</span>
-            <span className={styles["heart"]}>❤️</span>
-            <span className={styles["heart"]}>❤️</span>
-          </div>
-        </div>
+        <ProfileMedia className={styles["profile-container"]} videoSrc={oliviaVideo} imageSrc={oliviaImage} />
 
         <h2 className={styles["join-text"]}>Join {name} on</h2>
         <h1 className={styles["brand"]}>

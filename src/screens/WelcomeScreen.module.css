@@ -18,33 +18,18 @@ html {
 }
 
 .content {
+  display: flex;
   z-index: 1;
   width: 90%;
   max-width: 400px;
   text-align: center;
+  align-items: center;
+  flex-direction: column;
 }
 
 .profile-container {
-  position: relative;
-  width: 160px;
-  height: 160px;
+  display: flex;
   margin: 0 auto 20px auto;
-  border: 20px solid transparent;
-  border-radius: 50%;
-  background-color: #1e2127;
-  box-shadow: 0 0 25px rgba(255, 77, 109, 0.5);
-  overflow: hidden;
-  border-image: conic-gradient(from 0deg, #FF4D67, #FF4925) 1;
-}
-
-.profile-media {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-
-
-  object-fit: cover;
-  box-shadow: 0 0 25px rgba(255, 77, 109, 0.5);
 }
 
 .hearts-overlay {
