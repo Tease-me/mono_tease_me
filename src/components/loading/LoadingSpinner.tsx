@@ -1,9 +1,7 @@
 import React from 'react';
 import styles from "./LoadingSpinner.module.css"
-import LoadingSpinnerIcon from "@/assets/loading.svg?react";
-import BackgroundGradient from '../BackgroundGradient';
 
-interface LoadingSpinnerProps {
+interface LoadingSpinnerProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ }) => {

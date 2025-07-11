@@ -1,8 +1,14 @@
 import { BLAND_API_KEY } from "@/api/env";
+import LoadingSpinner from "@/components/loading/LoadingSpinner";
+import ProfileMedia from "@/components/ProfileMedia";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { BlandWebClient } from "bland-client-js-sdk";
 import { Loader2, Mic, MicOff, WifiOff } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import styles from "./VoiceChat.module.css";
+
+import oliviaImage from "@/assets/image/avatar.png"
+import oliviaVideo from "@/assets/video/avatar_video.mp4";
 
 type Message = {
   id: string;
@@ -264,18 +270,18 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto h-[400px] overflow-hidden border-none bg-white/10 backdrop-blur-lg shadow-2xl">
-      <CardHeader className="pb-4 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent"></div>
-        <CardTitle className="relative flex items-center justify-between text-2xl font-light tracking-tight text-white">
+    <div className={styles["main-container"]}>
+      <div className={styles["voice-chat-header"]}>
+        <ProfileMedia mediaType='video' imageSrc={oliviaImage} videoSrc={oliviaVideo} showHearts />
+        <div>
           <span className="flex items-center gap-3 w-full justify-center">
-            Voice Assistant
+            Olivia F.
             {isLoading && (
-              <Loader2 className="h-4 w-4 animate-spin text-white/70" />
+              <LoadingSpinner className="h-4 w-4 animate-spin text-white/70" />
             )}
           </span>
-        </CardTitle>
-      </CardHeader>
+        </div>
+      </div>
       <CardContent className="flex flex-col items-center justify-between h-[300px] px-8">
         <div className="text-center w-full flex flex-col items-center gap-6">
           <div
@@ -342,6 +348,6 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
           )}
         </div>
       </CardContent>
-    </Card>
+    </div>
   );
 }
