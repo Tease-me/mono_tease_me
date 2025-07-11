@@ -1,6 +1,5 @@
 import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import "./App.css";
 import CallScreen from "./screens/CallScreen";
 import ChatScreen from "./screens/ChatScreen";
 import HomeScreen from "./screens/home/HomeScreen";
@@ -11,7 +10,7 @@ import Signup03 from "./screens/signup/Signup03";
 import WelcomeScreen from "./screens/WelcomeScreen";
 import TestPage from "./screens/test/TestPage";
 
-function App() {
+function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
@@ -35,4 +34,4 @@ function App() {
   );
 }
 
-export default App;
+export default AppRoutes;
