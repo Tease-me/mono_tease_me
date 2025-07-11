@@ -1,0 +1,16 @@
+.circular-icon-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    background-color: var(--color-primary);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 4px 8px 24px 0 hsl(from var(--color-primary) h s l / 25%);
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.circular-icon-button:hover {
+    background-color: #ff3b5a;
+}

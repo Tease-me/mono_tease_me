@@ -9,6 +9,8 @@ import styles from "./VoiceChat.module.css";
 
 import oliviaImage from "@/assets/image/avatar.png"
 import oliviaVideo from "@/assets/video/avatar_video.mp4";
+import CircularIconButton from "@/components/buttons/CircularIconButton";
+import CloseSquareIcon from "@/assets/CloseSquare.svg?react";
 
 type Message = {
   id: string;
@@ -32,19 +34,15 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
   const [isConnected, setIsConnected] = useState(false);
   const [callId, setCallId] = useState<string>("");
 
-  // Utility functions for cleanup
   const cleanupWebSocket = async (wsInstance: WebSocket): Promise<void> => {
     if (wsInstance && wsInstance.readyState !== WebSocket.CLOSED) {
-      // Remove listeners
       wsInstance.onclose = null;
       wsInstance.onerror = null;
       wsInstance.onmessage = null;
       wsInstance.onopen = null;
 
-      // Close connection
       wsInstance.close(1000, "User disconnected");
 
-      // Wait for closure
       await new Promise<void>((resolve) => {
         const checkClosed = setInterval(() => {
           if (wsInstance.readyState === WebSocket.CLOSED) {
@@ -75,11 +73,9 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
 
     try {
       let state = audioContext.state;
-      console.log("AudioContext cleanup: current state is", state);
 
       if (state === "closed") return;
 
-      // Try suspending if running
       if (state === "running") {
         try {
           await audioContext.suspend();
@@ -91,12 +87,11 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
             throw e;
           }
         }
-        // Update the state after suspending
+
         state = audioContext.state;
         if (state === "closed") return;
       }
 
-      // Try closing if not suspended
       if (state !== "suspended") {
         try {
           await audioContext.close();
@@ -138,7 +133,6 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
   const cleanup = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Clear audio level interval
       if (audioLevelIntervalRef.current) {
         clearInterval(audioLevelIntervalRef.current);
         audioLevelIntervalRef.current = null;
@@ -146,27 +140,18 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
 
       if (clientRef.current) {
         try {
-          // Stop ongoing processes
           if (typeof (clientRef.current as any).stop === "function") {
             await (clientRef.current as any).stop();
           }
 
-          // Cleanup WebSocket
           const wsInstance =
             (clientRef.current as any)._ws ||
             (clientRef.current as any).ws ||
             (clientRef.current as any).webSocket;
           await cleanupWebSocket(wsInstance);
 
-          // Cleanup client
-          // if ( clientRef.current?.disconnect) {
-          //   await clientRef.current?.disconnect();
-          // }
-
-          // Cleanup media stream
           cleanupMediaStream((clientRef.current as any).mediaStream);
 
-          // Cleanup audio context
           await cleanupAudioContext((clientRef.current as any).audioContext);
 
           clientRef.current = null;
@@ -175,14 +160,11 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
           throw new Error("Failed to disconnect properly");
         }
       }
-
-      // Release microphone as final step
       await releaseMicrophone();
     } catch (err) {
       console.error("Error during cleanup:", err);
       setError(err instanceof Error ? err.message : "Cleanup failed");
     } finally {
-      // Reset states
       setIsConnected(false);
       setIsRecording(false);
       setStatus("Disconnected");
@@ -192,7 +174,6 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
     }
   }, []);
 
-  // Handle voice toggle
   const handleVoiceToggle = async () => {
     if (isRecording) {
       setStatus("Disconnecting...");
@@ -202,7 +183,6 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
     }
   };
 
-  // Add connection status effect
   useEffect(() => {
     return () => {
       if (isConnected) {
@@ -248,7 +228,6 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
 
       setCallId(currentCallId);
       setStatus("Connected! Start speaking...");
-      console.log(currentCallId);
       setIsRecording(true);
       setIsConnected(true);
 
@@ -294,8 +273,10 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
           >
             {status}
           </div>
-
-          <button
+          <CircularIconButton>
+            <CloseSquareIcon onClick={handleVoiceToggle} />
+          </CircularIconButton>
+          {/* <button
             onClick={handleVoiceToggle}
             className={`
               w-24 h-24 rounded-full transition-colors duration-500 
@@ -309,12 +290,13 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
             `}
             disabled={isLoading}
           >
+
             {isRecording ? (
               <MicOff className="h-8 w-8 text-red-500 transition-transform duration-300 group-hover:scale-110" />
             ) : (
               <Mic className="h-8 w-8 text-white transition-transform duration-300 group-hover:scale-110" />
             )}
-          </button>
+          </button> */}
 
           <div className="h-12 flex items-center justify-center">
             {isRecording ? (
