@@ -6,6 +6,7 @@ import oliviaVideo from "../assets/video/avatar_video.mp4";
 import BackgroundGradient from "../components/BackgroundGradient";
 import styles from "./WelcomeScreen.module.css";
 import ProfileMedia from "@/components/ProfileMedia";
+import PrimaryButton from "@/components/buttons/PrimaryButton";
 
 export default function WelcomeScreen({ name }) {
   const navigate = useNavigate();
@@ -37,9 +38,7 @@ export default function WelcomeScreen({ name }) {
           <span>or</span>
         </div>
 
-        <button className={styles["email-button"]} onClick={() => navigate("/login")}>
-          Sign in with email
-        </button>
+        <PrimaryButton />
       </div>
     </div>
   );

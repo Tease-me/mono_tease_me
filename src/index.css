@@ -1,3 +1,12 @@
+/* Reset user agent styles */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 @import "tailwindcss";
 @plugin "daisyui";
 
@@ -36,14 +45,20 @@
   --noise: 0;
 }
 
-#root {
-  font-family: "Urbanist", sans-serif;
-  max-width: 1280px;
+:root {
+  --primary-font-family: "Urbanist", sans-serif;
   --color-text: #FFFFFF;
   --color-text-secondary: #9E9E9E;
-  --color-primary: #FF4D67;
-  --color-dark-1: #181A20;
+  --color-primary: hsla(351, 100%, 65%, 1);
+  --color-dark-1: hsla(225, 14%, 11%, 1);
   --color-dark-2: #1F222A;
   --color-dark-3: #35383F;
   --color-alert: #DF485E;
+}
+
+html,
+body {
+  font-family: var(--primary-font-family);
+  background-color: var(--color-dark-1);
+  color: var(--color-text);
 }
