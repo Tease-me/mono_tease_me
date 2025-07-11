@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import styles from "./ProfileMedia.module.css";
 
 import foregroundFilter from "../assets/image/avatar_filter.png";
+// If using SVGR, import as a React component:
+import HeartIcon from "../assets/heart.svg?react";
 import clsx from 'clsx';
 
 interface ProfileMediaProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -28,30 +30,46 @@ const ProfileMedia: React.FC<ProfileMediaProps> = ({ mediaType = "video", imageS
     }, [showVideo]);
 
     return (<div {...restProps} className={clsx(styles["profile-container"], restProps.className)} >
-        {showVideo ? (
-            <div className={styles["profile-background"]}>
-                <video autoPlay loop muted playsInline ref={videoRef} className={styles["profile-media"]}>
-                    <source src={videoSrc} type="video/mp4" />
-                    Your browser doesn't support video.{" "}
-                    <img
-                        src={imageSrc}
-                        alt={altText}
-                        className={styles["profile-media"]}
-                    />
-                </video>
-            </div>
-        ) : (
+        <div className={styles["profile-media-container"]}>
+            {showVideo ? (
+                <div className={styles["profile-background"]}>
+                    <video autoPlay loop muted playsInline ref={videoRef} className={styles["profile-media"]}>
+                        <source src={videoSrc} type="video/mp4" />
+                        Your browser doesn't support video.{" "}
+                        <img
+                            src={imageSrc}
+                            alt={altText}
+                            className={styles["profile-media"]}
+                        />
+                    </video>
+                </div>
+            ) : (
+                <img
+                    src={imageSrc}
+                    alt="Profile"
+                    className={styles["profile-media"]}
+                />
+            )}
             <img
-                src={imageSrc}
+                src={foregroundFilter}
                 alt="Profile"
-                className={styles["profile-media"]}
+                className={styles["profile-media-filter"]}
             />
-        )}
-        <img
-            src={foregroundFilter}
-            alt="Profile"
-            className={styles["profile-media-filter"]}
-        />
+        </div>
+        <div className={styles["hearts-overlay"]}>
+            <HeartIcon
+                className={styles["heart-image"]}
+            />
+            <HeartIcon
+                className={styles["heart-image"]}
+            />
+            <HeartIcon
+                className={styles["heart-image"]}
+            />
+            <HeartIcon
+                className={styles["heart-image"]}
+            />
+        </div>
     </div>);
 };
 

@@ -25,6 +25,7 @@
       ]
     },
     "types": [
+      "vite-plugin-svgr/client",
       "vite/client"
     ],
     "baseUrl": "."
@@ -33,6 +34,7 @@
     "src",
     "src/**/*.ts",
     "src/**/*.tsx",
+    "./vite-env.d.ts"
   ],
   "exclude": [
     "node_modules"
