@@ -7,12 +7,13 @@ import clsx from 'clsx';
 
 interface ProfileMediaProps extends React.HTMLAttributes<HTMLDivElement> {
     mediaType?: 'video' | 'image';
+    showHearts?: boolean;
     imageSrc?: string;
     videoSrc?: string;
     altText?: string;
 }
 
-const ProfileMedia: React.FC<ProfileMediaProps> = ({ mediaType = "video", imageSrc, videoSrc, altText = "Profile Image", ...restProps }) => {
+const ProfileMedia: React.FC<ProfileMediaProps> = ({ mediaType = "video", showHearts = false, imageSrc, videoSrc, altText = "Profile Image", ...restProps }) => {
     const isVideoSupported =
         typeof document !== 'undefined' &&
         document.createElement('video').canPlayType('video/mp4') !== '';
@@ -55,7 +56,7 @@ const ProfileMedia: React.FC<ProfileMediaProps> = ({ mediaType = "video", imageS
                 className={styles["profile-media-filter"]}
             />
         </div>
-        <div className={styles["hearts-overlay"]}>
+        {showHearts && <div className={styles["hearts-overlay"]}>
             <HeartIcon
                 className={styles["heart-image"]}
             />
@@ -68,7 +69,7 @@ const ProfileMedia: React.FC<ProfileMediaProps> = ({ mediaType = "video", imageS
             <HeartIcon
                 className={styles["heart-image"]}
             />
-        </div>
+        </div>}
     </div>);
 };
 

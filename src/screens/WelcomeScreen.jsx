@@ -15,7 +15,7 @@ export default function WelcomeScreen({ name }) {
       <BackgroundGradient />
 
       <div className={styles["content"]}>
-        <ProfileMedia className={styles["profile-container"]} videoSrc={oliviaVideo} imageSrc={oliviaImage} />
+        <ProfileMedia className={styles["profile-container"]} videoSrc={oliviaVideo} imageSrc={oliviaImage} showHearts />
 
         <h2 className={styles["join-text"]}>Join {name} on</h2>
         <h1 className={styles["brand"]}>
