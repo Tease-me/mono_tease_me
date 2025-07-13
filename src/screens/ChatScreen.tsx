@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import avatar from "../assets/image/avatar.png";
-import BackgroundGradient from "../components/BackgroundGradient";
+import BackgroundGradient from "../templates/BackgroundGradient";
 import styles from "./ChatScreen.module.css";
 
 const contacts = [

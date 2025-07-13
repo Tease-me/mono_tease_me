@@ -3,7 +3,7 @@ import LoadingSpinner from "@/components/loading/LoadingSpinner";
 import ProfileMedia from "@/components/ProfileMedia";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { BlandWebClient } from "bland-client-js-sdk";
-import { Loader2, Mic, MicOff, WifiOff } from "lucide-react";
+import { Loader2, Mic, MicOff, WifiIcon, WifiOff } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./VoiceChat.module.css";
 
@@ -316,7 +316,7 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
             ) : (
               !isLoading && (
                 <div className="flex justify-center items-center gap-2 text-white/50">
-                  <WifiOff className="h-4 w-4" />
+                  <WifiIcon className="h-4 w-4" />
                   <span className="text-sm font-light">Ready to start</span>
                 </div>
               )

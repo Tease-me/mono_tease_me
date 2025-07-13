@@ -1,7 +1,8 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import BackgroundGradient from "../../components/BackgroundGradient";
+import BackgroundGradient from "../../templates/BackgroundGradient";
 import styles from "./Signup.module.css";
+import clsx from "clsx";
 
 export default function Signup03() {
   const navigate = useNavigate();

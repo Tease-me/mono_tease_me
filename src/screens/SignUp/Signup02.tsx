@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import BackgroundGradient from "../../components/BackgroundGradient";
+import BackgroundGradient from "../../templates/BackgroundGradient";
 import styles from "./Signup.module.css";
 
 export default function Signup02() {

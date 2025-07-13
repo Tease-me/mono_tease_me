@@ -1,5 +1,5 @@
 import ProfileMedia from '@/components/ProfileMedia';
-import BackgroundGradient from '../../components/BackgroundGradient';
+import BackgroundGradient from '../../templates/BackgroundGradient';
 import './TestPage.module.css';
 import oliviaImage from "@/assets/image/avatar.png"
 import oliviaVideo from "@/assets/video/avatar_video.mp4";

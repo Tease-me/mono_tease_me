@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import avatar from "../assets/image/avatar.png";
-import BackgroundGradient from "../components/BackgroundGradient";
+import BackgroundGradient from "../templates/BackgroundGradient";
 import styles from "./CallScreen.module.css";
 
 const ELEVENLABS_API_KEY =
@@ -44,14 +44,14 @@ export default function CallScreen() {
   }, []);
 
   useEffect(() => {
-    let interval;
+    let interval: NodeJS.Timeout;
     if (callStatus === "Connected") {
       interval = setInterval(() => setCallTime((prev) => prev + 1), 1000);
     }
     return () => clearInterval(interval);
   }, [callStatus]);
 
-  const formatTime = (seconds) => {
+  const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
       .toString()
       .padStart(2, "0");
@@ -59,7 +59,7 @@ export default function CallScreen() {
     return `${mins}:${secs}`;
   };
 
-  const playAudio = async (text) => {
+  const playAudio = async (text: string) => {
     try {
       const response = await axios.post(
         `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,

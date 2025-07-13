@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styles from "./VoiceCall.module.css"
-import BackgroundGradient from '@/components/BackgroundGradient';
+import BackgroundGradient from '@/templates/BackgroundGradient';
 import { createWebAgent } from '@/api/bland/bland';
 import LoadingSpinner from '@/components/loading/LoadingSpinner';
 import VoiceChat from './VoiceChat';

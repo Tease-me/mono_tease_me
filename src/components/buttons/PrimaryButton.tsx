@@ -5,9 +5,9 @@ interface PrimaryButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 }
 
-const PrimaryButton: React.FC<PrimaryButtonProps> = ({ }) => {
+const PrimaryButton: React.FC<PrimaryButtonProps> = ({ ...restProps }) => {
     return (
-        <button className={styles["button"]}>
+        <button className={styles["button"]} {...restProps}>
             Sign in with email
         </button>
     );

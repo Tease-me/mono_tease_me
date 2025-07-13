@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import BackgroundGradient from "../components/BackgroundGradient";
+import BackgroundGradient from "../templates/BackgroundGradient";
 import styles from "./LoginScreen.module.css";
 
 export default function LoginScreen() {
