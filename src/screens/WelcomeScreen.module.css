@@ -15,9 +15,15 @@
   z-index: 1;
   width: 90%;
   max-width: 400px;
+  margin-top: 56px;
   text-align: center;
   align-items: center;
   flex-direction: column;
+}
+
+.logo {
+  width: 200px;
+  height: 200px;
 }
 
 .profile-container {
@@ -29,16 +35,6 @@
   font-size: 22px;
   font-weight: 600;
   margin-bottom: 10px;
-}
-
-.brand {
-  font-size: 36px;
-  font-weight: bold;
-  margin-bottom: 20px;
-}
-
-.brand span {
-  color: #ff4d6d;
 }
 
 .signup-text {

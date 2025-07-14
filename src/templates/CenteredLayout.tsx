@@ -7,7 +7,7 @@ interface CenteredLayoutProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const CenteredLayout: React.FC<CenteredLayoutProps> = ({ ...restProps }) => {
     return (
-        <div className={clsx(styles["container"], restProps.className)}{...restProps}>
+        <div {...restProps} className={clsx(styles["container"], restProps.className)}>
             <div className={styles["content"]} >
                 {restProps.children}
             </div>

@@ -18,7 +18,7 @@ const CircularIconButton = ({ text, icon, ...props }: CircularIconButtonProps) =
         }
     }
     return (
-        <button className={clsx(styles["button"], getButtonClassName(), props.className)} {...props}>
+        <button {...props} className={clsx(styles["button"], getButtonClassName(), props.className)} >
             <span className={styles["contents"]}>
                 {icon && <span className={styles["icon-container"]}>
                     {icon}

@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "cp .env.local .env | vite",
+    "dev": "cp .env.local .env | vite --host",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
