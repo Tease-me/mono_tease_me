@@ -13,10 +13,10 @@
 .content {
     display: flex;
     flex: 1;
-    z-index: 1;
-    width: 90%;
-    max-width: 400px;
+    margin: 16px;
     text-align: center;
     align-items: center;
     flex-direction: column;
+    overflow: none;
+    overflow-y: auto;
 }

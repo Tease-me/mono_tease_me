@@ -2,7 +2,7 @@ import React from 'react';
 import styles from "./PrimaryButton.module.css"
 
 interface PrimaryButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-
+    text?: string;
 }
 
 const PrimaryButton: React.FC<PrimaryButtonProps> = ({ ...restProps }) => {

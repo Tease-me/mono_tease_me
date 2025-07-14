@@ -2,14 +2,31 @@ import React from 'react';
 import styles from "./CircularIconButton.module.css"
 import clsx from 'clsx';
 
-interface CircularIconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-
+interface CircularIconButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
+    text?: string;
+    icon?: React.ReactNode;
 }
 
-const CircularIconButton: React.FC<CircularIconButtonProps> = ({ ...props }) => {
+const CircularIconButton = ({ text, icon, ...props }: CircularIconButtonProps) => {
+    const getButtonClassName = () => {
+        if (text && icon) {
+            return styles["button-with-text-and-icon"];
+        } else if (text) {
+            return styles["button-with-text-only"];
+        } else if (icon) {
+            return styles["button-with-icon-only"];
+        }
+    }
     return (
-        <button className={clsx(styles["circular-icon-button"], props.className)} {...props}>
-            {props.children}
+        <button className={clsx(styles["button"], getButtonClassName(), props.className)} {...props}>
+            <span className={styles["contents"]}>
+                {icon && <span className={styles["icon-container"]}>
+                    {icon}
+                </span>}
+                {text && <span className={styles["text-container"]}>
+                    {text}
+                </span>}
+            </span>
         </button>
     );
 };

@@ -5,6 +5,7 @@ import { createWebAgent, updateWebAgent } from '@/api/bland/bland';
 import LoadingSpinner from '@/components/loading/LoadingSpinner';
 import VoiceChat from './VoiceChat';
 import { BLAND_AGENT_LUNA, BLAND_AGENT_TEST } from '@/api/env';
+import CenteredLayout from '@/templates/CenteredLayout';
 
 interface VoiceCallProps {
 }
@@ -84,8 +85,11 @@ const VoiceCall: React.FC<VoiceCallProps> = ({ }) => {
 
     return (
         <div className={styles["voice-call-container"]}>
-            <BackgroundGradient />
-            {isLoading ? <LoadingSpinner /> : agentId && <VoiceChat agentId={agentId} />}
+            <BackgroundGradient>
+                <CenteredLayout>
+                    {isLoading ? <LoadingSpinner /> : agentId && <VoiceChat agentId={agentId} />}
+                </CenteredLayout>
+            </BackgroundGradient>
         </div>
     );
 };

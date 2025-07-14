@@ -1,9 +1,8 @@
 import { BLAND_API_KEY } from "@/api/env";
 import LoadingSpinner from "@/components/loading/LoadingSpinner";
 import ProfileMedia from "@/components/ProfileMedia";
-import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
+
 import { BlandWebClient } from "bland-client-js-sdk";
-import { Loader2, Mic, MicOff, WifiIcon, WifiOff } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./VoiceChat.module.css";
 
@@ -11,7 +10,12 @@ import oliviaImage from "@/assets/image/avatar.png"
 import oliviaVideo from "@/assets/video/avatar_video.mp4";
 import CircularIconButton from "@/components/buttons/CircularIconButton";
 import CloseSquareIcon from "@/assets/CloseSquare.svg?react";
-
+import CallIcon from "@/assets/Call.svg?react";
+import WifiIcon from "@/assets/Wifi.svg?react";
+import TeaseMeIconLight from "@/assets/LogoTeaseMe-Light.svg?react";
+import teaseMeIconLight from "@/assets/LogoTeaseMe-Light.svg";
+import TeaseMeIconDark from "@/assets/LogoTeaseMeDarkMode.svg?react";
+import teaseMeIconDark from "@/assets/LogoTeaseMeDarkMode.svg";
 type Message = {
   id: string;
   text: string;
@@ -261,75 +265,52 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
           </span>
         </div>
       </div>
-      <CardContent className="flex flex-col items-center justify-between h-[300px] px-8">
-        <div className="text-center w-full flex flex-col items-center gap-6">
-          <div
-            className={`text-lg font-light transition-colors duration-300 ${isRecording
-              ? "text-white"
-              : isLoading
-                ? "text-white/70"
-                : "text-white/50"
-              }`}
-          >
-            {status}
-          </div>
-          <CircularIconButton>
-            <CloseSquareIcon onClick={handleVoiceToggle} />
-          </CircularIconButton>
-          {/* <button
-            onClick={handleVoiceToggle}
-            className={`
-              w-24 h-24 rounded-full transition-colors duration-500 
-              ${isRecording
-                ? "bg-red-500/20 hover:bg-red-500/30"
-                : "bg-white/10 hover:bg-white/20"
-              } 
-              border-none shadow-xl hover:shadow-2xl
-              flex items-center justify-center
-              group
-            `}
-            disabled={isLoading}
-          >
+      <div className="text-center w-full flex flex-col items-center gap-6">
+        <div
+          className={`text-lg font-light transition-colors duration-300 ${isRecording
+            ? "text-white"
+            : isLoading
+              ? "text-white/70"
+              : "text-white/50"
+            }`}
+        >
+          {status}
+        </div>
 
-            {isRecording ? (
-              <MicOff className="h-8 w-8 text-red-500 transition-transform duration-300 group-hover:scale-110" />
-            ) : (
-              <Mic className="h-8 w-8 text-white transition-transform duration-300 group-hover:scale-110" />
-            )}
-          </button> */}
-
-          <div className="h-12 flex items-center justify-center">
-            {isRecording ? (
-              <div className="flex justify-center items-center space-x-1">
-                {[...Array(12)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="w-1 bg-white/30 rounded-full animate-pulse"
-                    style={{
-                      height: `${Math.max(12, Math.random() * 48)}px`,
-                      animationDelay: `${i * 0.1}s`,
-                      animationDuration: "0.5s",
-                    }}
-                  />
-                ))}
-              </div>
-            ) : (
-              !isLoading && (
-                <div className="flex justify-center items-center gap-2 text-white/50">
-                  <WifiIcon className="h-4 w-4" />
-                  <span className="text-sm font-light">Ready to start</span>
-                </div>
-              )
-            )}
-          </div>
-
-          {error && (
-            <div className="text-red-300/90 text-sm bg-red-500/10 p-4 rounded-2xl backdrop-blur-sm">
-              {error}
+        <CircularIconButton onClick={handleVoiceToggle} disabled={isLoading} icon={isConnected ? <CloseSquareIcon /> : <CallIcon />} />
+        <CircularIconButton onClick={handleVoiceToggle} disabled={isLoading} icon={<CloseSquareIcon />} text="Sign In with Email" />
+        <CircularIconButton onClick={handleVoiceToggle} disabled={isLoading} text="Sign In with Email" />
+        <div className="h-12 flex items-center justify-center">
+          {isRecording ? (
+            <div className="flex justify-center items-center space-x-1">
+              {[...Array(12)].map((_, i) => (
+                <div
+                  key={i}
+                  className="w-1 bg-white/30 rounded-full animate-pulse"
+                  style={{
+                    height: `${Math.max(12, Math.random() * 48)}px`,
+                    animationDelay: `${i * 0.1}s`,
+                    animationDuration: "0.5s",
+                  }}
+                />
+              ))}
             </div>
+          ) : (
+            !isLoading && (
+              <div className="flex justify-center items-center gap-2 text-white/50">
+                <WifiIcon className="h-4 w-4" />
+                <span className="text-sm font-light">Ready to start</span>
+              </div>
+            )
           )}
         </div>
-      </CardContent>
+
+        {error && (
+          <div className="text-red-300/90 text-sm bg-red-500/10 p-4 rounded-2xl backdrop-blur-sm">
+            {error}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
