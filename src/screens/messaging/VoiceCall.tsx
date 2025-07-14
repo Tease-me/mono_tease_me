@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import styles from "./VoiceCall.module.css"
 import BackgroundGradient from '@/templates/BackgroundGradient';
-import { createWebAgent } from '@/api/bland/bland';
+import { createWebAgent, updateWebAgent } from '@/api/bland/bland';
 import LoadingSpinner from '@/components/loading/LoadingSpinner';
 import VoiceChat from './VoiceChat';
+import { BLAND_AGENT_LUNA, BLAND_AGENT_TEST } from '@/api/env';
 
 interface VoiceCallProps {
 }
@@ -29,7 +30,6 @@ const VoiceCall: React.FC<VoiceCallProps> = ({ }) => {
     //             setIsLoading(false);
     //         }
     //     };
-
     //     initAgent();
     // }, []);
 
@@ -37,7 +37,11 @@ const VoiceCall: React.FC<VoiceCallProps> = ({ }) => {
         const initAgent = async () => {
             setIsLoading(true);
             try {
-                setAgentId("cc915b2d-95d8-453e-b55f-1c8ab5cff33f");
+                const response = await updateWebAgent(BLAND_AGENT_LUNA);
+                if (!response.agent?.agent_id) {
+                    throw new Error("Failed to create web agent");
+                }
+                setAgentId(response.agent.agent_id);
             } catch (err) {
                 console.error("Agent creation error:", err);
                 setError(err instanceof Error ? err.message : "Failed to create agent");
@@ -45,9 +49,23 @@ const VoiceCall: React.FC<VoiceCallProps> = ({ }) => {
                 setIsLoading(false);
             }
         };
-
         initAgent();
     }, []);
+
+    // useEffect(() => {
+    //     const initAgent = async () => {
+    //         setIsLoading(true);
+    //         try {
+    //             setAgentId(BLAND_AGENT_LUNA);
+    //         } catch (err) {
+    //             console.error("Agent creation error:", err);
+    //             setError(err instanceof Error ? err.message : "Failed to create agent");
+    //         } finally {
+    //             setIsLoading(false);
+    //         }
+    //     };
+    //     initAgent();
+    // }, []);
 
 
     useEffect(() => {

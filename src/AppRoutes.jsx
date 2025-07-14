@@ -1,7 +1,7 @@
 import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import CallScreen from "./screens/CallScreen";
-import ChatScreen from "./screens/ChatScreen";
+import ChatScreen from "./screens/messaging/ChatScreen";
 import HomeScreen from "./screens/home/HomeScreen";
 import LoginScreen from "./screens/LoginScreen";
 import Signup01 from "./screens/signup/Signup01";

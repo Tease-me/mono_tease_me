@@ -1,9 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import styles from "./ProfileMedia.module.css";
 
 import foregroundFilter from "../assets/image/avatar_filter.png";
 import HeartIcon from "../assets/Heart.svg?react";
 import clsx from 'clsx';
+export type ProfileMediaSize = 'small' | 'medium' | 'large' | 'xlarge';
 
 interface ProfileMediaProps extends React.HTMLAttributes<HTMLDivElement> {
     mediaType?: 'video' | 'image';
@@ -13,7 +14,14 @@ interface ProfileMediaProps extends React.HTMLAttributes<HTMLDivElement> {
     altText?: string;
 }
 
-const ProfileMedia: React.FC<ProfileMediaProps> = ({ mediaType = "video", showHearts = false, imageSrc, videoSrc, altText = "Profile Image", ...restProps }) => {
+const ProfileMedia: React.FC<ProfileMediaProps> = ({
+    mediaType = "video",
+    showHearts = false,
+    imageSrc,
+    videoSrc,
+    altText = "Profile Image",
+    ...restProps
+}) => {
     const isVideoSupported =
         typeof document !== 'undefined' &&
         document.createElement('video').canPlayType('video/mp4') !== '';
