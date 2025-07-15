@@ -12,6 +12,7 @@ import styles from "./ChatScreen.module.css";
 import ProfileMedia from "@/components/ProfileMedia";
 import clsx from "clsx";
 import { Endpoints } from "@/api/urls";
+import { TEASE_ME_HOST } from "@/api/env";
 
 export interface Message {
   id: number;
@@ -52,10 +53,10 @@ export default function ChatScreen() {
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIn0.nMCNZAW9ZROF5w0ry_wA3ywe-XnzgW40zeHSDdiN0h8'; // Cole aqui o token recebido no login
 
   useEffect(() => {
+    console.log("Host Name", TEASE_ME_HOST);
     ws.current = new window.WebSocket(`${Endpoints.CHAT}/${personaId}?token=${jwtToken}`);
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      console.log("Received message:", data);
       setMessages(prev => [
         ...prev,
         {
@@ -107,11 +108,9 @@ export default function ChatScreen() {
             <h2>Inbox</h2>
             <button className={styles["menu-button"]}>⋯</button>
           </header>
-
+          <ProfileMedia imageSrc={user?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
+          <h3 className={styles["chat-user-name"]}>{user?.name}</h3>
           <div className={styles["chat-messages-container"]}>
-            <ProfileMedia imageSrc={user?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
-            <h3 className={styles["chat-user-name"]}>{user?.name}</h3>
-
             <div className={styles["messages"]}>
               {messages.map((msg) => (
                 <div key={msg.id} className={clsx(styles["message"], styles[msg.sender])}>
@@ -120,19 +119,18 @@ export default function ChatScreen() {
                 </div>
               ))}
             </div>
-
-            <div className={styles["chat-input-area"]}>
-              <input
-                type="text"
-                placeholder="Message..."
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              />
-              <CircularIconButton icon={<CallIcon />} className={styles["call-btn"]} onClick={() => alert("Camera clicked")} size="small" />
-              <CircularIconButton icon={<MicrophoneIcon />} className={styles["voice-btn"]} onClick={() => alert("Camera clicked")} size="small" variant="secondary" />
-              <CircularIconButton icon={<SendIcon />} className={styles["send-btn"]} onClick={sendMessage} size="small" />
-            </div>
+          </div>
+          <div className={styles["chat-input-area"]}>
+            <input
+              type="text"
+              placeholder="Message..."
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+            />
+            <CircularIconButton icon={<CallIcon />} className={styles["call-btn"]} onClick={() => alert("Camera clicked")} size="small" />
+            <CircularIconButton icon={<MicrophoneIcon />} className={styles["voice-btn"]} onClick={() => alert("Camera clicked")} size="small" variant="secondary" />
+            <CircularIconButton icon={<SendIcon />} className={styles["send-btn"]} onClick={sendMessage} size="small" />
           </div>
         </div>
       </div>
