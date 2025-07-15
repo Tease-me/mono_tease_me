@@ -1,14 +1,28 @@
 .button {
-    --gradient-angle: 180deg;
-    --gradient-start: #FF4D67;
-    --gradient-end: #FF8395;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(var(--gradient-angle), var(--gradient-start) 0%, var(--gradient-end) 100%);
     border-radius: 28px;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.button.primary {
+    background: linear-gradient(var(--gradient-angle), var(--gradient-start-red-start) -50%, var(--gradient-end-red-end) 150%);
+    color: #fff;
+}
+
+button.secondary {
+    background: linear-gradient(var(--gradient-angle), var(--gradient-orange-start) -50%, var(--gradient-orange-end) 150%);
+    color: #fff;
+}
+
+.button:hover.primary {
+    background: linear-gradient(var(--gradient-angle), var(--gradient-start-red-start) 100%, var(--gradient-end-red-end) 0%);
+}
+
+button:hover.secondary {
+    background: linear-gradient(var(--gradient-angle), var(--gradient-orange-start) 100%, var(--gradient-orange-end) 0%);
 }
 
 .contents {
@@ -31,13 +45,6 @@
     height: 16px;
 }
 
-.button:hover {
-    --hover-gradient-angle: 90deg;
-    --hover-gradient-start: var(--color-primary);
-    --hover-gradient-end: #ff3b5a;
-    background: linear-gradient(var(--hover-gradient-angle), var(--hover-gradient-start) 0%, var(--hover-gradient-end) 100%);
-}
-
 .button-with-text-and-icon {
     display: flex;
     gap: 8px;
@@ -55,6 +62,15 @@
 }
 
 .button-with-icon-only.small {
-    width: 48px;
-    height: 48px;
+    width: 57px;
+    height: 57px;
+}
+
+.button-with-icon-only.small>.icon-container {
+    width: 24px;
+    height: 24px;
+}
+
+.icon-container svg {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }

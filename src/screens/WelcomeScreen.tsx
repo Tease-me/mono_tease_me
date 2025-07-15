@@ -20,7 +20,7 @@ export default function WelcomeScreen({ name }: WelcomeScreenProps) {
   return (
     <BackgroundGradient>
       <CenteredLayout className={styles["welcome-screen-container"]}>
-        <ProfileMedia className={styles["profile-container"]} videoSrc={oliviaVideo} imageSrc={oliviaImage} showHearts />
+        <ProfileMedia className={styles["profile-container"]} videoSrc={oliviaVideo} imageSrc={oliviaImage} showHearts active size="xlarge" />
         <h2 className={styles["join-text"]}>Join {name} on</h2>
         <img src={teaseMeLogo} alt="Olivia" className={styles["logo"]} />
         <p className={styles["signup-text"]}>

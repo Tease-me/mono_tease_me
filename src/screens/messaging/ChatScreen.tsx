@@ -104,7 +104,7 @@ export default function ChatScreen() {
                 onKeyDown={(e) => e.key === "Enter" && sendMessage()}
               />
               <CircularIconButton icon={<CallIcon />} className={styles["call-btn"]} onClick={() => alert("Camera clicked")} size="small" />
-              <CircularIconButton icon={<MicrophoneIcon />} className={styles["voice-btn"]} onClick={() => alert("Camera clicked")} size="small" />
+              <CircularIconButton icon={<MicrophoneIcon />} className={styles["voice-btn"]} onClick={() => alert("Camera clicked")} size="small" variant="secondary" />
               <CircularIconButton icon={<SendIcon />} className={styles["send-btn"]} onClick={sendMessage} size="small" />
             </div>
           </div>

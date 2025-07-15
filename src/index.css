@@ -54,10 +54,12 @@
   --color-dark-2: #1F222A;
   --color-dark-3: #35383F;
   --color-alert: #DF485E;
-
-  --gradient-angle: 180deg;
-  --primary-gradient-start: #FF4D67;
-  --primary-gradient-end: #FF8395;
+  --color-pink: #EA1E61;
+  --gradient-angle: 270deg;
+  --gradient-start-red-start: #FF4D67;
+  --gradient-end-red-end: #FF8395;
+  --gradient-orange-start: #FB9400;
+  --gradient-orange-end: #FFAB38;
 }
 
 html,

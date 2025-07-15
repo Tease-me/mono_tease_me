@@ -12,8 +12,12 @@ const TestPage = ({ }) => {
     return (
         <BackgroundGradient>
             <CenteredLayout>
-                <ProfileMedia mediaType='video' imageSrc={oliviaImage} videoSrc={oliviaVideo} />
-                <ProfileMedia mediaType='image' imageSrc={oliviaImage} videoSrc={oliviaVideo} />
+                <ProfileMedia mediaType='image' imageSrc={oliviaImage} videoSrc={"oliviaVideo"} size='xsmall' active />
+                <ProfileMedia mediaType='video' imageSrc={oliviaImage} videoSrc={oliviaVideo} size='small' />
+                <ProfileMedia mediaType='video' imageSrc={oliviaImage} videoSrc={oliviaVideo} size='medium' />
+                <ProfileMedia mediaType='video' imageSrc={oliviaImage} videoSrc={oliviaVideo} size='large' active />
+                <ProfileMedia mediaType='video' imageSrc={oliviaImage} videoSrc={oliviaVideo} size='xlarge' active showHearts />
+
             </CenteredLayout>
         </BackgroundGradient>
     );
