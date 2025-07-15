@@ -255,7 +255,7 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
   return (
     <div className={styles["main-container"]}>
       <div className={styles["voice-chat-header"]}>
-        <ProfileMedia mediaType='video' imageSrc={oliviaImage} videoSrc={oliviaVideo} showHearts />
+        <ProfileMedia mediaType='video' imageSrc={oliviaImage} videoSrc={oliviaVideo} showHearts size="xlarge" active />
         <div>
           <span className="flex items-center gap-3 w-full justify-center">
             Olivia F.

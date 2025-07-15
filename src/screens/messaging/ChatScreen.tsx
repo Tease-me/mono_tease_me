@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import avatar from "../../assets/image/avatar.png";
+import oliviaImage from "@/assets/image/avatar.png"
 import BackgroundGradient from "../../templates/BackgroundGradient";
 
 import CircularIconButton from "@/components/buttons/CircularIconButton";
@@ -9,53 +9,77 @@ import MicrophoneIcon from "@/assets/Microphone.svg?react";
 import SendIcon from "@/assets/Send.svg?react";
 
 import styles from "./ChatScreen.module.css";
-const contacts = [
+import ProfileMedia from "@/components/ProfileMedia";
+import clsx from "clsx";
+
+export interface Message {
+  id: number;
+  sender: "sent" | "received";
+  text: string;
+  time: string;
+}
+
+export interface Contact {
+  conversation_id: string;
+  name: string;
+  img: string;
+  messages: Message[];
+}
+
+const contacts: Contact[] = [
   {
     conversation_id: "1",
     name: "Olivia F.",
-    img: avatar,
-    messages: [
-      {
-        id: 1,
-        sender: "received",
-        text: "Hi Max, good morning.. 😊😊",
-        time: "10:01",
-      },
-      {
-        id: 2,
-        sender: "received",
-        text: "Thanks for messaging me. How are you going? 😍😍😍",
-        time: "10:01",
-      },
-      {
-        id: 3,
-        sender: "sent",
-        text: "Hi, Olivia what are you wearing?",
-        time: "10:02",
-      },
-      {
-        id: 4,
-        sender: "received",
-        text: "Not much, but I'd like it better if I help you guess.",
-        time: "10:02",
-      },
-      { id: 5, sender: "sent", text: "Hey there beautiful", time: "10:02" },
-    ],
+    img: oliviaImage,
+    messages: [],
   },
 ];
 
-export default function ChatScreen() {
-  const { conversation_id } = useParams();
-  const navigate = useNavigate();
-  const user = contacts.find((c) => c.conversation_id === conversation_id);
+const chatId = 'abc123'; // or generate per user/session
+const personaId = 'loli'; // or "loli", "bella", etc
 
+export default function ChatScreen() {
+  const { id } = useParams();
+  const ws = useRef<WebSocket | null>(null);
+  const navigate = useNavigate();
+  const user = contacts.find((c) => c.conversation_id === id);
   const [messages, setMessages] = useState(user?.messages || []);
   const [inputText, setInputText] = useState("");
 
+
+  const jwtToken =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIn0.nMCNZAW9ZROF5w0ry_wA3ywe-XnzgW40zeHSDdiN0h8'; // Cole aqui o token recebido no login
+
+  useEffect(() => {
+    ws.current = new window.WebSocket(`ws://192.168.68.72:8000/ws/chat/${personaId}?token=${jwtToken}`);
+    ws.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log("Received message:", data);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: Date.now(),
+          sender: "received",
+          text: data.reply,
+          time: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        },
+      ]);
+    };
+  }, []);
+
   const sendMessage = () => {
     if (inputText.trim()) {
-      setMessages([
-        ...messages,
+      ws.current?.send(
+        JSON.stringify({
+          chat_id: chatId,
+          message: inputText.trim(),
+        }),
+      );
+      setMessages(prev => [
+        ...prev,
         {
           id: Date.now(),
           sender: "sent",
@@ -66,6 +90,7 @@ export default function ChatScreen() {
           }),
         },
       ]);
+
       setInputText("");
     }
   };
@@ -83,12 +108,12 @@ export default function ChatScreen() {
           </header>
 
           <div className={styles["chat-messages-container"]}>
-            <img src={user?.img} alt={user?.name} className={styles["chat-avatar"]} />
+            <ProfileMedia imageSrc={user?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
             <h3 className={styles["chat-user-name"]}>{user?.name}</h3>
 
             <div className={styles["messages"]}>
               {messages.map((msg) => (
-                <div key={msg.id} className={`message ${msg.sender}`}>
+                <div key={msg.id} className={clsx(styles["message"], styles[msg.sender])}>
                   {msg.text}
                   <span className={styles["time"]}>{msg.time}</span>
                 </div>
