@@ -5,9 +5,11 @@ import clsx from 'clsx';
 interface CircularIconButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
     text?: string;
     icon?: React.ReactNode;
+    size?: "small" | "medium" | "large";
+    variant?: "primary" | "secondary" | "tertiary";
 }
 
-const CircularIconButton = ({ text, icon, ...props }: CircularIconButtonProps) => {
+const CircularIconButton = ({ text, icon, size = "medium", variant = "primary", ...props }: CircularIconButtonProps) => {
     const getButtonClassName = () => {
         if (text && icon) {
             return styles["button-with-text-and-icon"];
@@ -18,7 +20,7 @@ const CircularIconButton = ({ text, icon, ...props }: CircularIconButtonProps) =
         }
     }
     return (
-        <button {...props} className={clsx(styles["button"], getButtonClassName(), props.className)} >
+        <button {...props} className={clsx(styles["button"], getButtonClassName(), styles[size], styles[variant], props.className)} >
             <span className={styles["contents"]}>
                 {icon && <span className={styles["icon-container"]}>
                     {icon}

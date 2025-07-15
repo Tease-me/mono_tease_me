@@ -2,8 +2,13 @@ import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import avatar from "../../assets/image/avatar.png";
 import BackgroundGradient from "../../templates/BackgroundGradient";
-import styles from "./ChatScreen.module.css";
 
+import CircularIconButton from "@/components/buttons/CircularIconButton";
+import CallIcon from "@/assets/Call.svg?react";
+import MicrophoneIcon from "@/assets/Microphone.svg?react";
+import SendIcon from "@/assets/Send.svg?react";
+
+import styles from "./ChatScreen.module.css";
 const contacts = [
   {
     conversation_id: "1",
@@ -98,16 +103,9 @@ export default function ChatScreen() {
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && sendMessage()}
               />
-              <button className={styles["voice-btn"]}>🎙️</button>
-              <button className={styles["send-btn"]} onClick={sendMessage}>
-                ➤
-              </button>
-              <button
-                className={styles["call-btn"]}
-                onClick={() => navigate(`/call/${conversation_id}`)}
-              >
-                📞 Call
-              </button>
+              <CircularIconButton icon={<CallIcon />} className={styles["call-btn"]} onClick={() => alert("Camera clicked")} size="small" />
+              <CircularIconButton icon={<MicrophoneIcon />} className={styles["voice-btn"]} onClick={() => alert("Camera clicked")} size="small" />
+              <CircularIconButton icon={<SendIcon />} className={styles["send-btn"]} onClick={sendMessage} size="small" />
             </div>
           </div>
         </div>

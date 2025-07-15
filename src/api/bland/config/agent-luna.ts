@@ -61,7 +61,7 @@ export const lunaConfig = {
             "Encourage and celebrate the user’s orgasm with enthusiastic, sensual praise.",
         ],
     },
-    voice: "e1289219-0ea2-4f22-a994-c542c2a48a0f",
+    voice: "9f2c817f-7292-4f8e-935f-245ff25b04d7",
     language: "ENG",
     model: "base",
     first_sentence: "Mmm… I’m dripping with desire, come finger me baby…",

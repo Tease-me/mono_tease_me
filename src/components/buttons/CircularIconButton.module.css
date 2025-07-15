@@ -1,8 +1,11 @@
 .button {
+    --gradient-angle: 180deg;
+    --gradient-start: #FF4D67;
+    --gradient-end: #FF8395;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--color-primary);
+    background: linear-gradient(var(--gradient-angle), var(--gradient-start) 0%, var(--gradient-end) 100%);
     border-radius: 28px;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.3s ease;
@@ -23,8 +26,16 @@
     height: 24px;
 }
 
+.icon-container.small {
+    width: 16px;
+    height: 16px;
+}
+
 .button:hover {
-    background-color: #ff3b5a;
+    --hover-gradient-angle: 90deg;
+    --hover-gradient-start: var(--color-primary);
+    --hover-gradient-end: #ff3b5a;
+    background: linear-gradient(var(--hover-gradient-angle), var(--hover-gradient-start) 0%, var(--hover-gradient-end) 100%);
 }
 
 .button-with-text-and-icon {
@@ -41,4 +52,9 @@
     width: 80px;
     height: 80px;
     border-radius: 50%;
+}
+
+.button-with-icon-only.small {
+    width: 48px;
+    height: 48px;
 }
