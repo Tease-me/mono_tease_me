@@ -278,8 +278,6 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
         </div>
 
         <CircularIconButton onClick={handleVoiceToggle} disabled={isLoading} icon={isConnected ? <CloseSquareIcon /> : <CallIcon />} />
-        <CircularIconButton onClick={handleVoiceToggle} disabled={isLoading} icon={<CloseSquareIcon />} text="Sign In with Email" />
-        <CircularIconButton onClick={handleVoiceToggle} disabled={isLoading} text="Sign In with Email" />
         <div className="h-12 flex items-center justify-center">
           {isRecording ? (
             <div className="flex justify-center items-center space-x-1">

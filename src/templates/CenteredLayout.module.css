@@ -11,10 +11,7 @@
 
 .content {
     display: flex;
-    flex: 1;
-    height: 100%;
-    margin: 56px;
-    text-align: center;
-    align-items: center;
     flex-direction: column;
+    justify-content: center;
+    text-align: center;
 }

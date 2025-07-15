@@ -4,6 +4,8 @@ import styles from './TestPage.module.css';
 import oliviaImage from "@/assets/image/avatar.png"
 import oliviaVideo from "@/assets/video/avatar_video.mp4";
 import CenteredLayout from '@/templates/CenteredLayout';
+import AudioLine from '@/components/visualizations/AudioLine';
+import { Canvas } from '@react-three/fiber';
 
 const TestPage = ({ }) => {
 
