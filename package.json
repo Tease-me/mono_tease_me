@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "cp .env.local .env | vite --host",
+    "staging": "cp .env.staging .env | vite --host",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

@@ -11,6 +11,7 @@ import SendIcon from "@/assets/Send.svg?react";
 import styles from "./ChatScreen.module.css";
 import ProfileMedia from "@/components/ProfileMedia";
 import clsx from "clsx";
+import { Endpoints } from "@/api/urls";
 
 export interface Message {
   id: number;
@@ -51,7 +52,7 @@ export default function ChatScreen() {
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIn0.nMCNZAW9ZROF5w0ry_wA3ywe-XnzgW40zeHSDdiN0h8'; // Cole aqui o token recebido no login
 
   useEffect(() => {
-    ws.current = new window.WebSocket(`ws://192.168.68.72:8000/ws/chat/${personaId}?token=${jwtToken}`);
+    ws.current = new window.WebSocket(`${Endpoints.CHAT}/${personaId}?token=${jwtToken}`);
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
       console.log("Received message:", data);
