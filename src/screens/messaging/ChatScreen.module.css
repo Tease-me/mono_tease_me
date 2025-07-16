@@ -62,34 +62,6 @@
   padding-bottom: 15px;
 }
 
-.message {
-  padding: 10px 15px;
-  max-width: 75%;
-  font-size: 14px;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
-
-.message.sent {
-  border-radius: 8px 16px 16px 16px;
-  align-self: flex-start;
-  background-color: var(--color-dark-3);
-}
-
-.message.received {
-  border-radius: 16px 8px 16px 16px;
-  align-self: flex-end;
-  background: linear-gradient(var(--gradient-angle), var(--gradient-start-red-start) -50%, var(--gradient-end-red-end) 150%)
-}
-
-.time {
-  font-size: 10px;
-  opacity: 0.8;
-  margin-top: 5px;
-  text-align: right;
-}
-
 .chat-input-area {
   display: flex;
   padding: 10px;

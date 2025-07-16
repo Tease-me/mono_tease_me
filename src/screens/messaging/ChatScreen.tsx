@@ -13,6 +13,9 @@ import ProfileMedia from "@/components/ProfileMedia";
 import clsx from "clsx";
 import { Endpoints } from "@/api/urls";
 import { TEASE_ME_HOST } from "@/api/env";
+import TypingIndicator from "./components/TypingIndicator";
+import MessageBubble from "./components/MessageBubble";
+import ChatInputArea from "./components/ChatInputArea";
 
 export interface Message {
   id: number;
@@ -47,7 +50,13 @@ export default function ChatScreen() {
   const user = contacts.find((c) => c.conversation_id === id);
   const [messages, setMessages] = useState(user?.messages || []);
   const [inputText, setInputText] = useState("");
+  const [typing, setTyping] = useState(false);
 
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   const jwtToken =
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIn0.nMCNZAW9ZROF5w0ry_wA3ywe-XnzgW40zeHSDdiN0h8'; // Cole aqui o token recebido no login
@@ -69,11 +78,18 @@ export default function ChatScreen() {
           }),
         },
       ]);
+
+      setTyping(prev => !prev || false);
     };
   }, []);
 
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
   const sendMessage = () => {
     if (inputText.trim()) {
+      setTyping(prev => !prev || true);
       ws.current?.send(
         JSON.stringify({
           chat_id: chatId,
@@ -113,25 +129,13 @@ export default function ChatScreen() {
           <div className={styles["chat-messages-container"]}>
             <div className={styles["messages"]}>
               {messages.map((msg) => (
-                <div key={msg.id} className={clsx(styles["message"], styles[msg.sender])}>
-                  {msg.text}
-                  <span className={styles["time"]}>{msg.time}</span>
-                </div>
+                <MessageBubble key={msg.id} msg={msg} />
               ))}
+              {typing && <MessageBubble />}
+              <div ref={messagesEndRef} />
             </div>
           </div>
-          <div className={styles["chat-input-area"]}>
-            <input
-              type="text"
-              placeholder="Message..."
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            />
-            <CircularIconButton icon={<CallIcon />} className={styles["call-btn"]} onClick={() => alert("Camera clicked")} size="small" />
-            <CircularIconButton icon={<MicrophoneIcon />} className={styles["voice-btn"]} onClick={() => alert("Camera clicked")} size="small" variant="secondary" />
-            <CircularIconButton icon={<SendIcon />} className={styles["send-btn"]} onClick={sendMessage} size="small" />
-          </div>
+          <ChatInputArea onSendMessage={sendMessage} inputText={inputText} setInputText={setInputText} />
         </div>
       </div>
     </BackgroundGradient>
