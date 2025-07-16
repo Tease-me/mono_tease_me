@@ -41,11 +41,10 @@ const AudioWaveform = ({ audioBlob, width, height }: AudioWaveformProps) => {
                     .slice(start, start + samplesPerBar)
                     .map(v => Math.abs(v));
                 const sum = dataArray.reduce((acc, val) => acc + val, 0);
-                amplitudes[i] = sum / dataArray.length; // 0…1
+                amplitudes[i] = sum / dataArray.length;
             }
 
             const maxAmp = Math.max(...amplitudes, 1);
-
             ctx.beginPath();
             for (let i = 0; i < numBars; i++) {
                 const x = i * (barWidth + barGap);

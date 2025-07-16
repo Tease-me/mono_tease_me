@@ -7,6 +7,15 @@
   box-sizing: border-box;
 }
 
+html,
+body,
+* {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
 @import "tailwindcss";
 @plugin "daisyui";
 

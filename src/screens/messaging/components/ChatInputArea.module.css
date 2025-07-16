@@ -16,6 +16,12 @@
     outline: none;
 }
 
+.input-container input {
+    flex: 1;
+    border: none;
+    outline: none;
+}
+
 .input-container canvas {
     display: flex;
     flex: 1;

@@ -61,6 +61,10 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSendMessage, inputText,
         stream?.getTracks().forEach(track => track.stop());
     };
 
+    const clearAudio = () => {
+        setAudio(undefined);
+    }
+
     return (
         <div className={styles["chat-input-area"]}>
             <div className={styles["input-container"]} ref={containerRef}>
@@ -72,11 +76,14 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSendMessage, inputText,
                     onKeyDown={(e) => e.key === "Enter" && onSendMessage && onSendMessage()}
                 />
                 {audio && (
-                    <AudioWaveform audioBlob={audio}
-                        width={dimensions.width}
-                        height={dimensions.height} />
+                    <>
+                        <AudioWaveform audioBlob={audio}
+                            width={dimensions.width}
+                            height={dimensions.height} />
+                        <span onClick={clearAudio}>X</span>
+                    </>
                 )}
-                {stream && (
+                {(isRecording && stream) && (
                     <AudioVisualizer
                         mediaStream={stream}
                         speed={1}
@@ -89,10 +96,17 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSendMessage, inputText,
             </div>
 
             <div className={styles["buttons"]}>
-                <CircularIconButton icon={<MicrophoneIcon />} className={styles["voice-btn"]} size="small" variant="secondary"
-                    onMouseDown={startRecording}
-                    onMouseUp={stopRecording}
-                    onMouseLeave={() => isRecording && stopRecording()}
+                <CircularIconButton
+                    icon={<MicrophoneIcon />}
+                    className={styles["voice-btn"]}
+                    size="small"
+                    variant="secondary"
+                    style={{ touchAction: 'none' }}
+                    onPointerDown={startRecording}
+                    onPointerUp={stopRecording}
+                    onPointerLeave={() => isRecording && stopRecording()}
+                    onPointerCancel={() => isRecording && stopRecording()}
+                    onPointerOut={() => isRecording && stopRecording()}
                 />
                 <CircularIconButton icon={<SendIcon />} className={styles["send-btn"]} onClick={onSendMessage} size="small" />
             </div>

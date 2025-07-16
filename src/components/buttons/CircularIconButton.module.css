@@ -7,6 +7,10 @@
     transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
+.button:active {
+    transform: scale(1.1);
+}
+
 .button.primary {
     background: linear-gradient(var(--gradient-angle), var(--gradient-start-red-start) -50%, var(--gradient-end-red-end) 150%);
     color: #fff;
