@@ -1,19 +1,29 @@
 .chat-input-area {
     display: flex;
     padding: 10px;
-    gap: 8px;
+    gap: 14px;
     background-color: transparent;
     align-items: center;
 }
 
-.chat-input-area input {
+.input-container {
     flex: 1;
-    padding: 10px 15px;
-    border-radius: 20px;
+    padding: 18px 20px;
+    border-radius: 12px;
     border: none;
-    background-color: #2c3038;
-    color: #fff;
+    background-color: var(--color-dark-2);
+    color: var(--color-text-secondary);
     outline: none;
+}
+
+.input-container canvas {
+    display: flex;
+    flex: 1;
+}
+
+.buttons {
+    display: flex;
+    gap: 4px;
 }
 
 .voice-btn,
@@ -21,12 +31,10 @@
     border-radius: 50%;
     border: none;
     cursor: pointer;
-    margin-bottom: 10px;
 }
 
 .voice-btn {
     background-color: #ffa500;
-    margin-bottom: 10px;
 }
 
 .send-btn {
@@ -43,38 +51,9 @@
     cursor: pointer;
     font-size: 14px;
     align-self: center;
-    margin-bottom: 10px;
 }
 
-/* Responsividade Web/Desktop */
 @media (min-width: 768px) {
-    /* .chat-container {
-        padding: 0;
-    }
-
-    .chat-content {
-        max-width: 100%;
-        padding: 25px;
-    }
-
-    .chat-header {
-        display: none;
-    }
-
-    .chat-avatar {
-        width: 70px;
-        height: 70px;
-    }
-
-    .chat-user-name {
-        font-size: 22px;
-        margin: 15px 0;
-    }
-
-    .message {
-        font-size: 16px;
-    } */
-
     .chat-input-area {
         padding: 15px;
     }
