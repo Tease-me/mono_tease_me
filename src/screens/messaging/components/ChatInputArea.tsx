@@ -64,7 +64,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSendMessage, inputText,
                 {audio && (
                     <AudioSpectrogram audioBlob={audio} />
                 )}
-                {stream && <AudioBlobVisualizer mediaStream={stream} />}
+                {stream && <AudioBlobVisualizer mediaStream={stream} speed={1} />}
             </div>
 
             <div className={styles["buttons"]}>

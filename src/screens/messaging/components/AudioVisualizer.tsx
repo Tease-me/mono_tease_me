@@ -3,9 +3,10 @@ import React, { useRef, useEffect, useState } from 'react';
 interface AudioBlobVisualizerProps {
     mediaStream: MediaStream;
     onStop?: (blob: Blob) => void;
+    speed?: number; // pixels to shift per frame
 }
 
-const AudioBlobVisualizer: React.FC<AudioBlobVisualizerProps> = ({ mediaStream, onStop }) => {
+const AudioBlobVisualizer: React.FC<AudioBlobVisualizerProps> = ({ mediaStream, onStop, speed }) => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
@@ -19,7 +20,6 @@ const AudioBlobVisualizer: React.FC<AudioBlobVisualizerProps> = ({ mediaStream, 
     useEffect(() => {
         if (!mediaStream) return;
         if (!isRecording) return;
-        // Initialize audio context and recorder on record start
         audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
         const audioCtx = audioContextRef.current!;
         const source = audioCtx.createMediaStreamSource(mediaStream);
@@ -36,7 +36,6 @@ const AudioBlobVisualizer: React.FC<AudioBlobVisualizerProps> = ({ mediaStream, 
         };
         mediaRecorderRef.current.start();
 
-        // start elapsed timer
         let startTime = Date.now();
         timerRef.current = window.setInterval(() => {
             const diff = Date.now() - startTime;
@@ -65,38 +64,42 @@ const AudioBlobVisualizer: React.FC<AudioBlobVisualizerProps> = ({ mediaStream, 
             const bufferLength = analyser.frequencyBinCount;
             const dataArray = new Uint8Array(bufferLength);
 
+            // Offscreen buffer for proper shifting
+            const bufferCanvas = document.createElement('canvas');
+            bufferCanvas.width = canvas.width;
+            bufferCanvas.height = canvas.height;
+            const bufferCtx = bufferCanvas.getContext('2d');
+
             const barWidth = 6;
             const barGap = 2;
-            const numberOfBars = Math.floor(canvas.width / (barWidth + barGap));
-            const regionWidth = numberOfBars * (barWidth + barGap);
+            // Determine shift per frame from speed prop or default to barWidth + barGap
+            const shiftValue = typeof speed === 'number' ? speed : barWidth + barGap;
 
             const animate = () => {
                 analyser.getByteFrequencyData(dataArray);
 
-                ctx?.drawImage(canvas, -regionWidth, 0);
-                ctx?.clearRect(canvas.width - regionWidth, 0, regionWidth, canvas.height);
+                if (ctx && bufferCtx) {
+                    // Copy current canvas to buffer
+                    bufferCtx.clearRect(0, 0, bufferCanvas.width, bufferCanvas.height);
+                    bufferCtx.drawImage(canvas, 0, 0);
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    const shift = shiftValue;
 
-                for (let i = 0; i < numberOfBars; i++) {
-                    const start = i * Math.floor(bufferLength / numberOfBars);
-                    const slice = dataArray.subarray(start, start + Math.floor(bufferLength / numberOfBars));
-                    const sum = slice.reduce((acc, val) => acc + val, 0);
-                    const avg = sum / slice.length;
+                    ctx.drawImage(bufferCanvas, -shift, 0);
+                    const sum = dataArray.reduce((acc, val) => acc + val, 0);
+                    const avg = sum / dataArray.length;
                     let h = (avg / 255) * canvas.height;
                     h = Math.max(h, 1);
                     h = Math.min(h, canvas.height * 0.8);
-
-                    const x = canvas.width - regionWidth + i * (barWidth + barGap);
+                    const x = canvas.width - barWidth;
                     const y = (canvas.height - h) / 2;
-
-                    if (ctx) {
-                        ctx.fillStyle = `rgb(${Math.floor(avg) + 100},50,50)`;
-                        ctx.beginPath();
-                        if (ctx.roundRect) {
-                            ctx.roundRect(x, y, barWidth, h, barWidth / 2);
-                            ctx.fill();
-                        } else {
-                            ctx.fillRect(x, y, barWidth, h);
-                        }
+                    ctx.fillStyle = `rgba(255, 152, 31, ${Math.floor(avg) + 100})`;
+                    ctx.beginPath();
+                    if (ctx.roundRect) {
+                        ctx.roundRect(x, y, barWidth, h, barWidth / 2);
+                        ctx.fill();
+                    } else {
+                        ctx.fillRect(x, y, barWidth, h);
                     }
                 }
 
