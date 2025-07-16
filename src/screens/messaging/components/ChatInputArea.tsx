@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 
 import CircularIconButton from '@/components/buttons/CircularIconButton';
 import MicrophoneIcon from "@/assets/Microphone.svg?react";
@@ -20,6 +20,20 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSendMessage, inputText,
     const mediaRecorderRef = useRef<MediaRecorder>(null);
     const chunksRef = useRef<Blob[]>([]);
     const [stream, setStream] = useState<MediaStream>();
+
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+    useLayoutEffect(() => {
+        function updateSize() {
+            if (!containerRef.current) return;
+            const { width, height } = containerRef.current.getBoundingClientRect();
+            setDimensions({ width: Math.floor(width), height: Math.floor(height) });
+        }
+        updateSize();
+        window.addEventListener('resize', updateSize);
+        return () => window.removeEventListener('resize', updateSize);
+    }, []);
 
     const startRecording = async () => {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -45,10 +59,10 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSendMessage, inputText,
         mediaRecorderRef.current?.stop();
         setIsRecording(false);
     };
-    console.log("Audio", audio)
+
     return (
         <div className={styles["chat-input-area"]}>
-            <div className={styles["input-container"]}>
+            <div className={styles["input-container"]} ref={containerRef}>
                 <input
                     type="text"
                     placeholder="Message..."
@@ -57,9 +71,17 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSendMessage, inputText,
                     onKeyDown={(e) => e.key === "Enter" && onSendMessage && onSendMessage()}
                 />
                 {audio && (
-                    <AudioWaveform audioBlob={audio} />
+                    <AudioWaveform audioBlob={audio} width={dimensions.width}
+                        height={dimensions.height} />
                 )}
-                {stream && <AudioVisualizer mediaStream={stream} speed={1} />}
+                {stream && (
+                    <AudioVisualizer
+                        mediaStream={stream}
+                        speed={1}
+                        width={dimensions.width}
+                        height={dimensions.height}
+                    />
+                )}
             </div>
 
             <div className={styles["buttons"]}>

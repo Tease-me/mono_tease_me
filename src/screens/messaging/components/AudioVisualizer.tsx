@@ -4,9 +4,11 @@ interface AudioVisualizerProps {
     mediaStream: MediaStream;
     onStop?: (blob: Blob) => void;
     speed?: number;
+    width: number;
+    height: number;
 }
 
-const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ mediaStream, onStop, speed }) => {
+const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ mediaStream, onStop, speed, width, height }) => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
@@ -58,15 +60,17 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ mediaStream, onStop, 
 
     const drawVisualizer = () => {
         if (canvasRef.current && analyserRef.current) {
-            const canvas = canvasRef.current;
+            const canvas = canvasRef.current!;
+            canvas.width = width;
+            canvas.height = height;
             const ctx = canvas.getContext('2d');
             const analyser = analyserRef.current;
             const bufferLength = analyser.frequencyBinCount;
             const dataArray = new Uint8Array(bufferLength);
 
             const bufferCanvas = document.createElement('canvas');
-            bufferCanvas.width = canvas.width;
-            bufferCanvas.height = canvas.height;
+            bufferCanvas.width = width;
+            bufferCanvas.height = height;
             const bufferCtx = bufferCanvas.getContext('2d');
 
             const barWidth = 6;
@@ -74,7 +78,6 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ mediaStream, onStop, 
 
             const shiftValue = typeof speed === 'number' ? speed : barWidth + barGap;
 
-            // Accumulator for consistent bar spacing when shifting
             let xOffsetAccumulator = 0;
 
             const animate = () => {
@@ -119,10 +122,17 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ mediaStream, onStop, 
     };
 
     return (
-        <div style={{ position: 'relative', width: 600, userSelect: 'none' }}>
-            <canvas ref={canvasRef} width="600" height="200" style={{
-                filter: isRecording ? 'grayscale(0%)' : 'grayscale(80%)'
-            }} />
+        <div style={{ position: 'relative', userSelect: 'none', display: "flex", height: "56px" }}>
+            <canvas
+                ref={canvasRef}
+                width={width}
+                height={height}
+                style={{
+                    flex: 1,
+                    display: "flex",
+                    filter: isRecording ? 'grayscale(0%)' : 'grayscale(80%)'
+                }}
+            />
             {isRecording && (
                 <div style={{
                     position: 'absolute',
