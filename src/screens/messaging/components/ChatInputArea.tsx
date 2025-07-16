@@ -20,11 +20,13 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSendMessage, inputText,
     const [audio, setAudio] = useState<Blob>();
     const mediaRecorderRef = useRef<MediaRecorder>(null);
     const chunksRef = useRef<Blob[]>([]);
+    const [stream, setStream] = useState<MediaStream>();
 
     const startRecording = async () => {
         // 1. Ask for mic access
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         // 2. Create MediaRecorder
+        setStream(stream);
         const mediaRecorder = new MediaRecorder(stream);
         mediaRecorderRef.current = mediaRecorder;
         chunksRef.current = [];
@@ -62,6 +64,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSendMessage, inputText,
                 {audio && (
                     <AudioSpectrogram audioBlob={audio} />
                 )}
+                {stream && <AudioBlobVisualizer mediaStream={stream} />}
             </div>
 
             <div className={styles["buttons"]}>
