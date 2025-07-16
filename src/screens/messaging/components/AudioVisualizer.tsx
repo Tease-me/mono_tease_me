@@ -64,7 +64,6 @@ const AudioBlobVisualizer: React.FC<AudioBlobVisualizerProps> = ({ mediaStream, 
             const bufferLength = analyser.frequencyBinCount;
             const dataArray = new Uint8Array(bufferLength);
 
-            // Offscreen buffer for proper shifting
             const bufferCanvas = document.createElement('canvas');
             bufferCanvas.width = canvas.width;
             bufferCanvas.height = canvas.height;
@@ -72,34 +71,44 @@ const AudioBlobVisualizer: React.FC<AudioBlobVisualizerProps> = ({ mediaStream, 
 
             const barWidth = 6;
             const barGap = 2;
-            // Determine shift per frame from speed prop or default to barWidth + barGap
+
             const shiftValue = typeof speed === 'number' ? speed : barWidth + barGap;
+
+            // Accumulator for consistent bar spacing when shifting
+            let xOffsetAccumulator = 0;
 
             const animate = () => {
                 analyser.getByteFrequencyData(dataArray);
 
                 if (ctx && bufferCtx) {
-                    // Copy current canvas to buffer
                     bufferCtx.clearRect(0, 0, bufferCanvas.width, bufferCanvas.height);
                     bufferCtx.drawImage(canvas, 0, 0);
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    // Shift buffer onto main canvas
                     const shift = shiftValue;
-
                     ctx.drawImage(bufferCanvas, -shift, 0);
+                    // Compute bar height
                     const sum = dataArray.reduce((acc, val) => acc + val, 0);
                     const avg = sum / dataArray.length;
                     let h = (avg / 255) * canvas.height;
                     h = Math.max(h, 1);
                     h = Math.min(h, canvas.height * 0.8);
-                    const x = canvas.width - barWidth;
-                    const y = (canvas.height - h) / 2;
-                    ctx.fillStyle = `rgba(255, 152, 31, ${Math.floor(avg) + 100})`;
-                    ctx.beginPath();
-                    if (ctx.roundRect) {
-                        ctx.roundRect(x, y, barWidth, h, barWidth / 2);
-                        ctx.fill();
-                    } else {
-                        ctx.fillRect(x, y, barWidth, h);
+                    // Accumulate shift to determine when to draw the next bar
+                    xOffsetAccumulator += shift;
+                    const spacing = barWidth + barGap;
+                    if (xOffsetAccumulator >= spacing) {
+                        xOffsetAccumulator -= spacing;
+                        // Draw the bar with consistent spacing
+                        const x = canvas.width - barWidth - xOffsetAccumulator;
+                        const y = (canvas.height - h) / 2;
+                        ctx.fillStyle = `rgba(255, 152, 31, ${Math.floor(avg) + 100})`;
+                        ctx.beginPath();
+                        if (ctx.roundRect) {
+                            ctx.roundRect(x, y, barWidth, h, barWidth / 2);
+                            ctx.fill();
+                        } else {
+                            ctx.fillRect(x, y, barWidth, h);
+                        }
                     }
                 }
 
