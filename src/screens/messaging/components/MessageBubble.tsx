@@ -1,8 +1,8 @@
 import React from 'react';
 import styles from "./MessageBubble.module.css"
 import clsx from 'clsx';
-import { Message } from '../ChatScreen';
 import TypingIndicator from './TypingIndicator';
+import { Message } from '@/data/models/MessageDataModel';
 
 interface MessageBubbleProps {
     msg?: Message;

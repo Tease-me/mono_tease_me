@@ -1,44 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import oliviaImage from "@/assets/image/avatar.png"
 import BackgroundGradient from "../../templates/BackgroundGradient";
 
-import CircularIconButton from "@/components/buttons/CircularIconButton";
-import CallIcon from "@/assets/Call.svg?react";
-import MicrophoneIcon from "@/assets/Microphone.svg?react";
-import SendIcon from "@/assets/Send.svg?react";
-
 import styles from "./ChatScreen.module.css";
-import ProfileMedia from "@/components/ProfileMedia";
-import clsx from "clsx";
 import { Endpoints } from "@/api/urls";
 import { TEASE_ME_HOST } from "@/api/env";
-import TypingIndicator from "./components/TypingIndicator";
 import MessageBubble from "./components/MessageBubble";
 import ChatInputArea from "./components/ChatInputArea";
+import { contacts } from "@/data/mock/MockContacts";
 
-export interface Message {
-  id: number;
-  sender: "sent" | "received";
-  text: string;
-  time: string;
-}
-
-export interface Contact {
-  conversation_id: string;
-  name: string;
-  img: string;
-  messages: Message[];
-}
-
-const contacts: Contact[] = [
-  {
-    conversation_id: "1",
-    name: "Olivia F.",
-    img: oliviaImage,
-    messages: [],
-  },
-];
 
 const chatId = 'abc123'; // or generate per user/session
 const personaId = 'loli'; // or "loli", "bella", etc
