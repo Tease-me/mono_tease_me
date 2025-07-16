@@ -1,12 +1,12 @@
 import React, { useRef, useEffect, useState } from 'react';
 
-interface AudioBlobVisualizerProps {
+interface AudioVisualizerProps {
     mediaStream: MediaStream;
     onStop?: (blob: Blob) => void;
-    speed?: number; // pixels to shift per frame
+    speed?: number;
 }
 
-const AudioBlobVisualizer: React.FC<AudioBlobVisualizerProps> = ({ mediaStream, onStop, speed }) => {
+const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ mediaStream, onStop, speed }) => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
@@ -158,4 +158,4 @@ const AudioBlobVisualizer: React.FC<AudioBlobVisualizerProps> = ({ mediaStream, 
     );
 };
 
-export default AudioBlobVisualizer;
+export default AudioVisualizer;

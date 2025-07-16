@@ -1,13 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 import CircularIconButton from '@/components/buttons/CircularIconButton';
-import CallIcon from "@/assets/Call.svg?react";
 import MicrophoneIcon from "@/assets/Microphone.svg?react";
 import SendIcon from "@/assets/Send.svg?react";
 
 import styles from "./ChatInputArea.module.css"
-import AudioBlobVisualizer from './AudioVisualizer';
-import AudioSpectrogram from './AudioSpectrogram';
+import AudioVisualizer from './AudioVisualizer';
+import AudioWaveform from './AudioWaveform';
 
 interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
     onSendMessage?: () => void;
@@ -23,20 +22,16 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSendMessage, inputText,
     const [stream, setStream] = useState<MediaStream>();
 
     const startRecording = async () => {
-        // 1. Ask for mic access
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        // 2. Create MediaRecorder
         setStream(stream);
         const mediaRecorder = new MediaRecorder(stream);
         mediaRecorderRef.current = mediaRecorder;
         chunksRef.current = [];
 
-        // 3. Gather data
         mediaRecorder.addEventListener('dataavailable', (e: BlobEvent) => {
             if (e.data.size > 0) chunksRef.current.push(e.data);
         });
 
-        // 4. When stopped, make blob → URL
         mediaRecorder.addEventListener('stop', () => {
             const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
             setAudio(blob);
@@ -62,9 +57,9 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSendMessage, inputText,
                     onKeyDown={(e) => e.key === "Enter" && onSendMessage && onSendMessage()}
                 />
                 {audio && (
-                    <AudioSpectrogram audioBlob={audio} />
+                    <AudioWaveform audioBlob={audio} />
                 )}
-                {stream && <AudioBlobVisualizer mediaStream={stream} speed={1} />}
+                {stream && <AudioVisualizer mediaStream={stream} speed={1} />}
             </div>
 
             <div className={styles["buttons"]}>
