@@ -124,7 +124,7 @@ export default function ChatScreen() {
             <h2>Inbox</h2>
             <button className={styles["menu-button"]}>⋯</button>
           </header>
-          <ProfileMedia imageSrc={user?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
+          {/* <ProfileMedia imageSrc={user?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} /> */}
           <h3 className={styles["chat-user-name"]}>{user?.name}</h3>
           <div className={styles["chat-messages-container"]}>
             <div className={styles["messages"]}>

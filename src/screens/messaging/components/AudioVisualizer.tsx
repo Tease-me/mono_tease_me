@@ -2,20 +2,22 @@ import React, { useRef, useEffect, useState } from 'react';
 
 interface AudioVisualizerProps {
     mediaStream: MediaStream;
+    isRecording: boolean;
+    setIsRecording: (value: boolean) => void;
     onStop?: (blob: Blob) => void;
     speed?: number;
     width: number;
     height: number;
 }
 
-const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ mediaStream, onStop, speed, width, height }) => {
+const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ mediaStream, isRecording, setIsRecording, onStop, speed, width, height }) => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const chunksRef = useRef<Blob[]>([]);
+    const animationFrameId = useRef<number | null>(null);
 
-    const [isRecording, setIsRecording] = useState(false);
     const [elapsed, setElapsed] = useState('00:00');
     const timerRef = useRef<number | null>(null);
 
@@ -51,12 +53,13 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ mediaStream, onStop, 
             mediaRecorderRef.current?.stop();
             audioContextRef.current?.close();
             if (timerRef.current) clearInterval(timerRef.current);
-            setElapsed('00:00');
+            if (animationFrameId.current !== null) {
+                cancelAnimationFrame(animationFrameId.current);
+                animationFrameId.current = null;
+                setElapsed('00:00');
+            }
         };
     }, [mediaStream, isRecording, onStop]);
-
-    const startRecording = () => setIsRecording(true);
-    const stopRecording = () => setIsRecording(false);
 
     const drawVisualizer = () => {
         if (canvasRef.current && analyserRef.current) {
@@ -115,7 +118,7 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ mediaStream, onStop, 
                     }
                 }
 
-                requestAnimationFrame(animate);
+                animationFrameId.current = requestAnimationFrame(animate);
             };
             animate();
         }
@@ -148,22 +151,6 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ mediaStream, onStop, 
                     ● {elapsed}
                 </div>
             )}
-            <button
-                onMouseDown={startRecording}
-                onMouseUp={stopRecording}
-                onMouseLeave={() => isRecording && stopRecording()}
-                style={{
-                    position: 'absolute',
-                    right: 8,
-                    bottom: 8,
-                    width: 36,
-                    height: 36,
-                    borderRadius: '50%',
-                    background: isRecording ? '#d92b2b' : '#eee',
-                    border: 'none',
-                    cursor: 'pointer',
-                }}
-            />
         </div>
     );
 };

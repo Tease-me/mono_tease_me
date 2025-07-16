@@ -25,27 +25,35 @@ const AudioWaveform = ({ audioBlob, width, height }: AudioWaveformProps) => {
             const w = width;
             const h = height;
             const sampleCount = data.length;
-            const gain = 2;
-            const maxBarHeight = h * 0.45;
-            const minBarHeight = 0.5;
             const midY = h / 2;
             ctx.clearRect(0, 0, w, h);
             ctx.fillStyle = '#FF981F';
-            const barWidth = 4;
+            const barWidth = 6;
             const barGap = 2;
 
             const numBars = Math.floor(w / (barWidth + barGap));
+            const samplesPerBar = Math.floor(sampleCount / numBars);
+
+            const amplitudes = new Array<number>(numBars);
             for (let i = 0; i < numBars; i++) {
-                ctx.beginPath();
+                const start = i * samplesPerBar;
+                const dataArray = data
+                    .slice(start, start + samplesPerBar)
+                    .map(v => Math.abs(v));
+                const sum = dataArray.reduce((acc, val) => acc + val, 0);
+                amplitudes[i] = sum / dataArray.length; // 0…1
+            }
+
+            const maxAmp = Math.max(...amplitudes, 1);
+
+            ctx.beginPath();
+            for (let i = 0; i < numBars; i++) {
                 const x = i * (barWidth + barGap);
-                const position = i * (sampleCount - 1) / (numBars - 1);
-                const left = Math.floor(position);
-                const right = Math.min(sampleCount - 1, left + 1);
-                const frac = position - left;
-                const sample = data[left] + (data[right] - data[left]) * frac;
-                let barHeight = (sample * h) / 2 * gain;
-                if (barHeight > maxBarHeight) barHeight = maxBarHeight;
-                if (barHeight < minBarHeight) barHeight = minBarHeight;
+                const amplitude = amplitudes[i] / maxAmp;
+                const fullH = h;
+                let barHeight = amplitude * fullH;
+                barHeight = Math.max(barHeight, 1);
+                barHeight = Math.min(barHeight, fullH * 0.8);
                 ctx.roundRect(x, midY - barHeight, barWidth, barHeight * 2, barWidth / 2);
                 ctx.fill();
             }

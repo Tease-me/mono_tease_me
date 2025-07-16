@@ -58,6 +58,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSendMessage, inputText,
     const stopRecording = () => {
         mediaRecorderRef.current?.stop();
         setIsRecording(false);
+        stream?.getTracks().forEach(track => track.stop());
     };
 
     return (
@@ -71,13 +72,16 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSendMessage, inputText,
                     onKeyDown={(e) => e.key === "Enter" && onSendMessage && onSendMessage()}
                 />
                 {audio && (
-                    <AudioWaveform audioBlob={audio} width={dimensions.width}
+                    <AudioWaveform audioBlob={audio}
+                        width={dimensions.width}
                         height={dimensions.height} />
                 )}
                 {stream && (
                     <AudioVisualizer
                         mediaStream={stream}
                         speed={1}
+                        isRecording={isRecording}
+                        setIsRecording={setIsRecording}
                         width={dimensions.width}
                         height={dimensions.height}
                     />
@@ -85,11 +89,11 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSendMessage, inputText,
             </div>
 
             <div className={styles["buttons"]}>
-                {isRecording ?
-                    <CircularIconButton icon={<MicrophoneIcon />} className={styles["voice-btn"]} onClick={stopRecording} size="small" variant="secondary" />
-                    :
-                    <CircularIconButton icon={<MicrophoneIcon />} className={styles["call-btn"]} onClick={startRecording} size="small" />
-                }
+                <CircularIconButton icon={<MicrophoneIcon />} className={styles["voice-btn"]} size="small" variant="secondary"
+                    onMouseDown={startRecording}
+                    onMouseUp={stopRecording}
+                    onMouseLeave={() => isRecording && stopRecording()}
+                />
                 <CircularIconButton icon={<SendIcon />} className={styles["send-btn"]} onClick={onSendMessage} size="small" />
             </div>
         </div>
