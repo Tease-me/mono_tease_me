@@ -12,6 +12,18 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ msg }) => {
     return (
         msg ? <div className={clsx(styles["message"], styles[msg.sender])}>
             {msg.text}
+            {msg.attachments?.map((attachment, idx) =>
+                attachment.type === 'audio' ? (
+                    <audio
+                        key={idx}
+                        controls
+                        className={styles.audioPlayer}
+                        src={URL.createObjectURL(attachment.blob)}
+                    >
+                        Your browser does not support the audio element.
+                    </audio>
+                ) : null
+            )}
             <span className={styles["time"]}>{msg.time}</span>
         </div> : <div className={clsx(styles["message"], styles["received"])}>
             <TypingIndicator />

@@ -12,14 +12,17 @@ interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
     onSendMessage?: () => void;
     inputText?: string;
     setInputText?: (text: string) => void;
+    inputAudio?: Blob;
+    setInputAudio?: (blob?: Blob) => void;
+    setTranscribedText?: (text: string) => void;
 }
 
-const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSendMessage, inputText, setInputText }) => {
+const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSendMessage, inputText, setInputText, inputAudio, setInputAudio, setTranscribedText }) => {
     const [isRecording, setIsRecording] = useState(false);
-    const [audio, setAudio] = useState<Blob>();
     const mediaRecorderRef = useRef<MediaRecorder>(null);
     const chunksRef = useRef<Blob[]>([]);
     const [stream, setStream] = useState<MediaStream>();
+    // const recognitionRef = useRef<SpeechRecognition | null>(null);
 
     const containerRef = useRef<HTMLDivElement>(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -36,6 +39,26 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSendMessage, inputText,
     }, []);
 
     const startRecording = async () => {
+        if (!setInputAudio && !inputAudio) return;
+
+        // const speechRecognition = (window as any).speechRecognition || (window as any).webkitSpeechRecognition;
+        // if (speechRecognition) {
+        //     const recognition = new SpeechRecognition();
+        //     recognition.continuous = true;
+        //     recognition.interimResults = true;
+        //     recognition.onresult = (event: SpeechRecognitionEvent) => {
+        //         let transcript = '';
+        //         for (let i = event.resultIndex; i < event.results.length; ++i) {
+        //             transcript += event.results[i][0].transcript;
+        //         }
+        //         setTranscribedText?.(transcript);
+        //     };
+        //     recognitionRef.current = recognition;
+        //     recognition.start();
+        // }
+
+
+        setInputAudio?.(undefined);
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         setStream(stream);
         const mediaRecorder = new MediaRecorder(stream);
@@ -48,7 +71,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSendMessage, inputText,
 
         mediaRecorder.addEventListener('stop', () => {
             const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-            setAudio(blob);
+            setInputAudio?.(blob);
         });
 
         mediaRecorder.start();
@@ -62,7 +85,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSendMessage, inputText,
     };
 
     const clearAudio = () => {
-        setAudio(undefined);
+        setInputAudio?.(undefined);
     }
 
     return (
@@ -75,13 +98,13 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSendMessage, inputText,
                     onChange={(e) => setInputText && setInputText(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && onSendMessage && onSendMessage()}
                 />
-                {audio && (
-                    <>
-                        <AudioWaveform audioBlob={audio}
-                            width={dimensions.width}
+                {inputAudio && (
+                    <div style={{ display: "flex", flex: "1", justifyContent: "center", alignItems: "center", gap: "8px" }}>
+                        <AudioWaveform audioBlob={inputAudio}
+                            width={dimensions.width - 50}
                             height={dimensions.height} />
                         <span onClick={clearAudio}>X</span>
-                    </>
+                    </div>
                 )}
                 {(isRecording && stream) && (
                     <AudioVisualizer
@@ -96,17 +119,10 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSendMessage, inputText,
             </div>
 
             <div className={styles["buttons"]}>
-                <CircularIconButton
-                    icon={<MicrophoneIcon />}
-                    className={styles["voice-btn"]}
-                    size="small"
-                    variant="secondary"
-                    style={{ touchAction: 'none' }}
+                <CircularIconButton icon={<MicrophoneIcon />} className={styles["voice-btn"]} size="small" variant="secondary"
                     onPointerDown={startRecording}
                     onPointerUp={stopRecording}
                     onPointerLeave={() => isRecording && stopRecording()}
-                    onPointerCancel={() => isRecording && stopRecording()}
-                    onPointerOut={() => isRecording && stopRecording()}
                 />
                 <CircularIconButton icon={<SendIcon />} className={styles["send-btn"]} onClick={onSendMessage} size="small" />
             </div>
