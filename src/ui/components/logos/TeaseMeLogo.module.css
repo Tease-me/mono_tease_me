@@ -1,0 +1,28 @@
+.logo {
+    align-self: center;
+}
+
+.logo.xsmall {
+    width: 34px;
+    height: 34px;
+}
+
+.logo.small {
+    width: 64px;
+    height: 64px;
+}
+
+.logo.medium {
+    width: 94px;
+    height: 94px;
+}
+
+.logo.large {
+    width: 124px;
+    height: 124px;
+}
+
+.logo.xlarge {
+    width: 154px;
+    height: 154px;
+}

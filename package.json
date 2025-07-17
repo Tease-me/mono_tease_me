@@ -4,28 +4,46 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "start": "vite --host",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-three/fiber": "^9.2.0",
+    "@tailwindcss/vite": "^4.1.11",
+    "@types/three": "^0.178.1",
     "axios": "^1.9.0",
+    "bland-client-js-sdk": "^0.1.9",
+    "clsx": "^2.1.1",
+    "daisyui": "^5.0.46",
+    "lucide-react": "^0.525.0",
     "react": "^19.1.0",
+    "react-audio-visualize": "^1.2.0",
+    "react-audio-voice-recorder": "^2.2.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.0",
-    "swiper": "^11.2.8"
+    "react-voice-visualizer": "^2.0.8",
+    "swiper": "^11.2.8",
+    "three": "^0.178.0",
+    "typescript": "^5.8.3",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
-    "@types/react": "^19.1.2",
+    "@types/node": "^24.0.13",
+    "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
+    "autoprefixer": "^10.4.21",
     "eslint": "^9.25.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
-    "vite": "^6.3.5"
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.11",
+    "vite": "^6.3.5",
+    "vite-plugin-svgr": "^4.3.0"
   },
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

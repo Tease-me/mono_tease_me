@@ -1,0 +1,80 @@
+.button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 28px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.button:active {
+    transform: scale(1.1);
+}
+
+.button.primary {
+    background: linear-gradient(var(--gradient-angle), var(--gradient-start-red-start) -50%, var(--gradient-end-red-end) 150%);
+    color: #fff;
+}
+
+button.secondary {
+    background: linear-gradient(var(--gradient-angle), var(--gradient-orange-start) -50%, var(--gradient-orange-end) 150%);
+    color: #fff;
+}
+
+.button:hover.primary {
+    background: linear-gradient(var(--gradient-angle), var(--gradient-start-red-start) 100%, var(--gradient-end-red-end) 0%);
+}
+
+button:hover.secondary {
+    background: linear-gradient(var(--gradient-angle), var(--gradient-orange-start) 100%, var(--gradient-orange-end) 0%);
+}
+
+.contents {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+}
+
+.icon-container.small {
+    width: 16px;
+    height: 16px;
+}
+
+.button-with-text-and-icon {
+    display: flex;
+    gap: 8px;
+    padding: 18px 16px;
+}
+
+.button-with-text-only {
+    padding: 18px 16px;
+}
+
+.button-with-icon-only {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+}
+
+.button-with-icon-only.small {
+    width: 57px;
+    height: 57px;
+}
+
+.button-with-icon-only.small>.icon-container {
+    width: 24px;
+    height: 24px;
+}
+
+.icon-container svg {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}

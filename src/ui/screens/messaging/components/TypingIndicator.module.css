@@ -1,0 +1,55 @@
+.typing {
+    padding: 12px;
+    box-sizing: border-box;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    display: flex;
+    align-items: center;
+    height: 22.5px;
+    width: 100%;
+}
+
+[data-effect='typing'] {
+    position: relative;
+    overflow: hidden;
+}
+
+.typing-text {
+    margin-right: 9px;
+    font-size: 15px;
+}
+
+.typing-dot {
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    border-radius: 4px;
+    animation: typing-dot 1.6s ease-in-out infinite;
+    background: var(--color-text);
+}
+
+.typing-dot+.typing-dot {
+    margin-left: 4px;
+}
+
+.typing-dot[data-i="1"] {
+    animation-delay: 0.2s;
+}
+
+.typing-dot[data-i="2"] {
+    animation-delay: 0.3s;
+}
+
+@keyframes typing-dot {
+
+    0%,
+    40%,
+    100% {
+        background: var(--color-text);
+    }
+
+    20% {
+        background: var(--color-dark-3);
+        transform: scale(1.2);
+    }
+}
