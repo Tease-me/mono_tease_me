@@ -43,23 +43,6 @@
   font-weight: bold;
 }
 
-.divider {
-  margin: 25px 0;
-  border-bottom: 1px solid #555;
-  position: relative;
-}
-
-.divider span {
-  position: absolute;
-  top: -10px;
-  background: #1e2127;
-  padding: 0 10px;
-  color: #888;
-  font-size: 14px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
 /* Responsividade para desktop */
 @media (min-width: 768px) {
   .content {

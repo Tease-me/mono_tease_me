@@ -9,6 +9,7 @@ import ProfileMedia from "@/ui/components/ProfileMedia";
 import CenteredLayout from "@/ui/templates/CenteredLayout";
 import CircularIconButton from "@/ui/components/buttons/CircularIconButton";
 import TeaseMeLogo from "../components/logos/TeaseMeLogo";
+import DividerWithLabel from "../components/dividers/DividerWithLabel";
 export interface WelcomeScreenProps {
 }
 
@@ -27,7 +28,7 @@ export default function WelcomeScreen({ }: WelcomeScreenProps) {
             <h2 className={styles["join-text"]}>Join {username} on</h2>
           </>
         )}
-        <TeaseMeLogo />
+        <TeaseMeLogo size="xlarge" />
         <p className={styles["signup-text"]}>
           Don't have an account?{" "}
           <span
@@ -38,9 +39,7 @@ export default function WelcomeScreen({ }: WelcomeScreenProps) {
           </span>
         </p>
 
-        <div className={styles["divider"]}>
-          <span>or</span>
-        </div>
+        <DividerWithLabel text="or" />
         <CircularIconButton text="Sign in with email" className={styles["sign-in-button"]} onClick={handleSignInClick} />
       </CenteredLayout>
     </BackgroundGradient>
