@@ -4,7 +4,10 @@ import { LoginResponse } from './models/LoginResponse';
 
 export const Login = async (username: string, password: string): Promise<LoginResponse> => {
     try {
-        const response = await axios.post(Endpoints.LOGIN, { username, password });
+        const response = await axios.post(
+            Endpoints.LOGIN,
+            { username, password },
+        );
         return response.data;
     } catch (error) {
         throw error;

@@ -31,13 +31,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     useEffect(() => {
         if (authErrors) {
             const timeout = setTimeout(() => {
-                // setAuthErrors(undefined);
+                setAuthErrors(undefined);
             }, 5000);
             return () => clearTimeout(timeout);
         }
     }, [authErrors]);
 
     const login = async (username: string, password: string) => {
+        setLoadingAuth(true);
         try {
             const response = await Login(username, password);
 
@@ -55,8 +56,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     status: error?.status || 500,
                 },
             });
-
-            return false; // Return false on failure
+            return false;
+        } finally {
+            setLoadingAuth(false);
         }
     };
 
