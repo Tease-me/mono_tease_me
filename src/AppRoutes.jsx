@@ -14,7 +14,8 @@ import PrivateRoute from "./utils/PrivateRoute";
 
 function AppRoutes() {
   const publicRoutes = [
-    ["*", <LoginScreen />],
+    ["*", <WelcomeScreen />],
+    ["/:username", <WelcomeScreen />],
     ["/login", <LoginScreen />],
     ["/signup", <Signup01 />],
     ["/signup/profile", <Signup02 />],
