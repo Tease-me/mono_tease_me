@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import avatar from "../../assets/image/avatar.png";
-import BackgroundGradient from "../../templates/BackgroundGradient";
+import avatar from "@/assets/image/avatar.png";
+import BackgroundGradient from "@/ui/templates/BackgroundGradient";
 import styles from "./HomeScreen.module.css";
 
 const contacts = [

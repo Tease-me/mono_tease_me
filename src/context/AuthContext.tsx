@@ -26,6 +26,7 @@ export const AuthContext = createContext<AuthContextType>(
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [isSignedIn, setIsSignedIn] = useState(false);
     const [loadingAuth, setLoadingAuth] = useState(false);
+    const [accessToken, setAccessToken] = useState<string | undefined>(undefined);
     const [authErrors, setAuthErrors] = useState<AuthErrors>();
 
     useEffect(() => {
@@ -37,6 +38,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
     }, [authErrors]);
 
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                //TODO: Replace this with Refresh Token
+                const token = localStorage.getItem("access_token");
+
+                if (token) {
+                    setIsSignedIn(true);
+                    setAccessToken(token);
+                } else {
+                    setIsSignedIn(false);
+                }
+            } catch {
+                setIsSignedIn(false);
+            } finally {
+                setLoadingAuth(false);
+            }
+        };
+        checkAuth();
+    }, []);
+
     const login = async (username: string, password: string) => {
         setLoadingAuth(true);
         try {
@@ -44,10 +66,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
             if (response) {
                 setIsSignedIn(true);
-                localStorage.setItem("authToken", `Bearer ${response.access_token}`);
+                setAccessToken(response.access_token);
+                localStorage.setItem("access_token", `${response.access_token}`);
                 return true;
             }
-
             return false;
         } catch (error: any) {
             setAuthErrors({
@@ -65,11 +87,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return (
         <AuthContext.Provider
             value={{
+                accessToken,
                 login: login,
                 loadingAuth: loadingAuth,
                 logout: (callback?: () => void) => {
                     setIsSignedIn(false);
-                    localStorage.removeItem("authToken");
+                    setAccessToken(undefined);
+                    localStorage.removeItem("access_token");
                     if (callback) callback();
                 },
                 isSignedIn: isSignedIn,

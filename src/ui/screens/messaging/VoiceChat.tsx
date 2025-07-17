@@ -1,6 +1,6 @@
 import { BLAND_API_KEY } from "@/api/env";
-import LoadingSpinner from "@/components/loading/LoadingSpinner";
-import ProfileMedia from "@/components/ProfileMedia";
+import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
+import ProfileMedia from "@/ui/components/ProfileMedia";
 
 import { BlandWebClient } from "bland-client-js-sdk";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -8,7 +8,7 @@ import styles from "./VoiceChat.module.css";
 
 import oliviaImage from "@/assets/image/avatar.png"
 import oliviaVideo from "@/assets/video/avatar_video.mp4";
-import CircularIconButton from "@/components/buttons/CircularIconButton";
+import CircularIconButton from "@/ui/components/buttons/CircularIconButton";
 import CloseSquareIcon from "@/assets/CloseSquare.svg?react";
 import CallIcon from "@/assets/Call.svg?react";
 import WifiIcon from "@/assets/Wifi.svg?react";

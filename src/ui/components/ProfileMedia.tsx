@@ -1,8 +1,8 @@
 import React, { useRef, useEffect } from 'react';
 import styles from "./ProfileMedia.module.css";
 
-import foregroundFilter from "../assets/image/avatar_filter.png";
-import HeartIcon from "../assets/Heart.svg?react";
+import foregroundFilter from "@/assets/image/avatar_filter.png";
+import HeartIcon from "@/assets/Heart.svg?react";
 import clsx from 'clsx';
 export type ProfileMediaSize = 'xsmall' | 'small' | 'medium' | 'large' | 'xlarge';
 

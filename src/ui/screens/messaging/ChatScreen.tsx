@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import BackgroundGradient from "../../templates/BackgroundGradient";
 
@@ -8,8 +8,9 @@ import { TEASE_ME_HOST } from "@/api/env";
 import MessageBubble from "./components/MessageBubble";
 import ChatInputArea from "./components/ChatInputArea";
 import { contacts } from "@/data/mock/MockContacts";
-import ProfileMedia from "@/components/ProfileMedia";
+import ProfileMedia from "@/ui/components/ProfileMedia";
 import { truncateLastName } from "@/utils/StringUtils";
+import { AuthContext } from "@/context/AuthContext";
 
 
 const chatId = 'abc123'; // or generate per user/session
@@ -32,12 +33,10 @@ export default function ChatScreen() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const jwtToken =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIn0.nMCNZAW9ZROF5w0ry_wA3ywe-XnzgW40zeHSDdiN0h8'; // Cole aqui o token recebido no login
+  const { accessToken } = useContext(AuthContext);
 
   useEffect(() => {
-    console.log("Host Name", TEASE_ME_HOST);
-    ws.current = new window.WebSocket(`${Endpoints.CHAT}/${personaId}?token=${jwtToken}`);
+    ws.current = new window.WebSocket(`${Endpoints.CHAT}/${personaId}?token=${accessToken}`);
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
       setMessages(prev => [

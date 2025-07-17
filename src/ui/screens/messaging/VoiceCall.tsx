@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import styles from "./VoiceCall.module.css"
-import BackgroundGradient from '@/templates/BackgroundGradient';
+import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 import { createWebAgent, updateWebAgent } from '@/api/bland/bland';
-import LoadingSpinner from '@/components/loading/LoadingSpinner';
+import LoadingSpinner from '@/ui/components/loading/LoadingSpinner';
 import VoiceChat from './VoiceChat';
 import { BLAND_AGENT_LUNA, BLAND_AGENT_TEST } from '@/api/env';
-import CenteredLayout from '@/templates/CenteredLayout';
+import CenteredLayout from '@/ui/templates/CenteredLayout';
 
 interface VoiceCallProps {
 }

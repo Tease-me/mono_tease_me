@@ -1,14 +1,14 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
-import oliviaImage from "../assets/image/avatar.png";
-import oliviaVideo from "../assets/video/avatar_video.mp4";
+import oliviaImage from "@/assets/image/avatar.png";
+import oliviaVideo from "@/assets/video/avatar_video.mp4";
 import BackgroundGradient from "../templates/BackgroundGradient";
 import styles from "./WelcomeScreen.module.css";
-import ProfileMedia from "@/components/ProfileMedia";
+import ProfileMedia from "@/ui/components/ProfileMedia";
 import teaseMeLogo from "@/assets/LogoTeaseMe-Light.svg";
-import CenteredLayout from "@/templates/CenteredLayout";
-import CircularIconButton from "@/components/buttons/CircularIconButton";
+import CenteredLayout from "@/ui/templates/CenteredLayout";
+import CircularIconButton from "@/ui/components/buttons/CircularIconButton";
 import { UserDataModel } from "@/data/models/UserDataModel";
 export interface WelcomeScreenProps {
 }

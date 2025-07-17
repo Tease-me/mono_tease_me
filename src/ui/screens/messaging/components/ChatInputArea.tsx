@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 
-import CircularIconButton from '@/components/buttons/CircularIconButton';
+import CircularIconButton from '@/ui/components/buttons/CircularIconButton';
 import MicrophoneIcon from "@/assets/Microphone.svg?react";
 import SendIcon from "@/assets/Send.svg?react";
 

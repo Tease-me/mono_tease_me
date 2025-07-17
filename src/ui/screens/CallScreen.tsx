@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import avatar from "../assets/image/avatar.png";
+import avatar from "@/assets/image/avatar.png";
 import BackgroundGradient from "../templates/BackgroundGradient";
 import styles from "./CallScreen.module.css";
 
