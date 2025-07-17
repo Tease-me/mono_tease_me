@@ -12,6 +12,8 @@ import CircularIconButton from "@/components/buttons/CircularIconButton";
 import CloseSquareIcon from "@/assets/CloseSquare.svg?react";
 import CallIcon from "@/assets/Call.svg?react";
 import WifiIcon from "@/assets/Wifi.svg?react";
+import NoSignalIcon from "@/assets/svg/NoSignal.svg"
+
 import TeaseMeIconLight from "@/assets/LogoTeaseMe-Light.svg?react";
 import teaseMeIconLight from "@/assets/LogoTeaseMe-Light.svg";
 import TeaseMeIconDark from "@/assets/LogoTeaseMeDarkMode.svg?react";
@@ -37,6 +39,17 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
   const audioLevelIntervalRef = useRef<NodeJS.Timeout>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [callId, setCallId] = useState<string>("");
+  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+
+  useEffect(() => {
+    const updateStatus = () => setIsOnline(navigator.onLine);
+    window.addEventListener("online", updateStatus);
+    window.addEventListener("offline", updateStatus);
+    return () => {
+      window.removeEventListener("online", updateStatus);
+      window.removeEventListener("offline", updateStatus);
+    };
+  }, []);
 
   const cleanup = useCallback(async () => {
     setIsLoading(true);
@@ -120,7 +133,6 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
       setIsRecording(true);
       setIsConnected(true);
 
-      // Simulate audio levels for visualization
       audioLevelIntervalRef.current = setInterval(() => {
         setAudioLevel(Math.random());
       }, 100);
@@ -181,8 +193,8 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
           ) : (
             !isLoading && (
               <div className="flex justify-center items-center gap-2 text-white/50">
-                <WifiIcon className="h-4 w-4" />
-                <span className="text-sm font-light">Ready to start</span>
+                {isOnline ? <WifiIcon className="h-4 w-4" /> : <NoSignalIcon />}
+                <span className="text-sm font-light">{isOnline ? "Ready to start" : "No Connection"}</span>
               </div>
             )
           )}
