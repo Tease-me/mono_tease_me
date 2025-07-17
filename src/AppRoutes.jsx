@@ -10,27 +10,32 @@ import Signup03 from "./screens/signup/Signup03";
 import WelcomeScreen from "./screens/WelcomeScreen";
 import TestPage from "./screens/test/TestPage";
 import VoiceCall from "./screens/messaging/VoiceCall";
+import PrivateRoute from "./utils/PrivateRoute";
 
 function AppRoutes() {
+  const publicRoutes = [
+    ["*", <LoginScreen />],
+    ["/login", <LoginScreen />],
+    ["/signup", <Signup01 />],
+    ["/signup/profile", <Signup02 />],
+    ["/signup/success", <Signup03 />],
+    ["/test", <TestPage />],
+  ];
+
+  const privateRoutes = [
+    ["/voice", <VoiceCall />],
+    ["/home", <HomeScreen />],
+    ["/chat/:id", <ChatScreen />],
+    ["/call/:conversation_id", <CallScreen />],
+  ];
+
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          path="*"
-          element={<WelcomeScreen name="Olivia F." />}
-        />
-        <Route
-          path="/test"
-          element={<TestPage />}
-        />
-        <Route path="/voice" element={<VoiceCall />} />
-        <Route path="/signup" element={<Signup01 />} />
-        <Route path="/signup/profile" element={<Signup02 />} />
-        <Route path="/signup/success" element={<Signup03 />} />
-        <Route path="/login" element={<LoginScreen />} />
-        <Route path="/home" element={<HomeScreen />} />
-        <Route path="/chat/:id" element={<ChatScreen />} />
-        <Route path="/call/:conversation_id" element={<CallScreen />} />
+        {publicRoutes.map(([path, element]) => <Route path={path} element={element} />)}
+        {
+          privateRoutes.map(([path, element]) => <Route path={path} element={<PrivateRoute>{element}</PrivateRoute>} />)
+        }
       </Routes>
     </BrowserRouter>
   );
