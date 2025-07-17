@@ -38,102 +38,6 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
   const [isConnected, setIsConnected] = useState(false);
   const [callId, setCallId] = useState<string>("");
 
-  const cleanupWebSocket = async (wsInstance: WebSocket): Promise<void> => {
-    if (wsInstance && wsInstance.readyState !== WebSocket.CLOSED) {
-      wsInstance.onclose = null;
-      wsInstance.onerror = null;
-      wsInstance.onmessage = null;
-      wsInstance.onopen = null;
-
-      wsInstance.close(1000, "User disconnected");
-
-      await new Promise<void>((resolve) => {
-        const checkClosed = setInterval(() => {
-          if (wsInstance.readyState === WebSocket.CLOSED) {
-            clearInterval(checkClosed);
-            resolve();
-          }
-        }, 50);
-
-        setTimeout(() => {
-          clearInterval(checkClosed);
-          resolve();
-        }, 2000);
-      });
-    }
-  };
-
-  const cleanupMediaStream = (mediaStream: MediaStream) => {
-    if (mediaStream?.getTracks) {
-      mediaStream.getTracks().forEach((track: MediaStreamTrack) => {
-        track.enabled = false;
-        track.stop();
-      });
-    }
-  };
-
-  const cleanupAudioContext = async (audioContext: AudioContext | null) => {
-    if (!audioContext) return;
-
-    try {
-      let state = audioContext.state;
-
-      if (state === "closed") return;
-
-      if (state === "running") {
-        try {
-          await audioContext.suspend();
-          console.log("AudioContext suspended");
-        } catch (e: any) {
-          if (e.name === "InvalidStateError") {
-            console.warn("Tried to suspend already-closed AudioContext.");
-          } else {
-            throw e;
-          }
-        }
-
-        state = audioContext.state;
-        if (state === "closed") return;
-      }
-
-      if (state !== "suspended") {
-        try {
-          await audioContext.close();
-          console.log("AudioContext closed");
-        } catch (e: any) {
-          if (e.name === "InvalidStateError") {
-            console.warn("Tried to close already-closed AudioContext.");
-          } else {
-            throw e;
-          }
-        }
-      }
-    } catch (err) {
-      console.warn("Error in cleanupAudioContext:", err);
-    }
-  };
-
-  const releaseMicrophone = async () => {
-    try {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const audioDevices = devices.filter(
-        (device) => device.kind === "audioinput"
-      );
-
-      for (const device of audioDevices) {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: { deviceId: device.deviceId },
-        });
-        stream.getTracks().forEach((track) => {
-          track.enabled = false;
-          track.stop();
-        });
-      }
-    } catch (err) {
-      console.warn("Could not release microphone:", err);
-    }
-  };
-
   const cleanup = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -143,28 +47,9 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
       }
 
       if (clientRef.current) {
-        try {
-          if (typeof (clientRef.current as any).stop === "function") {
-            await (clientRef.current as any).stop();
-          }
-
-          const wsInstance =
-            (clientRef.current as any)._ws ||
-            (clientRef.current as any).ws ||
-            (clientRef.current as any).webSocket;
-          await cleanupWebSocket(wsInstance);
-
-          cleanupMediaStream((clientRef.current as any).mediaStream);
-
-          await cleanupAudioContext((clientRef.current as any).audioContext);
-
-          clientRef.current = null;
-        } catch (err) {
-          console.error("Error stopping client:", err);
-          throw new Error("Failed to disconnect properly");
-        }
+        clientRef.current.stopConversation();
+        clientRef.current = null;
       }
-      await releaseMicrophone();
     } catch (err) {
       console.error("Error during cleanup:", err);
       setError(err instanceof Error ? err.message : "Cleanup failed");
