@@ -14,10 +14,6 @@ import CallIcon from "@/assets/Call.svg?react";
 import WifiIcon from "@/assets/Wifi.svg?react";
 import NoSignalIcon from "@/assets/svg/NoSignal.svg"
 
-import TeaseMeIconLight from "@/assets/LogoTeaseMe-Light.svg?react";
-import teaseMeIconLight from "@/assets/LogoTeaseMe-Light.svg";
-import TeaseMeIconDark from "@/assets/LogoTeaseMeDarkMode.svg?react";
-import teaseMeIconDark from "@/assets/LogoTeaseMeDarkMode.svg";
 type Message = {
   id: string;
   text: string;
@@ -29,7 +25,6 @@ interface VoiceChatProps {
 }
 
 export default function VoiceChat({ agentId }: VoiceChatProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [status, setStatus] = useState<string>("Idle");
   const [error, setError] = useState<string | null>(null);
@@ -40,6 +35,7 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
   const [isConnected, setIsConnected] = useState(false);
   const [callId, setCallId] = useState<string>("");
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+  const ringtoneRef = useRef(new Audio("/audio/ringtone.wav"));
 
   useEffect(() => {
     const updateStatus = () => setIsOnline(navigator.onLine);
@@ -50,6 +46,20 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
       window.removeEventListener("offline", updateStatus);
     };
   }, []);
+
+  const ring = () => {
+    const ringtone = ringtoneRef.current;
+    ringtone.loop = true;
+
+    ringtone.play().catch((err) => {
+      console.error("Ringtone playback failed:", err);
+    });
+  }
+
+  const stopRing = () => {
+    ringtoneRef.current.pause();
+    ringtoneRef.current.currentTime = 0;
+  }
 
   const cleanup = useCallback(async () => {
     setIsLoading(true);
@@ -98,7 +108,7 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
       setError("Agent ID is not set");
       return;
     }
-
+    ring();
     cleanup();
     setStatus("Initializing...");
     setError(null);
@@ -129,6 +139,7 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
       });
 
       setCallId(currentCallId);
+      stopRing()
       setStatus("Connected! Start speaking...");
       setIsRecording(true);
       setIsConnected(true);
@@ -156,9 +167,6 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
         <div>
           <span className="flex items-center gap-3 w-full justify-center">
             Olivia F.
-            {isLoading && (
-              <LoadingSpinner className="h-4 w-4 animate-spin text-white/70" />
-            )}
           </span>
         </div>
       </div>
