@@ -1,0 +1,13 @@
+.logo {
+    align-self: center;
+}
+
+.logo.xsmall {
+    width: 34px;
+    height: 34px;
+}
+
+.logo.medium {
+    width: 200px;
+    height: 200px;
+}

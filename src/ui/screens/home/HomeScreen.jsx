@@ -4,6 +4,8 @@ import avatar from "@/assets/image/avatar.png";
 import BackgroundGradient from "@/ui/templates/BackgroundGradient";
 import styles from "./HomeScreen.module.css";
 import clsx from "clsx";
+import teaseMeLogo from "@/assets/LogoTeaseMe-Light.svg";
+import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
 
 const contacts = [
   {
@@ -85,7 +87,7 @@ export default function HomeScreen() {
       <BackgroundGradient />
       <div className={styles["home-content"]}>
         <header className={styles["home-header"]}>
-          <h2>Good Evening Max,</h2>
+          <TeaseMeLogo size="xsmall" />
           <button
             className={styles["menu-button"]}
             onClick={() => setMenuOpen((prev) => !prev)}

@@ -21,12 +21,6 @@
   flex-direction: column;
 }
 
-.logo {
-  width: 200px;
-  height: 200px;
-  align-self: center;
-}
-
 .profile-container {
   display: flex;
   margin: 0 auto 20px auto;
