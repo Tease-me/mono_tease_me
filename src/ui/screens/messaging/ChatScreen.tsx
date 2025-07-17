@@ -112,6 +112,10 @@ export default function ChatScreen() {
     setInputText('');
   };
 
+  const onCall = () => {
+    navigate("/voice")
+  }
+
   return (
     <BackgroundGradient>
       <div className={styles["chat-container"]}>
@@ -140,7 +144,8 @@ export default function ChatScreen() {
             setInputText={setInputText}
             setInputAudio={setInputAudio}
             inputAudio={inputAudio}
-            setTranscribedText={setTranscribedText} />
+            setTranscribedText={setTranscribedText}
+            onCall={onCall} />
         </div>
       </div>
     </BackgroundGradient>

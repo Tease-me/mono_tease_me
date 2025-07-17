@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import CircularIconButton from '@/ui/components/buttons/CircularIconButton';
 import MicrophoneIcon from "@/assets/Microphone.svg?react";
 import SendIcon from "@/assets/Send.svg?react";
+import CallIcon from "@/assets/Call.svg?react"
 
 import styles from "./ChatInputArea.module.css"
 import AudioVisualizer from './AudioVisualizer';
@@ -15,9 +16,17 @@ interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
     inputAudio?: Blob;
     setInputAudio?: (blob?: Blob) => void;
     setTranscribedText?: (text: string) => void;
+    onCall?: () => void;
 }
 
-const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSendMessage, inputText, setInputText, inputAudio, setInputAudio, setTranscribedText }) => {
+const ChatInputArea: React.FC<ChatInputAreaProps> = ({
+    onSendMessage,
+    inputText,
+    setInputText,
+    inputAudio,
+    setInputAudio,
+    setTranscribedText,
+    onCall }) => {
     const [isRecording, setIsRecording] = useState(false);
     const mediaRecorderRef = useRef<MediaRecorder>(null);
     const chunksRef = useRef<Blob[]>([]);
@@ -124,6 +133,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({ onSendMessage, inputText,
                     onPointerUp={stopRecording}
                     onPointerLeave={() => isRecording && stopRecording()}
                 />
+                <CircularIconButton icon={<CallIcon />} className={styles["send-btn"]} onClick={onCall} size="small" variant='primary' />
                 <CircularIconButton icon={<SendIcon />} className={styles["send-btn"]} onClick={onSendMessage} size="small" />
             </div>
         </div>

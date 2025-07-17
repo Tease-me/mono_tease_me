@@ -121,11 +121,6 @@
     padding: 25px;
   }
 
-  .chat-header {
-    display: none;
-    /* esconder header em desktop */
-  }
-
   .chat-avatar {
     width: 70px;
     height: 70px;
