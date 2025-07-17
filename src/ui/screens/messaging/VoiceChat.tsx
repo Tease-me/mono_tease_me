@@ -14,10 +14,17 @@ import CallIcon from "@/assets/Call.svg?react";
 import WifiIcon from "@/assets/Wifi.svg?react";
 import NoSignalIcon from "@/assets/svg/NoSignal.svg"
 
-type Message = {
-  id: string;
-  text: string;
-  sender: "user" | "ai";
+// Cross-browser getUserMedia
+const getUserMedia = (constraints: MediaStreamConstraints): Promise<MediaStream> => {
+  if (navigator.mediaDevices?.getUserMedia) {
+    return navigator.mediaDevices.getUserMedia(constraints);
+  }
+  const nav = navigator as any;
+  const legacy = nav.getUserMedia || nav.webkitGetUserMedia || nav.mozGetUserMedia;
+  if (!legacy) {
+    return Promise.reject(new Error("getUserMedia is not supported in this browser"));
+  }
+  return new Promise((resolve, reject) => legacy.call(nav, resolve, reject, constraints));
 };
 
 interface VoiceChatProps {
@@ -104,13 +111,23 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
   }, [isConnected, cleanup]);
 
   const initVoiceChat = async () => {
+    setStatus("Initializing...");
+    try {
+      await getUserMedia({ audio: true });
+    } catch (err) {
+      console.error("Microphone permission denied:", err);
+      setError("Microphone permission denied");
+      setIsLoading(false);
+      return;
+    }
+
     if (!agentId) {
       setError("Agent ID is not set");
       return;
     }
     ring();
     cleanup();
-    setStatus("Initializing...");
+
     setError(null);
     setIsLoading(true);
 
@@ -128,7 +145,6 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
       if (!data.token) {
         throw new Error("No token received");
       }
-
       setStatus("Connecting to Bland AI...");
       clientRef.current = new BlandWebClient(agentId, data.token);
 
