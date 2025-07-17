@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import avatar from "@/assets/image/avatar.png";
 import BackgroundGradient from "@/ui/templates/BackgroundGradient";
 import styles from "./HomeScreen.module.css";
+import clsx from "clsx";
 
 const contacts = [
   {
@@ -112,15 +113,14 @@ export default function HomeScreen() {
 
         <nav className={styles["tabs"]}>
           <span
-            className={`tab ${activeTab === "contacts" ? "active" : ""}`}
+            className={clsx(styles["tab"], activeTab === "contacts" && styles["active"])}
             onClick={() => setActiveTab("contacts")}
           >
             Contacts
           </span>
           <span
-            className={`tab ${activeTab === "suggested" ? "active" : ""}`}
-            onClick={() => setActiveTab("suggested")}
-          >
+            className={clsx(styles["tab"], activeTab === "suggested" && styles["active"])}
+            onClick={() => setActiveTab("suggested")}>
             Suggested
           </span>
         </nav>
@@ -138,8 +138,7 @@ export default function HomeScreen() {
               {filteredContacts.map((contact) => (
                 <div
                   key={contact.id}
-                  className={`contact-card ${contact.featured ? "highlight" : ""
-                    }`}
+                  className={clsx(styles["contact-card"], contact.featured && styles["highlight"])}
                   onClick={() => navigate(`/chat/${contact.id}`)}
                 >
                   <img src={contact.img} alt={contact.name} />
@@ -149,9 +148,7 @@ export default function HomeScreen() {
                       {contact.username} | {contact.likes} likes
                     </p>
                   </div>
-                  <button
-                    className={contact.featured ? "chat-btn" : "trial-btn"}
-                  >
+                  <button className={clsx(contact.featured ? styles["chat-btn"] : styles["trial-btn"])}>
                     {contact.featured ? "♾️ Chat" : "Trial"}
                   </button>
                 </div>
@@ -162,7 +159,7 @@ export default function HomeScreen() {
 
         {activeTab === "suggested" && (
           <>
-            <div className={styles["suggested-images horizontal-scroll"]}>
+            <div className={clsx(styles["suggested-images"], styles["horizontal-scroll"])}>
               {contacts.slice(0, 5).map((contact) => (
                 <img key={contact.id} src={contact.img} alt={contact.name} />
               ))}
@@ -185,6 +182,6 @@ export default function HomeScreen() {
           </>
         )}
       </div>
-    </div>
+    </div >
   );
 }

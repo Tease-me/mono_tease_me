@@ -4,7 +4,6 @@ import BackgroundGradient from "../../templates/BackgroundGradient";
 
 import styles from "./ChatScreen.module.css";
 import { Endpoints } from "@/api/urls";
-import { TEASE_ME_HOST } from "@/api/env";
 import MessageBubble from "./components/MessageBubble";
 import ChatInputArea from "./components/ChatInputArea";
 import { contacts } from "@/data/mock/MockContacts";
