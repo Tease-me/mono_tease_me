@@ -17,7 +17,7 @@
     padding: 32px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .container {
         display: grid;
         grid-template-columns: 1fr;

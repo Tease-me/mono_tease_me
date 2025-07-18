@@ -9,17 +9,23 @@ import styles from "./ChatScreenContent.module.css"
 import { useNavigate, useParams } from 'react-router-dom';
 import MessageBubble from './MessageBubble';
 import ChatInputArea from './ChatInputArea';
+import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
+import { UserDataModel } from '@/data/models/UserDataModel';
+import { Contact } from '@/data/models/ContactDataModel';
+
 const chatId = 'abc123'; // or generate per user/session
 const personaId = 'loli'; // or "loli", "bella", etc
 
 interface ChatScreenContentProps {
+    id?: number;
 }
 
-const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ }) => {
-    const { id } = useParams();
+const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id }) => {
+    const [user, setuser] = useState<Contact>();
+
     const ws = useRef<WebSocket | null>(null);
     const navigate = useNavigate();
-    const user = contacts.find((c) => c.conversation_id === id);
+
     const [messages, setMessages] = useState(user?.messages || []);
     const [inputText, setInputText] = useState("");
     const [transcribedText, setTranscribedText] = useState("");
@@ -33,8 +39,20 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ }) => {
     };
 
     const { accessToken } = useContext(AuthContext);
+    const { paramsId } = useParams();
 
     useEffect(() => {
+        if (!id) {
+            if (!paramsId) {
+                console.warn("No chat ID provided");
+                return;
+            }
+            const user = contacts.find((c) => c.conversation_id === parseInt(paramsId));
+            setuser(user);
+        } else {
+            const user = contacts.find((c) => c.conversation_id === id);
+            setuser(user);
+        }
         ws.current = new window.WebSocket(`${Endpoints.CHAT}/${personaId}?token=${accessToken}`);
         ws.current.onmessage = (event) => {
             const data = JSON.parse(event.data);
@@ -53,7 +71,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ }) => {
 
             setTyping(prev => !prev || false);
         };
-    }, []);
+    }, [id]);
 
     useEffect(() => {
         scrollToBottom();
@@ -115,6 +133,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ }) => {
     const onCall = () => {
         navigate("/voice")
     }
+
+    if (!id) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
     return (
         <>
             <header className={styles["chat-header"]}>

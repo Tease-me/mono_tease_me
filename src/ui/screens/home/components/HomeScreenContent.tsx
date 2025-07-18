@@ -52,9 +52,10 @@ const contacts = [
     },
 ];
 interface HomeScreenContentProps {
+    onItemClick?: (id: number) => void;
 }
 
-const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ }) => {
+const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ onItemClick }) => {
     const [activeTab, setActiveTab] = useState("contacts");
     const [search, setSearch] = useState("");
     const filteredContacts = contacts.filter((c) =>
@@ -82,6 +83,14 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ }) => {
         document.addEventListener("mousedown", closeMenu);
         return () => document.removeEventListener("mousedown", closeMenu);
     }, []);
+
+    const handleOnChatClick = (id: number) => {
+        if (onItemClick) {
+            onItemClick(id);
+        } else {
+            navigate(`/chat/${id}`);
+        }
+    };
     return (
         <>
             <header className={styles["home-header"]}>
@@ -139,7 +148,7 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ }) => {
                             <div
                                 key={contact.id}
                                 className={clsx(styles["contact-card"], contact.featured && styles["highlight"])}
-                                onClick={() => navigate(`/chat/${contact.id}`)}
+                                onClick={() => handleOnChatClick(contact.id)}
                             >
                                 <img src={contact.img} alt={contact.name} />
                                 <div>

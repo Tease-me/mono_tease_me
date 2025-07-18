@@ -2,19 +2,21 @@ import React from 'react';
 import styles from './TwoPaneLayout.module.css';
 
 interface TwoPaneLayoutProps {
-    nav: React.ReactNode;
+    sidebar: React.ReactNode;
+    showSidebar?: boolean;
+    showContent?: boolean;
     children: React.ReactNode;
 }
 
-const TwoPaneLayout: React.FC<TwoPaneLayoutProps> = ({ nav, children }) => {
+const TwoPaneLayout: React.FC<TwoPaneLayoutProps> = ({ showSidebar, showContent, sidebar, children }) => {
     return (
         <div className={styles.container}>
-            <aside className={styles.sidebar}>
-                {nav}
-            </aside>
-            <main className={styles.content}>
+            {showSidebar && <aside className={styles.sidebar}>
+                {sidebar}
+            </aside>}
+            {showContent && <main className={styles.content}>
                 {children}
-            </main>
+            </main>}
         </div>
     );
 };
