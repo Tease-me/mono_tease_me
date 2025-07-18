@@ -1,0 +1,30 @@
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 250px;
+    border-right: 1px solid #e0e0e0;
+}
+
+.content {
+    flex: 1;
+    padding: 16px;
+}
+
+@media (max-width: 768px) {
+    .container {
+        display: block;
+    }
+
+    .sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .content {
+        padding: 8px;
+    }
+}

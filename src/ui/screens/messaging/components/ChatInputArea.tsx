@@ -128,10 +128,16 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
             </div>
 
             <div className={styles["buttons"]}>
-                <CircularIconButton icon={<MicrophoneIcon />} className={styles["voice-btn"]} size="small" variant="secondary"
-                    onPointerDown={startRecording}
-                    onPointerUp={stopRecording}
-                    onPointerLeave={() => isRecording && stopRecording()}
+                <CircularIconButton
+                    icon={<MicrophoneIcon />}
+                    className={styles["voice-btn"]}
+                    size="small"
+                    variant="secondary"
+                    onPointerDown={(e) => { e.preventDefault(); startRecording(); }}
+                    onPointerUp={(e) => { e.preventDefault(); stopRecording(); }}
+                    onPointerLeave={(e) => { e.preventDefault(); isRecording && stopRecording(); }}
+                    onPointerCancel={(e) => { e.preventDefault(); isRecording && stopRecording(); }}
+                    onContextMenu={(e) => e.preventDefault()}
                 />
                 <CircularIconButton icon={<CallIcon />} className={styles["send-btn"]} onClick={onCall} size="small" variant='primary' />
                 <CircularIconButton icon={<SendIcon />} className={styles["send-btn"]} onClick={onSendMessage} size="small" />
