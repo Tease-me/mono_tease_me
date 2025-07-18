@@ -79,4 +79,15 @@ body {
   font-family: var(--primary-font-family);
   background-color: var(--color-dark-1);
   color: var(--color-text);
+  outline: 1px solid red;
+}
+
+#root {
+  display: flex;
+  flex: 1;
+  min-width: 100vw;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow: hidden;
+  position: relative;
 }

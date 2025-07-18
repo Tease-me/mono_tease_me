@@ -5,7 +5,7 @@ import clsx from 'clsx';
 interface CircularIconButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
     text?: string;
     icon?: React.ReactNode;
-    size?: "small" | "medium" | "large";
+    size?: "xsmall" | "small" | "medium" | "large";
     variant?: "primary" | "secondary" | "tertiary";
 }
 

@@ -11,12 +11,12 @@ interface TwoPaneLayoutProps {
 const TwoPaneLayout: React.FC<TwoPaneLayoutProps> = ({ showSidebar, showContent, sidebar, children }) => {
     return (
         <div className={styles.container}>
-            {showSidebar && <aside className={styles.sidebar}>
+            {showSidebar && <div className={styles.sidebar}>
                 {sidebar}
-            </aside>}
-            {showContent && <main className={styles.content}>
+            </div>}
+            {showContent && <div className={styles.content}>
                 {children}
-            </main>}
+            </div>}
         </div>
     );
 };

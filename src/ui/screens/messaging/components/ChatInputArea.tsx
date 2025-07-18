@@ -131,7 +131,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                 <CircularIconButton
                     icon={<MicrophoneIcon />}
                     className={styles["voice-btn"]}
-                    size="small"
+                    size="xsmall"
                     variant="secondary"
                     onPointerDown={(e) => { e.preventDefault(); startRecording(); }}
                     onPointerUp={(e) => { e.preventDefault(); stopRecording(); }}
@@ -139,8 +139,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                     onPointerCancel={(e) => { e.preventDefault(); isRecording && stopRecording(); }}
                     onContextMenu={(e) => e.preventDefault()}
                 />
-                <CircularIconButton icon={<CallIcon />} className={styles["send-btn"]} onClick={onCall} size="small" variant='primary' />
-                <CircularIconButton icon={<SendIcon />} className={styles["send-btn"]} onClick={onSendMessage} size="small" />
+                <CircularIconButton icon={<SendIcon />} className={styles["send-btn"]} onClick={onSendMessage} size="xsmall" />
             </div>
         </div>
     );
