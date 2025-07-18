@@ -92,7 +92,7 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ onItemClick }) =>
         }
     };
     return (
-        <>
+        <div className={styles["home-screen-content"]}>
             <header className={styles["home-header"]}>
                 <TeaseMeLogo size="small" />
                 <button
@@ -190,7 +190,7 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ onItemClick }) =>
                     </div>
                 </>
             )}
-        </>
+        </div>
     );
 };
 

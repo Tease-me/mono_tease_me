@@ -13,7 +13,6 @@ const TestPage = ({ }) => {
     const isDesktop = useMediaQuery('(min-width: 1024px)');
 
     useEffect(() => {
-        console.log("TestPage useEffect", id, isDesktop);
         if (id && !isDesktop) {
             setShowContent(true);
             setShowSidebar(false);
@@ -33,7 +32,7 @@ const TestPage = ({ }) => {
                 showContent={showContent}
                 sidebar={<HomeScreenContent onItemClick={(id: number) => { setId(id) }} />}
             >
-                <ChatScreenContent id={id} />
+                <ChatScreenContent id={id} onBackPressed={() => { setId(undefined) }} />
             </TwoPaneLayout>
         </BackgroundGradient>
     );

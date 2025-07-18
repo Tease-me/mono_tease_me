@@ -19,9 +19,10 @@ const personaId = 'loli'; // or "loli", "bella", etc
 
 interface ChatScreenContentProps {
     id?: number;
+    onBackPressed?: () => void;
 }
 
-const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id }) => {
+const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed }) => {
     const [user, setuser] = useState<Contact>();
 
     const ws = useRef<WebSocket | null>(null);
@@ -132,10 +133,14 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id }) => {
         navigate("/voice")
     }
 
+    const handleOnBackClick = () => {
+        onBackPressed?.();
+    };
+
     if (!id) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
     return (
         <>
-            <ChatTopNav />
+            <ChatTopNav onBack={handleOnBackClick} />
             <ProfileMedia imageSrc={user?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
             <h3 className={styles["chat-user-name"]}>{user && truncateLastName(user?.name)}</h3>
             <div className={styles["chat-messages-container"]}>
