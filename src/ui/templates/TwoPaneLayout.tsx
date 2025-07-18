@@ -2,9 +2,7 @@ import React from 'react';
 import styles from './TwoPaneLayout.module.css';
 
 interface TwoPaneLayoutProps {
-    /** Content for the sidebar/nav pane */
     nav: React.ReactNode;
-    /** Main detail content */
     children: React.ReactNode;
 }
 

@@ -1,21 +1,26 @@
 .container {
-    display: flex;
+    display: grid;
+    grid-template-columns: 0.4fr 1fr;
     height: 100vh;
 }
 
 .sidebar {
-    width: 250px;
-    border-right: 1px solid #e0e0e0;
+    background-color: rgba(33, 33, 33, 1);
+    padding: 32px;
+    border-right: 1px solid rgba(66, 66, 66, 1);
 }
 
 .content {
+    display: flex;
+    flex-direction: column;
     flex: 1;
-    padding: 16px;
+    padding: 32px;
 }
 
 @media (max-width: 768px) {
     .container {
-        display: block;
+        display: grid;
+        grid-template-columns: 1fr;
     }
 
     .sidebar {

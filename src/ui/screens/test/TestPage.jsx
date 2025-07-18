@@ -9,6 +9,8 @@ import { Canvas } from '@react-three/fiber';
 import TwoPaneLayout from '@/ui/templates/TwoPaneLayout';
 import HomeScreen from '../home/HomeScreen';
 import ChatScreen from '../messaging/ChatScreen';
+import HomeScreenContent from '../home/components/HomeScreenContent';
+import ChatScreenContent from '../messaging/components/ChatScreenContent';
 
 const TestPage = ({ }) => {
 
@@ -21,8 +23,8 @@ const TestPage = ({ }) => {
                 <ProfileMedia mediaType='video' imageSrc={oliviaImage} videoSrc={oliviaVideo} size='large' active />
                 <ProfileMedia mediaType='video' imageSrc={oliviaImage} videoSrc={oliviaVideo} size='xlarge' active showHearts />
             </CenteredLayout> */}
-            <TwoPaneLayout nav={<HomeScreen />}>
-                <ChatScreen />
+            <TwoPaneLayout nav={<HomeScreenContent />}>
+                <ChatScreenContent />
             </TwoPaneLayout>
         </BackgroundGradient>
     );
