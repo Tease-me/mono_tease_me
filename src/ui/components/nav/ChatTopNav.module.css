@@ -1,0 +1,19 @@
+.chat-header {
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    background-color: transparent;
+}
+
+.back-btn,
+.menu-button {
+    background: none;
+    border: none;
+    height: 28px;
+    width: 28px;
+    color: #ffffff;
+    font-size: 20px;
+    cursor: pointer;
+}

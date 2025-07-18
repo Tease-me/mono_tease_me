@@ -1,25 +1,7 @@
-.chat-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px;
-    background-color: transparent;
-}
-
-.back-btn,
-.menu-button {
-    background: none;
-    border: none;
-    color: #ffffff;
-    font-size: 20px;
-    cursor: pointer;
-}
-
 .chat-messages-container {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    flex: 1;
-    padding: 10px;
     overflow-y: auto;
 }
 

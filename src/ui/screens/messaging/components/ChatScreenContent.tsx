@@ -12,6 +12,7 @@ import ChatInputArea from './ChatInputArea';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import { UserDataModel } from '@/data/models/UserDataModel';
 import { Contact } from '@/data/models/ContactDataModel';
+import ChatTopNav from '@/ui/components/nav/ChatTopNav';
 
 const chatId = 'abc123'; // or generate per user/session
 const personaId = 'loli'; // or "loli", "bella", etc
@@ -43,10 +44,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id }) => {
 
     useEffect(() => {
         if (!id) {
-            if (!paramsId) {
-                console.warn("No chat ID provided");
-                return;
-            }
+            if (!paramsId) return;
             const user = contacts.find((c) => c.conversation_id === parseInt(paramsId));
             setuser(user);
         } else {
@@ -137,13 +135,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id }) => {
     if (!id) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
     return (
         <>
-            <header className={styles["chat-header"]}>
-                <button className={styles["back-btn"]} onClick={() => navigate("/home")}>
-                    ←
-                </button>
-                <h2>Inbox</h2>
-                <button className={styles["menu-button"]}>⋯</button>
-            </header>
+            <ChatTopNav />
             <ProfileMedia imageSrc={user?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
             <h3 className={styles["chat-user-name"]}>{user && truncateLastName(user?.name)}</h3>
             <div className={styles["chat-messages-container"]}>
