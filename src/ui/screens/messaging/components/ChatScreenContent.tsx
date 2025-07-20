@@ -41,12 +41,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     };
 
     const { accessToken } = useContext(AuthContext);
-    const { paramsId } = useParams();
+    const { user_id } = useParams();
 
     useEffect(() => {
+        console.log("ChatScreenContent mounted with id:", id, "user_id:", user_id);
         if (!id) {
-            if (!paramsId) return;
-            const user = contacts.find((c) => c.conversation_id === parseInt(paramsId));
+            if (!user_id) return;
+            const user = contacts.find((c) => c.conversation_id === parseInt(user_id));
             setuser(user);
         } else {
             const user = contacts.find((c) => c.conversation_id === id);
@@ -76,6 +77,45 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         scrollToBottom();
     }, [messages]);
 
+    async function sendAndPlay(audioBlob: Blob) {
+        const formData = new FormData();
+        formData.append("file", audioBlob);
+        const response = await fetch(`${Endpoints.CHAT_AUDIO}`, {
+            method: "POST",
+            body: formData,
+        });
+        if (!response.ok) {
+            alert("Failed to get AI audio");
+            return;
+        }
+        const blob = await response.blob();
+        //playAIResponse(blob);
+        setMessages((prev) => [
+            ...prev,
+            {
+                id: Date.now(),
+                sender: "received",
+                text: "audio",
+                time: new Date().toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                }),
+                attachments: [
+                    {
+                        blob: blob,
+                        type: "audio",
+                    },
+                ],
+            },
+        ]);
+    }
+
+    async function playAIResponse(audioBlob: Blob) {
+        const url = URL.createObjectURL(audioBlob);
+        const audio = new Audio(url);
+        audio.play();
+    }
+
     const sendMessage = () => {
         if (inputText.trim()) {
             setTyping(prev => !prev || true);
@@ -100,12 +140,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
             setInputText("");
         } else if (inputAudio) {
-            ws.current?.send(
-                JSON.stringify({
-                    chat_id: chatId,
-                    message: "audio",
-                })
-            );
+            sendAndPlay(inputAudio);
+            // ws.current?.send(
+            //     JSON.stringify({
+            //         chat_id: chatId,
+            //         message: "audio",
+            //     })
+            // );
             setMessages(prev => [
                 ...prev,
                 {
