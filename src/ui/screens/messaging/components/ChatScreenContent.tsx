@@ -44,7 +44,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const { user_id } = useParams();
 
     useEffect(() => {
-        console.log("ChatScreenContent mounted with id:", id, "user_id:", user_id);
         if (!id) {
             if (!user_id) return;
             const user = contacts.find((c) => c.conversation_id === parseInt(user_id));
@@ -71,7 +70,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
             setTyping(prev => !prev || false);
         };
-    }, [id]);
+    }, [id, user_id]);
 
     useEffect(() => {
         scrollToBottom();
@@ -89,7 +88,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             return;
         }
         const blob = await response.blob();
-        //playAIResponse(blob);
         setMessages((prev) => [
             ...prev,
             {
@@ -141,18 +139,11 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             setInputText("");
         } else if (inputAudio) {
             sendAndPlay(inputAudio);
-            // ws.current?.send(
-            //     JSON.stringify({
-            //         chat_id: chatId,
-            //         message: "audio",
-            //     })
-            // );
             setMessages(prev => [
                 ...prev,
                 {
                     id: Date.now(),
                     sender: 'sent',
-                    text: "audio",
                     time: new Date().toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',
@@ -178,7 +169,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         onBackPressed?.();
     };
 
-    if (!id) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
+    if (!user) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
     return (
         <>
             <ChatTopNav onBack={handleOnBackClick} onCallClick={onCall} />
