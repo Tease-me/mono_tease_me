@@ -113,6 +113,7 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
 
   const initVoiceChat = async () => {
     setStatus("Initializing...");
+    ring();
     try {
       await getUserMedia({ audio: true });
     } catch (err) {
@@ -126,16 +127,14 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
       setError("Agent ID is not set");
       return;
     }
-    ring();
+
     cleanup();
 
     setError(null);
     setIsLoading(true);
 
     try {
-
       const sessionToken = await getSessionToken(agentId);
-
       setStatus("Connecting to Bland AI...");
       clientRef.current = new BlandWebClient(agentId, sessionToken);
 

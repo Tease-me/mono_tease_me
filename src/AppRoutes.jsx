@@ -26,6 +26,7 @@ function AppRoutes() {
 
   const privateRoutes = [
     ["/voice", <VoiceCall />],
+    ["/voice11", <VoiceCallEleven />],
     ["/home", <HomeScreen />],
     ["/chat/:user_id", <ChatScreen />],
     ["/call/:conversation_id", <CallScreen />],
