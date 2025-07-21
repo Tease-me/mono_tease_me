@@ -79,7 +79,7 @@ body {
   font-family: var(--primary-font-family);
   background-color: var(--color-dark-1);
   color: var(--color-text);
-  outline: 1px solid red;
+  outline: 1px solid transparent;
 }
 
 #root {

@@ -2,8 +2,9 @@ import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 
 import CircularIconButton from '@/ui/components/buttons/CircularIconButton';
 import MicrophoneIcon from "@/assets/Microphone.svg?react";
-import SendIcon from "@/assets/Send.svg?react";
+import SendIcon from "@/assets/svg/Send.svg?react";
 import CallIcon from "@/assets/Call.svg?react"
+import CloseSquareIcon from "@/assets/CloseSquare.svg?react";
 
 import styles from "./ChatInputArea.module.css"
 import AudioVisualizer from './AudioVisualizer';
@@ -25,13 +26,11 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     setInputText,
     inputAudio,
     setInputAudio,
-    setTranscribedText,
     onCall }) => {
     const [isRecording, setIsRecording] = useState(false);
     const mediaRecorderRef = useRef<MediaRecorder>(null);
     const chunksRef = useRef<Blob[]>([]);
     const [stream, setStream] = useState<MediaStream>();
-    // const recognitionRef = useRef<SpeechRecognition | null>(null);
 
     const containerRef = useRef<HTMLDivElement>(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -48,25 +47,10 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     }, []);
 
     const startRecording = async () => {
-        if (!setInputAudio && !inputAudio) return;
-
-        // const speechRecognition = (window as any).speechRecognition || (window as any).webkitSpeechRecognition;
-        // if (speechRecognition) {
-        //     const recognition = new SpeechRecognition();
-        //     recognition.continuous = true;
-        //     recognition.interimResults = true;
-        //     recognition.onresult = (event: SpeechRecognitionEvent) => {
-        //         let transcript = '';
-        //         for (let i = event.resultIndex; i < event.results.length; ++i) {
-        //             transcript += event.results[i][0].transcript;
-        //         }
-        //         setTranscribedText?.(transcript);
-        //     };
-        //     recognitionRef.current = recognition;
-        //     recognition.start();
-        // }
-
-
+        if (inputAudio) {
+            clearAudio();
+            return;
+        };
         setInputAudio?.(undefined);
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         setStream(stream);
@@ -100,20 +84,18 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     return (
         <div className={styles["chat-input-area"]}>
             <div className={styles["input-container"]} ref={containerRef}>
-                <input
-                    type="text"
-                    placeholder="Message..."
-                    value={inputText}
-                    onChange={(e) => setInputText && setInputText(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && onSendMessage && onSendMessage()}
-                />
+                {(!isRecording && !inputAudio) &&
+                    <input
+                        type="text"
+                        placeholder="Message..."
+                        value={inputText}
+                        onChange={(e) => setInputText && setInputText(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && onSendMessage && onSendMessage()}
+                    />}
                 {inputAudio && (
-                    <div style={{ display: "flex", flex: "1", justifyContent: "center", alignItems: "center", gap: "8px" }}>
-                        <AudioWaveform audioBlob={inputAudio}
-                            width={dimensions.width - 50}
-                            height={dimensions.height} />
-                        <span onClick={clearAudio}>X</span>
-                    </div>
+                    <AudioWaveform audioBlob={inputAudio}
+                        width={dimensions.width}
+                        height={dimensions.height} />
                 )}
                 {(isRecording && stream) && (
                     <AudioVisualizer
@@ -129,7 +111,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 
             <div className={styles["buttons"]}>
                 <CircularIconButton
-                    icon={<MicrophoneIcon />}
+                    icon={inputAudio ? <CloseSquareIcon /> : <MicrophoneIcon />}
                     className={styles["voice-btn"]}
                     size="xsmall"
                     variant="secondary"
