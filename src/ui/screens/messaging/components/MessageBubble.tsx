@@ -1,27 +1,40 @@
-import React from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import styles from "./MessageBubble.module.css"
 import clsx from 'clsx';
 import TypingIndicator from './TypingIndicator';
 import { Message } from '@/data/models/MessageDataModel';
+import AudioPlayer from '@/ui/components/audio-player/AudioPlayer';
 
 interface MessageBubbleProps {
     msg?: Message;
 }
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({ msg }) => {
+    const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useLayoutEffect(() => {
+        function updateSize() {
+            if (!containerRef.current) return;
+            const { width, height } = containerRef.current.getBoundingClientRect();
+            setDimensions({ width: width, height: height });
+        }
+        updateSize();
+        window.addEventListener('resize', updateSize);
+        return () => window.removeEventListener('resize', updateSize);
+    }, [containerRef]);
+
     return (
-        msg ? <div className={clsx(styles["message"], styles[msg.sender])}>
+        msg ? <div ref={containerRef} className={clsx(styles["message"], styles[msg.sender])}>
             {msg.text}
             {msg.attachments?.map((attachment, idx) =>
                 attachment.type === 'audio' ? (
-                    <audio
+                    <AudioPlayer
                         key={idx}
-                        controls
-                        className={styles.audioPlayer}
                         src={URL.createObjectURL(attachment.blob)}
-                    >
-                        Your browser does not support the audio element.
-                    </audio>
+                        height={dimensions.height}
+                        width={dimensions.width}
+                    />
                 ) : null
             )}
             <span className={styles["time"]}>{msg.time}</span>

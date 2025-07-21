@@ -59,16 +59,37 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
         chunksRef.current = [];
 
         mediaRecorder.addEventListener('dataavailable', (e: BlobEvent) => {
-            if (e.data.size > 0) chunksRef.current.push(e.data);
+            if (typeof e.data === undefined) return;
+            if (e.data.size === 0) return;
+            chunksRef.current.push(e.data);
         });
 
         mediaRecorder.addEventListener('stop', () => {
             const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
             setInputAudio?.(blob);
+            chunksRef.current = [];
         });
 
         mediaRecorder.start();
-        setIsRecording(true);
+        mediaRecorder.pause();
+        // only start on actual audio input
+        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const analyser = audioCtx.createAnalyser();
+        const sourceNode = audioCtx.createMediaStreamSource(stream);
+        sourceNode.connect(analyser);
+        const dataArray = new Uint8Array(analyser.fftSize);
+        const silenceThreshold = 10; // adjust threshold as needed
+        const detectSound = () => {
+            analyser.getByteTimeDomainData(dataArray);
+            const maxDeviation = dataArray.reduce((max, v) => Math.max(max, Math.abs(v - 128)), 0);
+            if (maxDeviation > silenceThreshold) {
+                mediaRecorder.resume();
+                setIsRecording(true);
+            } else {
+                requestAnimationFrame(detectSound);
+            }
+        };
+        detectSound();
     };
 
     const stopRecording = () => {

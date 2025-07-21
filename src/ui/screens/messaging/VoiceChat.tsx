@@ -34,7 +34,7 @@ interface VoiceChatProps {
 
 export default function VoiceChat({ agentId }: VoiceChatProps) {
   const [isRecording, setIsRecording] = useState(false);
-  const [status, setStatus] = useState<string>("Idle");
+  const [status, setStatus] = useState<string>("Online");
   const [error, setError] = useState<string | null>(null);
   const [audioLevel, setAudioLevel] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);

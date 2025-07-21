@@ -1,8 +1,7 @@
 .container {
     display: flex;
-    flex: 1 1 100%;
+    flex: 1 1 75%;
     flex-direction: row;
-    position: relative;
 }
 
 .sidebar {

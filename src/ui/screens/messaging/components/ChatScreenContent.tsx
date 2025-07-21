@@ -171,7 +171,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
     if (!user) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
     return (
-        <>
+        <div className={styles["chat-screen-content"]}>
             <ChatTopNav onBack={handleOnBackClick} onCallClick={onCall} />
             <ProfileMedia imageSrc={user?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
             <h3 className={styles["chat-user-name"]}>{user && truncateLastName(user?.name)}</h3>
@@ -191,7 +191,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 setInputAudio={setInputAudio}
                 inputAudio={inputAudio}
                 setTranscribedText={setTranscribedText} />
-        </>
+        </div>
     );
 };
 
