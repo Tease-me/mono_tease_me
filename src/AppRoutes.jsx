@@ -11,6 +11,7 @@ import WelcomeScreen from "./ui/screens/WelcomeScreen";
 import TestPage from "./ui/screens/test/TestPage";
 import VoiceCall from "./ui/screens/messaging/VoiceCall";
 import PrivateRoute from "./utils/PrivateRoute";
+import VoiceCallEleven from "./ui/screens/messaging/VoiceCallEleven";
 
 function AppRoutes() {
   const publicRoutes = [

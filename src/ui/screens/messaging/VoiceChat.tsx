@@ -13,6 +13,7 @@ import CloseSquareIcon from "@/assets/CloseSquare.svg?react";
 import CallIcon from "@/assets/Call.svg?react";
 import WifiIcon from "@/assets/Wifi.svg?react";
 import NoSignalIcon from "@/assets/svg/NoSignal.svg"
+import { getSessionToken } from "@/api/bland/bland";
 
 // Cross-browser getUserMedia
 const getUserMedia = (constraints: MediaStreamConstraints): Promise<MediaStream> => {
@@ -132,21 +133,11 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
     setIsLoading(true);
 
     try {
-      const response = await fetch(
-        `https://api.bland.ai/v1/agents/${agentId}/authorize`,
-        {
-          method: "POST",
-          headers: { Authorization: BLAND_API_KEY ?? "" },
-        }
-      );
-      console.log("Response from /api/getToken:", response);
-      const data = await response.json();
 
-      if (!data.token) {
-        throw new Error("No token received");
-      }
+      const sessionToken = await getSessionToken(agentId);
+
       setStatus("Connecting to Bland AI...");
-      clientRef.current = new BlandWebClient(agentId, data.token);
+      clientRef.current = new BlandWebClient(agentId, sessionToken);
 
       const currentCallId = Date.now().toString();
       await clientRef.current.initConversation({

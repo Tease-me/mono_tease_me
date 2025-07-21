@@ -59,7 +59,7 @@ export async function updateWebAgent(agentId: string) {
 
 export async function getSessionToken(agentId: string) {
     try {
-        const response = await fetch(`${BLAND_WEB_URL}/v1/agents/${agentId}/authorize`, {
+        const response = await fetch(`${BLAND_API_URL}/v1/agents/${agentId}/authorize`, {
             method: 'POST',
             headers: {
                 'authorization': BLAND_API_KEY,
@@ -74,7 +74,13 @@ export async function getSessionToken(agentId: string) {
             throw new Error(`API responded with status: ${response.status} - ${errorText}`);
         }
 
-        return response.json();
+        const data = await response.json();
+
+        if (!data.token) {
+            throw new Error("No token received");
+        }
+
+        return data.token;
     } catch (error) {
         console.error('Error getting session token:', error);
         throw error;

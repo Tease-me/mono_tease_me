@@ -13,6 +13,9 @@ export const BLAND_AGENT_LUNA = getEnvVar('VITE_BLAND_AGENT_LUNA');
 export const BLAND_AGENT_TEST = getEnvVar('VITE_BLAND_AGENT_TEST');
 
 
+export const ELEVENLABS_API_KEY = getEnvVar('VITE_ELEVENLABS_API_KEY');
+export const ELEVENLABS_AGENT_ID = getEnvVar('VITE_ELEVENLABS_AGENT_ID');
+
 export const TEASE_ME_PROTOCOL = getEnvVar('VITE_TEASE_ME_PROTOCOL');
 export const TEASE_ME_HOST = getEnvVar('VITE_TEASE_ME_HOST');
 export const TEASE_ME_WS_PROTOCOL = getEnvVar('VITE_TEASE_ME_WS_PROTOCOL');
