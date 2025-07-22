@@ -5,6 +5,14 @@ import MicrophoneIcon from "@/assets/Microphone.svg?react";
 import SendIcon from "@/assets/svg/Send.svg?react";
 import CloseSquareIcon from "@/assets/CloseSquare.svg?react";
 
+const pickSupportedMimeType = (): string | undefined => {
+    if (typeof window === 'undefined' || !(window as any).MediaRecorder) return undefined;
+    const candidates = [
+        'audio/webm'
+    ];
+    return candidates.find(t => (window as any).MediaRecorder.isTypeSupported(t));
+};
+
 const getAudioStream = async (): Promise<MediaStream> => {
     if (navigator.mediaDevices?.getUserMedia) {
         return navigator.mediaDevices.getUserMedia({ audio: true });
@@ -19,9 +27,14 @@ const getAudioStream = async (): Promise<MediaStream> => {
     });
 };
 
+const showWebmUnsupportedError = () => {
+    alert('Your browser cannot record audio/webm. Please try Chrome, Edge or Firefox.');
+};
+
 import styles from "./ChatInputArea.module.css"
 import AudioVisualizer from './AudioVisualizer';
 import AudioWaveform from './AudioWaveform';
+import { releaseMicrophonePermission, requestMicrophonePermission } from '@/utils/Permissions';
 
 interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
     onSendMessage?: () => void;
@@ -41,9 +54,10 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     const mediaRecorderRef = useRef<MediaRecorder>(null);
     const chunksRef = useRef<Blob[]>([]);
     const [stream, setStream] = useState<MediaStream>();
-
+    const pressTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
     const containerRef = useRef<HTMLDivElement>(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+    const [micReady, setMicReady] = useState(false);
 
     useLayoutEffect(() => {
         function updateSize() {
@@ -56,29 +70,18 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
         return () => window.removeEventListener('resize', updateSize);
     }, []);
 
-    const handlePressStart = (e: React.SyntheticEvent) => {
-        e.preventDefault();
-        startRecording();
-    };
-
-    const handlePressEnd = (e: React.SyntheticEvent) => {
-        e.preventDefault();
-        stopRecording();
-    };
-
     const startRecording = async () => {
-        if (inputAudio) {
-            clearAudio();
+        const mimeType = pickSupportedMimeType();
+        if (!mimeType) {
+            showWebmUnsupportedError();
             return;
         }
-        setInputAudio?.(undefined);
 
         try {
             const s = await getAudioStream();
             setStream(s);
 
-            const mimeType = pickSupportedMimeType();
-            const mediaRecorder = new MediaRecorder(s, mimeType ? { mimeType } : undefined);
+            const mediaRecorder = new MediaRecorder(s, { mimeType });
             mediaRecorderRef.current = mediaRecorder;
             chunksRef.current = [];
 
@@ -88,13 +91,12 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
             });
 
             mediaRecorder.addEventListener('stop', () => {
-                const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+                const blob = new Blob(chunksRef.current, { type: mimeType });
                 setInputAudio?.(blob);
                 chunksRef.current = [];
             });
 
             mediaRecorder.start();
-            // Mic is live: show visualizer immediately
             setIsRecording(true);
         } catch (err) {
             console.error('Microphone access failed:', err);
@@ -127,6 +129,50 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
             e.preventDefault();
             onSendMessage();
         }
+    };
+
+    const handlePressStart = async (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        // If we haven't secured mic permission yet, request it and exit.
+        if (!micReady) {
+            const ok = await requestMicrophonePermission();
+            if (!ok) {
+                alert('Microphone access is required to record audio.');
+                return;
+            }
+            setMicReady(true);
+            releaseMicrophonePermission(); // Release immediately after requesting
+            // Do NOT start recording now; user must press again.
+            return;
+        }
+        if (inputAudio) {
+            clearAudio();
+            return;
+        }
+        setInputAudio?.(undefined);
+        if (isRecording) {
+            stopRecording();
+            return;
+        }
+        pressTimerRef.current = setTimeout(() => {
+            startRecording();
+        }, 500); // Adjust long-press duration as needed (e.g., 500ms)
+    };
+
+    const handlePressEnd = (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        stopRecording();
+        releaseMicrophonePermission();
+        clearTimeout(pressTimerRef.current); // Clear the timer if released before long press
+    };
+
+    const handlePressMissed = (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        if (isRecording) {
+            stopRecording();
+            releaseMicrophonePermission();
+        }
+        clearTimeout(pressTimerRef.current); // Clear the timer if mouse/touch is released
     };
 
     return (
@@ -169,8 +215,8 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                     onMouseUp={handlePressEnd}
                     onTouchStart={handlePressStart}
                     onTouchEnd={handlePressEnd}
-                    onPointerLeave={(e) => { e.preventDefault(); isRecording && stopRecording(); }}
-                    onPointerCancel={(e) => { e.preventDefault(); isRecording && stopRecording(); }}
+                    onPointerLeave={handlePressMissed}
+                    onPointerCancel={handlePressMissed}
                     onContextMenu={(e) => e.preventDefault()}
                 />
                 <CircularIconButton icon={<SendIcon />} className={styles["send-btn"]} onClick={onSendMessage} size="xsmall" />
