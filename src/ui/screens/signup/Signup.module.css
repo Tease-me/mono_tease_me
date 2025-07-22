@@ -1,17 +1,9 @@
 .auth-container {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-  position: relative;
+  min-width: 600px;
 }
 
 .auth-content {
   background-color: rgba(30, 33, 39, 0.75);
-  width: 90%;
-  max-width: 600px;
   padding: 25px;
   border-radius: 12px;
   text-align: center;

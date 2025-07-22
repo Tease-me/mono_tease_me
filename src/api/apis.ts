@@ -13,3 +13,20 @@ export const Login = async (username: string, password: string): Promise<LoginRe
         throw error;
     }
 };
+
+
+export const Register = async (username: string, password: string, email: string): Promise<LoginResponse> => {
+    try {
+        const response = await axios.post(
+            Endpoints.REGISTER,
+            {
+                "username": username,
+                "password": password,
+                "email": email
+            },
+        );
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
