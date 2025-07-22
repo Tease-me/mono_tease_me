@@ -164,7 +164,7 @@
     color: #35383F;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
     .profile-container {
         width: 200px;
         height: 200px;

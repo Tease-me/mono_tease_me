@@ -44,6 +44,11 @@ button:hover.secondary {
     height: 24px;
 }
 
+.icon-container.xsmall {
+    width: 10px;
+    height: 10px;
+}
+
 .icon-container.small {
     width: 16px;
     height: 16px;
@@ -63,6 +68,11 @@ button:hover.secondary {
     width: 80px;
     height: 80px;
     border-radius: 50%;
+}
+
+.button-with-icon-only.xsmall {
+    width: 48px;
+    height: 48px;
 }
 
 .button-with-icon-only.small {

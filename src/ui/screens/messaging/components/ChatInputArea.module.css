@@ -4,22 +4,29 @@
     gap: 14px;
     background-color: transparent;
     align-items: center;
+    border: 1px solid rgba(33, 33, 33, 1);
+    padding: 44px 51px 77px 51px;
 }
 
 .input-container {
+    display: flex;
     flex: 1;
-    padding: 18px 20px;
     border-radius: 12px;
     border: none;
+    flex-direction: row;
     background-color: var(--color-dark-2);
     color: var(--color-text-secondary);
     outline: none;
 }
 
 .input-container input {
-    flex: 1;
+    padding: 18px 20px;
+    display: block;
     border: none;
     outline: none;
+    flex: 1 0 auto;
+    min-width: 100px;
+    width: 100%;
 }
 
 .input-container canvas {
@@ -59,8 +66,9 @@
     align-self: center;
 }
 
-@media (min-width: 768px) {
+@media (max-width: 1024px) {
     .chat-input-area {
-        padding: 15px;
+        border: 1px solid rgba(33, 33, 33, 1);
+        padding: 20px 28px 20px 28px;
     }
 }

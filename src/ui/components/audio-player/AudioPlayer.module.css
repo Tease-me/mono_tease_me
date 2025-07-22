@@ -1,0 +1,37 @@
+.audioPlayer {
+    position: relative;
+    display: flex;
+    flex: 1;
+    flex-direction: row;
+}
+
+.playButton {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+.playButton:hover {
+    transform: scale(1.1);
+}
+
+.playButton svg {
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+}
+
+.audioPlayer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.waveformCanvas {
+    width: 100%;
+    height: 100%;
+}

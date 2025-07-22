@@ -1,6 +1,7 @@
 .background-gradient {
-  position: absolute;
-  inset: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
   background: radial-gradient(circle at 5% 5%,
       rgba(255, 77, 109, 0.25),
       transparent 40%),
@@ -12,7 +13,6 @@
       transparent 40%),
     radial-gradient(circle at 5% 90%, rgba(255, 77, 109, 0.2), transparent 20%),
     radial-gradient(circle at center, rgba(30, 33, 39, 0.85), #1e2127 90%);
-  z-index: 0;
 }
 
 @media (max-width: 767px) {

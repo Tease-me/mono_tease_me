@@ -11,6 +11,7 @@ import WelcomeScreen from "./ui/screens/WelcomeScreen";
 import TestPage from "./ui/screens/test/TestPage";
 import VoiceCall from "./ui/screens/messaging/VoiceCall";
 import PrivateRoute from "./utils/PrivateRoute";
+import VoiceCallEleven from "./ui/screens/messaging/VoiceCallEleven";
 
 function AppRoutes() {
   const publicRoutes = [
@@ -25,8 +26,9 @@ function AppRoutes() {
 
   const privateRoutes = [
     ["/voice", <VoiceCall />],
+    ["/voice11", <VoiceCallEleven />],
     ["/home", <HomeScreen />],
-    ["/chat/:id", <ChatScreen />],
+    ["/chat/:user_id", <ChatScreen />],
     ["/call/:conversation_id", <CallScreen />],
   ];
 

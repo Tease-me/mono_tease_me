@@ -13,11 +13,19 @@ import CloseSquareIcon from "@/assets/CloseSquare.svg?react";
 import CallIcon from "@/assets/Call.svg?react";
 import WifiIcon from "@/assets/Wifi.svg?react";
 import NoSignalIcon from "@/assets/svg/NoSignal.svg"
+import { getSessionToken } from "@/api/bland/bland";
 
-type Message = {
-  id: string;
-  text: string;
-  sender: "user" | "ai";
+// Cross-browser getUserMedia
+const getUserMedia = (constraints: MediaStreamConstraints): Promise<MediaStream> => {
+  if (navigator.mediaDevices?.getUserMedia) {
+    return navigator.mediaDevices.getUserMedia(constraints);
+  }
+  const nav = navigator as any;
+  const legacy = nav.getUserMedia || nav.webkitGetUserMedia || nav.mozGetUserMedia;
+  if (!legacy) {
+    return Promise.reject(new Error("getUserMedia is not supported in this browser"));
+  }
+  return new Promise((resolve, reject) => legacy.call(nav, resolve, reject, constraints));
 };
 
 interface VoiceChatProps {
@@ -26,7 +34,7 @@ interface VoiceChatProps {
 
 export default function VoiceChat({ agentId }: VoiceChatProps) {
   const [isRecording, setIsRecording] = useState(false);
-  const [status, setStatus] = useState<string>("Idle");
+  const [status, setStatus] = useState<string>("Online");
   const [error, setError] = useState<string | null>(null);
   const [audioLevel, setAudioLevel] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -104,33 +112,31 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
   }, [isConnected, cleanup]);
 
   const initVoiceChat = async () => {
+    setStatus("Initializing...");
+    ring();
+    try {
+      await getUserMedia({ audio: true });
+    } catch (err) {
+      console.error("Microphone permission denied:", err);
+      setError("Microphone permission denied");
+      setIsLoading(false);
+      return;
+    }
+
     if (!agentId) {
       setError("Agent ID is not set");
       return;
     }
-    ring();
+
     cleanup();
-    setStatus("Initializing...");
+
     setError(null);
     setIsLoading(true);
 
     try {
-      const response = await fetch(
-        `https://api.bland.ai/v1/agents/${agentId}/authorize`,
-        {
-          method: "POST",
-          headers: { Authorization: BLAND_API_KEY ?? "" },
-        }
-      );
-      console.log("Response from /api/getToken:", response);
-      const data = await response.json();
-
-      if (!data.token) {
-        throw new Error("No token received");
-      }
-
+      const sessionToken = await getSessionToken(agentId);
       setStatus("Connecting to Bland AI...");
-      clientRef.current = new BlandWebClient(agentId, data.token);
+      clientRef.current = new BlandWebClient(agentId, sessionToken);
 
       const currentCallId = Date.now().toString();
       await clientRef.current.initConversation({

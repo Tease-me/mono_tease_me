@@ -1,12 +1,117 @@
-# React + Vite
+# TeaseMe React App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React + Vite application providing the frontend for the TeaseMe AI Virtual Girlfriend MVP.
 
-Currently, two official plugins are available:
+## Table of Contents
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- [Introduction](#introduction)
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Development](#development)
+- [Building for Production](#building-for-production)
+- [Project Structure](#project-structure)
+- [Environment Variables](#environment-variables)
+- [Contributing](#contributing)
+- [License](#license)
 
-## Expanding the ESLint configuration
+## Introduction
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+This project is the frontend client for TeaseMe: an AI-driven chat service that enables influencers to launch personalized virtual girlfriend characters. Built with React, Vite, and TypeScript.
+
+## Features
+
+- Interactive chat UI (text + voice)
+- Real-time message streaming
+- User authentication and membership flows
+- In-app billing and subscription interface
+- Modular component library for easy expansion
+- Responsive design for desktop and mobile
+
+## Prerequisites
+
+- Node.js >= 16.x
+- npm >= 8.x or Yarn >= 1.22.x
+
+## Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Tease-me/tease-me.git
+   cd tease-me
+   ```
+2. **Install dependencies:**
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
+
+## Development
+
+Start the development server with hot module replacement:
+
+```bash
+npm run start
+# or
+yarn start
+```
+
+The app will be available at `http://localhost:3000`.
+
+## Building for Production
+
+To create an optimized production build:
+
+```bash
+npm run build
+# or
+yarn build
+```
+
+Preview the production build locally:
+
+```bash
+npm run preview
+# or
+yarn preview
+```
+
+## Project Structure
+
+```
+┌── public/          # Static assets
+└── src/
+    ├── api/        # API 
+    ├── assets/     # Assets
+    ├── context/    # Custom React hooks
+    ├── data/       # API clients and state management
+    ├── ui/         # UI Components
+    ├── utils/      # Utility functions
+    ├── App.tsx     # Root component
+    └── main.tsx    # Application entry point
+```
+
+## Environment Variables
+
+Create a `.env` file in the project root based on :
+
+```
+VITE_NEXT_PUBLIC_BLAND_API_KEY=
+VITE_BLAND_API_URL=
+VITE_BLAND_WEB_URL=
+VITE_BLAND_AGENT_LUNA=
+VITE_BLAND_AGENT_TEST=
+
+VITE_TEASE_ME_PROTOCOL=
+VITE_TEASE_ME_HOST=
+VITE_TEASE_ME_WS_PROTOCOL=
+```
+
+## Contributing
+
+1. Fork the repository.
+2. Create a new branch: `git checkout -b feature/my-feature`.
+3. Commit your changes: `git commit -m 'Add my feature'`.
+4. Push to the branch: `git push origin feature/my-feature`.
+5. Open a pull request.

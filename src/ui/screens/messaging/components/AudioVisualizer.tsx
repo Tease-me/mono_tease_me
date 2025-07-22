@@ -84,6 +84,7 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ mediaStream, isRecord
             let xOffsetAccumulator = 0;
 
             const animate = () => {
+                if (!isRecording) return;
                 analyser.getByteFrequencyData(dataArray);
 
                 if (ctx && bufferCtx) {

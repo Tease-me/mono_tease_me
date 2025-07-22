@@ -2,8 +2,9 @@ import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 
 import CircularIconButton from '@/ui/components/buttons/CircularIconButton';
 import MicrophoneIcon from "@/assets/Microphone.svg?react";
-import SendIcon from "@/assets/Send.svg?react";
+import SendIcon from "@/assets/svg/Send.svg?react";
 import CallIcon from "@/assets/Call.svg?react"
+import CloseSquareIcon from "@/assets/CloseSquare.svg?react";
 
 import styles from "./ChatInputArea.module.css"
 import AudioVisualizer from './AudioVisualizer';
@@ -15,8 +16,6 @@ interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
     setInputText?: (text: string) => void;
     inputAudio?: Blob;
     setInputAudio?: (blob?: Blob) => void;
-    setTranscribedText?: (text: string) => void;
-    onCall?: () => void;
 }
 
 const ChatInputArea: React.FC<ChatInputAreaProps> = ({
@@ -24,14 +23,11 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     inputText,
     setInputText,
     inputAudio,
-    setInputAudio,
-    setTranscribedText,
-    onCall }) => {
+    setInputAudio }) => {
     const [isRecording, setIsRecording] = useState(false);
     const mediaRecorderRef = useRef<MediaRecorder>(null);
     const chunksRef = useRef<Blob[]>([]);
     const [stream, setStream] = useState<MediaStream>();
-    // const recognitionRef = useRef<SpeechRecognition | null>(null);
 
     const containerRef = useRef<HTMLDivElement>(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -48,25 +44,10 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     }, []);
 
     const startRecording = async () => {
-        if (!setInputAudio && !inputAudio) return;
-
-        // const speechRecognition = (window as any).speechRecognition || (window as any).webkitSpeechRecognition;
-        // if (speechRecognition) {
-        //     const recognition = new SpeechRecognition();
-        //     recognition.continuous = true;
-        //     recognition.interimResults = true;
-        //     recognition.onresult = (event: SpeechRecognitionEvent) => {
-        //         let transcript = '';
-        //         for (let i = event.resultIndex; i < event.results.length; ++i) {
-        //             transcript += event.results[i][0].transcript;
-        //         }
-        //         setTranscribedText?.(transcript);
-        //     };
-        //     recognitionRef.current = recognition;
-        //     recognition.start();
-        // }
-
-
+        if (inputAudio) {
+            clearAudio();
+            return;
+        };
         setInputAudio?.(undefined);
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         setStream(stream);
@@ -75,16 +56,37 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
         chunksRef.current = [];
 
         mediaRecorder.addEventListener('dataavailable', (e: BlobEvent) => {
-            if (e.data.size > 0) chunksRef.current.push(e.data);
+            if (typeof e.data === undefined) return;
+            if (e.data.size === 0) return;
+            chunksRef.current.push(e.data);
         });
 
         mediaRecorder.addEventListener('stop', () => {
             const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
             setInputAudio?.(blob);
+            chunksRef.current = [];
         });
 
         mediaRecorder.start();
-        setIsRecording(true);
+        mediaRecorder.pause();
+        // only start on actual audio input
+        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const analyser = audioCtx.createAnalyser();
+        const sourceNode = audioCtx.createMediaStreamSource(stream);
+        sourceNode.connect(analyser);
+        const dataArray = new Uint8Array(analyser.fftSize);
+        const silenceThreshold = 10; // adjust threshold as needed
+        const detectSound = () => {
+            analyser.getByteTimeDomainData(dataArray);
+            const maxDeviation = dataArray.reduce((max, v) => Math.max(max, Math.abs(v - 128)), 0);
+            if (maxDeviation > silenceThreshold) {
+                mediaRecorder.resume();
+                setIsRecording(true);
+            } else {
+                requestAnimationFrame(detectSound);
+            }
+        };
+        detectSound();
     };
 
     const stopRecording = () => {
@@ -97,23 +99,35 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
         setInputAudio?.(undefined);
     }
 
+    const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        e.preventDefault();
+        if (setInputText) {
+            setInputText(e.target.value);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter" && onSendMessage) {
+            e.preventDefault();
+            onSendMessage();
+        }
+    };
+
     return (
         <div className={styles["chat-input-area"]}>
             <div className={styles["input-container"]} ref={containerRef}>
-                <input
-                    type="text"
-                    placeholder="Message..."
-                    value={inputText}
-                    onChange={(e) => setInputText && setInputText(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && onSendMessage && onSendMessage()}
-                />
+                {(!isRecording && !inputAudio) &&
+                    <input
+                        type="text"
+                        placeholder="Message..."
+                        value={inputText}
+                        onChange={handleOnChange}
+                        onKeyDown={handleKeyDown}
+                    />}
                 {inputAudio && (
-                    <div style={{ display: "flex", flex: "1", justifyContent: "center", alignItems: "center", gap: "8px" }}>
-                        <AudioWaveform audioBlob={inputAudio}
-                            width={dimensions.width - 50}
-                            height={dimensions.height} />
-                        <span onClick={clearAudio}>X</span>
-                    </div>
+                    <AudioWaveform audioBlob={inputAudio}
+                        width={dimensions.width}
+                        height={dimensions.height} />
                 )}
                 {(isRecording && stream) && (
                     <AudioVisualizer
@@ -128,13 +142,18 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
             </div>
 
             <div className={styles["buttons"]}>
-                <CircularIconButton icon={<MicrophoneIcon />} className={styles["voice-btn"]} size="small" variant="secondary"
-                    onPointerDown={startRecording}
-                    onPointerUp={stopRecording}
-                    onPointerLeave={() => isRecording && stopRecording()}
+                <CircularIconButton
+                    icon={inputAudio ? <CloseSquareIcon /> : <MicrophoneIcon />}
+                    className={styles["voice-btn"]}
+                    size="xsmall"
+                    variant="secondary"
+                    onPointerDown={(e) => { e.preventDefault(); startRecording(); }}
+                    onPointerUp={(e) => { e.preventDefault(); stopRecording(); }}
+                    onPointerLeave={(e) => { e.preventDefault(); isRecording && stopRecording(); }}
+                    onPointerCancel={(e) => { e.preventDefault(); isRecording && stopRecording(); }}
+                    onContextMenu={(e) => e.preventDefault()}
                 />
-                <CircularIconButton icon={<CallIcon />} className={styles["send-btn"]} onClick={onCall} size="small" variant='primary' />
-                <CircularIconButton icon={<SendIcon />} className={styles["send-btn"]} onClick={onSendMessage} size="small" />
+                <CircularIconButton icon={<SendIcon />} className={styles["send-btn"]} onClick={onSendMessage} size="xsmall" />
             </div>
         </div>
     );
