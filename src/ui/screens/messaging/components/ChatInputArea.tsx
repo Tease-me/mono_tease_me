@@ -3,7 +3,17 @@ import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import CircularIconButton from '@/ui/components/buttons/CircularIconButton';
 import MicrophoneIcon from "@/assets/Microphone.svg?react";
 import SendIcon from "@/assets/svg/Send.svg?react";
+import CallIcon from "@/assets/Call.svg?react"
 import CloseSquareIcon from "@/assets/CloseSquare.svg?react";
+
+// --- Cross-browser helpers -------------------------------------------------
+const pickSupportedMimeType = (): string | undefined => {
+    if (typeof window === 'undefined' || !(window as any).MediaRecorder) return undefined;
+    const candidates = [
+        'audio/webm'
+    ];
+    return candidates.find(t => (window as any).MediaRecorder.isTypeSupported(t));
+};
 
 const getAudioStream = async (): Promise<MediaStream> => {
     if (navigator.mediaDevices?.getUserMedia) {
@@ -17,6 +27,10 @@ const getAudioStream = async (): Promise<MediaStream> => {
         }
         legacy.call(navigator, { audio: true }, resolve, reject);
     });
+};
+
+const showWebmUnsupportedError = () => {
+    alert('Your browser cannot record audio/webm. Please try Chrome, Edge or Firefox.');
 };
 
 import styles from "./ChatInputArea.module.css"
@@ -73,12 +87,18 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
         }
         setInputAudio?.(undefined);
 
+        // Ensure browser can create audio/webm
+        const mimeType = pickSupportedMimeType();
+        if (!mimeType) {
+            showWebmUnsupportedError();
+            return;
+        }
+
         try {
             const s = await getAudioStream();
             setStream(s);
 
-            const mimeType = pickSupportedMimeType();
-            const mediaRecorder = new MediaRecorder(s, mimeType ? { mimeType } : undefined);
+            const mediaRecorder = new MediaRecorder(s, { mimeType });
             mediaRecorderRef.current = mediaRecorder;
             chunksRef.current = [];
 
@@ -88,13 +108,12 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
             });
 
             mediaRecorder.addEventListener('stop', () => {
-                const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+                const blob = new Blob(chunksRef.current, { type: mimeType });
                 setInputAudio?.(blob);
                 chunksRef.current = [];
             });
 
             mediaRecorder.start();
-            // Mic is live: show visualizer immediately
             setIsRecording(true);
         } catch (err) {
             console.error('Microphone access failed:', err);
