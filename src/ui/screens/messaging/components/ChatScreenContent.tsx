@@ -14,6 +14,18 @@ import { UserDataModel } from '@/data/models/UserDataModel';
 import { Contact } from '@/data/models/ContactDataModel';
 import ChatTopNav from '@/ui/components/nav/ChatTopNav';
 
+const MessagesList = React.memo(({ messages, typing, messagesEndRef }: { messages: any[]; typing: boolean; messagesEndRef: React.RefObject<HTMLDivElement | null>; }) => {
+    return (
+        <div className={styles["messages"]}>
+            {messages.map((msg) => (
+                <MessageBubble key={msg.id} msg={msg} />
+            ))}
+            {typing && <MessageBubble />}
+            <div ref={messagesEndRef} />
+        </div>
+    );
+});
+
 const chatId = 'abc123'; // or generate per user/session
 const personaId = 'loli'; // or "loli", "bella", etc
 
@@ -30,11 +42,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
     const [messages, setMessages] = useState(user?.messages || []);
     const [inputText, setInputText] = useState("");
-    const [transcribedText, setTranscribedText] = useState("");
     const [inputAudio, setInputAudio] = useState<Blob>();
     const [typing, setTyping] = useState(false);
 
-    const messagesEndRef = useRef<HTMLDivElement | null>(null);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -172,25 +183,24 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     if (!user) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
     return (
         <div className={styles["chat-screen-content"]}>
-            <ChatTopNav onBack={handleOnBackClick} onCallClick={onCall} />
-            <ProfileMedia imageSrc={user?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
-            <h3 className={styles["chat-user-name"]}>{user && truncateLastName(user?.name)}</h3>
-            <div className={styles["chat-messages-container"]}>
-                <div className={styles["messages"]}>
-                    {messages.map((msg) => (
-                        <MessageBubble key={msg.id} msg={msg} />
-                    ))}
-                    {typing && <MessageBubble />}
-                    <div ref={messagesEndRef} />
+            <div className={styles["chat-header"]}>
+                <ChatTopNav onBack={handleOnBackClick} onCallClick={onCall} />
+                <div className={styles["chat-header-info"]}>
+                    <ProfileMedia imageSrc={user?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
+                    <h3 className={styles["chat-user-name"]}>{user && truncateLastName(user?.name)}</h3>
                 </div>
             </div>
-            <ChatInputArea
-                onSendMessage={sendMessage}
-                inputText={inputText}
-                setInputText={setInputText}
-                setInputAudio={setInputAudio}
-                inputAudio={inputAudio}
-                setTranscribedText={setTranscribedText} />
+            <div className={styles["chat-messages-container"]}>
+                <MessagesList messages={messages} typing={typing} messagesEndRef={messagesEndRef} />
+            </div>
+            <div className={styles["chat-input-area"]}>
+                <ChatInputArea
+                    onSendMessage={sendMessage}
+                    inputText={inputText}
+                    setInputText={setInputText}
+                    setInputAudio={setInputAudio}
+                    inputAudio={inputAudio} />
+            </div>
         </div>
     );
 };

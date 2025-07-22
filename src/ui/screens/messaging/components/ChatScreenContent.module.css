@@ -1,18 +1,67 @@
 .chat-screen-content {
     display: flex;
     flex-direction: column;
+    position: relative;
+    overflow: hidden;
     height: 100%;
-    background-color: rgba(33, 33, 33, 1);
+    position: relative;
+}
+
+.chat-header {
     display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    width: 100%;
+}
+
+.chat-header-info {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    flex-direction: column;
+    margin-left: 24px;
+    margin-right: 24px;
+    padding: 10px 0;
 }
 
 .chat-messages-container {
-    flex: 1 0 auto;
-    display: flex;
-    flex-direction: column;
+    height: 100%;
     padding-left: 24px;
     padding-right: 24px;
+}
+
+.chat-messages-container {
+    flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+}
+
+.chat-messages-container::before,
+.chat-messages-container::after {
+    content: "";
+    position: sticky;
+    left: 0;
+    width: 100%;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.chat-messages-container::before {
+    display: flex;
+    top: 0;
+    height: 100px;
+}
+
+.chat-messages-container::after {
+    display: flex;
+    bottom: 0;
+    height: 100px;
+}
+
+.chat-input-area {
+    position: sticky;
 }
 
 .chat-avatar {
@@ -36,54 +85,6 @@
     padding-bottom: 15px;
 }
 
-.chat-input-area {
-    display: flex;
-    padding: 10px;
-    gap: 8px;
-    background-color: transparent;
-    align-items: center;
-}
-
-.chat-input-area input {
-    flex: 1;
-    padding: 10px 15px;
-    border-radius: 20px;
-    border: none;
-    background-color: #2c3038;
-    color: #fff;
-    outline: none;
-}
-
-.voice-btn,
-.send-btn {
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    margin-bottom: 10px;
-}
-
-.voice-btn {
-    background-color: #ffa500;
-    margin-bottom: 10px;
-}
-
-.send-btn {
-    background-color: #ff4d6d;
-    color: #fff;
-}
-
-.call-btn {
-    background-color: #ff4d6d;
-    border: none;
-    color: white;
-    padding: 8px 15px;
-    border-radius: 50px;
-    cursor: pointer;
-    font-size: 14px;
-    align-self: center;
-    margin-bottom: 10px;
-}
-
 .empty-chat-screen {
     display: flex;
     flex: 1;
@@ -92,10 +93,18 @@
     height: 100%;
 }
 
-/* Responsividade Web/Desktop */
-@media (min-width: 768px) {
+@media (min-width: 1080px) {
     .chat-container {
         padding: 0;
+    }
+
+    .chat-header-info {
+        display: flex;
+        flex: 1;
+        flex-direction: row;
+        padding: 10px 0;
+        gap: 12px;
+        align-items: center;
     }
 
     .chat-content {
@@ -115,9 +124,5 @@
 
     .message {
         font-size: 16px;
-    }
-
-    .chat-input-area {
-        padding: 15px;
     }
 }

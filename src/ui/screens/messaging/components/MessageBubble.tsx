@@ -26,17 +26,20 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ msg }) => {
 
     return (
         msg ? <div ref={containerRef} className={clsx(styles["message"], styles[msg.sender])}>
-            {msg.text}
-            {msg.attachments?.map((attachment, idx) =>
-                attachment.type === 'audio' ? (
-                    <AudioPlayer
-                        key={idx}
-                        src={URL.createObjectURL(attachment.blob)}
-                        height={dimensions.height}
-                        width={dimensions.width}
-                    />
-                ) : null
-            )}
+            <div className={styles["message-content"]}>
+                {msg.text}
+                {msg.attachments?.map((attachment, idx) =>
+                    attachment.type === 'audio' ? (
+                        <AudioPlayer
+                            key={idx}
+                            src={URL.createObjectURL(attachment.blob)}
+                            height={dimensions.height}
+                            width={dimensions.width}
+                            progressColor={msg.sender === "received" ? '#FF8395' : "#FF981F"}
+                        />
+                    ) : null
+                )}
+            </div>
             <span className={styles["time"]}>{msg.time}</span>
         </div> : <div className={clsx(styles["message"], styles["received"])}>
             <TypingIndicator />

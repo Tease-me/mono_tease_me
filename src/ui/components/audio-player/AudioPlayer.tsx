@@ -8,9 +8,10 @@ interface AudioPlayerProps {
     src: string;
     height?: number;
     width?: number;
+    progressColor?: string;
 }
 
-const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, height, width }) => {
+const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, height, width, progressColor = '#FF981F' }) => {
     const audioRef = useRef<HTMLAudioElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [peaks, setPeaks] = useState<number[]>([]);
@@ -72,12 +73,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, height, width }) => {
             const width = canvas.width;
             const height = canvas.height;
             ctx.clearRect(0, 0, width, height);
-            const barW = (width / peaks.length) * 2; // increased bar width for thicker bars
+            const gap = 2; // gap in pixels between bars
+            const barW = (width - (peaks.length - 1) * gap) / peaks.length;
             // draw background waveform
-            ctx.fillStyle = "#FB9400";
+            ctx.fillStyle = "#FFFFFF";
             peaks.forEach((val, i) => {
                 const barH = val * height;
-                const x = i * barW;
+                const x = i * (barW + gap);
                 ctx.fillRect(x, (height - barH) / 2, barW, barH);
             });
             // draw played portion
@@ -89,10 +91,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, height, width }) => {
             ctx.beginPath();
             ctx.rect(0, 0, playedWidth, height);
             ctx.clip();
-            ctx.fillStyle = '#FF981F';
+            ctx.fillStyle = progressColor;
             peaks.forEach((val, i) => {
                 const barH = val * height;
-                const x = i * barW;
+                const x = i * (barW + gap);
                 ctx.fillRect(x, (height - barH) / 2, barW, barH);
             });
             ctx.restore();
@@ -111,7 +113,11 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, height, width }) => {
                 {isPlaying ? <PauseButtonIcon /> : <PlayButtonIcon />}
             </button>
             <canvas ref={canvasRef} className={styles.waveformCanvas} height={height} width={width} />
-            <audio ref={audioRef} src={src} />
+            <audio
+                ref={audioRef}
+                src={src}
+                onEnded={() => setIsPlaying(false)}
+            />
         </div>
     );
 };

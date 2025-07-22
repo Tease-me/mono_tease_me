@@ -1,7 +1,8 @@
 .audioPlayer {
+    position: relative;
     display: flex;
-    width: 178px;
-    height: 50px;
+    flex: 1;
+    flex-direction: row;
 }
 
 .playButton {
@@ -11,7 +12,6 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    flex-direction: row;
     transition: transform 0.2s ease-in-out;
 }
 
@@ -33,5 +33,5 @@
 
 .waveformCanvas {
     width: 100%;
-    height: 50px;
+    height: 100%;
 }

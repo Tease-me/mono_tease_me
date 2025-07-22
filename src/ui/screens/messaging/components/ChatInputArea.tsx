@@ -16,8 +16,6 @@ interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
     setInputText?: (text: string) => void;
     inputAudio?: Blob;
     setInputAudio?: (blob?: Blob) => void;
-    setTranscribedText?: (text: string) => void;
-    onCall?: () => void;
 }
 
 const ChatInputArea: React.FC<ChatInputAreaProps> = ({
@@ -25,8 +23,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     inputText,
     setInputText,
     inputAudio,
-    setInputAudio,
-    onCall }) => {
+    setInputAudio }) => {
     const [isRecording, setIsRecording] = useState(false);
     const mediaRecorderRef = useRef<MediaRecorder>(null);
     const chunksRef = useRef<Blob[]>([]);
@@ -102,6 +99,20 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
         setInputAudio?.(undefined);
     }
 
+    const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        e.preventDefault();
+        if (setInputText) {
+            setInputText(e.target.value);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter" && onSendMessage) {
+            e.preventDefault();
+            onSendMessage();
+        }
+    };
+
     return (
         <div className={styles["chat-input-area"]}>
             <div className={styles["input-container"]} ref={containerRef}>
@@ -110,8 +121,8 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                         type="text"
                         placeholder="Message..."
                         value={inputText}
-                        onChange={(e) => setInputText && setInputText(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && onSendMessage && onSendMessage()}
+                        onChange={handleOnChange}
+                        onKeyDown={handleKeyDown}
                     />}
                 {inputAudio && (
                     <AudioWaveform audioBlob={inputAudio}
