@@ -16,14 +16,15 @@ export default function Signup03() {
   }, [navigate]);
 
   return (
-    <div className={styles["auth-container"]}>
-      <BackgroundGradient />
-      <div className={clsx(styles["auth-content"], styles["success-screen"])}>
-        <div className={styles["success-icon"]}>🎉</div>
-        <h2 className={styles["auth-title"]}>Congratulations!</h2>
-        <p>Your account is ready to use. You'll be redirected shortly.</p>
-        <div className={styles["loading-spinner"]}></div>
+    <BackgroundGradient>
+      <div className={styles["auth-container"]}>
+        <div className={clsx(styles["auth-content"], styles["success-screen"])}>
+          <div className={styles["success-icon"]}>🎉</div>
+          <h2 className={styles["auth-title"]}>Congratulations!</h2>
+          <p>Your account is ready to use. You'll be redirected shortly.</p>
+          <div className={styles["loading-spinner"]}></div>
+        </div>
       </div>
-    </div>
+    </BackgroundGradient>
   );
 }
