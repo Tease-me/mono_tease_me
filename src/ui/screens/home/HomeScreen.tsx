@@ -1,19 +1,21 @@
 import React, { useEffect, useState } from "react";
 import BackgroundGradient from "@/ui/templates/BackgroundGradient";
-import FullWidthLayout from "@/ui/templates/FullWidthLayout";
 import HomeScreenContent from "./components/HomeScreenContent";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import TwoPaneLayout from "@/ui/templates/TwoPaneLayout";
 import ChatScreenContent from "../messaging/components/ChatScreenContent";
 
 export default function HomeScreen() {
-  const [id, setId] = useState<number>();
+  const storedId = localStorage.getItem("selected_id");
+  const initialId = storedId ? parseInt(storedId) : undefined
+  const [id, setId] = useState<number | undefined>(initialId);
   const [showContent, setShowContent] = useState(true);
   const [showSidebar, setShowSidebar] = useState(true);
 
   const isDesktop = useMediaQuery('(min-width: 1024px)');
 
   useEffect(() => {
+    localStorage.setItem("selected_id", id?.toString() || "");
     if (id && !isDesktop) {
       setShowContent(true);
       setShowSidebar(false);

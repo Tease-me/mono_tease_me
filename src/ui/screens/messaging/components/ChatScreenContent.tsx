@@ -56,7 +56,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
     useEffect(() => {
         if (!id) {
-            if (!user_id) return;
+            if (!user_id) {
+                setuser(undefined);
+                return;
+            }
             const user = contacts.find((c) => c.conversation_id === parseInt(user_id));
             setuser(user);
         } else {
