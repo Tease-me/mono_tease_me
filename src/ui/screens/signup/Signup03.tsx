@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import BackgroundGradient from "../../templates/BackgroundGradient";
 import styles from "./Signup.module.css";
 import clsx from "clsx";
+import CenteredLayout from "@/ui/templates/CenteredLayout";
 
 export default function Signup03() {
   const navigate = useNavigate();
@@ -17,14 +18,16 @@ export default function Signup03() {
 
   return (
     <BackgroundGradient>
-      <div className={styles["auth-container"]}>
-        <div className={clsx(styles["auth-content"], styles["success-screen"])}>
-          <div className={styles["success-icon"]}>🎉</div>
-          <h2 className={styles["auth-title"]}>Congratulations!</h2>
-          <p>Your account is ready to use. You'll be redirected shortly.</p>
-          <div className={styles["loading-spinner"]}></div>
+      <CenteredLayout>
+        <div className={styles["auth-container"]}>
+          <div className={clsx(styles["auth-content"], styles["success-screen"])}>
+            <div className={styles["success-icon"]}>🎉</div>
+            <h2 className={styles["auth-title"]}>Congratulations!</h2>
+            <p>Your account is ready to use. You'll be redirected shortly.</p>
+            <div className={styles["loading-spinner"]}></div>
+          </div>
         </div>
-      </div>
+      </CenteredLayout>
     </BackgroundGradient>
   );
 }

@@ -25,8 +25,9 @@ export default function Signup01() {
       return;
     }
     try {
-      await Register(username, email, password);
-      navigate("/signup/profile");
+      await Register(username, password, email);
+      // navigate("/signup/profile");
+      navigate("/signup/success");
     } catch (err) {
       console.error(err);
     }

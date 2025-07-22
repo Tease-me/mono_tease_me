@@ -19,7 +19,11 @@ export const Register = async (username: string, password: string, email: string
     try {
         const response = await axios.post(
             Endpoints.REGISTER,
-            { username, password, email },
+            {
+                "username": username,
+                "password": password,
+                "email": email
+            },
         );
         return response.data;
     } catch (error) {
