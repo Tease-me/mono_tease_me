@@ -3,8 +3,21 @@ import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import CircularIconButton from '@/ui/components/buttons/CircularIconButton';
 import MicrophoneIcon from "@/assets/Microphone.svg?react";
 import SendIcon from "@/assets/svg/Send.svg?react";
-import CallIcon from "@/assets/Call.svg?react"
 import CloseSquareIcon from "@/assets/CloseSquare.svg?react";
+
+const getAudioStream = async (): Promise<MediaStream> => {
+    if (navigator.mediaDevices?.getUserMedia) {
+        return navigator.mediaDevices.getUserMedia({ audio: true });
+    }
+    const legacy = (navigator as any).webkitGetUserMedia || (navigator as any).mozGetUserMedia;
+    return new Promise<MediaStream>((resolve, reject) => {
+        if (!legacy) {
+            reject(new Error('getUserMedia is not supported in this browser'));
+            return;
+        }
+        legacy.call(navigator, { audio: true }, resolve, reject);
+    });
+};
 
 import styles from "./ChatInputArea.module.css"
 import AudioVisualizer from './AudioVisualizer';
@@ -43,54 +56,57 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
         return () => window.removeEventListener('resize', updateSize);
     }, []);
 
+    const handlePressStart = (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        startRecording();
+    };
+
+    const handlePressEnd = (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        stopRecording();
+    };
+
     const startRecording = async () => {
         if (inputAudio) {
             clearAudio();
             return;
-        };
+        }
         setInputAudio?.(undefined);
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        setStream(stream);
-        const mediaRecorder = new MediaRecorder(stream);
-        mediaRecorderRef.current = mediaRecorder;
-        chunksRef.current = [];
 
-        mediaRecorder.addEventListener('dataavailable', (e: BlobEvent) => {
-            if (typeof e.data === undefined) return;
-            if (e.data.size === 0) return;
-            chunksRef.current.push(e.data);
-        });
+        try {
+            const s = await getAudioStream();
+            setStream(s);
 
-        mediaRecorder.addEventListener('stop', () => {
-            const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-            setInputAudio?.(blob);
+            const mimeType = pickSupportedMimeType();
+            const mediaRecorder = new MediaRecorder(s, mimeType ? { mimeType } : undefined);
+            mediaRecorderRef.current = mediaRecorder;
             chunksRef.current = [];
-        });
 
-        mediaRecorder.start();
-        mediaRecorder.pause();
-        // only start on actual audio input
-        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const analyser = audioCtx.createAnalyser();
-        const sourceNode = audioCtx.createMediaStreamSource(stream);
-        sourceNode.connect(analyser);
-        const dataArray = new Uint8Array(analyser.fftSize);
-        const silenceThreshold = 10; // adjust threshold as needed
-        const detectSound = () => {
-            analyser.getByteTimeDomainData(dataArray);
-            const maxDeviation = dataArray.reduce((max, v) => Math.max(max, Math.abs(v - 128)), 0);
-            if (maxDeviation > silenceThreshold) {
-                mediaRecorder.resume();
-                setIsRecording(true);
-            } else {
-                requestAnimationFrame(detectSound);
-            }
-        };
-        detectSound();
+            mediaRecorder.addEventListener('dataavailable', (e: BlobEvent) => {
+                if (!e.data || e.data.size === 0) return;
+                chunksRef.current.push(e.data);
+            });
+
+            mediaRecorder.addEventListener('stop', () => {
+                const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+                setInputAudio?.(blob);
+                chunksRef.current = [];
+            });
+
+            mediaRecorder.start();
+            // Mic is live: show visualizer immediately
+            setIsRecording(true);
+        } catch (err) {
+            console.error('Microphone access failed:', err);
+        }
     };
 
     const stopRecording = () => {
-        mediaRecorderRef.current?.stop();
+        try {
+            mediaRecorderRef.current?.stop();
+        } catch (e) {
+            console.warn('MediaRecorder.stop failed', e);
+        }
         setIsRecording(false);
         stream?.getTracks().forEach(track => track.stop());
     };
@@ -147,8 +163,12 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                     className={styles["voice-btn"]}
                     size="xsmall"
                     variant="secondary"
-                    onPointerDown={(e) => { e.preventDefault(); startRecording(); }}
-                    onPointerUp={(e) => { e.preventDefault(); stopRecording(); }}
+                    onPointerDown={handlePressStart}
+                    onPointerUp={handlePressEnd}
+                    onMouseDown={handlePressStart}
+                    onMouseUp={handlePressEnd}
+                    onTouchStart={handlePressStart}
+                    onTouchEnd={handlePressEnd}
                     onPointerLeave={(e) => { e.preventDefault(); isRecording && stopRecording(); }}
                     onPointerCancel={(e) => { e.preventDefault(); isRecording && stopRecording(); }}
                     onContextMenu={(e) => e.preventDefault()}
