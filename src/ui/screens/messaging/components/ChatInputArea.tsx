@@ -37,6 +37,7 @@ import AudioWaveform from './AudioWaveform';
 import { releaseMicrophonePermission, requestMicrophonePermission } from '@/utils/Permissions';
 import LongPressButton from '@/ui/components/buttons/LongPressButton';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
+import { clear } from 'console';
 
 interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
     onSendMessage?: () => void;
@@ -54,7 +55,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     setInputAudio }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-    const { startRecording, stopRecording, recordingStatus, audio, streamRef } = useAudioRecorder();
+    const { startRecording, stopRecording, recordingStatus, audio, streamRef, clearAudio } = useAudioRecorder();
 
     useLayoutEffect(() => {
         function updateSize() {
@@ -80,6 +81,13 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
             onSendMessage();
         }
     };
+
+    const handleOnSendMessage = () => {
+        onSendMessage?.();
+        setInputText?.("");
+        setInputAudio?.(undefined);
+        clearAudio();
+    }
 
     useEffect(() => {
         if (audio && setInputAudio) {
@@ -121,7 +129,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                     className={styles["voice-btn"]}
                     size="xsmall"
                     variant="secondary" />
-                <CircularIconButton icon={<SendIcon />} className={styles["send-btn"]} onClick={onSendMessage} size="xsmall" />
+                <CircularIconButton icon={<SendIcon />} className={styles["send-btn"]} onClick={handleOnSendMessage} size="xsmall" />
             </div>
         </div>
     );

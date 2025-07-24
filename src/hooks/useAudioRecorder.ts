@@ -8,6 +8,7 @@ export interface UseAudioRecorderReturn {
     audio: Blob | null;
     startRecording: () => Promise<void>;
     stopRecording: () => void;
+    clearAudio: () => void;
     permissionState: ReturnType<typeof useMicrophonePermission>["permissionState"];
     streamRef: ReturnType<typeof useMicrophonePermission>["streamRef"];
 }
@@ -20,6 +21,13 @@ export const useAudioRecorder = (mimeType: string = "audio/webm"): UseAudioRecor
     const [audio, setAudio] = useState<Blob | null>(null);
     const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+
+    const clearAudio = useCallback(() => {
+        setAudio(null);
+        setAudioChunks([]);
+        setRecordingStatus("inactive");
+        releaseMicrophonePermission();
+    }, [releaseMicrophonePermission]);
 
     const startRecording = useCallback(async () => {
         if (!streamRef || permissionState !== "granted") {
@@ -55,5 +63,5 @@ export const useAudioRecorder = (mimeType: string = "audio/webm"): UseAudioRecor
         };
     }, [audioChunks, mimeType, releaseMicrophonePermission]);
 
-    return { recordingStatus, audio, startRecording, stopRecording, permissionState, streamRef };
+    return { recordingStatus, audio, startRecording, stopRecording, clearAudio, permissionState, streamRef };
 };
