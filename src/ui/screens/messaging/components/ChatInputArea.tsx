@@ -35,6 +35,8 @@ import styles from "./ChatInputArea.module.css"
 import AudioVisualizer from './AudioVisualizer';
 import AudioWaveform from './AudioWaveform';
 import { releaseMicrophonePermission, requestMicrophonePermission } from '@/utils/Permissions';
+import LongPressButton from '@/ui/components/buttons/LongPressButton';
+import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 
 interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
     onSendMessage?: () => void;
@@ -50,14 +52,9 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     setInputText,
     inputAudio,
     setInputAudio }) => {
-    const [isRecording, setIsRecording] = useState(false);
-    const mediaRecorderRef = useRef<MediaRecorder>(null);
-    const chunksRef = useRef<Blob[]>([]);
-    const [stream, setStream] = useState<MediaStream>();
-    const pressTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
     const containerRef = useRef<HTMLDivElement>(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-    const [micReady, setMicReady] = useState(false);
+    const { startRecording, stopRecording, recordingStatus, audio, streamRef } = useAudioRecorder();
 
     useLayoutEffect(() => {
         function updateSize() {
@@ -69,53 +66,6 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
         window.addEventListener('resize', updateSize);
         return () => window.removeEventListener('resize', updateSize);
     }, []);
-
-    const startRecording = async () => {
-        const mimeType = pickSupportedMimeType();
-        if (!mimeType) {
-            showWebmUnsupportedError();
-            return;
-        }
-
-        try {
-            const s = await getAudioStream();
-            setStream(s);
-
-            const mediaRecorder = new MediaRecorder(s, { mimeType });
-            mediaRecorderRef.current = mediaRecorder;
-            chunksRef.current = [];
-
-            mediaRecorder.addEventListener('dataavailable', (e: BlobEvent) => {
-                if (!e.data || e.data.size === 0) return;
-                chunksRef.current.push(e.data);
-            });
-
-            mediaRecorder.addEventListener('stop', () => {
-                const blob = new Blob(chunksRef.current, { type: mimeType });
-                setInputAudio?.(blob);
-                chunksRef.current = [];
-            });
-
-            mediaRecorder.start();
-            setIsRecording(true);
-        } catch (err) {
-            console.error('Microphone access failed:', err);
-        }
-    };
-
-    const stopRecording = () => {
-        try {
-            mediaRecorderRef.current?.stop();
-        } catch (e) {
-            console.warn('MediaRecorder.stop failed', e);
-        }
-        setIsRecording(false);
-        stream?.getTracks().forEach(track => track.stop());
-    };
-
-    const clearAudio = () => {
-        setInputAudio?.(undefined);
-    }
 
     const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
@@ -131,54 +81,16 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
         }
     };
 
-    const handlePressStart = async (e: React.SyntheticEvent) => {
-        e.preventDefault();
-        // If we haven't secured mic permission yet, request it and exit.
-        if (!micReady) {
-            const ok = await requestMicrophonePermission();
-            if (!ok) {
-                alert('Microphone access is required to record audio.');
-                return;
-            }
-            setMicReady(true);
-            releaseMicrophonePermission(); // Release immediately after requesting
-            // Do NOT start recording now; user must press again.
-            return;
+    useEffect(() => {
+        if (audio && setInputAudio) {
+            setInputAudio(audio);
         }
-        if (inputAudio) {
-            clearAudio();
-            return;
-        }
-        setInputAudio?.(undefined);
-        if (isRecording) {
-            stopRecording();
-            return;
-        }
-        pressTimerRef.current = setTimeout(() => {
-            startRecording();
-        }, 500); // Adjust long-press duration as needed (e.g., 500ms)
-    };
-
-    const handlePressEnd = (e: React.SyntheticEvent) => {
-        e.preventDefault();
-        stopRecording();
-        releaseMicrophonePermission();
-        clearTimeout(pressTimerRef.current); // Clear the timer if released before long press
-    };
-
-    const handlePressMissed = (e: React.SyntheticEvent) => {
-        e.preventDefault();
-        if (isRecording) {
-            stopRecording();
-            releaseMicrophonePermission();
-        }
-        clearTimeout(pressTimerRef.current); // Clear the timer if mouse/touch is released
-    };
+    }, [audio, setInputAudio]);
 
     return (
         <div className={styles["chat-input-area"]}>
             <div className={styles["input-container"]} ref={containerRef}>
-                {(!isRecording && !inputAudio) &&
+                {(recordingStatus === "inactive" && !audio) &&
                     <input
                         type="text"
                         placeholder="Message..."
@@ -186,17 +98,16 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                         onChange={handleOnChange}
                         onKeyDown={handleKeyDown}
                     />}
-                {inputAudio && (
-                    <AudioWaveform audioBlob={inputAudio}
+                {audio && (
+                    <AudioWaveform audioBlob={audio}
                         width={dimensions.width}
                         height={dimensions.height} />
                 )}
-                {(isRecording && stream) && (
+                {(recordingStatus === "recording" && streamRef.current) && (
                     <AudioVisualizer
-                        mediaStream={stream}
+                        mediaStream={streamRef.current}
                         speed={1}
-                        isRecording={isRecording}
-                        setIsRecording={setIsRecording}
+                        isRecording={recordingStatus === "recording"}
                         width={dimensions.width}
                         height={dimensions.height}
                     />
@@ -204,21 +115,12 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
             </div>
 
             <div className={styles["buttons"]}>
-                <CircularIconButton
+                <LongPressButton
+                    onLongPressStart={startRecording} onLongPressEnd={stopRecording}
                     icon={inputAudio ? <CloseSquareIcon /> : <MicrophoneIcon />}
                     className={styles["voice-btn"]}
                     size="xsmall"
-                    variant="secondary"
-                    onPointerDown={handlePressStart}
-                    onPointerUp={handlePressEnd}
-                    onMouseDown={handlePressStart}
-                    onMouseUp={handlePressEnd}
-                    onTouchStart={handlePressStart}
-                    onTouchEnd={handlePressEnd}
-                    onPointerLeave={handlePressMissed}
-                    onPointerCancel={handlePressMissed}
-                    onContextMenu={(e) => e.preventDefault()}
-                />
+                    variant="secondary" />
                 <CircularIconButton icon={<SendIcon />} className={styles["send-btn"]} onClick={onSendMessage} size="xsmall" />
             </div>
         </div>

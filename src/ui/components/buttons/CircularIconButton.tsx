@@ -2,7 +2,7 @@ import React from 'react';
 import styles from "./CircularIconButton.module.css"
 import clsx from 'clsx';
 
-interface CircularIconButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
+export interface CircularIconButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
     text?: string;
     icon?: React.ReactNode;
     size?: "xsmall" | "small" | "medium" | "large";

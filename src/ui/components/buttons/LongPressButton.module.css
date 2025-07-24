@@ -1,0 +1,39 @@
+.long-press-button {
+    display: inline-block;
+    background-color: #646cff;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease-in-out;
+    height: 64px;
+    width: 64px;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    /* iOS/Safari */
+    -ms-user-select: none;
+    /* old Edge */
+    -webkit-touch-callout: none;
+}
+
+.long-press-button,
+.long-press-button * {
+    user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-user-drag: none;
+}
+
+.long-press-button svg {
+    height: 24px;
+    width: 24px;
+}
+
+.long-press-button:active {
+    transform: scale(1.2);
+}
