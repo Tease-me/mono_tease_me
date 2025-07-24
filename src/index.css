@@ -17,6 +17,7 @@ body,
   -webkit-touch-callout: none;
   -webkit-user-drag: none;
   -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
 }
 
 @import "tailwindcss";
