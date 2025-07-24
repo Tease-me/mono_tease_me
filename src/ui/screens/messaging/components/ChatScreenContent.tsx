@@ -10,7 +10,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import MessageBubble from './MessageBubble';
 import ChatInputArea from './ChatInputArea';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
-import { UserDataModel } from '@/data/models/UserDataModel';
 import { Contact } from '@/data/models/ContactDataModel';
 import ChatTopNav from '@/ui/components/nav/ChatTopNav';
 
@@ -26,7 +25,7 @@ const MessagesList = React.memo(({ messages, typing, messagesEndRef }: { message
     );
 });
 
-const chatId = 'abc123'; // or generate per user/session
+const chatId = "f5ab6782-4718-4035-9d8b-c99b429a30cd"; // or generate per user/session
 const personaId = 'loli'; // or "loli", "bella", etc
 
 interface ChatScreenContentProps {
