@@ -26,7 +26,8 @@
 }
 
 .chat-messages-container {
-    height: 100%;
+    margin-top: 218px;
+    align-content: end;
     padding-left: 24px;
     padding-right: 24px;
 }
@@ -96,6 +97,10 @@
 }
 
 @media (min-width: 1024px) {
+    .chat-messages-container {
+        margin-top: 0px;
+    }
+
     .chat-container {
         padding: 0;
     }

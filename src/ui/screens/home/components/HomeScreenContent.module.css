@@ -56,8 +56,18 @@
     margin-bottom: 10px;
 }
 
+.contact-card:hover {
+    outline: 1px solid #ff4d6d;
+}
+
+.highlight:hover {
+    outline: 1px solid #ff4d6d;
+}
+
 .contact-card,
 .highlight {
+    margin: 1px;
+    cursor: pointer;
     display: flex;
     align-items: center;
     margin-bottom: 10px;
@@ -66,7 +76,7 @@
 }
 
 .highlight {
-    border: 1px solid #ff4d6d;
+    outline: 1px solid #ff4d6d;
     background: #2c3038;
 }
 

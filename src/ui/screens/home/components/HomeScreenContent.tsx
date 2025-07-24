@@ -34,10 +34,11 @@ export const contacts: InfluencerDataModel[] = [
 ];
 
 interface HomeScreenContentProps {
+    id?: string;
     onItemClick?: (id: string) => void;
 }
 
-const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ onItemClick }) => {
+const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ id, onItemClick }) => {
     const [activeTab, setActiveTab] = useState("contacts");
     const [search, setSearch] = useState("");
     const filteredContacts = contacts.filter((c) =>
@@ -129,18 +130,15 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ onItemClick }) =>
                         {filteredContacts.map((contact) => (
                             <div
                                 key={contact.id}
-                                className={clsx(styles["contact-card"], contact.featured && styles["highlight"])}
-                                onClick={() => handleOnChatClick(contact.id)}
-                            >
+                                className={clsx(styles["contact-card"], contact.id === id && styles["highlight"])}
+                                onClick={() => handleOnChatClick(contact.id)}>
                                 <img src={contact.img} alt={contact.name} />
                                 <div>
                                     <h4>{contact.name}</h4>
-                                    <p>
-                                        {contact.username} | {contact.likes} likes
-                                    </p>
+                                    <p>{contact.username} | {contact.likes} likes</p>
                                 </div>
                                 <button className={clsx(contact.featured ? styles["chat-btn"] : styles["trial-btn"])}>
-                                    {contact.featured ? "♾️ Chat" : "Trial"}
+                                    ♾️ Chat
                                 </button>
                             </div>
                         ))}

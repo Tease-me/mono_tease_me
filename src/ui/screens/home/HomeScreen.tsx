@@ -33,7 +33,7 @@ export default function HomeScreen() {
       <TwoPaneLayout
         showSidebar={showSidebar}
         showContent={showContent}
-        sidebar={<HomeScreenContent onItemClick={(id: string) => { setId(id) }} />}
+        sidebar={<HomeScreenContent id={id} onItemClick={(id: string) => { setId(id) }} />}
       >
         <ChatScreenContent id={id} onBackPressed={() => { setId(undefined) }} />
       </TwoPaneLayout>
