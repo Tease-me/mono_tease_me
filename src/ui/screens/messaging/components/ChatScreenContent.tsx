@@ -43,6 +43,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const [inputText, setInputText] = useState("");
     const [inputAudio, setInputAudio] = useState<Blob>();
     const [typing, setTyping] = useState(false);
+    const [isWsConnected, setIsWsConnected] = useState(false);
 
     const { user } = useContext(AuthContext);
 
@@ -61,7 +62,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 setInfluencer(undefined);
                 return;
             }
-
             const user = contacts.find((c) => c.id === user_id);
             setInfluencer(user);
         } else {
@@ -76,6 +76,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 setChatId(response.chat_id)
             })
             ws.current = new window.WebSocket(`${WsEndpoints.CHAT}/${influencer.id}?token=${accessToken}`);
+            ws.current.onopen = () => setIsWsConnected(true);
+            ws.current.onclose = () => setIsWsConnected(false);
+            ws.current.onerror = () => setIsWsConnected(false);
             ws.current.onmessage = (event) => {
                 const data = JSON.parse(event.data);
                 setMessages(prev => [
@@ -136,12 +139,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 ],
             },
         ]);
-    }
-
-    async function playAIResponse(audioBlob: Blob) {
-        const url = URL.createObjectURL(audioBlob);
-        const audio = new Audio(url);
-        audio.play();
     }
 
     const sendMessage = () => {
@@ -208,7 +205,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 <ChatTopNav onBack={handleOnBackClick} onCallClick={onCall} />
                 <div className={styles["chat-header-info"]}>
                     <ProfileMedia imageSrc={influencer?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
-                    <h3 className={styles["chat-user-name"]}>{influencer && truncateLastName(influencer?.name)}</h3>
+                    <div className={styles["chat-user-name"]}>
+                        <h3>{influencer && truncateLastName(influencer?.name)}</h3>
+                        <p>{isWsConnected ? "Connected" : "Not Connected"}</p>
+                    </div>
                 </div>
             </div>
             <div className={styles["chat-messages-container"]}>

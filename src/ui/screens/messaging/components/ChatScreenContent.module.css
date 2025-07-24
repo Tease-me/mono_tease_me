@@ -76,8 +76,15 @@
 }
 
 .chat-user-name {
-    text-align: center;
     margin: 10px 0;
+}
+
+.chat-user-name h3 {
+    text-align: center;
+}
+
+.chat-user-name p {
+    font-size: small;
 }
 
 .messages {
