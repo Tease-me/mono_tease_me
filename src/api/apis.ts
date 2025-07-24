@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { Endpoints } from './urls';
 import { LoginResponse } from './models/LoginResponse';
+import { GetChatIdResponse } from './models/GetChatIdResponse';
 
 export const Login = async (email: string, password: string): Promise<LoginResponse> => {
     try {
@@ -31,7 +32,7 @@ export const Register = async (username: string, password: string, email: string
     }
 };
 
-export const GetChatId = async (user_id: number, persona_id: string): Promise<LoginResponse> => {
+export const GetChatId = async (user_id: number, persona_id: string): Promise<GetChatIdResponse> => {
     try {
         const response = await axios.post(
             Endpoints.CHAT,

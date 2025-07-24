@@ -1,5 +1,5 @@
 export interface UserDataModel {
-    id: string;
+    id: number;
     name: string;
     email: string;
     imgUrl?: string;

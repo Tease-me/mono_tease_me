@@ -8,7 +8,7 @@ import avatar from "@/assets/image/avatar.png";
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
 
-const contacts: InfluencerDataModel[] = [
+export const contacts: InfluencerDataModel[] = [
     {
         id: "loli",
         name: "Lola Fairfax",

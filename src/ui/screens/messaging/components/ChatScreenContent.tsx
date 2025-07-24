@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 
-import { Endpoints } from "@/api/urls";
-import { contacts } from "@/data/mock/MockContacts";
+import { Endpoints, WsEndpoints } from "@/api/urls";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import { truncateLastName } from "@/utils/StringUtils";
 import { AuthContext } from "@/context/AuthContext";
@@ -10,9 +9,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import MessageBubble from './MessageBubble';
 import ChatInputArea from './ChatInputArea';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
-import { Contact } from '@/data/models/ContactDataModel';
 import ChatTopNav from '@/ui/components/nav/ChatTopNav';
 import { GetChatId } from '@/api/apis';
+import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
+import { Message } from '@/data/models/MessageDataModel';
+import { contacts } from '../../home/components/HomeScreenContent';
 
 const MessagesList = React.memo(({ messages, typing, messagesEndRef }: { messages: any[]; typing: boolean; messagesEndRef: React.RefObject<HTMLDivElement | null>; }) => {
     return (
@@ -26,24 +27,24 @@ const MessagesList = React.memo(({ messages, typing, messagesEndRef }: { message
     );
 });
 
-const chatId = "37639dac-7d8e-4a3a-96b6-c68276768bc1";
-const personaId = 'loli';
-
 interface ChatScreenContentProps {
     id?: string;
     onBackPressed?: () => void;
 }
 
 const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed }) => {
-    const [influencer, setInfluencer] = useState<Contact>();
+    const [influencer, setInfluencer] = useState<InfluencerDataModel>();
+    const [chatId, setChatId] = useState<string | undefined>();
 
     const ws = useRef<WebSocket | null>(null);
     const navigate = useNavigate();
 
-    const [messages, setMessages] = useState(influencer?.messages || []);
+    const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState("");
     const [inputAudio, setInputAudio] = useState<Blob>();
     const [typing, setTyping] = useState(false);
+
+    const { user } = useContext(AuthContext);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -60,17 +61,21 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 setInfluencer(undefined);
                 return;
             }
-            const user = contacts.find((c) => c.influencer_id === user_id);
+
+            const user = contacts.find((c) => c.id === user_id);
             setInfluencer(user);
         } else {
-            const user = contacts.find((c) => c.influencer_id === id);
+            const user = contacts.find((c) => c.id === id);
             setInfluencer(user);
         }
     }, [id, user_id]);
 
     useEffect(() => {
-        if (influencer) {
-            ws.current = new window.WebSocket(`${Endpoints.CHAT}/${influencer.influencer_id}?token=${accessToken}`);
+        if (influencer && user) {
+            GetChatId(user.id, influencer.id).then((response) => {
+                setChatId(response.chat_id)
+            })
+            ws.current = new window.WebSocket(`${WsEndpoints.CHAT}/${influencer.id}?token=${accessToken}`);
             ws.current.onmessage = (event) => {
                 const data = JSON.parse(event.data);
                 setMessages(prev => [
@@ -98,11 +103,12 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
     async function sendAndPlay(audioBlob: Blob) {
         if (!influencer) return;
+        if (!chatId) return;
 
         const formData = new FormData();
         formData.append("file", audioBlob);
-        formData.append("persona_id", influencer.influencer_id);
-        formData.append("chat_id", influencer.conversation_id);
+        formData.append("persona_id", influencer.id);
+        formData.append("chat_id", chatId);
         const response = await fetch(`${Endpoints.CHAT_AUDIO}`, {
             method: "POST",
             body: formData,
@@ -145,7 +151,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             setTyping(prev => !prev || true);
             ws.current?.send(
                 JSON.stringify({
-                    chat_id: influencer.conversation_id,
+                    chat_id: chatId,
                     message: inputText.trim(),
                 }),
             );
