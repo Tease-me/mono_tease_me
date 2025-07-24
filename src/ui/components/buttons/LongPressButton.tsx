@@ -57,7 +57,7 @@ const LongPressButton: React.FC<LongPressButtonProps> = ({
         }, 500);
     }
     return (
-        <CircularIconButton draggable={false} onMouseDown={handleMouseDown} className={styles["long-press-button"]} {...props}
+        <CircularIconButton draggable={false} onMouseDown={handleMouseDown}{...props}
             onMouseUp={handleMouseUp}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
