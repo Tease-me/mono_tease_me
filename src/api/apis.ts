@@ -30,3 +30,18 @@ export const Register = async (username: string, password: string, email: string
         throw error;
     }
 };
+
+export const GetChatId = async (user_id: number, persona_id: string): Promise<LoginResponse> => {
+    try {
+        const response = await axios.post(
+            Endpoints.CHAT,
+            {
+                "user_id": user_id,
+                "persona_id": persona_id
+            }
+        );
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+}

@@ -12,6 +12,7 @@ import ChatInputArea from './ChatInputArea';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import { Contact } from '@/data/models/ContactDataModel';
 import ChatTopNav from '@/ui/components/nav/ChatTopNav';
+import { GetChatId } from '@/api/apis';
 
 const MessagesList = React.memo(({ messages, typing, messagesEndRef }: { messages: any[]; typing: boolean; messagesEndRef: React.RefObject<HTMLDivElement | null>; }) => {
     return (
@@ -25,21 +26,21 @@ const MessagesList = React.memo(({ messages, typing, messagesEndRef }: { message
     );
 });
 
-const chatId = "f5ab6782-4718-4035-9d8b-c99b429a30cd"; // or generate per user/session
-const personaId = 'loli'; // or "loli", "bella", etc
+const chatId = "37639dac-7d8e-4a3a-96b6-c68276768bc1";
+const personaId = 'loli';
 
 interface ChatScreenContentProps {
-    id?: number;
+    id?: string;
     onBackPressed?: () => void;
 }
 
 const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed }) => {
-    const [user, setuser] = useState<Contact>();
+    const [influencer, setInfluencer] = useState<Contact>();
 
     const ws = useRef<WebSocket | null>(null);
     const navigate = useNavigate();
 
-    const [messages, setMessages] = useState(user?.messages || []);
+    const [messages, setMessages] = useState(influencer?.messages || []);
     const [inputText, setInputText] = useState("");
     const [inputAudio, setInputAudio] = useState<Blob>();
     const [typing, setTyping] = useState(false);
@@ -56,44 +57,52 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     useEffect(() => {
         if (!id) {
             if (!user_id) {
-                setuser(undefined);
+                setInfluencer(undefined);
                 return;
             }
-            const user = contacts.find((c) => c.conversation_id === parseInt(user_id));
-            setuser(user);
+            const user = contacts.find((c) => c.influencer_id === user_id);
+            setInfluencer(user);
         } else {
-            const user = contacts.find((c) => c.conversation_id === id);
-            setuser(user);
+            const user = contacts.find((c) => c.influencer_id === id);
+            setInfluencer(user);
         }
-        ws.current = new window.WebSocket(`${Endpoints.CHAT}/${personaId}?token=${accessToken}`);
-        ws.current.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            setMessages(prev => [
-                ...prev,
-                {
-                    id: Date.now(),
-                    sender: "received",
-                    text: data.reply,
-                    time: new Date().toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                    }),
-                },
-            ]);
-
-            setTyping(prev => !prev || false);
-        };
     }, [id, user_id]);
+
+    useEffect(() => {
+        if (influencer) {
+            ws.current = new window.WebSocket(`${Endpoints.CHAT}/${influencer.influencer_id}?token=${accessToken}`);
+            ws.current.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                setMessages(prev => [
+                    ...prev,
+                    {
+                        id: Date.now(),
+                        sender: "received",
+                        text: data.reply,
+                        time: new Date().toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        }),
+                    },
+                ]);
+
+                setTyping(prev => !prev || false);
+            };
+        }
+
+    }, [influencer])
 
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
 
     async function sendAndPlay(audioBlob: Blob) {
+        if (!influencer) return;
+
         const formData = new FormData();
         formData.append("file", audioBlob);
-        formData.append("persona_id", personaId);
-        formData.append("chat_id", chatId);
+        formData.append("persona_id", influencer.influencer_id);
+        formData.append("chat_id", influencer.conversation_id);
         const response = await fetch(`${Endpoints.CHAT_AUDIO}`, {
             method: "POST",
             body: formData,
@@ -130,11 +139,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     }
 
     const sendMessage = () => {
+        if (!influencer) return;
+
         if (inputText.trim()) {
             setTyping(prev => !prev || true);
             ws.current?.send(
                 JSON.stringify({
-                    chat_id: chatId,
+                    chat_id: influencer.conversation_id,
                     message: inputText.trim(),
                 }),
             );
@@ -184,14 +195,14 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         onBackPressed?.();
     };
 
-    if (!user) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
+    if (!influencer) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
     return (
         <div className={styles["chat-screen-content"]}>
             <div className={styles["chat-header"]}>
                 <ChatTopNav onBack={handleOnBackClick} onCallClick={onCall} />
                 <div className={styles["chat-header-info"]}>
-                    <ProfileMedia imageSrc={user?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
-                    <h3 className={styles["chat-user-name"]}>{user && truncateLastName(user?.name)}</h3>
+                    <ProfileMedia imageSrc={influencer?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
+                    <h3 className={styles["chat-user-name"]}>{influencer && truncateLastName(influencer?.name)}</h3>
                 </div>
             </div>
             <div className={styles["chat-messages-container"]}>

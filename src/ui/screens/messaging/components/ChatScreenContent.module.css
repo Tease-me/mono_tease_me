@@ -62,6 +62,7 @@
 
 .chat-input-area {
     position: fixed;
+    width: 100%;
     bottom: 0dvh;
 }
 
@@ -94,9 +95,20 @@
     height: 100%;
 }
 
-@media (min-width: 1080px) {
+@media (min-width: 1024px) {
     .chat-container {
         padding: 0;
+    }
+
+    .chat-header {
+        position: relative;
+        display: flex;
+    }
+
+    .chat-input-area {
+        position: sticky;
+        width: 100%;
+        bottom: 0dvh;
     }
 
     .chat-header-info {

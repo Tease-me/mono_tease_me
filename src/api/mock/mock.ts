@@ -1,5 +1,3 @@
-
-
 export const mock = {
     getRandomDate: function getRandomDate(): string {
         const now = Date.now();

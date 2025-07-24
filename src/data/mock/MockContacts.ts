@@ -3,7 +3,8 @@ import { Contact } from "../models/ContactDataModel";
 
 export const contacts: Contact[] = [
     {
-        conversation_id: 1,
+        influencer_id: "loli",
+        conversation_id: "37639dac-7d8e-4a3a-96b6-c68276768bc1",
         name: "Olivia Fitzgerald",
         img: oliviaImage,
         messages: [],
