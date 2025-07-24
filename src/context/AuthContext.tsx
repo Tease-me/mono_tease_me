@@ -1,11 +1,15 @@
 import { Login } from "@/api/apis";
+import { mock } from "@/api/mock/mock";
+import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { UserDataModel } from "@/data/models/UserDataModel";
-import React, { createContext, useState, useEffect, useCallback } from "react";
+import { storage } from "@/utils/storage";
+
+import React, { createContext, useState, useEffect } from "react";
 
 export interface AuthContextType {
     accessToken?: string;
     loadingAuth: boolean;
-    login: (username: string, password: string) => Promise<boolean>;
+    login: (email: string, password: string) => Promise<boolean>;
     logout: (callback?: () => void) => void;
     authErrors?: AuthErrors;
     isSignedIn: boolean;
@@ -28,6 +32,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [loadingAuth, setLoadingAuth] = useState(false);
     const [accessToken, setAccessToken] = useState<string | undefined>(undefined);
     const [authErrors, setAuthErrors] = useState<AuthErrors>();
+    const [user, setUser] = useState<UserDataModel | undefined>()
 
     useEffect(() => {
         if (authErrors) {
@@ -41,10 +46,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                //TODO: Replace this with Refresh Token
-                const token = localStorage.getItem("access_token");
-
-                if (token) {
+                const token = storage.get(LocalStorageKeys.AccessToken);
+                const user = storage.getObject<UserDataModel>(LocalStorageKeys.AuthUser)
+                setUser(user)
+                if (user && token) {
                     setIsSignedIn(true);
                     setAccessToken(token);
                 } else {
@@ -59,15 +64,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         checkAuth();
     }, []);
 
-    const login = async (username: string, password: string) => {
+    const login = async (email: string, password: string) => {
         setLoadingAuth(true);
         try {
-            const response = await Login(username, password);
-
+            const response = await Login(email, password);
             if (response) {
                 setIsSignedIn(true);
                 setAccessToken(response.access_token);
-                localStorage.setItem("access_token", `${response.access_token}`);
+                storage.set(LocalStorageKeys.AccessToken, response.access_token);
+                const user: UserDataModel = {
+                    id: response.user_id,
+                    email: response.email,
+                    name: "Kako",
+                    createdAt: mock.getRandomDate(),
+                    updatedAt: mock.getRandomDate()
+                }
+                storage.setObject(LocalStorageKeys.AuthUser, user)
                 return true;
             }
             return false;
@@ -97,7 +109,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     if (callback) callback();
                 },
                 isSignedIn: isSignedIn,
-                authErrors: authErrors
+                authErrors: authErrors,
+                user: user
             }}
         >
             {children}

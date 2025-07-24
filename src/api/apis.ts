@@ -2,11 +2,11 @@ import axios from 'axios';
 import { Endpoints } from './urls';
 import { LoginResponse } from './models/LoginResponse';
 
-export const Login = async (username: string, password: string): Promise<LoginResponse> => {
+export const Login = async (email: string, password: string): Promise<LoginResponse> => {
     try {
         const response = await axios.post(
             Endpoints.LOGIN,
-            { username, password },
+            { email, password },
         );
         return response.data;
     } catch (error) {

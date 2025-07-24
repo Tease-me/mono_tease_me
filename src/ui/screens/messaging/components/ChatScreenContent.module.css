@@ -10,7 +10,7 @@
 .chat-header {
     display: flex;
     flex-direction: column;
-    position: sticky;
+    position: fixed;
     top: 0;
     width: 100%;
 }
@@ -61,7 +61,8 @@
 }
 
 .chat-input-area {
-    position: sticky;
+    position: fixed;
+    bottom: 0dvh;
 }
 
 .chat-avatar {

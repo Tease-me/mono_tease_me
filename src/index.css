@@ -86,9 +86,9 @@ body {
 #root {
   display: flex;
   flex: 1;
-  min-width: 100vw;
+  min-width: 100dvw;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   position: relative;
 }
