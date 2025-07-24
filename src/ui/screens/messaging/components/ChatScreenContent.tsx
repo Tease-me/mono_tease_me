@@ -93,6 +93,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     async function sendAndPlay(audioBlob: Blob) {
         const formData = new FormData();
         formData.append("file", audioBlob);
+        formData.append("persona_id", personaId);
+        formData.append("chat_id", chatId);
         const response = await fetch(`${Endpoints.CHAT_AUDIO}`, {
             method: "POST",
             body: formData,
