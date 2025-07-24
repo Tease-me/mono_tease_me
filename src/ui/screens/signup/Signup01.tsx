@@ -4,6 +4,7 @@ import BackgroundGradient from "../../templates/BackgroundGradient";
 import styles from "./Signup.module.css";
 import CenteredLayout from "@/ui/templates/CenteredLayout";
 import { Register } from "@/api/apis";
+import CheckBox from "@/ui/components/check-boxes/CheckBox";
 
 export default function Signup01() {
   const [username, setUsername] = useState("");
@@ -64,16 +65,16 @@ export default function Signup01() {
                 onChange={e => setPassword(e.target.value)}
               />
               {errors.password && <span className={styles["error"]}>{errors.password}</span>}
+              <CheckBox >
+                I am over 18 years old and
+              </CheckBox>
+              <CheckBox >
+                Agree to the <a href="#">Terms of Service</a>
+              </CheckBox>
 
-              <label className={styles["auth-checkbox"]}>
-                <input
-                  type="checkbox"
-                  checked={remember}
-                  onChange={e => setRemember(e.target.checked)}
-                />
-                Remember me
-              </label>
-
+              <CheckBox >
+                Agree to the <a>Privacy Policy</a>
+              </CheckBox>
               <div className={styles["auth-buttons"]}>
                 <button className={styles["btn-back"]} onClick={() => navigate("/")}>
                   Back
