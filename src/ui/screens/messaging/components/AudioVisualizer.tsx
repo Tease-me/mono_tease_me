@@ -3,14 +3,13 @@ import React, { useRef, useEffect, useState } from 'react';
 interface AudioVisualizerProps {
     mediaStream: MediaStream;
     isRecording: boolean;
-    setIsRecording: (value: boolean) => void;
     onStop?: (blob: Blob) => void;
     speed?: number;
     width: number;
     height: number;
 }
 
-const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ mediaStream, isRecording, setIsRecording, onStop, speed, width, height }) => {
+const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ mediaStream, isRecording, onStop, speed, width, height }) => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
