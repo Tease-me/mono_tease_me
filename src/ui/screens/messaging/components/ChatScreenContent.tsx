@@ -58,7 +58,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const { user_id } = useParams();
 
     useEffect(() => {
-        console.log("User", user);
         if (!id) {
             if (!user_id) {
                 setInfluencer(undefined);
@@ -101,7 +100,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             };
         }
 
-    }, [influencer])
+    }, [influencer, user])
 
     useEffect(() => {
         scrollToBottom();
