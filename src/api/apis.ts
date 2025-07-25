@@ -52,9 +52,8 @@ export const RefreshToken = async (refreshToken: string): Promise<TokenResponse>
 
 export const GetUserDerails = async (access_token: string): Promise<UserDetailResponse> => {
     try {
-        const response = await axios.post(
+        const response = await axios.get(
             Endpoints.ME,
-            null,
             {
                 headers: {
                     "Authorization": `Bearer ${access_token}`
