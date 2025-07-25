@@ -1,5 +1,6 @@
-import { Login } from "@/api/apis";
+import { GetUserDerails, Login, RefreshToken } from "@/api/apis";
 import { mock } from "@/api/mock/mock";
+import { TokenResponse } from "@/api/models/TokenResponse";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { UserDataModel } from "@/data/models/UserDataModel";
 import { storage } from "@/utils/storage";
@@ -29,8 +30,7 @@ export const AuthContext = createContext<AuthContextType>(
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [isSignedIn, setIsSignedIn] = useState(false);
-    const [loadingAuth, setLoadingAuth] = useState(false);
-    const [accessToken, setAccessToken] = useState<string | undefined>(undefined);
+    const [loadingAuth, setLoadingAuth] = useState(true);
     const [authErrors, setAuthErrors] = useState<AuthErrors>();
     const [user, setUser] = useState<UserDataModel | undefined>()
 
@@ -46,12 +46,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                const token = storage.get(LocalStorageKeys.AccessToken);
-                const user = storage.getObject<UserDataModel>(LocalStorageKeys.AuthUser)
-                setUser(user)
-                if (user && token) {
+                const token = storage.get(LocalStorageKeys.RefreshToken);
+                if (token) {
+                    const tokens: TokenResponse = await RefreshToken(token)
+                    storage.set(LocalStorageKeys.AccessToken, tokens.access_token)
+                    storage.set(LocalStorageKeys.RefreshToken, tokens.refresh_token)
+                    getUserDetails(tokens.access_token)
                     setIsSignedIn(true);
-                    setAccessToken(token);
                 } else {
                     setIsSignedIn(false);
                 }
@@ -64,22 +65,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         checkAuth();
     }, []);
 
+    const getUserDetails = async (access_token: string) => {
+        const response = await GetUserDerails(access_token)
+
+        const user: UserDataModel = {
+            id: response.id,
+            username: response.username,
+            email: response.email,
+            name: "Kako",
+            createdAt: mock.getRandomDate(),
+            updatedAt: mock.getRandomDate()
+        }
+        storage.setObject(LocalStorageKeys.AuthUser, user)
+        setUser(user);
+    }
+
     const login = async (email: string, password: string) => {
         setLoadingAuth(true);
         try {
             const response = await Login(email, password);
             if (response) {
+                getUserDetails(response.access_token);
                 setIsSignedIn(true);
-                setAccessToken(response.access_token);
-                storage.set(LocalStorageKeys.AccessToken, response.access_token);
-                const user: UserDataModel = {
-                    id: response.user_id,
-                    email: response.email,
-                    name: "Kako",
-                    createdAt: mock.getRandomDate(),
-                    updatedAt: mock.getRandomDate()
-                }
-                storage.setObject(LocalStorageKeys.AuthUser, user)
+                storage.set(LocalStorageKeys.AccessToken, response.access_token)
+                storage.set(LocalStorageKeys.RefreshToken, response.refresh_token)
                 return true;
             }
             return false;
@@ -96,18 +105,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
     };
 
+    const logout = async (callback?: () => void) => {
+        setIsSignedIn(false);
+        storage.clear();
+        callback?.();
+    }
+
     return (
         <AuthContext.Provider
             value={{
-                accessToken,
                 login: login,
                 loadingAuth: loadingAuth,
-                logout: (callback?: () => void) => {
-                    setIsSignedIn(false);
-                    setAccessToken(undefined);
-                    localStorage.removeItem("access_token");
-                    if (callback) callback();
-                },
+                logout: logout,
                 isSignedIn: isSignedIn,
                 authErrors: authErrors,
                 user: user

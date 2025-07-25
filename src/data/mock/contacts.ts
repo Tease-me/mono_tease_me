@@ -8,22 +8,21 @@ export const contacts: InfluencerDataModel[] = [
         id: "loli",
         name: "Lola Fairfax",
         username: "loli",
-        likes: "27.3M",
         img: loliPic,
-        featured: true,
+        bio: "Daring temptress: confident, playful, and always in contro"
     },
     {
         id: "bella",
         name: "Bella Thorne",
         username: "bella",
-        likes: "24.5M",
         img: bella,
+        bio: "Warm-hearted soulmate: gentle comfort with a playful spark."
     },
     {
         id: "anna",
         name: "Annabelle Norton",
         username: "anna",
-        likes: "10.1M",
         img: anna,
+        bio: "Bubbly mischief: innocent charm meets irresistible kawaii."
     },
 ];

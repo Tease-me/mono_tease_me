@@ -1,9 +1,10 @@
 import axios from 'axios';
 import { Endpoints } from './urls';
-import { LoginResponse } from './models/LoginResponse';
 import { GetChatIdResponse } from './models/GetChatIdResponse';
+import { TokenResponse } from './models/TokenResponse';
+import { UserDetailResponse } from './models/LoginResponse';
 
-export const Login = async (email: string, password: string): Promise<LoginResponse> => {
+export const Login = async (email: string, password: string): Promise<TokenResponse> => {
     try {
         const response = await axios.post(
             Endpoints.LOGIN,
@@ -16,7 +17,7 @@ export const Login = async (email: string, password: string): Promise<LoginRespo
 };
 
 
-export const Register = async (username: string, password: string, email: string): Promise<LoginResponse> => {
+export const Register = async (username: string, password: string, email: string): Promise<TokenResponse> => {
     try {
         const response = await axios.post(
             Endpoints.REGISTER,
@@ -31,6 +32,40 @@ export const Register = async (username: string, password: string, email: string
         throw error;
     }
 };
+
+export const RefreshToken = async (refreshToken: string): Promise<TokenResponse> => {
+    try {
+        const response = await axios.post(
+            Endpoints.REFRESH_TOKEN,
+            null,
+            {
+                params: {
+                    refresh_token: refreshToken
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const GetUserDerails = async (access_token: string): Promise<UserDetailResponse> => {
+    try {
+        const response = await axios.post(
+            Endpoints.ME,
+            null,
+            {
+                headers: {
+                    "Authorization": `Bearer ${access_token}`
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+}
 
 export const GetChatId = async (user_id: number, persona_id: string): Promise<GetChatIdResponse> => {
     try {

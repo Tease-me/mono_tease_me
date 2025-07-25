@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import styles from "./HomeScreenContent.module.css"
 import clsx from 'clsx';
@@ -109,9 +108,9 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ id, onItemClick }
                                 <img src={contact.img} alt={contact.name} />
                                 <div>
                                     <h4>{contact.name}</h4>
-                                    <p>{contact.username} | {contact.likes} likes</p>
+                                    <p>{contact.username}</p>
                                 </div>
-                                <button className={clsx(contact.featured ? styles["chat-btn"] : styles["trial-btn"])}>
+                                <button className={clsx(styles["chat-btn"])}>
                                     ♾️ Chat
                                 </button>
                             </div>
@@ -134,9 +133,7 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ id, onItemClick }
                                 <img src={contact.img} alt={contact.name} />
                                 <div>
                                     <h4>{contact.name}</h4>
-                                    <p>
-                                        {contact.username} | {contact.likes} likes
-                                    </p>
+                                    <p>{contact.username}</p>
                                 </div>
                                 <button className={styles["trial-btn"]}>Trial</button>
                             </div>
