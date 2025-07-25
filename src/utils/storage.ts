@@ -23,4 +23,7 @@ export const storage = {
             return undefined;
         }
     },
+
+    clear: (): void =>
+        window.localStorage.clear(),
 };

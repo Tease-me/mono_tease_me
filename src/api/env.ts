@@ -19,3 +19,6 @@ export const ELEVENLABS_AGENT_ID = getEnvVar('VITE_ELEVENLABS_AGENT_ID');
 export const TEASE_ME_PROTOCOL = getEnvVar('VITE_TEASE_ME_PROTOCOL');
 export const TEASE_ME_HOST = getEnvVar('VITE_TEASE_ME_HOST');
 export const TEASE_ME_WS_PROTOCOL = getEnvVar('VITE_TEASE_ME_WS_PROTOCOL');
+
+
+export const FIREBASE_PUBLIC_KEY = getEnvVar('VITE_FIREBASE_PUBLIC_KEY');

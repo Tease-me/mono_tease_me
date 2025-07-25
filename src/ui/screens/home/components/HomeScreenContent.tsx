@@ -1,37 +1,10 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import styles from "./HomeScreenContent.module.css"
 import clsx from 'clsx';
 import { useNavigate } from 'react-router-dom';
 
-import avatar from "@/assets/image/avatar.png";
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
-import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
-
-export const contacts: InfluencerDataModel[] = [
-    {
-        id: "loli",
-        name: "Lola Fairfax",
-        username: "loli",
-        likes: "27.3M",
-        img: avatar,
-        featured: true,
-    },
-    {
-        id: "bella",
-        name: "Bella Thorne",
-        username: "bella",
-        likes: "24.5M",
-        img: avatar,
-    },
-    {
-        id: "anna",
-        name: "Annabelle Norton",
-        username: "anna",
-        likes: "10.1M",
-        img: avatar,
-    },
-];
+import { contacts } from '@/data/mock/contacts';
 
 interface HomeScreenContentProps {
     id?: string;
@@ -135,9 +108,9 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ id, onItemClick }
                                 <img src={contact.img} alt={contact.name} />
                                 <div>
                                     <h4>{contact.name}</h4>
-                                    <p>{contact.username} | {contact.likes} likes</p>
+                                    <p>{contact.username}</p>
                                 </div>
-                                <button className={clsx(contact.featured ? styles["chat-btn"] : styles["trial-btn"])}>
+                                <button className={clsx(styles["chat-btn"])}>
                                     ♾️ Chat
                                 </button>
                             </div>
@@ -160,9 +133,7 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ id, onItemClick }
                                 <img src={contact.img} alt={contact.name} />
                                 <div>
                                     <h4>{contact.name}</h4>
-                                    <p>
-                                        {contact.username} | {contact.likes} likes
-                                    </p>
+                                    <p>{contact.username}</p>
                                 </div>
                                 <button className={styles["trial-btn"]}>Trial</button>
                             </div>

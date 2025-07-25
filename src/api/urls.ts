@@ -7,6 +7,8 @@ const AUTH_URL = `${API_BASE_URL}/auth`;
 export const Endpoints = {
     LOGIN: `${AUTH_URL}/login`,
     REGISTER: `${AUTH_URL}/register`,
+    REFRESH_TOKEN: `${AUTH_URL}/refresh`,
+    ME: `${AUTH_URL}/me`,
     CHAT: `${API_BASE_URL}/chat`,
     CHAT_AUDIO: `${API_BASE_URL}/chat_audio`,
 }

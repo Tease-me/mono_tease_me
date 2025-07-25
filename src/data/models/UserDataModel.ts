@@ -1,6 +1,7 @@
 export interface UserDataModel {
     id: number;
     name: string;
+    username: string;
     email: string;
     imgUrl?: string;
     videoUrl?: string;

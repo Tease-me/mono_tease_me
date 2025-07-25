@@ -1,6 +1,5 @@
-export interface LoginResponse {
-    access_token: string;
+export interface UserDetailResponse {
+    id: number;
     username: string;
-    user_id: number;
     email: string;
 }

@@ -9,17 +9,8 @@ interface PrivateRouteProps {
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
   const { isSignedIn, loadingAuth } = useContext(AuthContext);
-  const [delayedLoading, setDelayedLoading] = useState<boolean>(true);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDelayedLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (delayedLoading || loadingAuth) {
+  if (loadingAuth) {
     return (
       <LoadingSpinner />
     );

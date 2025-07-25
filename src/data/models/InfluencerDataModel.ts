@@ -3,6 +3,5 @@ export interface InfluencerDataModel {
     username: string;
     name: string;
     img?: string;
-    likes: string,
-    featured?: boolean,
+    bio?: string;
 }
