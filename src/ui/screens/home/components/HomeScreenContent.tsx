@@ -4,34 +4,8 @@ import styles from "./HomeScreenContent.module.css"
 import clsx from 'clsx';
 import { useNavigate } from 'react-router-dom';
 
-import avatar from "@/assets/image/avatar.png";
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
-import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
-
-export const contacts: InfluencerDataModel[] = [
-    {
-        id: "loli",
-        name: "Lola Fairfax",
-        username: "loli",
-        likes: "27.3M",
-        img: avatar,
-        featured: true,
-    },
-    {
-        id: "bella",
-        name: "Bella Thorne",
-        username: "bella",
-        likes: "24.5M",
-        img: avatar,
-    },
-    {
-        id: "anna",
-        name: "Annabelle Norton",
-        username: "anna",
-        likes: "10.1M",
-        img: avatar,
-    },
-];
+import { contacts } from '@/data/mock/contacts';
 
 interface HomeScreenContentProps {
     id?: string;

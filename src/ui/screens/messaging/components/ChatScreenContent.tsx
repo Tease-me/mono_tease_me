@@ -13,7 +13,7 @@ import ChatTopNav from '@/ui/components/nav/ChatTopNav';
 import { GetChatId } from '@/api/apis';
 import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
 import { Message } from '@/data/models/MessageDataModel';
-import { contacts } from '../../home/components/HomeScreenContent';
+import { contacts } from '@/data/mock/contacts';
 
 const MessagesList = React.memo(({ messages, typing, messagesEndRef }: { messages: any[]; typing: boolean; messagesEndRef: React.RefObject<HTMLDivElement | null>; }) => {
     return (
