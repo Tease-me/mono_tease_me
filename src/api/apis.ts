@@ -56,7 +56,8 @@ export const GetUserDerails = async (access_token: string): Promise<UserDetailRe
             Endpoints.ME,
             {
                 headers: {
-                    "Authorization": `Bearer ${access_token}`
+                    "Authorization": `Bearer ${access_token}`,
+                    "ngrok-skip-browser-warning": "true"
                 }
             }
         );

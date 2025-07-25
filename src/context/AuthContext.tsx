@@ -67,7 +67,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const getUserDetails = async (access_token: string) => {
         const response = await GetUserDerails(access_token)
-
         const user: UserDataModel = {
             id: response.id,
             username: response.username,

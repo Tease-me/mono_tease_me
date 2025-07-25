@@ -48,9 +48,7 @@ if ("serviceWorker" in navigator && "PushManager" in window) {
     const subscription =
       await serviceWorkerRegistration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(
-          FIREBASE_PUBLIC_KEY
-        ),
+        applicationServerKey: FIREBASE_PUBLIC_KEY,
       });
     const auth_token = storage.get(LocalStorageKeys.AccessToken);
     if (auth_token) {

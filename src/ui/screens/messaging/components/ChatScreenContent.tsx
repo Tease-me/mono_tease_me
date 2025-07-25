@@ -14,6 +14,8 @@ import { GetChatId } from '@/api/apis';
 import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
 import { Message } from '@/data/models/MessageDataModel';
 import { contacts } from '@/data/mock/contacts';
+import { storage } from '@/utils/storage';
+import { LocalStorageKeys } from '@/constants/localStorageKeys';
 
 const MessagesList = React.memo(({ messages, typing, messagesEndRef }: { messages: any[]; typing: boolean; messagesEndRef: React.RefObject<HTMLDivElement | null>; }) => {
     return (
@@ -53,20 +55,20 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
-    const { accessToken } = useContext(AuthContext);
     const { user_id } = useParams();
 
     useEffect(() => {
+        console.log("User", user);
         if (!id) {
             if (!user_id) {
                 setInfluencer(undefined);
                 return;
             }
-            const user = contacts.find((c) => c.id === user_id);
-            setInfluencer(user);
+            const localUser = contacts.find((c) => c.id === user_id);
+            setInfluencer(localUser);
         } else {
-            const user = contacts.find((c) => c.id === id);
-            setInfluencer(user);
+            const localUser = contacts.find((c) => c.id === id);
+            setInfluencer(localUser);
         }
     }, [id, user_id]);
 
@@ -75,7 +77,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             GetChatId(user.id, influencer.id).then((response) => {
                 setChatId(response.chat_id)
             })
-            ws.current = new window.WebSocket(`${WsEndpoints.CHAT}/${influencer.id}?token=${accessToken}`);
+            const access_token = storage.get(LocalStorageKeys.AccessToken);
+            ws.current = new window.WebSocket(`${WsEndpoints.CHAT}/${influencer.id}?token=${access_token}`);
             ws.current.onopen = () => setIsWsConnected(true);
             ws.current.onclose = () => setIsWsConnected(false);
             ws.current.onerror = () => setIsWsConnected(false);

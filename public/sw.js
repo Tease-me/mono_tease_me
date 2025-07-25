@@ -8,3 +8,13 @@ self.addEventListener('push', event => {
         })
     );
 });
+
+if ('PushManager' in window) {
+    navigator.serviceWorker.ready
+        .then(reg => reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        }));
+} else {
+    console.warn('Push API not supported; you may need a fallback.');
+}
