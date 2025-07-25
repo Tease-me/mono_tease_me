@@ -10,7 +10,7 @@
 .chat-header {
     display: flex;
     flex-direction: column;
-    position: sticky;
+    position: fixed;
     top: 0;
     width: 100%;
 }
@@ -26,7 +26,8 @@
 }
 
 .chat-messages-container {
-    height: 100%;
+    margin-top: 218px;
+    align-content: end;
     padding-left: 24px;
     padding-right: 24px;
 }
@@ -61,7 +62,9 @@
 }
 
 .chat-input-area {
-    position: sticky;
+    position: fixed;
+    width: 100%;
+    bottom: 0dvh;
 }
 
 .chat-avatar {
@@ -73,8 +76,15 @@
 }
 
 .chat-user-name {
-    text-align: center;
     margin: 10px 0;
+}
+
+.chat-user-name h3 {
+    text-align: center;
+}
+
+.chat-user-name p {
+    font-size: small;
 }
 
 .messages {
@@ -93,9 +103,24 @@
     height: 100%;
 }
 
-@media (min-width: 1080px) {
+@media (min-width: 1024px) {
+    .chat-messages-container {
+        margin-top: 0px;
+    }
+
     .chat-container {
         padding: 0;
+    }
+
+    .chat-header {
+        position: relative;
+        display: flex;
+    }
+
+    .chat-input-area {
+        position: sticky;
+        width: 100%;
+        bottom: 0dvh;
     }
 
     .chat-header-info {

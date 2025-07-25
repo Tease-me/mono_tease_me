@@ -6,6 +6,8 @@
     align-items: center;
     border: 1px solid rgba(33, 33, 33, 1);
     padding: 44px 51px 77px 51px;
+    background-color: var(--color-dark-1);
+    border-radius: 8px 8px 0px 0px;
 }
 
 .input-container {
@@ -27,6 +29,14 @@
     flex: 1 0 auto;
     min-width: 100px;
     width: 100%;
+}
+
+.input-container input:focus,
+.input-container input:active {
+    outline: none;
+    border-radius: 12px;
+    box-shadow: 0 0 0 2px rgba(255, 77, 109, 0.5);
+    background-color: var(--color-dark-1);
 }
 
 .input-container canvas {

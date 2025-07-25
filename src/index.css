@@ -17,6 +17,7 @@ body,
   -webkit-touch-callout: none;
   -webkit-user-drag: none;
   -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
 }
 
 @import "tailwindcss";
@@ -85,9 +86,9 @@ body {
 #root {
   display: flex;
   flex: 1;
-  min-width: 100vw;
+  min-width: 100dvw;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   position: relative;
 }

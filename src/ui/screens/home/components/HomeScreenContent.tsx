@@ -6,56 +6,39 @@ import { useNavigate } from 'react-router-dom';
 
 import avatar from "@/assets/image/avatar.png";
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
-const contacts = [
+import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
+
+export const contacts: InfluencerDataModel[] = [
     {
-        id: 1,
-        name: "Olivia F.",
-        username: "oliviaf",
+        id: "loli",
+        name: "Lola Fairfax",
+        username: "loli",
         likes: "27.3M",
         img: avatar,
         featured: true,
     },
     {
-        id: 2,
+        id: "bella",
         name: "Bella Thorne",
-        username: "bellathorne",
+        username: "bella",
         likes: "24.5M",
         img: avatar,
     },
     {
-        id: 3,
-        name: "Mia Malkova",
-        username: "miamalkova",
+        id: "anna",
+        name: "Annabelle Norton",
+        username: "anna",
         likes: "10.1M",
         img: avatar,
     },
-    {
-        id: 4,
-        name: "Lana Rhoades",
-        username: "lanarhoades",
-        likes: "16.8M",
-        img: avatar,
-    },
-    {
-        id: 5,
-        name: "Sophie Dee",
-        username: "sophiedee",
-        likes: "9.3M",
-        img: avatar,
-    },
-    {
-        id: 6,
-        name: "Stormy Daniels",
-        username: "stormydaniels",
-        likes: "8.5M",
-        img: avatar,
-    },
 ];
+
 interface HomeScreenContentProps {
-    onItemClick?: (id: number) => void;
+    id?: string;
+    onItemClick?: (id: string) => void;
 }
 
-const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ onItemClick }) => {
+const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ id, onItemClick }) => {
     const [activeTab, setActiveTab] = useState("contacts");
     const [search, setSearch] = useState("");
     const filteredContacts = contacts.filter((c) =>
@@ -84,7 +67,7 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ onItemClick }) =>
         return () => document.removeEventListener("mousedown", closeMenu);
     }, []);
 
-    const handleOnChatClick = (id: number) => {
+    const handleOnChatClick = (id: string) => {
         if (onItemClick) {
             onItemClick(id);
         } else {
@@ -147,18 +130,15 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ onItemClick }) =>
                         {filteredContacts.map((contact) => (
                             <div
                                 key={contact.id}
-                                className={clsx(styles["contact-card"], contact.featured && styles["highlight"])}
-                                onClick={() => handleOnChatClick(contact.id)}
-                            >
+                                className={clsx(styles["contact-card"], contact.id === id && styles["highlight"])}
+                                onClick={() => handleOnChatClick(contact.id)}>
                                 <img src={contact.img} alt={contact.name} />
                                 <div>
                                     <h4>{contact.name}</h4>
-                                    <p>
-                                        {contact.username} | {contact.likes} likes
-                                    </p>
+                                    <p>{contact.username} | {contact.likes} likes</p>
                                 </div>
                                 <button className={clsx(contact.featured ? styles["chat-btn"] : styles["trial-btn"])}>
-                                    {contact.featured ? "♾️ Chat" : "Trial"}
+                                    ♾️ Chat
                                 </button>
                             </div>
                         ))}

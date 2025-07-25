@@ -1,12 +1,13 @@
 import axios from 'axios';
 import { Endpoints } from './urls';
 import { LoginResponse } from './models/LoginResponse';
+import { GetChatIdResponse } from './models/GetChatIdResponse';
 
-export const Login = async (username: string, password: string): Promise<LoginResponse> => {
+export const Login = async (email: string, password: string): Promise<LoginResponse> => {
     try {
         const response = await axios.post(
             Endpoints.LOGIN,
-            { username, password },
+            { email, password },
         );
         return response.data;
     } catch (error) {
@@ -30,3 +31,18 @@ export const Register = async (username: string, password: string, email: string
         throw error;
     }
 };
+
+export const GetChatId = async (user_id: number, persona_id: string): Promise<GetChatIdResponse> => {
+    try {
+        const response = await axios.post(
+            Endpoints.CHAT,
+            {
+                "user_id": user_id,
+                "persona_id": persona_id
+            }
+        );
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+}

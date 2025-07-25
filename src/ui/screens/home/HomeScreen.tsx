@@ -7,8 +7,8 @@ import ChatScreenContent from "../messaging/components/ChatScreenContent";
 
 export default function HomeScreen() {
   const storedId = localStorage.getItem("selected_id");
-  const initialId = storedId ? parseInt(storedId) : undefined
-  const [id, setId] = useState<number | undefined>(initialId);
+  const initialId = storedId ? storedId : undefined
+  const [id, setId] = useState<string | undefined>(initialId);
   const [showContent, setShowContent] = useState(true);
   const [showSidebar, setShowSidebar] = useState(true);
 
@@ -33,7 +33,7 @@ export default function HomeScreen() {
       <TwoPaneLayout
         showSidebar={showSidebar}
         showContent={showContent}
-        sidebar={<HomeScreenContent onItemClick={(id: number) => { setId(id) }} />}
+        sidebar={<HomeScreenContent id={id} onItemClick={(id: string) => { setId(id) }} />}
       >
         <ChatScreenContent id={id} onBackPressed={() => { setId(undefined) }} />
       </TwoPaneLayout>

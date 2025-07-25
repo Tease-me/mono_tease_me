@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 
-import { Endpoints } from "@/api/urls";
-import { contacts } from "@/data/mock/MockContacts";
+import { Endpoints, WsEndpoints } from "@/api/urls";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import { truncateLastName } from "@/utils/StringUtils";
 import { AuthContext } from "@/context/AuthContext";
@@ -10,8 +9,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import MessageBubble from './MessageBubble';
 import ChatInputArea from './ChatInputArea';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
-import { Contact } from '@/data/models/ContactDataModel';
 import ChatTopNav from '@/ui/components/nav/ChatTopNav';
+import { GetChatId } from '@/api/apis';
+import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
+import { Message } from '@/data/models/MessageDataModel';
+import { contacts } from '../../home/components/HomeScreenContent';
 
 const MessagesList = React.memo(({ messages, typing, messagesEndRef }: { messages: any[]; typing: boolean; messagesEndRef: React.RefObject<HTMLDivElement | null>; }) => {
     return (
@@ -25,24 +27,25 @@ const MessagesList = React.memo(({ messages, typing, messagesEndRef }: { message
     );
 });
 
-const chatId = "f5ab6782-4718-4035-9d8b-c99b429a30cd"; // or generate per user/session
-const personaId = 'loli'; // or "loli", "bella", etc
-
 interface ChatScreenContentProps {
-    id?: number;
+    id?: string;
     onBackPressed?: () => void;
 }
 
 const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed }) => {
-    const [user, setuser] = useState<Contact>();
+    const [influencer, setInfluencer] = useState<InfluencerDataModel>();
+    const [chatId, setChatId] = useState<string | undefined>();
 
     const ws = useRef<WebSocket | null>(null);
     const navigate = useNavigate();
 
-    const [messages, setMessages] = useState(user?.messages || []);
+    const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState("");
     const [inputAudio, setInputAudio] = useState<Blob>();
     const [typing, setTyping] = useState(false);
+    const [isWsConnected, setIsWsConnected] = useState(false);
+
+    const { user } = useContext(AuthContext);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -56,43 +59,58 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     useEffect(() => {
         if (!id) {
             if (!user_id) {
-                setuser(undefined);
+                setInfluencer(undefined);
                 return;
             }
-            const user = contacts.find((c) => c.conversation_id === parseInt(user_id));
-            setuser(user);
+            const user = contacts.find((c) => c.id === user_id);
+            setInfluencer(user);
         } else {
-            const user = contacts.find((c) => c.conversation_id === id);
-            setuser(user);
+            const user = contacts.find((c) => c.id === id);
+            setInfluencer(user);
         }
-        ws.current = new window.WebSocket(`${Endpoints.CHAT}/${personaId}?token=${accessToken}`);
-        ws.current.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            setMessages(prev => [
-                ...prev,
-                {
-                    id: Date.now(),
-                    sender: "received",
-                    text: data.reply,
-                    time: new Date().toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                    }),
-                },
-            ]);
-
-            setTyping(prev => !prev || false);
-        };
     }, [id, user_id]);
+
+    useEffect(() => {
+        if (influencer && user) {
+            GetChatId(user.id, influencer.id).then((response) => {
+                setChatId(response.chat_id)
+            })
+            ws.current = new window.WebSocket(`${WsEndpoints.CHAT}/${influencer.id}?token=${accessToken}`);
+            ws.current.onopen = () => setIsWsConnected(true);
+            ws.current.onclose = () => setIsWsConnected(false);
+            ws.current.onerror = () => setIsWsConnected(false);
+            ws.current.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                setMessages(prev => [
+                    ...prev,
+                    {
+                        id: Date.now(),
+                        sender: "received",
+                        text: data.reply,
+                        time: new Date().toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        }),
+                    },
+                ]);
+
+                setTyping(prev => !prev || false);
+            };
+        }
+
+    }, [influencer])
 
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
 
     async function sendAndPlay(audioBlob: Blob) {
+        if (!influencer) return;
+        if (!chatId) return;
+
         const formData = new FormData();
         formData.append("file", audioBlob);
-        formData.append("persona_id", personaId);
+        formData.append("persona_id", influencer.id);
         formData.append("chat_id", chatId);
         const response = await fetch(`${Endpoints.CHAT_AUDIO}`, {
             method: "POST",
@@ -123,13 +141,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         ]);
     }
 
-    async function playAIResponse(audioBlob: Blob) {
-        const url = URL.createObjectURL(audioBlob);
-        const audio = new Audio(url);
-        audio.play();
-    }
-
     const sendMessage = () => {
+        if (!influencer) return;
+
         if (inputText.trim()) {
             setTyping(prev => !prev || true);
             ws.current?.send(
@@ -184,14 +198,17 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         onBackPressed?.();
     };
 
-    if (!user) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
+    if (!influencer) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
     return (
         <div className={styles["chat-screen-content"]}>
             <div className={styles["chat-header"]}>
                 <ChatTopNav onBack={handleOnBackClick} onCallClick={onCall} />
                 <div className={styles["chat-header-info"]}>
-                    <ProfileMedia imageSrc={user?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
-                    <h3 className={styles["chat-user-name"]}>{user && truncateLastName(user?.name)}</h3>
+                    <ProfileMedia imageSrc={influencer?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
+                    <div className={styles["chat-user-name"]}>
+                        <h3>{influencer && truncateLastName(influencer?.name)}</h3>
+                        <p>{isWsConnected ? "Connected" : "Not Connected"}</p>
+                    </div>
                 </div>
             </div>
             <div className={styles["chat-messages-container"]}>

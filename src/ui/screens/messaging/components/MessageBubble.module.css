@@ -20,13 +20,13 @@
 
 .message.sent {
     border-radius: 8px 16px 16px 16px;
-    align-self: flex-start;
+    align-self: flex-end;
     background-color: var(--color-dark-3);
 }
 
 .message.received {
     border-radius: 16px 8px 16px 16px;
-    align-self: flex-end;
+    align-self: flex-start;
     background: linear-gradient(var(--gradient-angle), var(--gradient-start-red-start) -50%, var(--gradient-end-red-end) 150%)
 }
 
