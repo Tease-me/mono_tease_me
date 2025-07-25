@@ -65,9 +65,11 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             }
             const localUser = contacts.find((c) => c.id === user_id);
             setInfluencer(localUser);
+            setMessages([]);
         } else {
             const localUser = contacts.find((c) => c.id === id);
             setInfluencer(localUser);
+            setMessages([]);
         }
     }, [id, user_id]);
 
