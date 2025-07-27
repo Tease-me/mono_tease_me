@@ -104,6 +104,18 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
         }
     }, [audio, setInputAudio]);
 
+    const handleOnLongPressStart = () => {
+        if (audio) {
+            setInputAudio?.(undefined);
+            clearAudio();
+        }
+        startRecording();
+    }
+
+    const handleOnLongPressEnd = () => {
+        stopRecording();
+    }
+
     return (
         <div className={styles["chat-input-area"]}>
             <div className={styles["input-container"]} ref={containerRef}>
@@ -134,7 +146,9 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
             <div className={styles["buttons"]}>
                 <LongPressButton
                     onShortPress={handleOnShortPress}
-                    onLongPressStart={startRecording} onLongPressEnd={stopRecording}
+                    onDrag={handleOnLongPressEnd}
+                    onLongPressStart={handleOnLongPressStart}
+                    onLongPressEnd={handleOnLongPressEnd}
                     icon={inputAudio ? <CloseSquareIcon /> : <MicrophoneIcon />}
                     className={styles["voice-btn"]}
                     size="xsmall"
