@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { Endpoints } from './urls';
-import { GetChatIdResponse } from './models/GetChatIdResponse';
 import { TokenResponse } from './models/TokenResponse';
 import { UserDetailResponse } from './models/LoginResponse';
+import { ChatIdResponse, ChatHistoryResponse } from './models/chat';
 
 export const Login = async (email: string, password: string): Promise<TokenResponse> => {
     try {
@@ -67,13 +67,29 @@ export const GetUserDerails = async (access_token: string): Promise<UserDetailRe
     }
 }
 
-export const GetChatId = async (user_id: number, persona_id: string): Promise<GetChatIdResponse> => {
+export const GetChatId = async (user_id: number, persona_id: string): Promise<ChatIdResponse> => {
     try {
         const response = await axios.post(
             Endpoints.CHAT,
             {
                 "user_id": user_id,
                 "persona_id": persona_id
+            }
+        );
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const GetChatHistory = async (chat_id: string, page: number, page_size: number): Promise<ChatHistoryResponse> => {
+    try {
+        const response = await axios.get(
+            Endpoints.HISTORY + `/${chat_id}?page=${page}&page_size=${page_size}`,
+            {
+                headers: {
+                    "ngrok-skip-browser-warning": "true"
+                }
             }
         );
         return response.data;

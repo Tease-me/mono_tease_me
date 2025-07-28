@@ -45,6 +45,7 @@ interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
     setInputText?: (text: string) => void;
     inputAudio?: Blob;
     setInputAudio?: (blob?: Blob) => void;
+    disabled?: boolean;
 }
 
 const ChatInputArea: React.FC<ChatInputAreaProps> = ({
@@ -52,7 +53,8 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     inputText,
     setInputText,
     inputAudio,
-    setInputAudio }) => {
+    setInputAudio,
+    disabled = false }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const { startRecording, stopRecording, recordingStatus, audio, streamRef, clearAudio } = useAudioRecorder();
@@ -83,7 +85,9 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     };
 
     const handleOnSendMessage = () => {
-        onSendMessage?.();
+        if ((inputText && inputText.trim() !== '') || inputAudio) {
+            onSendMessage?.();
+        }
         setInputText?.("");
         setInputAudio?.(undefined);
         clearAudio();
@@ -104,8 +108,20 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
         }
     }, [audio, setInputAudio]);
 
+    const handleOnLongPressStart = () => {
+        if (audio) {
+            setInputAudio?.(undefined);
+            clearAudio();
+        }
+        startRecording();
+    }
+
+    const handleOnLongPressEnd = () => {
+        stopRecording();
+    }
+
     return (
-        <div className={styles["chat-input-area"]}>
+        <div className={styles["chat-input-area"]} >
             <div className={styles["input-container"]} ref={containerRef}>
                 {(recordingStatus === "inactive" && !audio) &&
                     <input
@@ -114,6 +130,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                         value={inputText}
                         onChange={handleOnChange}
                         onKeyDown={handleKeyDown}
+                        disabled={disabled}
                     />}
                 {audio && (
                     <AudioWaveform audioBlob={audio}
@@ -134,12 +151,15 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
             <div className={styles["buttons"]}>
                 <LongPressButton
                     onShortPress={handleOnShortPress}
-                    onLongPressStart={startRecording} onLongPressEnd={stopRecording}
+                    onDrag={handleOnLongPressEnd}
+                    onLongPressStart={handleOnLongPressStart}
+                    onLongPressEnd={handleOnLongPressEnd}
                     icon={inputAudio ? <CloseSquareIcon /> : <MicrophoneIcon />}
                     className={styles["voice-btn"]}
                     size="xsmall"
-                    variant="secondary" />
-                <CircularIconButton icon={<SendIcon />} className={styles["send-btn"]} onClick={handleOnSendMessage} size="xsmall" />
+                    variant="secondary"
+                    disabled={disabled} />
+                <CircularIconButton icon={<SendIcon />} className={styles["send-btn"]} onClick={handleOnSendMessage} size="xsmall" disabled={disabled} />
             </div>
         </div>
     );

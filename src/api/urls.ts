@@ -10,6 +10,7 @@ export const Endpoints = {
     REFRESH_TOKEN: `${AUTH_URL}/refresh`,
     ME: `${AUTH_URL}/me`,
     CHAT: `${API_BASE_URL}/chat`,
+    HISTORY: `${API_BASE_URL}/history`,
     CHAT_AUDIO: `${API_BASE_URL}/chat_audio`,
 }
 

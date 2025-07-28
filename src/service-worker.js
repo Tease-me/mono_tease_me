@@ -1,3 +1,5 @@
+import { FIREBASE_PUBLIC_KEY } from "./api/env";
+
 self.addEventListener('push', event => {
     console.log("Push received:", event);
     const data = event.data.json();
@@ -9,12 +11,11 @@ self.addEventListener('push', event => {
     );
 });
 
-if ('PushManager' in window) {
-    navigator.serviceWorker.ready
-        .then(reg => reg.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-        }));
+if ('PushManager' in self) {
+    self.registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: FIREBASE_PUBLIC_KEY
+    });
 } else {
     console.warn('Push API not supported; you may need a fallback.');
 }
