@@ -32,35 +32,40 @@ export const SubscribePushNotification = async (subscription: PushSubscription, 
   });
 }
 
-function urlBase64ToUint8Array(base64String: string | any[]) {
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const rawData = atob(base64);
-  return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
-}
+(async () => {
+  if ('serviceWorker' in navigator && 'PushManager' in window) {
+    try {
+      // 1. Register the service worker as a module
+      const registration = await navigator.serviceWorker.register(
+        new URL('./service-worker.js', import.meta.url),
+        { type: 'module' }
+      );
+      console.log('Service Worker registered:', registration);
 
-if ("serviceWorker" in navigator && "PushManager" in window) {
-  try {
-    const registration = await navigator.serviceWorker.register("/sw.js");
+      // 2. Wait until the service worker is active
+      await navigator.serviceWorker.ready;
 
-    const serviceWorkerRegistration = await navigator.serviceWorker.ready;
+      // 3. Get or create a push subscription
+      let subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: FIREBASE_PUBLIC_KEY
+        });
+      }
 
-    const subscription =
-      await serviceWorkerRegistration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: FIREBASE_PUBLIC_KEY,
-      });
-    const auth_token = storage.get(LocalStorageKeys.AccessToken);
-    if (auth_token) {
-      await SubscribePushNotification(subscription, auth_token)
-      console.log("Subscription:", subscription);
-      console.log("Successfully subscribed to push notifications! 🎉");
-    } else {
-      console.log("Log in to Subscribe to notifications");
+      // 4. Send the subscription to your backend
+      const auth_token = storage.get(LocalStorageKeys.AccessToken);
+      if (auth_token) {
+        await SubscribePushNotification(subscription, auth_token);
+        console.log('Successfully subscribed to push notifications! 🎉');
+      } else {
+        console.log('Log in to Subscribe to notifications');
+      }
+    } catch (error) {
+      console.error('Failed to subscribe the user:', error);
     }
-  } catch (error) {
-    console.error("Failed to subscribe the user:", error);
+  } else {
+    console.error('Service Worker or Push API not supported.');
   }
-} else {
-  console.error("Service Worker or Push API not supported.");
-}
+})();
