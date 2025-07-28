@@ -10,7 +10,7 @@ import MessageBubble from './MessageBubble';
 import ChatInputArea from './ChatInputArea';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import ChatTopNav from '@/ui/components/nav/ChatTopNav';
-import { GetChatId } from '@/api/apis';
+import { GetChatHistory, GetChatId } from '@/api/apis';
 import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
 import { Message } from '@/data/models/MessageDataModel';
 import { contacts } from '@/data/mock/contacts';
@@ -77,29 +77,23 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         if (influencer && user) {
             GetChatId(user.id, influencer.id).then((response) => {
                 setChatId(response.chat_id)
+                GetChatHistory(response.chat_id).then((response) => {
+                    const sortedMessagesData = response.messages.sort((a, b) =>
+                        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                    );
+                    const responseMessages: Message[] = sortedMessagesData.map(item => {
+                        return {
+                            id: item.id,
+                            sender: item.sender === 'ai' ? "received" : "sent",
+                            text: item.content,
+                            time: item.created_at
+                        }
+                    })
+                    if (responseMessages)
+                        setMessages(responseMessages)
+                })
             })
-            const access_token = storage.get(LocalStorageKeys.AccessToken);
-            ws.current = new window.WebSocket(`${WsEndpoints.CHAT}/${influencer.id}?token=${access_token}`);
-            ws.current.onopen = () => setIsWsConnected(true);
-            ws.current.onclose = () => setIsWsConnected(false);
-            ws.current.onerror = () => setIsWsConnected(false);
-            ws.current.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                setMessages(prev => [
-                    ...prev,
-                    {
-                        id: Date.now(),
-                        sender: "received",
-                        text: data.reply,
-                        time: new Date().toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                        }),
-                    },
-                ]);
-
-                setTyping(prev => !prev || false);
-            };
+            connectChat(influencer.id)
         }
 
     }, [influencer, user])
@@ -108,6 +102,30 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         scrollToBottom();
     }, [messages]);
 
+    function connectChat(influencerId: string) {
+        const access_token = storage.get(LocalStorageKeys.AccessToken);
+        ws.current = new window.WebSocket(`${WsEndpoints.CHAT}/${influencerId}?token=${access_token}`);
+        ws.current.onopen = () => setIsWsConnected(true);
+        ws.current.onclose = () => setIsWsConnected(false);
+        ws.current.onerror = () => setIsWsConnected(false);
+        ws.current.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            setMessages(prev => [
+                ...prev,
+                {
+                    id: Date.now(),
+                    sender: "received",
+                    text: data.reply,
+                    time: new Date().toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                    }),
+                },
+            ]);
+
+            setTyping(prev => !prev || false);
+        };
+    }
     async function sendAndPlay(audioBlob: Blob) {
         if (!influencer) return;
         if (!chatId) return;
