@@ -100,6 +100,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 setPageNumber(1);
                 setHasMore(true);
                 fetchMessages(response.chat_id, 1);
+                scrollToBottom();
             });
             connectChat(influencer.id);
         }
@@ -242,12 +243,19 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         onBackPressed?.();
     };
 
-    const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-        if (e.currentTarget.scrollTop === 0 && hasMore && !isLoadingMore && chatId) {
+    const handleScroll = async (e: React.UIEvent<HTMLDivElement>) => {
+        const container = containerRef.current;
+        if (container && container.scrollTop === 0 && hasMore && !isLoadingMore && chatId) {
             setIsLoadingMore(true);
-            fetchMessages(chatId, pageNumber + 1).then(() => {
-                setPageNumber(prev => prev + 1);
-                setIsLoadingMore(false);
+            const previousScrollHeight = container.scrollHeight;
+            await fetchMessages(chatId, pageNumber + 1);
+            setPageNumber(prev => prev + 1);
+            setIsLoadingMore(false);
+            requestAnimationFrame(() => {
+                if (containerRef.current) {
+                    const newScrollHeight = containerRef.current.scrollHeight;
+                    containerRef.current.scrollTop = newScrollHeight - previousScrollHeight;
+                }
             });
         }
     };
