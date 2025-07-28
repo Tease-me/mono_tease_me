@@ -16,6 +16,8 @@ import { Message } from '@/data/models/MessageDataModel';
 import { contacts } from '@/data/mock/contacts';
 import { storage } from '@/utils/storage';
 import { LocalStorageKeys } from '@/constants/localStorageKeys';
+import { sortAndMapMessages } from '@/api/maps/chat_maps';
+import LoadingSpinner from '@/ui/components/loading/LoadingSpinner';
 
 const MessagesList = React.memo(({ messages, typing, messagesEndRef }: { messages: any[]; typing: boolean; messagesEndRef: React.RefObject<HTMLDivElement | null>; }) => {
     return (
@@ -41,7 +43,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const ws = useRef<WebSocket | null>(null);
     const navigate = useNavigate();
 
-    const [messages, setMessages] = useState<Message[]>([]);
+    const [messages, setMessages] = useState<Message[] | undefined>();
     const [inputText, setInputText] = useState("");
     const [inputAudio, setInputAudio] = useState<Blob>();
     const [typing, setTyping] = useState(false);
@@ -65,11 +67,11 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             }
             const localUser = contacts.find((c) => c.id === user_id);
             setInfluencer(localUser);
-            setMessages([]);
+            setMessages(undefined);
         } else {
             const localUser = contacts.find((c) => c.id === id);
             setInfluencer(localUser);
-            setMessages([]);
+            setMessages(undefined);
         }
     }, [id, user_id]);
 
@@ -78,24 +80,14 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             GetChatId(user.id, influencer.id).then((response) => {
                 setChatId(response.chat_id)
                 GetChatHistory(response.chat_id).then((response) => {
-                    const sortedMessagesData = response.messages.sort((a, b) =>
-                        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-                    );
-                    const responseMessages: Message[] = sortedMessagesData.map(item => {
-                        return {
-                            id: item.id,
-                            sender: item.sender === 'ai' ? "received" : "sent",
-                            text: item.content,
-                            time: item.created_at
-                        }
-                    })
-                    if (responseMessages)
-                        setMessages(responseMessages)
+                    const responseMessages = sortAndMapMessages(response.messages)
+                    if (responseMessages) {
+                        setMessages(responseMessages);
+                    }
                 })
             })
             connectChat(influencer.id)
         }
-
     }, [influencer, user])
 
     useEffect(() => {
@@ -110,22 +102,25 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         ws.current.onerror = () => setIsWsConnected(false);
         ws.current.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            setMessages(prev => [
-                ...prev,
-                {
-                    id: Date.now(),
-                    sender: "received",
-                    text: data.reply,
-                    time: new Date().toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                    }),
-                },
-            ]);
-
+            setMessages(prev => {
+                if (!prev) return
+                return [
+                    ...prev,
+                    {
+                        id: Date.now(),
+                        sender: "received",
+                        text: data.reply,
+                        time: new Date().toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        }),
+                    },
+                ]
+            });
             setTyping(prev => !prev || false);
         };
     }
+
     async function sendAndPlay(audioBlob: Blob) {
         if (!influencer) return;
         if (!chatId) return;
@@ -143,24 +138,27 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             return;
         }
         const blob = await response.blob();
-        setMessages((prev) => [
-            ...prev,
-            {
-                id: Date.now(),
-                sender: "received",
-                text: "audio",
-                time: new Date().toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                }),
-                attachments: [
-                    {
-                        blob: blob,
-                        type: "audio",
-                    },
-                ],
-            },
-        ]);
+        setMessages((prev) => {
+            if (!prev) return;
+            return [
+                ...prev,
+                {
+                    id: Date.now(),
+                    sender: "received",
+                    text: "audio",
+                    time: new Date().toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                    }),
+                    attachments: [
+                        {
+                            blob: blob,
+                            type: "audio",
+                        },
+                    ],
+                },
+            ]
+        });
     }
 
     const sendMessage = () => {
@@ -174,39 +172,45 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                     message: inputText.trim(),
                 }),
             );
-            setMessages(prev => [
-                ...prev,
-                {
-                    id: Date.now(),
-                    sender: "sent",
-                    text: inputText,
-                    time: new Date().toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                    }),
-                },
-            ]);
+            setMessages(prev => {
+                if (!prev) return;
+                return [
+                    ...prev,
+                    {
+                        id: Date.now(),
+                        sender: "sent",
+                        text: inputText,
+                        time: new Date().toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        }),
+                    },
+                ]
+            });
 
             setInputText("");
         } else if (inputAudio) {
             sendAndPlay(inputAudio);
-            setMessages(prev => [
-                ...prev,
-                {
-                    id: Date.now(),
-                    sender: 'sent',
-                    time: new Date().toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                    }),
-                    attachments: [
-                        {
-                            blob: inputAudio,
-                            type: "audio"
-                        }
-                    ]
-                },
-            ]);
+            setMessages(prev => {
+                if (!prev) return
+                return [
+                    ...prev,
+                    {
+                        id: Date.now(),
+                        sender: 'sent',
+                        time: new Date().toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                        }),
+                        attachments: [
+                            {
+                                blob: inputAudio,
+                                type: "audio"
+                            }
+                        ]
+                    },
+                ]
+            });
         }
         setInputAudio(undefined);
         setInputText('');
@@ -221,6 +225,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     };
 
     if (!influencer) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
+    console.log("No Messages", messages?.length)
     return (
         <div className={styles["chat-screen-content"]}>
             <div className={styles["chat-header"]}>
@@ -233,15 +238,18 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                     </div>
                 </div>
             </div>
-            <div className={styles["chat-messages-container"]}>
+
+            {messages ? <div className={styles["chat-messages-container"]}>
                 <MessagesList messages={messages} typing={typing} messagesEndRef={messagesEndRef} />
-            </div>
+            </div> : <LoadingSpinner />}
+
             <div className={styles["chat-input-area"]}>
                 <ChatInputArea
                     onSendMessage={sendMessage}
                     inputText={inputText}
                     setInputText={setInputText}
                     setInputAudio={setInputAudio}
+                    disabled={messages ? false : true}
                     inputAudio={inputAudio} />
             </div>
         </div>
