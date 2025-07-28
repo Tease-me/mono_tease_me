@@ -48,7 +48,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const [isWsConnected, setIsWsConnected] = useState(false);
 
     const [pageNumber, setPageNumber] = useState<number>(1);
-    const pageSize = 20;
+
     const [hasMore, setHasMore] = useState<boolean>(true);
     const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
 
@@ -60,6 +60,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const { user_id } = useParams();
 
     const navigate = useNavigate();
+    const pageSize = 20;
 
     useEffect(() => {
         if (!id) {
@@ -84,7 +85,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             const totalPages = response.total / pageSize;
             if (page === 1) {
                 setMessages(responseMessages);
-                scrollToBottom();
             } else {
                 setMessages(prev => prev ? [...responseMessages, ...prev] : responseMessages);
             }
@@ -97,17 +97,23 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     };
 
     useEffect(() => {
-        if (influencer && user) {
-            GetChatId(user.id, influencer.id).then((response) => {
+        (async () => {
+            if (influencer && user) {
+                const response = await GetChatId(user.id, influencer.id)
                 setChatId(response.chat_id);
                 setPageNumber(1);
                 setHasMore(true);
                 fetchMessages(response.chat_id, 1);
-                scrollToBottom();
-            });
-            connectChat(influencer.id);
-        }
+                connectChat(influencer.id);
+            }
+        })()
     }, [influencer, user]);
+
+    useEffect(() => {
+        if (pageNumber === 1) {
+            scrollToBottom();
+        }
+    }, [messages])
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -253,13 +259,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             const previousScrollHeight = container.scrollHeight;
             await fetchMessages(chatId, pageNumber + 1);
             setPageNumber(prev => prev + 1);
-            setIsLoadingMore(false);
             requestAnimationFrame(() => {
                 if (containerRef.current) {
                     const newScrollHeight = containerRef.current.scrollHeight;
                     containerRef.current.scrollTop = newScrollHeight - previousScrollHeight;
                 }
             });
+            setIsLoadingMore(false);
         }
     };
 

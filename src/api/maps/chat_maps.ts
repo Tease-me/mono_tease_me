@@ -1,5 +1,6 @@
 import { Message } from "@/data/models/MessageDataModel";
 import { MessageResponse } from "../models/chat";
+import { formatDateTimeRelative } from "@/utils/DateTimeUtils";
 
 export function sortAndMapMessages(messages: MessageResponse[]): Message[] {
     const responseMessages: Message[] = messages.sort((a, b) =>
@@ -9,7 +10,7 @@ export function sortAndMapMessages(messages: MessageResponse[]): Message[] {
             id: item.id,
             sender: item.sender === 'ai' ? "received" : "sent",
             text: item.content,
-            time: item.created_at
+            time: formatDateTimeRelative(item.created_at)
         }
     })
     return responseMessages;
