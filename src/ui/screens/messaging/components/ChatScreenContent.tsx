@@ -40,24 +40,25 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const [influencer, setInfluencer] = useState<InfluencerDataModel>();
     const [chatId, setChatId] = useState<string | undefined>();
 
-    const ws = useRef<WebSocket | null>(null);
-    const navigate = useNavigate();
-
     const [messages, setMessages] = useState<Message[] | undefined>();
     const [inputText, setInputText] = useState("");
     const [inputAudio, setInputAudio] = useState<Blob>();
     const [typing, setTyping] = useState(false);
     const [isWsConnected, setIsWsConnected] = useState(false);
 
-    const { user } = useContext(AuthContext);
+    const [pageNumber, setPageNumber] = useState<number>(1);
+    const pageSize = 20;
+    const [hasMore, setHasMore] = useState<boolean>(true);
+    const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const ws = useRef<WebSocket | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
-
+    const { user } = useContext(AuthContext);
     const { user_id } = useParams();
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (!id) {
@@ -75,24 +76,38 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         }
     }, [id, user_id]);
 
+    const fetchMessages = async (chat_id: string, page: number) => {
+        try {
+            const response = await GetChatHistory(chat_id, page, pageSize);
+            const responseMessages = sortAndMapMessages(response.messages) || [];
+            if (page === 1) {
+                setMessages(responseMessages);
+            } else {
+                setMessages(prev => prev ? [...responseMessages, ...prev] : responseMessages);
+            }
+            if (responseMessages.length < pageSize) {
+                setHasMore(false);
+            }
+        } catch (err) {
+            console.error('Error loading messages', err);
+        }
+    };
+
     useEffect(() => {
         if (influencer && user) {
             GetChatId(user.id, influencer.id).then((response) => {
-                setChatId(response.chat_id)
-                GetChatHistory(response.chat_id).then((response) => {
-                    const responseMessages = sortAndMapMessages(response.messages)
-                    if (responseMessages) {
-                        setMessages(responseMessages);
-                    }
-                })
-            })
-            connectChat(influencer.id)
+                setChatId(response.chat_id);
+                setPageNumber(1);
+                setHasMore(true);
+                fetchMessages(response.chat_id, 1);
+            });
+            connectChat(influencer.id);
         }
-    }, [influencer, user])
+    }, [influencer, user]);
 
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
 
     function connectChat(influencerId: string) {
         const access_token = storage.get(LocalStorageKeys.AccessToken);
@@ -118,6 +133,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 ]
             });
             setTyping(prev => !prev || false);
+            scrollToBottom()
         };
     }
 
@@ -159,6 +175,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 },
             ]
         });
+        scrollToBottom();
     }
 
     const sendMessage = () => {
@@ -214,6 +231,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         }
         setInputAudio(undefined);
         setInputText('');
+        scrollToBottom();
     };
 
     const onCall = () => {
@@ -224,8 +242,17 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         onBackPressed?.();
     };
 
+    const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+        if (e.currentTarget.scrollTop === 0 && hasMore && !isLoadingMore && chatId) {
+            setIsLoadingMore(true);
+            fetchMessages(chatId, pageNumber + 1).then(() => {
+                setPageNumber(prev => prev + 1);
+                setIsLoadingMore(false);
+            });
+        }
+    };
+
     if (!influencer) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
-    console.log("No Messages", messages?.length)
     return (
         <div className={styles["chat-screen-content"]}>
             <div className={styles["chat-header"]}>
@@ -239,9 +266,15 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 </div>
             </div>
 
-            {messages ? <div className={styles["chat-messages-container"]}>
-                <MessagesList messages={messages} typing={typing} messagesEndRef={messagesEndRef} />
-            </div> : <LoadingSpinner />}
+            {messages ? (
+                <div
+                    className={styles["chat-messages-container"]}
+                    ref={containerRef}
+                    onScroll={handleScroll}
+                >
+                    <MessagesList messages={messages} typing={typing} messagesEndRef={messagesEndRef} />
+                </div>
+            ) : <LoadingSpinner />}
 
             <div className={styles["chat-input-area"]}>
                 <ChatInputArea

@@ -82,10 +82,10 @@ export const GetChatId = async (user_id: number, persona_id: string): Promise<Ch
     }
 }
 
-export const GetChatHistory = async (chat_id: string): Promise<ChatHistoryResponse> => {
+export const GetChatHistory = async (chat_id: string, page: number, page_size: number): Promise<ChatHistoryResponse> => {
     try {
         const response = await axios.get(
-            Endpoints.HISTORY + `/${chat_id}`,
+            Endpoints.HISTORY + `/${chat_id}?page=${page}&page_size=${page_size}`,
             {
                 headers: {
                     "ngrok-skip-browser-warning": "true"
