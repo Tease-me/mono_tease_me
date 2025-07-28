@@ -18,6 +18,7 @@ import { storage } from '@/utils/storage';
 import { LocalStorageKeys } from '@/constants/localStorageKeys';
 import { sortAndMapMessages } from '@/api/maps/chat_maps';
 import LoadingSpinner from '@/ui/components/loading/LoadingSpinner';
+import clsx from 'clsx';
 
 const MessagesList = React.memo(({ messages, typing, messagesEndRef }: { messages: any[]; typing: boolean; messagesEndRef: React.RefObject<HTMLDivElement | null>; }) => {
     return (
@@ -80,12 +81,14 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         try {
             const response = await GetChatHistory(chat_id, page, pageSize);
             const responseMessages = sortAndMapMessages(response.messages) || [];
+            const totalPages = response.total / pageSize;
             if (page === 1) {
                 setMessages(responseMessages);
+                scrollToBottom();
             } else {
                 setMessages(prev => prev ? [...responseMessages, ...prev] : responseMessages);
             }
-            if (responseMessages.length < pageSize) {
+            if (pageSize < totalPages) {
                 setHasMore(false);
             }
         } catch (err) {
@@ -274,15 +277,16 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 </div>
             </div>
 
-            {messages ? (
-                <div
-                    className={styles["chat-messages-container"]}
-                    ref={containerRef}
-                    onScroll={handleScroll}
-                >
+            <div
+                className={clsx(styles["chat-messages-container"], !messages && styles["loading"])}
+                ref={containerRef}
+                onScroll={handleScroll}
+            >
+                {(messages) ? <>
+                    {isLoadingMore && <LoadingSpinner />}
                     <MessagesList messages={messages} typing={typing} messagesEndRef={messagesEndRef} />
-                </div>
-            ) : <LoadingSpinner />}
+                </> : <LoadingSpinner />}
+            </div>
 
             <div className={styles["chat-input-area"]}>
                 <ChatInputArea
