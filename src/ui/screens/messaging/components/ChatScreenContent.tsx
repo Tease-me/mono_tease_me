@@ -283,7 +283,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 onScroll={handleScroll}
             >
                 {(messages) ? <>
-                    {isLoadingMore && <LoadingSpinner />}
+                    {isLoadingMore && <LoadingSpinner size='small' />}
                     <MessagesList messages={messages} typing={typing} messagesEndRef={messagesEndRef} />
                 </> : <LoadingSpinner />}
             </div>
