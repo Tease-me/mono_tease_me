@@ -9,10 +9,13 @@ import CheckBox from "../components/inputs/check-boxes/CheckBox";
 import TextInput from "../components/inputs/text-inputs/TextInput";
 import MessageIcon from "@/assets/svg/Message.svg?react"
 import LockIcon from "@/assets/svg/Lock.svg?react"
+import ErrorMessage from "../components/ErrorMessage";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string>();
+
   const navigate = useNavigate();
   const { isSignedIn, login, authErrors } = useContext(AuthContext);
 
@@ -26,14 +29,21 @@ export default function LoginScreen() {
     }
   }, [isSignedIn])
 
-  const handleSignInClick = async () => {
-    const success = await login(email, password);
+
+  const handleSignInClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    if (!email.trim() || !password.trim()) {
+      setErrorMessage("Please enter both email and password.");
+      return;
+    }
+    const success: boolean = await login(email, password);
     if (success) {
       navigate("/home");
     } else {
-      alert("Login failed! Please try again.")
+      setErrorMessage("Login failed! Please try again.")
     }
   }
+
   return (
     <BackgroundGradient>
       <CenteredLayout>
@@ -57,6 +67,7 @@ export default function LoginScreen() {
                 value={password}
                 onChange={e => setPassword((e.target as HTMLInputElement).value)}
               />
+              {errorMessage && <ErrorMessage message={errorMessage} />}
               <CheckBox>Remember Me</CheckBox>
               <CircularIconButton text="Sign In" size="small" onClick={handleSignInClick} />
               <p className={styles["auth-footer"]}>

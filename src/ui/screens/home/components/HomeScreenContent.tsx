@@ -15,6 +15,8 @@ import { AuthContext } from '@/context/AuthContext';
 import DropDownMenu, { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownMenu';
 import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButton';
 import InfinityIcon from "@/assets/svg/Infinity.svg?react";
+import SearchIcon from "@/assets/svg/Search.svg?react";
+import TextInput from '@/ui/components/inputs/text-inputs/TextInput';
 
 interface HomeScreenContentProps {
     id?: string;
@@ -91,13 +93,7 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ id, onItemClick }
 
             {activeTab === "contacts" && (
                 <>
-                    <input
-                        className={styles["search-input"]}
-                        placeholder="🔍 Search"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-
+                    <TextInput className={styles["search-input"]} value={search} leftIcon={<SearchIcon />} placeholder='Search' onChange={(e) => setSearch((e.target as HTMLInputElement).value)} />
                     <div className={styles["vertical-scroll"]}>
                         {filteredContacts.map((contact) => (
                             <div

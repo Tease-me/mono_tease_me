@@ -5,7 +5,9 @@
     background-color: var(--color-dark-2);
     border-radius: 12px;
     outline: 1px solid transparent;
+    overflow: hidden;
     transition: outline-color 0.2s ease-in-out;
+    justify-content: center;
 }
 
 .text-input-container:focus-within {
@@ -43,6 +45,12 @@
     display: flex;
     height: 20px;
     width: 20px;
+    align-content: center;
+    justify-content: center;
+}
+
+.text-input-container .icon svg {
+    align-self: center;
 }
 
 .text-input-container .icon.left {
@@ -61,4 +69,16 @@
 
 .input-left-padding {
     padding-left: 20px;
+}
+
+/* Remove default browser autofill background */
+.text-input-container input:-webkit-autofill,
+.text-input-container input:-webkit-autofill:hover,
+.text-input-container input:-webkit-autofill:focus,
+.text-input-container input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0px 1000px var(--color-dark-2) inset;
+    box-shadow: 0 0 0px 1000px var(--color-dark-2) inset;
+    -webkit-text-fill-color: #ffffff;
+    color: #ffffff;
+    transition: background-color 5000s ease-in-out 0s;
 }
