@@ -10,25 +10,26 @@ import MessageBubble from './MessageBubble';
 import ChatInputArea from './ChatInputArea';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import ChatTopNav from '@/ui/components/nav/ChatTopNav';
-import { GetChatHistory, GetChatId } from '@/api/apis';
 import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
-import { Message } from '@/data/models/MessageDataModel';
+import { Message, MessagePagination } from '@/data/models/MessageDataModel';
 import { contacts } from '@/data/mock/contacts';
 import { storage } from '@/utils/storage';
 import { LocalStorageKeys } from '@/constants/localStorageKeys';
-import { sortAndMapMessages } from '@/api/maps/chat_maps';
 import LoadingSpinner from '@/ui/components/loading/LoadingSpinner';
 import clsx from 'clsx';
+import { ChatRepository } from '@/data/repositories/ChatRepo';
 
 const MessagesList = React.memo(({ messages, typing, messagesEndRef }: { messages: any[]; typing: boolean; messagesEndRef: React.RefObject<HTMLDivElement | null>; }) => {
     return (
-        <div className={styles["messages"]}>
-            {messages.map((msg) => (
-                <MessageBubble key={msg.id} msg={msg} />
-            ))}
-            {typing && <MessageBubble />}
-            <div ref={messagesEndRef} />
-        </div>
+        <>
+            <div className={styles["messages"]}>
+                {messages.map((msg) => (
+                    <MessageBubble key={msg.id} msg={msg} />
+                ))}
+                {typing && <MessageBubble />}
+            </div>
+            <div ref={messagesEndRef} style={{ height: "50px" }} />
+        </>
     );
 });
 
@@ -62,6 +63,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const navigate = useNavigate();
     const pageSize = 20;
 
+    const chatRepository = ChatRepository();
+
     useEffect(() => {
         if (!id) {
             if (!user_id) {
@@ -80,13 +83,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
     const fetchMessages = async (chat_id: string, page: number) => {
         try {
-            const response = await GetChatHistory(chat_id, page, pageSize);
-            const responseMessages = sortAndMapMessages(response.messages) || [];
-            const totalPages = response.total / pageSize;
+            const responseMessagesPagination: MessagePagination = await chatRepository.getChatHistory(chat_id, page, pageSize);
+            const totalPages = responseMessagesPagination.total / pageSize;
+            const localMessages = responseMessagesPagination.messages;
             if (page === 1) {
-                setMessages(responseMessages);
+                setMessages(responseMessagesPagination.messages);
             } else {
-                setMessages(prev => prev ? [...responseMessages, ...prev] : responseMessages);
+                setMessages(prev => prev ? [...localMessages, ...prev] : localMessages);
             }
             if (pageSize < totalPages) {
                 setHasMore(false);
@@ -99,11 +102,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     useEffect(() => {
         (async () => {
             if (influencer && user) {
-                const response = await GetChatId(user.id, influencer.id)
-                setChatId(response.chat_id);
+                console.log("UserId", user);
+                const chat_id = await chatRepository.getChatId(user.id, influencer.id)
+
+                setChatId(chat_id);
                 setPageNumber(1);
                 setHasMore(true);
-                fetchMessages(response.chat_id, 1);
+                fetchMessages(chat_id, 1);
                 connectChat(influencer.id);
             }
         })()

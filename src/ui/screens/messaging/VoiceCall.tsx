@@ -4,7 +4,7 @@ import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 import { createWebAgent, updateWebAgent } from '@/api/bland/bland';
 import LoadingSpinner from '@/ui/components/loading/LoadingSpinner';
 import VoiceChat from './VoiceChat';
-import { BLAND_AGENT_LUNA, BLAND_AGENT_TEST } from '@/api/env';
+import { BLAND_AGENT_LUNA, BLAND_AGENT_TEST } from '@/env';
 import CenteredLayout from '@/ui/templates/CenteredLayout';
 
 interface VoiceCallProps {

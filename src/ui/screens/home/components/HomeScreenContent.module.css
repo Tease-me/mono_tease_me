@@ -8,6 +8,20 @@
     color: #fff;
 }
 
+.inbox-icon {
+    height: 24px;
+    width: 24px;
+    justify-content: center;
+    align-items: center;
+}
+
+.inbox-icon svg {
+    height: 24px;
+    width: 24px;
+    justify-content: center;
+    align-items: center;
+}
+
 .home-header {
     display: flex;
     justify-content: space-between;
@@ -116,48 +130,6 @@
     height: 190px;
     border-radius: 8px;
     object-fit: cover;
-}
-
-/* Menu Styles */
-.menu-button {
-    background: transparent;
-    border: none;
-    color: #fff;
-    font-size: 24px;
-    cursor: pointer;
-    outline: none;
-    padding: 0;
-    position: relative;
-}
-
-.dropdown-menu {
-    position: absolute;
-    top: 50px;
-    right: 15px;
-    background: #2c3038;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    padding: 10px 0;
-    width: 180px;
-    z-index: 10;
-}
-
-.dropdown-item {
-    padding: 10px 15px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    color: #fff;
-}
-
-.dropdown-item:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-}
-
-.divider {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    margin: 5px 0;
 }
 
 .bio-marquee-container {

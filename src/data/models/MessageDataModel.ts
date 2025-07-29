@@ -13,3 +13,10 @@ export interface Message {
     time: string;
     attachments?: MediaAttachment[];
 }
+
+export interface MessagePagination {
+    total: number;
+    page: number;
+    page_size: number;
+    messages: Message[];
+}

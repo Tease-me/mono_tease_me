@@ -6,7 +6,7 @@ import AppRoutes from './AppRoutes.jsx'
 import { AuthProvider } from './context/AuthContext'
 import { storage } from './utils/storage'
 import { LocalStorageKeys } from './constants/localStorageKeys'
-import { FIREBASE_PUBLIC_KEY } from './api/env'
+import { FIREBASE_PUBLIC_KEY } from '@/env'
 
 const rootElement = document.getElementById('root');
 if (rootElement) {

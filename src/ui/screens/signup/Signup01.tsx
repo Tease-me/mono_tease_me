@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import BackgroundGradient from "../../templates/BackgroundGradient";
 import styles from "./Signup.module.css";
 import CenteredLayout from "@/ui/templates/CenteredLayout";
-import { Register } from "@/api/apis";
 import CheckBox from "@/ui/components/check-boxes/CheckBox";
+import { AuthServices } from "@/api/services/AuthServices";
 
 export default function Signup01() {
   const [username, setUsername] = useState("");
@@ -12,6 +12,7 @@ export default function Signup01() {
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [errors, setErrors] = useState<{ username?: string; email?: string; password?: string }>({});
+  const authServices = AuthServices();
 
   const navigate = useNavigate();
 
@@ -26,8 +27,7 @@ export default function Signup01() {
       return;
     }
     try {
-      await Register(username, password, email);
-      // navigate("/signup/profile");
+      await authServices.register(username, password, email);
       navigate("/signup/success");
     } catch (err) {
       console.error(err);
