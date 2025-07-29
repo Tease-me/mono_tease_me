@@ -6,6 +6,9 @@ import { AuthContext } from "@/context/AuthContext";
 import CenteredLayout from "@/ui/templates/CenteredLayout";
 import CircularIconButton from "../components/inputs/buttons/CircularIconButton";
 import CheckBox from "../components/inputs/check-boxes/CheckBox";
+import TextInput from "../components/inputs/text-inputs/TextInput";
+import MessageIcon from "@/assets/svg/Message.svg?react"
+import LockIcon from "@/assets/svg/Lock.svg?react"
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -36,22 +39,23 @@ export default function LoginScreen() {
       <CenteredLayout>
         <div className={styles["auth-container"]}>
           <div className={styles["auth-content"]}>
-            {" "}
             <h2 className={styles["auth-title"]}>Login to your Account</h2>
             <form className={styles["auth-form"]}>
-              <input
+              <TextInput
                 type="email"
                 placeholder="Email"
                 className={styles["auth-input"]}
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                leftIcon={<MessageIcon />}
+                onChange={e => setEmail((e.target as HTMLInputElement).value)}
               />
-              <input
+              <TextInput
                 type="password"
                 placeholder="Password"
+                leftIcon={<LockIcon />}
                 className={styles["auth-input"]}
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={e => setPassword((e.target as HTMLInputElement).value)}
               />
               <CheckBox>Remember Me</CheckBox>
               <CircularIconButton text="Sign In" size="small" onClick={handleSignInClick} />
