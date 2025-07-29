@@ -1,5 +1,5 @@
 import { agentConfig } from "./config/agent-config";
-import { BLAND_API_KEY, BLAND_API_URL, BLAND_WEB_URL } from "@/api/env";
+import { BLAND_API_KEY, BLAND_API_URL, BLAND_WEB_URL } from "@/env";
 
 export async function createWebAgent() {
     try {

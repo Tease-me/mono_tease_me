@@ -1,4 +1,4 @@
-import { ELEVENLABS_AGENT_ID, ELEVENLABS_API_KEY } from "../env";
+import { ELEVENLABS_AGENT_ID, ELEVENLABS_API_KEY } from "@/env";
 
 export async function getSignedUrl() {
     const response = await fetch(
