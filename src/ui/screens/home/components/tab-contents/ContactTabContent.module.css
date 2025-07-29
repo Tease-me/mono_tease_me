@@ -1,0 +1,38 @@
+.search-input {
+    border: none;
+    margin-bottom: 10px;
+}
+
+.contact-card:hover {
+    outline: 1px solid #ff4d6d;
+}
+
+.contact-card,
+.highlight {
+    margin: 1px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.highlight {
+    outline: 1px solid #ff4d6d;
+    background: #2c3038;
+}
+
+.contact-card img,
+.highlight img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.contact-card div,
+.highlight div {
+    flex: 1;
+    margin-left: 10px;
+}
