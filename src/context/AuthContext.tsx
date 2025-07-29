@@ -1,6 +1,7 @@
-import { GetUserDerails, Login, RefreshToken } from "@/api/apis";
 import { mock } from "@/api/mock/mock";
 import { TokenResponse } from "@/api/models/TokenResponse";
+import { AuthServices } from "@/api/services/AuthServices";
+import { UserServices } from "@/api/services/UserServices";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { UserDataModel } from "@/data/models/UserDataModel";
 import { storage } from "@/utils/storage";
@@ -33,6 +34,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [loadingAuth, setLoadingAuth] = useState(true);
     const [authErrors, setAuthErrors] = useState<AuthErrors>();
     const [user, setUser] = useState<UserDataModel | undefined>()
+    const authServices = AuthServices();
+    const userServices = UserServices();
 
     useEffect(() => {
         if (authErrors) {
@@ -48,10 +51,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             try {
                 const token = storage.get(LocalStorageKeys.RefreshToken);
                 if (token) {
-                    const tokens: TokenResponse = await RefreshToken(token)
+                    const tokens: TokenResponse = await authServices.refreshToken(token)
                     storage.set(LocalStorageKeys.AccessToken, tokens.access_token)
                     storage.set(LocalStorageKeys.RefreshToken, tokens.refresh_token)
-                    getUserDetails(tokens.access_token)
+                    getUserDetails()
                     setIsSignedIn(true);
                 } else {
                     setIsSignedIn(false);
@@ -65,8 +68,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         checkAuth();
     }, []);
 
-    const getUserDetails = async (access_token: string) => {
-        const response = await GetUserDerails(access_token)
+    const getUserDetails = async () => {
+        const response = await userServices.getUserDerails()
         const user: UserDataModel = {
             id: response.id,
             username: response.username,
@@ -82,9 +85,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const login = async (email: string, password: string) => {
         setLoadingAuth(true);
         try {
-            const response = await Login(email, password);
+            const response = await authServices.login(email, password);
             if (response) {
-                getUserDetails(response.access_token);
+                getUserDetails();
                 setIsSignedIn(true);
                 storage.set(LocalStorageKeys.AccessToken, response.access_token)
                 storage.set(LocalStorageKeys.RefreshToken, response.refresh_token)

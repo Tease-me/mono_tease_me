@@ -10,7 +10,6 @@ import MessageBubble from './MessageBubble';
 import ChatInputArea from './ChatInputArea';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import ChatTopNav from '@/ui/components/nav/ChatTopNav';
-import { GetChatHistory, GetChatId } from '@/api/apis';
 import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
 import { Message, MessagePagination } from '@/data/models/MessageDataModel';
 import { contacts } from '@/data/mock/contacts';
@@ -103,11 +102,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     useEffect(() => {
         (async () => {
             if (influencer && user) {
-                const response = await GetChatId(user.id, influencer.id)
-                setChatId(response.chat_id);
+                console.log("UserId", user);
+                const chat_id = await chatRepository.getChatId(user.id, influencer.id)
+
+                setChatId(chat_id);
                 setPageNumber(1);
                 setHasMore(true);
-                fetchMessages(response.chat_id, 1);
+                fetchMessages(chat_id, 1);
                 connectChat(influencer.id);
             }
         })()
