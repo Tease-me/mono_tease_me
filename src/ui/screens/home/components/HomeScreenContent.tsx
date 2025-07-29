@@ -1,10 +1,19 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import styles from "./HomeScreenContent.module.css"
 import clsx from 'clsx';
 import { useNavigate } from 'react-router-dom';
 
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import { contacts } from '@/data/mock/contacts';
+import DropDownMenu, { DropDownMenuDataModel } from '@/ui/components/dropdown/DropDownMenu';
+import ProfileIcon from "@/assets/svg/Profile.svg?react"
+import TicketIcon from "@/assets/svg/Ticket.svg?react"
+import DangerIcon from "@/assets/svg/Danger.svg?react"
+import InboxIcon from "@/assets/svg/inbox.svg?react"
+import LogoutIcon from "@/assets/svg/Logout.svg?react";
+
+import { AuthContext } from '@/context/AuthContext';
+
 
 interface HomeScreenContentProps {
     id?: string;
@@ -17,28 +26,8 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ id, onItemClick }
     const filteredContacts = contacts.filter((c) =>
         c.name.toLowerCase().includes(search.toLowerCase())
     );
-
-    const [menuOpen, setMenuOpen] = useState(false);
-    const menuRef = useRef<HTMLDivElement>(null);
-    const buttonRef = useRef<HTMLButtonElement>(null);
-
+    const { logout } = useContext(AuthContext);
     const navigate = useNavigate();
-
-    useEffect(() => {
-        const closeMenu = (e: MouseEvent) => {
-            if (
-                menuRef.current &&
-                !menuRef.current.contains(e.target as Node) &&
-                buttonRef.current &&
-                !buttonRef.current.contains(e.target as Node)
-            ) {
-                setMenuOpen(false);
-            }
-        };
-
-        document.addEventListener("mousedown", closeMenu);
-        return () => document.removeEventListener("mousedown", closeMenu);
-    }, []);
 
     const handleOnChatClick = (id: string) => {
         if (onItemClick) {
@@ -47,33 +36,42 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ id, onItemClick }
             navigate(`/chat/${id}`);
         }
     };
+
+    const testDataDropDown: DropDownMenuDataModel[] = [
+        {
+            id: 1,
+            icon: <ProfileIcon />,
+            text: "My Profile"
+        },
+        {
+            id: 2,
+            icon: <TicketIcon />,
+            text: "Subscriptions"
+        },
+        {
+            id: 3,
+            icon: <DangerIcon />,
+            text: "Support"
+        },
+        {
+            id: 4,
+            icon: <LogoutIcon />,
+            text: "Logout",
+            styles: {
+                style: { color: "var(--color-alert)" },
+                hoverStyle: { color: "var(--color-primary)" },
+                iconStyle: { color: "var(--color-primary)" }
+            },
+            onClick: () => {
+                logout();
+            }
+        },
+    ]
     return (
         <div className={styles["home-screen-content"]}>
             <header className={styles["home-header"]}>
                 <TeaseMeLogo size="small" />
-                <button
-                    className={styles["menu-button"]}
-                    onClick={() => setMenuOpen((prev) => !prev)}
-                    ref={buttonRef}
-                >
-                    ⋯
-                </button>
-
-                {menuOpen && (
-                    <div className={styles["dropdown-menu"]} ref={menuRef}>
-                        <div className={styles["dropdown-item"]}>
-                            <span>👤</span> My Profile
-                        </div>
-                        <div className={styles["divider"]}></div>
-                        <div className={styles["dropdown-item"]}>
-                            <span>🧩</span> Subscriptions
-                        </div>
-                        <div className={styles["divider"]}></div>
-                        <div className={styles["dropdown-item"]}>
-                            <span>⚠️</span> Support
-                        </div>
-                    </div>
-                )}
+                <DropDownMenu menu={testDataDropDown} className={styles["inbox-icon"]}><InboxIcon /></DropDownMenu>
             </header>
 
             <nav className={styles["tabs"]}>
