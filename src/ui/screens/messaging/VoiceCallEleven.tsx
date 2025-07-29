@@ -6,7 +6,7 @@ import { useConversation } from "@11labs/react";
 import { getSignedUrl } from '@/api/eleven/eleven';
 import { releaseMicrophonePermission, requestMicrophonePermission } from '@/utils/Permissions';
 import ProfileMedia from '@/ui/components/ProfileMedia';
-import CircularIconButton from '@/ui/components/buttons/CircularIconButton';
+import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButton';
 import oliviaImage from "@/assets/image/avatar.png"
 import oliviaVideo from "@/assets/video/avatar_video.mp4";
 import CloseSquareIcon from "@/assets/CloseSquare.svg?react";

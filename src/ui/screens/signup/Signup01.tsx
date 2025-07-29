@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import BackgroundGradient from "../../templates/BackgroundGradient";
 import styles from "./Signup.module.css";
 import CenteredLayout from "@/ui/templates/CenteredLayout";
-import CheckBox from "@/ui/components/check-boxes/CheckBox";
 import { AuthServices } from "@/api/services/AuthServices";
+import CheckBox from "@/ui/components/inputs/check-boxes/CheckBox";
 
 export default function Signup01() {
   const [username, setUsername] = useState("");

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 
-import CircularIconButton from '@/ui/components/buttons/CircularIconButton';
+import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButton';
 import MicrophoneIcon from "@/assets/Microphone.svg?react";
 import SendIcon from "@/assets/svg/Send.svg?react";
 import CloseSquareIcon from "@/assets/CloseSquare.svg?react";
@@ -35,7 +35,7 @@ import styles from "./ChatInputArea.module.css"
 import AudioVisualizer from './AudioVisualizer';
 import AudioWaveform from './AudioWaveform';
 import { releaseMicrophonePermission, requestMicrophonePermission } from '@/utils/Permissions';
-import LongPressButton from '@/ui/components/buttons/LongPressButton';
+import LongPressButton from '@/ui/components/inputs/buttons/LongPressButton';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { clear } from 'console';
 

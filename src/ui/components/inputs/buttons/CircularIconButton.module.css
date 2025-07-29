@@ -16,16 +16,16 @@
     color: #fff;
 }
 
-button.secondary {
+\.button.secondary {
     background: linear-gradient(var(--gradient-angle), var(--gradient-orange-start) -50%, var(--gradient-orange-end) 150%);
     color: #fff;
 }
 
-.button:hover.primary {
+.button.primary:hover {
     background: linear-gradient(var(--gradient-angle), var(--gradient-start-red-start) 100%, var(--gradient-end-red-end) 0%);
 }
 
-button:hover.secondary {
+.button.secondary:hover {
     background: linear-gradient(var(--gradient-angle), var(--gradient-orange-start) 100%, var(--gradient-orange-end) 0%);
 }
 
@@ -87,4 +87,55 @@ button:hover.secondary {
 
 .icon-container svg {
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* Variant styles for buttons with text and/or icons */
+.button-with-text-and-icon.primary,
+.button-with-text-only.primary,
+.button-with-icon-only.primary {
+    background: linear-gradient(var(--gradient-angle), var(--gradient-start-red-start) -50%, var(--gradient-end-red-end) 150%);
+    color: #fff;
+}
+
+.button-with-text-and-icon.secondary,
+.button-with-text-only.secondary,
+.button-with-icon-only.secondary {
+    background: linear-gradient(var(--gradient-angle), var(--gradient-orange-start) -50%, var(--gradient-orange-end) 150%);
+    color: #fff;
+}
+
+.button-with-text-and-icon.primary:hover,
+.button-with-text-only.primary:hover,
+.button-with-icon-only.primary:hover {
+    background: linear-gradient(var(--gradient-angle), var(--gradient-start-red-start) 100%, var(--gradient-end-red-end) 0%);
+}
+
+.button-with-text-and-icon.secondary:hover,
+.button-with-text-only.secondary:hover,
+.button-with-icon-only.secondary:hover {
+    background: linear-gradient(var(--gradient-angle), var(--gradient-orange-start) 100%, var(--gradient-orange-end) 0%);
+}
+
+.button-with-text-and-icon:active,
+.button-with-text-only:active,
+.button-with-icon-only:active {
+    transform: scale(1.1);
+}
+
+.button-with-text-and-icon.small {
+    padding: 12px 10px;
+    gap: 6px;
+}
+
+.button-with-text-and-icon.xsmall {
+    padding: 8px 8px;
+    gap: 4px;
+}
+
+.button-with-text-only.small {
+    padding: 12px 10px;
+}
+
+.button-with-text-only.xsmall {
+    padding: 8px 8px;
 }

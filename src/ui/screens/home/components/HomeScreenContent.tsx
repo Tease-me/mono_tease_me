@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import { contacts } from '@/data/mock/contacts';
-import DropDownMenu, { DropDownMenuDataModel } from '@/ui/components/dropdown/DropDownMenu';
 import ProfileIcon from "@/assets/svg/Profile.svg?react"
 import TicketIcon from "@/assets/svg/Ticket.svg?react"
 import DangerIcon from "@/assets/svg/Danger.svg?react"
@@ -13,7 +12,9 @@ import InboxIcon from "@/assets/svg/inbox.svg?react"
 import LogoutIcon from "@/assets/svg/Logout.svg?react";
 
 import { AuthContext } from '@/context/AuthContext';
-
+import DropDownMenu, { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownMenu';
+import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButton';
+import InfinityIcon from "@/assets/svg/Infinity.svg?react";
 
 interface HomeScreenContentProps {
     id?: string;
@@ -108,9 +109,7 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ id, onItemClick }
                                     <h4>{contact.name}</h4>
                                     <p>{contact.username}</p>
                                 </div>
-                                <button className={clsx(styles["chat-btn"])}>
-                                    ♾️ Chat
-                                </button>
+                                <CircularIconButton icon={<InfinityIcon />} text='Chat' size='xsmall' />
                             </div>
                         ))}
                     </div>

@@ -4,6 +4,8 @@ import BackgroundGradient from "../templates/BackgroundGradient";
 import styles from "./LoginScreen.module.css";
 import { AuthContext } from "@/context/AuthContext";
 import CenteredLayout from "@/ui/templates/CenteredLayout";
+import CircularIconButton from "../components/inputs/buttons/CircularIconButton";
+import CheckBox from "../components/inputs/check-boxes/CheckBox";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -51,20 +53,8 @@ export default function LoginScreen() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
               />
-
-              <label className={styles["auth-checkbox"]}>
-                <input type="checkbox" /> Remember me
-              </label>
-
-              <button
-                type="button"
-                className={styles["btn-primary"]}
-                onClick={handleSignInClick}
-                style={{ marginTop: "15px" }}
-              >
-                Sign In
-              </button>
-
+              <CheckBox>Remember Me</CheckBox>
+              <CircularIconButton text="Sign In" size="small" onClick={handleSignInClick} />
               <p className={styles["auth-footer"]}>
                 <span>Forgot your password?</span>
               </p>
