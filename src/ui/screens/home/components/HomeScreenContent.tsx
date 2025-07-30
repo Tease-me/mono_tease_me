@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import { contacts } from '@/data/mock/contacts';
-import DropDownMenu, { DropDownMenuDataModel } from '@/ui/components/dropdown/DropDownMenu';
 import ProfileIcon from "@/assets/svg/Profile.svg?react"
 import TicketIcon from "@/assets/svg/Ticket.svg?react"
 import DangerIcon from "@/assets/svg/Danger.svg?react"
@@ -13,7 +12,11 @@ import InboxIcon from "@/assets/svg/inbox.svg?react"
 import LogoutIcon from "@/assets/svg/Logout.svg?react";
 
 import { AuthContext } from '@/context/AuthContext';
-
+import DropDownMenu, { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownMenu';
+import TabsLayout, { TabItem } from '@/ui/components/tabs/TabsLayout';
+import ContactTabContent from './tab-contents/ContactTabContent';
+import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
+import SiggestedTabContent from './tab-contents/SuggestedTabContent';
 
 interface HomeScreenContentProps {
     id?: string;
@@ -21,21 +24,32 @@ interface HomeScreenContentProps {
 }
 
 const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ id, onItemClick }) => {
-    const [activeTab, setActiveTab] = useState("contacts");
-    const [search, setSearch] = useState("");
-    const filteredContacts = contacts.filter((c) =>
-        c.name.toLowerCase().includes(search.toLowerCase())
-    );
     const { logout } = useContext(AuthContext);
     const navigate = useNavigate();
 
-    const handleOnChatClick = (id: string) => {
+    const handleOnChatClick = (influencer: InfluencerDataModel) => {
         if (onItemClick) {
-            onItemClick(id);
+            onItemClick(influencer.id);
         } else {
-            navigate(`/chat/${id}`);
+            navigate(`/chat/${influencer.id}`);
         }
     };
+
+    const tabItems: TabItem[] = [
+        {
+            id: 1,
+            name: "Contacts",
+            content: <ContactTabContent onChatClicked={handleOnChatClick} selectedContactId={id} />
+        },
+        {
+            id: 2,
+            name: "Suggested",
+            content: <SiggestedTabContent />
+        },
+    ]
+
+    const [activeTab, setActiveTab] = useState(tabItems[0]);
+
 
     const testDataDropDown: DropDownMenuDataModel[] = [
         {
@@ -67,6 +81,7 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ id, onItemClick }
             }
         },
     ]
+
     return (
         <div className={styles["home-screen-content"]}>
             <header className={styles["home-header"]}>
@@ -74,70 +89,10 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ id, onItemClick }
                 <DropDownMenu menu={testDataDropDown} className={styles["inbox-icon"]}><InboxIcon /></DropDownMenu>
             </header>
 
-            <nav className={styles["tabs"]}>
-                <span
-                    className={clsx(styles["tab"], activeTab === "contacts" && styles["active"])}
-                    onClick={() => setActiveTab("contacts")}
-                >
-                    Contacts
-                </span>
-                <span
-                    className={clsx(styles["tab"], activeTab === "suggested" && styles["active"])}
-                    onClick={() => setActiveTab("suggested")}>
-                    Suggested
-                </span>
-            </nav>
+            <TabsLayout tabs={tabItems} setActiveTab={setActiveTab} activeTab={activeTab} />
 
-            {activeTab === "contacts" && (
-                <>
-                    <input
-                        className={styles["search-input"]}
-                        placeholder="🔍 Search"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-
-                    <div className={styles["vertical-scroll"]}>
-                        {filteredContacts.map((contact) => (
-                            <div
-                                key={contact.id}
-                                className={clsx(styles["contact-card"], contact.id === id && styles["highlight"])}
-                                onClick={() => handleOnChatClick(contact.id)}>
-                                <img src={contact.img} alt={contact.name} />
-                                <div>
-                                    <h4>{contact.name}</h4>
-                                    <p>{contact.username}</p>
-                                </div>
-                                <button className={clsx(styles["chat-btn"])}>
-                                    ♾️ Chat
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                </>
-            )}
-
-            {activeTab === "suggested" && (
-                <>
-                    <div className={clsx(styles["suggested-images"], styles["horizontal-scroll"])}>
-                        {contacts.slice(0, 5).map((contact) => (
-                            <img key={contact.id} src={contact.img} alt={contact.name} />
-                        ))}
-                    </div>
-
-                    <div className={styles["vertical-scroll"]}>
-                        {contacts.map((contact) => (
-                            <div key={contact.id} className={styles["contact-card"]}>
-                                <img src={contact.img} alt={contact.name} />
-                                <div>
-                                    <h4>{contact.name}</h4>
-                                    <p>{contact.username}</p>
-                                </div>
-                                <button className={styles["trial-btn"]}>Trial</button>
-                            </div>
-                        ))}
-                    </div>
-                </>
+            {activeTab && (
+                activeTab.content
             )}
         </div>
     );

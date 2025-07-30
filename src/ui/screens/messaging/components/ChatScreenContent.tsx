@@ -102,9 +102,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     useEffect(() => {
         (async () => {
             if (influencer && user) {
-                console.log("UserId", user);
                 const chat_id = await chatRepository.getChatId(user.id, influencer.id)
-
                 setChatId(chat_id);
                 setPageNumber(1);
                 setHasMore(true);

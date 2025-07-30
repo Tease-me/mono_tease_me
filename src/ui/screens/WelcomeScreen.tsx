@@ -7,7 +7,7 @@ import BackgroundGradient from "../templates/BackgroundGradient";
 import styles from "./WelcomeScreen.module.css";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import CenteredLayout from "@/ui/templates/CenteredLayout";
-import CircularIconButton from "@/ui/components/buttons/CircularIconButton";
+import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButton";
 import TeaseMeLogo from "../components/logos/TeaseMeLogo";
 import DividerWithLabel from "../components/dividers/DividerWithLabel";
 export interface WelcomeScreenProps {

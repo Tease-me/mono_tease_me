@@ -12,6 +12,7 @@ import TestPage from "./ui/screens/test/TestPage";
 import VoiceCall from "./ui/screens/messaging/VoiceCall";
 import PrivateRoute from "./utils/PrivateRoute";
 import VoiceCallEleven from "./ui/screens/messaging/VoiceCallEleven";
+import VerifyEmail from "./ui/screens/verify-email/VerifyEmail";
 
 function AppRoutes() {
   const publicRoutes = [
@@ -22,6 +23,7 @@ function AppRoutes() {
     ["/signup/profile", <Signup02 />],
     ["/signup/success", <Signup03 />],
     ["/test", <TestPage />],
+    ["/verify-email", <VerifyEmail />],
   ];
 
   const privateRoutes = [
