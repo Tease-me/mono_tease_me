@@ -21,15 +21,13 @@ const VerifyEmail: React.FC<VerifyEmailProps> = () => {
         if (!token) return;
         const verifyEmail = async () => {
             try {
-                const response: VerifyEmailResponse = await apiClient.get(`/auth/verify-email/`, {
-                    params: {
-                        "token": token
-                    }
+                const { data } = await apiClient.get<VerifyEmailResponse>(`/auth/verify-email/`, {
+                    params: { token }
                 });
-                if (!response.ok) {
-                    throw new Error(`Server error: ${response.message}`);
+                if (!data.ok) {
+                    throw new Error(`Server error: ${data.message}`);
                 }
-                setStatus(response.message || 'Email verified successfully!');
+                setStatus(data.message);
             } catch (err: any) {
                 setError(err.message);
                 setStatus('Verification failed');
