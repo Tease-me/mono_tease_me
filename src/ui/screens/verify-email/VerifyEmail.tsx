@@ -21,11 +21,12 @@ const VerifyEmail: React.FC<VerifyEmailProps> = () => {
         if (!token) return;
         const verifyEmail = async () => {
             try {
-                const response: VerifyEmailResponse = await apiClient.get(`/api/auth/verify-email/`, {
+                const response: VerifyEmailResponse = await apiClient.get(`/auth/verify-email/`, {
                     params: {
                         "token": token
                     }
                 });
+                console.log("Response", response);
                 if (!response.ok) {
                     throw new Error(`Server error: ${response.message}`);
                 }
