@@ -26,7 +26,6 @@ const VerifyEmail: React.FC<VerifyEmailProps> = () => {
                         "token": token
                     }
                 });
-                console.log("Response", response);
                 if (!response.ok) {
                     throw new Error(`Server error: ${response.message}`);
                 }
