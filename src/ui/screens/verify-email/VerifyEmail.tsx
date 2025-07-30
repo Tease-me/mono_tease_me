@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styles from "./VerifyEmail.module.css"
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { apiClient } from '@/api/apis';
 
 interface VerifyEmailProps {
@@ -12,7 +12,8 @@ interface VerifyEmailResponse {
 }
 
 const VerifyEmail: React.FC<VerifyEmailProps> = () => {
-    const { token } = useParams<{ token: string }>();
+    const [searchParams] = useSearchParams();
+    const token = searchParams.get('token');
     const [status, setStatus] = useState<string>('Verifying...');
     const [error, setError] = useState<string | null>(null);
 
