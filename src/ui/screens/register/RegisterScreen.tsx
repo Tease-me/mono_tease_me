@@ -7,27 +7,27 @@ import { AuthServices } from "@/api/services/AuthServices";
 import CheckBox from "@/ui/components/inputs/check-boxes/CheckBox";
 import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 import { RegisterResponse } from "@/api/models/auth";
+import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButton";
 
 export default function RegisterScreen() {
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
-  const [errors, setErrors] = useState<{ username?: string; email?: string; password?: string, general?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string, general?: string }>({});
   const authServices = AuthServices();
 
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newErrors: { username?: string; email?: string; password?: string } = {};
-    if (!username.trim()) newErrors.username = "Username is required";
+    const newErrors: { email?: string; password?: string, general?: string } = {};
     if (!email.trim()) newErrors.email = "Email is required";
     if (!password) newErrors.password = "Password is required";
     if (Object.keys(newErrors).length) {
       setErrors(newErrors);
       return;
     }
+
     try {
       const response: RegisterResponse = await authServices.register(password, email);
       if (response.ok) {
@@ -59,18 +59,13 @@ export default function RegisterScreen() {
                 onChange={e => setPassword((e.target as HTMLInputElement).value)}
               />
               {errors.password && <span className={styles["error"]}>{errors.password}</span>}
-
-              <CheckBox >
+              <CheckBox>
                 I am over 18 years old and
               </CheckBox>
               {errors.general && <span className={styles["error"]}>{errors.general}</span>}
               <div className={styles["auth-buttons"]}>
-                <button className={styles["btn-back"]} onClick={() => navigate("/")}>
-                  Back
-                </button>
-                <button type="submit" className={styles["btn-primary"]}>
-                  Continue
-                </button>
+                <CircularIconButton className={styles["btn-back"]} onClick={() => navigate("/")} text="Back" variant="tertiary" />
+                <CircularIconButton type="submit" className={styles["btn-primary"]} text="Continue" />
               </div>
 
               <p className={styles["auth-footer"]}>
