@@ -16,6 +16,14 @@ export default defineConfig({
       cert: fs.readFileSync('./.cert/cert.pem'),
     },
   },
+  preview: {
+    port: 4174, // 👈 Change this to your desired preview port
+    host: true,
+    https: {
+      key: fs.readFileSync('./.cert/key.pem'),
+      cert: fs.readFileSync('./.cert/cert.pem'),
+    },
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
