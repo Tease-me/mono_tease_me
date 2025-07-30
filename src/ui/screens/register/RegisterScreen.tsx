@@ -1,17 +1,19 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BackgroundGradient from "../../templates/BackgroundGradient";
-import styles from "./Signup.module.css";
+import styles from "./RegisterScreen.module.css";
 import CenteredLayout from "@/ui/templates/CenteredLayout";
 import { AuthServices } from "@/api/services/AuthServices";
 import CheckBox from "@/ui/components/inputs/check-boxes/CheckBox";
+import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
+import { RegisterResponse } from "@/api/models/auth";
 
-export default function Signup01() {
+export default function RegisterScreen() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
-  const [errors, setErrors] = useState<{ username?: string; email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ username?: string; email?: string; password?: string, general?: string }>({});
   const authServices = AuthServices();
 
   const navigate = useNavigate();
@@ -27,8 +29,11 @@ export default function Signup01() {
       return;
     }
     try {
-      await authServices.register(username, password, email);
-      navigate("/signup/success");
+      const response: RegisterResponse = await authServices.register(password, email);
+      if (response.ok) {
+        navigate("/register/verify");
+      }
+      setErrors({ general: "Registration Failed Plese Try Again Later" });
     } catch (err) {
       console.error(err);
     }
@@ -41,40 +46,24 @@ export default function Signup01() {
           <div className={styles["auth-content"]}>
             <h2 className={styles["auth-title"]}>Create your Account</h2>
             <form className={styles["auth-form"]} onSubmit={handleSubmit}>
-              <input
-                type="text"
-                placeholder="Username"
-                className={styles["auth-input"]}
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-              />
-              {errors.username && <span className={styles["error"]}>{errors.username}</span>}
-              <input
+              <TextInput
                 type="email"
                 placeholder="Email"
-                className={styles["auth-input"]}
                 value={email}
-                onChange={e => setEmail(e.target.value)}
-              />
+                onChange={e => setEmail((e.target as HTMLInputElement).value)} />
               {errors.email && <span className={styles["error"]}>{errors.email}</span>}
-              <input
+              <TextInput
                 type="password"
                 placeholder="Password"
-                className={styles["auth-input"]}
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={e => setPassword((e.target as HTMLInputElement).value)}
               />
               {errors.password && <span className={styles["error"]}>{errors.password}</span>}
+
               <CheckBox >
                 I am over 18 years old and
               </CheckBox>
-              <CheckBox >
-                Agree to the <a href="#">Terms of Service</a>
-              </CheckBox>
-
-              <CheckBox >
-                Agree to the <a>Privacy Policy</a>
-              </CheckBox>
+              {errors.general && <span className={styles["error"]}>{errors.general}</span>}
               <div className={styles["auth-buttons"]}>
                 <button className={styles["btn-back"]} onClick={() => navigate("/")}>
                   Back

@@ -4,24 +4,26 @@ import CallScreen from "./ui/screens/CallScreen";
 import ChatScreen from "./ui/screens/messaging/ChatScreen";
 import HomeScreen from "./ui/screens/home/HomeScreen";
 import LoginScreen from "./ui/screens/LoginScreen";
-import Signup01 from "./ui/screens/signup/Signup01";
-import Signup02 from "./ui/screens/signup/Signup02";
-import Signup03 from "./ui/screens/signup/Signup03";
+import Signup02 from "./ui/screens/register/Signup02";
+import Signup03 from "./ui/screens/register/Signup03";
 import WelcomeScreen from "./ui/screens/WelcomeScreen";
 import TestPage from "./ui/screens/test/TestPage";
 import VoiceCall from "./ui/screens/messaging/VoiceCall";
 import PrivateRoute from "./utils/PrivateRoute";
 import VoiceCallEleven from "./ui/screens/messaging/VoiceCallEleven";
 import VerifyEmail from "./ui/screens/verify-email/VerifyEmail";
+import RegisterScreen from "./ui/screens/register/RegisterScreen";
+import Confirmation from "./ui/screens/register/Confirmation";
 
 function AppRoutes() {
   const publicRoutes = [
     ["*", <WelcomeScreen />],
     ["/:username", <WelcomeScreen />],
     ["/login", <LoginScreen />],
-    ["/signup", <Signup01 />],
-    ["/signup/profile", <Signup02 />],
-    ["/signup/success", <Signup03 />],
+    ["/register", <RegisterScreen />],
+    ["/register/verify", <Confirmation />],
+    ["/register/profile", <Signup02 />],
+    ["/register/success", <Signup03 />],
     ["/test", <TestPage />],
     ["/verify-email", <VerifyEmail />],
   ];

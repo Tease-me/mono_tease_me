@@ -1,6 +1,7 @@
 import { Endpoints } from "../urls";
 import { TokenResponse } from "../models/TokenResponse";
 import { apiClient } from "../apis";
+import { RegisterResponse } from "../models/auth";
 
 export const AuthServices = () => ({
     login: async (email: string, password: string): Promise<TokenResponse> => {
@@ -14,12 +15,11 @@ export const AuthServices = () => ({
             throw error;
         }
     },
-    register: async (username: string, password: string, email: string): Promise<TokenResponse> => {
+    register: async (password: string, email: string): Promise<RegisterResponse> => {
         try {
             const response = await apiClient.post(
                 Endpoints.REGISTER,
                 {
-                    "username": username,
                     "password": password,
                     "email": email
                 },
