@@ -1,16 +1,31 @@
-.auth-container {
-  min-width: 600px;
+.input-fields {
+  display: flex;
+  gap: 15px;
 }
 
-.auth-content {
-  background-color: var(--color-dark-1);
-  padding: 25px;
-  border-radius: 12px;
-  text-align: center;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+.top-nav {
+  display: flex;
+  width: 100%;
+  position: relative;
+  justify-content: space-evenly;
 }
 
-.auth-title {
+.top-nav .left {
+  display: flex;
+  flex: 1;
+  justify-content: start;
+  align-content: start;
+  background-color: rebeccapurple;
+}
+
+.top-nav .right {
+  display: flex;
+  flex: 1;
+  justify-content: end;
+  align-items: end;
+}
+
+.title {
   font-size: 28px;
   margin-bottom: 25px;
 }
@@ -24,7 +39,7 @@
 .auth-buttons {
   display: flex;
   gap: 15px;
-  justify-content: center;
+  justify-content: end;
   margin-top: 10px;
   flex: 1;
 }

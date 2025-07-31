@@ -95,6 +95,10 @@
 
 
 .label {
+    display: flex;
+    gap: 8px;
+    align-content: center;
+    justify-content: center;
     line-height: 1.3;
 }
 

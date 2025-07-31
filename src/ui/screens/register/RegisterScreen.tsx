@@ -8,16 +8,16 @@ import CheckBox from "@/ui/components/inputs/check-boxes/CheckBox";
 import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 import { RegisterResponse } from "@/api/models/auth";
 import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButton";
+import QuestionMarkCircleIcon from "@/assets/svg/QuestionMark.svg?react"
+import useNotificationSocket from "@/hooks/useNotificationSocket";
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [remember, setRemember] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string, general?: string }>({});
   const authServices = AuthServices();
 
   const navigate = useNavigate();
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: { email?: string; password?: string, general?: string } = {};
@@ -31,7 +31,11 @@ export default function RegisterScreen() {
     try {
       const response: RegisterResponse = await authServices.register(password, email);
       if (response.ok) {
-        navigate("/register/verify");
+        // useNotificationSocket(response.token, () => {
+        //   // Login if successful
+        // })
+        // response.token
+        // navigate("/register/verify");
       }
       setErrors({ general: "Registration Failed Plese Try Again Later" });
     } catch (err) {
@@ -41,40 +45,46 @@ export default function RegisterScreen() {
 
   return (
     <BackgroundGradient>
-      <CenteredLayout>
-        <div className={styles["auth-container"]}>
-          <div className={styles["auth-content"]}>
-            <h2 className={styles["auth-title"]}>Create your Account</h2>
-            <form className={styles["auth-form"]} onSubmit={handleSubmit}>
-              <TextInput
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={e => setEmail((e.target as HTMLInputElement).value)} />
-              {errors.email && <span className={styles["error"]}>{errors.email}</span>}
-              <TextInput
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={e => setPassword((e.target as HTMLInputElement).value)}
-              />
-              {errors.password && <span className={styles["error"]}>{errors.password}</span>}
-              <CheckBox>
-                I am over 18 years old and
-              </CheckBox>
-              {errors.general && <span className={styles["error"]}>{errors.general}</span>}
-              <div className={styles["auth-buttons"]}>
-                <CircularIconButton className={styles["btn-back"]} onClick={() => navigate("/")} text="Back" variant="tertiary" />
-                <CircularIconButton type="submit" className={styles["btn-primary"]} text="Continue" />
-              </div>
-
-              <p className={styles["auth-footer"]}>
-                Already have an account?{" "}
-                <span onClick={() => navigate("/login")}>Sign in</span>
-              </p>
-            </form>
-          </div>
+      <div className={styles["top-nav"]}>
+        <div className={styles["left-container"]}>
+          Left
         </div>
+        <div className={styles["right-container"]}>
+          Right
+        </div>
+      </div>
+      <CenteredLayout>
+        <h2 className={styles["title"]}>Create your Account</h2>
+        <form className={styles["auth-form"]} onSubmit={handleSubmit}>
+          <div className={styles["input-fields"]}>
+            <TextInput
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={e => setEmail((e.target as HTMLInputElement).value)} />
+            {errors.email && <span className={styles["error"]}>{errors.email}</span>}
+            <TextInput
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={e => setPassword((e.target as HTMLInputElement).value)}
+            />
+            {errors.password && <span className={styles["error"]}>{errors.password}</span>}
+          </div>
+          <CheckBox>
+            NSFW (Not Safe For Work) <QuestionMarkCircleIcon />
+          </CheckBox>
+          {errors.general && <span className={styles["error"]}>{errors.general}</span>}
+          <div className={styles["auth-buttons"]}>
+            <CircularIconButton className={styles["btn-back"]} onClick={() => navigate("/")} text="Back" variant="tertiary" />
+            <CircularIconButton type="submit" className={styles["btn-primary"]} text="Continue" />
+          </div>
+
+          <p className={styles["auth-footer"]}>
+            Already have an account?{" "}
+            <span onClick={() => navigate("/login")}>Sign in</span>
+          </p>
+        </form>
       </CenteredLayout>
     </BackgroundGradient>
   );
