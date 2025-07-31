@@ -1,16 +1,17 @@
 import { WsEndpoints } from "@/api/urls";
 import { useEffect } from "react";
 
-export default function useNotificationSocket(token: string, onEmailVerified: () => void) {
+export default function useNotificationSocket(email: string, onEmailVerified: () => void) {
     useEffect(() => {
-        if (!token) return;
-        const ws = new WebSocket(`${WsEndpoints.NOTIFICATION}?token=${token}`);
+        if (!email) return;
+        const ws = new WebSocket(`${WsEndpoints.NOTIFICATION}?email=${email}`);
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
             if (data.type === "email_verified") {
                 onEmailVerified?.();
+                ws.close()
             }
         };
         return () => ws.close();
-    }, [token, onEmailVerified]);
+    }, [email, onEmailVerified]);
 }

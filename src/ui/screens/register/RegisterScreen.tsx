@@ -17,6 +17,8 @@ import HeadingText from "@/ui/components/typography/HeadingText";
 export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [agree, setAgree] = useState(false);
+
   const [errors, setErrors] = useState<{ email?: string; password?: string, general?: string }>({});
   const authServices = AuthServices();
 
@@ -26,6 +28,8 @@ export default function RegisterScreen() {
     const newErrors: { email?: string; password?: string, general?: string } = {};
     if (!email.trim()) newErrors.email = "Email is required";
     if (!password) newErrors.password = "Password is required";
+    if (!agree) newErrors.general = "Please Agree to NSFW";
+
     if (Object.keys(newErrors).length) {
       setErrors(newErrors);
       return;
@@ -34,17 +38,19 @@ export default function RegisterScreen() {
     try {
       const response: RegisterResponse = await authServices.register(password, email);
       if (response.ok) {
-        // useNotificationSocket(response.token, () => {
-        //   // Login if successful
-        // })
-        // response.token
-        // navigate("/register/verify");
+        useNotificationSocket(email, () => {
+          alert("Email Verified!!")
+        })
       }
       setErrors({ general: "Registration Failed Plese Try Again Later" });
     } catch (err) {
       console.error(err);
     }
   };
+
+  const handleOnAgreeChange = () => {
+    setAgree(prev => !prev)
+  }
 
   return (
     <BackgroundGradient>
@@ -75,7 +81,7 @@ export default function RegisterScreen() {
               />
               {errors.password && <span className={styles["error"]}>{errors.password}</span>}
             </div>
-            <CheckBox className={styles["check-box"]}>
+            <CheckBox className={styles["check-box"]} checked={agree} onChange={handleOnAgreeChange}>
               NSFW (Not Safe For Work) <QuestionMarkCircleIcon />
             </CheckBox>
             {errors.general && <span className={styles["error"]}>{errors.general}</span>}
