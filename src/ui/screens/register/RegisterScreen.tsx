@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BackgroundGradient from "../../templates/BackgroundGradient";
 import styles from "./RegisterScreen.module.css";
@@ -14,6 +14,7 @@ import BackArrowIcon from "@/assets/svg/ArrowLeft.svg?react"
 import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
 import HeadingText from "@/ui/components/typography/HeadingText";
 import { WsEndpoints } from "@/api/urls";
+import { AuthContext } from "@/context/AuthContext";
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState("");
@@ -22,7 +23,7 @@ export default function RegisterScreen() {
 
   const [errors, setErrors] = useState<{ email?: string; password?: string, general?: string }>({});
   const authServices = AuthServices();
-
+  const { login } = useContext(AuthContext);
   const navigate = useNavigate();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +46,7 @@ export default function RegisterScreen() {
           const data = JSON.parse(event.data);
           console.log("Data", data);
           if (data.type === "email_verified") {
-            navigate("/verify-email");
+            login(email, password);
             ws.close()
           }
         };
