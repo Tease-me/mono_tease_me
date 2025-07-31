@@ -12,6 +12,7 @@ import VerifyEmail from "./ui/screens/verify-email/VerifyEmail";
 import RegisterScreen from "./ui/screens/register/RegisterScreen";
 import Confirmation from "./ui/screens/register/Confirmation";
 import ResetPassword from "./ui/screens/forgot-password/ResetPassword";
+import ForgotPassword from "./ui/screens/forgot-password/ForgotPassword";
 
 function AppRoutes() {
   const publicRoutes = [
@@ -21,6 +22,7 @@ function AppRoutes() {
     ["/register", <RegisterScreen />],
     ["/register/verify", <Confirmation />],
     ["/reset-password", <ResetPassword />],
+    ["/forgot-password", <ForgotPassword />],
     ["/verify-email", <VerifyEmail />],
   ];
 

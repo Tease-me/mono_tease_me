@@ -18,6 +18,7 @@ export default function LoginScreen() {
   const [errorMessage, setErrorMessage] = useState<string>();
 
   const navigate = useNavigate();
+
   const { isSignedIn, login, authErrors } = useContext(AuthContext);
 
   useEffect(() => {
@@ -73,7 +74,7 @@ export default function LoginScreen() {
               <CheckBox>Remember Me</CheckBox>
               <CircularIconButton text="Sign In" size="small" onClick={handleSignInClick} />
               <p className={styles["auth-footer"]}>
-                <span>Forgot your password?</span>
+                <span onClick={() => navigate("/forgot-password")}>Forgot your password?</span>
               </p>
             </form>
           </div>
