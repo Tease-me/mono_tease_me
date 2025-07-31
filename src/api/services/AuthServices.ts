@@ -1,7 +1,6 @@
 import { Endpoints } from "../urls";
-import { TokenResponse } from "../models/TokenResponse";
 import { apiClient } from "../apis";
-import { RegisterResponse } from "../models/auth";
+import { ForgotPasswordResponse, RegisterResponse, TokenResponse } from "../models/auth";
 
 export const AuthServices = () => ({
     login: async (email: string, password: string): Promise<TokenResponse> => {
@@ -43,6 +42,22 @@ export const AuthServices = () => ({
             return response.data;
         } catch (error) {
             throw error;
+        }
+    },
+    forgotPassword: async (email: string) => {
+        try {
+            const { data } = await apiClient.post<ForgotPasswordResponse>(Endpoints.FORGOT_PASSWPRD,
+                null,
+                {
+                    params: {
+                        email: email
+                    }
+                }
+            );
+
+            return data;
+        } catch (err: any) {
+            throw err
         }
     }
 

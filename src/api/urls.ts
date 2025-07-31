@@ -8,6 +8,7 @@ export const Endpoints = {
     LOGIN: `${AUTH_URL}/login`,
     REGISTER: `${AUTH_URL}/register`,
     REFRESH_TOKEN: `${AUTH_URL}/refresh`,
+    FORGOT_PASSWPRD: `${AUTH_URL}/forgot-password`,
     ME: `${AUTH_URL}/me`,
     CHAT: "/chat",
     HISTORY: "/history",

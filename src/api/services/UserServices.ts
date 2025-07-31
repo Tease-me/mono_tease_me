@@ -1,6 +1,6 @@
 import { Endpoints } from "../urls";
 import { apiClient } from "../apis";
-import { UserDetailResponse } from "../models/LoginResponse";
+import { UserDetailResponse } from "../models/user";
 
 export const UserServices = () => ({
     getUserDerails: async (): Promise<UserDetailResponse> => {

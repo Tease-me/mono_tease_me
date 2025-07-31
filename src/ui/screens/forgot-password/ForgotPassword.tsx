@@ -6,34 +6,30 @@ import TextInput from '@/ui/components/inputs/text-inputs/TextInput';
 import OnBoardingTopNav from '@/ui/components/nav/OnBoardingTopNav';
 import HeadingText from '@/ui/components/typography/HeadingText';
 import BackgroundGradient from '@/ui/templates/BackgroundGradient';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { AuthServices } from '@/api/services/AuthServices';
+import BlockingLoader from '@/ui/components/loading/BlockingLoader';
 
 interface ForgotPasswordProps { }
-interface ForgotPasswordResponse {
-    ok: boolean;
-    message: string;
-}
+
 const ForgotPassword: React.FC<ForgotPasswordProps> = ({ }) => {
     const [email, setPassword] = useState("");
     const [status, setStatus] = useState("");
+    const [isLoading, setIsLoading] = useState(true);
 
     const navigate = useNavigate();
-
+    const authServices = AuthServices();
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-
+        setIsLoading(true);
         if (email === "") {
+            setIsLoading(false);
             setStatus("Please enter your email address.");
             return;
         }
-
         try {
-            const { data } = await apiClient.post<ForgotPasswordResponse>(`/auth/forgot-password`, null, {
-                params: {
-                    email: email
-                }
-            });
-
+            const data = await authServices.forgotPassword(email);
+            setIsLoading(false);
             if (!data.ok) {
                 throw new Error(`Server error: ${data.message}`);
             }
@@ -48,7 +44,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ }) => {
     };
     return (
         <BackgroundGradient>
-            <div className={styles["reset-password-screen"]}>
+            <div className={styles["forgot-password-screen"]}>
                 <OnBoardingTopNav />
                 <div className={styles["content"]}>
                     <HeadingText className={styles["title"]}>Reset your password</HeadingText>
@@ -71,6 +67,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ }) => {
                     </form>
                 </div>
             </div>
+            {isLoading && <BlockingLoader />}
         </BackgroundGradient>
     );
 };
