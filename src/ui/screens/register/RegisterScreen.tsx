@@ -2,18 +2,15 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BackgroundGradient from "../../templates/BackgroundGradient";
 import styles from "./RegisterScreen.module.css";
-import CenteredLayout from "@/ui/templates/CenteredLayout";
 import { AuthServices } from "@/api/services/AuthServices";
 import CheckBox from "@/ui/components/inputs/check-boxes/CheckBox";
 import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 import { RegisterResponse } from "@/api/models/auth";
 import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButton";
 import QuestionMarkCircleIcon from "@/assets/svg/QuestionMark.svg?react"
-import useNotificationSocket from "@/hooks/useNotificationSocket";
-import BackArrowIcon from "@/assets/svg/ArrowLeft.svg?react"
-import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
 import HeadingText from "@/ui/components/typography/HeadingText";
 import { AuthContext } from "@/context/AuthContext";
+import OnBoardingTopNav from "@/ui/components/nav/OnBoardingTopNav";
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState("");
@@ -55,17 +52,14 @@ export default function RegisterScreen() {
     setAgree(prev => !prev)
   }
 
+  const handleBackClick = () => {
+    navigate("/")
+  }
+
   return (
     <BackgroundGradient>
       <div className={styles["register-screen"]}>
-        <div className={styles["top-nav"]}>
-          <div className={styles["left-container"]}>
-            <BackArrowIcon />
-          </div>
-          <div className={styles["right-container"]}>
-            <TeaseMeLogo />
-          </div>
-        </div>
+        <OnBoardingTopNav onBackClicked={handleBackClick} />
         <div className={styles["content"]}>
           <HeadingText className={styles["title"]}>Create your Account</HeadingText>
           <form className={styles["auth-form"]} onSubmit={handleSubmit}>

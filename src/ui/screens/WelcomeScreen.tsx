@@ -11,6 +11,7 @@ import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButto
 import TeaseMeLogo from "../components/logos/TeaseMeLogo";
 import DividerWithLabel from "../components/dividers/DividerWithLabel";
 import { AuthContext } from "@/context/AuthContext";
+
 export interface WelcomeScreenProps {
 }
 
@@ -39,7 +40,7 @@ export default function WelcomeScreen({ }: WelcomeScreenProps) {
           Don't have an account?{" "}
           <span
             className={styles["signup-link"]}
-            onClick={() => navigate("/signup")}
+            onClick={() => navigate("/register")}
             style={{ cursor: "pointer", color: "#ff4d6d" }}>
             Sign up
           </span>

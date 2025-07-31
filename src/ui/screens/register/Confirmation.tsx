@@ -9,6 +9,7 @@ import HeadingText from '@/ui/components/typography/HeadingText';
 import { WsEndpoints } from '@/api/urls';
 import { AuthContext } from '@/context/AuthContext';
 import LoadingSpinner from '@/ui/components/loading/LoadingSpinner';
+import OnBoardingTopNav from '@/ui/components/nav/OnBoardingTopNav';
 
 interface ConfirmationProps {
 }
@@ -27,7 +28,7 @@ const Confirmation: React.FC<ConfirmationProps> = () => {
             return;
         }
         if (!state) {
-            navigate("/");
+            navigate("/register");
             return
         }
         const { email, password } = state as { email: string, password: string };
@@ -47,6 +48,7 @@ const Confirmation: React.FC<ConfirmationProps> = () => {
 
     return (
         <BackgroundGradient>
+            <OnBoardingTopNav />
             <CenteredLayout>
                 <div className={styles.container}>
                     <TeaseMeLogo size='xlarge' />

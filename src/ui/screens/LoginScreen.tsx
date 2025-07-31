@@ -10,6 +10,7 @@ import TextInput from "../components/inputs/text-inputs/TextInput";
 import MessageIcon from "@/assets/svg/Message.svg?react"
 import LockIcon from "@/assets/svg/Lock.svg?react"
 import ErrorMessage from "../components/ErrorMessage";
+import OnBoardingTopNav from "../components/nav/OnBoardingTopNav";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -46,6 +47,7 @@ export default function LoginScreen() {
 
   return (
     <BackgroundGradient>
+      <OnBoardingTopNav />
       <CenteredLayout>
         <div className={styles["auth-container"]}>
           <div className={styles["auth-content"]}>
