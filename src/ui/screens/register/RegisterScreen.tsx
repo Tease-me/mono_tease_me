@@ -13,7 +13,6 @@ import useNotificationSocket from "@/hooks/useNotificationSocket";
 import BackArrowIcon from "@/assets/svg/ArrowLeft.svg?react"
 import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
 import HeadingText from "@/ui/components/typography/HeadingText";
-import { WsEndpoints } from "@/api/urls";
 import { AuthContext } from "@/context/AuthContext";
 
 export default function RegisterScreen() {
@@ -23,8 +22,12 @@ export default function RegisterScreen() {
 
   const [errors, setErrors] = useState<{ email?: string; password?: string, general?: string }>({});
   const authServices = AuthServices();
-  const { login } = useContext(AuthContext);
+  const { isSignedIn } = useContext(AuthContext);
+
   const navigate = useNavigate();
+
+  if (isSignedIn) navigate("/home");
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: { email?: string; password?: string, general?: string } = {};
@@ -40,18 +43,7 @@ export default function RegisterScreen() {
     try {
       const response: RegisterResponse = await authServices.register(password, email);
       if (response.ok) {
-        const ws = new WebSocket(`${WsEndpoints.NOTIFICATION}?email=${encodeURIComponent(email)}`);
-        console.log("Ws connected, waiting for reply")
-        ws.onmessage = (event) => {
-          const data = JSON.parse(event.data);
-          console.log("Data", data);
-          if (data.type === "email_verified") {
-            login(email, password);
-            navigate("/home");
-            ws.close()
-          }
-        };
-        return () => ws.close();
+        navigate("/register/verify", { state: { email, password } });
       }
       setErrors({ general: "Registration Failed Plese Try Again Later" });
     } catch (err) {

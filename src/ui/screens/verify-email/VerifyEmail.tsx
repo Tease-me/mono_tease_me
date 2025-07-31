@@ -24,7 +24,10 @@ const VerifyEmail: React.FC<VerifyEmailProps> = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (!token) return;
+        if (!token) {
+            navigate("/")
+            return
+        };
         const verifyEmail = async () => {
             try {
                 const { data } = await apiClient.get<VerifyEmailResponse>(`/auth/confirm-email/`, {

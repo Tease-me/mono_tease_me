@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import oliviaImage from "@/assets/image/avatar.png";
@@ -10,12 +10,18 @@ import CenteredLayout from "@/ui/templates/CenteredLayout";
 import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButton";
 import TeaseMeLogo from "../components/logos/TeaseMeLogo";
 import DividerWithLabel from "../components/dividers/DividerWithLabel";
+import { AuthContext } from "@/context/AuthContext";
 export interface WelcomeScreenProps {
 }
 
 export default function WelcomeScreen({ }: WelcomeScreenProps) {
   const navigate = useNavigate();
   const { username } = useParams<{ username: string }>();
+  const { isSignedIn } = useContext(AuthContext);
+  useEffect(() => {
+    if (isSignedIn) navigate("/home")
+    return
+  }, [isSignedIn])
   const handleSignInClick = () => {
     navigate("/login");
   };
