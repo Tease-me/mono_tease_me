@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BackgroundGradient from "../../templates/BackgroundGradient";
 import styles from "./RegisterScreen.module.css";
@@ -13,6 +13,7 @@ import useNotificationSocket from "@/hooks/useNotificationSocket";
 import BackArrowIcon from "@/assets/svg/ArrowLeft.svg?react"
 import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
 import HeadingText from "@/ui/components/typography/HeadingText";
+import { WsEndpoints } from "@/api/urls";
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState("");
@@ -38,9 +39,17 @@ export default function RegisterScreen() {
     try {
       const response: RegisterResponse = await authServices.register(password, email);
       if (response.ok) {
-        useNotificationSocket(email, () => {
-          alert("Email Verified!!")
-        })
+        const ws = new WebSocket(`${WsEndpoints.NOTIFICATION}?email=${encodeURIComponent(email)}`);
+        console.log("Ws connected, waiting for reply")
+        ws.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          console.log("Data", data);
+          if (data.type === "email_verified") {
+            navigate("/verify-email");
+            ws.close()
+          }
+        };
+        return () => ws.close();
       }
       setErrors({ general: "Registration Failed Plese Try Again Later" });
     } catch (err) {

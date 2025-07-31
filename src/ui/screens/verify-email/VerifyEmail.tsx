@@ -27,7 +27,7 @@ const VerifyEmail: React.FC<VerifyEmailProps> = () => {
         if (!token) return;
         const verifyEmail = async () => {
             try {
-                const { data } = await apiClient.get<VerifyEmailResponse>(`/auth/verify-email/`, {
+                const { data } = await apiClient.get<VerifyEmailResponse>(`/auth/confirm-email/`, {
                     params: { token }
                 });
                 if (!data.ok) {
