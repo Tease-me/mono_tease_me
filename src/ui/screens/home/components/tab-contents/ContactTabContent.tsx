@@ -19,7 +19,7 @@ const ContactTabContent: React.FC<ContactTabContentProps> = ({ selectedContactId
         c.name.toLowerCase().includes(search.toLowerCase())
     );
     return (
-        <>
+        <div>
             <TextInput className={styles["search-input"]} value={search} leftIcon={<SearchIcon />} placeholder='Search' onChange={(e) => setSearch((e.target as HTMLInputElement).value)} />
             <div className={styles["vertical-scroll"]}>
                 {filteredContacts.map((contact) => (
@@ -36,7 +36,7 @@ const ContactTabContent: React.FC<ContactTabContentProps> = ({ selectedContactId
                     </div>
                 ))}
             </div>
-        </>
+        </div>
     );
 };
 
