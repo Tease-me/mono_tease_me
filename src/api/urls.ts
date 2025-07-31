@@ -15,8 +15,8 @@ export const Endpoints = {
 }
 
 const WEB_SHOCKET_URL = `${TEASE_ME_WS_PROTOCOL}://${TEASE_ME_HOST}`;
-const CHAT_URL = `${WEB_SHOCKET_URL}/ws/chat`;
 
 export const WsEndpoints = {
-    CHAT: `${CHAT_URL}`,
+    CHAT: `${WEB_SHOCKET_URL}/ws/chat`,
+    NOTIFICATION: `${WEB_SHOCKET_URL}/ws/notifications`
 }
