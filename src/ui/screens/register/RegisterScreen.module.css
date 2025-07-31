@@ -93,9 +93,4 @@
   .auth-buttons {
     flex-direction: column;
   }
-
-  .btn-primary,
-  .btn-back {
-    width: 100%;
-  }
 }
