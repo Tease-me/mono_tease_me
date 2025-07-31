@@ -1,5 +1,6 @@
 .text-input-container {
     display: flex;
+    flex: 1;
     flex-direction: row;
     align-items: center;
     background-color: var(--color-dark-2);

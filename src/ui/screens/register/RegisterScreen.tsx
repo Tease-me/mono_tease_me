@@ -10,6 +10,9 @@ import { RegisterResponse } from "@/api/models/auth";
 import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButton";
 import QuestionMarkCircleIcon from "@/assets/svg/QuestionMark.svg?react"
 import useNotificationSocket from "@/hooks/useNotificationSocket";
+import BackArrowIcon from "@/assets/svg/ArrowLeft.svg?react"
+import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
+import HeadingText from "@/ui/components/typography/HeadingText";
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState("");
@@ -45,47 +48,50 @@ export default function RegisterScreen() {
 
   return (
     <BackgroundGradient>
-      <div className={styles["top-nav"]}>
-        <div className={styles["left-container"]}>
-          Left
+      <div className={styles["register-screen"]}>
+        <div className={styles["top-nav"]}>
+          <div className={styles["left-container"]}>
+            <BackArrowIcon />
+          </div>
+          <div className={styles["right-container"]}>
+            <TeaseMeLogo />
+          </div>
         </div>
-        <div className={styles["right-container"]}>
-          Right
+        <div className={styles["content"]}>
+          <HeadingText className={styles["title"]}>Create your Account</HeadingText>
+          <form className={styles["auth-form"]} onSubmit={handleSubmit}>
+            <div className={styles["input-fields"]}>
+              <TextInput
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={e => setEmail((e.target as HTMLInputElement).value)} />
+              {errors.email && <span className={styles["error"]}>{errors.email}</span>}
+              <TextInput
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={e => setPassword((e.target as HTMLInputElement).value)}
+              />
+              {errors.password && <span className={styles["error"]}>{errors.password}</span>}
+            </div>
+            <CheckBox className={styles["check-box"]}>
+              NSFW (Not Safe For Work) <QuestionMarkCircleIcon />
+            </CheckBox>
+            {errors.general && <span className={styles["error"]}>{errors.general}</span>}
+            <div className={styles["user-action-section"]}>
+              <div className={styles["auth-buttons"]}>
+                <CircularIconButton className={styles["btn-back"]} onClick={() => navigate("/")} text="Back" variant="tertiary" />
+                <CircularIconButton type="submit" className={styles["btn-primary"]} text="Continue" />
+              </div>
+              <p className={styles["auth-footer"]}>
+                Already have an account?{" "}
+                <span onClick={() => navigate("/login")}>Sign in</span>
+              </p>
+            </div>
+          </form>
         </div>
       </div>
-      <CenteredLayout>
-        <h2 className={styles["title"]}>Create your Account</h2>
-        <form className={styles["auth-form"]} onSubmit={handleSubmit}>
-          <div className={styles["input-fields"]}>
-            <TextInput
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={e => setEmail((e.target as HTMLInputElement).value)} />
-            {errors.email && <span className={styles["error"]}>{errors.email}</span>}
-            <TextInput
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={e => setPassword((e.target as HTMLInputElement).value)}
-            />
-            {errors.password && <span className={styles["error"]}>{errors.password}</span>}
-          </div>
-          <CheckBox>
-            NSFW (Not Safe For Work) <QuestionMarkCircleIcon />
-          </CheckBox>
-          {errors.general && <span className={styles["error"]}>{errors.general}</span>}
-          <div className={styles["auth-buttons"]}>
-            <CircularIconButton className={styles["btn-back"]} onClick={() => navigate("/")} text="Back" variant="tertiary" />
-            <CircularIconButton type="submit" className={styles["btn-primary"]} text="Continue" />
-          </div>
-
-          <p className={styles["auth-footer"]}>
-            Already have an account?{" "}
-            <span onClick={() => navigate("/login")}>Sign in</span>
-          </p>
-        </form>
-      </CenteredLayout>
     </BackgroundGradient>
   );
 }
