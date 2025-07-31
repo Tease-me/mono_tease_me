@@ -47,6 +47,7 @@ export default function RegisterScreen() {
           console.log("Data", data);
           if (data.type === "email_verified") {
             login(email, password);
+            navigate("/home");
             ws.close()
           }
         };
