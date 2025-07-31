@@ -34,9 +34,10 @@ const VerifyEmail: React.FC<VerifyEmailProps> = () => {
                     throw new Error(`Server error: ${data.message}`);
                 }
                 setStatus(data.message);
-                // Open login page in a new tab and pass the verification status
-                const loginTab = window.open('/register', '_blank');
+                // Open or reuse a named tab and pass the verification status
+                const loginTab = window.open('/register', 'loginTab');
                 if (loginTab) {
+                    loginTab.focus();
                     loginTab.postMessage({ verificationStatus: data.message }, window.location.origin);
                 }
                 // Close the page 5 seconds after successful verification
