@@ -2,6 +2,7 @@ import React, { JSX, Suspense, lazy } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import PrivateRoute from "./PrivateRoute";
 import GuestRoute from "./GuestRoute";
+import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 
 const WelcomeScreen = lazy(() => import("@/ui/screens/WelcomeScreen"));
 const LoginScreen = lazy(() => import("@/ui/screens/login/LoginScreen"));
@@ -41,7 +42,7 @@ function AppRoutes() {
 
   return (
     <BrowserRouter>
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<BlockingLoader />}>
         <Routes>
           {publicRoutes.map(({ path, element }) => (
             <Route key={path} path={path} element={element} />
