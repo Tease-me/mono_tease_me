@@ -1,18 +1,19 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import CallScreen from "./ui/screens/CallScreen";
-import ChatScreen from "./ui/screens/messaging/ChatScreen";
-import HomeScreen from "./ui/screens/home/HomeScreen";
-import LoginScreen from "./ui/screens/LoginScreen";
-import WelcomeScreen from "./ui/screens/WelcomeScreen";
-import VoiceCall from "./ui/screens/messaging/VoiceCall";
 import PrivateRoute from "./utils/PrivateRoute";
-import VoiceCallEleven from "./ui/screens/messaging/VoiceCallEleven";
-import VerifyEmail from "./ui/screens/verify-email/VerifyEmail";
-import RegisterScreen from "./ui/screens/register/RegisterScreen";
-import Confirmation from "./ui/screens/register/Confirmation";
-import ResetPassword from "./ui/screens/forgot-password/ResetPassword";
-import ForgotPassword from "./ui/screens/forgot-password/ForgotPassword";
+
+const WelcomeScreen = lazy(() => import("./ui/screens/WelcomeScreen"));
+const LoginScreen = lazy(() => import("./ui/screens/login/LoginScreen"));
+const RegisterScreen = lazy(() => import("./ui/screens/register/RegisterScreen"));
+const Confirmation = lazy(() => import("./ui/screens/register/Confirmation"));
+const ResetPassword = lazy(() => import("./ui/screens/forgot-password/ResetPassword"));
+const ForgotPassword = lazy(() => import("./ui/screens/forgot-password/ForgotPassword"));
+const VerifyEmail = lazy(() => import("./ui/screens/verify-email/VerifyEmail"));
+const VoiceCall = lazy(() => import("./ui/screens/messaging/VoiceCall"));
+const VoiceCallEleven = lazy(() => import("./ui/screens/messaging/VoiceCallEleven"));
+const HomeScreen = lazy(() => import("./ui/screens/home/HomeScreen"));
+const ChatScreen = lazy(() => import("./ui/screens/messaging/ChatScreen"));
+const CallScreen = lazy(() => import("./ui/screens/CallScreen"));
 
 function AppRoutes() {
   const publicRoutes = [
@@ -36,12 +37,16 @@ function AppRoutes() {
 
   return (
     <BrowserRouter>
-      <Routes>
-        {publicRoutes.map(([path, element]) => <Route path={path} element={element} />)}
-        {
-          privateRoutes.map(([path, element]) => <Route path={path} element={<PrivateRoute>{element}</PrivateRoute>} />)
-        }
-      </Routes>
+      <Suspense fallback={<div>Loading...</div>}>
+        <Routes>
+          {publicRoutes.map(([path, element]) => (
+            <Route key={path} path={path} element={element} />
+          ))}
+          {privateRoutes.map(([path, element]) => (
+            <Route key={path} path={path} element={<PrivateRoute>{element}</PrivateRoute>} />
+          ))}
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

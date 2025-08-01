@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import styles from "./ForgotPassword.module.css"
-import { apiClient } from '@/api/apis';
 import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButton';
 import TextInput from '@/ui/components/inputs/text-inputs/TextInput';
 import OnBoardingTopNav from '@/ui/components/nav/OnBoardingTopNav';
@@ -15,7 +14,7 @@ interface ForgotPasswordProps { }
 const ForgotPassword: React.FC<ForgotPasswordProps> = ({ }) => {
     const [email, setPassword] = useState("");
     const [status, setStatus] = useState("");
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
 
     const navigate = useNavigate();
     const authServices = AuthServices();

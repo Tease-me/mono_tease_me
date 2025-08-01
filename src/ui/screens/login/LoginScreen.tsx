@@ -1,16 +1,16 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import BackgroundGradient from "../templates/BackgroundGradient";
 import styles from "./LoginScreen.module.css";
 import { AuthContext } from "@/context/AuthContext";
 import CenteredLayout from "@/ui/templates/CenteredLayout";
-import CircularIconButton from "../components/inputs/buttons/CircularIconButton";
-import CheckBox from "../components/inputs/check-boxes/CheckBox";
-import TextInput from "../components/inputs/text-inputs/TextInput";
 import MessageIcon from "@/assets/svg/Message.svg?react"
 import LockIcon from "@/assets/svg/Lock.svg?react"
-import ErrorMessage from "../components/ErrorMessage";
-import OnBoardingTopNav from "../components/nav/OnBoardingTopNav";
+import BackgroundGradient from "@/ui/templates/BackgroundGradient";
+import ErrorMessage from "@/ui/components/ErrorMessage";
+import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButton";
+import CheckBox from "@/ui/components/inputs/check-boxes/CheckBox";
+import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
+import OnBoardingTopNav from "@/ui/components/nav/OnBoardingTopNav";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
