@@ -41,6 +41,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ }) => {
             setStatus("Something went wrong. Please try again later.");
         }
     };
+
     return (
         <BackgroundGradient>
             <div className={styles["forgot-password-screen"]}>
