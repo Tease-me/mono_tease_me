@@ -5,6 +5,9 @@ import useMediaQuery from "@/hooks/useMediaQuery";
 import TwoPaneLayout from "@/ui/templates/TwoPaneLayout";
 import ChatScreenContent from "../messaging/components/ChatScreenContent";
 import { AuthContext } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import VerifyEmail from "../verify-email/VerifyEmail";
+import Confirmation from "../register/Confirmation";
 
 export default function HomeScreen() {
   const storedId = localStorage.getItem("selected_id");
@@ -16,14 +19,6 @@ export default function HomeScreen() {
   const isDesktop = useMediaQuery('(min-width: 1024px)');
 
   const { user } = useContext(AuthContext);
-
-  // useEffect(() => {
-  //   if (user) {
-  //     if (!user.is_verified) {
-  //       alert("Please Verify your email first!");
-  //     }
-  //   }
-  // }, [user])
 
   useEffect(() => {
     localStorage.setItem("selected_id", id?.toString() || "");
@@ -41,13 +36,13 @@ export default function HomeScreen() {
 
   return (
     <BackgroundGradient>
-      <TwoPaneLayout
+      {user?.is_verified ? <TwoPaneLayout
         showSidebar={showSidebar}
         showContent={showContent}
         sidebar={<HomeScreenContent id={id} onItemClick={(id: string) => { setId(id) }} />}
       >
         <ChatScreenContent id={id} onBackPressed={() => { setId(undefined) }} />
-      </TwoPaneLayout>
+      </TwoPaneLayout> : <Confirmation />}
     </BackgroundGradient>
   );
 }
