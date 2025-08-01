@@ -1,5 +1,6 @@
 import { mock } from "@/api/mock/mock";
-import { TokenResponse } from "@/api/models/TokenResponse";
+import { TokenResponse } from "@/api/models/auth";
+import { UserDetailResponse } from "@/api/models/user";
 import { AuthServices } from "@/api/services/AuthServices";
 import { UserServices } from "@/api/services/UserServices";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
@@ -69,12 +70,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, []);
 
     const getUserDetails = async () => {
-        const response = await userServices.getUserDerails()
+        const response: UserDetailResponse = await userServices.getUserDerails()
         const user: UserDataModel = {
             id: response.id,
             username: response.username,
             email: response.email,
-            name: "Kako",
+            name: response.name,
+            is_verified: response.is_varified,
             createdAt: mock.getRandomDate(),
             updatedAt: mock.getRandomDate()
         }

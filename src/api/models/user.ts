@@ -1,5 +1,7 @@
 export interface UserDetailResponse {
     id: number;
-    username: string;
+    name?: string;
+    username?: string;
     email: string;
+    is_varified: boolean;
 }

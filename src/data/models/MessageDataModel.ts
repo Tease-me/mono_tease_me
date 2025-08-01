@@ -2,7 +2,8 @@ export type MediaType = 'image' | 'video' | 'audio' | 'file';
 
 export interface MediaAttachment {
     type: MediaType;
-    blob: Blob;
+    blob?: Blob;
+    audioUrl?: string;
     thumbnailBlob?: Blob;
 }
 

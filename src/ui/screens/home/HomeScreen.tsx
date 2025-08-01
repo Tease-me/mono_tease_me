@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import BackgroundGradient from "@/ui/templates/BackgroundGradient";
 import HomeScreenContent from "./components/HomeScreenContent";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import TwoPaneLayout from "@/ui/templates/TwoPaneLayout";
 import ChatScreenContent from "../messaging/components/ChatScreenContent";
+import { AuthContext } from "@/context/AuthContext";
 
 export default function HomeScreen() {
   const storedId = localStorage.getItem("selected_id");
@@ -13,6 +14,16 @@ export default function HomeScreen() {
   const [showSidebar, setShowSidebar] = useState(true);
 
   const isDesktop = useMediaQuery('(min-width: 1024px)');
+
+  const { user } = useContext(AuthContext);
+
+  // useEffect(() => {
+  //   if (user) {
+  //     if (!user.is_verified) {
+  //       alert("Please Verify your email first!");
+  //     }
+  //   }
+  // }, [user])
 
   useEffect(() => {
     localStorage.setItem("selected_id", id?.toString() || "");

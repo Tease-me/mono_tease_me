@@ -2,7 +2,7 @@ import React, { useLayoutEffect, useRef, useState } from 'react';
 import styles from "./MessageBubble.module.css"
 import clsx from 'clsx';
 import TypingIndicator from './TypingIndicator';
-import { Message } from '@/data/models/MessageDataModel';
+import { MediaAttachment, Message } from '@/data/models/MessageDataModel';
 import AudioPlayer from '@/ui/components/audio-player/AudioPlayer';
 
 interface MessageBubbleProps {
@@ -24,6 +24,14 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ msg }) => {
         return () => window.removeEventListener('resize', updateSize);
     }, [containerRef]);
 
+    const getAudioUrl = (attachment: MediaAttachment): string => {
+        if (attachment.blob)
+            return URL.createObjectURL(attachment.blob);
+        if (attachment.audioUrl)
+            return attachment.audioUrl;
+        return "";
+    }
+
     return (
         msg ? <div ref={containerRef} className={clsx(styles["message"], styles[msg.sender])}>
             <div className={styles["message-content"]}>
@@ -32,7 +40,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ msg }) => {
                     attachment.type === 'audio' ? (
                         <AudioPlayer
                             key={idx}
-                            src={URL.createObjectURL(attachment.blob)}
+                            src={getAudioUrl(attachment)}
                             height={dimensions.height}
                             width={dimensions.width}
                             progressColor={msg.sender === "received" ? '#FF8395' : "#FF981F"}

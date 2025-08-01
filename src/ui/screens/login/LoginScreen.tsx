@@ -31,7 +31,6 @@ export default function LoginScreen() {
     }
   }, [isSignedIn])
 
-
   const handleSignInClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) {
