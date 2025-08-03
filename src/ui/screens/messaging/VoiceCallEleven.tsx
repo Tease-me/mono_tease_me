@@ -4,7 +4,6 @@ import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 import CenteredLayout from '@/ui/templates/CenteredLayout';
 import { useConversation } from "@11labs/react";
 import { getSignedUrl } from '@/api/eleven/eleven';
-import { releaseMicrophonePermission, requestMicrophonePermission } from '@/utils/Permissions';
 import ProfileMedia from '@/ui/components/ProfileMedia';
 import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButton';
 import oliviaImage from "@/assets/image/avatar.png"
@@ -13,6 +12,7 @@ import CloseSquareIcon from "@/assets/CloseSquare.svg?react";
 import CallIcon from "@/assets/Call.svg?react";
 import WifiIcon from "@/assets/Wifi.svg?react";
 import NoSignalIcon from "@/assets/svg/NoSignal.svg"
+import { useMicrophonePermission } from '@/hooks/useMicrophonePermission';
 
 interface VoiceCallElevenProps {
 }
@@ -24,6 +24,8 @@ const VoiceCallEleven: React.FC<VoiceCallElevenProps> = ({ }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [isConnected, setIsConnected] = useState(false);
     const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+    const { permissionState, requestMicrophonePermission, releaseMicrophonePermission} = useMicrophonePermission();
+    
     const ringtoneRef = useRef(new Audio("/audio/ringtone.wav"));
     const ring = () => {
         const ringtone = ringtoneRef.current;
