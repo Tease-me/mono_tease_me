@@ -5,8 +5,6 @@ import useMediaQuery from "@/hooks/useMediaQuery";
 import TwoPaneLayout from "@/ui/templates/TwoPaneLayout";
 import ChatScreenContent from "../messaging/components/ChatScreenContent";
 import { AuthContext } from "@/context/AuthContext";
-import { useNavigate } from "react-router-dom";
-import VerifyEmail from "../verify-email/VerifyEmail";
 import Confirmation from "../register/Confirmation";
 
 export default function HomeScreen() {
@@ -36,13 +34,13 @@ export default function HomeScreen() {
 
   return (
     <BackgroundGradient>
-      {user?.is_verified ? <TwoPaneLayout
+      {<TwoPaneLayout
         showSidebar={showSidebar}
         showContent={showContent}
         sidebar={<HomeScreenContent id={id} onItemClick={(id: string) => { setId(id) }} />}
       >
         <ChatScreenContent id={id} onBackPressed={() => { setId(undefined) }} />
-      </TwoPaneLayout> : <Confirmation />}
+      </TwoPaneLayout>}
     </BackgroundGradient>
   );
 }

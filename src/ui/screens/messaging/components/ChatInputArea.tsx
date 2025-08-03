@@ -34,7 +34,6 @@ const showWebmUnsupportedError = () => {
 import styles from "./ChatInputArea.module.css"
 import AudioVisualizer from './AudioVisualizer';
 import AudioWaveform from './AudioWaveform';
-import { releaseMicrophonePermission, requestMicrophonePermission } from '@/utils/Permissions';
 import LongPressButton from '@/ui/components/inputs/buttons/LongPressButton';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { clear } from 'console';
