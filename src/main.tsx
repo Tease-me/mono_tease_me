@@ -22,8 +22,8 @@ function usePushNotifications() {
           );
 
           console.log('Service Worker registered:', registration);
-          // const ready = await navigator.serviceWorker.ready;
-          // console.log("ready", ready);
+          const ready = await navigator.serviceWorker.ready;
+          console.log("ready", ready);
           let subscription = await registration.pushManager.getSubscription();
           if (!subscription) {
             subscription = await registration.pushManager.subscribe({
@@ -31,9 +31,14 @@ function usePushNotifications() {
               applicationServerKey: FIREBASE_PUBLIC_KEY
             });
           }
-          console.log('Successfully subscribed in the front end! 🎉');
+          console.log('Successfully subscribed in the front end! 🎉', subscription);
           await apiClient.post("/push/subscribe",
-            JSON.stringify(subscription)
+            subscription
+            // {
+            //   "endpoint": subscription.endpoint, "keys": {
+            //     "applicationServerKey": FIREBASE_PUBLIC_KEY
+            //   }
+            // }
           );
 
           console.log('Successfully subscribed to push notifications! 🎉');

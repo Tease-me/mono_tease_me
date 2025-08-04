@@ -5,10 +5,8 @@ const URLS_TO_CACHE = [
     '/styles.css',
     '/app.js',
     '/apple-touch-icon.png'
-    // add other assets you want to cache here
 ];
 
-// Cache install
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
@@ -17,7 +15,6 @@ self.addEventListener('install', event => {
     );
 });
 
-// Activate and cleanup old caches
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(cacheNames =>
@@ -32,7 +29,6 @@ self.addEventListener('activate', event => {
     );
 });
 
-// Fetch from cache first, then network
 self.addEventListener('fetch', event => {
     event.respondWith(
         caches.match(event.request)
@@ -45,19 +41,18 @@ self.addEventListener('fetch', event => {
     );
 });
 
-// self.addEventListener('push', event => {
-//     console.log("Push received:", event);
-//     const payload = event.data ? event.data.json() : {};
-//     const title = payload.title || "New Notification";
-//     const options = {
-//         body: payload.body || payload.message || "",
-//         icon: payload.icon || "/apple-touch-icon.png",
-//         data: payload.data || {}
-//     };
-//     event.waitUntil(
-//         self.registration.showNotification(title, options)
-//     );
-// });
+self.addEventListener('push', event => {
+    const payload = event.data ? event.data.json() : {};
+    const title = payload.title || "New Notification";
+    const options = {
+        body: payload.body || payload.body || "",
+        icon: payload.icon || "/apple-touch-icon.png",
+        data: payload.data || {}
+    };
+    event.waitUntil(
+        self.registration.showNotification(title, options)
+    );
+});
 
 self.addEventListener('notificationclick', event => {
     event.notification.close();
