@@ -19,7 +19,7 @@ export const ChatServices = () => ({
                 Endpoints.CHAT,
                 {
                     "user_id": user_id,
-                    "persona_id": persona_id
+                    "influencer_id": persona_id
                 }
             );
             return response.data;
