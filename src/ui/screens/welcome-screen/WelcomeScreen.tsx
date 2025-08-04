@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import oliviaImage from "@/assets/image/avatar.png";
@@ -13,7 +13,8 @@ import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import DividerWithLabel from "@/ui/components/dividers/DividerWithLabel";
 import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
 import BackgroundGradient from "@/ui/templates/BackgroundGradient";
-
+import CallIcon from "@/assets/Call.svg?react";
+import DropCallIcon from "@/assets/svg/DropCall.svg?react";
 export interface WelcomeScreenProps {
 }
 
@@ -22,6 +23,11 @@ export default function WelcomeScreen({ }: WelcomeScreenProps) {
   const { username } = useParams<{ username: string }>();
   const { isSignedIn } = useContext(AuthContext);
   const [isFirstTime, setIsFirstTime] = useState(false);
+  const [onTryClicked, setOnTryClicked] = useState(false);
+
+  const audioRef = useRef(new Audio("/audio/ringtone.wav"));
+
+  audioRef.current.loop = true
 
   useEffect(() => {
     if (storage.getBoolean(LocalStorageKeys.VisitedWelcome)) {
@@ -41,7 +47,20 @@ export default function WelcomeScreen({ }: WelcomeScreenProps) {
   };
 
   const handleTryClick = () => {
-    storage.setBoolean(LocalStorageKeys.VisitedWelcome, true)
+    audioRef.current.play();
+    setOnTryClicked(true)
+    setTimeout(() => {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }, 60000);
+  };
+
+  const handlePickUpCall = () => {
+    storage.setBoolean(LocalStorageKeys.VisitedWelcome, true);
+  }
+
+  const handleHangUpCall = () => {
+    storage.setBoolean(LocalStorageKeys.VisitedWelcome, true);
   }
 
   return (
@@ -66,7 +85,10 @@ export default function WelcomeScreen({ }: WelcomeScreenProps) {
 
         <DividerWithLabel text="or" />
         {isFirstTime ? <CircularIconButton text="Sign in with email" className={styles["sign-in-button"]} onClick={handleSignInClick} /> :
-          <CircularIconButton text="Talk To Me Now" onClick={handleTryClick} />}
+          onTryClicked ? <CircularIconButton text="Talk To Me Now" onClick={handleTryClick} /> : <div className={styles["call-buttons"]}>
+            <CircularIconButton icon={<DropCallIcon />} onClick={handleHangUpCall} size="small" variant="tertiary" />
+            <CircularIconButton icon={<CallIcon />} onClick={handlePickUpCall} size="small" />
+          </div>}
       </CenteredLayout>
     </BackgroundGradient>
   );

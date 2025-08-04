@@ -43,6 +43,13 @@
   font-weight: bold;
 }
 
+.call-buttons {
+  display: flex;
+  flex: 1;
+  gap: 20px;
+  justify-content: center;
+}
+
 /* Responsividade para desktop */
 @media (min-width: 1024px) {
   .content {
