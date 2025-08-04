@@ -47,22 +47,23 @@ self.addEventListener('fetch', event => {
     );
 });
 
-self.addEventListener('push', event => {
-    console.log("Push received:", event);
-    const data = event.data.json();
+// self.addEventListener('push', event => {
+//     console.log("Push received:", event);
+//     const payload = event.data ? event.data.json() : {};
+//     const title = payload.title || "New Notification";
+//     const options = {
+//         body: payload.body || payload.message || "",
+//         icon: payload.icon || "/apple-touch-icon.png",
+//         data: payload.data || {}
+//     };
+//     event.waitUntil(
+//         self.registration.showNotification(title, options)
+//     );
+// });
+
+self.addEventListener('notificationclick', event => {
+    event.notification.close();
     event.waitUntil(
-        self.registration.showNotification('Title', {
-            body: data.message,
-            icon: '/apple-touch-icon.png'
-        })
+        clients.openWindow(event.notification.data.url || "/")
     );
 });
-
-if ('PushManager' in self) {
-    self.registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: FIREBASE_PUBLIC_KEY
-    });
-} else {
-    console.warn('Push API not supported; you may need a fallback.');
-}
