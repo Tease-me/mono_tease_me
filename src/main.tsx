@@ -17,7 +17,7 @@ function usePushNotifications() {
       (async () => {
         try {
           const registration = await navigator.serviceWorker.register(
-            new URL('./service-worker.js', import.meta.url),
+            "/sw.js",
             { type: 'module' }
           );
 

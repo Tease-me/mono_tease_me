@@ -1,5 +1,3 @@
-import { FIREBASE_PUBLIC_KEY } from "./env";
-
 const CACHE_NAME = 'tease-me-cache-v1';
 const URLS_TO_CACHE = [
     '/',
