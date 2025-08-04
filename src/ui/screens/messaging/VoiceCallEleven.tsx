@@ -24,9 +24,10 @@ const VoiceCallEleven: React.FC<VoiceCallElevenProps> = ({ }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [isConnected, setIsConnected] = useState(false);
     const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
-    const { permissionState, requestMicrophonePermission, releaseMicrophonePermission} = useMicrophonePermission();
-    
+    const { permissionState, requestMicrophonePermission, releaseMicrophonePermission } = useMicrophonePermission();
+
     const ringtoneRef = useRef(new Audio("/audio/ringtone.wav"));
+
     const ring = () => {
         const ringtone = ringtoneRef.current;
         ringtone.loop = true;

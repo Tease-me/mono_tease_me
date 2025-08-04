@@ -1,17 +1,17 @@
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 
 export const storage = {
-    get: (key: LocalStorageKeys): string | null =>
-        window.localStorage.getItem(key),
+    get: (key: LocalStorageKeys): string | null => window.localStorage.getItem(key),
 
-    set: (key: LocalStorageKeys, value: string): void =>
-        window.localStorage.setItem(key, value),
+    set: (key: LocalStorageKeys, value: string): void => window.localStorage.setItem(key, value),
 
-    remove: (key: LocalStorageKeys): void =>
-        window.localStorage.removeItem(key),
+    setBoolean: (key: LocalStorageKeys, value: boolean): void => window.localStorage.setItem(key, value.toString()),
 
-    setObject: (key: LocalStorageKeys, value: unknown): void =>
-        window.localStorage.setItem(key, JSON.stringify(value)),
+    getBoolean: (key: LocalStorageKeys): boolean => window.localStorage.getItem(key) === "true",
+
+    remove: (key: LocalStorageKeys): void => window.localStorage.removeItem(key),
+
+    setObject: (key: LocalStorageKeys, value: unknown): void => window.localStorage.setItem(key, JSON.stringify(value)),
 
     getObject: <T>(key: LocalStorageKeys): T | undefined => {
         const item = window.localStorage.getItem(key);

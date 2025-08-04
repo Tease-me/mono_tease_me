@@ -4,7 +4,7 @@ import PrivateRoute from "./PrivateRoute";
 import GuestRoute from "./GuestRoute";
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 
-const WelcomeScreen = lazy(() => import("@/ui/screens/WelcomeScreen"));
+const WelcomeScreen = lazy(() => import("@/ui/screens/welcome-screen/WelcomeScreen"));
 const LoginScreen = lazy(() => import("@/ui/screens/login/LoginScreen"));
 const RegisterScreen = lazy(() => import("@/ui/screens/register/RegisterScreen"));
 const Confirmation = lazy(() => import("@/ui/screens/register/Confirmation"));
