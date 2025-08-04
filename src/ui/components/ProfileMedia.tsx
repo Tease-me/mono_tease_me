@@ -54,7 +54,6 @@ const ProfileMedia: React.FC<ProfileMediaProps> = ({
                     />
                 </video>
             ) : (
-
                 <img
                     src={imageSrc}
                     alt="Profile"

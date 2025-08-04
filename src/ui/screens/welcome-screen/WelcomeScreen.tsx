@@ -15,6 +15,8 @@ import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
 import BackgroundGradient from "@/ui/templates/BackgroundGradient";
 import CallIcon from "@/assets/Call.svg?react";
 import DropCallIcon from "@/assets/svg/DropCall.svg?react";
+import { contacts } from "@/data/mock/contacts";
+import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 export interface WelcomeScreenProps {
 }
 
@@ -22,19 +24,16 @@ export default function WelcomeScreen({ }: WelcomeScreenProps) {
   const navigate = useNavigate();
   const { username } = useParams<{ username: string }>();
   const { isSignedIn } = useContext(AuthContext);
-  const [isFirstTime, setIsFirstTime] = useState(false);
+  const [isFirstTime, setIsFirstTime] = useState(true);
   const [onTryClicked, setOnTryClicked] = useState(false);
-
+  const [influencer, setInfluencer] = useState<InfluencerDataModel>();
   const audioRef = useRef(new Audio("/audio/ringtone.wav"));
 
-  audioRef.current.loop = true
 
   useEffect(() => {
-    if (storage.getBoolean(LocalStorageKeys.VisitedWelcome)) {
-      setIsFirstTime(true)
-      return
-    }
-    setIsFirstTime(false);
+    audioRef.current.loop = true
+    setInfluencer(contacts.find((contact) => contact.username === username));
+    setIsFirstTime(!storage.getBoolean(LocalStorageKeys.VisitedWelcome))
   }, [])
 
   useEffect(() => {
@@ -66,10 +65,10 @@ export default function WelcomeScreen({ }: WelcomeScreenProps) {
   return (
     <BackgroundGradient>
       <CenteredLayout className={styles["welcome-screen-container"]}>
-        {username && (
+        {influencer && (
           <>
-            <ProfileMedia className={styles["profile-container"]} videoSrc={oliviaVideo} imageSrc={oliviaImage} showHearts active size="xlarge" />
-            <h2 className={styles["join-text"]}>Join {username} on</h2>
+            <ProfileMedia className={styles["profile-container"]} imageSrc={influencer.img} showHearts active size="xlarge" mediaType="image" />
+            <h2 className={styles["join-text"]}>Join {influencer.name} on</h2>
           </>
         )}
         <TeaseMeLogo size="xlarge" />
@@ -84,11 +83,12 @@ export default function WelcomeScreen({ }: WelcomeScreenProps) {
         </p>
 
         <DividerWithLabel text="or" />
-        {isFirstTime ? <CircularIconButton text="Sign in with email" className={styles["sign-in-button"]} onClick={handleSignInClick} /> :
-          onTryClicked ? <CircularIconButton text="Talk To Me Now" onClick={handleTryClick} /> : <div className={styles["call-buttons"]}>
-            <CircularIconButton icon={<DropCallIcon />} onClick={handleHangUpCall} size="small" variant="tertiary" />
-            <CircularIconButton icon={<CallIcon />} onClick={handlePickUpCall} size="small" />
-          </div>}
+        {!isFirstTime ? <CircularIconButton text="Sign in with email" className={styles["sign-in-button"]} onClick={handleSignInClick} /> :
+          !onTryClicked ? <CircularIconButton text="Talk To Me Now" onClick={handleTryClick} /> :
+            <div className={styles["call-buttons"]}>
+              <CircularIconButton icon={<DropCallIcon />} onClick={handleHangUpCall} size="small" variant="tertiary" />
+              <CircularIconButton icon={<CallIcon />} onClick={handlePickUpCall} size="small" />
+            </div>}
       </CenteredLayout>
     </BackgroundGradient>
   );

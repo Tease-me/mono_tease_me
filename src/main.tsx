@@ -4,65 +4,31 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import AppRoutes from './routes/AppRoutes.jsx'
 import { AuthProvider } from './context/AuthContext'
-import { FIREBASE_PUBLIC_KEY } from '@/env'
 
-import { useEffect } from 'react';
-import { apiClient } from './api/apis'
-
-function usePushNotifications() {
-  console.log("UsePushNotification!")
-  useEffect(() => {
-    if ('serviceWorker' in navigator && 'PushManager' in window) {
-      console.log('Found Service Worker and PushManager');
-      (async () => {
-        try {
-          const registration = await navigator.serviceWorker.register(
-            "/sw.js",
-            { type: 'module' }
-          );
-
-          console.log('Service Worker registered:', registration);
-          const ready = await navigator.serviceWorker.ready;
-          console.log("ready", ready);
-          let subscription = await registration.pushManager.getSubscription();
-          if (!subscription) {
-            subscription = await registration.pushManager.subscribe({
-              userVisibleOnly: true,
-              applicationServerKey: FIREBASE_PUBLIC_KEY
-            });
-          }
-          console.log('Successfully subscribed in the front end! 🎉', subscription);
-          await apiClient.post("/push/subscribe",
-            subscription
-            // {
-            //   "endpoint": subscription.endpoint, "keys": {
-            //     "applicationServerKey": FIREBASE_PUBLIC_KEY
-            //   }
-            // }
-          );
-
-          console.log('Successfully subscribed to push notifications! 🎉');
-        } catch (error) {
-          console.error('Failed to subscribe the user:', error);
-        }
-      })();
-    } else {
-      console.error('Service Worker or Push API not supported.');
-    }
-  }, []);
+function registerServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    (async () => {
+      try {
+        const registration = await navigator.serviceWorker.register(
+          "/sw.js",
+          { type: 'module' }
+        );
+        console.log('ServiceWorker Successfully registered! 🎉', registration);
+      } catch (error) {
+        console.error('Failed to subscribe the user:', error);
+      }
+    })();
+  } else {
+    console.error('Service Worker or Push API not supported.');
+  }
 }
-
-const PushNotificationInitializer: React.FC = () => {
-  usePushNotifications();
-  return null;
-};
 
 const rootElement = document.getElementById('root');
 if (rootElement) {
+  registerServiceWorker();
   createRoot(rootElement).render(
     <StrictMode>
       <AuthProvider>
-        <PushNotificationInitializer />
         <AppRoutes />
       </AuthProvider>
     </StrictMode>,

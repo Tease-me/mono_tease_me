@@ -1,3 +1,4 @@
+import { apiClient } from "@/api/apis";
 import { mock } from "@/api/mock/mock";
 import { TokenResponse } from "@/api/models/auth";
 import { UserDetailResponse } from "@/api/models/user";
@@ -5,6 +6,7 @@ import { AuthServices } from "@/api/services/AuthServices";
 import { UserServices } from "@/api/services/UserServices";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { UserDataModel } from "@/data/models/UserDataModel";
+import { FIREBASE_PUBLIC_KEY } from "@/env";
 import { storage } from "@/utils/storage";
 
 import React, { createContext, useState, useEffect } from "react";
@@ -68,6 +70,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         };
         checkAuth();
     }, []);
+
+    useEffect(() => {
+        if (isSignedIn) {
+            (async () => {
+                try {
+                    const registration = await navigator.serviceWorker.ready;
+                    let subscription = await registration.pushManager.getSubscription();
+                    if (!subscription) {
+                        subscription = await registration.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: FIREBASE_PUBLIC_KEY
+                        });
+                    }
+                    console.log('Successfully subscribed in the front end! 🎉', subscription);
+                    await apiClient.post("/push/subscribe", subscription);
+                    console.log('Successfully subscribed in the backend end! 🎉');
+                } catch (error) {
+                    console.error('Service worker not ready or push subscription failed:', error);
+                }
+            })();
+        }
+    }, [isSignedIn]);
 
     const getUserDetails = async () => {
         const response: UserDetailResponse = await userServices.getUserDerails()
