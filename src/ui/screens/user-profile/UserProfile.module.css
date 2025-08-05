@@ -1,0 +1,13 @@
+.section-title {
+    font-weight: 700;
+    font-size: 20px;
+    margin-bottom: 12px;
+}
+
+.section-body {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    justify-content: center;
+    margin-bottom: 12px;
+}

@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import PrivateRoute from "./PrivateRoute";
 import GuestRoute from "./GuestRoute";
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
+import UserProfile from "@/ui/screens/user-profile/UserProfile";
 
 const WelcomeScreen = lazy(() => import("@/ui/screens/welcome-screen/WelcomeScreen"));
 const LoginScreen = lazy(() => import("@/ui/screens/login/LoginScreen"));
@@ -20,6 +21,7 @@ const CallScreen = lazy(() => import("@/ui/screens/CallScreen"));
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
     { path: "/:username", element: <WelcomeScreen /> },
+    { path: "/user-profile", element: <UserProfile /> },
   ];
 
   const guestRoutes: { path: string; element: JSX.Element }[] = [
