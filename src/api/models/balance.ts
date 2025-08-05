@@ -1,5 +1,5 @@
 interface BalanceResponse {
-    balance_cents: string;
+    balance_cents: number;
 }
 
 interface TopupResponse {

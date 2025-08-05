@@ -1,5 +1,4 @@
 import { Endpoints } from "../urls";
-import { ChatIdResponse } from "../models/chat";
 import { apiClient } from "../apis";
 
 export const BalanceServices = () => ({

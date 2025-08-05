@@ -1,3 +1,11 @@
+.profile-picture {
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    align-items: center;
+    margin-bottom: 56px;
+}
+
 .section-title {
     font-weight: 700;
     font-size: 20px;
@@ -10,4 +18,16 @@
     gap: 24px;
     justify-content: center;
     margin-bottom: 12px;
+}
+
+.delete-account-section {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+}
+
+.button-row {
+    display: none;
+    margin-bottom: 56px;
 }
