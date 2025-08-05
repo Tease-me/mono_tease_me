@@ -13,3 +13,12 @@
     width: 60%;
     max-width: 900px;
 }
+
+
+@media (max-width: 767px) {
+    .content {
+        position: relative;
+        margin: 32px;
+        width: calc(100% - 64px);
+    }
+}

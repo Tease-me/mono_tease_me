@@ -92,5 +92,13 @@
   .input-fields,
   .auth-buttons {
     flex-direction: column;
+    display: flex;
+    width: 100%;
+  }
+
+  .content {
+    position: relative;
+    margin: 32px;
+    width: calc(100% - 64px);
   }
 }

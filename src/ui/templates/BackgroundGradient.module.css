@@ -29,7 +29,7 @@
 }
 
 @media (max-width: 767px) {
-  .background-gradient {
+  .background-gradient::before {
     background: none;
     background-color: #181a20;
   }

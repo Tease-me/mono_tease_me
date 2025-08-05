@@ -8,6 +8,8 @@ import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 import { useNavigate } from 'react-router-dom';
 import { AuthServices } from '@/api/services/AuthServices';
 import BlockingLoader from '@/ui/components/loading/BlockingLoader';
+import { apiClient } from '@/api/apis';
+import ButtonRow from '@/ui/templates/ButtonRow';
 
 interface ForgotPasswordProps { }
 
@@ -17,7 +19,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ }) => {
     const [isLoading, setIsLoading] = useState(false);
 
     const navigate = useNavigate();
-    const authServices = AuthServices();
+    const authServices = AuthServices(apiClient);
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsLoading(true);
@@ -59,10 +61,10 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ }) => {
                         </div>
                         {status && <span className={styles["error"]}>{status}</span>}
                         <div className={styles["user-action-section"]}>
-                            <div className={styles["auth-buttons"]}>
+                            <ButtonRow>
                                 <CircularIconButton className={styles["btn-back"]} onClick={() => navigate("/")} text="Back to Login" variant="tertiary" />
                                 <CircularIconButton type="submit" className={styles["btn-primary"]} text="Send Reset Link" />
-                            </div>
+                            </ButtonRow>
                         </div>
                     </form>
                 </div>
