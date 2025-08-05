@@ -2,6 +2,7 @@ import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import { AuthContext } from "@/context/AuthContext";
 import React, { ReactNode, useContext } from "react";
 import { Navigate } from "react-router-dom";
+import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 
 interface PrivateRouteProps {
     children: ReactNode;
@@ -12,7 +13,7 @@ const GuestRoute: React.FC<PrivateRouteProps> = ({ children }) => {
 
     if (loadingAuth) {
         return (
-            <LoadingSpinner />
+            <BlockingLoader />
         );
     }
 

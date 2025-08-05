@@ -16,8 +16,8 @@ import DropCallIcon from "@/assets/svg/DropCall.svg?react";
 import { contacts } from "@/data/mock/contacts";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import useCall from "@/hooks/useCall";
-export interface WelcomeScreenProps {
-}
+
+export interface WelcomeScreenProps { }
 
 export default function WelcomeScreen({ }: WelcomeScreenProps) {
   const navigate = useNavigate();

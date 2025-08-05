@@ -5,7 +5,6 @@ import useMediaQuery from "@/hooks/useMediaQuery";
 import TwoPaneLayout from "@/ui/templates/TwoPaneLayout";
 import ChatScreenContent from "../messaging/components/ChatScreenContent";
 import { AuthContext } from "@/context/AuthContext";
-import Confirmation from "../register/Confirmation";
 
 export default function HomeScreen() {
   const storedId = localStorage.getItem("selected_id");

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState, useMemo } from 'react';
 import styles from "./HomeScreenContent.module.css"
 import clsx from 'clsx';
 import { useNavigate } from 'react-router-dom';
@@ -35,7 +35,7 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ id, onItemClick }
         }
     };
 
-    const tabItems: TabItem[] = [
+    const tabItems: TabItem[] = useMemo(() => [
         {
             id: 1,
             name: "Contacts",
@@ -46,9 +46,16 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ id, onItemClick }
             name: "Suggested",
             content: <SiggestedTabContent />
         },
-    ]
-
+    ], [id]);
     const [activeTab, setActiveTab] = useState(tabItems[0]);
+    useEffect(() => {
+        if (activeTab.id === 1) {
+            const updated = tabItems.find(t => t.id === 1);
+            if (updated) {
+                setActiveTab(updated);
+            }
+        }
+    }, [id, tabItems, activeTab.id]);
 
 
     const testDataDropDown: DropDownMenuDataModel[] = [
