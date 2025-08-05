@@ -299,7 +299,11 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     };
 
     const onCall = () => {
-        navigate("/voice")
+        navigate("/voice", {
+            state: {
+                influencer_id: id
+            }
+        })
     }
 
     const handleOnBackClick = () => {

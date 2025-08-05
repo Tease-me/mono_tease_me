@@ -21,7 +21,6 @@ const CallScreen = lazy(() => import("@/ui/screens/CallScreen"));
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
     { path: "/:username", element: <WelcomeScreen /> },
-    { path: "/profile", element: <UserProfile /> },
   ];
 
   const guestRoutes: { path: string; element: JSX.Element }[] = [
@@ -35,11 +34,12 @@ function AppRoutes() {
   ];
 
   const privateRoutes: { path: string; element: JSX.Element }[] = [
-    { path: "/voice", element: <VoiceCall /> },
-    { path: "/voice11", element: <VoiceCallEleven /> },
+    // { path: "/voice", element: <VoiceCall /> },
+    { path: "/voice", element: <VoiceCallEleven /> },
     { path: "/home", element: <HomeScreen /> },
     { path: "/chat/:user_id", element: <ChatScreen /> },
     { path: "/call/:conversation_id", element: <CallScreen /> },
+    { path: "/profile", element: <UserProfile /> },
   ];
 
   return (

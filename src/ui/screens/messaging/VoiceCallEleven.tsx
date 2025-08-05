@@ -13,6 +13,7 @@ import CallIcon from "@/assets/Call.svg?react";
 import WifiIcon from "@/assets/Wifi.svg?react";
 import NoSignalIcon from "@/assets/svg/NoSignal.svg"
 import { useMicrophonePermission } from '@/hooks/useMicrophonePermission';
+import { useLocation } from 'react-router-dom';
 
 interface VoiceCallElevenProps {
 }
@@ -24,9 +25,16 @@ const VoiceCallEleven: React.FC<VoiceCallElevenProps> = ({ }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [isConnected, setIsConnected] = useState(false);
     const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+    const [influencerId, setInfluencerId] = useState<string | undefined>()
     const { permissionState, requestMicrophonePermission, releaseMicrophonePermission } = useMicrophonePermission();
 
     const ringtoneRef = useRef(new Audio("/audio/ringtone.wav"));
+    const { state } = useLocation();
+
+    useEffect(() => {
+        const { influencer_id } = state as { influencer_id: string };
+        setInfluencerId(influencer_id)
+    }, [state])
 
     const ring = () => {
         const ringtone = ringtoneRef.current;
@@ -75,7 +83,7 @@ const VoiceCallEleven: React.FC<VoiceCallElevenProps> = ({ }) => {
             alert("No permission");
             return;
         }
-        const signedUrl = await elevenLabsServices.getSignedUrl();
+        const signedUrl = await elevenLabsServices.getSignedUrl(influencerId);
         const conversationId = await conversation.startSession({ signedUrl });
         console.log(conversationId);
     }

@@ -47,7 +47,9 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ id, onItemClick }
             content: <SiggestedTabContent />
         },
     ], [id]);
+
     const [activeTab, setActiveTab] = useState(tabItems[0]);
+
     useEffect(() => {
         if (activeTab.id === 1) {
             const updated = tabItems.find(t => t.id === 1);
