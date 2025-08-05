@@ -23,6 +23,7 @@
 
 .profile-container {
   display: flex;
+  align-self: center;
   margin: 0 auto 20px auto;
 }
 

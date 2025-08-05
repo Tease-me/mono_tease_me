@@ -1,8 +1,6 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
-import oliviaImage from "@/assets/image/avatar.png";
-import oliviaVideo from "@/assets/video/avatar_video.mp4";
 import styles from "./WelcomeScreen.module.css";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import CenteredLayout from "@/ui/templates/CenteredLayout";
@@ -17,6 +15,7 @@ import CallIcon from "@/assets/Call.svg?react";
 import DropCallIcon from "@/assets/svg/DropCall.svg?react";
 import { contacts } from "@/data/mock/contacts";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
+import useCall from "@/hooks/useCall";
 export interface WelcomeScreenProps {
 }
 
@@ -27,8 +26,8 @@ export default function WelcomeScreen({ }: WelcomeScreenProps) {
   const [isFirstTime, setIsFirstTime] = useState(true);
   const [onTryClicked, setOnTryClicked] = useState(false);
   const [influencer, setInfluencer] = useState<InfluencerDataModel>();
+  const { status, startConversation, stopConversation } = useCall(influencer!);
   const audioRef = useRef(new Audio("/audio/ringtone.wav"));
-
 
   useEffect(() => {
     audioRef.current.loop = true
@@ -40,6 +39,14 @@ export default function WelcomeScreen({ }: WelcomeScreenProps) {
     if (isSignedIn) navigate("/home")
     return
   }, [isSignedIn])
+
+  useEffect(() => {
+    if (status === "connected") {
+      storage.setBoolean(LocalStorageKeys.VisitedWelcome, true);
+    } else if (status === "disconnected") {
+      setIsFirstTime(false)
+    }
+  }, [status])
 
   const handleSignInClick = () => {
     navigate("/login");
@@ -55,11 +62,13 @@ export default function WelcomeScreen({ }: WelcomeScreenProps) {
   };
 
   const handlePickUpCall = () => {
-    storage.setBoolean(LocalStorageKeys.VisitedWelcome, true);
+    audioRef.current.pause();
+    startConversation();
   }
 
   const handleHangUpCall = () => {
-    storage.setBoolean(LocalStorageKeys.VisitedWelcome, true);
+    stopConversation();
+    setIsFirstTime(false)
   }
 
   return (
@@ -85,10 +94,12 @@ export default function WelcomeScreen({ }: WelcomeScreenProps) {
         <DividerWithLabel text="or" />
         {!isFirstTime ? <CircularIconButton text="Sign in with email" className={styles["sign-in-button"]} onClick={handleSignInClick} /> :
           !onTryClicked ? <CircularIconButton text="Talk To Me Now" onClick={handleTryClick} /> :
-            <div className={styles["call-buttons"]}>
-              <CircularIconButton icon={<DropCallIcon />} onClick={handleHangUpCall} size="small" variant="tertiary" />
-              <CircularIconButton icon={<CallIcon />} onClick={handlePickUpCall} size="small" />
-            </div>}
+            <>{status === "idle" ? `${username} is calling...` : status}
+              <div className={styles["call-buttons"]}>
+                <CircularIconButton icon={<DropCallIcon />} onClick={handleHangUpCall} size="small" variant="tertiary" />
+                <CircularIconButton icon={<CallIcon />} onClick={handlePickUpCall} size="small" />
+              </div>
+            </>}
       </CenteredLayout>
     </BackgroundGradient>
   );
