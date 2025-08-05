@@ -1,8 +1,8 @@
 import { Endpoints } from "../urls";
-import { apiClient } from "../apis";
 import { ForgotPasswordResponse, RegisterResponse, TokenResponse } from "../models/auth";
+import { AxiosInstance } from "axios";
 
-export const AuthServices = () => ({
+export const AuthServices = (apiClient: AxiosInstance) => ({
     login: async (email: string, password: string): Promise<TokenResponse> => {
         try {
             const response = await apiClient.post(

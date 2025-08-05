@@ -14,6 +14,7 @@ import ButtonRow from '@/ui/templates/ButtonRow';
 import BalanceView from '@/ui/components/stats/BalanceView';
 import VerticalDivider from '@/ui/components/dividers/VerticalDivider';
 import { useNavigate } from 'react-router-dom';
+import { apiClient } from '@/api/apis';
 
 interface UserProfileProps { }
 
@@ -22,10 +23,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
     const [localUser, setLocalUser] = useState(user);
 
     const [balance, setBalance] = useState<number>(0);
+    const balanceService = BalanceServices(apiClient);
     const navigate = useNavigate()
 
     useEffect(() => {
-        const balanceService = BalanceServices();
+
         balanceService.getBalance().then((response: BalanceResponse) => {
             setBalance(response.balance_cents)
         })

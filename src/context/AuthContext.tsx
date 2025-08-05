@@ -3,6 +3,7 @@ import { mock } from "@/api/mock/mock";
 import { TokenResponse } from "@/api/models/auth";
 import { UserDetailResponse } from "@/api/models/user";
 import { AuthServices } from "@/api/services/AuthServices";
+import { PushNotificationServices } from "@/api/services/PushNotificationServices";
 import { UserServices } from "@/api/services/UserServices";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { UserDataModel } from "@/data/models/UserDataModel";
@@ -37,8 +38,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [loadingAuth, setLoadingAuth] = useState(true);
     const [authErrors, setAuthErrors] = useState<AuthErrors>();
     const [user, setUser] = useState<UserDataModel | undefined>()
-    const authServices = AuthServices();
-    const userServices = UserServices();
+
+    const authServices = AuthServices(apiClient);
+    const userServices = UserServices(apiClient);
+    const pusnNotificationServices = PushNotificationServices(apiClient);
 
     useEffect(() => {
         if (authErrors) {
@@ -84,7 +87,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                         });
                     }
                     console.log('Successfully subscribed in the front end! 🎉', subscription);
-                    await apiClient.post("/push/subscribe", subscription);
+                    await pusnNotificationServices.subscribe(subscription);
                     console.log('Successfully subscribed in the backend end! 🎉');
                 } catch (error) {
                     console.error('Service worker not ready or push subscription failed:', error);
@@ -95,6 +98,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const getUserDetails = async () => {
         const response: UserDetailResponse = await userServices.getUserDerails()
+        // Remove this when Profile is comming from backend
         const profileImage = await mock.getRandomProfileImage();
         const user: UserDataModel = {
             id: response.id,

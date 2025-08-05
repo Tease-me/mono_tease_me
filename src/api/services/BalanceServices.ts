@@ -1,7 +1,7 @@
 import { Endpoints } from "../urls";
-import { apiClient } from "../apis";
+import { AxiosInstance } from "axios";
 
-export const BalanceServices = () => ({
+export const BalanceServices = (apiClient: AxiosInstance) => ({
     getBalance: async (): Promise<BalanceResponse> => {
         try {
             const response = await apiClient.get(

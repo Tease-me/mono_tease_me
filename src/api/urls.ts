@@ -4,6 +4,7 @@ export const API_BASE_URL = `${TEASE_ME_PROTOCOL}://${TEASE_ME_HOST}`;
 
 const AUTH_URL = "/auth";
 const BILLING_URL = "/billing"
+const PUSH_NOTIFICATION = "/push"
 
 export const Endpoints = {
     LOGIN: `${AUTH_URL}/login`,
@@ -16,6 +17,7 @@ export const Endpoints = {
     CHAT_AUDIO: `${API_BASE_URL}/chat_audio`,
     BALANCE: `${BILLING_URL}/balance`,
     TOP_UP: `${BILLING_URL}/topup`,
+    SUBSCRIBE_PUSH_NOTIFICATION: `${PUSH_NOTIFICATION}/subscribe`,
 }
 
 const WEB_SHOCKET_URL = `${TEASE_ME_WS_PROTOCOL}://${TEASE_ME_HOST}`;

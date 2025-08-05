@@ -1,8 +1,8 @@
 import { Endpoints } from "../urls";
-import { apiClient } from "../apis";
 import { UserDetailResponse } from "../models/user";
+import { AxiosInstance } from "axios";
 
-export const UserServices = () => ({
+export const UserServices = (apiClient: AxiosInstance) => ({
     getUserDerails: async (): Promise<UserDetailResponse> => {
         try {
             const response = await apiClient.get(
