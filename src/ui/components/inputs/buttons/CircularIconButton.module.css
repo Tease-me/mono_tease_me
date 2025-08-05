@@ -1,6 +1,5 @@
 .button {
     display: flex;
-    flex: 1;
     align-items: center;
     justify-content: center;
     border-radius: 28px;
@@ -68,10 +67,12 @@
     display: flex;
     gap: 8px;
     padding: 18px 16px;
+    flex: 1;
 }
 
 .button-with-text-only {
     padding: 18px 16px;
+    flex: 1;
 }
 
 .button-with-icon-only {

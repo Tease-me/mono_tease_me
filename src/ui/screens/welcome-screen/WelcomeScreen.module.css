@@ -51,6 +51,10 @@
   justify-content: center;
 }
 
+.status {
+  margin-bottom: 24px;
+}
+
 /* Responsividade para desktop */
 @media (min-width: 1024px) {
   .content {

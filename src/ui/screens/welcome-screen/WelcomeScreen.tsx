@@ -67,6 +67,7 @@ export default function WelcomeScreen({ }: WelcomeScreenProps) {
   }
 
   const handleHangUpCall = () => {
+    audioRef.current.pause();
     stopConversation();
     setIsFirstTime(false)
   }
@@ -94,10 +95,10 @@ export default function WelcomeScreen({ }: WelcomeScreenProps) {
         <DividerWithLabel text="or" />
         {!isFirstTime ? <CircularIconButton text="Sign in with email" className={styles["sign-in-button"]} onClick={handleSignInClick} /> :
           !onTryClicked ? <CircularIconButton text="Talk To Me Now" onClick={handleTryClick} /> :
-            <>{status === "idle" ? `${username} is calling...` : status}
+            <>{status === "idle" ? <div className={styles["status"]}>{`${username} is calling...`}</div> : <div className={styles["status"]}>{status}</div>}
               <div className={styles["call-buttons"]}>
                 <CircularIconButton icon={<DropCallIcon />} onClick={handleHangUpCall} size="small" variant="tertiary" />
-                <CircularIconButton icon={<CallIcon />} onClick={handlePickUpCall} size="small" />
+                {status === "idle" && <CircularIconButton icon={<CallIcon />} onClick={handlePickUpCall} size="small" />}
               </div>
             </>}
       </CenteredLayout>
