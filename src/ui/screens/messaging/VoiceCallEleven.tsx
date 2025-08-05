@@ -3,7 +3,7 @@ import styles from "./VoiceCallEleven.module.css"
 import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 import CenteredLayout from '@/ui/templates/CenteredLayout';
 import { useConversation } from "@11labs/react";
-import { getSignedUrl } from '@/api/eleven/eleven';
+import { elevenLabsServices } from '@/api/eleven/eleven';
 import ProfileMedia from '@/ui/components/ProfileMedia';
 import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButton';
 import oliviaImage from "@/assets/image/avatar.png"
@@ -75,7 +75,7 @@ const VoiceCallEleven: React.FC<VoiceCallElevenProps> = ({ }) => {
             alert("No permission");
             return;
         }
-        const signedUrl = await getSignedUrl();
+        const signedUrl = await elevenLabsServices.getSignedUrl();
         const conversationId = await conversation.startSession({ signedUrl });
         console.log(conversationId);
     }

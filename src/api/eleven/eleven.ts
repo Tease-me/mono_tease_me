@@ -1,20 +1,26 @@
 import { ELEVENLABS_AGENT_ID, ELEVENLABS_API_KEY, ELEVENLABS_VOICE_IDS } from "@/env";
+import axios from 'axios';
 
-export async function getSignedUrl(influencer_id?: string) {
-    const agent_id = influencer_id ? ELEVENLABS_VOICE_IDS[influencer_id] : ELEVENLABS_AGENT_ID;
-    const response = await fetch(
-        `https://api.elevenlabs.io/v1/convai/conversation/get-signed-url?agent_id=${agent_id}`,
-        {
-            headers: {
-                "xi-api-key": ELEVENLABS_API_KEY ?? "",
-            },
+const API_BASE_URL = "https://api.elevenlabs.io/v1";
+
+export const elevenLabsClient = axios.create({
+    baseURL: API_BASE_URL,
+    timeout: 10_000,
+    headers: { "xi-api-key": ELEVENLABS_API_KEY ?? "" }
+});
+
+export const elevenLabsServices = {
+
+    getSignedUrl: async (influencer_id?: string) => {
+        const agent_id = influencer_id ? ELEVENLABS_VOICE_IDS[influencer_id] : ELEVENLABS_AGENT_ID;
+        const response = await elevenLabsClient.get("/convai/conversation/get-signed-url", {
+            params: { agent_id }
+        })
+        if (response.status !== 200) {
+            return;
         }
-    );
 
-    if (!response.ok) {
-        return;
+        const body = await response.data;
+        return body.signed_url
     }
-
-    const body = await response.json();
-    return body.signed_url
 }

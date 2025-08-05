@@ -1,8 +1,8 @@
-import { getSignedUrl } from "@/api/eleven/eleven";
 import { useConversation } from "@11labs/react";
 import { useRef, useCallback, useState } from "react";
 import { useMicrophonePermission } from "./useMicrophonePermission";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
+import { elevenLabsServices } from "@/api/eleven/eleven";
 
 export default function useCall(influencer: InfluencerDataModel) {
     const [status, setStatus] = useState<'connecting' | 'connected' | 'disconnected' | "idle" | 'error'>("idle");
@@ -48,7 +48,7 @@ export default function useCall(influencer: InfluencerDataModel) {
             alert("No permission");
             return;
         }
-        const signedUrl = await getSignedUrl(influencer.id);
+        const signedUrl = await elevenLabsServices.getSignedUrl(influencer.id);
         await conversation.startSession({ signedUrl });
     }
 
