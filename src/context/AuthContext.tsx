@@ -95,12 +95,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const getUserDetails = async () => {
         const response: UserDetailResponse = await userServices.getUserDerails()
+        const profileImage = await mock.getRandomProfileImage();
         const user: UserDataModel = {
             id: response.id,
             username: response.username,
             email: response.email,
             name: response.name,
             is_verified: response.is_varified,
+            imgUrl: profileImage,
             createdAt: mock.getRandomDate(),
             updatedAt: mock.getRandomDate()
         }

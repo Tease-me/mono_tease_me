@@ -61,7 +61,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
         <BackgroundGradient>
             <FullWidthLayout fullWidthNav={<OnBoardingTopNav onBackClicked={() => { navigate(-1) }} />}>
                 <div className={styles["profile-picture"]}>
-                    <ProfileMedia imageSrc={profileImage} mediaType='image' onEditClick={handleEditProfileMediaClicked} />
+                    <ProfileMedia imageSrc={user?.imgUrl} mediaType='image' onEditClick={handleEditProfileMediaClicked} />
                     <VerticalDivider />
                     <BalanceView label='Balance' value={formatCentsToDollars(balance)} />
                 </div>
