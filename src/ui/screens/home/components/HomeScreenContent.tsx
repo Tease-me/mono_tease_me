@@ -55,7 +55,10 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ id, onItemClick }
         {
             id: 1,
             icon: <ProfileIcon />,
-            text: "My Profile"
+            text: "My Profile",
+            onClick: () => {
+                navigate("/profile");
+            }
         },
         {
             id: 2,

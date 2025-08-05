@@ -21,7 +21,7 @@ const CallScreen = lazy(() => import("@/ui/screens/CallScreen"));
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
     { path: "/:username", element: <WelcomeScreen /> },
-    { path: "/user-profile", element: <UserProfile /> },
+    { path: "/profile", element: <UserProfile /> },
   ];
 
   const guestRoutes: { path: string; element: JSX.Element }[] = [

@@ -4,16 +4,16 @@ import ProfileMedia from '@/ui/components/ProfileMedia';
 import profileImage from "@/assets/image/avatar.png"
 import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 import OnBoardingTopNav from '@/ui/components/nav/OnBoardingTopNav';
-import StatCard from '@/ui/components/stats/StatCard';
 import TextInput from '@/ui/components/inputs/text-inputs/TextInput';
 import FullWidthLayout from '@/ui/templates/FullWidthLayout';
 import { AuthContext } from '@/context/AuthContext';
 import { BalanceServices } from '@/api/services/BalanceServices';
-import { centsToDollars, formatCentsToDollars } from '@/utils/balance_utils';
+import { formatCentsToDollars } from '@/utils/balance_utils';
 import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButton';
 import ButtonRow from '@/ui/templates/ButtonRow';
 import BalanceView from '@/ui/components/stats/BalanceView';
 import VerticalDivider from '@/ui/components/dividers/VerticalDivider';
+import { useNavigate } from 'react-router-dom';
 
 interface UserProfileProps { }
 
@@ -22,6 +22,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
     const [localUser, setLocalUser] = useState(user);
 
     const [balance, setBalance] = useState<number>(0);
+    const navigate = useNavigate()
 
     useEffect(() => {
         const balanceService = BalanceServices();
@@ -58,7 +59,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
 
     return (
         <BackgroundGradient>
-            <FullWidthLayout fullWidthNav={<OnBoardingTopNav onBackClicked={() => { }} />}>
+            <FullWidthLayout fullWidthNav={<OnBoardingTopNav onBackClicked={() => { navigate(-1) }} />}>
                 <div className={styles["profile-picture"]}>
                     <ProfileMedia imageSrc={profileImage} mediaType='image' onEditClick={handleEditProfileMediaClicked} />
                     <VerticalDivider />
