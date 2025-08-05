@@ -51,11 +51,16 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
             prevUser ? { ...prevUser, email: e.target.value } : prevUser
         );
     };
+
+    const handleEditProfileMediaClicked = () => {
+        console.log("Edit Clicked")
+    }
+
     return (
         <BackgroundGradient>
             <FullWidthLayout fullWidthNav={<OnBoardingTopNav onBackClicked={() => { }} />}>
                 <div className={styles["profile-picture"]}>
-                    <ProfileMedia imageSrc={profileImage} mediaType='image' />
+                    <ProfileMedia imageSrc={profileImage} mediaType='image' onEditClick={handleEditProfileMediaClicked} />
                     <VerticalDivider />
                     <BalanceView label='Balance' value={formatCentsToDollars(balance)} />
                 </div>

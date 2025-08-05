@@ -3,6 +3,8 @@ import styles from "./ProfileMedia.module.css";
 
 import foregroundFilter from "@/assets/image/avatar_filter.png";
 import HeartIcon from "@/assets/Heart.svg?react";
+import EditIcon from "@/assets/svg/Exclude.svg?react";
+
 import clsx from 'clsx';
 export type ProfileMediaSize = 'xsmall' | 'small' | 'medium' | 'large' | 'xlarge';
 
@@ -14,6 +16,8 @@ interface ProfileMediaProps extends React.HTMLAttributes<HTMLDivElement> {
     imageSrc?: string;
     videoSrc?: string;
     altText?: string;
+    onEditClick?: () => void;
+    editButtonAlignment?: 'left' | 'right';
 }
 
 const ProfileMedia: React.FC<ProfileMediaProps> = ({
@@ -24,6 +28,8 @@ const ProfileMedia: React.FC<ProfileMediaProps> = ({
     imageSrc,
     videoSrc,
     altText = "Profile Image",
+    onEditClick,
+    editButtonAlignment = "right",
     ...restProps
 }) => {
     const isVideoSupported =
@@ -40,6 +46,10 @@ const ProfileMedia: React.FC<ProfileMediaProps> = ({
             });
         }
     }, [showVideo]);
+
+    const handleEditButtonClick = () => {
+        onEditClick?.()
+    }
 
     return (<div {...restProps} className={clsx(styles["profile-container"], styles[size], active && styles["active"], showHearts && styles["hearts"], restProps.className)} >
         <div className={styles["profile-media-container"]}>
@@ -65,6 +75,7 @@ const ProfileMedia: React.FC<ProfileMediaProps> = ({
                 alt="Profile"
                 className={styles["profile-media-filter"]}
             />
+            {onEditClick && <div className={clsx(styles["edit-button"], styles[editButtonAlignment])} onClick={handleEditButtonClick}><EditIcon /></div>}
         </div>
         {
             showHearts && <div className={styles["hearts-overlay"]}>

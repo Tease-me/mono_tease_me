@@ -164,6 +164,20 @@
     color: #35383F;
 }
 
+.edit-button {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    color: var(--color-primary);
+}
+
+.edit-button.left {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    color: var(--color-primary);
+}
+
 @media (min-width: 1024px) {
     .profile-container {
         width: 200px;
