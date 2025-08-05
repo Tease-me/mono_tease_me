@@ -6,6 +6,15 @@ export function getEnvVar(key: string): string {
     return value
 }
 
+export function getEnvJSON<T>(key: string): T {
+    const json = getEnvVar(key);
+    try {
+        return JSON.parse(json) as T;
+    } catch (err) {
+        throw new Error(`Invalid JSON in environment variable ${key}: ${err}`);
+    }
+}
+
 export const BLAND_API_KEY = getEnvVar('VITE_NEXT_PUBLIC_BLAND_API_KEY')
 export const BLAND_API_URL = getEnvVar('VITE_BLAND_API_URL');
 export const BLAND_WEB_URL = getEnvVar('VITE_BLAND_WEB_URL');
@@ -22,3 +31,5 @@ export const TEASE_ME_WS_PROTOCOL = getEnvVar('VITE_TEASE_ME_WS_PROTOCOL');
 
 
 export const FIREBASE_PUBLIC_KEY = getEnvVar('VITE_FIREBASE_PUBLIC_KEY');
+
+export const ELEVENLABS_VOICE_IDS = getEnvJSON<Record<string, string>>('VITE_ELEVENLABS_VOICE_IDS');
