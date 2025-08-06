@@ -3,7 +3,6 @@ import CenteredLayout from "@/ui/templates/CenteredLayout";
 import { useConversation } from "@11labs/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./VoiceCallEleven.module.css";
-//import { elevenLabsServices } from '@/api/eleven/eleven';
 import CallIcon from "@/assets/Call.svg?react";
 import CloseSquareIcon from "@/assets/CloseSquare.svg?react";
 import WifiIcon from "@/assets/Wifi.svg?react";
@@ -17,19 +16,13 @@ import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import OnBoardingTopNav from "@/ui/components/nav/OnBoardingTopNav";
 import { truncateLastName } from "@/utils/StringUtils";
 import { useLocation, useNavigate } from "react-router-dom";
+import { apiClient } from "@/api/apis";
+import { ChatServices } from "@/api/services/ChatServices";
+import { ChatRepository } from "@/data/repositories/ChatRepo";
 
-interface VoiceCallElevenProps {}
+interface VoiceCallElevenProps { }
 
-export async function getSignedUrl(influencer_id: string) {
-  const res = await fetch(
-    `/elevenlabs/signed-url?influencer_id=${influencer_id}`
-  );
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.signed_url;
-}
-
-const VoiceCallEleven: React.FC<VoiceCallElevenProps> = ({}) => {
+const VoiceCallEleven: React.FC<VoiceCallElevenProps> = ({ }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [status, setStatus] = useState<string>("Online");
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +42,7 @@ const VoiceCallEleven: React.FC<VoiceCallElevenProps> = ({}) => {
   const { state } = useLocation();
 
   const influencerRepo = InfluencerRepo();
+  const chatRepo = ChatRepository();
 
   useEffect(() => {
     const { influencer_id } = state as { influencer_id: string };
@@ -106,18 +100,6 @@ const VoiceCallEleven: React.FC<VoiceCallElevenProps> = ({}) => {
     },
   });
 
-  /* async function startConversation() {
-        ring();
-        const hasPermission = await requestMicrophonePermission();
-        if (!hasPermission) {
-            alert("No permission");
-            return;
-        }
-        const signedUrl = await elevenLabsServices.getSignedUrl(influencerId);
-        const conversationId = await conversation.startSession({ signedUrl });
-        console.log(conversationId);
-    }
-*/
   async function startConversation() {
     ring();
     const hasPermission = await requestMicrophonePermission();
@@ -130,9 +112,9 @@ const VoiceCallEleven: React.FC<VoiceCallElevenProps> = ({}) => {
       stopRing();
       return;
     }
-    const signedUrl = await getSignedUrl(influencerId);
+
+    const signedUrl = await chatRepo.getSignedUrl(influencerId);
     if (!signedUrl) {
-      alert("Could not get signed url");
       stopRing();
       return;
     }

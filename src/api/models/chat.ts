@@ -16,3 +16,7 @@ export interface MessageResponse {
     content: string;
     created_at: string;
 }
+
+export interface SignedUrlResponse {
+    signed_url: string;
+}

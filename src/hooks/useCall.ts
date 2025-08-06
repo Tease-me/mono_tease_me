@@ -2,15 +2,7 @@ import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import { useConversation } from "@11labs/react";
 import { useCallback, useRef, useState } from "react";
 import { useMicrophonePermission } from "./useMicrophonePermission";
-
-export async function getSignedUrl(influencer_id: string) {
-  const response = await fetch(
-    `/elevenlabs/signed-url?influencer_id=${influencer_id}`
-  );
-  if (!response.ok) throw new Error("Failed to get signed URL");
-  const { signed_url } = await response.json();
-  return signed_url;
-}
+import { ChatRepository } from "@/data/repositories/ChatRepo";
 
 export default function useCall(influencer: InfluencerDataModel) {
   const [status, setStatus] = useState<
@@ -22,6 +14,7 @@ export default function useCall(influencer: InfluencerDataModel) {
     releaseMicrophonePermission,
   } = useMicrophonePermission();
   const ringtoneRef = useRef(new Audio("/audio/ringtone.wav"));
+  const chatRepo = ChatRepository();
 
   const ring = () => {
     const ringtone = ringtoneRef.current;
@@ -55,16 +48,7 @@ export default function useCall(influencer: InfluencerDataModel) {
     },
   });
 
-  /* async function startConversation() {
-        ring();
-        const hasPermission = await requestMicrophonePermission();
-        if (!hasPermission) {
-            alert("No permission");
-            return;
-        }
-        const signedUrl = await elevenLabsServices.getSignedUrl(influencer.id);
-        await conversation.startSession({ signedUrl });
-    }*/
+
   async function startConversation() {
     ring();
     const hasPermission = await requestMicrophonePermission();
@@ -72,15 +56,13 @@ export default function useCall(influencer: InfluencerDataModel) {
       alert("No permission");
       return;
     }
-    // CHAMA O SEU BACKEND AGORA!
-    const signedUrl = await getSignedUrl(influencer.id);
+
+    const signedUrl = await chatRepo.getSignedUrl(influencer.id);
     if (!signedUrl) {
-      alert("Could not get signed url");
       stopRing();
       return;
     }
     const conversationId = await conversation.startSession({ signedUrl });
-    console.log(conversationId);
   }
 
   const stopConversation = useCallback(async () => {

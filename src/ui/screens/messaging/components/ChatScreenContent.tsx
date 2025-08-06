@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 
-import { Endpoints, WS_BASE_URL } from "@/api/urls";
+import { API_BASE_URL, Endpoints, WS_BASE_URL } from "@/api/urls";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import { truncateLastName } from "@/utils/StringUtils";
 import { AuthContext } from "@/context/AuthContext";
@@ -207,10 +207,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         const access_token = storage.get(LocalStorageKeys.AccessToken);
         const formData = new FormData();
         formData.append("file", audioBlob, "audio.webm");
-        formData.append("persona_id", influencer.id);
+        formData.append("influencer_id", influencer.id);
         formData.append("chat_id", chatId);
         formData.append("token", access_token ?? "");
-        const response = await fetch(`${Endpoints.chat_audio}`, {
+        const response = await fetch(`${API_BASE_URL}${Endpoints.chat.audio}`, {
             method: "POST",
             body: formData,
         });

@@ -1,6 +1,6 @@
 import { ChatServices } from "@/api/services/ChatServices";
 import { Message, MessagePagination } from "../models/MessageDataModel";
-import { ChatHistoryResponse, ChatIdResponse } from "@/api/models/chat";
+import { ChatHistoryResponse, ChatIdResponse, SignedUrlResponse } from "@/api/models/chat";
 import { formatDateTimeRelative } from "@/utils/DateTimeUtils";
 
 const chatServices = ChatServices();
@@ -34,5 +34,9 @@ export const ChatRepository = () => ({
     getChatId: async (user_id: number, persona_id: string): Promise<string> => {
         const response: ChatIdResponse = await chatServices.getChatId(user_id, persona_id)
         return response.chat_id;
+    },
+    getSignedUrl: async (influencer_id: string): Promise<string> => {
+        const response: SignedUrlResponse = await chatServices.getSignedUrl(influencer_id)
+        return response.signed_url
     }
 })
