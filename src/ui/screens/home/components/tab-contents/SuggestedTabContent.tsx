@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import styles from "./SiggestedTabContent.module.css"
-import { contacts } from '@/data/mock/contacts';
 import clsx from 'clsx';
 import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
 import LoadingSpinner from '@/ui/components/loading/LoadingSpinner';
