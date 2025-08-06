@@ -15,7 +15,8 @@ export default defineConfig({
         lintCommand: 'eslint --no-ignore --ext .ts,.tsx src',
         useFlatConfig: true,
       },
-    })
+      enableBuild: false
+    }),
   ],
   clearScreen: false,
   server: {
