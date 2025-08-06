@@ -13,9 +13,9 @@ import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
 import BackgroundGradient from "@/ui/templates/BackgroundGradient";
 import CallIcon from "@/assets/Call.svg?react";
 import DropCallIcon from "@/assets/svg/DropCall.svg?react";
-import { contacts } from "@/data/mock/contacts";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import useCall from "@/hooks/useCall";
+import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 
 export interface WelcomeScreenProps { }
 
@@ -29,10 +29,17 @@ export default function WelcomeScreen({ }: WelcomeScreenProps) {
   const { status, startConversation, stopConversation } = useCall(influencer!);
   const audioRef = useRef(new Audio("/audio/ringtone.wav"));
 
+  const influencerRepo = InfluencerRepo();
+
   useEffect(() => {
-    audioRef.current.loop = true
-    setInfluencer(contacts.find((contact) => contact.username === username));
-    setIsFirstTime(!storage.getBoolean(LocalStorageKeys.VisitedWelcome))
+    audioRef.current.loop = true;
+    (async () => {
+      if (username) {
+        const localInfluencer = await influencerRepo.getInfluencer(username)
+        setInfluencer(localInfluencer);
+        setIsFirstTime(!storage.getBoolean(LocalStorageKeys.VisitedWelcome))
+      }
+    })()
   }, [])
 
   useEffect(() => {
@@ -77,7 +84,7 @@ export default function WelcomeScreen({ }: WelcomeScreenProps) {
       <CenteredLayout className={styles["welcome-screen-container"]}>
         {influencer && (
           <>
-            <ProfileMedia className={styles["profile-container"]} imageSrc={influencer.img} showHearts active size="xlarge" mediaType="image" />
+            <ProfileMedia className={styles["profile-container"]} imageSrc={influencer.img} videoSrc={influencer.videoUrl} showHearts active size="xlarge" mediaType="video" />
             <h2 className={styles["join-text"]}>Join {influencer.name} on</h2>
           </>
         )}

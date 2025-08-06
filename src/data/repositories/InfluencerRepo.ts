@@ -15,7 +15,8 @@ export const InfluencerRepo = () => ({
                     id: item.id,
                     name: item.display_name,
                     username: item.id,
-                    img: dummy.getImage(item.id as "loli" | "bella" | "anna")
+                    img: dummy.getImage(item.id as "loli" | "bella" | "anna"),
+                    videoUrl: dummy.getVideo(item.id as "loli" | "bella" | "anna"),
                 }
             })
         } catch (e) {
@@ -25,12 +26,12 @@ export const InfluencerRepo = () => ({
     getInfluencer: async (influencer_id: string): Promise<InfluencerDataModel> => {
         try {
             const response: InfluencerResponse = await influencerServices.getInfluencer(influencer_id);
-            console.log(response)
             return {
                 id: response.id,
                 name: response.display_name,
                 username: response.id,
-                img: dummy.getImage(response.id as "loli" | "bella" | "anna")
+                img: dummy.getImage(response.id as "loli" | "bella" | "anna"),
+                videoUrl: dummy.getVideo(response.id as "loli" | "bella" | "anna"),
             }
         } catch (e) {
             throw e;

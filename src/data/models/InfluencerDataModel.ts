@@ -4,4 +4,5 @@ export interface InfluencerDataModel {
     name: string;
     img?: string;
     bio?: string;
+    videoUrl?: string;
 }

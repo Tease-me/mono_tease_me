@@ -31,6 +31,7 @@ body,
   --color-pink: #EA1E61;
   --color-deep-orange: #FF5726;
   --color-grayscale-50: #FAFAFA;
+  --color-grayscale-300: rgba(224, 224, 224, 1);
   --color-grayscale-500: rgba(158, 158, 158, 1);
   --color-grayscale-800: rgba(66, 66, 66, 1);
   --gradient-angle: 270deg;

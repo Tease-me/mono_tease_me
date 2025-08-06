@@ -1,28 +1,26 @@
 import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
-import bella from "@/assets/mock/profile-pics/0af48251-5061-4cf2-8c48-13d0ddd3c52c.jpg";
-import anna from "@/assets/mock/profile-pics/0c5f1aeb-0db1-477b-9e49-3b95f655f6b2.jpg";
-import loli from "@/assets/mock/profile-pics/a8e3d3b2-a5de-4519-a862-a2b849148677.jpg";
+import dummy from '@/dummy/dummy';
 
 export const contacts: InfluencerDataModel[] = [
     {
         id: "loli",
         name: "Lola Fairfax",
         username: "loli",
-        img: loli,
+        img: dummy.getImage("loli"),
         bio: "Daring temptress: confident, playful, and always in contro"
     },
     {
         id: "bella",
         name: "Bella Thorne",
         username: "bella",
-        img: bella,
+        img: dummy.getImage("bella"),
         bio: "Warm-hearted soulmate: gentle comfort with a playful spark."
     },
     {
         id: "anna",
         name: "Annabelle Norton",
         username: "anna",
-        img: anna,
+        img: dummy.getImage("anna"),
         bio: "Bubbly mischief: innocent charm meets irresistible kawaii."
     },
 ];

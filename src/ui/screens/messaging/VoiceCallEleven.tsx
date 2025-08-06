@@ -6,14 +6,17 @@ import { useConversation } from "@11labs/react";
 import { elevenLabsServices } from '@/api/eleven/eleven';
 import ProfileMedia from '@/ui/components/ProfileMedia';
 import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButton';
-import oliviaImage from "@/assets/image/avatar.png"
-import oliviaVideo from "@/assets/video/avatar_video.mp4";
 import CloseSquareIcon from "@/assets/CloseSquare.svg?react";
 import CallIcon from "@/assets/Call.svg?react";
 import WifiIcon from "@/assets/Wifi.svg?react";
 import NoSignalIcon from "@/assets/svg/NoSignal.svg"
 import { useMicrophonePermission } from '@/hooks/useMicrophonePermission';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import OnBoardingTopNav from '@/ui/components/nav/OnBoardingTopNav';
+import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
+import { truncateLastName } from '@/utils/StringUtils';
+import { InfluencerRepo } from '@/data/repositories/InfluencerRepo';
+import LoadingSpinner from '@/ui/components/loading/LoadingSpinner';
 
 interface VoiceCallElevenProps {
 }
@@ -28,13 +31,28 @@ const VoiceCallEleven: React.FC<VoiceCallElevenProps> = ({ }) => {
     const [influencerId, setInfluencerId] = useState<string | undefined>()
     const { permissionState, requestMicrophonePermission, releaseMicrophonePermission } = useMicrophonePermission();
 
+    const navigate = useNavigate();
+    const [influencer, setInfluencer] = useState<InfluencerDataModel>()
     const ringtoneRef = useRef(new Audio("/audio/ringtone.wav"));
     const { state } = useLocation();
+
+    const influencerRepo = InfluencerRepo();
 
     useEffect(() => {
         const { influencer_id } = state as { influencer_id: string };
         setInfluencerId(influencer_id)
     }, [state])
+
+    useEffect(() => {
+        (async () => {
+            if (influencerId) {
+                setIsLoading(true)
+                const influencer = await influencerRepo.getInfluencer(influencerId)
+                setInfluencer(influencer)
+                setIsLoading(false)
+            }
+        })()
+    }, [influencerId])
 
     const ring = () => {
         const ringtone = ringtoneRef.current;
@@ -104,28 +122,19 @@ const VoiceCallEleven: React.FC<VoiceCallElevenProps> = ({ }) => {
 
     return (
         <BackgroundGradient>
+            <OnBoardingTopNav onBackClicked={() => navigate(-1)} />
             <CenteredLayout>
-                <div className={styles["main-container"]}>
+                {influencer ? <div className={styles["main-container"]}>
                     <div className={styles["voice-chat-header"]}>
-                        <ProfileMedia mediaType='video' imageSrc={oliviaImage} videoSrc={oliviaVideo} showHearts size="xlarge" active />
-                        <div>
-                            <span className="flex items-center gap-3 w-full justify-center">
-                                Olivia F.
-                            </span>
+                        <ProfileMedia mediaType='video' imageSrc={influencer.img} videoSrc={influencer.videoUrl} showHearts size="xlarge" active />
+                        <div className={styles["name"]}>
+                            {truncateLastName(influencer?.name)}
                         </div>
-                    </div>
-                    <div className="text-center w-full flex flex-col items-center gap-6">
-                        <div
-                            className={`text-lg font-light transition-colors duration-300 ${isRecording
-                                ? "text-white"
-                                : isLoading
-                                    ? "text-white/70"
-                                    : "text-white/50"
-                                }`}
-                        >
+                        <div className={styles["status-container"]}>
                             {status}
                         </div>
-
+                    </div>
+                    <div className={styles["voice-chat-body"]}>
                         <CircularIconButton onClick={handleVoiceToggle} disabled={isLoading} icon={isConnected ? <CloseSquareIcon /> : <CallIcon />} />
                         <div className="h-12 flex items-center justify-center">
                             {isRecording ? (
@@ -144,9 +153,9 @@ const VoiceCallEleven: React.FC<VoiceCallElevenProps> = ({ }) => {
                                 </div>
                             ) : (
                                 !isLoading && (
-                                    <div className="flex justify-center items-center gap-2 text-white/50">
+                                    <div className={styles["network-status-container"]}>
                                         {isOnline ? <WifiIcon className="h-4 w-4" /> : <NoSignalIcon />}
-                                        <span className="text-sm font-light">{isOnline ? "Ready to start" : "No Connection"}</span>
+                                        <span className={styles["network-status-text"]}>{isOnline ? "Ready to start" : "No Connection"}</span>
                                     </div>
                                 )
                             )}
@@ -158,7 +167,7 @@ const VoiceCallEleven: React.FC<VoiceCallElevenProps> = ({ }) => {
                             </div>
                         )}
                     </div>
-                </div>
+                </div> : <LoadingSpinner />}
             </CenteredLayout>
         </BackgroundGradient>
     );

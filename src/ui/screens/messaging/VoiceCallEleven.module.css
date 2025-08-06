@@ -6,3 +6,28 @@
     align-items: center;
     position: relative;
 }
+
+.name {
+    font-size: 32px;
+}
+
+.status-container {
+    color: var(--color-grayscale-300);
+}
+
+.voice-chat-body {
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 56px;
+}
+
+.network-status-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.network-status-container svg {
+    height: 24px;
+}

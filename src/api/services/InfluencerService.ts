@@ -17,7 +17,6 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
             const response = await apiClient.get(
                 Endpoints.influencer(influencer_id),
             );
-            console.log(response.data)
             return response.data;
         } catch (error) {
             throw error
