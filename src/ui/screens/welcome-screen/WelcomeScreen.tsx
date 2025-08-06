@@ -35,9 +35,19 @@ export default function WelcomeScreen({ }: WelcomeScreenProps) {
     audioRef.current.loop = true;
     (async () => {
       if (username) {
-        const localInfluencer = await influencerRepo.getInfluencer(username)
-        setInfluencer(localInfluencer);
-        setIsFirstTime(!storage.getBoolean(LocalStorageKeys.VisitedWelcome))
+        try {
+          const localInfluencer = await influencerRepo.getInfluencer(username)
+          setInfluencer(localInfluencer);
+          setIsFirstTime(!storage.getBoolean(LocalStorageKeys.VisitedWelcome))
+        } catch (err) {
+          const localInfluencers = await influencerRepo.getInfluencers();
+          if (localInfluencers.length > 0) {
+            const randomIndex = Math.floor(Math.random() * localInfluencers.length);
+            const randomInfluencer = localInfluencers[randomIndex];
+            setInfluencer(randomInfluencer);
+            setIsFirstTime(!storage.getBoolean(LocalStorageKeys.VisitedWelcome));
+          }
+        }
       }
     })()
   }, [])
