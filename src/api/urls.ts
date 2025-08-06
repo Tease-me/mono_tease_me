@@ -21,7 +21,8 @@ export const Endpoints = {
     push: {
         subscribe: "/push/subscribe",
     },
-    influencer: "/influencer",
+    influencers: "/influencer",
+    influencer: (id: string) => `/influencer/${id}`,
     ws: {
         chat: "/ws/chat",
         notifications: "/ws/notifications"

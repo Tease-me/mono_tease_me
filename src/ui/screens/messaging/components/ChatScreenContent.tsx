@@ -12,12 +12,12 @@ import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import ChatTopNav from '@/ui/components/nav/ChatTopNav';
 import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
 import { Message, MessagePagination } from '@/data/models/MessageDataModel';
-import { contacts } from '@/data/mock/contacts';
 import { storage } from '@/utils/storage';
 import { LocalStorageKeys } from '@/constants/localStorageKeys';
 import LoadingSpinner from '@/ui/components/loading/LoadingSpinner';
 import clsx from 'clsx';
 import { ChatRepository } from '@/data/repositories/ChatRepo';
+import { InfluencerRepo } from '@/data/repositories/InfluencerRepo';
 
 const MessagesList = React.memo(({ messages, typing, messagesEndRef }: { messages: any[]; typing: boolean; messagesEndRef: React.RefObject<HTMLDivElement | null>; }) => {
     return (
@@ -69,21 +69,26 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const pageSize = 20;
 
     const chatRepository = ChatRepository();
+    const influencerRepo = InfluencerRepo();
 
     useEffect(() => {
-        if (!id) {
-            if (!user_id) {
-                setInfluencer(undefined);
-                return;
+        (async () => {
+            if (!id) {
+                if (!user_id) {
+                    setInfluencer(undefined);
+                    return;
+                }
+                const localInfluencer = await influencerRepo.getInfluencer(user_id);
+                setInfluencer(localInfluencer);
+                setMessages(undefined);
+                console.log("Influencer", localInfluencer)
+            } else {
+                const localInfluencer = await influencerRepo.getInfluencer(id);
+                console.log("Influencer", localInfluencer)
+                setInfluencer(localInfluencer);
+                setMessages(undefined);
             }
-            const localUser = contacts.find((c) => c.id === user_id);
-            setInfluencer(localUser);
-            setMessages(undefined);
-        } else {
-            const localUser = contacts.find((c) => c.id === id);
-            setInfluencer(localUser);
-            setMessages(undefined);
-        }
+        })()
     }, [id, user_id]);
 
     const fetchMessages = async (chat_id: string, page: number) => {

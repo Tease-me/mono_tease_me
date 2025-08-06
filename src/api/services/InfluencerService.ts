@@ -5,7 +5,7 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
     getInfluencers: async (): Promise<InfluencerResponse[]> => {
         try {
             const response = await apiClient.get(
-                Endpoints.influencer,
+                Endpoints.influencers,
             );
             return response.data;
         } catch (error) {
@@ -15,13 +15,9 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
     getInfluencer: async (influencer_id: string) => {
         try {
             const response = await apiClient.get(
-                Endpoints.influencer,
-                {
-                    params: {
-                        id: influencer_id
-                    }
-                }
+                Endpoints.influencer(influencer_id),
             );
+            console.log(response.data)
             return response.data;
         } catch (error) {
             throw error

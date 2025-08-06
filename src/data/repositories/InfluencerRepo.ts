@@ -1,12 +1,12 @@
 import { InfluencerServices } from "@/api/services/InfluencerService";
 import { apiClient } from "@/api/apis";
 import { InfluencerDataModel } from "../models/InfluencerDataModel";
+import dummy from "@/dummy/dummy";
 
 const influencerServices = InfluencerServices(apiClient);
 
 export const InfluencerRepo = () => ({
     getInfluencers: async (): Promise<InfluencerDataModel[]> => {
-        var totalMessages = 0;
         try {
             const response: InfluencerResponse[] = await influencerServices.getInfluencers();
 
@@ -15,10 +15,25 @@ export const InfluencerRepo = () => ({
                     id: item.id,
                     name: item.display_name,
                     username: item.id,
+                    img: dummy.getImage(item.id as "loli" | "bella" | "anna")
                 }
             })
         } catch (e) {
             throw e;
         }
     },
+    getInfluencer: async (influencer_id: string): Promise<InfluencerDataModel> => {
+        try {
+            const response: InfluencerResponse = await influencerServices.getInfluencer(influencer_id);
+            console.log(response)
+            return {
+                id: response.id,
+                name: response.display_name,
+                username: response.id,
+                img: dummy.getImage(response.id as "loli" | "bella" | "anna")
+            }
+        } catch (e) {
+            throw e;
+        }
+    }
 })

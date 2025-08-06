@@ -1,24 +1,24 @@
-
-
-/**
+/****
  * Truncates the last name segment of a full name string to maxLength characters,
  * appending '...' if the last name exceeds that length.
+ *
+ * Single-word names are returned unmodified.
  *
  * @param fullName - The full name containing at least one segment.
  * @param maxLength - The maximum allowed length for the last name.
  * @returns The name with its last segment truncated as needed.
  */
-export function truncateLastName(fullName: string, maxLength: number = 1): string {
+export function truncateLastName(fullName?: string, maxLength: number = 1): string {
+    if (fullName === undefined) {
+        return "";
+    }
     const nameParts = fullName.trim().split(/\s+/);
     if (nameParts.length === 0) {
-        return '';
+        return fullName;
     }
     // Handle single-word names
     if (nameParts.length === 1) {
-        const single = nameParts[0];
-        return single.length > maxLength
-            ? single.slice(0, maxLength) + '.'
-            : single;
+        return nameParts[0];
     }
     // Truncate the last segment
     const lastName = nameParts.pop()!;
