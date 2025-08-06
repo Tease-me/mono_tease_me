@@ -6,7 +6,7 @@ import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButto
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import { useLocation, useNavigate } from 'react-router-dom';
 import HeadingText from '@/ui/components/typography/HeadingText';
-import { WsEndpoints } from '@/api/urls';
+import { Endpoints } from '@/api/urls';
 import { AuthContext } from '@/context/AuthContext';
 import LoadingSpinner from '@/ui/components/loading/LoadingSpinner';
 import OnBoardingTopNav from '@/ui/components/nav/OnBoardingTopNav';
@@ -33,7 +33,7 @@ const Confirmation: React.FC<ConfirmationProps> = () => {
         }
         const { email, password } = state as { email: string, password: string };
         setEmail(email);
-        const ws = new WebSocket(`${WsEndpoints.NOTIFICATION}?email=${encodeURIComponent(email)}`);
+        const ws = new WebSocket(`${Endpoints.ws.notifications}?email=${encodeURIComponent(email)}`);
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
             if (data.type === "email_verified") {

@@ -6,7 +6,7 @@ export const PushNotificationServices = (apiClient: AxiosInstance) => ({
     subscribe: async (subscription: PushSubscription): Promise<UserDetailResponse> => {
         try {
             const response = await apiClient.post(
-                Endpoints.SUBSCRIBE_PUSH_NOTIFICATION,
+                Endpoints.push.subscribe,
                 subscription
             );
             return response.data;

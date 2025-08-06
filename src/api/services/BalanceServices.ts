@@ -5,7 +5,7 @@ export const BalanceServices = (apiClient: AxiosInstance) => ({
     getBalance: async (): Promise<BalanceResponse> => {
         try {
             const response = await apiClient.get(
-                Endpoints.BALANCE,
+                Endpoints.billing.balance,
             );
             return response.data;
         } catch (error) {
@@ -15,7 +15,7 @@ export const BalanceServices = (apiClient: AxiosInstance) => ({
     topup: async (amount_cents: number): Promise<TopupResponse> => {
         try {
             const response = await apiClient.post(
-                Endpoints.TOP_UP,
+                Endpoints.billing.topUp,
                 {
                     "cents": amount_cents
                 }

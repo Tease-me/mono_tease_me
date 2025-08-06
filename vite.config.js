@@ -4,20 +4,36 @@ import tailwindcss from '@tailwindcss/vite';
 import path from "path";
 import svgr from "vite-plugin-svgr";
 import fs from 'fs';
+import Checker from 'vite-plugin-checker';
 
 export default defineConfig({
-  plugins: [tailwindcss(), react(), svgr() ],
+  plugins: [
+    tailwindcss(),
+    react(),
+    svgr(),
+    Checker({
+      typescript: true,
+      eslint: {
+        lintCommand: 'eslint --no-ignore --ext .ts,.tsx src',
+        useFlatConfig: true,
+      },
+    })
+  ],
+  clearScreen: false,
   server: {
     port: 3000,
     host: true,
     open: true,
+    hmr: {
+      overlay: true,
+    },
     https: {
       key: fs.readFileSync('./.cert/key.pem'),
       cert: fs.readFileSync('./.cert/cert.pem'),
     },
   },
   preview: {
-    port: 4174, // 👈 Change this to your desired preview port
+    port: 4174,
     host: true,
     https: {
       key: fs.readFileSync('./.cert/key.pem'),

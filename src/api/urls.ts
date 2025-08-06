@@ -1,28 +1,29 @@
 import { TEASE_ME_HOST, TEASE_ME_PROTOCOL, TEASE_ME_WS_PROTOCOL } from "@/env";
 
 export const API_BASE_URL = `${TEASE_ME_PROTOCOL}://${TEASE_ME_HOST}`;
-
-const AUTH_URL = "/auth";
-const BILLING_URL = "/billing"
-const PUSH_NOTIFICATION = "/push"
+export const WS_BASE_URL = `${TEASE_ME_WS_PROTOCOL}://${TEASE_ME_HOST}`;
 
 export const Endpoints = {
-    LOGIN: `${AUTH_URL}/login`,
-    REGISTER: `${AUTH_URL}/register`,
-    REFRESH_TOKEN: `${AUTH_URL}/refresh`,
-    FORGOT_PASSWPRD: `${AUTH_URL}/forgot-password`,
-    ME: `${AUTH_URL}/me`,
-    CHAT: "/chat",
-    HISTORY: "/history",
-    CHAT_AUDIO: `${API_BASE_URL}/chat_audio`,
-    BALANCE: `${BILLING_URL}/balance`,
-    TOP_UP: `${BILLING_URL}/topup`,
-    SUBSCRIBE_PUSH_NOTIFICATION: `${PUSH_NOTIFICATION}/subscribe`,
-}
-
-const WEB_SHOCKET_URL = `${TEASE_ME_WS_PROTOCOL}://${TEASE_ME_HOST}`;
-
-export const WsEndpoints = {
-    CHAT: `${WEB_SHOCKET_URL}/ws/chat`,
-    NOTIFICATION: `${WEB_SHOCKET_URL}/ws/notifications`
-}
+    auth: {
+        login: "/auth/login",
+        register: "/auth/register",
+        refreshToken: "/auth/refresh",
+        forgotPassword: "/auth/forgot-password",
+        me: "/auth/me",
+    },
+    billing: {
+        balance: "/billing/balance",
+        topUp: "/billing/topup",
+    },
+    chat: "/chat",
+    chat_history: "/history",
+    chat_audio: "/chat_audio",
+    push: {
+        subscribe: "/push/subscribe",
+    },
+    influencer: "/influencer",
+    ws: {
+        chat: "/ws/chat",
+        notifications: "/ws/notifications"
+    }
+} as const;

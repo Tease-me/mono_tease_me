@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 
-import { Endpoints, WsEndpoints } from "@/api/urls";
+import { Endpoints } from "@/api/urls";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import { truncateLastName } from "@/utils/StringUtils";
 import { AuthContext } from "@/context/AuthContext";
@@ -129,7 +129,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
     function connectChat(influencerId: string) {
         const access_token = storage.get(LocalStorageKeys.AccessToken);
-        ws.current = new window.WebSocket(`${WsEndpoints.CHAT}/${influencerId}?token=${access_token}`);
+        ws.current = new window.WebSocket(`${Endpoints.ws.chat}/${influencerId}?token=${access_token}`);
         ws.current.onopen = () => setIsWsConnected(true);
         ws.current.onclose = () => setIsWsConnected(false);
         ws.current.onerror = () => setIsWsConnected(false);
@@ -205,7 +205,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         formData.append("persona_id", influencer.id);
         formData.append("chat_id", chatId);
         formData.append("token", access_token ?? "");
-        const response = await fetch(`${Endpoints.CHAT_AUDIO}`, {
+        const response = await fetch(`${Endpoints.chat_audio}`, {
             method: "POST",
             body: formData,
         });

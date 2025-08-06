@@ -1,4 +1,3 @@
-import { BLAND_API_KEY } from "@/api/env";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 

@@ -6,7 +6,7 @@ export const AuthServices = (apiClient: AxiosInstance) => ({
     login: async (email: string, password: string): Promise<TokenResponse> => {
         try {
             const response = await apiClient.post(
-                Endpoints.LOGIN,
+                Endpoints.auth.login,
                 { email, password },
             );
             return response.data;
@@ -17,7 +17,7 @@ export const AuthServices = (apiClient: AxiosInstance) => ({
     register: async (password: string, email: string): Promise<RegisterResponse> => {
         try {
             const response = await apiClient.post(
-                Endpoints.REGISTER,
+                Endpoints.auth.register,
                 {
                     "password": password,
                     "email": email
@@ -31,7 +31,7 @@ export const AuthServices = (apiClient: AxiosInstance) => ({
     refreshToken: async (refreshToken: string): Promise<TokenResponse> => {
         try {
             const response = await apiClient.post(
-                Endpoints.REFRESH_TOKEN,
+                Endpoints.auth.refreshToken,
                 null,
                 {
                     params: {
@@ -46,7 +46,7 @@ export const AuthServices = (apiClient: AxiosInstance) => ({
     },
     forgotPassword: async (email: string) => {
         try {
-            const { data } = await apiClient.post<ForgotPasswordResponse>(Endpoints.FORGOT_PASSWPRD,
+            const { data } = await apiClient.post<ForgotPasswordResponse>(Endpoints.auth.forgotPassword,
                 null,
                 {
                     params: {

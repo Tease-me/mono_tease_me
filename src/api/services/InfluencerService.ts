@@ -1,12 +1,11 @@
 import { Endpoints } from "../urls";
-import { UserDetailResponse } from "../models/user";
 import { AxiosInstance } from "axios";
 
 export const UserServices = (apiClient: AxiosInstance) => ({
-    getUserDerails: async (): Promise<UserDetailResponse> => {
+    getInfluencers: async (): Promise<InfluencerResponse[]> => {
         try {
             const response = await apiClient.get(
-                Endpoints.auth.me,
+                Endpoints.influencer,
             );
             return response.data;
         } catch (error) {

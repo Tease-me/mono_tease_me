@@ -6,7 +6,7 @@ export const ChatServices = () => ({
     getChatHistory: async (chat_id: string, page: number, page_size: number) => {
         try {
             const response = await apiClient.get(
-                Endpoints.HISTORY + `/${chat_id}?page=${page}&page_size=${page_size}`,
+                Endpoints.chat_history + `/${chat_id}?page=${page}&page_size=${page_size}`,
             );
             return response.data;
         } catch (error) {
@@ -16,7 +16,7 @@ export const ChatServices = () => ({
     getChatId: async (user_id: number, persona_id: string): Promise<ChatIdResponse> => {
         try {
             const response = await apiClient.post(
-                Endpoints.CHAT,
+                Endpoints.chat,
                 {
                     "user_id": user_id,
                     "influencer_id": persona_id
