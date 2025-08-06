@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from "./ContactTabContent.module.css"
 import TextInput from '@/ui/components/inputs/text-inputs/TextInput';
-import { contacts } from '@/data/mock/contacts';
 import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButton';
 import InfinityIcon from "@/assets/svg/Infinity.svg?react";
 import SearchIcon from "@/assets/svg/Search.svg?react";
 import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
 import clsx from 'clsx';
+import { InfluencerRepo } from '@/data/repositories/InfluencerRepo';
 
 interface ContactTabContentProps {
     selectedContactId?: string;
@@ -15,14 +15,31 @@ interface ContactTabContentProps {
 
 const ContactTabContent: React.FC<ContactTabContentProps> = ({ selectedContactId, onChatClicked }) => {
     const [search, setSearch] = useState("");
-    const filteredContacts = contacts.filter((c) =>
-        c.name.toLowerCase().includes(search.toLowerCase())
-    );
+    const [influencers, setInfluencers] = useState<InfluencerDataModel[]>();
+    const [filteredInfluencers, setFilteredInfluencers] = useState<InfluencerDataModel[]>();
+
+    useEffect(() => {
+        const influencerRepo = InfluencerRepo();
+        influencerRepo.getInfluencers().then((influencers: InfluencerDataModel[]) => {
+            setInfluencers(influencers)
+        })
+    }, [])
+
+    useEffect(() => {
+        if (influencers) {
+            const filteredContacts = influencers.filter((c) =>
+                c.name.toLowerCase().includes(search.toLowerCase())
+            );
+            setFilteredInfluencers(filteredContacts)
+        }
+    }, [influencers])
+
+
     return (
         <div>
             <TextInput className={styles["search-input"]} value={search} leftIcon={<SearchIcon />} placeholder='Search' onChange={(e) => setSearch((e.target as HTMLInputElement).value)} />
             <div className={styles["vertical-scroll"]}>
-                {filteredContacts.map((contact) => (
+                {filteredInfluencers && filteredInfluencers.map((contact) => (
                     <div
                         key={contact.id}
                         className={clsx(styles["contact-card"], contact.id === selectedContactId && styles["highlight"])}

@@ -1,7 +1,7 @@
 import { ChatServices } from "@/api/services/ChatServices";
-import { MessagePagination } from "../models/MessageDataModel";
+import { Message, MessagePagination } from "../models/MessageDataModel";
 import { ChatHistoryResponse, ChatIdResponse } from "@/api/models/chat";
-import { sortAndMapMessages } from "@/api/maps/chat_maps";
+import { formatDateTimeRelative } from "@/utils/DateTimeUtils";
 
 const chatServices = ChatServices();
 
@@ -10,13 +10,22 @@ export const ChatRepository = () => ({
         var totalMessages = 0;
         try {
             const response: ChatHistoryResponse = await chatServices.getChatHistory(chat_id, page, page_size);
-            const sortedMessages = sortAndMapMessages(response.messages)
             totalMessages = response.total;
+            const responseMessages: Message[] = response.messages.sort((a, b) =>
+                new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+            ).map(item => {
+                return {
+                    id: item.id,
+                    sender: item.sender === 'ai' ? "received" : "sent",
+                    text: item.content,
+                    time: formatDateTimeRelative(item.created_at)
+                }
+            })
             return {
                 page: page,
                 page_size: page_size,
                 total: totalMessages,
-                messages: sortedMessages
+                messages: responseMessages
             };
         } catch (e) {
             throw e;

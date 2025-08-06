@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite';
 import path from "path";
 import svgr from "vite-plugin-svgr";
 import fs from 'fs';
@@ -8,7 +7,6 @@ import Checker from 'vite-plugin-checker';
 
 export default defineConfig({
   plugins: [
-    tailwindcss(),
     react(),
     svgr(),
     Checker({

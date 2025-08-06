@@ -66,6 +66,10 @@
   text-decoration: underline;
 }
 
+.check-box svg {
+  height: 24px;
+}
+
 @keyframes spin {
   from {
     transform: rotate(0deg);

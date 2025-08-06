@@ -19,8 +19,6 @@ body,
   overscroll-behavior: none;
 }
 
-@import "tailwindcss";
-
 :root {
   --primary-font-family: "Urbanist", sans-serif;
   --color-text: #FFFFFF;
@@ -58,4 +56,11 @@ body {
   height: 100dvh;
   overflow: hidden;
   position: relative;
+}
+
+input,
+button {
+  background: none;
+  border: none;
+  color: var(--color-text);
 }

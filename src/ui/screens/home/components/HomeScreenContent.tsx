@@ -1,10 +1,8 @@
 import React, { useContext, useEffect, useRef, useState, useMemo } from 'react';
 import styles from "./HomeScreenContent.module.css"
-import clsx from 'clsx';
 import { useNavigate } from 'react-router-dom';
 
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
-import { contacts } from '@/data/mock/contacts';
 import ProfileIcon from "@/assets/svg/Profile.svg?react"
 import TicketIcon from "@/assets/svg/Ticket.svg?react"
 import DangerIcon from "@/assets/svg/Danger.svg?react"

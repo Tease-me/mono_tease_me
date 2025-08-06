@@ -1,7 +1,7 @@
 import { Endpoints } from "../urls";
 import { AxiosInstance } from "axios";
 
-export const UserServices = (apiClient: AxiosInstance) => ({
+export const InfluencerServices = (apiClient: AxiosInstance) => ({
     getInfluencers: async (): Promise<InfluencerResponse[]> => {
         try {
             const response = await apiClient.get(
@@ -11,6 +11,20 @@ export const UserServices = (apiClient: AxiosInstance) => ({
         } catch (error) {
             throw error;
         }
+    },
+    getInfluencer: async (influencer_id: string) => {
+        try {
+            const response = await apiClient.get(
+                Endpoints.influencer,
+                {
+                    params: {
+                        id: influencer_id
+                    }
+                }
+            );
+            return response.data;
+        } catch (error) {
+            throw error
+        }
     }
-
 })
