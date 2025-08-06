@@ -27,8 +27,7 @@
     "react-voice-visualizer": "^2.0.8",
     "swiper": "^11.2.8",
     "three": "^0.178.0",
-    "typescript": "^5.8.3",
-    "ws": "^8.18.3"
+    "typescript": "^5.8.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
