@@ -27,6 +27,7 @@ export default function WelcomeScreen({ }: WelcomeScreenProps) {
   const [onTryClicked, setOnTryClicked] = useState(false);
   const [influencer, setInfluencer] = useState<InfluencerDataModel>();
   const { status, startConversation, stopConversation } = useCall(influencer!);
+
   const audioRef = useRef(new Audio("/audio/ringtone.wav"));
 
   const influencerRepo = InfluencerRepo();
