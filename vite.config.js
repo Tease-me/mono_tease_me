@@ -1,9 +1,8 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import react from '@vitejs/plugin-react';
 import path from "path";
-import svgr from "vite-plugin-svgr";
-import fs from 'fs';
+import { defineConfig } from 'vite';
 import Checker from 'vite-plugin-checker';
+import svgr from "vite-plugin-svgr";
 
 export default defineConfig({
   plugins: [
@@ -26,22 +25,22 @@ export default defineConfig({
     hmr: {
       overlay: true,
     },
-    https: {
-      key: fs.readFileSync('./.cert/key.pem'),
-      cert: fs.readFileSync('./.cert/cert.pem'),
-    },
+    //https: {
+    //key: fs.readFileSync('./.cert/key.pem'),
+    //cert: fs.readFileSync('./.cert/cert.pem'),
+    //},
   },
   preview: {
     port: 4174,
     host: true,
-    https: {
-      key: fs.readFileSync('./.cert/key.pem'),
-      cert: fs.readFileSync('./.cert/cert.pem'),
-    },
+    //https: {
+    //key: fs.readFileSync('./.cert/key.pem'),
+    //cert: fs.readFileSync('./.cert/cert.pem'),
+    //},
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"),
+      "@": path.resolve(path.dirname(new URL(import.meta.url).pathname), "src"),
     },
   }
 });
