@@ -14,12 +14,18 @@ export const ChatRepository = () => ({
             const responseMessages: Message[] = response.messages.sort((a, b) =>
                 new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
             ).map(item => {
-                return {
+                const message: Message = {
                     id: item.id,
                     sender: item.sender === 'ai' ? "received" : "sent",
                     text: item.content,
-                    time: formatDateTimeRelative(item.created_at)
+                    time: formatDateTimeRelative(item.created_at),
                 }
+                if (item.audio_url != null) {
+                    message.attachments = [
+                        { audioUrl: item.audio_url, type: "audio" }
+                    ]
+                }
+                return message;
             })
             return {
                 page: page,

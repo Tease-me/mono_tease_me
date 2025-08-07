@@ -14,6 +14,7 @@ export interface MessageResponse {
     chat_id: string;
     sender: string;
     content: string;
+    audio_url: string;
     created_at: string;
 }
 

@@ -1,12 +1,18 @@
 import { Endpoints } from "../urls";
-import { ChatIdResponse, SignedUrlResponse } from "../models/chat";
+import { ChatHistoryResponse, ChatIdResponse, SignedUrlResponse } from "../models/chat";
 import { apiClient } from "../apis";
 
 export const ChatServices = () => ({
-    getChatHistory: async (chat_id: string, page: number, page_size: number) => {
+    getChatHistory: async (chat_id: string, page: number, page_size: number): Promise<ChatHistoryResponse> => {
         try {
             const response = await apiClient.get(
-                Endpoints.chat.history + `/${chat_id}?page=${page}&page_size=${page_size}`,
+                Endpoints.chat.history(chat_id),
+                {
+                    params: {
+                        page,
+                        page_size
+                    }
+                }
             );
             return response.data;
         } catch (error) {

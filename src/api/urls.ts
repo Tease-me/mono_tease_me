@@ -17,7 +17,7 @@ export const Endpoints = {
     },
     chat: {
         start: "/chat",
-        history: "/chat/history",
+        history: (chat_id: string) => `/chat/history/${chat_id}`,
         audio: "/chat/chat_audio"
     },
     push: {
