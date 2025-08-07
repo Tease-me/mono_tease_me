@@ -24,6 +24,7 @@ export const ChatRepository = () => ({
                     message.attachments = [
                         { audioUrl: item.audio_url, type: "audio" }
                     ]
+                    message.text = undefined
                 }
                 return message;
             })
