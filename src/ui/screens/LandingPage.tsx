@@ -5,7 +5,6 @@ import styles from "./LandingPage.module.css";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import CenteredLayout from "@/ui/templates/CenteredLayout";
 import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButton";
-import { AuthContext } from "@/context/AuthContext";
 import { storage } from "@/utils/storage";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import DividerWithLabel from "@/ui/components/dividers/DividerWithLabel";
