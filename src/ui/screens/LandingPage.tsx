@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
-import styles from "./WelcomeScreen.module.css";
+import styles from "./LandingPage.module.css";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import CenteredLayout from "@/ui/templates/CenteredLayout";
 import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButton";
@@ -17,12 +17,11 @@ import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import useCall from "@/hooks/useCall";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 
-export interface WelcomeScreenProps { }
+export interface LandingPageProps { }
 
-export default function WelcomeScreen({ }: WelcomeScreenProps) {
+export default function LandingPage({ }: LandingPageProps) {
   const navigate = useNavigate();
   const { username } = useParams<{ username: string }>();
-  const { isSignedIn } = useContext(AuthContext);
   const [isFirstTime, setIsFirstTime] = useState(true);
   const [onTryClicked, setOnTryClicked] = useState(false);
   const [influencer, setInfluencer] = useState<InfluencerDataModel>();
