@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import styles from "./UserProfile.module.css"
 import ProfileMedia from '@/ui/components/ProfileMedia';
-import profileImage from "@/assets/image/avatar.png"
 import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 import OnBoardingTopNav from '@/ui/components/nav/OnBoardingTopNav';
 import TextInput from '@/ui/components/inputs/text-inputs/TextInput';
