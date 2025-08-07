@@ -27,7 +27,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
     const navigate = useNavigate()
 
     useEffect(() => {
-
         balanceService.getBalance().then((response: BalanceResponse) => {
             setBalance(response.balance_cents)
         })
@@ -71,9 +70,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
                     Your Details
                 </div>
                 <div className={styles["section-body"]}>
-                    <TextInput placeholder='Name' type='text' value={localUser?.name} onChange={handleNameChange} />
-                    <TextInput placeholder='Nickname' type='text' value={localUser?.username} onChange={handleNickNameChange} />
-                    <TextInput placeholder='Email' type='email' value={localUser?.email} onChange={handleEmailChange} />
+                    <TextInput placeholder='Name' type='text' value={localUser?.name ? localUser?.name : ""} onChange={handleNameChange} />
+                    <TextInput placeholder='Nickname' type='text' value={localUser?.username ? localUser?.username : ""} onChange={handleNickNameChange} />
+                    <TextInput placeholder='Email' type='email' value={localUser?.email ? localUser?.email : ""} onChange={handleEmailChange} />
                 </div>
                 <div className={styles["delete-account-section"]}>
                     <a href='#'>Delete Account</a>
