@@ -5,14 +5,15 @@ import GuestRoute from "./GuestRoute";
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 import UserProfile from "@/ui/screens/user-profile/UserProfile";
 
-const WelcomeScreen = lazy(() => import("@/ui/screens/welcome-screen/WelcomeScreen"));
+const LandingPage = lazy(() => import("@/ui/screens/LandingPage"));
+const WelcomeScreen = lazy(() => import("@/ui/screens/influencer-profile/welcome/WelcomeScreen"));
+const InfluencerProfileScreen = lazy(() => import("@/ui/screens/influencer-profile/InfluencerProfileScreen"));
 const LoginScreen = lazy(() => import("@/ui/screens/login/LoginScreen"));
 const RegisterScreen = lazy(() => import("@/ui/screens/register/RegisterScreen"));
 const Confirmation = lazy(() => import("@/ui/screens/register/Confirmation"));
 const ResetPassword = lazy(() => import("@/ui/screens/forgot-password/ResetPassword"));
 const ForgotPassword = lazy(() => import("@/ui/screens/forgot-password/ForgotPassword"));
 const VerifyEmail = lazy(() => import("@/ui/screens/verify-email/VerifyEmail"));
-const VoiceCall = lazy(() => import("@/ui/screens/messaging/VoiceCall"));
 const VoiceCallEleven = lazy(() => import("@/ui/screens/messaging/VoiceCallEleven"));
 const HomeScreen = lazy(() => import("@/ui/screens/home/HomeScreen"));
 const ChatScreen = lazy(() => import("@/ui/screens/messaging/ChatScreen"));
@@ -20,11 +21,11 @@ const CallScreen = lazy(() => import("@/ui/screens/CallScreen"));
 
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
-    { path: "/:username", element: <WelcomeScreen /> },
+    { path: "/:username", element: <InfluencerProfileScreen /> },
   ];
 
   const guestRoutes: { path: string; element: JSX.Element }[] = [
-    { path: "*", element: <WelcomeScreen /> },
+    { path: "*", element: <LandingPage /> },
     { path: "/login", element: <LoginScreen /> },
     { path: "/register", element: <RegisterScreen /> },
     { path: "/register/verify", element: <Confirmation /> },
@@ -34,7 +35,6 @@ function AppRoutes() {
   ];
 
   const privateRoutes: { path: string; element: JSX.Element }[] = [
-    // { path: "/voice", element: <VoiceCall /> },
     { path: "/voice", element: <VoiceCallEleven /> },
     { path: "/home", element: <HomeScreen /> },
     { path: "/chat/:user_id", element: <ChatScreen /> },

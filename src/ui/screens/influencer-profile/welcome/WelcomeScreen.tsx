@@ -15,48 +15,19 @@ import CallIcon from "@/assets/Call.svg?react";
 import DropCallIcon from "@/assets/svg/DropCall.svg?react";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import useCall from "@/hooks/useCall";
-import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 
-export interface WelcomeScreenProps { }
+export interface WelcomeScreenProps {
+  influencer: InfluencerDataModel;
+}
 
-export default function WelcomeScreen({ }: WelcomeScreenProps) {
+export default function WelcomeScreen({ influencer }: WelcomeScreenProps) {
   const navigate = useNavigate();
-  const { username } = useParams<{ username: string }>();
-  const { isSignedIn } = useContext(AuthContext);
+
   const [isFirstTime, setIsFirstTime] = useState(true);
   const [onTryClicked, setOnTryClicked] = useState(false);
-  const [influencer, setInfluencer] = useState<InfluencerDataModel>();
   const { status, startConversation, stopConversation } = useCall(influencer!);
 
   const audioRef = useRef(new Audio("/audio/ringtone.wav"));
-
-  const influencerRepo = InfluencerRepo();
-
-  useEffect(() => {
-    audioRef.current.loop = true;
-    (async () => {
-      if (username) {
-        try {
-          const localInfluencer = await influencerRepo.getInfluencer(username)
-          setInfluencer(localInfluencer);
-          setIsFirstTime(!storage.getBoolean(LocalStorageKeys.VisitedWelcome))
-        } catch (err) {
-          const localInfluencers = await influencerRepo.getInfluencers();
-          if (localInfluencers.length > 0) {
-            const randomIndex = Math.floor(Math.random() * localInfluencers.length);
-            const randomInfluencer = localInfluencers[randomIndex];
-            setInfluencer(randomInfluencer);
-            setIsFirstTime(!storage.getBoolean(LocalStorageKeys.VisitedWelcome));
-          }
-        }
-      }
-    })()
-  }, [])
-
-  useEffect(() => {
-    if (isSignedIn) navigate("/home")
-    return
-  }, [isSignedIn])
 
   useEffect(() => {
     if (status === "connected") {
@@ -113,7 +84,7 @@ export default function WelcomeScreen({ }: WelcomeScreenProps) {
         <DividerWithLabel text="or" />
         {!isFirstTime ? <CircularIconButton text="Sign in with email" className={styles["sign-in-button"]} onClick={handleSignInClick} /> :
           !onTryClicked ? <CircularIconButton text="Talk To Me Now" onClick={handleTryClick} /> :
-            <>{status === "idle" ? <div className={styles["status"]}>{`${username} is calling...`}</div> : <div className={styles["status"]}>{status}</div>}
+            <>{status === "idle" ? <div className={styles["status"]}>{`${influencer.name} is calling...`}</div> : <div className={styles["status"]}>{status}</div>}
               <div className={styles["call-buttons"]}>
                 <CircularIconButton icon={<DropCallIcon />} onClick={handleHangUpCall} size="small" variant="tertiary" />
                 {status === "idle" && <CircularIconButton icon={<CallIcon />} onClick={handlePickUpCall} size="small" />}
