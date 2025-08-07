@@ -18,6 +18,13 @@ export interface MessageResponse {
     created_at: string;
 }
 
+export interface ChatAudioResponse {
+    ai_text: string;
+    ai_audio_url: string;
+    user_audio_url: string;
+    transcript: string;
+};
+
 export interface SignedUrlResponse {
     signed_url: string;
 }

@@ -3,7 +3,7 @@ import { API_BASE_URL } from './urls';
 
 export const apiClient = axios.create({
     baseURL: API_BASE_URL,
-    timeout: 10_000,
+    timeout: 30_000,
     headers: { 'ngrok-skip-browser-warning': 'true' }
 });
 

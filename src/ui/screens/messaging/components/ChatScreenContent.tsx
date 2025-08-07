@@ -37,12 +37,7 @@ interface ChatScreenContentProps {
     id?: string;
     onBackPressed?: () => void;
 }
-type ChatAudioResponse = {
-    ai_text: string;
-    ai_audio_url: string;
-    user_audio_url: string;
-    transcript: string;
-};
+
 const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed }) => {
     const [influencer, setInfluencer] = useState<InfluencerDataModel>();
     const [chatId, setChatId] = useState<string | undefined>();
@@ -160,66 +155,11 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         };
     }
 
-    // async function sendAndPlay(audioBlob: Blob) {
-    //     if (!influencer) return;
-    //     if (!chatId) return;
-
-    //     const formData = new FormData();
-    //     formData.append("file", audioBlob);
-    //     formData.append("persona_id", influencer.id);
-    //     formData.append("chat_id", chatId);
-    //     const response = await fetch(`${Endpoints.CHAT_AUDIO}`, {
-    //         method: "POST",
-    //         body: formData,
-    //     });
-    //     if (!response.ok) {
-    //         alert("Failed to get AI audio");
-    //         return;
-    //     }
-    //     const blob = await response.blob();
-    //     setMessages((prev) => {
-    //         if (!prev) return;
-    //         return [
-    //             ...prev,
-    //             {
-    //                 id: Date.now(),
-    //                 sender: "received",
-    //                 text: "audio",
-    //                 time: new Date().toLocaleTimeString([], {
-    //                     hour: "2-digit",
-    //                     minute: "2-digit",
-    //                 }),
-    //                 attachments: [
-    //                     {
-    //                         blob: blob,
-    //                         type: "audio",
-    //                     },
-    //                 ],
-    //             },
-    //         ]
-    //     });
-    //     scrollToBottom();
-    // }
-
     async function sendAndPlay(audioBlob: Blob) {
         if (!influencer) return;
         if (!chatId) return;
-        const access_token = storage.get(LocalStorageKeys.AccessToken);
-        const formData = new FormData();
-        formData.append("file", audioBlob, "audio.webm");
-        formData.append("influencer_id", influencer.id);
-        formData.append("chat_id", chatId);
-        formData.append("token", access_token ?? "");
-        const response = await fetch(`${API_BASE_URL}${Endpoints.chat.audio}`, {
-            method: "POST",
-            body: formData,
-        });
-        if (!response.ok) {
-            alert("Failed to get AI audio");
-            return;
-        }
-        const data: ChatAudioResponse = await response.json();
-        console.log("AI Audio Response:", data);
+
+        const { audio_url } = await chatRepository.sendAudioMessage(audioBlob, influencer.id, chatId);
 
         setMessages((prev) => {
             if (!prev) return prev;
@@ -228,15 +168,14 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 {
                     id: Date.now(),
                     sender: "received",
-                    text: data.ai_text || "audio",
                     time: new Date().toLocaleTimeString([], {
                         hour: "2-digit",
                         minute: "2-digit",
                     }),
-                    attachments: data.ai_audio_url
+                    attachments: audio_url
                         ? [
                             {
-                                audioUrl: data.ai_audio_url,
+                                audioUrl: audio_url,
                                 type: "audio",
                             },
                         ]

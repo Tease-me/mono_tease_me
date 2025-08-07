@@ -1,6 +1,6 @@
 import { ChatServices } from "@/api/services/ChatServices";
 import { Message, MessagePagination } from "../models/MessageDataModel";
-import { ChatHistoryResponse, ChatIdResponse, SignedUrlResponse } from "@/api/models/chat";
+import { ChatAudioResponse, ChatHistoryResponse, ChatIdResponse, SignedUrlResponse } from "@/api/models/chat";
 import { formatDateTimeRelative } from "@/utils/DateTimeUtils";
 
 const chatServices = ChatServices();
@@ -44,5 +44,11 @@ export const ChatRepository = () => ({
     getSignedUrl: async (influencer_id: string): Promise<string> => {
         const response: SignedUrlResponse = await chatServices.getSignedUrl(influencer_id)
         return response.signed_url
+    },
+    sendAudioMessage: async (audioBlob: Blob, influencer_id: string, chat_id: string) => {
+        const response: ChatAudioResponse = await chatServices.postAudioMessage(audioBlob, influencer_id, chat_id);
+        return {
+            audio_url: response.ai_audio_url
+        }
     }
 })
