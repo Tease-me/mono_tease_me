@@ -10,6 +10,7 @@ import { AuthServices } from '@/api/services/AuthServices';
 import BlockingLoader from '@/ui/components/loading/BlockingLoader';
 import { apiClient } from '@/api/apis';
 import ButtonRow from '@/ui/templates/ButtonRow';
+import logger from '@/utils/logger';
 
 interface ForgotPasswordProps { }
 
@@ -40,6 +41,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ }) => {
                 navigate("/login")
             }, 5000);
         } catch (err: any) {
+            logger.error(err);
             setStatus("Something went wrong. Please try again later.");
         }
     };

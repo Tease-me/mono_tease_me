@@ -3,6 +3,7 @@ import { useConversation } from "@11labs/react";
 import { useCallback, useRef, useState } from "react";
 import { useMicrophonePermission } from "./useMicrophonePermission";
 import { ChatRepository } from "@/data/repositories/ChatRepo";
+import logger from "@/utils/logger";
 
 export default function useCall(influencer: InfluencerDataModel) {
   const [status, setStatus] = useState<
@@ -37,14 +38,13 @@ export default function useCall(influencer: InfluencerDataModel) {
     },
     onDisconnect: () => {
       setStatus("disconnected");
-      console.log("disconnected");
     },
     onError: (error) => {
       setStatus("error");
-      console.log(error);
+      logger.error(error)
     },
     onMessage: (message) => {
-      console.log(message);
+      logger.debug(message);
     },
   });
 
@@ -62,7 +62,7 @@ export default function useCall(influencer: InfluencerDataModel) {
       stopRing();
       return;
     }
-    const conversationId = await conversation.startSession({ signedUrl });
+    await conversation.startSession({ signedUrl });
   }
 
   const stopConversation = useCallback(async () => {

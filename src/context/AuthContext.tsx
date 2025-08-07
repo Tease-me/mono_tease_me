@@ -8,6 +8,7 @@ import { UserServices } from "@/api/services/UserServices";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { UserDataModel } from "@/data/models/UserDataModel";
 import { FIREBASE_PUBLIC_KEY } from "@/env";
+import logger from "@/utils/logger";
 import { storage } from "@/utils/storage";
 
 import React, { createContext, useState, useEffect } from "react";
@@ -29,6 +30,7 @@ export interface AuthErrors {
     };
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext<AuthContextType>(
     {} as AuthContextType
 );
@@ -86,11 +88,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                             applicationServerKey: FIREBASE_PUBLIC_KEY
                         });
                     }
-                    console.log('Successfully subscribed in the front end! 🎉', subscription);
+                    logger.info('Successfully subscribed in the front end! 🎉', subscription);
                     await pusnNotificationServices.subscribe(subscription);
-                    console.log('Successfully subscribed in the backend end! 🎉');
+                    logger.info('Successfully subscribed in the backend end! 🎉');
                 } catch (error) {
-                    console.error('Service worker not ready or push subscription failed:', error);
+                    logger.error('Service worker not ready or push subscription failed:', error);
                 }
             })();
         }

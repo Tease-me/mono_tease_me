@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import AppRoutes from './routes/AppRoutes.jsx'
 import { AuthProvider } from './context/AuthContext'
+import logger from './utils/logger';
 
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
@@ -14,13 +15,13 @@ function registerServiceWorker() {
           "/sw.js",
           { type: 'module' }
         );
-        console.log('ServiceWorker Successfully registered! 🎉', registration);
+        logger.info('ServiceWorker Successfully registered! 🎉', registration)
       } catch (error) {
-        console.error('Failed to subscribe the user:', error);
+        logger.error('Failed to subscribe the user:', error);
       }
     })();
   } else {
-    console.error('Service Worker or Push API not supported.');
+    logger.error('Service Worker or Push API not supported.');
   }
 }
 

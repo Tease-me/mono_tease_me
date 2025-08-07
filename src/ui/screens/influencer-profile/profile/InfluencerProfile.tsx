@@ -6,7 +6,7 @@ interface InfluencerProfileProps {
 
 const InfluencerProfile: React.FC<InfluencerProfileProps> = ({ }) => {
     return (
-        <div>
+        <div className={styles[""]}>
             <h1>InfluencerProfile</h1>
         </div>
     );

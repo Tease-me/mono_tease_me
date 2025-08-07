@@ -6,7 +6,6 @@ import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 import UserProfile from "@/ui/screens/user-profile/UserProfile";
 
 const LandingPage = lazy(() => import("@/ui/screens/LandingPage"));
-const WelcomeScreen = lazy(() => import("@/ui/screens/influencer-profile/welcome/WelcomeScreen"));
 const InfluencerProfileScreen = lazy(() => import("@/ui/screens/influencer-profile/InfluencerProfileScreen"));
 const LoginScreen = lazy(() => import("@/ui/screens/login/LoginScreen"));
 const RegisterScreen = lazy(() => import("@/ui/screens/register/RegisterScreen"));

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import styles from "./LandingPage.module.css";
@@ -15,6 +15,7 @@ import DropCallIcon from "@/assets/svg/DropCall.svg?react";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import useCall from "@/hooks/useCall";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
+import logger from "@/utils/logger";
 
 export interface LandingPageProps { }
 
@@ -39,6 +40,7 @@ export default function LandingPage({ }: LandingPageProps) {
           setInfluencer(localInfluencer);
           setIsFirstTime(!storage.getBoolean(LocalStorageKeys.VisitedWelcome))
         } catch (err) {
+          logger.error(err);
           const localInfluencers = await influencerRepo.getInfluencers();
           if (localInfluencers.length > 0) {
             const randomIndex = Math.floor(Math.random() * localInfluencers.length);

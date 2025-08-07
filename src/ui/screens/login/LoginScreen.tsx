@@ -11,6 +11,7 @@ import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButto
 import CheckBox from "@/ui/components/inputs/check-boxes/CheckBox";
 import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 import OnBoardingTopNav from "@/ui/components/nav/OnBoardingTopNav";
+import logger from "@/utils/logger";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -22,7 +23,7 @@ export default function LoginScreen() {
   const { isSignedIn, login, authErrors } = useContext(AuthContext);
 
   useEffect(() => {
-    console.log(authErrors);
+    logger.debug(authErrors);
   }, [authErrors])
 
   useEffect(() => {

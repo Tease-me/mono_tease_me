@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 
-import { API_BASE_URL, Endpoints, WS_BASE_URL } from "@/api/urls";
+import { Endpoints, WS_BASE_URL } from "@/api/urls";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import { truncateLastName } from "@/utils/StringUtils";
 import { AuthContext } from "@/context/AuthContext";
@@ -76,10 +76,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 const localInfluencer = await influencerRepo.getInfluencer(user_id);
                 setInfluencer(localInfluencer);
                 setMessages(undefined);
-                console.log("Influencer", localInfluencer)
             } else {
                 const localInfluencer = await influencerRepo.getInfluencer(id);
-                console.log("Influencer", localInfluencer)
                 setInfluencer(localInfluencer);
                 setMessages(undefined);
             }
@@ -254,7 +252,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         onBackPressed?.();
     };
 
-    const handleScroll = async (e: React.UIEvent<HTMLDivElement>) => {
+    const handleScroll = async () => {
+
         const container = containerRef.current;
         if (container && container.scrollTop === 0 && hasMore && !isLoadingMore && chatId) {
             setIsLoadingMore(true);

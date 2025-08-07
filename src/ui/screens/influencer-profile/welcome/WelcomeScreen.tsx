@@ -1,11 +1,9 @@
-import React, { useContext, useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useParams } from "react-router-dom";
 import styles from "./WelcomeScreen.module.css";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import CenteredLayout from "@/ui/templates/CenteredLayout";
 import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButton";
-import { AuthContext } from "@/context/AuthContext";
 import { storage } from "@/utils/storage";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import DividerWithLabel from "@/ui/components/dividers/DividerWithLabel";

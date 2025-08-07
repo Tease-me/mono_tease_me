@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState, useMemo } from 'react';
+import React, { useContext, useEffect, useState, useMemo } from 'react';
 import styles from "./HomeScreenContent.module.css"
 import { useNavigate } from 'react-router-dom';
 

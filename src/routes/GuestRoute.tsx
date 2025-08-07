@@ -1,4 +1,3 @@
-import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import { AuthContext } from "@/context/AuthContext";
 import React, { ReactNode, useContext } from "react";
 import { Navigate } from "react-router-dom";

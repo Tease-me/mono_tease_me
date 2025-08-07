@@ -1,4 +1,3 @@
-import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 
 import { BlandWebClient } from "bland-client-js-sdk";
@@ -35,12 +34,10 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [status, setStatus] = useState<string>("Online");
   const [error, setError] = useState<string | null>(null);
-  const [audioLevel, setAudioLevel] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
   const clientRef = useRef<BlandWebClient | null>(null);
   const audioLevelIntervalRef = useRef<NodeJS.Timeout>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [callId, setCallId] = useState<string>("");
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
   const ringtoneRef = useRef(new Audio("/audio/ringtone.wav"));
 
@@ -87,8 +84,6 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
       setIsConnected(false);
       setIsRecording(false);
       setStatus("Disconnected");
-      setCallId("");
-      setAudioLevel(0);
       setIsLoading(false);
     }
   }, []);
@@ -143,15 +138,10 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
         callId: currentCallId,
       });
 
-      setCallId(currentCallId);
       stopRing()
       setStatus("Connected! Start speaking...");
       setIsRecording(true);
       setIsConnected(true);
-
-      audioLevelIntervalRef.current = setInterval(() => {
-        setAudioLevel(Math.random());
-      }, 100);
     } catch (err) {
       console.error("Voice chat error:", err);
       setError(
