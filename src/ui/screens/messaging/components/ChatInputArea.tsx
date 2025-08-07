@@ -4,39 +4,12 @@ import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButto
 import MicrophoneIcon from "@/assets/Microphone.svg?react";
 import SendIcon from "@/assets/svg/Send.svg?react";
 import CloseSquareIcon from "@/assets/CloseSquare.svg?react";
-
-const pickSupportedMimeType = (): string | undefined => {
-    if (typeof window === 'undefined' || !(window as any).MediaRecorder) return undefined;
-    const candidates = [
-        'audio/webm'
-    ];
-    return candidates.find(t => (window as any).MediaRecorder.isTypeSupported(t));
-};
-
-const getAudioStream = async (): Promise<MediaStream> => {
-    if (navigator.mediaDevices?.getUserMedia) {
-        return navigator.mediaDevices.getUserMedia({ audio: true });
-    }
-    const legacy = (navigator as any).webkitGetUserMedia || (navigator as any).mozGetUserMedia;
-    return new Promise<MediaStream>((resolve, reject) => {
-        if (!legacy) {
-            reject(new Error('getUserMedia is not supported in this browser'));
-            return;
-        }
-        legacy.call(navigator, { audio: true }, resolve, reject);
-    });
-};
-
-const showWebmUnsupportedError = () => {
-    alert('Your browser cannot record audio/webm. Please try Chrome, Edge or Firefox.');
-};
-
 import styles from "./ChatInputArea.module.css"
 import AudioVisualizer from './AudioVisualizer';
 import AudioWaveform from './AudioWaveform';
 import LongPressButton from '@/ui/components/inputs/buttons/LongPressButton';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
-import { clear } from 'console';
+import clsx from 'clsx';
 
 interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
     onSendMessage?: () => void;
@@ -121,7 +94,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 
     return (
         <div className={styles["chat-input-area"]} >
-            <div className={styles["input-container"]} ref={containerRef}>
+            <div className={clsx(styles["input-container"], recordingStatus === "recording" && styles["recording"])} ref={containerRef}>
                 {(recordingStatus === "inactive" && !audio) &&
                     <input
                         type="text"

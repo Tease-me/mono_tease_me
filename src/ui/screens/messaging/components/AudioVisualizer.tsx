@@ -125,7 +125,7 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ mediaStream, isRecord
     };
 
     return (
-        <div style={{ position: 'relative', userSelect: 'none', display: "flex", height: "56px" }}>
+        <div style={{ position: 'relative', userSelect: 'none', display: "flex" }}>
             <canvas
                 ref={canvasRef}
                 width={width}

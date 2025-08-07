@@ -31,6 +31,10 @@
     width: 100%;
 }
 
+.input-container.recording {
+    outline: 1px solid #ffa500;
+}
+
 .input-container input:focus,
 .input-container input:active {
     outline: none;
