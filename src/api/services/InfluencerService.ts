@@ -1,3 +1,4 @@
+import { InfluencerResponse } from "../models/influencers";
 import { Endpoints } from "../urls";
 import { AxiosInstance } from "axios";
 
