@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styles from "./VerifyEmail.module.css"
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { apiClient } from '@/api/apis';
 import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 import CenteredLayout from '@/ui/templates/CenteredLayout';

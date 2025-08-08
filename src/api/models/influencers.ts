@@ -1,4 +1,4 @@
-interface InfluencerResponse {
+export interface InfluencerResponse {
     display_name: string;
     voice_id: string;
     prompt_template: string;

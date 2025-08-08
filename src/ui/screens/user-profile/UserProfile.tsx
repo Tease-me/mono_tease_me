@@ -14,6 +14,8 @@ import BalanceView from '@/ui/components/stats/BalanceView';
 import VerticalDivider from '@/ui/components/dividers/VerticalDivider';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '@/api/apis';
+import { BalanceResponse } from '@/api/models/balance';
+import logger from '@/utils/logger';
 
 interface UserProfileProps { }
 
@@ -54,7 +56,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
     };
 
     const handleEditProfileMediaClicked = () => {
-        console.log("Edit Clicked")
+        logger.debug("Edit Clicked")
     }
 
     return (

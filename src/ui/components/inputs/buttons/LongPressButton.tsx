@@ -1,5 +1,4 @@
 import React, { useRef } from 'react';
-import styles from "./LongPressButton.module.css"
 import CircularIconButton, { CircularIconButtonProps } from './CircularIconButton';
 
 interface LongPressButtonProps extends CircularIconButtonProps {
@@ -31,7 +30,7 @@ const LongPressButton: React.FC<LongPressButtonProps> = ({
         startPressTimer();
     };
 
-    const handleMouseUp = (event: React.MouseEvent) => {
+    const handleMouseUp = () => {
         if (isDragging.current) {
             props.onDragEnd?.();
             isDragging.current = false;
@@ -54,7 +53,7 @@ const LongPressButton: React.FC<LongPressButtonProps> = ({
         startPressTimer();
     };
 
-    const handleTouchEnd = (event: React.TouchEvent) => {
+    const handleTouchEnd = () => {
         if (isDragging.current) {
             props.onDragEnd?.();
             isDragging.current = false;

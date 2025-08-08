@@ -2,6 +2,7 @@ import { InfluencerServices } from "@/api/services/InfluencerService";
 import { apiClient } from "@/api/apis";
 import { InfluencerDataModel } from "../models/InfluencerDataModel";
 import dummy from "@/dummy/dummy";
+import { InfluencerResponse } from "@/api/models/influencers";
 
 const influencerServices = InfluencerServices(apiClient);
 

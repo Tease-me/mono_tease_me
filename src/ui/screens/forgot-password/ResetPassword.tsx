@@ -2,13 +2,12 @@ import React, { useEffect, useState } from 'react';
 import styles from "./ResetPassword.module.css"
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import BackgroundGradient from '@/ui/templates/BackgroundGradient';
-import CenteredLayout from '@/ui/templates/CenteredLayout';
-import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButton';
 import { apiClient } from '@/api/apis';
 import OnBoardingTopNav from '@/ui/components/nav/OnBoardingTopNav';
 import HeadingText from '@/ui/components/typography/HeadingText';
 import TextInput from '@/ui/components/inputs/text-inputs/TextInput';
+import logger from '@/utils/logger';
 
 interface ResetPasswordResponse {
     ok: boolean;
@@ -61,6 +60,7 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ }) => {
                 navigate("/login")
             }, 5000);
         } catch (err: any) {
+            logger.error(err)
             setStatus('Something went wrong please try again!');
         }
     };

@@ -1,3 +1,4 @@
+import { BalanceResponse, TopupResponse } from "../models/balance";
 import { Endpoints } from "../urls";
 import { AxiosInstance } from "axios";
 

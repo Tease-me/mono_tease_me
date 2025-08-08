@@ -1,8 +1,8 @@
-interface BalanceResponse {
+export interface BalanceResponse {
     balance_cents: number;
 }
 
-interface TopupResponse {
+export interface TopupResponse {
     ok: boolean;
     new_balance_cents: number;
 }

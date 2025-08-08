@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import styles from "./VoiceCall.module.css"
 import BackgroundGradient from '@/ui/templates/BackgroundGradient';
-import { createWebAgent, updateWebAgent } from '@/api/bland/bland';
+import { updateWebAgent } from '@/api/bland/bland';
 import LoadingSpinner from '@/ui/components/loading/LoadingSpinner';
 import VoiceChat from './VoiceChat';
-import { BLAND_AGENT_LUNA, BLAND_AGENT_TEST } from '@/env';
+import { BLAND_AGENT_LUNA } from '@/env';
 import CenteredLayout from '@/ui/templates/CenteredLayout';
 
 interface VoiceCallProps {
@@ -12,7 +12,6 @@ interface VoiceCallProps {
 
 const VoiceCall: React.FC<VoiceCallProps> = ({ }) => {
     const [agentId, setAgentId] = useState<string | null>(null);
-    const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     // useEffect(() => {
@@ -45,7 +44,6 @@ const VoiceCall: React.FC<VoiceCallProps> = ({ }) => {
                 setAgentId(response.agent.agent_id);
             } catch (err) {
                 console.error("Agent creation error:", err);
-                setError(err instanceof Error ? err.message : "Failed to create agent");
             } finally {
                 setIsLoading(false);
             }

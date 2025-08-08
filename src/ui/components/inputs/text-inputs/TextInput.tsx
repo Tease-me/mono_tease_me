@@ -28,7 +28,7 @@ const TextInput: React.FC<TextInputProps> = ({
 }) => {
     return (
         <div className={clsx(styles['text-input-container'], className)}>
-            {leftIcon && <div className={clsx(styles["icon"], styles["left"])}>
+            {leftIcon && <div className={clsx(styles["icon"], styles["left"])} style={leftIconStyles?.style}>
                 {leftIcon}
             </div>}
             <input
@@ -39,7 +39,7 @@ const TextInput: React.FC<TextInputProps> = ({
                 onChange={onChange}
                 {...rest}
             />
-            {rightIcon && <div className={clsx(styles["icon"], styles["right"])}>
+            {rightIcon && <div className={clsx(styles["icon"], styles["right"])} style={rightIconStyles?.style}>
                 {rightIcon}
             </div>}
         </div>
