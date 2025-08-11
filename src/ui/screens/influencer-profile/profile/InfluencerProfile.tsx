@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import styles from "./InfluencerProfile.module.css"
 import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 import OnBoardingTopNav from '@/ui/components/nav/OnBoardingTopNav';
@@ -9,7 +9,6 @@ import ButtonRow from '@/ui/templates/ButtonRow';
 import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButton';
 import { useNavigate } from 'react-router-dom';
 import { truncateLastName } from '@/utils/StringUtils';
-import logger from '@/utils/logger';
 
 export interface InfluencerProfileProps {
     influencer?: InfluencerDataModel;
@@ -17,7 +16,7 @@ export interface InfluencerProfileProps {
 
 const InfluencerProfile: React.FC<InfluencerProfileProps> = ({ influencer }) => {
     const navigate = useNavigate();
-    const [promptTemplate, setPromptTemplate] = useState(influencer?.prompt_template);
+    const [promptTemplate, setPromptTemplate] = useState(influencer?.prompt_template ?? "");
     const [dailyScripts, setDailyScripts] = useState<string[]>(influencer?.daily_scripts ?? []);
     const addDailyScript = () => setDailyScripts((prev) => [...prev, ""]);
     const updateDailyScript = (index: number, value: string) => {
@@ -26,14 +25,6 @@ const InfluencerProfile: React.FC<InfluencerProfileProps> = ({ influencer }) => 
     const removeDailyScript = (index: number) => {
         setDailyScripts((prev) => prev.filter((_, i) => i !== index));
     };
-    useEffect(() => {
-        logger.error(influencer);
-        if (influencer) {
-            setPromptTemplate(influencer.prompt_template)
-            setDailyScripts(influencer.daily_scripts ?? [])
-        }
-
-    }, [influencer])
 
     return (
         <BackgroundGradient>
