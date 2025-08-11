@@ -5,4 +5,6 @@ export interface InfluencerDataModel {
     img?: string;
     bio?: string;
     videoUrl?: string;
+    prompt_template?: string;
+    daily_scripts?: string[];
 }

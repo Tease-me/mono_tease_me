@@ -278,7 +278,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 <div className={styles["chat-header-info"]}>
                     <ProfileMedia imageSrc={influencer?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
                     <div className={styles["chat-user-name"]}>
-                        <h3>{influencer && truncateLastName(influencer?.name)}</h3>
+                        <h3><a href={`/${influencer.username}`}>{influencer && truncateLastName(influencer?.name)}</a></h3>
                         <p>{isWsConnected ? "Connected" : "Not Connected"}</p>
                     </div>
                 </div>

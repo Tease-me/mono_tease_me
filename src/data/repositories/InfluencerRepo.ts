@@ -33,6 +33,8 @@ export const InfluencerRepo = () => ({
                 username: response.id,
                 img: dummy.getImage(response.id as "loli" | "bella" | "anna"),
                 videoUrl: dummy.getVideo(response.id as "loli" | "bella" | "anna"),
+                daily_scripts: response.daily_scripts,
+                prompt_template: response.prompt_template
             }
         } catch (e) {
             throw e;

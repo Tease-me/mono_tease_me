@@ -41,7 +41,7 @@ const InfluencerProfileScreen: React.FC<InfluencerProfileScreenProps> = ({ }) =>
 
     if (!influencer) <BlockingLoader />
 
-    return <>{!isSignedIn ? <WelcomeScreen influencer={influencer!} /> : <InfluencerProfile />}</>;
+    return <>{!isSignedIn ? <WelcomeScreen influencer={influencer!} /> : <InfluencerProfile influencer={influencer} />}</>;
 };
 
 export default InfluencerProfileScreen;

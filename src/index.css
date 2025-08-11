@@ -59,6 +59,19 @@ body {
   position: relative;
 }
 
+/*
+  Default Styles
+*/
+a {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-text);
+  text-decoration: underline;
+}
+
 input,
 button {
   background: none;

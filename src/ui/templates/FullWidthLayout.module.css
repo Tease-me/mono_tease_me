@@ -12,8 +12,17 @@
     flex-direction: column;
     width: 60%;
     max-width: 900px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
 }
 
+.content::-webkit-scrollbar {
+    display: none;
+    /* Chrome, Safari, Opera */
+}
 
 @media (max-width: 767px) {
     .content {
