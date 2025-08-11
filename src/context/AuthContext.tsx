@@ -1,12 +1,10 @@
 import { apiClient } from "@/api/apis";
-import { mock } from "@/api/mock/mock";
 import { TokenResponse } from "@/api/models/auth";
-import { UserDetailResponse } from "@/api/models/user";
 import { AuthServices } from "@/api/services/AuthServices";
 import { PushNotificationServices } from "@/api/services/PushNotificationServices";
-import { UserServices } from "@/api/services/UserServices";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { UserDataModel } from "@/data/models/UserDataModel";
+import { UserRepo } from "@/data/repositories/UserRepo";
 import { FIREBASE_PUBLIC_KEY } from "@/env";
 import logger from "@/utils/logger";
 import { storage } from "@/utils/storage";
@@ -42,7 +40,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<UserDataModel | undefined>()
 
     const authServices = AuthServices(apiClient);
-    const userServices = UserServices(apiClient);
+    const userRepo = UserRepo()
     const pusnNotificationServices = PushNotificationServices(apiClient);
 
     useEffect(() => {
@@ -99,19 +97,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, [isSignedIn]);
 
     const getUserDetails = async () => {
-        const response: UserDetailResponse = await userServices.getUserDerails()
-        // Remove this when Profile is comming from backend
-        const profileImage = await mock.getRandomProfileImage();
-        const user: UserDataModel = {
-            id: response.id,
-            username: response.username,
-            email: response.email,
-            name: response.name,
-            is_verified: response.is_varified,
-            imgUrl: profileImage,
-            createdAt: mock.getRandomDate(),
-            updatedAt: mock.getRandomDate()
-        }
+        const user: UserDataModel = await userRepo.getUserDerails()
         storage.setObject(LocalStorageKeys.AuthUser, user)
         setUser(user);
     }

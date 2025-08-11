@@ -241,6 +241,14 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     };
 
     const onCall = () => {
+        if (!id) {
+            navigate("/voice", {
+                state: {
+                    influencer_id: user_id
+                }
+            })
+            return
+        }
         navigate("/voice", {
             state: {
                 influencer_id: id

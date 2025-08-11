@@ -23,7 +23,7 @@ export default function WelcomeScreen({ influencer }: WelcomeScreenProps) {
 
   const [isFirstTime, setIsFirstTime] = useState(true);
   const [onTryClicked, setOnTryClicked] = useState(false);
-  const { status, startConversation, stopConversation } = useCall(influencer!);
+  const { status, startConversation, stopConversation, setInfluencerId } = useCall();
 
   const audioRef = useRef(new Audio("/audio/ringtone.wav"));
 
@@ -34,6 +34,10 @@ export default function WelcomeScreen({ influencer }: WelcomeScreenProps) {
       setIsFirstTime(false)
     }
   }, [status])
+
+  useEffect(() => {
+    setInfluencerId(influencer?.id);
+  }, [influencer])
 
   const handleSignInClick = () => {
     navigate("/login");
