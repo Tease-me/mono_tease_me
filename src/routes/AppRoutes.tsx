@@ -5,7 +5,6 @@ import GuestRoute from "./GuestRoute";
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 import UserProfile from "@/ui/screens/user-profile/UserProfile";
 
-const LandingPage = lazy(() => import("@/ui/screens/LandingPage"));
 const InfluencerProfileScreen = lazy(() => import("@/ui/screens/influencer-profile/InfluencerProfileScreen"));
 const LoginScreen = lazy(() => import("@/ui/screens/login/LoginScreen"));
 const RegisterScreen = lazy(() => import("@/ui/screens/register/RegisterScreen"));
@@ -20,11 +19,11 @@ const CallScreen = lazy(() => import("@/ui/screens/CallScreen"));
 
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
+    { path: "*", element: <InfluencerProfileScreen /> },
     { path: "/:username", element: <InfluencerProfileScreen /> },
   ];
 
   const guestRoutes: { path: string; element: JSX.Element }[] = [
-    { path: "*", element: <LandingPage /> },
     { path: "/login", element: <LoginScreen /> },
     { path: "/register", element: <RegisterScreen /> },
     { path: "/register/verify", element: <Confirmation /> },

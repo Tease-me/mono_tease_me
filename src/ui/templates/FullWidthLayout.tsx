@@ -10,8 +10,10 @@ const FullWidthLayout: React.FC<FullWidthLayoutProps> = ({ fullWidthNav, ...rest
     return (
         <div {...restProps} className={clsx(styles["container"], restProps.className)} >
             {fullWidthNav && fullWidthNav}
-            <div className={styles["content"]}>
-                {restProps.children}
+            <div className={styles["scroll"]}>
+                <div className={styles["content"]}>
+                    {restProps.children}
+                </div>
             </div>
         </div>
     );

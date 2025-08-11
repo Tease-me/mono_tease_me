@@ -23,10 +23,9 @@ const VoiceCallEleven: React.FC<VoiceCallElevenProps> = ({ }) => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
-  const [influencerId, setInfluencerId] = useState<string | undefined>();
   const [influencer, setInfluencer] = useState<InfluencerDataModel>();
 
-  const { status, startConversation, stopConversation } = useCall(influencer!);
+  const { status, startConversation, stopConversation, setInfluencerId } = useCall();
   const { state } = useLocation();
 
   const influencerRepo = InfluencerRepo();
@@ -37,19 +36,16 @@ const VoiceCallEleven: React.FC<VoiceCallElevenProps> = ({ }) => {
 
   useEffect(() => {
     const { influencer_id } = state as { influencer_id: string };
-    setInfluencerId(influencer_id);
-  }, [state]);
-
-  useEffect(() => {
     (async () => {
-      if (influencerId) {
+      if (influencer_id) {
         setIsLoading(true);
-        const influencer = await influencerRepo.getInfluencer(influencerId);
+        const influencer = await influencerRepo.getInfluencer(influencer_id);
         setInfluencer(influencer);
         setIsLoading(false);
+        setInfluencerId(influencer_id)
       }
     })();
-  }, [influencerId]);
+  }, [state])
 
   const handleVoiceToggle = async () => {
     if (status === "connected") {

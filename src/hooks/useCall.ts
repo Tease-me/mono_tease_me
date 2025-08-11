@@ -1,11 +1,10 @@
-import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import { useConversation } from "@11labs/react";
 import { useCallback, useRef, useState } from "react";
 import { useMicrophonePermission } from "./useMicrophonePermission";
 import { ChatRepository } from "@/data/repositories/ChatRepo";
 import logger from "@/utils/logger";
 
-export default function useCall(influencer: InfluencerDataModel) {
+export default function useCall() {
   const [status, setStatus] = useState<
     "connecting" | "connected" | "disconnected" | "idle" | "error"
   >("idle");
@@ -14,6 +13,8 @@ export default function useCall(influencer: InfluencerDataModel) {
     requestMicrophonePermission,
     releaseMicrophonePermission,
   } = useMicrophonePermission();
+  const [influencerId, setInfluencerId] = useState<string>();
+
   const ringtoneRef = useRef(new Audio("/audio/ringtone.wav"));
   const chatRepo = ChatRepository();
 
@@ -50,19 +51,21 @@ export default function useCall(influencer: InfluencerDataModel) {
 
 
   async function startConversation() {
-    ring();
-    const hasPermission = await requestMicrophonePermission();
-    if (!hasPermission) {
-      alert("No permission");
-      return;
-    }
+    if (influencerId) {
+      ring();
+      const hasPermission = await requestMicrophonePermission();
+      if (!hasPermission) {
+        alert("No permission");
+        return;
+      }
 
-    const signedUrl = await chatRepo.getSignedUrl(influencer.id);
-    if (!signedUrl) {
-      stopRing();
-      return;
+      const signedUrl = await chatRepo.getSignedUrl(influencerId);
+      if (!signedUrl) {
+        stopRing();
+        return;
+      }
+      await conversation.startSession({ signedUrl });
     }
-    await conversation.startSession({ signedUrl });
   }
 
   const stopConversation = useCallback(async () => {
@@ -71,6 +74,7 @@ export default function useCall(influencer: InfluencerDataModel) {
   }, [conversation]);
 
   return {
+    setInfluencerId,
     startConversation,
     stopConversation,
     permissionState,

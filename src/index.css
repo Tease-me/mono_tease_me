@@ -59,9 +59,55 @@ body {
   position: relative;
 }
 
+/*
+  Default Styles
+*/
+a {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-text);
+  text-decoration: underline;
+}
+
 input,
 button {
   background: none;
   border: none;
   color: var(--color-text);
+}
+
+/* --- Default themed scrollbars (app‑wide) --- */
+* {
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-primary) transparent;
+}
+
+/* WebKit-based browsers */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-primary);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  /* inset look */
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  opacity: 0.9;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
 }

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 
 import { useParams } from 'react-router-dom';
 import { AuthContext } from '@/context/AuthContext';
@@ -16,11 +16,17 @@ const InfluencerProfileScreen: React.FC<InfluencerProfileScreenProps> = ({ }) =>
     const { isSignedIn } = useContext(AuthContext);
 
     const [influencer, setInfluencer] = useState<InfluencerDataModel>();
-    const audioRef = useRef(new Audio("/audio/ringtone.wav"));
-    const influencerRepo = InfluencerRepo();
 
+    const influencerRepo = InfluencerRepo();
+    const getRandomInfluencer = async () => {
+        const localInfluencers = await influencerRepo.getInfluencers();
+        if (localInfluencers.length > 0) {
+            const randomIndex = Math.floor(Math.random() * localInfluencers.length);
+            const randomInfluencer = localInfluencers[randomIndex];
+            setInfluencer(randomInfluencer);
+        }
+    }
     useEffect(() => {
-        audioRef.current.loop = true;
         (async () => {
             if (username) {
                 try {
@@ -28,20 +34,15 @@ const InfluencerProfileScreen: React.FC<InfluencerProfileScreenProps> = ({ }) =>
                     setInfluencer(localInfluencer);
                 } catch (err) {
                     logger.error(err)
-                    const localInfluencers = await influencerRepo.getInfluencers();
-                    if (localInfluencers.length > 0) {
-                        const randomIndex = Math.floor(Math.random() * localInfluencers.length);
-                        const randomInfluencer = localInfluencers[randomIndex];
-                        setInfluencer(randomInfluencer);
-                    }
                 }
             }
+            getRandomInfluencer()
         })()
     }, [])
 
     if (!influencer) <BlockingLoader />
 
-    return <>{!isSignedIn ? <WelcomeScreen influencer={influencer!} /> : <InfluencerProfile />}</>;
+    return <>{!isSignedIn ? <WelcomeScreen influencer={influencer!} /> : <InfluencerProfile influencer={influencer} />}</>;
 };
 
 export default InfluencerProfileScreen;
