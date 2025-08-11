@@ -10,6 +10,7 @@ import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButto
 import { useNavigate } from 'react-router-dom';
 import { truncateLastName } from '@/utils/StringUtils';
 import { InfluencerRepo } from '@/data/repositories/InfluencerRepo';
+import TextInput from '@/ui/components/inputs/text-inputs/TextInput';
 
 export interface InfluencerProfileProps {
     influencer?: InfluencerDataModel;
@@ -68,11 +69,11 @@ const InfluencerProfile: React.FC<InfluencerProfileProps> = ({ influencer }) => 
                         <div className={styles["editor-array"]}>
                             {dailyScripts.map((sentence, idx) => (
                                 <div className={styles["editor-line"]} key={idx}>
-                                    <input
+                                    <TextInput
                                         id={idx === 0 ? "dailyScripts" : undefined}
                                         className={styles["editor-inputLine"]}
                                         value={sentence}
-                                        onChange={(e) => updateDailyScript(idx, e.target.value)}
+                                        onChange={(e) => updateDailyScript(idx, (e.target as HTMLInputElement).value)}
                                         placeholder={`Sentence ${idx + 1}`}
                                     />
                                     <button
