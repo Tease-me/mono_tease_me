@@ -9,6 +9,7 @@ import ButtonRow from '@/ui/templates/ButtonRow';
 import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButton';
 import { useNavigate } from 'react-router-dom';
 import { truncateLastName } from '@/utils/StringUtils';
+import { InfluencerRepo } from '@/data/repositories/InfluencerRepo';
 
 export interface InfluencerProfileProps {
     influencer?: InfluencerDataModel;
@@ -18,13 +19,23 @@ const InfluencerProfile: React.FC<InfluencerProfileProps> = ({ influencer }) => 
     const navigate = useNavigate();
     const [promptTemplate, setPromptTemplate] = useState(influencer?.prompt_template ?? "");
     const [dailyScripts, setDailyScripts] = useState<string[]>(influencer?.daily_scripts ?? []);
+
+    const influencerRepo = InfluencerRepo();
+
     const addDailyScript = () => setDailyScripts((prev) => [...prev, ""]);
     const updateDailyScript = (index: number, value: string) => {
         setDailyScripts((prev) => prev.map((s, i) => (i === index ? value : s)));
     };
+
     const removeDailyScript = (index: number) => {
         setDailyScripts((prev) => prev.filter((_, i) => i !== index));
     };
+
+    const handleOnUpdateClicked = () => {
+        if (influencer) {
+            influencerRepo.patchInfluencer(influencer, promptTemplate, dailyScripts);
+        }
+    }
 
     return (
         <BackgroundGradient>
@@ -80,8 +91,8 @@ const InfluencerProfile: React.FC<InfluencerProfileProps> = ({ influencer }) => 
                 </div>
 
                 <ButtonRow className={styles["button-row"]}>
-                    <CircularIconButton text='Discard' variant='tertiary' />
-                    <CircularIconButton text='Update' />
+                    <CircularIconButton text='Discard' variant='tertiary' onClick={() => navigate(-1)} />
+                    <CircularIconButton text='Update' onClick={handleOnUpdateClicked} />
                 </ButtonRow>
             </FullWidthLayout>
         </BackgroundGradient>
