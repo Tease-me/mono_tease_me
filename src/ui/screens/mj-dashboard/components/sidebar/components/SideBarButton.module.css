@@ -1,0 +1,20 @@
+.sidebar-button {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+}
+
+.sidebar-button.active {
+    background-color: var(--color-primary);
+    border-radius: 6px;
+}
+
+.sidebar-button-right {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 600;
+}

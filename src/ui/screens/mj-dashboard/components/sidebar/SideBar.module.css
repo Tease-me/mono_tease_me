@@ -1,0 +1,48 @@
+.container {
+    display: flex;
+    padding: 24px;
+    flex: 1;
+    height: 100%;
+    flex-direction: column;
+}
+
+.logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 1px solid rgba(0, 0, 0, 1);
+
+}
+
+.menu-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    margin-top: 32px;
+}
+
+.top-menu {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.bottom-menu {
+    flex-shrink: 1;
+}
+
+.logout-button {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    color: var(--color-primary);
+}
+
+.section-title {
+    color: var(--color-primary);
+    font-size: 18px;
+    font-weight: 700;
+    margin-top: 24px;
+    margin-bottom: 24px;
+}
