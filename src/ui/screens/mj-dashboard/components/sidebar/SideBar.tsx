@@ -1,34 +1,20 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 import styles from "./SideBar.module.css"
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import SideBarButton from './components/SideBarButton';
 import clsx from 'clsx';
 import SvgPack from '@/utils/SvgPack';
-
-export interface SideBarItem {
-    leftIcon: ReactNode;
-    title?: string;
-    rightIcon?: ReactNode;
-    isActive?: boolean;
-    showRightIcon?: boolean;
-}
-
-export interface SectionTitle {
-    title: string;
-}
-
-export type SideBarEntry = SideBarItem | SectionTitle;
+import { SideBarEntry, SideBarItem } from '../../MJDashboard';
 
 const isSideBarItem = (entry: SideBarEntry): entry is SideBarItem =>
     'leftIcon' in entry;
 
 interface SideBarProps {
-    sideBarItems: SideBarEntry[]
+    sideBarItems: SideBarEntry[];
+    onItemClick?: (index: number) => void;
 }
 
-const SideBar: React.FC<SideBarProps> = ({ sideBarItems }) => {
-
-
+const SideBar: React.FC<SideBarProps> = ({ sideBarItems, onItemClick }) => {
     return (
         <div className={styles["container"]}>
             <div className={styles["logo-container"]}>
@@ -38,10 +24,10 @@ const SideBar: React.FC<SideBarProps> = ({ sideBarItems }) => {
                 <div className={styles["top-menu"]}>
                     {sideBarItems.map((entry, idx) => (
                         isSideBarItem(entry) ? (
-                            <SideBarButton key={`item-${idx}`} item={entry} />
+                            <SideBarButton key={`item-${idx}`} item={entry} onClick={() => onItemClick?.(idx)} />
                         ) : (
                             <div key={`section-${idx}`} className={styles['section-title']}>
-                                {entry.title}
+                                {entry.label}
                             </div>
                         )
                     ))}

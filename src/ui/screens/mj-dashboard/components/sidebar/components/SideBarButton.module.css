@@ -4,6 +4,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 8px 10px;
+    cursor: pointer;
 }
 
 .sidebar-button.active {

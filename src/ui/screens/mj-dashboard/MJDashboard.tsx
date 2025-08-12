@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useState } from 'react';
 import TwoPaneLayout from './components/TwoPaneLayout';
 import Content from './components/content/Content';
 import SvgPack from '@/utils/SvgPack';
@@ -6,59 +6,89 @@ import SideBar from './components/sidebar/SideBar';
 
 export interface SideBarItem {
     leftIcon: ReactNode;
-    title?: string;
+    label: string;
     rightIcon?: ReactNode;
+    title?: string;
     isActive?: boolean;
 }
 
 export interface SectionTitle {
-    title: string;
+    label: string;
 }
 
 export type SideBarEntry = SideBarItem | SectionTitle;
-interface MJDashboardProps {
-}
+
+const isSideBarItem = (entry: SideBarEntry): entry is SideBarItem =>
+    'leftIcon' in entry;
+
+interface MJDashboardProps { }
 
 const MJDashboard: React.FC<MJDashboardProps> = ({ }) => {
-    const sideBarItems: SideBarEntry[] = [
+    const [sideBarItems, setSideBarItems] = useState<SideBarEntry[]>([
         {
             leftIcon: <SvgPack.Dashboard />,
-            title: "Dashboard",
+            label: "Dashboard",
             isActive: true
         },
         {
-            title: "Manage"
+            label: "Manage"
         },
         {
             leftIcon: <SvgPack.Users />,
-            title: "Users",
+            title: "User Management",
+            label: "Users",
         },
         {
             leftIcon: <SvgPack.Profile />,
-            title: "Influencers",
+            label: "Influencers",
+            title: "Influencer Management",
         },
         {
             leftIcon: <SvgPack.Ai />,
-            title: "Ai",
+            label: "Ai",
+            title: "Ai Management",
         },
         {
             leftIcon: <SvgPack.Chat />,
-            title: "Conversation Pool",
+            label: "Conversation Pool",
         },
         {
-            title: "Support"
+            label: "Support"
         },
         {
             leftIcon: <SvgPack.Danger />,
-            title: "User Issues",
+            label: "User Issues",
+            title: "Issue Reports",
         },
         {
             leftIcon: <SvgPack.Bill />,
-            title: "Billing",
+            label: "Billing",
+            title: "Billing Payment",
         },
-    ]
+    ]);
+
+    const handleSideBarClick = (index: number) => {
+        setSideBarItems(prev => prev.map((entry, i) => {
+            if ('leftIcon' in entry) {
+                return { ...entry, isActive: i === index };
+            }
+            return entry;
+        }));
+    };
+
+    const getPageTitle = (): string | undefined => {
+        const sideBarItem: SideBarItem = sideBarItems.find((item) => {
+            if (isSideBarItem(item)) {
+                return item.isActive
+            }
+        }) as SideBarItem;
+
+        if (sideBarItem)
+            return sideBarItem?.title ? sideBarItem.title : sideBarItem.label
+    }
+
     return (
-        <TwoPaneLayout sidebar={<SideBar sideBarItems={sideBarItems} />} children={<Content />} />
+        <TwoPaneLayout sidebar={<SideBar sideBarItems={sideBarItems} onItemClick={handleSideBarClick} />} children={<Content title={getPageTitle()} />} />
     );
 };
 

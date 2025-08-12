@@ -1,17 +1,17 @@
-import React from 'react';
+import React, { HTMLAttributes } from 'react';
 import styles from "./SideBarButton.module.css"
 import ArrowRightIcon from "@/assets/mj-dashboard/svg/ArrowRight.svg?react"
 import clsx from 'clsx';
 import { SideBarItem } from '../../../MJDashboard';
 
-interface SideBarButtonProps {
+interface SideBarButtonProps extends HTMLAttributes<HTMLDivElement> {
     item: SideBarItem
 }
 
-const SideBarButton: React.FC<SideBarButtonProps> = ({ item }) => {
+const SideBarButton: React.FC<SideBarButtonProps> = ({ item, ...props }) => {
     return (
-        <div className={clsx(styles["sidebar-button"], item.isActive && styles["active"])}>
-            <div className={styles["sidebar-button-right"]}>{item.leftIcon} <p>{item.title}</p></div> {item.rightIcon ?? <ArrowRightIcon />}
+        <div {...props} className={clsx(styles["sidebar-button"], item.isActive && styles["active"], props.className)} >
+            <div className={styles["sidebar-button-right"]}>{item.leftIcon} <p>{item.label}</p></div> {item.rightIcon ?? <ArrowRightIcon />}
         </div>
     );
 };
