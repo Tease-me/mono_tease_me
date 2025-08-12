@@ -9,8 +9,8 @@ import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import DividerWithLabel from "@/ui/components/dividers/DividerWithLabel";
 import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
 import BackgroundGradient from "@/ui/templates/BackgroundGradient";
-import CallIcon from "@/assets/Call.svg?react";
-import DropCallIcon from "@/assets/svg/DropCall.svg?react";
+import CallIcon from "@/assets/svg/Calling.svg?react";
+import DropCallIcon from "@/assets/svg/HangupCall.svg?react";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import useCall from "@/hooks/useCall";
 
