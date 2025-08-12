@@ -1,7 +1,7 @@
 import React, { JSX, Suspense, lazy } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import PrivateRoute from "./PrivateRoute";
-import GuestRoute from "./GuestRoute";
+import PrivateRoute from "./components/PrivateRoute";
+import GuestRoute from "./components/GuestRoute";
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 import UserProfile from "@/ui/screens/user-profile/UserProfile";
 
