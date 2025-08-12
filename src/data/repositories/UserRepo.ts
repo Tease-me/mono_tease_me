@@ -18,7 +18,7 @@ export const UserRepo = () => ({
             name: response.name,
             is_verified: response.is_varified,
             imgUrl: profileImage,
-            first_time_login: true,
+            first_time_login: false,
             createdAt: mock.getRandomDate(),
             updatedAt: mock.getRandomDate()
         }

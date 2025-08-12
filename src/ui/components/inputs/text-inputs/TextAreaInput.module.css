@@ -1,0 +1,86 @@
+.text-input-container {
+    display: flex;
+    flex: 1;
+    flex-wrap: nowrap;
+    align-items: center;
+    background-color: var(--color-dark-2);
+    border-radius: 12px;
+    outline: 1px solid transparent;
+    overflow: hidden;
+    transition: outline-color 0.2s ease-in-out;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    justify-content: center;
+}
+
+.text-input-container:focus-within {
+    outline: 1px solid var(--color-primary);
+}
+
+.text-input-container:hover {
+    outline: 1px solid var(--color-primary);
+}
+
+.text-input-container input {
+    display: flex;
+    flex: 1;
+    padding-top: 18px;
+    padding-bottom: 18px;
+}
+
+.text-input-container input::-moz-selection {
+    background-color: transparent;
+    border: none;
+}
+
+.text-input-container input::selection {
+    background-color: transparent;
+    border: none;
+}
+
+.text-input-container input:focus {
+    outline: none;
+    border: none;
+    box-shadow: none;
+}
+
+.text-input-container .icon {
+    display: flex;
+    height: 20px;
+    width: 20px;
+    align-content: center;
+    justify-content: center;
+}
+
+.text-input-container .icon svg {
+    align-self: center;
+}
+
+.text-input-container .icon.left {
+    margin: 0 12px 0 20px;
+    color: var(--color-text-secondary);
+}
+
+.text-input-container .icon.right {
+    margin: 0 20px 0 12px;
+    color: var(--color-text-secondary);
+}
+
+.input-right-padding {
+    padding-right: 20px;
+}
+
+.input-left-padding {
+    padding-left: 20px;
+}
+
+/* Remove default browser autofill background */
+.text-input-container input:-webkit-autofill,
+.text-input-container input:-webkit-autofill:hover,
+.text-input-container input:-webkit-autofill:focus,
+.text-input-container input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0px 1000px var(--color-dark-2) inset;
+    box-shadow: 0 0 0px 1000px var(--color-dark-2) inset;
+    -webkit-text-fill-color: #ffffff;
+    color: #ffffff;
+    transition: background-color 5000s ease-in-out 0s;
+}

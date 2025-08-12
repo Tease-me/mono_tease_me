@@ -39,5 +39,24 @@ export const InfluencerRepo = () => ({
         } catch (e) {
             throw e;
         }
+    },
+    patchInfluencer: async (influencer: InfluencerDataModel, prompt_template?: string, daily_scripts?: string[]) => {
+        try {
+            const response: InfluencerResponse = await influencerServices.patchInfluencer(influencer.id, influencer.name,
+                (prompt_template ?? influencer.prompt_template ?? ""),
+                (daily_scripts ?? influencer.daily_scripts ?? []));
+            return {
+                id: response.id,
+                name: response.display_name,
+                username: response.id,
+                img: dummy.getImage(response.id as "loli" | "bella" | "anna"),
+                videoUrl: dummy.getVideo(response.id as "loli" | "bella" | "anna"),
+                daily_scripts: response.daily_scripts,
+                prompt_template: response.prompt_template
+            }
+        } catch (e) {
+            throw e
+        }
+
     }
 })
