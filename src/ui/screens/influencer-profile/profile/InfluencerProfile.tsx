@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { truncateLastName } from '@/utils/StringUtils';
 import { InfluencerRepo } from '@/data/repositories/InfluencerRepo';
 import TextInput from '@/ui/components/inputs/text-inputs/TextInput';
+import TextAreaInput from '@/ui/components/inputs/text-inputs/TextAreaInput';
 
 export interface InfluencerProfileProps {
     influencer?: InfluencerDataModel;
@@ -52,7 +53,7 @@ const InfluencerProfile: React.FC<InfluencerProfileProps> = ({ influencer }) => 
                 <div className={styles["editor-section"]}>
                     <div className={styles["editor-group"]}>
                         <label className={styles["editor-label"]} htmlFor="promptTemplate">Prompt template</label>
-                        <textarea
+                        <TextAreaInput
                             id="promptTemplate"
                             className={styles["editor-input"]}
                             value={promptTemplate}
