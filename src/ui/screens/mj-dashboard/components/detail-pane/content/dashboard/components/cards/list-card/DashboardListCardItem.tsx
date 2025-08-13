@@ -1,5 +1,6 @@
 import React from 'react';
 import styles from "./DashboardListCardItem.module.css"
+import SvgPack from '@/utils/SvgPack';
 
 interface DashboardListCardItemProps {
     imgUrl?: string;
@@ -16,6 +17,7 @@ const DashboardListCardItem: React.FC<DashboardListCardItemProps> = ({ imgUrl, t
             </div>
             <div className={styles["right-side"]}>
                 {cost}
+                <SvgPack.MoreCircle />
             </div>
         </div>
     );

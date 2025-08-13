@@ -3,6 +3,7 @@ import { UserDetailResponse } from "@/api/models/user";
 import { UserDataModel } from "../models/UserDataModel";
 import { mock } from "@/api/mock/mock";
 import { UserServices } from "@/api/services/UserServices";
+import { faker } from "@faker-js/faker";
 import dummy from "@/dummy/dummy";
 
 const userServices = UserServices(apiClient);
@@ -30,17 +31,23 @@ export const UserRepo = () => ({
     getTopUserSpend: async (): Promise<UserDataModel[]> => {
         const count = 5;
 
-        const imgs = await Promise.all(Array.from({ length: count }, () => dummy.getRandomImages()))
+        const imgs = await Promise.all(
+            Array.from({ length: count }, () => dummy.image.getRandomMaleProfilePictures())
+        );
 
         const users: UserDataModel[] = imgs.map((imgUrl) => {
-            const name = dummy.getRandomMaleFirstName();
-            const username = dummy.makeUsername(name);
+            const first = faker.person.firstName('male');
+            const last = faker.person.lastName();
+            const name = `${first} ${last}`;
+            const base = `${first}.${last}`.toLowerCase().replace(/[^a-z]/g, "");
+            const username = `${base}${faker.number.int({ min: 100, max: 999 })}`;
+
             return {
-                id: 1,
+                id: faker.number.int({ min: 1, max: 10_000_000 }),
                 username,
-                email: `${username}@example.com`,
+                email: faker.internet.email().toLowerCase(),
                 name,
-                is_verified: true,
+                is_verified: faker.datatype.boolean(),
                 imgUrl,
                 first_time_login: false,
                 createdAt: mock.getRandomDate(),

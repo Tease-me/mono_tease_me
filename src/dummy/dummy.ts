@@ -1,3 +1,4 @@
+import * as image from "./image"
 import bella from "@/assets/mock/profile-pics/0af48251-5061-4cf2-8c48-13d0ddd3c52c.png";
 import anna from "@/assets/mock/profile-pics/0c5f1aeb-0db1-477b-9e49-3b95f655f6b2.jpg";
 import loli from "@/assets/mock/profile-pics/a8e3d3b2-a5de-4519-a862-a2b849148677.jpg";
@@ -50,34 +51,18 @@ const getRandomMaleName = (): string => `${pick(MALE_FIRST_NAMES)} ${pick(LAST_N
 const getRandomFemaleFirstName = (): string => pick(FEMALE_FIRST_NAMES);
 const getRandomFemaleName = (): string => `${pick(FEMALE_FIRST_NAMES)} ${pick(LAST_NAMES)}`;
 
-async function getRandomImages(): Promise<string> {
-    const modules = import.meta.glob<string>(
-        "@/dummy/profile-pics/*.{png,jpg,jpeg,webp}",
-        { import: "default" }
-    );
-
-    const paths = Object.keys(modules);
-    if (paths.length === 0) {
-        return images.loli;
-    }
-
-    const picked = pick(paths);
-    const src = await modules[picked]();
-    return src;
-}
-
 const dummy = {
     getImage,
     getVideo,
     getRandomDate,
     getRandomName,
-    getRandomImages,
     getRandomMaleFirstName,
     getRandomFemaleFirstName,
     makeUsername,
     generateRandomId,
     getRandomMaleName,
-    getRandomFemaleName
+    getRandomFemaleName,
+    image
 };
 
 export default dummy;

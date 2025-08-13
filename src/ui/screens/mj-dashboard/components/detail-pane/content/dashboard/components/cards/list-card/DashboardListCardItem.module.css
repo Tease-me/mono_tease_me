@@ -16,3 +16,9 @@
     height: 48px;
     width: 48px;
 }
+
+.right-side {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}

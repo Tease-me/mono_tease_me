@@ -11,4 +11,5 @@ export default {
     Logout: lazy(() => import("@/assets/mj-dashboard/svg/Logout.svg?react")),
     Profile: lazy(() => import("@/assets/mj-dashboard/svg/Profile.svg?react")),
     Users: lazy(() => import("@/assets/mj-dashboard/svg/Users.svg?react")),
+    MoreCircle: lazy(() => import("@/assets/svg/MoreCircle.svg?react")),
 }
