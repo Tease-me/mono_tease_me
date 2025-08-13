@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from "./DashboardContent.module.css"
-import clsx from 'clsx';
+import DashboardCard from './components/DashboardCard';
 
 interface DashboardContentProps {
 }
@@ -10,19 +10,17 @@ const DashboardContent: React.FC<DashboardContentProps> = ({ }) => {
         <>
             <div className={styles["dashboard-content"]}>
                 <div className={styles["stat-section"]}>
-                    <div className={clsx(styles.card, styles.chart)}>Chart Section</div>
-                    <div className={clsx(styles.card, styles.stats)}>Stats Section</div>
-                    <div className={clsx(styles.card, styles.stats)}>Stats Section</div>
-                    <div className={clsx(styles.card, styles.stats)}>Stats Section</div>
-                    <div className={clsx(styles.card, styles.stats)}>Stats Section</div>
-                    <div className={clsx(styles.card, styles.stats)}>Stats Section</div>
-                    <div className={clsx(styles.card, styles.list)}>List Section</div>
-                    <div className={clsx(styles.card, styles.list)}>List Section</div>
+                    <DashboardCard className={styles.chart}>Chart Section</DashboardCard>
+                    <DashboardCard>Stats Section</DashboardCard>
+                    <DashboardCard>Stats Section</DashboardCard>
+                    <DashboardCard>Stats Section</DashboardCard>
+                    <DashboardCard>Stats Section</DashboardCard>
+                    <DashboardCard>Stats Section</DashboardCard>
                 </div>
 
                 <div className={styles["list-section"]}>
-                    <div className={clsx(styles.card, styles.list)}>Chart Section</div>
-                    <div className={clsx(styles.card, styles.list)}>Stats Section</div>
+                    <DashboardCard >Chart Section</DashboardCard>
+                    <DashboardCard >Stats Section</DashboardCard>
                 </div>
             </div>
         </>
