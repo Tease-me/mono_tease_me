@@ -16,7 +16,7 @@ const HomeScreen = lazy(() => import("@/ui/screens/home/HomeScreen"));
 const ChatScreen = lazy(() => import("@/ui/screens/messaging/ChatScreen"));
 const CallScreen = lazy(() => import("@/ui/screens/CallScreen"));
 const UserProfile = lazy(() => import("@/ui/screens/user-profile/UserProfile"));
-const MJDashboard = lazy(() => import("@/ui/screens/mj-dashboard/MJDashboard"));
+const MJDashboard = lazy(() => import("@/mj-dashboard/ui/MJDashboard"));
 
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
