@@ -1,7 +1,7 @@
 import React, { HTMLAttributes } from 'react';
 import styles from "./DashboardStatsCard.module.css"
-import DashboardCard from '../DashboardCard';
 import clsx from 'clsx';
+import DashboardCard from '../DashboardCard';
 
 interface DashboardStatsCardProps extends HTMLAttributes<HTMLDivElement> {
     title: string;

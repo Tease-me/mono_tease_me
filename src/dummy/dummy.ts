@@ -1,5 +1,3 @@
-
-
 import bella from "@/assets/mock/profile-pics/0af48251-5061-4cf2-8c48-13d0ddd3c52c.png";
 import anna from "@/assets/mock/profile-pics/0c5f1aeb-0db1-477b-9e49-3b95f655f6b2.jpg";
 import loli from "@/assets/mock/profile-pics/a8e3d3b2-a5de-4519-a862-a2b849148677.jpg";
@@ -7,6 +5,13 @@ import loli from "@/assets/mock/profile-pics/a8e3d3b2-a5de-4519-a862-a2b84914867
 import bellaVideo from "@/assets/mock/profile-video/0af48251-5061-4cf2-8c48-13d0ddd3c52c.mp4";
 import annaVideo from "@/assets/mock/profile-video/20250806-1356-01k1yrcdpme5mbxcev84z7kyd5.mp4";
 import loliVideo from "@/assets/mock/profile-video/20250806-1353-01k1yr5txye15vszwhfmq54mjn.mp4";
+
+// Random Images
+
+const LAST_NAMES = ["Smith", "Patel", "Chen", "Garcia", "Brown", "Wilson", "Khan", "Taylor", "Singh", "Martin"];
+const MALE_FIRST_NAMES = ["Liam", "Noah", "Ethan", "Leo", "Mason", "Oliver", "James", "Lucas", "Henry", "Jack"];
+const FEMALE_FIRST_NAMES = ["Ava", "Mia", "Zoe", "Aria", "Isla", "Emma", "Sophia", "Olivia", "Amelia", "Lily"];
+const FIRST_NAMES = [...MALE_FIRST_NAMES, ...FEMALE_FIRST_NAMES]
 
 const images = {
     loli,
@@ -36,10 +41,43 @@ function getRandomDate(
     return new Date(start.getTime() + Math.random() * range);
 }
 
+const pick = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+const generateRandomId = (): string => Math.random().toString(36).slice(2, 10);
+const makeUsername = (name: string): string => name.toLowerCase().replace(/\s+/g, "_") + Math.floor(100 + Math.random() * 900);
+const getRandomName = () => `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`
+const getRandomMaleFirstName = (): string => pick(MALE_FIRST_NAMES);
+const getRandomMaleName = (): string => `${pick(MALE_FIRST_NAMES)} ${pick(LAST_NAMES)}`;
+const getRandomFemaleFirstName = (): string => pick(FEMALE_FIRST_NAMES);
+const getRandomFemaleName = (): string => `${pick(FEMALE_FIRST_NAMES)} ${pick(LAST_NAMES)}`;
+
+async function getRandomImages(): Promise<string> {
+    const modules = import.meta.glob<string>(
+        "@/dummy/profile-pics/*.{png,jpg,jpeg,webp}",
+        { import: "default" }
+    );
+
+    const paths = Object.keys(modules);
+    if (paths.length === 0) {
+        return images.loli;
+    }
+
+    const picked = pick(paths);
+    const src = await modules[picked]();
+    return src;
+}
+
 const dummy = {
     getImage,
     getVideo,
     getRandomDate,
+    getRandomName,
+    getRandomImages,
+    getRandomMaleFirstName,
+    getRandomFemaleFirstName,
+    makeUsername,
+    generateRandomId,
+    getRandomMaleName,
+    getRandomFemaleName
 };
 
 export default dummy;
