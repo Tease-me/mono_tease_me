@@ -12,7 +12,7 @@ export async function makeDashboardInfluencer(gender: "female" | "male" = "femal
         earnings: Math.floor(20000 + Math.random() * 40000),
         accountStatus: AccountStatus.active,
         id: dummy.generateRandomId(),
-        joinedDate: dummy.getRandomDate().toISOString(),
+        joinedDate: dummy.formatDateDDMMYYYY(),
         subscriptionLevel: SubscriptionLevel.basic,
         username: dummy.makeUsername(fullName)
     })

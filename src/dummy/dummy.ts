@@ -45,6 +45,16 @@ function getRandomDate(
     return new Date(start.getTime() + Math.random() * range);
 }
 
+/**
+ * Format a Date as dd/mm/yyyy (zero‑padded).
+ */
+function formatDateDDMMYYYY(date: Date = new Date()): string {
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = String(date.getFullYear());
+    return `${day}/${month}/${year}`;
+}
+
 const pick = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 const generateRandomId = (): string => Math.random().toString(36).slice(2, 10);
 const makeUsername = (name: string): string => name.toLowerCase().replace(/\s+/g, "_") + Math.floor(100 + Math.random() * 900);
@@ -58,6 +68,7 @@ const dummy = {
     getImage,
     getVideo,
     getRandomDate,
+    formatDateDDMMYYYY,
     getRandomName,
     getRandomMaleFirstName,
     getRandomFemaleFirstName,

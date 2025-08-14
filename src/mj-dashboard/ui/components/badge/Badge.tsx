@@ -2,7 +2,7 @@ import React, { HTMLAttributes } from 'react';
 import styles from "./Badge.module.css"
 import clsx from 'clsx';
 
-type BadgeType = "success" | "neutral" | "primary" | "danger" | "warning" | "inactive"
+export type BadgeType = "success" | "neutral" | "primary" | "danger" | "warning" | "inactive"
 
 interface BadgeProps extends HTMLAttributes<HTMLDivElement> {
     type: BadgeType;
