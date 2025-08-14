@@ -18,4 +18,6 @@ export default {
     Star: lazy(() => import("@/assets/mj-dashboard/svg/Star.svg?react")),
     StarHollow: lazy(() => import("@/assets/mj-dashboard/svg/StarHollow.svg?react")),
     TickSquare: lazy(() => import("@/assets/mj-dashboard/svg/TickSquare.svg?react")),
+    Crown: lazy(() => import("@/assets/mj-dashboard/svg/Crown.svg?react")),
+    Triseption: lazy(() => import("@/assets/mj-dashboard/svg/Triseption.svg?react")),
 }
