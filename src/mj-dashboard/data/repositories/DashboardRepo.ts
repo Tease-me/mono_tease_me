@@ -1,5 +1,7 @@
 import dummy from "@/dummy/dummy";
-import { DashboardResponse, EarningsData } from "../models/DashboardResponse";
+import { DashboardDataModel, EarningsData } from "../models/DashboardDataModel";
+import { DashboardUserModel } from "../models/DashboardUserModel";
+import { DashboardInfluencerModel } from "../models/DashboardInfluencerModel";
 
 function generateMonthlyEarnings(): EarningsData[] {
     const monthLabels = [
@@ -29,38 +31,24 @@ function generateMonthlyEarnings(): EarningsData[] {
 
 export function DashboardRepo() {
     return {
-        getDashboardData: async (): Promise<DashboardResponse> => {
+        getDashboardData: async (): Promise<DashboardDataModel> => {
             const earning_data = generateMonthlyEarnings();
 
-            const makeInfluencer = async (gender: "female" | "male" = "female") => ({
-                imgUrl: await dummy.image.getRandomFemaleProfilePictures(),
-                name:
-                    gender === "female"
-                        ? dummy.getRandomFemaleName()
-                        : dummy.getRandomMaleName(),
-                earnings: Math.floor(20000 + Math.random() * 40000), // 20k–60k
-            });
-
-            const makeUser = async () => ({
-                imgUrl: await dummy.image.getRandomMaleProfilePictures(),
-                name: dummy.getRandomName(),
-                earnings: Math.floor(500 + Math.random() * 5000), // 0.5k–5.5k
-            });
-
             const top_influencers = await Promise.all([
-                makeInfluencer("female"),
-                makeInfluencer("female"),
-                makeInfluencer("female"),
-                makeInfluencer("female"),
-                makeInfluencer("female"),
+                dummy.influencers.makeDashboardInfluencer("female"),
+                dummy.influencers.makeDashboardInfluencer("female"),
+                dummy.influencers.makeDashboardInfluencer("female"),
+                dummy.influencers.makeDashboardInfluencer("female"),
+                dummy.influencers.makeDashboardInfluencer("female"),
             ]);
 
             const top_users = await Promise.all([
-                makeUser(),
-                makeUser(),
-                makeUser(),
-                makeUser(),
-                makeUser(),
+                dummy.users.makeDashboardUser(),
+                dummy.users.makeDashboardUser(),
+                dummy.users.makeDashboardUser(),
+                dummy.users.makeDashboardUser(),
+                dummy.users.makeDashboardUser(),
+                dummy.users.makeDashboardUser(),
             ]);
 
             return {
@@ -74,5 +62,20 @@ export function DashboardRepo() {
                 top_users,
             };
         },
+        getAllUsers: async (): Promise<DashboardUserModel[]> => {
+            const count = Math.floor(Math.random() * 49) + 51;
+            const tasks = Array.from({ length: count }, () =>
+                dummy.users.makeDashboardUser(),
+            );
+            return Promise.all(tasks);
+        },
+        getAllInfluencers: async (): Promise<DashboardInfluencerModel[]> => {
+            const count = Math.floor(Math.random() * 49) + 51;
+            const tasks = Array.from({ length: count }, () =>
+                dummy.influencers.makeDashboardInfluencer("female")
+            );
+            return Promise.all(tasks);
+        }
     } as const;
+
 }

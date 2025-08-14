@@ -1,4 +1,4 @@
-export interface DashboardResponse {
+export interface DashboardDataModel {
     earning_data: EarningsData[];
     total_users: number;
     total_new_users: number;

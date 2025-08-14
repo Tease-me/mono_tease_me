@@ -3,7 +3,7 @@ import styles from "./DashboardBarChartCard.module.css"
 import clsx from 'clsx';
 import DashboardCard from '../DashboardCard';
 import { Bar, BarChart, XAxis } from 'recharts';
-import { EarningsData } from '@/mj-dashboard/data/models/DashboardResponse';
+import { EarningsData } from '@/mj-dashboard/data/models/DashboardDataModel';
 
 interface DashboardBarChartCardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'children'> {
     title: string;

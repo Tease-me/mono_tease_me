@@ -1,4 +1,7 @@
 import * as image from "./image"
+import * as users from "./user"
+import * as influencers from "./influencers"
+
 import bella from "@/assets/mock/profile-pics/0af48251-5061-4cf2-8c48-13d0ddd3c52c.png";
 import anna from "@/assets/mock/profile-pics/0c5f1aeb-0db1-477b-9e49-3b95f655f6b2.jpg";
 import loli from "@/assets/mock/profile-pics/a8e3d3b2-a5de-4519-a862-a2b849148677.jpg";
@@ -62,7 +65,9 @@ const dummy = {
     generateRandomId,
     getRandomMaleName,
     getRandomFemaleName,
-    image
+    image,
+    users,
+    influencers
 };
 
 export default dummy;

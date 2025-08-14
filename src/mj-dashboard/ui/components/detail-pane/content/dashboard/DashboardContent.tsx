@@ -8,13 +8,14 @@ import DashboardListCardItem from './components/cards/list-card/DashboardListCar
 import styles from "./DashboardContent.module.css"
 import DashboardBarChartCard from './components/cards/stats-card/DashboardBarChartCard';
 import { DashboardRepo } from '@/mj-dashboard/data/repositories/DashboardRepo';
-import { DashboardResponse } from '@/mj-dashboard/data/models/DashboardResponse';
+import { DashboardDataModel } from '@/mj-dashboard/data/models/DashboardDataModel';
+
 interface DashboardContentProps {
 }
 
 const DashboardContent: React.FC<DashboardContentProps> = ({ }) => {
     const [users, setUsers] = useState<UserDataModel[]>();
-    const [dashboardData, setDashboardData] = useState<DashboardResponse>();
+    const [dashboardData, setDashboardData] = useState<DashboardDataModel>();
 
     const userRepo = UserRepo();
     const dashboardRepo = DashboardRepo();
