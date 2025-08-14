@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import styles from "./UsersContent.module.css"
 import { DashboardUserModel } from '@/mj-dashboard/data/models/DashboardUserModel';
 import { DashboardRepo } from '@/mj-dashboard/data/repositories/DashboardRepo';
+import DashboardUserListItem from './components/DashboardUserListItem';
 
 interface UsersContentProps {
 }
@@ -20,9 +21,11 @@ const UsersContent: React.FC<UsersContentProps> = ({ }) => {
 
     return (
         <div className={styles["users-content"]}>
-            {users?.map(user => {
-                return <p>{user.fullName}</p>
-            })}
+            <div className={styles["user-table"]}>
+                {users?.map(user => {
+                    return <DashboardUserListItem key={user.id} user={user} />
+                })}
+            </div>
         </div>
     );
 };

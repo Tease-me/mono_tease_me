@@ -9,7 +9,7 @@ export async function makeDashboardUser(): Promise<DashboardUserModel> {
         fullName: fullName,
         accountStatus: AccountStatus.active,
         id: dummy.generateRandomId(),
-        joinedDate: dummy.getRandomDate().toString(),
+        joinedDate: dummy.getRandomDate().toISOString(),
         subscriptionLevel: SubscriptionLevel.basic,
         username: dummy.makeUsername(fullName)
     })

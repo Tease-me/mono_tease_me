@@ -1,14 +1,14 @@
 import React from 'react';
-import styles from './TwoPaneLayout.module.css';
+import styles from './DashboardTwoPaneLayout.module.css';
 
-interface TwoPaneLayoutProps {
+interface DashboardTwoPaneLayoutProps {
     sidebar: React.ReactNode;
     showSidebar?: boolean;
     showContent?: boolean;
     children: React.ReactNode;
 }
 
-const TwoPaneLayout: React.FC<TwoPaneLayoutProps> = ({ showSidebar = true, showContent = true, sidebar, children }) => {
+const DashboardTwoPaneLayout: React.FC<DashboardTwoPaneLayoutProps> = ({ showSidebar = true, showContent = true, sidebar, children }) => {
     return (
         <div className={styles.container}>
             {showSidebar && <div className={styles.sidebar}>
@@ -21,4 +21,4 @@ const TwoPaneLayout: React.FC<TwoPaneLayoutProps> = ({ showSidebar = true, showC
     );
 };
 
-export default TwoPaneLayout;
+export default DashboardTwoPaneLayout;

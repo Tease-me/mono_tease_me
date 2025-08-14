@@ -1,5 +1,4 @@
 import React, { ReactNode, useState } from 'react';
-import TwoPaneLayout from './components/TwoPaneLayout';
 import SvgPack from '@/utils/SvgPack';
 import SideBar from './components/sidebar/SideBar';
 import DetailPane from './components/detail-pane/DetailPane';
@@ -11,6 +10,7 @@ import IssueReportContent from './components/detail-pane/content/IssueReportCont
 import BillingContent from './components/detail-pane/content/BillingContent';
 import DashboardContent from './components/detail-pane/content/dashboard/DashboardContent';
 import UsersContent from './components/detail-pane/content/users/UsersContent';
+import DashboardTwoPaneLayout from './components/templates/DashboardTwoPaneLayout';
 
 export interface SideBarItem {
     leftIcon: ReactNode;
@@ -114,11 +114,11 @@ const MJDashboard: React.FC<MJDashboardProps> = ({ }) => {
     }
 
     return (
-        <TwoPaneLayout sidebar={<SideBar sideBarItems={sideBarItems} onItemClick={handleSideBarClick} />}>
+        <DashboardTwoPaneLayout sidebar={<SideBar sideBarItems={sideBarItems} onItemClick={handleSideBarClick} />}>
             <DetailPane title={getPageTitle()}>
                 {getPageContent()}
             </DetailPane>
-        </TwoPaneLayout>
+        </DashboardTwoPaneLayout>
     );
 };
 
