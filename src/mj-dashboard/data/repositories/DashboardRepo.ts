@@ -1,6 +1,7 @@
 import dummy from "@/dummy/dummy";
+import { DashboardResponse, EarningsData } from "../models/DashboardResponse";
 
-function generateMonthlyEarnings() {
+function generateMonthlyEarnings(): EarningsData[] {
     const monthLabels = [
         "Jan",
         "Feb",
@@ -22,7 +23,7 @@ function generateMonthlyEarnings() {
         const seasonal = Math.sin((i / 12) * Math.PI * 2) * 5000; // +/-5k wave
         const noise = Math.floor(Math.random() * 3000) - 1500;    // +/-1.5k noise
         const value = Math.max(8000, Math.round(base + seasonal + noise));
-        return { name: label, uv: value };
+        return { month: label, earnings: value };
     });
 }
 

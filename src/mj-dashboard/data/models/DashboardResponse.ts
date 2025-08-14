@@ -1,5 +1,5 @@
 export interface DashboardResponse {
-    earning_data: any[];
+    earning_data: EarningsData[];
     total_users: number;
     total_new_users: number;
     total_influencers: number;
@@ -7,4 +7,9 @@ export interface DashboardResponse {
     total_chats: number;
     top_influencers: any[]
     top_users: any[],
+}
+
+export interface EarningsData {
+    month: string;
+    earnings: number;
 }

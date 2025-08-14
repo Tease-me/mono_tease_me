@@ -3,10 +3,11 @@ import styles from "./DashboardBarChartCard.module.css"
 import clsx from 'clsx';
 import DashboardCard from '../DashboardCard';
 import { Bar, BarChart, XAxis } from 'recharts';
+import { EarningsData } from '@/mj-dashboard/data/models/DashboardResponse';
 
 interface DashboardBarChartCardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'children'> {
     title: string;
-    data: any[];
+    data: EarningsData[];
 }
 
 const DashboardBarChartCard: React.FC<DashboardBarChartCardProps> = (({ title, data, ...props }) => {
@@ -29,8 +30,8 @@ const DashboardBarChartCard: React.FC<DashboardBarChartCardProps> = (({ title, d
             <div className={styles["title"]}>{title}</div>
             <div ref={barchartCardRef} className={styles["content"]}>
                 <BarChart width={dimensions.width} height={dimensions.height} data={data}>
-                    <XAxis dataKey="name" />
-                    <Bar dataKey="uv" barSize={dimensions.width * 0.05} fill="var(--color-primary)" />
+                    <XAxis dataKey="month" />
+                    <Bar dataKey="earnings" barSize={dimensions.width * 0.05} fill="var(--color-primary)" />
                 </BarChart>
             </div>
         </DashboardCard>
