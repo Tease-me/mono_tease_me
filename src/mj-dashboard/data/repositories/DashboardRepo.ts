@@ -1,38 +1,34 @@
 import dummy from "@/dummy/dummy";
 
-// Helper to create seasonal-ish monthly earnings with some noise
 function generateMonthlyEarnings() {
-    const months = [
-        "jan",
-        "feb",
-        "mar",
-        "apr",
-        "may",
-        "jun",
-        "jul",
-        "aug",
-        "sep",
-        "oct",
-        "nov",
-        "dec",
-    ] as const;
+    const monthLabels = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "July",
+        "Aug",
+        "Sept",
+        "Oct",
+        "Nov",
+        "Dec",
+    ];
 
     const base = 20000 + Math.floor(Math.random() * 15000); // 20k–35k base
-    const data: Record<(typeof months)[number], number> = {} as any;
 
-    months.forEach((m, i) => {
+    return monthLabels.map((label, i) => {
         const seasonal = Math.sin((i / 12) * Math.PI * 2) * 5000; // +/-5k wave
-        const noise = Math.floor(Math.random() * 3000) - 1500; // +/-1.5k noise
+        const noise = Math.floor(Math.random() * 3000) - 1500;    // +/-1.5k noise
         const value = Math.max(8000, Math.round(base + seasonal + noise));
-        (data as any)[m] = value;
+        return { name: label, uv: value };
     });
-
-    return data;
 }
 
 export function DashboardRepo() {
     return {
-        getDashboardData: async () => {
+        getDashboardData: async (): Promise<DashboardResponse> => {
             const earning_data = generateMonthlyEarnings();
 
             const makeInfluencer = async (gender: "female" | "male" = "female") => ({

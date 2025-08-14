@@ -7,31 +7,23 @@ import DashboardListCardItem from './components/cards/list-card/DashboardListCar
 
 import styles from "./DashboardContent.module.css"
 import DashboardBarChartCard from './components/cards/stats-card/DashboardBarChartCard';
+import { DashboardRepo } from '@/mj-dashboard/data/repositories/DashboardRepo';
+import { DashboardResponse } from '@/mj-dashboard/data/models/DashboardResponse';
 interface DashboardContentProps {
 }
 
 const DashboardContent: React.FC<DashboardContentProps> = ({ }) => {
     const [users, setUsers] = useState<UserDataModel[]>();
+    const [dashboardData, setDashboardData] = useState<DashboardResponse>();
 
     const userRepo = UserRepo();
-    const data = [
-        { name: 'Jan', uv: 235 },
-        { name: 'Feb', uv: 500 },
-        { name: 'Mar', uv: 250 },
-        { name: 'Apr', uv: 200 },
-        { name: 'May', uv: 300 },
-        { name: 'Jun', uv: 400 },
-        { name: 'July', uv: 350 },
-        { name: 'Aug', uv: 450 },
-        { name: 'Sept', uv: 330 },
-        { name: 'Oct', uv: 200 },
-        { name: 'Nov', uv: 500 },
-        { name: 'Dec', uv: 450 },
-    ];
+    const dashboardRepo = DashboardRepo();
 
     useEffect(() => {
         (async () => {
             const response: UserDataModel[] = await userRepo.getTopUserSpend()
+            const dashboardDataResponse = await dashboardRepo.getDashboardData();
+            setDashboardData(dashboardDataResponse);
             setUsers(response);
         })()
     }, [])
@@ -39,12 +31,12 @@ const DashboardContent: React.FC<DashboardContentProps> = ({ }) => {
     return (
         <div className={styles["dashboard-content"]}>
             <div className={styles["stat-section"]}>
-                <DashboardBarChartCard title='Earning Data' className={styles.chart} data={data} />
-                <DashboardStatsCard title='Total Users'>123</DashboardStatsCard>
-                <DashboardStatsCard title='Total New Users'>3</DashboardStatsCard>
-                <DashboardStatsCard title='Total Influencers'>5</DashboardStatsCard>
-                <DashboardStatsCard title='Total Issues Reported'>3</DashboardStatsCard>
-                <DashboardStatsCard title='Total Chats'>150</DashboardStatsCard>
+                <DashboardBarChartCard title='Earning Data' className={styles.chart} data={dashboardData?.earning_data ?? []} />
+                <DashboardStatsCard title='Total Users'>{dashboardData?.total_users}</DashboardStatsCard>
+                <DashboardStatsCard title='Total New Users'>{dashboardData?.total_new_users}</DashboardStatsCard>
+                <DashboardStatsCard title='Total Influencers'>{dashboardData?.total_influencers}</DashboardStatsCard>
+                <DashboardStatsCard title='Total Issues Reported'>{dashboardData?.total_issues_reported}</DashboardStatsCard>
+                <DashboardStatsCard title='Total Chats'>{dashboardData?.total_chats}</DashboardStatsCard>
             </div>
 
             <div className={styles["list-section"]}>
