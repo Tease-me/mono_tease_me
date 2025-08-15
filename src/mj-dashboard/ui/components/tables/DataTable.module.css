@@ -11,7 +11,11 @@
 .grid-header {
     background-color: var(--color-black);
     padding: 14px 16px;
-    text-align: center;
+    align-items: center;
+    justify-items: center;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
 }
 
 .grid-body {

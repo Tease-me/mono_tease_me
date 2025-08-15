@@ -1,5 +1,5 @@
 // components/DataTable.tsx
-import React from "react";
+import React, { CSSProperties } from "react";
 import styles from "./DataTable.module.css";
 import SvgPack from "@/utils/SvgPack";
 
@@ -27,7 +27,12 @@ export function DataTable<T>({ data, columns, rowKey, emptyState }: Props<T>) {
     }
 
     const gridTemplateColumns = columns.map((c) => c.width || "1fr").join(" ");
-
+    const getAlignment = (column: ColumnDef<T>): CSSProperties => {
+        return {
+            textAlign: column.align ?? "left",
+            justifyContent: column.align ?? "left",
+        }
+    }
     return (
         <div className={styles["grid-table"]}>
             <div className={styles["grid-header-row"]} style={{ gridTemplateColumns }}>
@@ -35,7 +40,6 @@ export function DataTable<T>({ data, columns, rowKey, emptyState }: Props<T>) {
                     <div
                         key={String(column.key)}
                         className={styles["grid-header"]}
-                        style={{ textAlign: column.align ?? "left" }}
                     >
                         {column.header}
                         {column.sortable && <SvgPack.ChevronUpDown />}
@@ -49,7 +53,7 @@ export function DataTable<T>({ data, columns, rowKey, emptyState }: Props<T>) {
                             <div
                                 key={String(column.key)}
                                 className={styles["grid-cell"]}
-                                style={{ textAlign: column.align ?? "left" }}
+                                style={getAlignment(column)}
                             >
                                 {column.cell ? column.cell(row) : (row as any)[column.key]}
                             </div>

@@ -32,8 +32,9 @@ const InfluencerContent: React.FC<InfluencerContentProps> = ({ }) => {
         {
             key: "id",
             header: "Influencer ID",
-            width: "140px",
-            sortable: true
+            width: "150px",
+            sortable: true,
+            align: "center"
         },
         {
             key: "username",
