@@ -2,6 +2,8 @@ import dummy from "@/dummy/dummy";
 import { DashboardDataModel, EarningsData } from "../models/DashboardDataModel";
 import { DashboardUserModel } from "../models/DashboardUserModel";
 import { DashboardInfluencerModel } from "../models/DashboardInfluencerModel";
+import { DashboardAiDataModel } from "../models/DashboardAiDataModel";
+import { ConversationPoolModel } from "../models/ConversationPoolDataModel";
 
 function generateMonthlyEarnings(): EarningsData[] {
     const monthLabels = [
@@ -75,10 +77,25 @@ export function DashboardRepo() {
                 dummy.influencers.makeDashboardInfluencer("female")
             );
             return Promise.all(tasks);
-        }, getAllAi: async (): Promise<DashboardInfluencerModel[]> => {
+        },
+        getAllAi: async (): Promise<DashboardAiDataModel[]> => {
             const count = Math.floor(Math.random() * 49) + 51;
             const tasks = Array.from({ length: count }, () =>
                 dummy.influencers.makeDashboardInfluencer("female")
+            );
+            return Promise.all(tasks);
+        },
+        getAllConversations: async (): Promise<ConversationPoolModel[]> => {
+            const count = Math.floor(Math.random() * 49) + 51;
+            const tasks = Array.from({ length: count }, () =>
+            (
+                {
+                    id: dummy.generateRandomId(),
+                    subject: "This is the topic sentence",
+                    dateCreated: dummy.formatDateDDMMYYYY(dummy.getRandomDate()),
+                    isSelected: false
+                }
+            )
             );
             return Promise.all(tasks);
         }

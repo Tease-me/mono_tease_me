@@ -25,6 +25,7 @@ export function DataTable<T>({ data, columns, rowKey, emptyState, onSort }: Prop
     }
 
     const gridTemplateColumns = columns.map((c) => c.width || "1fr").join(" ");
+
     const getAlignment = (column: ColumnDef<T>): CSSProperties => {
         return {
             textAlign: column.align ?? "left",
