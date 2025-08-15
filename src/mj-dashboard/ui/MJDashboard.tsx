@@ -3,7 +3,6 @@ import SvgPack from '@/utils/SvgPack';
 import SideBar from './components/sidebar/SideBar';
 import DetailPane from './components/detail-pane/DetailPane';
 
-import InfluencerContent from './components/detail-pane/content/InfluencerContent';
 import AiContent from './components/detail-pane/content/AiContent';
 import ConversationPoolContent from './components/detail-pane/content/ConversationPoolContent';
 import IssueReportContent from './components/detail-pane/content/IssueReportContent';
@@ -11,6 +10,7 @@ import BillingContent from './components/detail-pane/content/BillingContent';
 import DashboardContent from './components/detail-pane/content/dashboard/DashboardContent';
 import UsersContent from './components/detail-pane/content/users/UsersContent';
 import DashboardTwoPaneLayout from './components/templates/DashboardTwoPaneLayout';
+import InfluencerContent from './components/detail-pane/content/influencers/InfluencerContent';
 
 export interface SideBarItem {
     leftIcon: ReactNode;

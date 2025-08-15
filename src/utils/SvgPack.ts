@@ -20,4 +20,5 @@ export default {
     TickSquare: lazy(() => import("@/assets/mj-dashboard/svg/TickSquare.svg?react")),
     Crown: lazy(() => import("@/assets/mj-dashboard/svg/Crown.svg?react")),
     Triseption: lazy(() => import("@/assets/mj-dashboard/svg/Triseption.svg?react")),
+    ChevronUpDown: lazy(() => import("@/assets/mj-dashboard/svg/chevron-up-down.svg?react")),
 }

@@ -1,6 +1,7 @@
 // components/DataTable.tsx
 import React from "react";
 import styles from "./DataTable.module.css";
+import SvgPack from "@/utils/SvgPack";
 
 export type ColumnDef<T> = {
     key: keyof T | string;
@@ -25,36 +26,35 @@ export function DataTable<T>({ data, columns, rowKey, emptyState }: Props<T>) {
         return <div className={styles["table-empty"]}>{emptyState ?? "No data"}</div>;
     }
 
+    const gridTemplateColumns = columns.map((c) => c.width || "1fr").join(" ");
+
     return (
-        <div className={styles["table-wrap"]}>
-            <div
-                className={styles["grid-table"]}
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: columns.map((c) => c.width || "1fr").join(" "),
-                }}
-            >
-                {columns.map((c) => (
+        <div className={styles["grid-table"]}>
+            <div className={styles["grid-header-row"]} style={{ gridTemplateColumns }}>
+                {columns.map((column) => (
                     <div
-                        key={String(c.key)}
+                        key={String(column.key)}
                         className={styles["grid-header"]}
-                        style={{ textAlign: c.align ?? "left" }}
+                        style={{ textAlign: column.align ?? "left" }}
                     >
-                        {c.header}
+                        {column.header}
+                        {column.sortable && <SvgPack.ChevronUpDown />}
                     </div>
                 ))}
+            </div>
+            <div className={styles["grid-body"]}>
                 {data.map((row, i) => (
-                    <React.Fragment key={rowKey(row, i)}>
-                        {columns.map((c) => (
+                    <div className={styles["grid-row"]} style={{ gridTemplateColumns }} key={rowKey(row, i)}>
+                        {columns.map((column) => (
                             <div
-                                key={String(c.key)}
+                                key={String(column.key)}
                                 className={styles["grid-cell"]}
-                                style={{ textAlign: c.align ?? "left" }}
+                                style={{ textAlign: column.align ?? "left" }}
                             >
-                                {c.cell ? c.cell(row) : (row as any)[c.key]}
+                                {column.cell ? column.cell(row) : (row as any)[column.key]}
                             </div>
                         ))}
-                    </React.Fragment>
+                    </div>
                 ))}
             </div>
         </div>

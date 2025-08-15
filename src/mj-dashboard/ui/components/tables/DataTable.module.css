@@ -2,33 +2,39 @@
     width: 100%;
     display: grid;
     grid-auto-rows: minmax(48px, auto);
-    row-gap: 12px;
+}
+
+.grid-header-row {
+    display: grid;
 }
 
 .grid-header {
     background-color: var(--color-black);
     padding: 14px 16px;
+    text-align: center;
+}
+
+.grid-body {
+    display: grid;
+    border: 1px solid var(--color-grey-800);
+    border-radius: 8px;
+    padding: 0px 21px 0px 21px;
+}
+
+.grid-body>*:not(:last-child) {
+    border-bottom: 1px solid var(--color-grey-800);
+}
+
+.grid-row {
+    display: grid;
+    padding: 8px 12px;
 }
 
 .grid-cell {
-    padding: 18px 16px;
-    background: #1f232b;
-    border-top: 1px solid #2a2f3a;
-    border-bottom: 1px solid #2a2f3a;
-}
-
-/* Optional rounded corners when first/last column classes are present */
-.firstcol {
-    border-top-left-radius: 12px;
-    border-bottom-left-radius: 12px;
-}
-
-.lastcol {
-    border-top-right-radius: 12px;
-    border-bottom-right-radius: 12px;
-}
-
-/* Row hover effect (applies per cell; looks cohesive with row-gap) */
-.grid-cell:hover {
-    filter: brightness(1.03);
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    align-self: center;
+    margin: 0;
 }
