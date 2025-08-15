@@ -14,6 +14,7 @@ export async function makeDashboardInfluencer(gender: "female" | "male" = "femal
         id: dummy.generateRandomId(),
         joinedDate: dummy.formatDateDDMMYYYY(),
         subscriptionLevel: SubscriptionLevel.basic,
-        username: dummy.makeUsername(fullName)
+        username: dummy.makeUsername(fullName),
+        isSelected: false
     })
 };

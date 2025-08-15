@@ -9,4 +9,5 @@ export interface DashboardInfluencerModel {
     earnings: number;
     accountStatus: AccountStatus;
     subscriptionLevel: SubscriptionLevel;
+    isSelected: boolean;
 }
