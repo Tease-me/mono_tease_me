@@ -1,7 +1,9 @@
-import React, { lazy, ReactNode, Suspense, useState } from 'react';
+import React, { lazy, ReactNode, Suspense, useEffect, useState } from 'react';
 import SvgPack from '@/utils/SvgPack';
 import SideBar from './components/sidebar/SideBar';
 import DetailPane from './components/detail-pane/DetailPane';
+import { storage } from '@/utils/storage';
+import { LocalStorageKeys } from '@/constants/localStorageKeys';
 
 const DashboardContent = lazy(() => import('./components/detail-pane/content/dashboard/DashboardContent'));
 const UsersContent = lazy(() => import('./components/detail-pane/content/users/UsersContent'));
@@ -84,9 +86,21 @@ const MJDashboard: React.FC<MJDashboardProps> = ({ }) => {
         },
     ]);
 
+    useEffect(() => {
+        const storedIndex = storage.getNumber(LocalStorageKeys.ActiveSidebarItem)
+        setSideBarItems(prev => prev.map((entry, i) => {
+            if (isSideBarItem(entry)) {
+                return { ...entry, isActive: i === storedIndex };
+            }
+            return entry;
+        }));
+    }, [])
+
     const handleSideBarClick = (index: number) => {
         setSideBarItems(prev => prev.map((entry, i) => {
-            if ('leftIcon' in entry) {
+            if (isSideBarItem(entry)) {
+                if (i == index)
+                    storage.setNumber(LocalStorageKeys.ActiveSidebarItem, index ?? 0)
                 return { ...entry, isActive: i === index };
             }
             return entry;
@@ -121,7 +135,6 @@ const MJDashboard: React.FC<MJDashboardProps> = ({ }) => {
                     {getPageContent()}
                 </DetailPane>
             </Suspense>
-
         </DashboardTwoPaneLayout>
     );
 };

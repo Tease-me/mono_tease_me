@@ -1,9 +1,25 @@
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
+import logger from "./logger";
 
 export const storage = {
     get: (key: LocalStorageKeys): string | null => window.localStorage.getItem(key),
 
     set: (key: LocalStorageKeys, value: string): void => window.localStorage.setItem(key, value),
+
+    getNumber: (key: LocalStorageKeys): number | null => {
+        const fromStorage = window.localStorage.getItem(key)
+        var result = null
+        if (fromStorage) {
+            try {
+                result = parseInt(fromStorage)
+            } catch (e) {
+                logger.error(e)
+            }
+        }
+        return result
+    },
+
+    setNumber: (key: LocalStorageKeys, value: number): void => window.localStorage.setItem(key, value.toString()),
 
     setBoolean: (key: LocalStorageKeys, value: boolean): void => window.localStorage.setItem(key, value.toString()),
 
