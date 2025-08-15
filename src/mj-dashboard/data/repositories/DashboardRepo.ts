@@ -75,6 +75,12 @@ export function DashboardRepo() {
                 dummy.influencers.makeDashboardInfluencer("female")
             );
             return Promise.all(tasks);
+        }, getAllAi: async (): Promise<DashboardInfluencerModel[]> => {
+            const count = Math.floor(Math.random() * 49) + 51;
+            const tasks = Array.from({ length: count }, () =>
+                dummy.influencers.makeDashboardInfluencer("female")
+            );
+            return Promise.all(tasks);
         }
     } as const;
 

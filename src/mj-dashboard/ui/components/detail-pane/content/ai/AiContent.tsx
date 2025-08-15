@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import styles from "./InfluencerContent.module.css"
-import { DashboardInfluencerModel } from '@/mj-dashboard/data/models/DashboardInfluencerModel';
+import styles from "./AiContent.module.css"
+import { DashboardAiDataModel } from '@/mj-dashboard/data/models/DashboardAiDataModel';
 import { DashboardRepo } from '@/mj-dashboard/data/repositories/DashboardRepo';
+import { ColumnDef, DataTable } from '../../../tables/DataTable';
 import CheckBox from '@/ui/components/inputs/check-boxes/CheckBox';
 import AccountStatusBadge from '../../../badge/AcountStatusBadge';
-import SubscriptionLevelBadge from '../../../badge/SubscriptionLevelBadge';
-import { ColumnDef, DataTable } from '../../../tables/DataTable';
 import SvgPack from '@/utils/SvgPack';
-interface InfluencerContentProps { }
 
-const InfluencerContent: React.FC<InfluencerContentProps> = ({ }) => {
-    const [influencers, setInfluencers] = useState<DashboardInfluencerModel[]>()
+interface AiContentProps {
+}
 
-    const [sortConfig, setSortConfig] = useState<{ key: keyof DashboardInfluencerModel | string; direction: 'asc' | 'desc' } | null>(null);
-    const handleSort = (columnKey: keyof DashboardInfluencerModel | string) => {
+const AiContent: React.FC<AiContentProps> = ({ }) => {
+    const [influencers, setInfluencers] = useState<DashboardAiDataModel[]>()
+
+    const [sortConfig, setSortConfig] = useState<{ key: keyof DashboardAiDataModel | string; direction: 'asc' | 'desc' } | null>(null);
+    const handleSort = (columnKey: keyof DashboardAiDataModel | string) => {
         let direction: 'asc' | 'desc' = 'asc';
         if (sortConfig && sortConfig.key === columnKey && sortConfig.direction === 'asc') {
             direction = 'desc';
@@ -35,12 +36,12 @@ const InfluencerContent: React.FC<InfluencerContentProps> = ({ }) => {
 
     useEffect(() => {
         (async () => {
-            const response = await dashbaordRepo.getAllInfluencers();
+            const response = await dashbaordRepo.getAllAi();
             setInfluencers(response);
         })()
     }, [])
 
-    const columns: ColumnDef<DashboardInfluencerModel>[] = [
+    const columns: ColumnDef<DashboardAiDataModel>[] = [
         {
             key: "select",
             header: "",
@@ -58,7 +59,7 @@ const InfluencerContent: React.FC<InfluencerContentProps> = ({ }) => {
             key: "username",
             header: "Username",
             cell: (r) => (
-                <div className={styles["user-cell"]}>
+                <div className={styles["ai-cell"]}>
                     <img className={styles["avatar"]} src={r.imgUrl} alt={r.fullName} />
                     <span>{r.fullName}</span>
                 </div>
@@ -77,13 +78,6 @@ const InfluencerContent: React.FC<InfluencerContentProps> = ({ }) => {
             header: "Account Status",
             width: "160px",
             cell: (r) => <AccountStatusBadge accountStatus={r.accountStatus} />,
-            sortable: true
-        },
-        {
-            key: "level",
-            header: "Level",
-            width: "120px",
-            cell: (r) => <SubscriptionLevelBadge subscriptionLevel={r.subscriptionLevel} />,
             sortable: true
         },
         {
@@ -108,4 +102,4 @@ const InfluencerContent: React.FC<InfluencerContentProps> = ({ }) => {
     );
 };
 
-export default InfluencerContent;
+export default AiContent;
