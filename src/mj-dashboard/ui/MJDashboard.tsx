@@ -1,16 +1,17 @@
-import React, { ReactNode, useState } from 'react';
+import React, { lazy, ReactNode, Suspense, useState } from 'react';
 import SvgPack from '@/utils/SvgPack';
 import SideBar from './components/sidebar/SideBar';
 import DetailPane from './components/detail-pane/DetailPane';
 
-import IssueReportContent from './components/detail-pane/content/IssueReportContent';
-import BillingContent from './components/detail-pane/content/BillingContent';
-import DashboardContent from './components/detail-pane/content/dashboard/DashboardContent';
-import UsersContent from './components/detail-pane/content/users/UsersContent';
-import DashboardTwoPaneLayout from './components/templates/DashboardTwoPaneLayout';
-import InfluencerContent from './components/detail-pane/content/influencers/InfluencerContent';
-import AiContent from './components/detail-pane/content/ai/AiContent';
-import ConversationPoolContent from './components/detail-pane/content/conversation-pool/ConversationPoolContent';
+const DashboardContent = lazy(() => import('./components/detail-pane/content/dashboard/DashboardContent'));
+const UsersContent = lazy(() => import('./components/detail-pane/content/users/UsersContent'));
+const DashboardTwoPaneLayout = lazy(() => import('./components/templates/DashboardTwoPaneLayout'));
+const InfluencerContent = lazy(() => import('./components/detail-pane/content/influencers/InfluencerContent'));
+const AiContent = lazy(() => import('./components/detail-pane/content/ai/AiContent'));
+const ConversationPoolContent = lazy(() => import('./components/detail-pane/content/conversation-pool/ConversationPoolContent'));
+const BillingContent = lazy(() => import('./components/detail-pane/content/billing/BillingContent'));
+const IssueReportContent = lazy(() => import('./components/detail-pane/content/issue-reports/IssueReportContent'));
+const BlockingLoader = lazy(() => import('@/ui/components/loading/BlockingLoader'));
 
 export interface SideBarItem {
     leftIcon: ReactNode;
@@ -115,9 +116,12 @@ const MJDashboard: React.FC<MJDashboardProps> = ({ }) => {
 
     return (
         <DashboardTwoPaneLayout sidebar={<SideBar sideBarItems={sideBarItems} onItemClick={handleSideBarClick} />}>
-            <DetailPane title={getPageTitle()}>
-                {getPageContent()}
-            </DetailPane>
+            <Suspense fallback={<BlockingLoader />}>
+                <DetailPane title={getPageTitle()}>
+                    {getPageContent()}
+                </DetailPane>
+            </Suspense>
+
         </DashboardTwoPaneLayout>
     );
 };
