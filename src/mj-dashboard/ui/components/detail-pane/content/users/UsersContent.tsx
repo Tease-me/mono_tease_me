@@ -21,6 +21,29 @@ const UsersContent: React.FC<UsersContentProps> = ({ }) => {
 
     return (
         <div className={styles["users-content"]}>
+            <div className={styles["user-table-header"]}>
+                <div className={styles["table-header-col"]}>
+
+                </div>
+                <div className={styles["table-header-col"]}>
+                    User ID
+                </div>
+                <div className={styles["table-header-col"]}>
+                    Username
+                </div>
+                <div className={styles["table-header-col"]}>
+                    Join Date
+                </div>
+                <div className={styles["table-header-col"]}>
+                    Account Status
+                </div>
+                <div className={styles["table-header-col"]}>
+                    Level
+                </div>
+                <div className={styles["table-header-col"]}>
+                    Action
+                </div>
+            </div>
             <div className={styles["user-table"]}>
                 {users?.map(user => {
                     return <DashboardUserListItem key={user.id} user={user} />

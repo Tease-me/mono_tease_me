@@ -3,6 +3,32 @@
     flex: 1;
 }
 
+.user-table-header {
+    display: grid;
+    height: 48px;
+    background-color: var(--color-black);
+    grid-template-columns:
+        45px 1fr 5fr 2fr 3fr 3fr 80px;
+    align-items: center;
+    column-gap: 12px;
+    -ms-grid-row-align: center;
+    -ms-grid-column-align: center;
+    padding: 8px 12px;
+}
+
+.table-header-col {
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+}
+
+.user-table {
+    border: 1px solid var(--color-grey-800);
+    border-radius: 8px;
+    padding: 0px 21px 0px 21px;
+}
+
 .user-table>*:not(:last-child) {
     border-bottom: 1px solid var(--color-grey-800);
 }

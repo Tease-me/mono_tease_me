@@ -23,6 +23,7 @@ body,
   --primary-font-family: "Urbanist", sans-serif;
   --color-text: #FFFFFF;
   --color-text-secondary: #9E9E9E;
+  --color-black: rgba(0, 0, 0, 1);
   --color-primary: hsla(351, 100%, 65%, 1);
   --color-dark-1: hsla(225, 14%, 11%, 1);
   --color-dark-2: #1F222A;
