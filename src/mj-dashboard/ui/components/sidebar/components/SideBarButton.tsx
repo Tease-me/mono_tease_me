@@ -2,7 +2,7 @@ import React, { HTMLAttributes } from 'react';
 import styles from "./SideBarButton.module.css"
 import ArrowRightIcon from "@/assets/mj-dashboard/svg/ArrowRight.svg?react"
 import clsx from 'clsx';
-import { SideBarItem } from '../../../MJDashboard';
+import { SideBarItem } from '../../../Dashboard';
 
 interface SideBarButtonProps extends HTMLAttributes<HTMLDivElement> {
     item: SideBarItem

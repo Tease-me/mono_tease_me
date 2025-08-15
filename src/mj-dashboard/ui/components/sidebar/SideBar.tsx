@@ -4,7 +4,7 @@ import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import SideBarButton from './components/SideBarButton';
 import clsx from 'clsx';
 import SvgPack from '@/utils/SvgPack';
-import { SideBarEntry, SideBarItem } from '../../MJDashboard';
+import { SideBarEntry, SideBarItem } from '../../Dashboard';
 
 const isSideBarItem = (entry: SideBarEntry): entry is SideBarItem =>
     'leftIcon' in entry;
