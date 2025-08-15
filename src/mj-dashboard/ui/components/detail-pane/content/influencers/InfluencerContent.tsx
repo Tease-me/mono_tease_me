@@ -13,6 +13,25 @@ interface InfluencerContentProps {
 const InfluencerContent: React.FC<InfluencerContentProps> = ({ }) => {
     const [influencers, setInfluencers] = useState<DashboardInfluencerModel[]>()
 
+    const [sortConfig, setSortConfig] = useState<{ key: keyof DashboardInfluencerModel | string; direction: 'asc' | 'desc' } | null>(null);
+    const handleSort = (columnKey: keyof DashboardInfluencerModel | string) => {
+        let direction: 'asc' | 'desc' = 'asc';
+        if (sortConfig && sortConfig.key === columnKey && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key: columnKey, direction });
+        if (influencers) {
+            const sorted = [...influencers].sort((a, b) => {
+                const aValue = (a as any)[columnKey];
+                const bValue = (b as any)[columnKey];
+                if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+                if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+            setInfluencers(sorted);
+        }
+    };
+
     const dashbaordRepo = DashboardRepo()
 
     useEffect(() => {
@@ -84,6 +103,7 @@ const InfluencerContent: React.FC<InfluencerContentProps> = ({ }) => {
                 columns={columns}
                 rowKey={(r) => r.id.toString()}
                 emptyState="No influencers yet"
+                onSort={handleSort}
             />
         </div>
     );

@@ -1,4 +1,3 @@
-// components/DataTable.tsx
 import React, { CSSProperties } from "react";
 import styles from "./DataTable.module.css";
 import SvgPack from "@/utils/SvgPack";
@@ -6,12 +5,10 @@ import SvgPack from "@/utils/SvgPack";
 export type ColumnDef<T> = {
     key: keyof T | string;
     header: string | React.ReactNode;
-    // If provided, renders the cell; otherwise it will show row[col.key] directly.
     cell?: (row: T) => React.ReactNode;
-    // optional alignment or width hooks
     align?: "left" | "center" | "right";
-    width?: string; // e.g. "140px" or "1fr"
-    sortable?: boolean; // (hook for later)
+    width?: string;
+    sortable?: boolean;
 };
 
 type Props<T> = {
@@ -19,9 +16,10 @@ type Props<T> = {
     columns: ColumnDef<T>[];
     rowKey: (row: T, idx: number) => string;
     emptyState?: React.ReactNode;
+    onSort?: (columnKey: keyof T | string) => void;
 };
 
-export function DataTable<T>({ data, columns, rowKey, emptyState }: Props<T>) {
+export function DataTable<T>({ data, columns, rowKey, emptyState, onSort }: Props<T>) {
     if (!data?.length) {
         return <div className={styles["table-empty"]}>{emptyState ?? "No data"}</div>;
     }
@@ -33,6 +31,7 @@ export function DataTable<T>({ data, columns, rowKey, emptyState }: Props<T>) {
             justifyContent: column.align ?? "left",
         }
     }
+
     return (
         <div className={styles["grid-table"]}>
             <div className={styles["grid-header-row"]} style={{ gridTemplateColumns }}>
@@ -40,6 +39,8 @@ export function DataTable<T>({ data, columns, rowKey, emptyState }: Props<T>) {
                     <div
                         key={String(column.key)}
                         className={styles["grid-header"]}
+                        onClick={() => column.sortable && onSort?.(column.key)}
+                        style={{ cursor: column.sortable ? "pointer" : "default" }}
                     >
                         {column.header}
                         {column.sortable && <SvgPack.ChevronUpDown />}
