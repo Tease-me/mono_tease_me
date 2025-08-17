@@ -131,7 +131,7 @@ const MJDashboard: React.FC<MJDashboardProps> = ({ }) => {
     return (
         <DashboardTwoPaneLayout sidebar={<SideBar sideBarItems={sideBarItems} onItemClick={handleSideBarClick} />}>
             <Suspense fallback={<BlockingLoader />}>
-                <DetailPane title={getPageTitle()}>
+                <DetailPane title={getPageTitle()} scollable={getPageTitle() !== "Issue Reports"}>
                     {getPageContent()}
                 </DetailPane>
             </Suspense>

@@ -4,6 +4,8 @@ import { DashboardUserModel } from "../models/DashboardUserModel";
 import { DashboardInfluencerModel } from "../models/DashboardInfluencerModel";
 import { DashboardAiDataModel } from "../models/DashboardAiDataModel";
 import { ConversationPoolModel } from "../models/ConversationPoolDataModel";
+import { IssueDataModel, IssueStatus } from "../models/IssueDataModel";
+import { getRandomEnumValue } from "@/utils/enum_utils";
 
 function generateMonthlyEarnings(): EarningsData[] {
     const monthLabels = [
@@ -93,6 +95,26 @@ export function DashboardRepo() {
                     id: dummy.generateRandomId(),
                     subject: "This is the topic sentence",
                     dateCreated: dummy.formatDateDDMMYYYY(dummy.getRandomDate()),
+                    isSelected: false
+                }
+            )
+            );
+            return Promise.all(tasks);
+        },
+        getAllIssues: async (): Promise<IssueDataModel[]> => {
+            const count = Math.floor(Math.random() * 49) + 51;
+            const tasks = Array.from({ length: count }, () =>
+            (
+                {
+                    id: dummy.generateRandomId(),
+                    submissionTime: dummy.formatDateDDMMYYYY(dummy.getRandomDate()),
+                    status: getRandomEnumValue(IssueStatus),
+                    ticketType: "Account Settings",
+                    userId: dummy.generateRandomId(),
+                    username: dummy.makeUsername(dummy.getRandomMaleName()),
+                    title: dummy.makeUsername(dummy.getRandomMaleName()),
+                    message: dummy.makeUsername(dummy.getRandomMaleName()),
+                    reply: dummy.makeUsername(dummy.getRandomMaleName()),
                     isSelected: false
                 }
             )
