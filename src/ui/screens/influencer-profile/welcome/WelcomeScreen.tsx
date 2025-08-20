@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import styles from "./WelcomeScreen.module.css";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import CenteredLayout from "@/ui/templates/CenteredLayout";
 import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButton";
@@ -13,7 +12,9 @@ import CallIcon from "@/assets/svg/Calling.svg?react";
 import DropCallIcon from "@/assets/svg/HangupCall.svg?react";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import useCall from "@/hooks/useCall";
-
+import styles from "./WelcomeScreen.module.css";
+import clsx from "clsx";
+import WelcomeCallModal from "@/ui/components/modals/welcome-call/WelcomeCallModal";
 export interface WelcomeScreenProps {
   influencer: InfluencerDataModel;
 }
@@ -61,37 +62,45 @@ export default function WelcomeScreen({ influencer }: WelcomeScreenProps) {
     audioRef.current.pause();
     stopConversation();
     setIsFirstTime(false)
+    setOnTryClicked(false)
   }
+
+  const incomingCall = status === "idle" && onTryClicked;
 
   return (
     <BackgroundGradient>
-      <CenteredLayout className={styles["welcome-screen-container"]}>
+      <CenteredLayout>
         {influencer && (
           <>
-            <ProfileMedia className={styles["profile-container"]} imageSrc={influencer.img} videoSrc={influencer.videoUrl} showHearts active size="xlarge" mediaType="video" />
-            <h2 className={styles["join-text"]}>Join {influencer.name} on</h2>
+            <ProfileMedia className={clsx(styles["profile-container"], onTryClicked && styles["zoomed"])} imageSrc={influencer.img} videoSrc={influencer.videoUrl} showHearts={!onTryClicked} active size="xlarge" mediaType="video" />
+            {!onTryClicked && <h2 className={styles["join-text"]}>Join {influencer.name} on</h2>}
           </>
         )}
-        <TeaseMeLogo size="xlarge" />
-        <p className={styles["signup-text"]}>
-          Don't have an account?{" "}
-          <span
-            className={styles["signup-link"]}
-            onClick={() => navigate("/register")}
-            style={{ cursor: "pointer", color: "#ff4d6d" }}>
-            Sign up
-          </span>
-        </p>
 
-        <DividerWithLabel text="or" />
-        {!isFirstTime ? <CircularIconButton text="Sign in with email" className={styles["sign-in-button"]} onClick={handleSignInClick} /> :
-          !onTryClicked ? <CircularIconButton text="Talk To Me Now" onClick={handleTryClick} /> :
-            <>{status === "idle" ? <div className={styles["status"]}>{`${influencer.name} is calling...`}</div> : <div className={styles["status"]}>{status}</div>}
-              <div className={styles["call-buttons"]}>
-                <CircularIconButton icon={<DropCallIcon />} onClick={handleHangUpCall} size="small" variant="tertiary" />
-                {status === "idle" && <CircularIconButton icon={<CallIcon />} onClick={handlePickUpCall} size="small" />}
-              </div>
-            </>}
+        {incomingCall ? (<>
+          <div className={styles["incoming-call-text"]}>Incoming Call</div>
+          <div className={styles["influencer-name"]}>{influencer.name}</div>
+          <div className={styles["call-buttons"]}>
+            <CircularIconButton icon={<DropCallIcon />} onClick={handleHangUpCall} size="small" variant="tertiary" />
+            <CircularIconButton icon={<CallIcon />} onClick={handlePickUpCall} size="small" />
+          </div>
+        </>) : <div className={styles["welcome-screen-container"]}>
+          <TeaseMeLogo size="xlarge" variant="full-dark" />
+          <p className={styles["signup-text"]}>
+            Don't have an account?{" "}
+            <span
+              className={styles["signup-link"]}
+              onClick={() => navigate("/register")}
+              style={{ cursor: "pointer", color: "#ff4d6d" }}>
+              Sign up
+            </span>
+          </p>
+
+          <DividerWithLabel text="or" />
+          {!isFirstTime ? <CircularIconButton text="Sign in with email" className={styles["sign-in-button"]} onClick={handleSignInClick} /> :
+            <CircularIconButton text="Talk to me Now" onClick={handleTryClick} />}
+        </div>}
+        <WelcomeCallModal isOpen={status === "connected"} onClose={() => { setOnTryClicked(false) }} influencer={influencer} status={status} stopConversation={stopConversation} />
       </CenteredLayout>
     </BackgroundGradient>
   );

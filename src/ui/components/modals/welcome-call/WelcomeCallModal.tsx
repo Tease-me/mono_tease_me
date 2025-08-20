@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButton";
@@ -7,10 +7,8 @@ import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
 import CallIcon from "@/assets/Call.svg?react";
 import DropCallIcon from "@/assets/svg/DropCall.svg?react";
-import useCall from "@/hooks/useCall";
 import { Modal } from "../Modal";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
-import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import BlockingLoader from "../../loading/BlockingLoader";
 
 import styles from "./WelcomeCallModal.module.css";
@@ -18,29 +16,18 @@ import styles from "./WelcomeCallModal.module.css";
 interface WelcomeCallModalProps {
     isOpen: boolean;
     onClose: () => void;
+    influencer?: InfluencerDataModel;
+    status: string;
+    stopConversation: () => void;
 }
 
-const WelcomeCallModal: React.FC<WelcomeCallModalProps> = ({ isOpen, onClose }) => {
-    const { status, startConversation, stopConversation, setInfluencerId } = useCall();
-    const [influencer, setInfluencer] = useState<InfluencerDataModel>();
-    const influencerRepo = InfluencerRepo();
-
-    const audioRef = useRef(new Audio("/audio/ringtone.wav"));
-
-    useEffect(() => {
-        (async () => {
-            const localInfluencers = await influencerRepo.getInfluencers();
-            if (localInfluencers.length > 0) {
-                const randomIndex = Math.floor(Math.random() * localInfluencers.length);
-                const randomInfluencer = localInfluencers[randomIndex];
-                setInfluencer(randomInfluencer);
-                if (isOpen) {
-                    audioRef.current.loop = true
-                    audioRef.current.play();
-                }
-            }
-        })();
-    }, [])
+const WelcomeCallModal: React.FC<WelcomeCallModalProps> = ({ isOpen, onClose, influencer, status, stopConversation }) => {
+    const [secondsLeft, setSecondsLeft] = useState<number>(30);
+    const formatTime = (totalSeconds: number) => {
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+    };
 
     useEffect(() => {
         if (status === "connected") {
@@ -51,33 +38,55 @@ const WelcomeCallModal: React.FC<WelcomeCallModalProps> = ({ isOpen, onClose }) 
     }, [status])
 
     useEffect(() => {
-        setInfluencerId(influencer?.id);
-    }, [influencer])
+        let timer: number | undefined;
+        if (isOpen && status === "connected") {
+            setSecondsLeft(30);
+            timer = window.setInterval(() => {
+                setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 0));
+            }, 1000);
+        }
+        return () => {
+            if (timer) window.clearInterval(timer);
+        };
+    }, [isOpen, status]);
+
+    useEffect(() => {
+        if (secondsLeft === 0 && isOpen && status === "connected") {
+            onClose();
+            stopConversation();
+        }
+    }, [secondsLeft, isOpen, status, onClose, stopConversation]);
 
     const handlePickUpCall = () => {
-        audioRef.current.pause();
-        startConversation();
+        setSecondsLeft(30);
     }
 
     const handleHangUpCall = () => {
-        audioRef.current.pause();
+        setSecondsLeft(30);
         stopConversation();
         onClose();
     }
+
     if (!influencer) return <BlockingLoader />
+
     return (
-        <Modal isOpen={isOpen} onClose={onClose} size="full" ariaLabel="Welcome Call">
+        <Modal isOpen={isOpen} onClose={onClose} size="sm" ariaLabel="Welcome Call">
             <div className={styles["modal-content"]}>
+                <TeaseMeLogo className={styles["logo"]} onClick={onClose} variant='mono-lips-only' size="small" />
                 {influencer && (
                     <>
-                        <ProfileMedia className={styles["profile-container"]} imageSrc={influencer.img} videoSrc={influencer.videoUrl} showHearts active size="xlarge" mediaType="video" />
-                        <h2 className={styles["join-text"]}>Join {influencer.name} on</h2>
+                        <ProfileMedia className={styles["profile-container"]} imageSrc={influencer.img} videoSrc={influencer.videoUrl} active size="xlarge" mediaType="video" />
+                        <h2 className={styles["join-text"]}>{influencer.name}</h2>
                     </>
                 )}
 
-                <TeaseMeLogo size="xlarge" />
-
-                {<>{status === "idle" ? <div className={styles["status"]}>{`${influencer?.name} is calling...`}</div> : <div className={styles["status"]}>{status}</div>}
+                {<>
+                    {
+                        status === "connected" ?
+                            <div className={styles["status"]}><span>{formatTime(secondsLeft)}</span></div>
+                            :
+                            <div className={styles["status"]}>{status}</div>
+                    }
                     <div className={styles["call-buttons"]}>
                         <CircularIconButton icon={<DropCallIcon />} onClick={handleHangUpCall} size="small" variant="tertiary" />
                         {status === "idle" && <CircularIconButton icon={<CallIcon />} onClick={handlePickUpCall} size="small" />}
