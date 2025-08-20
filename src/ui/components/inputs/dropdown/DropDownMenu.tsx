@@ -38,9 +38,10 @@ const DropDownMenu: React.FC<DropDownMenuProps> = ({ menu, children, className, 
             {menuOpen && <div className={styles["overlay"]} onClick={() => setMenuOpen(prev => !prev)} />}
             <div className={styles.container}>
                 <button
+                    {...rest}
                     className={clsx(styles["menu-button"], className)}
                     ref={buttonRef}
-                    {...rest}
+
                     onClick={() => setMenuOpen((prev) => !prev)}
                 >
                     {children}

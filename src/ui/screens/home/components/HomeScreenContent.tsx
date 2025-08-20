@@ -6,7 +6,6 @@ import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import ProfileIcon from "@/assets/svg/Profile.svg?react"
 import TicketIcon from "@/assets/svg/Ticket.svg?react"
 import DangerIcon from "@/assets/svg/Danger.svg?react"
-import InboxIcon from "@/assets/svg/inbox.svg?react"
 import LogoutIcon from "@/assets/svg/Logout.svg?react";
 
 import { AuthContext } from '@/context/AuthContext';
@@ -15,6 +14,7 @@ import TabsLayout, { TabItem } from '@/ui/components/tabs/TabsLayout';
 import ContactTabContent from './tab-contents/ContactTabContent';
 import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
 import SiggestedTabContent from './tab-contents/SuggestedTabContent';
+import SvgPack from '@/utils/SvgPack';
 
 interface HomeScreenContentProps {
     id?: string;
@@ -74,7 +74,7 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ id, onItemClick }
         },
         {
             id: 3,
-            icon: <DangerIcon />,
+            icon: <DangerIcon className={styles.menuIcon} preserveAspectRatio="xMidYMid meet" />,
             text: "Support"
         },
         {
@@ -95,8 +95,8 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ id, onItemClick }
     return (
         <div className={styles["home-screen-content"]}>
             <header className={styles["home-header"]}>
-                <TeaseMeLogo size="small" />
-                <DropDownMenu menu={testDataDropDown} className={styles["inbox-icon"]}><InboxIcon /></DropDownMenu>
+                <TeaseMeLogo size="small" variant='full-dark' />
+                <DropDownMenu menu={testDataDropDown} className={styles["inbox-icon"]}><SvgPack.MoreCircle preserveAspectRatio="xMidYMid meet" /></DropDownMenu>
             </header>
 
             <TabsLayout tabs={tabItems} setActiveTab={setActiveTab} activeTab={activeTab} />
