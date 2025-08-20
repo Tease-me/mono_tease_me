@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, useMemo } from 'react';
+import React, { useContext } from 'react';
 import styles from "./HomeScreenContent.module.css"
 import { useNavigate } from 'react-router-dom';
 
@@ -10,10 +10,8 @@ import LogoutIcon from "@/assets/svg/Logout.svg?react";
 
 import { AuthContext } from '@/context/AuthContext';
 import DropDownMenu, { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownMenu';
-import TabsLayout, { TabItem } from '@/ui/components/tabs/TabsLayout';
 import ContactTabContent from './tab-contents/ContactTabContent';
 import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
-import SiggestedTabContent from './tab-contents/SuggestedTabContent';
 import SvgPack from '@/utils/SvgPack';
 
 interface HomeScreenContentProps {
@@ -32,31 +30,6 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ id, onItemClick }
             navigate(`/chat/${influencer.id}`);
         }
     };
-
-    const tabItems: TabItem[] = useMemo(() => [
-        {
-            id: 1,
-            name: "Contacts",
-            content: <ContactTabContent onChatClicked={handleOnChatClick} selectedContactId={id} />
-        },
-        {
-            id: 2,
-            name: "Suggested",
-            content: <SiggestedTabContent />
-        },
-    ], [id]);
-
-    const [activeTab, setActiveTab] = useState(tabItems[0]);
-
-    useEffect(() => {
-        if (activeTab.id === 1) {
-            const updated = tabItems.find(t => t.id === 1);
-            if (updated) {
-                setActiveTab(updated);
-            }
-        }
-    }, [id, tabItems, activeTab.id]);
-
 
     const testDataDropDown: DropDownMenuDataModel[] = [
         {
@@ -95,15 +68,11 @@ const HomeScreenContent: React.FC<HomeScreenContentProps> = ({ id, onItemClick }
     return (
         <div className={styles["home-screen-content"]}>
             <header className={styles["home-header"]}>
-                <TeaseMeLogo size="small" variant='full-dark' />
-                <DropDownMenu menu={testDataDropDown} className={styles["inbox-icon"]}><SvgPack.MoreCircle preserveAspectRatio="xMidYMid meet" /></DropDownMenu>
+                <TeaseMeLogo size="medium" variant='full-dark' />
+                <DropDownMenu menu={testDataDropDown} className={styles["inbox-icon"]}><SvgPack.MoreCircle /></DropDownMenu>
             </header>
 
-            <TabsLayout tabs={tabItems} setActiveTab={setActiveTab} activeTab={activeTab} />
-
-            {activeTab && (
-                activeTab.content
-            )}
+            <ContactTabContent onChatClicked={handleOnChatClick} selectedContactId={id} />
         </div>
     );
 };
