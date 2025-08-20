@@ -23,7 +23,7 @@ export const Endpoints = {
     push: {
         subscribe: "/push/subscribe",
     },
-    elecenlabs: {
+    elevenlabs: {
         signed_url: "/elevenlabs/signed-url",
     },
     influencers: "/influencer",

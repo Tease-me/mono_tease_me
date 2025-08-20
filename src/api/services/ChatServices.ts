@@ -38,7 +38,7 @@ export const ChatServices = () => ({
     getSignedUrl: async (influencer_id: string): Promise<SignedUrlResponse> => {
         try {
             const response = await apiClient.get(
-                Endpoints.elecenlabs.signed_url,
+                Endpoints.elevenlabs.signed_url,
                 {
                     params: {
                         influencer_id
