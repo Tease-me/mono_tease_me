@@ -51,6 +51,11 @@
   margin-bottom: 24px;
 }
 
+.buttons-container {
+  justify-self: center;
+  max-width: 200px;
+}
+
 /* Responsividade para desktop */
 @media (min-width: 1024px) {
   .content {

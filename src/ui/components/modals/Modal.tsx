@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import clsx from 'clsx';
 import styles from "./Modal.module.css";
 
@@ -25,11 +25,16 @@ export const Modal: React.FC<ModalProps> = ({
     ariaLabel,
     children,
 }) => {
+    const [openClass, setOpenClass] = useState<string>();
+
     // Lock body scroll while modal is open
     useEffect(() => {
         if (!isOpen) return;
         const prev = document.body.style.overflow;
         document.body.style.overflow = 'hidden';
+        setTimeout(() => {
+            setOpenClass(styles.open);
+        }, 100);
         return () => {
             document.body.style.overflow = prev;
         };
@@ -45,15 +50,14 @@ export const Modal: React.FC<ModalProps> = ({
         return () => window.removeEventListener('keydown', onKey);
     }, [isOpen, closeOnEsc, onClose]);
 
-    if (!isOpen) return null;
 
     return (
         <div
-            className={styles.overlay}
+            className={clsx(styles.overlay, isOpen && styles.open)}
             onClick={closeOnOverlayClick ? onClose : undefined}
             role="presentation"
         >
-            <div className={clsx(styles.container, styles[`size-${size}`], className)}
+            <div className={clsx(styles.container, styles[`size-${size}`], openClass, className)}
                 role="dialog"
                 aria-modal="true"
                 aria-label={ariaLabel}

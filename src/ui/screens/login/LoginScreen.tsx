@@ -1,85 +1,102 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import BackgroundGradient from "../../templates/BackgroundGradient";
 import styles from "./LoginScreen.module.css";
-import { AuthContext } from "@/context/AuthContext";
-import CenteredLayout from "@/ui/templates/CenteredLayout";
-import MessageIcon from "@/assets/svg/Message.svg?react"
-import LockIcon from "@/assets/svg/Lock.svg?react"
-import BackgroundGradient from "@/ui/templates/BackgroundGradient";
-import ErrorMessage from "@/ui/components/ErrorMessage";
-import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButton";
 import CheckBox from "@/ui/components/inputs/check-boxes/CheckBox";
 import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
+import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButton";
+import HeadingText from "@/ui/components/typography/HeadingText";
+import { AuthContext } from "@/context/AuthContext";
 import OnBoardingTopNav from "@/ui/components/nav/OnBoardingTopNav";
-import logger from "@/utils/logger";
+import FullWidthLayout from "@/ui/templates/FullWidthLayout";
+import ButtonRow from "@/ui/templates/ButtonRow";
+import SvgPack from "@/utils/SvgPack";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState<string>();
+  const [agree, setAgree] = useState(false);
+
+  const [errors, setErrors] = useState<{ email?: string; password?: string, general?: string }>({});
+  const { login, isSignedIn } = useContext(AuthContext);
 
   const navigate = useNavigate();
 
-  const { isSignedIn, login, authErrors } = useContext(AuthContext);
+  if (isSignedIn) navigate("/home");
 
-  useEffect(() => {
-    logger.debug(authErrors);
-  }, [authErrors])
-
-  useEffect(() => {
-    if (isSignedIn) {
-      navigate("/home");
-    }
-  }, [isSignedIn])
-
-  const handleSignInClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !password.trim()) {
-      setErrorMessage("Please enter both email and password.");
+    const newErrors: { email?: string; password?: string, general?: string } = {};
+    if (!email.trim()) newErrors.email = "Email is required";
+    if (!password) newErrors.password = "Password is required";
+
+    if (Object.keys(newErrors).length) {
+      setErrors(newErrors);
       return;
     }
-    const success: boolean = await login(email, password);
-    if (success) {
-      navigate("/home");
-    } else {
-      setErrorMessage("Login failed! Please try again.")
+
+    try {
+      const success = await login(email, password);
+      if (success) {
+        navigate("/home");
+      }
+      setErrors({ general: "Registration Failed Plese Try Again Later" });
+    } catch (err) {
+      console.error(err);
     }
+  };
+
+  const handleOnAgreeChange = () => {
+    setAgree(prev => !prev)
+  }
+
+  const handleBackClick = () => {
+    navigate("/")
   }
 
   return (
     <BackgroundGradient>
-      <OnBoardingTopNav />
-      <CenteredLayout>
-        <div className={styles["auth-container"]}>
-          <div className={styles["auth-content"]}>
-            <h2 className={styles["auth-title"]}>Login to your Account</h2>
-            <form className={styles["auth-form"]}>
+      <FullWidthLayout fullWidthNav={<OnBoardingTopNav onBackClicked={handleBackClick} />}>
+        <HeadingText className={styles["title"]}>Login to your Account</HeadingText>
+        <form className={styles["auth-form"]} onSubmit={handleSubmit}>
+          <div className={styles["input-fields"]}>
+            <div className={styles["input-field"]}>
               <TextInput
+                leftIcon={<SvgPack.Message />}
                 type="email"
                 placeholder="Email"
-                className={styles["auth-input"]}
                 value={email}
-                leftIcon={<MessageIcon />}
-                onChange={e => setEmail((e.target as HTMLInputElement).value)}
-              />
+                onChange={e => setEmail((e.target as HTMLInputElement).value)} />
+              {errors.email && <span className={styles["error"]}>{errors.email}</span>}
+            </div>
+            <div className={styles["input-field"]}>
               <TextInput
+                leftIcon={<SvgPack.Lock />}
                 type="password"
                 placeholder="Password"
-                leftIcon={<LockIcon />}
-                className={styles["auth-input"]}
                 value={password}
                 onChange={e => setPassword((e.target as HTMLInputElement).value)}
               />
-              {errorMessage && <ErrorMessage message={errorMessage} />}
-              <CheckBox>Remember Me</CheckBox>
-              <CircularIconButton text="Sign In" size="small" onClick={handleSignInClick} />
-              <p className={styles["auth-footer"]}>
-                <span onClick={() => navigate("/forgot-password")}>Forgot your password?</span>
-              </p>
-            </form>
+              {errors.password && <span className={styles["error"]}>{errors.password}</span>}
+            </div>
           </div>
-        </div>
-      </CenteredLayout>
-    </BackgroundGradient>
+          <CheckBox className={styles["check-box"]} checked={agree} onChange={handleOnAgreeChange}>
+            Remember Me
+          </CheckBox>
+          {errors.general && <span className={styles["error"]}>{errors.general}</span>}
+          <div className={styles["user-action-section"]}>
+            <div className={styles["auth-buttons"]}>
+              <ButtonRow>
+                <CircularIconButton className={styles["btn-back"]} onClick={() => navigate("/")} text="Back" variant="tertiary" />
+                <CircularIconButton type="submit" className={styles["btn-primary"]} text="Continue" />
+              </ButtonRow>
+            </div>
+            <p className={styles["auth-footer"]}>
+              <span onClick={() => navigate("/forgot-password")}>Forgot your password?</span>
+            </p>
+          </div>
+        </form>
+      </FullWidthLayout>
+    </BackgroundGradient >
   );
 }

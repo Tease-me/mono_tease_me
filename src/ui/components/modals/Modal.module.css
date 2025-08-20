@@ -1,13 +1,16 @@
 .overlay {
     position: fixed;
     z-index: 1000;
-    display: flex;
     align-items: center;
     justify-content: center;
     inset: 0px;
     padding: 56px;
     background-color: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(4px);
+    display: none;
+}
+
+.overlay.open {
+    display: flex;
 }
 
 .container {
@@ -20,11 +23,18 @@
     border-radius: 12px;
     color: inherit;
     padding: 24px;
-    /* Frosted panel */
     -webkit-backdrop-filter: blur(12px) saturate(120%);
     backdrop-filter: blur(12px) saturate(120%);
     border: 1px solid rgba(255, 255, 255, 0.35);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    transform: translateY(100%);
+    opacity: 0;
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.container.open {
+    transform: translateY(0);
+    opacity: 1;
 }
 
 .size-sm {

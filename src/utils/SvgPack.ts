@@ -21,4 +21,6 @@ export default {
     Crown: lazy(() => import("@/assets/mj-dashboard/svg/Crown.svg?react")),
     Triseption: lazy(() => import("@/assets/mj-dashboard/svg/Triseption.svg?react")),
     ChevronUpDown: lazy(() => import("@/assets/mj-dashboard/svg/chevron-up-down.svg?react")),
+    Message: lazy(() => import("@/assets/svg/Message.svg?react")),
+    Lock: lazy(() => import("@/assets/svg/Lock.svg?react")),
 }

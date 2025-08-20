@@ -97,8 +97,10 @@ export default function WelcomeScreen({ influencer }: WelcomeScreenProps) {
           </p>
 
           <DividerWithLabel text="or" />
-          {!isFirstTime ? <CircularIconButton text="Sign in with email" className={styles["sign-in-button"]} onClick={handleSignInClick} /> :
-            <CircularIconButton text="Talk to me Now" onClick={handleTryClick} />}
+          <div className={styles["buttons-container"]}>
+            {!isFirstTime ? <CircularIconButton text="Sign in with email" className={styles["sign-in-button"]} onClick={handleSignInClick} /> :
+              <CircularIconButton text="Talk to me Now" onClick={handleTryClick} />}
+          </div>
         </div>}
         <WelcomeCallModal isOpen={status === "connected"} onClose={() => { setOnTryClicked(false) }} influencer={influencer} status={status} stopConversation={stopConversation} />
       </CenteredLayout>
