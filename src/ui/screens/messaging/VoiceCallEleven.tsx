@@ -79,7 +79,7 @@ const VoiceCallEleven: React.FC<VoiceCallElevenProps> = ({ }) => {
                 disabled={isLoading}
                 icon={status === "connected" ? <CloseSquareIcon /> : <CallIcon />}
               />
-              <div className="h-12 flex items-center justify-center">
+              <div>
                 {status === "connected" ? (
                   <div className="flex justify-center items-center space-x-1">
                   </div>
