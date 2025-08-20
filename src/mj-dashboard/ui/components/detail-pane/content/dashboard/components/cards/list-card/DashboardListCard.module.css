@@ -1,0 +1,23 @@
+.dashboard-stats-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.title {
+    color: var(--color-grey-500);
+    margin: 0 21px 0px 21px;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    margin: 21px 21px 21px 21px;
+    justify-content: center;
+}
+
+.content>*:not(:last-child) {
+    padding-bottom: 11px;
+    margin-bottom: 11px;
+    border-bottom: 1px solid var(--color-grey-800);
+}

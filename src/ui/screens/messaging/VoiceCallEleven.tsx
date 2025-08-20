@@ -16,23 +16,21 @@ import { useLocation, useNavigate } from "react-router-dom";
 import useCall from "@/hooks/useCall";
 
 import styles from "./VoiceCallEleven.module.css";
+import useOnlineStatus from "@/hooks/useOnlineStatus";
 
 interface VoiceCallElevenProps { }
 
 const VoiceCallEleven: React.FC<VoiceCallElevenProps> = ({ }) => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+
   const [influencer, setInfluencer] = useState<InfluencerDataModel>();
 
   const { status, startConversation, stopConversation, setInfluencerId } = useCall();
   const { state } = useLocation();
 
   const influencerRepo = InfluencerRepo();
-
-  useEffect(() => {
-    setIsOnline(navigator.onLine)
-  }, [navigator.onLine])
+  const isOnline = useOnlineStatus()
 
   useEffect(() => {
     const { influencer_id } = state as { influencer_id: string };

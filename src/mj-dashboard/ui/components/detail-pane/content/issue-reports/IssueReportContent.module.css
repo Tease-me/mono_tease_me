@@ -1,0 +1,24 @@
+.issue-report-content {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    background-color: var(--color-black);
+}
+
+.sidebar-pane .body {
+    height: 100%;
+    overflow-y: auto;
+}
+
+.sidebar-pane .header {
+    padding: 9px 20px 20px 20px;
+}
+
+.content-pane .header {
+    padding: 20px 20px 20px 20px;
+}

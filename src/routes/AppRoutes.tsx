@@ -3,7 +3,6 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import PrivateRoute from "./components/PrivateRoute";
 import GuestRoute from "./components/GuestRoute";
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
-import UserProfile from "@/ui/screens/user-profile/UserProfile";
 
 const InfluencerProfileScreen = lazy(() => import("@/ui/screens/influencer-profile/InfluencerProfileScreen"));
 const LoginScreen = lazy(() => import("@/ui/screens/login/LoginScreen"));
@@ -16,6 +15,8 @@ const VoiceCallEleven = lazy(() => import("@/ui/screens/messaging/VoiceCallEleve
 const HomeScreen = lazy(() => import("@/ui/screens/home/HomeScreen"));
 const ChatScreen = lazy(() => import("@/ui/screens/messaging/ChatScreen"));
 const CallScreen = lazy(() => import("@/ui/screens/CallScreen"));
+const UserProfile = lazy(() => import("@/ui/screens/user-profile/UserProfile"));
+const MJDashboard = lazy(() => import("@/mj-dashboard/ui/Dashboard"));
 
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
@@ -24,6 +25,7 @@ function AppRoutes() {
   ];
 
   const guestRoutes: { path: string; element: JSX.Element }[] = [
+    { path: "/mj/dashboard", element: <MJDashboard /> },
     { path: "/login", element: <LoginScreen /> },
     { path: "/register", element: <RegisterScreen /> },
     { path: "/register/verify", element: <Confirmation /> },

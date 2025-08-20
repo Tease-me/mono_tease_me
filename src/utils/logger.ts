@@ -7,7 +7,7 @@
 // type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 const isDev = import.meta.env.DEV;
-
+if (isDev) console.warn('[DEVELOPMENT MODE ACTIVE]');
 /**
  * Debug-level logging: only prints in development
  */

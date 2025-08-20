@@ -1,0 +1,15 @@
+.ai-content {
+    display: flex;
+}
+
+.ai-cell {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.ai-cell .avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 24px;
+}

@@ -1,0 +1,9 @@
+.side-bar {
+    display: flex;
+    padding: 24px;
+}
+
+.main-content {
+    display: flex;
+    padding: 24px;
+}

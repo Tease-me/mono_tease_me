@@ -9,13 +9,13 @@
 html,
 body,
 * {
-  -webkit-user-select: none;
+  /* -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
   -webkit-user-drag: none;
-  -webkit-tap-highlight-color: transparent;
+  -webkit-tap-highlight-color: transparent; */
   overscroll-behavior: none;
 }
 
@@ -23,6 +23,7 @@ body,
   --primary-font-family: "Urbanist", sans-serif;
   --color-text: #FFFFFF;
   --color-text-secondary: #9E9E9E;
+  --color-black: rgba(0, 0, 0, 1);
   --color-primary: hsla(351, 100%, 65%, 1);
   --color-dark-1: hsla(225, 14%, 11%, 1);
   --color-dark-2: #1F222A;
@@ -30,15 +31,19 @@ body,
   --color-alert: #DF485E;
   --color-pink: #EA1E61;
   --color-deep-orange: #FF5726;
-  --color-grayscale-50: #FAFAFA;
-  --color-grayscale-300: rgba(224, 224, 224, 1);
-  --color-grayscale-500: rgba(158, 158, 158, 1);
-  --color-grayscale-800: rgba(66, 66, 66, 1);
+  --color-grey-50: #FAFAFA;
+  --color-grey-300: rgba(224, 224, 224, 1);
+  --color-grey-500: rgba(158, 158, 158, 1);
+  --color-grey-800: rgba(66, 66, 66, 1);
   --gradient-angle: 270deg;
   --gradient-start-red-start: #FF4D67;
   --gradient-end-red-end: #FF8395;
   --gradient-orange-start: #FB9400;
   --gradient-orange-end: #FFAB38;
+
+  --color-success: rgba(74, 222, 128, 1);
+  --color-light-blue: rgba(0, 169, 241, 1);
+  --color-warning: rgba(250, 204, 21, 1);
 }
 
 html,

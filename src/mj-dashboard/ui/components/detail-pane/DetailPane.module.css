@@ -1,0 +1,19 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    overflow: hidden;
+}
+
+.title {
+    color: var(--color-primary);
+    margin-bottom: 28px;
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.scroll {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
