@@ -50,6 +50,32 @@ export const ChatServices = () => ({
             throw error;
         }
     },
+    registerConversation: async (conversation_id: string, user_id: number, influencer_id: string) => {
+        let attempt = 0;
+        let delay = 400;
+        let maxRetries = 3;
+        while (true) {
+            try {
+                await apiClient.post(Endpoints.elevenlabs.register(conversation_id), {
+                    user_id: user_id,
+                    influencer_id: influencer_id,
+                    sid: crypto.randomUUID()
+                });
+                return;
+            } catch (err: any) {
+                attempt += 1;
+                if (attempt > maxRetries) {
+                    const status = err?.response?.status;
+                    const data = err?.response?.data;
+                    throw new Error(
+                        `register failed (${status ?? "no-status"}): ${JSON.stringify(data)}`
+                    );
+                }
+                await new Promise((r) => setTimeout(r, delay));
+                delay = Math.min(2000, Math.floor(delay * 1.8));
+            }
+        }
+    },
     postAudioMessage: async (audioBlob: Blob, influencer_id: string, chat_id: string): Promise<ChatAudioResponse> => {
         const access_token = storage.get(LocalStorageKeys.AccessToken);
         const formData = new FormData();

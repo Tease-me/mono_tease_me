@@ -25,6 +25,7 @@ export const Endpoints = {
     },
     elevenlabs: {
         signed_url: "/elevenlabs/signed-url",
+        register: (conversationId: string) => `/elevenlabs/conversations/${encodeURIComponent(conversationId)}/register`,
     },
     influencers: "/influencer",
     influencer: (id: string) => `/influencer/${id}`,

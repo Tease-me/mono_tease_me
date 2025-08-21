@@ -3,7 +3,6 @@ import { useCallback, useContext, useRef, useState } from "react";
 import { useMicrophonePermission } from "./useMicrophonePermission";
 import { ChatRepository } from "@/data/repositories/ChatRepo";
 import logger from "@/utils/logger";
-import { apiClient } from "@/api/apis";
 import { AuthContext } from "@/context/AuthContext";
 
 export default function useCall() {
@@ -55,7 +54,6 @@ export default function useCall() {
 
 
   async function startConversation() {
-    console.error("Starting conversation with influencerId:", influencerId);
     if (influencerId) {
       ring();
       const hasPermission = await requestMicrophonePermission();
@@ -70,48 +68,7 @@ export default function useCall() {
         return;
       }
       const conversationId = await conversation.startSession({ signedUrl });
-      const sid = crypto.randomUUID();
-      await registerConversation(conversationId, {
-        user_id: user?.id ?? 0,
-        influencer_id: influencerId,
-        sid: sid ?? null,
-      });
-    }
-  }
-
-  type RegisterBody = {
-    user_id: number;
-    influencer_id?: string | null;
-    sid?: string | null;
-  };
-
-  async function registerConversation(
-    conversationId: string,
-    body: RegisterBody,
-    maxRetries = 3
-  ): Promise<void> {
-    const url = `/elevenlabs/conversations/${encodeURIComponent(
-      conversationId
-    )}/register`;
-    let attempt = 0;
-    let delay = 400;
-    while (true) {
-      try {
-        await apiClient.post(url, body);
-        return; // success
-      } catch (err: any) {
-        attempt += 1;
-        if (attempt > maxRetries) {
-          // bubble up original error/response data if available
-          const status = err?.response?.status;
-          const data = err?.response?.data;
-          throw new Error(
-            `register failed (${status ?? "no-status"}): ${JSON.stringify(data)}`
-          );
-        }
-        await new Promise((r) => setTimeout(r, delay));
-        delay = Math.min(2000, Math.floor(delay * 1.8));
-      }
+      await chatRepo.registerConversation(conversationId, user?.id ?? 0, influencerId);
     }
   }
 

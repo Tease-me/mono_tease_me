@@ -46,6 +46,9 @@ export const ChatRepository = () => ({
         const response: SignedUrlResponse = await chatServices.getSignedUrl(influencer_id)
         return response.signed_url
     },
+    registerConversation: async (conversation_id: string, user_id: number, influencer_id: string) => {
+        await chatServices.registerConversation(conversation_id, user_id, influencer_id);
+    },
     sendAudioMessage: async (audioBlob: Blob, influencer_id: string, chat_id: string) => {
         const response: ChatAudioResponse = await chatServices.postAudioMessage(audioBlob, influencer_id, chat_id);
         return {
