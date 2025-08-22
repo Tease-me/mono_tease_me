@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import styles from "./ContactTabContent.module.css"
 import TextInput from '@/ui/components/inputs/text-inputs/TextInput';
-import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButton';
-import InfinityIcon from "@/assets/svg/Infinity.svg?react";
 import SearchIcon from "@/assets/svg/Search.svg?react";
 import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
 import clsx from 'clsx';
 import { InfluencerRepo } from '@/data/repositories/InfluencerRepo';
+import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
 
 interface ContactTabContentProps {
     selectedContactId?: string;
@@ -49,7 +48,7 @@ const ContactTabContent: React.FC<ContactTabContentProps> = ({ selectedContactId
                             <h4>{contact.name}</h4>
                             <p>{contact.username}</p>
                         </div>
-                        <CircularIconButton icon={<InfinityIcon />} text='Chat' size='xsmall' />
+                        <PrimaryButton text='Trial 14:00s' />
                     </div>
                 ))}
             </div>

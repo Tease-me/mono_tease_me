@@ -48,6 +48,7 @@ const NormalButton: React.FC<ButtonNormalProps> = ({ type = "pill", leftIcon, ri
 
     return (
         <div
+            {...rest}
             className={clsx(
                 outerStyle[type],
                 disabled && styles["disabled"],

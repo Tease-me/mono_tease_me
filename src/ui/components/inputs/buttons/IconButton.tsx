@@ -54,16 +54,18 @@ const IconButton: React.FC<IconButtonProps> = ({ type = "pill", color = "pink", 
     }
 
     return (
-        <div className={clsx(
-            outerStyle[type],
-            disabled && styles["disabled"],
-            !disabled && styles[color],
-            (!disabled && hovered) && styles["hover"],
-            (!disabled && pressed) && styles["pressed"],
-            (!disabled && selected) && styles["selected"],
-            orientationStyle[orientation],
-            rest.className
-        )}
+        <div
+            {...rest}
+            className={clsx(
+                outerStyle[type],
+                disabled && styles["disabled"],
+                !disabled && styles[color],
+                (!disabled && hovered) && styles["hover"],
+                (!disabled && pressed) && styles["pressed"],
+                (!disabled && selected) && styles["selected"],
+                orientationStyle[orientation],
+                rest.className
+            )}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             onMouseDown={handleMouseDown}
