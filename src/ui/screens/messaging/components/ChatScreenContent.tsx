@@ -315,7 +315,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                     inputText={inputText}
                     setInputText={setInputText}
                     setInputAudio={setInputAudio}
-                    disabled={messages ? false : true}
+                    disabled={error ? true : false}
                     error={error}
                     inputAudio={inputAudio} />
             </div>
