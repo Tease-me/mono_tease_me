@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 
-import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButton';
 import MicrophoneIcon from "@/assets/Microphone.svg?react";
 import SendIcon from "@/assets/svg/Send.svg?react";
 import CloseSquareIcon from "@/assets/CloseSquare.svg?react";
@@ -10,6 +9,7 @@ import AudioWaveform from './AudioWaveform';
 import LongPressButton from '@/ui/components/inputs/buttons/LongPressButton';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import clsx from 'clsx';
+import IconButton from '@/ui/components/inputs/buttons/IconButton';
 
 interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
     onSendMessage?: () => void;
@@ -126,12 +126,11 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                     onDrag={handleOnLongPressEnd}
                     onLongPressStart={handleOnLongPressStart}
                     onLongPressEnd={handleOnLongPressEnd}
-                    icon={inputAudio ? <CloseSquareIcon /> : <MicrophoneIcon />}
+                    leftIcon={inputAudio ? <CloseSquareIcon /> : <MicrophoneIcon />}
                     className={styles["voice-btn"]}
-                    size="xsmall"
-                    variant="secondary"
+                    color='yellow'
                     disabled={disabled} />
-                <CircularIconButton icon={<SendIcon />} className={styles["send-btn"]} onClick={handleOnSendMessage} size="xsmall" disabled={disabled} />
+                <IconButton leftIcon={<SendIcon />} className={styles["send-btn"]} onClick={handleOnSendMessage} disabled={disabled} />
             </div>
         </div>
     );

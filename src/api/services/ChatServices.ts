@@ -35,13 +35,14 @@ export const ChatServices = () => ({
             throw error;
         }
     },
-    getSignedUrl: async (influencer_id: string): Promise<SignedUrlResponse> => {
+    getSignedUrl: async (influencer_id: string, user_id: number): Promise<SignedUrlResponse> => {
         try {
             const response = await apiClient.get(
                 Endpoints.elevenlabs.signed_url,
                 {
                     params: {
-                        influencer_id
+                        influencer_id,
+                        user_id
                     }
                 }
             );

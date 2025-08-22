@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import styles from "./ForgotPassword.module.css"
-import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButton';
 import TextInput from '@/ui/components/inputs/text-inputs/TextInput';
 import OnBoardingTopNav from '@/ui/components/nav/OnBoardingTopNav';
 import HeadingText from '@/ui/components/typography/HeadingText';
@@ -11,6 +10,8 @@ import BlockingLoader from '@/ui/components/loading/BlockingLoader';
 import { apiClient } from '@/api/apis';
 import ButtonRow from '@/ui/templates/ButtonRow';
 import logger from '@/utils/logger';
+import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
+import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
 
 interface ForgotPasswordProps { }
 
@@ -21,8 +22,8 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ }) => {
 
     const navigate = useNavigate();
     const authServices = AuthServices(apiClient);
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
+    const handleSubmit = async (e?: React.FormEvent) => {
+        e?.preventDefault()
         setIsLoading(true);
         if (email === "") {
             setIsLoading(false);
@@ -64,8 +65,8 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ }) => {
                         {status && <span className={styles["error"]}>{status}</span>}
                         <div className={styles["user-action-section"]}>
                             <ButtonRow>
-                                <CircularIconButton className={styles["btn-back"]} onClick={() => navigate("/")} text="Back to Login" variant="tertiary" />
-                                <CircularIconButton type="submit" className={styles["btn-primary"]} text="Send Reset Link" />
+                                <NormalButton className={styles["btn-back"]} onClick={() => navigate("/")} text="Back to Login" color='black' />
+                                <PrimaryButton className={styles["btn-primary"]} text="Send Reset Link" onClick={() => handleSubmit()} />
                             </ButtonRow>
                         </div>
                     </form>

@@ -62,6 +62,7 @@
   gap: 15px;
   justify-content: end;
   margin-top: 10px;
+  min-width: 300px;
   flex: 1;
 }
 

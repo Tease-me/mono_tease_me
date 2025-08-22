@@ -8,7 +8,6 @@ import FullWidthLayout from '@/ui/templates/FullWidthLayout';
 import { AuthContext } from '@/context/AuthContext';
 import { BalanceServices } from '@/api/services/BalanceServices';
 import { formatCentsToDollars } from '@/utils/balance_utils';
-import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButton';
 import ButtonRow from '@/ui/templates/ButtonRow';
 import BalanceView from '@/ui/components/stats/BalanceView';
 import VerticalDivider from '@/ui/components/dividers/VerticalDivider';
@@ -16,6 +15,8 @@ import { useNavigate } from 'react-router-dom';
 import { apiClient } from '@/api/apis';
 import { BalanceResponse } from '@/api/models/balance';
 import logger from '@/utils/logger';
+import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
+import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
 
 interface UserProfileProps { }
 
@@ -79,8 +80,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
                     <a href='#'>Delete Account</a>
                 </div>
                 <ButtonRow className={styles["button-row"]}>
-                    <CircularIconButton text='Discard' variant='tertiary' />
-                    <CircularIconButton text='Update' />
+                    <NormalButton text='Discard' color='black' />
+                    <PrimaryButton text='Update' />
                 </ButtonRow>
             </FullWidthLayout>
         </BackgroundGradient>

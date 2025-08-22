@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import styles from "./ResetPassword.module.css"
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import BackgroundGradient from '@/ui/templates/BackgroundGradient';
-import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButton';
 import { apiClient } from '@/api/apis';
 import OnBoardingTopNav from '@/ui/components/nav/OnBoardingTopNav';
 import HeadingText from '@/ui/components/typography/HeadingText';
 import TextInput from '@/ui/components/inputs/text-inputs/TextInput';
 import logger from '@/utils/logger';
+import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
+import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
 
 interface ResetPasswordResponse {
     ok: boolean;
@@ -33,8 +34,8 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ }) => {
             return;
         }
     }, [token])
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
+    const handleSubmit = async (e?: React.FormEvent) => {
+        e?.preventDefault()
 
         if (password === "" || confirmPassword === "") {
             setStatus("Cannot be empty");
@@ -87,8 +88,8 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ }) => {
                         {status && <span className={styles["error"]}>{status}</span>}
                         <div className={styles["user-action-section"]}>
                             <div className={styles["auth-buttons"]}>
-                                <CircularIconButton className={styles["btn-back"]} onClick={() => navigate("/")} text="Back" variant="tertiary" />
-                                <CircularIconButton type="submit" className={styles["btn-primary"]} text="Continue" />
+                                <NormalButton className={styles["btn-back"]} onClick={() => navigate(-1)} text="Back" color='black' />
+                                <PrimaryButton className={styles["btn-primary"]} text="Continue" onClick={() => handleSubmit()} />
                             </div>
                         </div>
                     </form>

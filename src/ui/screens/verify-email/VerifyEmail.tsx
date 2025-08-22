@@ -5,7 +5,7 @@ import { apiClient } from '@/api/apis';
 import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 import CenteredLayout from '@/ui/templates/CenteredLayout';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
-import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButton';
+import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 
 interface VerifyEmailProps {
 }
@@ -59,7 +59,7 @@ const VerifyEmail: React.FC<VerifyEmailProps> = () => {
                     </p>
                     {error && <p className={styles.error}>Error: {error}</p>}
                     <div className={styles["buttons-container"]}>
-                        <CircularIconButton text='Back to Login' variant='tertiary' onClick={() => { navigate("/login") }} />
+                        <NormalButton text='Back to Login' color='black' onClick={() => { navigate("/login") }} />
                     </div>
                 </div>
             </CenteredLayout>

@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import CenteredLayout from "@/ui/templates/CenteredLayout";
-import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButton";
 import { storage } from "@/utils/storage";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import DividerWithLabel from "@/ui/components/dividers/DividerWithLabel";
@@ -15,6 +14,8 @@ import useCall from "@/hooks/useCall";
 import styles from "./WelcomeScreen.module.css";
 import clsx from "clsx";
 import WelcomeCallModal from "@/ui/components/modals/welcome-call/WelcomeCallModal";
+import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
+import IconButton from "@/ui/components/inputs/buttons/IconButton";
 export interface WelcomeScreenProps {
   influencer: InfluencerDataModel;
 }
@@ -81,8 +82,8 @@ export default function WelcomeScreen({ influencer }: WelcomeScreenProps) {
           <div className={styles["incoming-call-text"]}>Incoming Call</div>
           <div className={styles["influencer-name"]}>{influencer.name}</div>
           <div className={styles["call-buttons"]}>
-            <CircularIconButton icon={<DropCallIcon />} onClick={handleHangUpCall} size="small" variant="tertiary" />
-            <CircularIconButton icon={<CallIcon />} onClick={handlePickUpCall} size="small" />
+            <IconButton leftIcon={<DropCallIcon color="red" />} onClick={handleHangUpCall} text="Reject" color="black" />
+            <IconButton leftIcon={<CallIcon />} onClick={handlePickUpCall} text="Answer" color="green" />
           </div>
         </>) : <div className={styles["welcome-screen-container"]}>
           <TeaseMeLogo size="xlarge" variant="full-dark" />
@@ -98,8 +99,8 @@ export default function WelcomeScreen({ influencer }: WelcomeScreenProps) {
 
           <DividerWithLabel text="or" />
           <div className={styles["buttons-container"]}>
-            {!isFirstTime ? <CircularIconButton text="Sign in with email" className={styles["sign-in-button"]} onClick={handleSignInClick} /> :
-              <CircularIconButton text="Talk to me Now" onClick={handleTryClick} />}
+            {!isFirstTime ? <PrimaryButton text="Sign in with email" className={styles["sign-in-button"]} onClick={handleSignInClick} /> :
+              <PrimaryButton text="Talk to me Now" onClick={handleTryClick} />}
           </div>
         </div>}
         <WelcomeCallModal isOpen={status === "connected"} onClose={() => { setOnTryClicked(false) }} influencer={influencer} status={status} stopConversation={stopConversation} />

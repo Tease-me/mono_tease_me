@@ -54,7 +54,7 @@ export default function useCall() {
 
 
   async function startConversation() {
-    if (influencerId) {
+    if (influencerId && user) {
       ring();
       const hasPermission = await requestMicrophonePermission();
       if (!hasPermission) {
@@ -62,7 +62,7 @@ export default function useCall() {
         return;
       }
 
-      const signedUrl = await chatRepo.getSignedUrl(influencerId);
+      const signedUrl = await chatRepo.getSignedUrl(influencerId, user.id ?? 0);
       if (!signedUrl) {
         stopRing();
         return;

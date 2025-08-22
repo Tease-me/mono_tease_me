@@ -1,7 +1,14 @@
 import React, { useRef } from 'react';
-import CircularIconButton, { CircularIconButtonProps } from './CircularIconButton';
+import IconButton, { IconButtonColor, IconButtonOrientation, IconButtonProps, IconButtonType } from './IconButton';
 
-interface LongPressButtonProps extends CircularIconButtonProps {
+interface LongPressButtonProps extends IconButtonProps {
+    type?: IconButtonType;
+    color?: IconButtonColor;
+    leftIcon?: React.ReactNode;
+    orientation?: IconButtonOrientation;
+    text?: string;
+    disabled?: boolean;
+    selected?: boolean;
     onLongPressStart?: () => void;
     onLongPressEnd?: () => void;
     onShortPress?: () => void;
@@ -108,7 +115,7 @@ const LongPressButton: React.FC<LongPressButtonProps> = ({
         }
     };
     return (
-        <CircularIconButton draggable={false}
+        <IconButton draggable={false}
             {...props}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}

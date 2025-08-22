@@ -42,8 +42,8 @@ export const ChatRepository = () => ({
         const response: ChatIdResponse = await chatServices.getChatId(user_id, persona_id)
         return response.chat_id;
     },
-    getSignedUrl: async (influencer_id: string): Promise<string> => {
-        const response: SignedUrlResponse = await chatServices.getSignedUrl(influencer_id)
+    getSignedUrl: async (influencer_id: string, user_id: number): Promise<string> => {
+        const response: SignedUrlResponse = await chatServices.getSignedUrl(influencer_id, user_id)
         return response.signed_url
     },
     registerConversation: async (conversation_id: string, user_id: number, influencer_id: string) => {

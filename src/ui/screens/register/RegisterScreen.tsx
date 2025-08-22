@@ -6,7 +6,6 @@ import { AuthServices } from "@/api/services/AuthServices";
 import CheckBox from "@/ui/components/inputs/check-boxes/CheckBox";
 import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 import { RegisterResponse } from "@/api/models/auth";
-import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButton";
 import QuestionMarkCircleIcon from "@/assets/svg/QuestionMark.svg?react"
 import HeadingText from "@/ui/components/typography/HeadingText";
 import { AuthContext } from "@/context/AuthContext";
@@ -14,6 +13,8 @@ import OnBoardingTopNav from "@/ui/components/nav/OnBoardingTopNav";
 import FullWidthLayout from "@/ui/templates/FullWidthLayout";
 import { apiClient } from "@/api/apis";
 import ButtonRow from "@/ui/templates/ButtonRow";
+import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
+import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState("");
@@ -28,8 +29,9 @@ export default function RegisterScreen() {
 
   if (isSignedIn) navigate("/home");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
     const newErrors: { email?: string; password?: string, general?: string } = {};
     if (!email.trim()) newErrors.email = "Email is required";
     if (!password) newErrors.password = "Password is required";
@@ -58,7 +60,9 @@ export default function RegisterScreen() {
   const handleBackClick = () => {
     navigate("/")
   }
-
+  const handleContinueClicked = () => {
+    handleSubmit();
+  }
   return (
     <BackgroundGradient>
       <FullWidthLayout fullWidthNav={<OnBoardingTopNav onBackClicked={handleBackClick} />}>
@@ -86,8 +90,8 @@ export default function RegisterScreen() {
           <div className={styles["user-action-section"]}>
             <div className={styles["auth-buttons"]}>
               <ButtonRow>
-                <CircularIconButton className={styles["btn-back"]} onClick={() => navigate("/")} text="Back" variant="tertiary" />
-                <CircularIconButton type="submit" className={styles["btn-primary"]} text="Continue" />
+                <NormalButton className={styles["btn-back"]} onClick={() => navigate("/")} text="Back" color="black" />
+                <PrimaryButton className={styles["btn-primary"]} text="Continue" onClick={handleContinueClicked} />
               </ButtonRow>
             </div>
             <p className={styles["auth-footer"]}>

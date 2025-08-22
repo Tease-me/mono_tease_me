@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
-import styles from "./PrimaryButton.module.css"
+import styles from "./NormalButton.module.css"
 import clsx from 'clsx';
-export interface PrimaryButtonProps extends React.HTMLAttributes<HTMLDivElement> {
+
+type NormalButtonType = "pill" | "square" | "nobg";
+
+interface ButtonNormalProps extends React.HTMLAttributes<HTMLDivElement> {
+    type?: NormalButtonType;
     leftIcon?: React.ReactNode;
     rightIcon?: React.ReactNode;
     text?: string;
@@ -9,10 +13,14 @@ export interface PrimaryButtonProps extends React.HTMLAttributes<HTMLDivElement>
     selected?: boolean;
 }
 
-const PrimaryButton: React.FC<PrimaryButtonProps> = ({ leftIcon, rightIcon, text, disabled, selected, ...rest }) => {
+const NormalButton: React.FC<ButtonNormalProps> = ({ type = "pill", leftIcon, rightIcon, text, disabled, selected, ...rest }) => {
     const [hovered, setHovered] = useState(false);
     const [pressed, setPressed] = useState(false);
-
+    const outerStyle: Record<NormalButtonType, string> = {
+        pill: clsx(styles["pill-button"], styles["button-normal-outer"], styles["normal"]),
+        square: clsx(styles["smooth-button"], styles["button-normal-outer"], styles["normal"]),
+        nobg: clsx(styles["smooth-button"], styles["button-normal-outer"], styles["nobg"])
+    };
     const handleMouseEnter = () => {
         setHovered(true);
     }
@@ -21,6 +29,7 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({ leftIcon, rightIcon, text
         setHovered(false);
         setPressed(false);
     }
+
     const handleMouseDown = () => {
         setPressed(true);
     }
@@ -28,9 +37,11 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({ leftIcon, rightIcon, text
     const handleMouseUp = () => {
         setPressed(false);
     }
+
     const handleTouchStart = () => {
         setPressed(true);
     }
+
     const handleTouchEnd = () => {
         setPressed(false);
     }
@@ -39,9 +50,7 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({ leftIcon, rightIcon, text
         <div
             {...rest}
             className={clsx(
-                styles["pill-button"],
-                styles["button-cta-outer"],
-                !disabled && styles["pink"],
+                outerStyle[type],
                 disabled && styles["disabled"],
                 (!disabled && hovered) && styles["hover"],
                 (!disabled && pressed) && styles["pressed"],
@@ -55,22 +64,19 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({ leftIcon, rightIcon, text
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
         >
-            <div className={styles["button-cta-inner"]}>
-                <div className={styles["button-cta-content-container"]}>
-                    {leftIcon && <div className={styles["left-icon"]}>
+            <div className={styles["button-normal-inner"]}>
+                <div className={styles["button-normal-content-container"]}>
+                    {<div className={styles["left-icon"]}>
                         {leftIcon}
                     </div>}
                     {text && <div className={clsx(styles["button-text"])}>{text}</div>}
-                    {rightIcon && <div className={styles["right-icon"]}>
+                    <div className={styles["right-icon"]}>
                         {rightIcon}
-                    </div>}
+                    </div>
                 </div>
             </div>
-            {!disabled && <div className={styles["circle-shine"]} />}
-            {!disabled && <div className={styles["circle-shine-02"]} />}
-            {!disabled && <div className={styles["circle-shine-03"]} />}
         </div>
     );
 };
 
-export default PrimaryButton;
+export default NormalButton;
