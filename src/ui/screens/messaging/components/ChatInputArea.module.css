@@ -53,22 +53,6 @@
     gap: 4px;
 }
 
-.voice-btn,
-.send-btn {
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-}
-
-.voice-btn {
-    background-color: #ffa500;
-}
-
-.send-btn {
-    background-color: #ff4d6d;
-    color: #fff;
-}
-
 .call-btn {
     background-color: #ff4d6d;
     border: none;
