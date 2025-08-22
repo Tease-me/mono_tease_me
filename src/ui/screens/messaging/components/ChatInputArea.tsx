@@ -17,6 +17,7 @@ interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
     setInputText?: (text: string) => void;
     inputAudio?: Blob;
     setInputAudio?: (blob?: Blob) => void;
+    error?: string;
     disabled?: boolean;
 }
 
@@ -26,6 +27,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     setInputText,
     inputAudio,
     setInputAudio,
+    error,
     disabled = false }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -95,7 +97,8 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     return (
         <div className={styles["chat-input-area"]} >
             <div className={clsx(styles["input-container"], recordingStatus === "recording" && styles["recording"])} ref={containerRef}>
-                {(recordingStatus === "inactive" && !audio) &&
+                {error && <div className={styles["error-message"]}>{error}</div>}
+                {!error && (recordingStatus === "inactive" && !audio) &&
                     <input
                         type="text"
                         placeholder="Message..."
