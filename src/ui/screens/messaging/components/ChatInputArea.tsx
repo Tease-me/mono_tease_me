@@ -126,10 +126,9 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                     onDrag={handleOnLongPressEnd}
                     onLongPressStart={handleOnLongPressStart}
                     onLongPressEnd={handleOnLongPressEnd}
-                    icon={inputAudio ? <CloseSquareIcon /> : <MicrophoneIcon />}
+                    leftIcon={inputAudio ? <CloseSquareIcon /> : <MicrophoneIcon />}
                     className={styles["voice-btn"]}
-                    size="xsmall"
-                    variant="secondary"
+                    color='yellow'
                     disabled={disabled} />
                 <IconButton leftIcon={<SendIcon />} className={styles["send-btn"]} onClick={handleOnSendMessage} disabled={disabled} />
             </div>

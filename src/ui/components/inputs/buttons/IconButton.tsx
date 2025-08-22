@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import styles from "./IconButton.module.css"
 import clsx from 'clsx';
-type IconButtonType = "pill" | "square";
-type IconButtonColor = "black" | "green" | "pink" | "red" | "yellow" | "pink-glass";
-type IconButtonOrientation = "horizontal" | "vertical";
+export type IconButtonType = "pill" | "square";
+export type IconButtonColor = "black" | "green" | "pink" | "red" | "yellow" | "pink-glass";
+export type IconButtonOrientation = "horizontal" | "vertical";
 
-interface IconButtonProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface IconButtonProps extends React.HTMLAttributes<HTMLDivElement> {
     type?: IconButtonType;
     color?: IconButtonColor;
     leftIcon?: React.ReactNode;
@@ -28,29 +28,35 @@ const IconButton: React.FC<IconButtonProps> = ({ type = "pill", color = "pink", 
         vertical: styles["vertical-button"],
     };
 
-    const handleMouseEnter = () => {
+    const handleMouseEnter = (event: React.MouseEvent<HTMLDivElement>) => {
         setHovered(true);
+        rest.onMouseEnter?.(event);
     }
 
-    const handleMouseLeave = () => {
+    const handleMouseLeave = (event: React.MouseEvent<HTMLDivElement>) => {
         setHovered(false);
         setPressed(false);
+        rest.onMouseLeave?.(event);
     }
 
-    const handleMouseDown = () => {
+    const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
         setPressed(true);
+        rest.onMouseDown?.(event);
     }
 
-    const handleMouseUp = () => {
+    const handleMouseUp = (event: React.MouseEvent<HTMLDivElement>) => {
         setPressed(false);
+        rest.onMouseUp?.(event);
     }
 
-    const handleTouchStart = () => {
+    const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
         setPressed(true);
+        rest.onTouchStart?.(event);
     }
 
-    const handleTouchEnd = () => {
+    const handleTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
         setPressed(false);
+        rest.onTouchEnd?.(event);
     }
 
     return (
@@ -59,6 +65,7 @@ const IconButton: React.FC<IconButtonProps> = ({ type = "pill", color = "pink", 
             className={clsx(
                 outerStyle[type],
                 disabled && styles["disabled"],
+                (!text && type === "pill") && styles["icon-only"],
                 !disabled && styles[color],
                 (!disabled && hovered) && styles["hover"],
                 (!disabled && pressed) && styles["pressed"],

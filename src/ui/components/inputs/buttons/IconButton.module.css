@@ -343,6 +343,12 @@
     transition: all 200ms ease-in-out;
 }
 
+.button-cta-outer.icon-only {
+    min-height: 3.50rem;
+    background: var(--gradient-outer-mainhue);
+    transition: all 200ms ease-in-out;
+}
+
 .button-cta-outer.pink .button-cta-inner,
 .button-cta-outer.red .button-cta-inner {
     transition: all 200ms ease-in-out;
