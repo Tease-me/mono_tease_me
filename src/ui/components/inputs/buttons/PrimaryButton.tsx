@@ -37,6 +37,7 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({ leftIcon, rightIcon, text
 
     return (
         <div
+            {...rest}
             className={clsx(
                 styles["pill-button"],
                 styles["button-cta-outer"],
@@ -53,6 +54,7 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({ leftIcon, rightIcon, text
             onMouseUp={handleMouseUp}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
+
         >
             <div className={styles["button-cta-inner"]}>
                 <div className={styles["button-cta-content-container"]}>

@@ -15,6 +15,7 @@ import useCall from "@/hooks/useCall";
 import styles from "./WelcomeScreen.module.css";
 import clsx from "clsx";
 import WelcomeCallModal from "@/ui/components/modals/welcome-call/WelcomeCallModal";
+import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 export interface WelcomeScreenProps {
   influencer: InfluencerDataModel;
 }
@@ -98,8 +99,8 @@ export default function WelcomeScreen({ influencer }: WelcomeScreenProps) {
 
           <DividerWithLabel text="or" />
           <div className={styles["buttons-container"]}>
-            {!isFirstTime ? <CircularIconButton text="Sign in with email" className={styles["sign-in-button"]} onClick={handleSignInClick} /> :
-              <CircularIconButton text="Talk to me Now" onClick={handleTryClick} />}
+            {!isFirstTime ? <PrimaryButton text="Sign in with email" className={styles["sign-in-button"]} onClick={handleSignInClick} /> :
+              <PrimaryButton text="Talk to me Now" onClick={handleTryClick} />}
           </div>
         </div>}
         <WelcomeCallModal isOpen={status === "connected"} onClose={() => { setOnTryClicked(false) }} influencer={influencer} status={status} stopConversation={stopConversation} />

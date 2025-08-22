@@ -4,13 +4,14 @@ import BackgroundGradient from "../../templates/BackgroundGradient";
 import styles from "./LoginScreen.module.css";
 import CheckBox from "@/ui/components/inputs/check-boxes/CheckBox";
 import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
-import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButton";
 import HeadingText from "@/ui/components/typography/HeadingText";
 import { AuthContext } from "@/context/AuthContext";
 import OnBoardingTopNav from "@/ui/components/nav/OnBoardingTopNav";
 import FullWidthLayout from "@/ui/templates/FullWidthLayout";
 import ButtonRow from "@/ui/templates/ButtonRow";
 import SvgPack from "@/utils/SvgPack";
+import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
+import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -24,8 +25,8 @@ export default function LoginScreen() {
 
   if (isSignedIn) navigate("/home");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     const newErrors: { email?: string; password?: string, general?: string } = {};
     if (!email.trim()) newErrors.email = "Email is required";
     if (!password) newErrors.password = "Password is required";
@@ -45,7 +46,9 @@ export default function LoginScreen() {
       console.error(err);
     }
   };
-
+  const handleContinueClicked = () => {
+    handleSubmit();
+  }
   const handleOnAgreeChange = () => {
     setAgree(prev => !prev)
   }
@@ -87,8 +90,8 @@ export default function LoginScreen() {
           <div className={styles["user-action-section"]}>
             <div className={styles["auth-buttons"]}>
               <ButtonRow>
-                <CircularIconButton className={styles["btn-back"]} onClick={() => navigate("/")} text="Back" variant="tertiary" />
-                <CircularIconButton type="submit" className={styles["btn-primary"]} text="Continue" />
+                <NormalButton className={styles["btn-back"]} onClick={() => navigate("/")} text="Back" color="black" />
+                <PrimaryButton className={styles["btn-primary"]} text="Continue" onClick={handleContinueClicked} />
               </ButtonRow>
             </div>
             <p className={styles["auth-footer"]}>
