@@ -6,12 +6,13 @@ import ProfileMedia from '@/ui/components/ProfileMedia';
 import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
 import FullWidthLayout from '@/ui/templates/FullWidthLayout';
 import ButtonRow from '@/ui/templates/ButtonRow';
-import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButton';
 import { useNavigate } from 'react-router-dom';
 import { truncateLastName } from '@/utils/StringUtils';
 import { InfluencerRepo } from '@/data/repositories/InfluencerRepo';
 import TextInput from '@/ui/components/inputs/text-inputs/TextInput';
 import TextAreaInput from '@/ui/components/inputs/text-inputs/TextAreaInput';
+import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
+import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
 
 export interface InfluencerProfileProps {
     influencer?: InfluencerDataModel;
@@ -93,8 +94,8 @@ const InfluencerProfile: React.FC<InfluencerProfileProps> = ({ influencer }) => 
                 </div>
 
                 <ButtonRow className={styles["button-row"]}>
-                    <CircularIconButton text='Discard' variant='tertiary' onClick={() => navigate(-1)} />
-                    <CircularIconButton text='Update' onClick={handleOnUpdateClicked} />
+                    <NormalButton text='Discard' color='black' onClick={() => navigate(-1)} />
+                    <PrimaryButton text='Update' onClick={handleOnUpdateClicked} />
                 </ButtonRow>
             </FullWidthLayout>
         </BackgroundGradient>

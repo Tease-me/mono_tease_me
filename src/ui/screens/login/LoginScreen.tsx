@@ -8,10 +8,8 @@ import HeadingText from "@/ui/components/typography/HeadingText";
 import { AuthContext } from "@/context/AuthContext";
 import OnBoardingTopNav from "@/ui/components/nav/OnBoardingTopNav";
 import FullWidthLayout from "@/ui/templates/FullWidthLayout";
-import ButtonRow from "@/ui/templates/ButtonRow";
 import SvgPack from "@/utils/SvgPack";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
-import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -89,10 +87,7 @@ export default function LoginScreen() {
           {errors.general && <span className={styles["error"]}>{errors.general}</span>}
           <div className={styles["user-action-section"]}>
             <div className={styles["auth-buttons"]}>
-              <ButtonRow>
-                <NormalButton className={styles["btn-back"]} onClick={() => navigate("/")} text="Back" color="black" />
-                <PrimaryButton className={styles["btn-primary"]} text="Continue" onClick={handleContinueClicked} />
-              </ButtonRow>
+              <PrimaryButton className={styles["btn-primary"]} text="Sign In" onClick={handleContinueClicked} />
             </div>
             <p className={styles["auth-footer"]}>
               <span onClick={() => navigate("/forgot-password")}>Forgot your password?</span>

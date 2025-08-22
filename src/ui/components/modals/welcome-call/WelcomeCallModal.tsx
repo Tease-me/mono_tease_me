@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 
 import ProfileMedia from "@/ui/components/ProfileMedia";
-import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButton";
 import { storage } from "@/utils/storage";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
@@ -12,6 +11,7 @@ import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import BlockingLoader from "../../loading/BlockingLoader";
 
 import styles from "./WelcomeCallModal.module.css";
+import IconButton from "../../inputs/buttons/IconButton";
 
 interface WelcomeCallModalProps {
     isOpen: boolean;
@@ -88,8 +88,8 @@ const WelcomeCallModal: React.FC<WelcomeCallModalProps> = ({ isOpen, onClose, in
                             <div className={styles["status"]}>{status}</div>
                     }
                     <div className={styles["call-buttons"]}>
-                        <CircularIconButton icon={<DropCallIcon />} onClick={handleHangUpCall} size="small" variant="tertiary" />
-                        {status === "idle" && <CircularIconButton icon={<CallIcon />} onClick={handlePickUpCall} size="small" />}
+                        <IconButton leftIcon={<DropCallIcon />} onClick={handleHangUpCall} />
+                        {status === "idle" && <IconButton leftIcon={<CallIcon />} onClick={handlePickUpCall} />}
                     </div>
                 </>}
             </div>

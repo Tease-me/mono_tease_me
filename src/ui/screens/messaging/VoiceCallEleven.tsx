@@ -8,7 +8,6 @@ import NoSignalIcon from "@/assets/svg/NoSignal.svg?react";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import ProfileMedia from "@/ui/components/ProfileMedia";
-import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButton";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import OnBoardingTopNav from "@/ui/components/nav/OnBoardingTopNav";
 import { truncateLastName } from "@/utils/StringUtils";
@@ -17,6 +16,7 @@ import useCall from "@/hooks/useCall";
 
 import styles from "./VoiceCallEleven.module.css";
 import useOnlineStatus from "@/hooks/useOnlineStatus";
+import IconButton from "@/ui/components/inputs/buttons/IconButton";
 
 interface VoiceCallElevenProps { }
 
@@ -74,10 +74,10 @@ const VoiceCallEleven: React.FC<VoiceCallElevenProps> = ({ }) => {
               <div className={styles["status-container"]}>{status}</div>
             </div>
             <div className={styles["voice-chat-body"]}>
-              <CircularIconButton
+              <IconButton
                 onClick={handleVoiceToggle}
                 disabled={isLoading}
-                icon={status === "connected" ? <CloseSquareIcon /> : <CallIcon />}
+                leftIcon={status === "connected" ? <CloseSquareIcon /> : <CallIcon />}
               />
               <div>
                 {status === "connected" ? (

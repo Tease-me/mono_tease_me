@@ -23,4 +23,6 @@ export default {
     ChevronUpDown: lazy(() => import("@/assets/mj-dashboard/svg/chevron-up-down.svg?react")),
     Message: lazy(() => import("@/assets/svg/Message.svg?react")),
     Lock: lazy(() => import("@/assets/svg/Lock.svg?react")),
+    Voice: lazy(() => import("@/assets/svg/Voice.svg?react")),
+    Call: lazy(() => import("@/assets/svg/Call.svg?react")),
 }
