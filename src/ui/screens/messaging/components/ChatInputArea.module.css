@@ -35,6 +35,16 @@
     outline: 1px solid #ffa500;
 }
 
+.input-container.error {
+    outline: 1px solid rgba(255, 77, 103, 1);
+}
+
+.error-message {
+    color: rgba(255, 77, 103, 1);
+    font-size: 14px;
+    padding: 20px 18px;
+}
+
 .input-container input:focus,
 .input-container input:active {
     outline: none;

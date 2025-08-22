@@ -96,7 +96,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 
     return (
         <div className={styles["chat-input-area"]} >
-            <div className={clsx(styles["input-container"], recordingStatus === "recording" && styles["recording"])} ref={containerRef}>
+            <div className={clsx(styles["input-container"], recordingStatus === "recording" && styles["recording"], error && styles["error"])} ref={containerRef}>
                 {error && <div className={styles["error-message"]}>{error}</div>}
                 {!error && (recordingStatus === "inactive" && !audio) &&
                     <input
