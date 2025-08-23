@@ -151,6 +151,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 ]
             });
             scrollToBottom()
+            setError(undefined);
             // if (data.ok) {
 
             // } else {
