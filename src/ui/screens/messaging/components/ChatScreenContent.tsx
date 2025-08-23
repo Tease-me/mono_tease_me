@@ -135,27 +135,28 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         ws.current.onmessage = (event) => {
             setTyping(false);
             const data = JSON.parse(event.data);
-            if (data.ok) {
-                setMessages(prev => {
-                    if (!prev) return
-                    return [
-                        ...prev,
-                        {
-                            id: Date.now(),
-                            sender: "received",
-                            text: data.reply,
-                            time: new Date().toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            }),
-                        },
-                    ]
-                });
-                scrollToBottom()
-            } else {
-                console.error("Error in WebSocket message:", data.message);
-                setError(data.message || "An error occurred while sending the message.");
-            }
+            setMessages(prev => {
+                if (!prev) return
+                return [
+                    ...prev,
+                    {
+                        id: Date.now(),
+                        sender: "received",
+                        text: data.reply,
+                        time: new Date().toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        }),
+                    },
+                ]
+            });
+            scrollToBottom()
+            // if (data.ok) {
+
+            // } else {
+            //     console.error("Error in WebSocket message:", data.message);
+            //     setError(data.message || "An error occurred while sending the message.");
+            // }
         };
     }
 
