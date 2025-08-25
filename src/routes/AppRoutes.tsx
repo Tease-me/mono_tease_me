@@ -3,7 +3,6 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import PrivateRoute from "./components/PrivateRoute";
 import GuestRoute from "./components/GuestRoute";
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
-import ButtonsTestPage from "@/ui/screens/test/ButtonsTestPage";
 
 const InfluencerProfileScreen = lazy(() => import("@/ui/screens/influencer-profile/InfluencerProfileScreen"));
 const LoginScreen = lazy(() => import("@/ui/screens/login/LoginScreen"));
@@ -18,6 +17,7 @@ const ChatScreen = lazy(() => import("@/ui/screens/messaging/ChatScreen"));
 const CallScreen = lazy(() => import("@/ui/screens/CallScreen"));
 const UserProfile = lazy(() => import("@/ui/screens/user-profile/UserProfile"));
 const MJDashboard = lazy(() => import("@/mj-dashboard/ui/Dashboard"));
+const ButtonsTestPage = lazy(() => import("@/ui/screens/test/ButtonsTestPage"));
 
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
