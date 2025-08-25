@@ -18,6 +18,7 @@ import LoadingSpinner from '@/ui/components/loading/LoadingSpinner';
 import clsx from 'clsx';
 import { ChatRepository } from '@/data/repositories/ChatRepo';
 import { InfluencerRepo } from '@/data/repositories/InfluencerRepo';
+import logger from '@/utils/logger';
 
 const MessagesList = React.memo(({ messages, typing, messagesEndRef }: { messages: any[]; typing: boolean; messagesEndRef: React.RefObject<HTMLDivElement | null>; }) => {
     return (
@@ -134,30 +135,30 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         ws.current.onerror = () => setIsWsConnected(false);
         ws.current.onmessage = (event) => {
             setTyping(false);
+            console.warn("WebSocket message received:", event.data);
             const data = JSON.parse(event.data);
-            setMessages(prev => {
-                if (!prev) return
-                return [
-                    ...prev,
-                    {
-                        id: Date.now(),
-                        sender: "received",
-                        text: data.reply,
-                        time: new Date().toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                        }),
-                    },
-                ]
-            });
-            scrollToBottom()
-            setError(undefined);
-            // if (data.ok) {
-
-            // } else {
-            //     console.error("Error in WebSocket message:", data.message);
-            //     setError(data.message || "An error occurred while sending the message.");
-            // }
+            if (data.reply) {
+                setMessages(prev => {
+                    if (!prev) return
+                    return [
+                        ...prev,
+                        {
+                            id: Date.now(),
+                            sender: "received",
+                            text: data.reply,
+                            time: new Date().toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            }),
+                        },
+                    ]
+                });
+                scrollToBottom()
+                setError(undefined);
+            } else if (data.error) {
+                logger.error("Error in WebSocket message:", data.message);
+                setError(data.message || "An error occurred while sending the message.");
+            }
         };
     }
 
