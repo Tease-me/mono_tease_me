@@ -36,5 +36,7 @@ export default {
         Yahoo: lazy(() => import("@/assets/svg/YahooMailApp.svg?react")),
         Gmail: lazy(() => import("@/assets/svg/Gmail.svg?react")),
         Mail: lazy(() => import("@/assets/svg/Mail.svg?react")),
-    }
+    },
+    Male: lazy(() => import("@/assets/svg/Male.svg?react")),
+    Female: lazy(() => import("@/assets/svg/Female.svg?react")),
 }

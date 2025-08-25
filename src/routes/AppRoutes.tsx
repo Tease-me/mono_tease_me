@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import PrivateRoute from "./components/PrivateRoute";
 import GuestRoute from "./components/GuestRoute";
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
+import UpdateProfile from "@/ui/screens/register/UpdateProfile";
 
 const InfluencerProfileScreen = lazy(() => import("@/ui/screens/influencer-profile/InfluencerProfileScreen"));
 const LoginScreen = lazy(() => import("@/ui/screens/login/LoginScreen"));
@@ -24,6 +25,7 @@ function AppRoutes() {
     { path: "*", element: <InfluencerProfileScreen /> },
     { path: "/:username", element: <InfluencerProfileScreen /> },
     { path: "/test-buttons", element: <ButtonsTestPage /> },
+    { path: "/update-profile", element: <UpdateProfile /> },
   ];
 
   const guestRoutes: { path: string; element: JSX.Element }[] = [
