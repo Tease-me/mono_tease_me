@@ -1,0 +1,14 @@
+.container {
+    display: grid;
+    flex: 1;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.grid-test {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(5rem, 18rem));
+    grid-auto-rows: auto;
+    gap: 1.5rem;
+    margin: 8px;
+}

@@ -1,6 +1,7 @@
 import React from 'react';
 import styles from "./AnimatedButton.module.css"
 import IconButton, { IconButtonColor, IconButtonOrientation, IconButtonType } from './IconButton';
+import clsx from 'clsx';
 
 interface AnimatedButtonProps {
     type?: IconButtonType;
@@ -16,7 +17,7 @@ const AnimatedButton: React.FC<AnimatedButtonProps> = ({ ...props }) => {
     return (
         <IconButton draggable={false}
             {...props}
-            className={styles["animated-button"]}
+            className={clsx(!props.disabled && styles["animated-button"])}
             onContextMenu={(e) => e.preventDefault()} />
     );
 };

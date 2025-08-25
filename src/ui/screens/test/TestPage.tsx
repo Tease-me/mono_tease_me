@@ -1,15 +1,11 @@
-import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButton';
 import FullWidthLayout from '@/ui/templates/FullWidthLayout';
-import LogoutIcon from "@/assets/Call.svg?react";
 import AnimatedButton from '@/ui/components/inputs/buttons/AnimatedButton';
+import SvgPack from '@/utils/SvgPack';
 
 const TestPage = ({ }) => {
-
-
     return (
         <FullWidthLayout>
-            <CircularIconButton icon={<LogoutIcon />} text='Call'></CircularIconButton>
-            <AnimatedButton leftIcon={<LogoutIcon />} text='Answer' />
+            <AnimatedButton leftIcon={<SvgPack.Calling />} text='Answer' color='green' />
         </FullWidthLayout>
 
     );

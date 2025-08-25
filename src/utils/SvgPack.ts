@@ -30,4 +30,5 @@ export default {
     OnlyFans: lazy(() => import("@/assets/svg/OnlyFans.svg?react")),
     Instagram: lazy(() => import("@/assets/svg/Instagram.svg?react")),
     TikTok: lazy(() => import("@/assets/svg/TikTok.svg?react")),
+    Calling: lazy(() => import("@/assets/svg/Calling.svg?react")),
 }
