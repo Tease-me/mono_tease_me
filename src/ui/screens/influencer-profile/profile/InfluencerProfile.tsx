@@ -13,6 +13,8 @@ import TextInput from '@/ui/components/inputs/text-inputs/TextInput';
 import TextAreaInput from '@/ui/components/inputs/text-inputs/TextAreaInput';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
+import IconButton from '@/ui/components/inputs/buttons/IconButton';
+import SvgPack from '@/utils/SvgPack';
 
 export interface InfluencerProfileProps {
     influencer?: InfluencerDataModel;
@@ -50,7 +52,18 @@ const InfluencerProfile: React.FC<InfluencerProfileProps> = ({ influencer }) => 
                         <h3>{influencer && influencer.username}</h3>
                     </div>
                 </div>
-
+                <div className={styles["button-group"]}>
+                    <IconButton text='Chat' color='pink-glass' leftIcon={<SvgPack.ChatRound />} />
+                    <NormalButton text='Like' leftIcon={<SvgPack.Heart />} />
+                </div>
+                <div className={styles["button-group"]}>
+                    <NormalButton leftIcon={<SvgPack.OnlyFans />} color='black' />
+                    <NormalButton leftIcon={<SvgPack.Instagram />} />
+                    <NormalButton leftIcon={<SvgPack.TikTok />} />
+                </div>
+                <div className={styles["influencer-info"]}>
+                    <h1>About {influencer?.username}</h1>
+                </div>
                 <div className={styles["editor-section"]}>
                     <div className={styles["editor-group"]}>
                         <label className={styles["editor-label"]} htmlFor="promptTemplate">Prompt template</label>

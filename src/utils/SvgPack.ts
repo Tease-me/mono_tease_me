@@ -25,4 +25,9 @@ export default {
     Lock: lazy(() => import("@/assets/svg/Lock.svg?react")),
     Voice: lazy(() => import("@/assets/svg/Voice.svg?react")),
     Call: lazy(() => import("@/assets/svg/Call.svg?react")),
+    Heart: lazy(() => import("@/assets/svg/Heart.svg?react")),
+    ChatRound: lazy(() => import("@/assets/svg/Chat.svg?react")),
+    OnlyFans: lazy(() => import("@/assets/svg/OnlyFans.svg?react")),
+    Instagram: lazy(() => import("@/assets/svg/Instagram.svg?react")),
+    TikTok: lazy(() => import("@/assets/svg/TikTok.svg?react")),
 }
