@@ -19,13 +19,17 @@ export default function UpdateProfile() {
     navigate("/")
   }
 
+  const handleEditProfileMediaClicked = () => {
+    console.warn("Edit Clicked")
+  };
+
   return (
     <BackgroundGradient>
       <FullWidthLayout fullWidthNav={<OnBoardingTopNav onBackClicked={handleBackClick} />}>
         <HeadingText className={styles["title"]}>Create your Account</HeadingText>
         <div className={styles["two-column-layout"]}>
           <div className={styles["left-column"]}>
-            <ProfileMedia mediaType='image' />
+            <ProfileMedia mediaType='image' size="xlarge" onEditClick={handleEditProfileMediaClicked} />
           </div>
           <div className={styles["right-column"]}>
             <form className={styles["auth-form"]}>

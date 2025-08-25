@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import styles from "./ProfileMedia.module.css";
+import emptyProfile from "@/assets/empty-profile.png";
 
 import foregroundFilter from "@/assets/image/avatar_filter.png";
 import HeartIcon from "@/assets/Heart.svg?react";
@@ -65,16 +66,16 @@ const ProfileMedia: React.FC<ProfileMediaProps> = ({
                 </video>
             ) : (
                 <img
-                    src={imageSrc}
+                    src={imageSrc ?? emptyProfile}
                     alt="Profile"
                     className={styles["profile-media"]}
                 />
             )}
-            <img
+            {imageSrc && <img
                 src={foregroundFilter}
                 alt="Profile"
                 className={styles["profile-media-filter"]}
-            />
+            />}
             {onEditClick && <div className={clsx(styles["edit-button"], styles[editButtonAlignment])} onClick={handleEditButtonClick}><EditIcon /></div>}
         </div>
         {
