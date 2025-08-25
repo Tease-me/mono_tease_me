@@ -8,8 +8,7 @@ import BlockingLoader from '../../loading/BlockingLoader';
 import TeaseMeLogo from '../../logos/TeaseMeLogo';
 import ProfileMedia from '../../ProfileMedia';
 import IconButton from '../../inputs/buttons/IconButton';
-import CallIcon from "@/assets/Call.svg?react";
-import DropCallIcon from "@/assets/svg/DropCall.svg?react";
+import SvgPack from '@/utils/SvgPack';
 function formatTime(seconds: number | null): string {
     if (seconds === null || seconds < 0) return "00:00";
     const hrs = Math.floor(seconds / 3600);
@@ -101,8 +100,8 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose, influencer, stat
                             <div className={styles["status"]}>Ringing...</div>
                     }
                     <div className={styles["call-buttons"]}>
-                        <IconButton leftIcon={<DropCallIcon />} onClick={handleHangUpCall} color='red' />
-                        {status === "idle" && <IconButton leftIcon={<CallIcon />} onClick={handlePickUpCall} color='red' />}
+                        <IconButton leftIcon={<SvgPack.Voice />} onClick={handlePickUpCall} color='black' />
+                        <IconButton leftIcon={<SvgPack.Call />} onClick={handleHangUpCall} color='red' />
                     </div>
                 </>}
             </div>
