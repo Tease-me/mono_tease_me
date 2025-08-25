@@ -10,7 +10,20 @@ import ProfileMedia from '../../ProfileMedia';
 import IconButton from '../../inputs/buttons/IconButton';
 import CallIcon from "@/assets/Call.svg?react";
 import DropCallIcon from "@/assets/svg/DropCall.svg?react";
-
+function formatTime(seconds: number | null): string {
+    if (seconds === null || seconds < 0) return "00:00";
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    if (hrs > 0) {
+        return `${hrs.toString().padStart(2, "0")}:${mins
+            .toString()
+            .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    }
+    return `${mins.toString().padStart(2, "0")}:${secs
+        .toString()
+        .padStart(2, "0")}`;
+}
 interface CallModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -22,11 +35,11 @@ interface CallModalProps {
 
 const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose, influencer, status, stopConversation, timeRemaining }) => {
     const [secondsLeft, setSecondsLeft] = useState<number>(timeRemaining ?? 30);
-    const formatTime = (totalSeconds: number) => {
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
-        return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-    };
+    // const formatTime = (totalSeconds: number) => {
+    //     const minutes = Math.floor(totalSeconds / 60);
+    //     const seconds = totalSeconds % 60;
+    //     return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+    // };
 
     useEffect(() => {
         if (status === "connected") {
@@ -39,7 +52,7 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose, influencer, stat
     useEffect(() => {
         let timer: number | undefined;
         if (isOpen && status === "connected") {
-            setSecondsLeft(30);
+            setSecondsLeft(timeRemaining ?? 30);
             timer = window.setInterval(() => {
                 setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 0));
             }, 1000);
@@ -57,11 +70,11 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose, influencer, stat
     }, [secondsLeft, isOpen, status, onClose, stopConversation]);
 
     const handlePickUpCall = () => {
-        setSecondsLeft(30);
+        setSecondsLeft(timeRemaining ?? 30);
     }
 
     const handleHangUpCall = () => {
-        setSecondsLeft(30);
+        setSecondsLeft(timeRemaining ?? 30);
         stopConversation();
         onClose();
     }
@@ -83,13 +96,13 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose, influencer, stat
                 {<>
                     {
                         status === "connected" ?
-                            <div className={styles["status"]}><span>{formatTime(secondsLeft)}</span></div>
+                            <div className={styles["status"]}><span>{formatTime(timeRemaining)}</span></div>
                             :
-                            <div className={styles["status"]}>{status}</div>
+                            <div className={styles["status"]}>Ringing...</div>
                     }
                     <div className={styles["call-buttons"]}>
-                        <IconButton leftIcon={<DropCallIcon />} onClick={handleHangUpCall} />
-                        {status === "idle" && <IconButton leftIcon={<CallIcon />} onClick={handlePickUpCall} />}
+                        <IconButton leftIcon={<DropCallIcon />} onClick={handleHangUpCall} color='red' />
+                        {status === "idle" && <IconButton leftIcon={<CallIcon />} onClick={handlePickUpCall} color='red' />}
                     </div>
                 </>}
             </div>
