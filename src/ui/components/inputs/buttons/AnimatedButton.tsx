@@ -3,7 +3,7 @@ import styles from "./AnimatedButton.module.css"
 import IconButton, { IconButtonColor, IconButtonOrientation, IconButtonType } from './IconButton';
 import clsx from 'clsx';
 
-interface AnimatedButtonProps {
+interface AnimatedButtonProps extends React.HTMLAttributes<HTMLDivElement> {
     type?: IconButtonType;
     color?: IconButtonColor;
     leftIcon?: React.ReactNode;
@@ -15,7 +15,7 @@ interface AnimatedButtonProps {
 
 const AnimatedButton: React.FC<AnimatedButtonProps> = ({ ...props }) => {
     return (
-        <IconButton draggable={false}
+        <IconButton
             {...props}
             className={clsx(!props.disabled && styles["animated-button"])}
             onContextMenu={(e) => e.preventDefault()} />

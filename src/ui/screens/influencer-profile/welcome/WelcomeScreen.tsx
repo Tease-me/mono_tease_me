@@ -16,6 +16,7 @@ import clsx from "clsx";
 import WelcomeCallModal from "@/ui/components/modals/welcome-call/WelcomeCallModal";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
+import AnimatedButton from "@/ui/components/inputs/buttons/AnimatedButton";
 export interface WelcomeScreenProps {
   influencer: InfluencerDataModel;
 }
@@ -83,7 +84,7 @@ export default function WelcomeScreen({ influencer }: WelcomeScreenProps) {
           <div className={styles["influencer-name"]}>{influencer.name}</div>
           <div className={styles["call-buttons"]}>
             <IconButton leftIcon={<DropCallIcon color="red" />} onClick={handleHangUpCall} text="Reject" color="black" />
-            <IconButton leftIcon={<CallIcon />} onClick={handlePickUpCall} text="Answer" color="green" />
+            <AnimatedButton leftIcon={<CallIcon />} onClick={handlePickUpCall} text="Answer" color="green" />
           </div>
         </>) : <div className={styles["welcome-screen-container"]}>
           <TeaseMeLogo size="xlarge" variant="full-dark" />

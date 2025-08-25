@@ -1,8 +1,5 @@
 .animated-button {
-        display: flex;
-        flex: 1;
         mix-blend-mode: normal;
-        /* allows blend effect */
         animation: pulsebeat-container 1.75s ease-in-out infinite alternate;
 }
 
