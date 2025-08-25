@@ -62,11 +62,17 @@ export default function useCall() {
         return;
       }
 
-      const signedUrl = await chatRepo.getSignedUrl(influencerId, user.id ?? 0);
+      const { signedUrl, credits_remainder_secs } = await chatRepo.getSignedUrl(influencerId, user.id ?? 0);
       if (!signedUrl) {
         stopRing();
         return;
       }
+      if (credits_remainder_secs <= 0) {
+        alert("You have no remaining credits. Please top up to start a conversation.");
+        stopRing();
+        return;
+      }
+
       const conversationId = await conversation.startSession({ signedUrl });
       await chatRepo.registerConversation(conversationId, user?.id ?? 0, influencerId);
     }
