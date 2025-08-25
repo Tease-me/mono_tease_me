@@ -5,7 +5,7 @@ import ProfileMedia from "@/ui/components/ProfileMedia";
 import { truncateLastName } from "@/utils/StringUtils";
 import { AuthContext } from "@/context/AuthContext";
 import styles from "./ChatScreenContent.module.css"
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import MessageBubble from './MessageBubble';
 import ChatInputArea from './ChatInputArea';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
@@ -19,6 +19,8 @@ import clsx from 'clsx';
 import { ChatRepository } from '@/data/repositories/ChatRepo';
 import { InfluencerRepo } from '@/data/repositories/InfluencerRepo';
 import logger from '@/utils/logger';
+import useCall from '@/hooks/useCall';
+import CallModal from '@/ui/components/modals/call-modal/CallModal';
 
 const MessagesList = React.memo(({ messages, typing, messagesEndRef }: { messages: any[]; typing: boolean; messagesEndRef: React.RefObject<HTMLDivElement | null>; }) => {
     return (
@@ -49,6 +51,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const [typing, setTyping] = useState(false);
     const [isWsConnected, setIsWsConnected] = useState(false);
     const [error, setError] = useState<string | undefined>(undefined);
+    const [openWelcomeCallModal, setOpenWelcomeCallModal] = useState(false);
 
     const [pageNumber, setPageNumber] = useState<number>(1);
 
@@ -62,12 +65,11 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const { user } = useContext(AuthContext);
     const { user_id } = useParams();
 
-    const navigate = useNavigate();
     const pageSize = 20;
 
     const chatRepository = ChatRepository();
     const influencerRepo = InfluencerRepo();
-
+    const { status, startConversation, stopConversation, setInfluencerId, timeRemaining } = useCall();
     useEffect(() => {
         (async () => {
             if (!id) {
@@ -113,6 +115,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 setHasMore(true);
                 fetchMessages(chat_id, 1);
                 connectChat(influencer.id);
+                setInfluencerId(influencer.id);
             }
         })()
     }, [influencer, user]);
@@ -250,19 +253,21 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     };
 
     const onCall = () => {
-        if (!id) {
-            navigate("/voice", {
-                state: {
-                    influencer_id: user_id
-                }
-            })
-            return
-        }
-        navigate("/voice", {
-            state: {
-                influencer_id: id
-            }
-        })
+        startConversation();
+        setOpenWelcomeCallModal(true);
+        // if (!id) {
+        //     navigate("/voice", {
+        //         state: {
+        //             influencer_id: user_id
+        //         }
+        //     })
+        //     return
+        // }
+        // navigate("/voice", {
+        //     state: {
+        //         influencer_id: id
+        //     }
+        // })
     }
 
     const handleOnBackClick = () => {
@@ -322,6 +327,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                     error={error}
                     inputAudio={inputAudio} />
             </div>
+            <CallModal timeRemaining={timeRemaining} status={status} isOpen={openWelcomeCallModal} onClose={() => setOpenWelcomeCallModal(false)} stopConversation={stopConversation} influencer={influencer} />
         </div>
     );
 };
