@@ -89,7 +89,7 @@ export default function useCall() {
 
 
   async function startConversation() {
-    if (influencerId && user) {
+    if (influencerId) {
       ring();
       const hasPermission = await requestMicrophonePermission();
       if (!hasPermission) {
@@ -97,11 +97,23 @@ export default function useCall() {
         return;
       }
 
-      const { signed_url, credits_remainder_secs } = await chatRepo.getSignedUrl(influencerId, user.id ?? 0);
+      var signed_url: string | null = null;
+      var credits_remainder_secs = 30;
+      if (!user || !user.id) {
+        const response = await chatRepo.getFreeSignedUrl(influencerId);
+        signed_url = response.signed_url;
+      } else {
+        const response = await chatRepo.getSignedUrl(influencerId, user.id ?? 0);
+        signed_url = response.signed_url;
+        credits_remainder_secs = response.credits_remainder_secs;
+      }
+
+      console.warn("Signed URL:", signed_url);
       if (!signed_url) {
         stopRing();
         return;
       }
+
       if (credits_remainder_secs <= 0) {
         alert("You have no remaining credits. Please top up to start a conversation.");
         stopRing();
@@ -109,7 +121,10 @@ export default function useCall() {
       }
 
       const conversationId = await conversation.startSession({ signedUrl: signed_url });
-      await chatRepo.registerConversation(conversationId, user?.id ?? 0, influencerId);
+      console.warn("Conversation ID:", conversationId);
+      if (user && user.id) {
+        await chatRepo.registerConversation(conversationId, user?.id ?? 0, influencerId);
+      }
       setTimeRemaining(credits_remainder_secs);
     }
   }
