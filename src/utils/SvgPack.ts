@@ -30,4 +30,13 @@ export default {
     OnlyFans: lazy(() => import("@/assets/svg/OnlyFans.svg?react")),
     Instagram: lazy(() => import("@/assets/svg/Instagram.svg?react")),
     TikTok: lazy(() => import("@/assets/svg/TikTok.svg?react")),
+    Calling: lazy(() => import("@/assets/svg/Calling.svg?react")),
+    Mail: {
+        Outlook: lazy(() => import("@/assets/svg/MicrosoftOutlook2019.svg?react")),
+        Yahoo: lazy(() => import("@/assets/svg/YahooMailApp.svg?react")),
+        Gmail: lazy(() => import("@/assets/svg/Gmail.svg?react")),
+        Mail: lazy(() => import("@/assets/svg/Mail.svg?react")),
+    },
+    Male: lazy(() => import("@/assets/svg/Male.svg?react")),
+    Female: lazy(() => import("@/assets/svg/Female.svg?react")),
 }

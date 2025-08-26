@@ -1,5 +1,14 @@
-.auth-container {
-  min-width: 600px;
+.two-column-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.left-column,
+.right-column {
+  width: 100%;
 }
 
 .auth-content {
@@ -185,5 +194,9 @@
   .btn-primary,
   .btn-back {
     width: 100%;
+  }
+
+  .two-column-layout {
+    grid-template-columns: 1fr;
   }
 }

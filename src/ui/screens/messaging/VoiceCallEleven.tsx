@@ -18,6 +18,21 @@ import styles from "./VoiceCallEleven.module.css";
 import useOnlineStatus from "@/hooks/useOnlineStatus";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
 
+function formatTime(seconds: number | null): string {
+  if (seconds === null || seconds < 0) return "00:00";
+  const hrs = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  if (hrs > 0) {
+    return `${hrs.toString().padStart(2, "0")}:${mins
+      .toString()
+      .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  }
+  return `${mins.toString().padStart(2, "0")}:${secs
+    .toString()
+    .padStart(2, "0")}`;
+}
+
 interface VoiceCallElevenProps { }
 
 const VoiceCallEleven: React.FC<VoiceCallElevenProps> = ({ }) => {
@@ -26,7 +41,7 @@ const VoiceCallEleven: React.FC<VoiceCallElevenProps> = ({ }) => {
 
   const [influencer, setInfluencer] = useState<InfluencerDataModel>();
 
-  const { status, startConversation, stopConversation, setInfluencerId } = useCall();
+  const { status, startConversation, stopConversation, setInfluencerId, timeRemaining } = useCall();
   const { state } = useLocation();
 
   const influencerRepo = InfluencerRepo();
@@ -71,7 +86,9 @@ const VoiceCallEleven: React.FC<VoiceCallElevenProps> = ({ }) => {
               <div className={styles["name"]}>
                 {truncateLastName(influencer?.name)}
               </div>
-              <div className={styles["status-container"]}>{status}</div>
+              <div className={styles["status-container"]}>
+                {formatTime(timeRemaining)}
+              </div>
             </div>
             <div className={styles["voice-chat-body"]}>
               <IconButton

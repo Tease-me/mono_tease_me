@@ -1,0 +1,326 @@
+import React from 'react';
+import styles from "./ButtonsTestPage.module.css"
+import IconButton from '@/ui/components/inputs/buttons/IconButton';
+import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
+import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
+import SvgPack from '@/utils/SvgPack';
+import AnimatedButton from '@/ui/components/inputs/buttons/AnimatedButton';
+
+interface ButtonsTestPageProps {
+}
+
+const ButtonsTestPage: React.FC<ButtonsTestPageProps> = ({ }) => {
+    return (
+        <div className={styles["container"]}>
+            <h1>Tease Me Buttons</h1>
+            <h2>CTA</h2>
+            <div className={styles["grid-test"]}>
+                <PrimaryButton
+                    leftIcon={<SvgPack.Call />}
+                    text='Welcome to TeaseMe'
+                />
+                <PrimaryButton
+                    leftIcon={<SvgPack.Call />}
+                    disabled
+                    text='Welcome to TeaseMe'
+                />
+                <PrimaryButton
+                    leftIcon={<SvgPack.Call />}
+                    selected
+                    text='Welcome to TeaseMe'
+                />
+            </div>
+            <h2>Normal</h2>
+            <h3>Normal Pill</h3>
+            <div className={styles["grid-test"]}>
+                <NormalButton
+                    type="pill"
+                    leftIcon={<SvgPack.Call />}
+                    text='Welcome to TeaseMe'
+                />
+                <NormalButton
+                    type="pill"
+                    leftIcon={<SvgPack.Call />}
+                    disabled
+                    text='Welcome to TeaseMe' />
+                <NormalButton
+                    type="pill"
+                    leftIcon={<SvgPack.Call />}
+                    selected
+                    text='Welcome to TeaseMe'
+                />
+            </div>
+            <h3>Normal Square</h3>
+            <div className={styles["grid-test"]}>
+                <NormalButton
+                    type="square"
+                    leftIcon={<SvgPack.Call />}
+                    text='Welcome to TeaseMe'
+                />
+                <NormalButton
+                    type="square"
+                    leftIcon={<SvgPack.Call />}
+                    disabled
+                    text='Welcome to TeaseMe' />
+                <NormalButton
+                    type="square"
+                    leftIcon={<SvgPack.Call />}
+                    selected
+                    text='Welcome to TeaseMe'
+                />
+            </div>
+            <h3>Normal No Background</h3>
+            <div className={styles["grid-test"]}>
+                <NormalButton
+                    type="nobg"
+                    leftIcon={<SvgPack.Call />}
+                    text='Welcome to TeaseMe'
+                />
+                <NormalButton
+                    type="nobg"
+                    leftIcon={<SvgPack.Call />}
+                    disabled
+                    text='Welcome to TeaseMe' />
+                <NormalButton
+                    type="nobg"
+                    leftIcon={<SvgPack.Call />}
+                    selected
+                    text='Welcome to TeaseMe'
+                />
+            </div>
+            <h2>Icon Text</h2>
+            <h3>Icon Text - Animated Button</h3>
+            <div className={styles["grid-test"]}>
+                <AnimatedButton
+                    leftIcon={<SvgPack.Call />}
+                    text='Welcome to TeaseMe'
+                />
+                <AnimatedButton
+                    leftIcon={<SvgPack.Call />}
+                    disabled
+                    text='Welcome to TeaseMe'
+                />
+                <AnimatedButton
+                    leftIcon={<SvgPack.Call />}
+                    selected
+                    text='Welcome to TeaseMe'
+                />
+            </div>
+            <h3>Icon Text</h3>
+            <div className={styles["grid-test"]}>
+                <IconButton
+                    type="pill"
+                    leftIcon={<SvgPack.Call />}
+                    text='Welcome to TeaseMe'
+                />
+                <IconButton
+                    type="pill"
+                    leftIcon={<SvgPack.Call />}
+                    selected
+                    text='Welcome to TeaseMe'
+                />
+                <IconButton
+                    type="pill"
+                    disabled
+                    leftIcon={<SvgPack.Call />}
+                    text='Welcome to TeaseMe'
+                />
+            </div>
+            <h3>Icon Text - Vertical</h3>
+            <div className={styles["grid-test"]}>
+                <IconButton
+                    type="pill"
+                    orientation='vertical'
+                    leftIcon={<SvgPack.Call />}
+                    text='Welcome to TeaseMe'
+                />
+                <IconButton
+                    type="pill"
+                    orientation='vertical'
+                    leftIcon={<SvgPack.Call />}
+                    selected
+                    text='Welcome to TeaseMe'
+                />
+                <IconButton
+                    type="pill"
+                    orientation='vertical'
+                    disabled
+                    leftIcon={<SvgPack.Call />}
+                    text='Welcome to TeaseMe'
+                />
+            </div>
+            <h3>Icon Text - Square</h3>
+            <div className={styles["grid-test"]}>
+                <IconButton
+                    type="square"
+                    leftIcon={<SvgPack.Call />}
+                    text='Welcome to TeaseMe'
+                />
+                <IconButton
+                    type="square"
+                    orientation='vertical'
+                    leftIcon={<SvgPack.Call />}
+                    selected
+                    text='Welcome to TeaseMe'
+                />
+                <IconButton
+                    type="square"
+                    orientation='vertical'
+                    disabled
+                    leftIcon={<SvgPack.Call />}
+                    text='Welcome to TeaseMe'
+                />
+            </div>
+            <h3>Icon Text - Black</h3>
+            <div className={styles["grid-test"]}>
+                <IconButton
+                    color='black'
+                    type="pill"
+                    text='Welcome to TeaseMe'
+                    leftIcon={<SvgPack.Call />}
+                />
+                <IconButton
+                    color='black'
+                    type="pill"
+                    text='Welcome to TeaseMe'
+                    selected
+                    leftIcon={<SvgPack.Call />} />
+                <IconButton
+                    color='black'
+                    type="pill"
+                    text='Welcome to TeaseMe'
+                    disabled
+                    leftIcon={<SvgPack.Call />}
+                />
+            </div>
+            <h3>Icon Text - Pink</h3>
+            <div className={styles["grid-test"]}>
+                <IconButton
+                    color='pink'
+                    type="pill"
+                    text='Welcome to TeaseMe'
+                    leftIcon={<SvgPack.Call />}
+                />
+                <IconButton
+                    color='pink'
+                    type="pill"
+                    text='Welcome to TeaseMe'
+                    selected
+                    leftIcon={<SvgPack.Call />}
+                />
+                <IconButton
+                    color='pink'
+                    type="pill"
+                    text='Welcome to TeaseMe'
+                    disabled
+                    leftIcon={<SvgPack.Call />}
+                />
+            </div>
+
+            <h3>Icon Text - Green</h3>
+            <div className={styles["grid-test"]}>
+                <IconButton
+                    color='green'
+                    type="pill"
+                    text='Welcome to TeaseMe'
+                    leftIcon={<SvgPack.Call />}
+                />
+                <IconButton
+                    color='green'
+                    type="pill"
+                    selected
+                    text='Welcome to TeaseMe'
+                    leftIcon={<SvgPack.Call />}
+                />
+                <IconButton
+                    color='green'
+                    type="pill"
+                    text='Welcome to TeaseMe'
+                    disabled
+                    leftIcon={<SvgPack.Call />}
+                />
+            </div>
+            <h3>Icon Text - Red</h3>
+            <div className={styles["grid-test"]}>
+                <IconButton
+                    color='red'
+                    type="pill"
+                    text='Welcome to TeaseMe'
+                    leftIcon={<SvgPack.Call />}
+                />
+                <IconButton
+                    color='red'
+                    type="pill"
+                    text='Welcome to TeaseMe'
+                    selected
+                    leftIcon={<SvgPack.Call />}
+                />
+                <IconButton
+                    color='red'
+                    type="pill"
+                    text='Welcome to TeaseMe'
+                    disabled
+                    leftIcon={<SvgPack.Call />}
+                />
+            </div>
+            <h3>Icon Text - Yellow</h3>
+            <div className={styles["grid-test"]}>
+                <IconButton
+                    color='yellow'
+                    type="pill"
+                    text='Welcome to TeaseMe'
+                    leftIcon={<SvgPack.Call />}
+                />
+                <IconButton
+                    color='yellow'
+                    type="pill"
+                    text='Welcome to TeaseMe'
+                    selected
+                    leftIcon={<SvgPack.Call />}
+                />
+                <IconButton
+                    color='yellow'
+                    type="pill"
+                    text='Welcome to TeaseMe'
+                    disabled
+                    leftIcon={<SvgPack.Call />}
+                />
+            </div>
+
+            <h3>Icon Text - Pink Glass</h3>
+            <div className={styles["grid-test"]}>
+                <IconButton
+                    color='pink-glass'
+                    type="pill"
+                    text='Welcome to TeaseMe'
+                    leftIcon={<SvgPack.Call />}
+                />
+                <IconButton
+                    color='pink-glass'
+                    type="pill"
+                    text='Welcome to TeaseMe'
+                    selected
+                    leftIcon={<SvgPack.Call />}
+                />
+                <IconButton
+                    color='pink-glass'
+                    type="pill"
+                    text='Welcome to TeaseMe'
+                    disabled
+                    leftIcon={<SvgPack.Call />}
+                />
+            </div>
+            <h3>Icon Text Icon Only</h3>
+            <div className={styles["grid-test"]}>
+                <div>
+                    <IconButton
+                        type="pill"
+                        leftIcon={<SvgPack.Call />}
+                    />
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default ButtonsTestPage;

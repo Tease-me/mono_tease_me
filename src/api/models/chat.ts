@@ -27,4 +27,7 @@ export interface ChatAudioResponse {
 
 export interface SignedUrlResponse {
     signed_url: string;
+    greeting_used: string;
+    agent_id: string;
+    credits_remainder_secs: number;
 }

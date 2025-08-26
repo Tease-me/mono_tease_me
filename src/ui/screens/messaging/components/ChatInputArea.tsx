@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 
-import MicrophoneIcon from "@/assets/Microphone.svg?react";
 import SendIcon from "@/assets/svg/Send.svg?react";
-import CloseSquareIcon from "@/assets/CloseSquare.svg?react";
 import styles from "./ChatInputArea.module.css"
 import AudioVisualizer from './AudioVisualizer';
 import AudioWaveform from './AudioWaveform';
@@ -10,6 +8,7 @@ import LongPressButton from '@/ui/components/inputs/buttons/LongPressButton';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import clsx from 'clsx';
 import IconButton from '@/ui/components/inputs/buttons/IconButton';
+import SvgPack from '@/utils/SvgPack';
 
 interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
     onSendMessage?: () => void;
@@ -129,7 +128,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                     onDrag={handleOnLongPressEnd}
                     onLongPressStart={handleOnLongPressStart}
                     onLongPressEnd={handleOnLongPressEnd}
-                    leftIcon={inputAudio ? <CloseSquareIcon /> : <MicrophoneIcon />}
+                    leftIcon={inputAudio ? <SvgPack.CloseSquare /> : <SvgPack.Voice />}
                     className={styles["voice-btn"]}
                     color='yellow'
                     disabled={disabled} />
