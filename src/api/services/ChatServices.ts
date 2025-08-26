@@ -32,6 +32,7 @@ export const ChatServices = () => ({
             );
             return response.data;
         } catch (error) {
+            console.error("Error obtaining chat ID:", error);
             throw error;
         }
     },

@@ -108,7 +108,6 @@ export default function useCall() {
         credits_remainder_secs = response.credits_remainder_secs;
       }
 
-      console.warn("Signed URL:", signed_url);
       if (!signed_url) {
         stopRing();
         return;
@@ -121,7 +120,6 @@ export default function useCall() {
       }
 
       const conversationId = await conversation.startSession({ signedUrl: signed_url });
-      console.warn("Conversation ID:", conversationId);
       if (user && user.id) {
         await chatRepo.registerConversation(conversationId, user?.id ?? 0, influencerId);
       }
