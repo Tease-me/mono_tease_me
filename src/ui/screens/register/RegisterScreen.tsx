@@ -43,7 +43,7 @@ export default function RegisterScreen() {
     }
 
     try {
-      const response: RegisterResponse = await authServices.register(password, email);
+      const response: RegisterResponse = await authServices.register(password, email.toLowerCase());
       if (response.ok) {
         navigate("/register/verify", { state: { email, password } });
       }
