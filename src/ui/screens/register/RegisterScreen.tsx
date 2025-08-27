@@ -69,19 +69,23 @@ export default function RegisterScreen() {
         <HeadingText className={styles["title"]}>Create your Account</HeadingText>
         <form className={styles["auth-form"]} onSubmit={handleSubmit}>
           <div className={styles["input-fields"]}>
-            <TextInput
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={e => setEmail((e.target as HTMLInputElement).value)} />
-            {errors.email && <span className={styles["error"]}>{errors.email}</span>}
-            <TextInput
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={e => setPassword((e.target as HTMLInputElement).value)}
-            />
-            {errors.password && <span className={styles["error"]}>{errors.password}</span>}
+            <div className={styles["input-field"]}>
+              <TextInput
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={e => setEmail((e.target as HTMLInputElement).value)} />
+              {errors.email && <span className={styles["error"]}>{errors.email}</span>}
+            </div>
+            <div className={styles["input-field"]}>
+              <TextInput
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={e => setPassword((e.target as HTMLInputElement).value)}
+              />
+              {errors.password && <span className={styles["error"]}>{errors.password}</span>}
+            </div>
           </div>
           <CheckBox className={styles["check-box"]} checked={agree} onChange={handleOnAgreeChange}>
             NSFW (Not Safe For Work) <QuestionMarkCircleIcon />

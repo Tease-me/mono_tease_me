@@ -21,6 +21,10 @@
   margin-bottom: 35px;
 }
 
+.input-field {
+  flex: 1;
+}
+
 .check-box {
   margin-bottom: 42px;
 }
@@ -68,6 +72,12 @@
 
 .check-box svg {
   height: 24px;
+}
+
+.error {
+  color: red;
+  font-size: 12px;
+  margin-top: 4px;
 }
 
 @keyframes spin {
