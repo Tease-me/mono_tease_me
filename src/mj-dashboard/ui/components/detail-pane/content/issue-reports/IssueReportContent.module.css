@@ -1,6 +1,10 @@
 .issue-report-content {
     display: grid;
     grid-template-columns: 1fr 2fr;
+    gap: 24px;
+    height: 100%;
+    min-height: 0;
+    flex: 1;
 }
 
 .header {
@@ -10,9 +14,19 @@
     background-color: var(--color-black);
 }
 
-.sidebar-pane .body {
+.sidebar-pane,
+.content-pane {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
     height: 100%;
+}
+
+.sidebar-pane .body {
+    flex: 1;
     overflow-y: auto;
+    padding-right: 4px;
 }
 
 .sidebar-pane .header {
@@ -21,4 +35,9 @@
 
 .content-pane .header {
     padding: 20px 20px 20px 20px;
+}
+
+.content-pane .body {
+    flex: 1;
+    overflow: hidden;
 }
