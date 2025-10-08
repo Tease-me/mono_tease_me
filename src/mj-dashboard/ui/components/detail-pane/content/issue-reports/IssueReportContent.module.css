@@ -26,7 +26,7 @@
 .sidebar-pane .body {
     flex: 1;
     overflow-y: auto;
-    padding-right: 4px;
+    padding: 0 12px 12px 20px;
 }
 
 .sidebar-pane .header {
@@ -39,5 +39,8 @@
 
 .content-pane .body {
     flex: 1;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
+    padding: 12px 20px 20px 20px;
 }

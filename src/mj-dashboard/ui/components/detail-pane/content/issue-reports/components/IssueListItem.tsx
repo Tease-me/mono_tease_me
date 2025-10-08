@@ -34,12 +34,24 @@ const STATUS_META: Record<IssueStatus, IssueStatusMeta> = {
 };
 
 interface IssueListItemProps {
-    issue: IssueDataModel
+    issue: IssueDataModel;
+    onSelect?: (issue: IssueDataModel) => void;
 }
 
-const IssueListItem: React.FC<IssueListItemProps> = ({ issue }) => {
+const IssueListItem: React.FC<IssueListItemProps> = ({ issue, onSelect }) => {
     const status = STATUS_META[issue.status] ?? STATUS_META[IssueStatus.new];
     const ticketId = issue.id?.toUpperCase() ?? "";
+
+    const handleSelect = () => {
+        onSelect?.(issue);
+    };
+
+    const handleKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            handleSelect();
+        }
+    };
 
     return (
         <div
@@ -47,6 +59,12 @@ const IssueListItem: React.FC<IssueListItemProps> = ({ issue }) => {
                 styles["issue-list-item"],
                 issue.isSelected && styles["issue-list-item--selected"],
             )}
+            role="button"
+            tabIndex={0}
+            onClick={handleSelect}
+            onKeyDown={handleKeyDown}
+            aria-selected={issue.isSelected}
+            aria-label={`Ticket ${ticketId} - ${status.label}`}
         >
             <div className={styles["issue-list-item__info"]}>
                 <div className={styles["issue-list-item__ticket"]}>Tk ID: {ticketId}</div>
