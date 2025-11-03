@@ -66,13 +66,13 @@ const NormalButton: React.FC<ButtonNormalProps> = ({ type = "pill", leftIcon, ri
         >
             <div className={styles["button-normal-inner"]}>
                 <div className={styles["button-normal-content-container"]}>
-                    {<div className={styles["left-icon"]}>
+                    {leftIcon && <div className={styles["left-icon"]}>
                         {leftIcon}
                     </div>}
                     {text && <div className={clsx(styles["button-text"])}>{text}</div>}
-                    <div className={styles["right-icon"]}>
+                    {rightIcon && <div className={styles["right-icon"]}>
                         {rightIcon}
-                    </div>
+                    </div>}
                 </div>
             </div>
         </div>

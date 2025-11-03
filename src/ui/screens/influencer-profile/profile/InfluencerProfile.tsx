@@ -61,14 +61,16 @@ const InfluencerProfile: React.FC<InfluencerProfileProps> = ({ influencer }) => 
                             <h3>{influencer && influencer.username}</h3>
                         </div>
                     </div>
-                    <div className={styles["button-group"]}>
-                        <IconButton text='Chat' color='pink-glass' leftIcon={<SvgPack.ChatRound />} />
-                        <NormalButton text='Like' leftIcon={<SvgPack.Heart />} />
-                    </div>
-                    <div className={styles["button-group"]}>
-                        <NormalButton leftIcon={<SvgPack.OnlyFans />} color='black' />
-                        <NormalButton leftIcon={<SvgPack.Instagram />} />
-                        <NormalButton leftIcon={<SvgPack.TikTok />} />
+                    <div className={styles["action-buttons"]}>
+                        <div className={styles["button-group"]}>
+                            <IconButton text='Chat' color='pink-glass' leftIcon={<SvgPack.ChatRound />} />
+                            <NormalButton text='Like' leftIcon={<SvgPack.Heart />} />
+                        </div>
+                        <div className={styles["button-group"]}>
+                            <NormalButton leftIcon={<SvgPack.OnlyFans />} color='black' />
+                            <NormalButton leftIcon={<SvgPack.Instagram />} />
+                            <NormalButton leftIcon={<SvgPack.TikTok />} />
+                        </div>
                     </div>
                     <div className={styles["panel"]}>
                         <h2 className={styles["about-title"]}>{`About ${firstName}`}</h2>
