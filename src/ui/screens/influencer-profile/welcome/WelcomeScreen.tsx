@@ -102,6 +102,15 @@ export default function WelcomeScreen({ influencer }: WelcomeScreenProps) {
           <div className={styles["buttons-container"]}>
             {!isFirstTime ? <PrimaryButton text="Sign in with email" className={styles["sign-in-button"]} onClick={handleSignInClick} /> :
               <PrimaryButton text="Talk to me Now" onClick={handleTryClick} />}
+            <p className={styles["signup-text"]}>
+              Already have an account?{" "}
+              <span
+                className={styles["signup-link"]}
+                onClick={() => navigate("/login")}
+                style={{ cursor: "pointer", color: "#ff4d6d" }}>
+                Login
+              </span>
+            </p>
           </div>
         </div>}
         <WelcomeCallModal isOpen={status === "connected"} onClose={() => { setOnTryClicked(false) }} influencer={influencer} status={status} stopConversation={stopConversation} />
