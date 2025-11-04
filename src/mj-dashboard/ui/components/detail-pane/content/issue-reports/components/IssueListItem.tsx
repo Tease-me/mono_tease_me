@@ -1,24 +1,85 @@
-import React from 'react';
-import styles from "./IssueListItem.module.css"
-import { IssueDataModel } from '@/mj-dashboard/data/models/IssueDataModel';
-import Badge from '@/mj-dashboard/ui/components/badge/Badge';
+import React, { ReactNode } from 'react';
+import clsx from 'clsx';
+import styles from "./IssueListItem.module.css";
+import { IssueDataModel, IssueStatus } from '@/mj-dashboard/data/models/IssueDataModel';
+import Badge, { BadgeType } from '@/mj-dashboard/ui/components/badge/Badge';
+import SvgPack from '@/utils/SvgPack';
 
-interface IssueListItemProps {
-    issue: IssueDataModel
+interface IssueStatusMeta {
+    label: string;
+    badgeType: BadgeType;
+    icon: ReactNode;
+    tone: string;
 }
 
-const IssueListItem: React.FC<IssueListItemProps> = ({ issue }) => {
+const STATUS_META: Record<IssueStatus, IssueStatusMeta> = {
+    [IssueStatus.new]: {
+        label: "New",
+        badgeType: "neutral",
+        icon: <SvgPack.Star />,
+        tone: "new",
+    },
+    [IssueStatus.inReview]: {
+        label: "In Review",
+        badgeType: "warning",
+        icon: <SvgPack.DangerTriangleSmall />,
+        tone: "in-review",
+    },
+    [IssueStatus.solved]: {
+        label: "Solved",
+        badgeType: "success",
+        icon: <SvgPack.TickSquare />,
+        tone: "solved",
+    },
+};
+
+interface IssueListItemProps {
+    issue: IssueDataModel;
+    onSelect?: (issue: IssueDataModel) => void;
+}
+
+const IssueListItem: React.FC<IssueListItemProps> = ({ issue, onSelect }) => {
+    const status = STATUS_META[issue.status] ?? STATUS_META[IssueStatus.new];
+    const ticketId = issue.id?.toUpperCase() ?? "";
+
+    const handleSelect = () => {
+        onSelect?.(issue);
+    };
+
+    const handleKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            handleSelect();
+        }
+    };
+
     return (
-        <div className={styles["issue-list-item"]}>
-            <div className={styles["right-side"]}>
-                <div>
-                    Tk ID: {issue.id}
-                </div>
-                <div>
-                    {issue.submissionTime}
-                </div>
+        <div
+            className={clsx(
+                styles["issue-list-item"],
+                issue.isSelected && styles["issue-list-item--selected"],
+            )}
+            role="button"
+            tabIndex={0}
+            onClick={handleSelect}
+            onKeyDown={handleKeyDown}
+            aria-selected={issue.isSelected}
+            aria-label={`Ticket ${ticketId} - ${status.label}`}
+        >
+            <div className={styles["issue-list-item__info"]}>
+                <div className={styles["issue-list-item__ticket"]}>Tk ID: {ticketId}</div>
+                <div className={styles["issue-list-item__meta"]}>{issue.submissionTime}</div>
             </div>
-            <Badge type='danger'>{issue.status}</Badge>
+            <Badge
+                type={status.badgeType}
+                className={clsx(
+                    styles["status-badge"],
+                    styles[`status-badge--${status.tone}`],
+                )}
+            >
+                <span className={styles["status-badge__icon"]}>{status.icon}</span>
+                {status.label}
+            </Badge>
         </div>
     );
 };

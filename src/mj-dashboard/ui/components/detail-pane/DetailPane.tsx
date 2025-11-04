@@ -12,7 +12,9 @@ const DetailPane: React.FC<DetailPaneProps> = ({ title, children, scollable = tr
     return (
         <div className={clsx(styles["container"], scollable && styles["scroll"])}>
             <div className={styles["title"]}>{title}</div>
-            {children}
+            <div className={styles["content"]}>
+                {children}
+            </div>
         </div>
     );
 };

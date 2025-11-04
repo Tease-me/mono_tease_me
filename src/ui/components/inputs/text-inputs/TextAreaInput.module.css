@@ -20,24 +20,37 @@
     outline: 1px solid var(--color-primary);
 }
 
-.text-input-container input {
+.text-input-container textarea {
     display: flex;
     flex: 1;
+    background-color: transparent;
+    border: none;
+    outline: none;
     padding-top: 18px;
     padding-bottom: 18px;
+    resize: none;
 }
 
-.text-input-container input::-moz-selection {
+.textarea {
+    width: 100%;
+    min-height: 120px;
+    font-size: 16px;
+    line-height: 1.5;
+    color: inherit;
+    font-family: inherit;
+}
+
+.text-input-container textarea::-moz-selection {
     background-color: transparent;
     border: none;
 }
 
-.text-input-container input::selection {
+.text-input-container textarea::selection {
     background-color: transparent;
     border: none;
 }
 
-.text-input-container input:focus {
+.text-input-container textarea:focus {
     outline: none;
     border: none;
     box-shadow: none;
@@ -74,10 +87,10 @@
 }
 
 /* Remove default browser autofill background */
-.text-input-container input:-webkit-autofill,
-.text-input-container input:-webkit-autofill:hover,
-.text-input-container input:-webkit-autofill:focus,
-.text-input-container input:-webkit-autofill:active {
+.text-input-container textarea:-webkit-autofill,
+.text-input-container textarea:-webkit-autofill:hover,
+.text-input-container textarea:-webkit-autofill:focus,
+.text-input-container textarea:-webkit-autofill:active {
     -webkit-box-shadow: 0 0 0px 1000px var(--color-dark-2) inset;
     box-shadow: 0 0 0px 1000px var(--color-dark-2) inset;
     -webkit-text-fill-color: #ffffff;

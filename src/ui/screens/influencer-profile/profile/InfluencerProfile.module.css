@@ -2,7 +2,12 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    flex: 1;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .button-group {
@@ -10,151 +15,273 @@
     align-items: center;
     justify-content: center;
     gap: 12px;
-    margin-top: 16px;
 }
 
-.influencer-info {
-    max-width: 700px;
-    margin: 16px auto 0;
-    padding: 0 12px;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    text-align: center;
-    color: var(--text-400, #9ca3af);
-}
-
-.editor-section {
+.screen {
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
     width: 100%;
-    max-width: 900px;
-    margin: 16px auto 0;
-    padding: 12px 0;
+    /* background: radial-gradient(circle at top left, rgba(68, 39, 81, 0.6), transparent 45%),
+        radial-gradient(circle at top right, rgba(17, 47, 82, 0.5), transparent 40%),
+        #11131b; */
+    color: var(--color-text);
+    padding: 48px 24px;
+    overflow-y: auto;
 }
 
-.editor-group {
+.detail {
+    width: 100%;
+    max-width: 960px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    margin-bottom: 16px;
+    gap: 32px;
 }
 
-.editor-label {
-    font-weight: 600;
-    font-size: 0.95rem;
-    opacity: 0.9;
-}
-
-.editor-input {
-    width: 100%;
-    min-height: 120px;
-    padding: 12px 14px;
-    border: 1px solid var(--border-200, #e5e7eb);
-    border-radius: 8px;
-    background: var(--surface-50, rgba(255, 255, 255, 0.06));
-    color: inherit;
-    resize: vertical;
-    outline: none;
-}
-
-.editor-input:focus {
-    border-color: var(--color-primary, #6366f1);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
-}
-
-@media (max-width: 767px) {
-    .editor-section {
-        padding: 8px 0;
-    }
-
-    .editor-input {
-        min-height: 100px;
-    }
-}
-
-/* --- Editor array & controls --- */
-.editor-label-row {
+.detail-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 24px;
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
     gap: 12px;
 }
 
-.editor-array {
+.back-button {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(24, 27, 36, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.75);
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.back-button:hover {
+    transform: translateX(-2px);
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+.back-button__icon {
+    display: inline-flex;
+    transform: rotate(180deg);
+}
+
+.back-button__icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.call-button {
+    padding: 12px 24px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(0, 196, 140, 0.9), rgba(0, 211, 150, 0.95));
+    color: var(--color-text);
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.call-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(0, 196, 140, 0.35);
+}
+
+.call-button svg {
+    width: 18px;
+    height: 18px;
+}
+
+.profile-hero {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 18px;
+}
+
+.profile-hero__avatar {
+    width: 132px;
+    height: 132px;
+    border-radius: 50%;
+    border: 4px solid rgba(255, 255, 255, 0.28);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+}
+
+.profile-hero__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-hero__name {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+.profile-hero__tagline {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.primary-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px;
+    background: rgba(24, 27, 36, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+}
+
+.primary-action {
+    padding: 12px 36px;
+    border-radius: 999px;
+    border: none;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.primary-action--active {
+    background: linear-gradient(135deg, rgba(255, 77, 103, 0.95), rgba(255, 131, 149, 0.8));
+    color: var(--color-text);
+}
+
+.social-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.social-button {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(24, 27, 36, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.social-button:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+.panel {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 28px 32px;
+    border-radius: 12px;
+    background: var(--color-dark-2);
+    border: 1px solid var(--color-grey-800);
+}
+
+.about-title {
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.about-description {
+    color: rgba(255, 255, 255, 0.72);
+    line-height: 1.7;
+    font-size: 15px;
+}
+
+.about-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px 32px;
+}
+
+.about-grid__item:nth-child(n + 5) {
+    grid-column: span 2;
+}
+
+.about-grid__item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.about-grid__label {
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.about-grid__value {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 10px;
 }
 
-
-.editor-addButton {
-    padding: 6px 12px;
-    border: 1px solid var(--color-primary, #6366f1);
-    background: transparent;
-    color: var(--color-primary, #6366f1);
-    border-radius: 999px;
-    font-weight: 600;
-    cursor: pointer;
-    line-height: 1;
-    height: 32px;
-    white-space: nowrap;
+.gallery__item {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(24, 27, 36, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    min-height: 352px;
 }
 
-.editor-addButton:hover {
-    background: rgba(99, 102, 241, 0.08);
+.gallery__item img,
+.gallery__item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
-.editor-addButton:active {
-    transform: translateY(1px);
-}
+@media (max-width: 900px) {
+    .screen {
+        padding: 32px 16px;
+    }
 
-@media (max-width: 767px) {
-    .editor-label-row {
+    .detail {
+        gap: 28px;
+    }
+
+    .primary-actions {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 6px;
+        width: 100%;
     }
 
-    .editor-addButton {
-        height: 34px;
+    .social-actions {
+        flex-wrap: wrap;
+        justify-content: center;
     }
-}
 
-/* Row layout for each daily script with a remove button */
-.editor-line {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.editor-line .editor-inputLine {
-    flex: 1;
-    width: auto;
-}
-
-.editor-removeButton {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    border: 1px solid var(--danger-500, #ef4444);
-    color: var(--danger-600, #dc2626);
-    background: rgba(239, 68, 68, 0.08);
-    cursor: pointer;
-    line-height: 1;
-}
-
-.editor-removeButton:hover {
-    background: rgba(239, 68, 68, 0.14);
-}
-
-.editor-removeButton:active {
-    transform: translateY(1px);
-}
-
-@media (max-width: 767px) {
-    .editor-removeButton {
-        width: 36px;
-        height: 36px;
+    .gallery {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     }
 }

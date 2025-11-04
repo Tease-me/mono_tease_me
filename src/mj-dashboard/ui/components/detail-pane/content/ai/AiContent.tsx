@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import styles from "./AiContent.module.css"
+import styles from "./AiContent.module.css";
 import { DashboardAiDataModel } from '@/mj-dashboard/data/models/DashboardAiDataModel';
 import { DashboardRepo } from '@/mj-dashboard/data/repositories/DashboardRepo';
 import { ColumnDef, DataTable } from '../../../tables/DataTable';
 import CheckBox from '@/ui/components/inputs/check-boxes/CheckBox';
 import AccountStatusBadge from '../../../badge/AcountStatusBadge';
 import SvgPack from '@/utils/SvgPack';
+import CreateAiCharacter from './components/CreateAiCharacter';
 
 interface AiContentProps {
 }
 
 const AiContent: React.FC<AiContentProps> = ({ }) => {
-    const [influencers, setInfluencers] = useState<DashboardAiDataModel[]>()
+    const [influencers, setInfluencers] = useState<DashboardAiDataModel[]>();
+    const [isCreating, setIsCreating] = useState(false);
 
     const [sortConfig, setSortConfig] = useState<{ key: keyof DashboardAiDataModel | string; direction: 'asc' | 'desc' } | null>(null);
     const handleSort = (columnKey: keyof DashboardAiDataModel | string) => {
@@ -46,7 +48,7 @@ const AiContent: React.FC<AiContentProps> = ({ }) => {
             key: "select",
             header: "",
             width: "auto",
-            cell: (r) => <CheckBox checked={r.isSelected} />,
+            cell: (r) => <CheckBox checked={r.isSelected} aria-label={`Select ${r.fullName}`} />,
         },
         {
             key: "id",
@@ -89,15 +91,36 @@ const AiContent: React.FC<AiContentProps> = ({ }) => {
             ),
         },
     ];
+
+    if (isCreating) {
+        return (
+            <div className={styles["ai-content"]}>
+                <CreateAiCharacter onBack={() => setIsCreating(false)} />
+            </div>
+        );
+    }
+
     return (
-        <div className={styles["influencer-content"]}>
-            <DataTable
-                data={influencers}
-                columns={columns}
-                rowKey={(r) => r.id.toString()}
-                emptyState="No influencers yet"
-                onSort={handleSort}
-            />
+        <div className={styles["ai-content"]}>
+            <div className={styles["page-header"]}>
+                <h1 className={styles["page-title"]}>Ai Management</h1>
+                <button
+                    type="button"
+                    className={styles["create-button"]}
+                    onClick={() => setIsCreating(true)}
+                >
+                    + Create New
+                </button>
+            </div>
+            <div className={styles["table-container"]}>
+                <DataTable
+                    data={influencers}
+                    columns={columns}
+                    rowKey={(r) => r.id.toString()}
+                    emptyState="No AI characters yet."
+                    onSort={handleSort}
+                />
+            </div>
         </div>
     );
 };

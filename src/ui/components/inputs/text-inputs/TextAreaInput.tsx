@@ -1,6 +1,6 @@
 import React, { forwardRef, TextareaHTMLAttributes } from 'react';
 import clsx from 'clsx';
-import styles from './TextInput.module.css';
+import styles from './TextAreaInput.module.css';
 
 export interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
     placeholder?: string;
@@ -39,7 +39,6 @@ const TextAreaInput = forwardRef<HTMLTextAreaElement, TextAreaProps>(
                     ref={ref}
                     placeholder={placeholder}
                     className={clsx(
-                        styles['auth-input'],
                         styles['textarea'],
                         styles[`input-${size}`],
                         className,
