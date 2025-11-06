@@ -17,6 +17,7 @@ import { BalanceResponse } from '@/api/models/balance';
 import logger from '@/utils/logger';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
+import LinkCardModal from '@/ui/components/modals/payment-modal/LinkCardModal';
 
 interface UserProfileProps { }
 
@@ -26,6 +27,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
 
     const [balance, setBalance] = useState<number>(0);
     const balanceService = BalanceServices(apiClient);
+    const [showTopUpModal, setShowTopUpModal] = useState<boolean>(false);
+
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -79,10 +82,16 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
                 <div className={styles["delete-account-section"]}>
                     <a href='#'>Delete Account</a>
                 </div>
+                <div className={styles["top-up-button"]}>
+                    <PrimaryButton text='TopUp' onClick={() => {
+                        setShowTopUpModal(true);
+                    }} />
+                </div>
                 <ButtonRow className={styles["button-row"]}>
                     <NormalButton text='Discard' color='black' />
                     <PrimaryButton text='Update' />
                 </ButtonRow>
+                <LinkCardModal isOpen={showTopUpModal} onClose={() => setShowTopUpModal(false)} />
             </FullWidthLayout>
         </BackgroundGradient>
     );
