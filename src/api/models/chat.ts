@@ -30,4 +30,5 @@ export interface SignedUrlResponse {
     greeting_used: string;
     agent_id: string;
     credits_remainder_secs: number;
+    first_message: string;
 }

@@ -44,7 +44,7 @@ export const ChatRepository = () => ({
     },
     getSignedUrl: async (influencer_id: string, user_id: number): Promise<any> => {
         const response: SignedUrlResponse = await chatServices.getSignedUrl(influencer_id, user_id)
-        return { signed_url: response.signed_url, credits_remainder_secs: response.credits_remainder_secs };
+        return { signed_url: response.signed_url, credits_remainder_secs: response.credits_remainder_secs, first_message: response.first_message };
     },
     getFreeSignedUrl: async (influencer_id: string): Promise<any> => {
         const response: SignedUrlResponse = await chatServices.getSignedUrlFree(influencer_id)

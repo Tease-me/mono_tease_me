@@ -99,6 +99,8 @@ export default function useCall() {
 
       var signed_url: string | null = null;
       var credits_remainder_secs = 30;
+      var first_message = "Hi there who am I speaking to?";
+
       if (!user || !user.id) {
         const response = await chatRepo.getFreeSignedUrl(influencerId);
         signed_url = response.signed_url;
@@ -106,6 +108,7 @@ export default function useCall() {
         const response = await chatRepo.getSignedUrl(influencerId, user.id ?? 0);
         signed_url = response.signed_url;
         credits_remainder_secs = response.credits_remainder_secs;
+        first_message = response.first_message || first_message;
       }
 
       if (!signed_url) {
@@ -119,7 +122,12 @@ export default function useCall() {
         return;
       }
 
-      const conversationId = await conversation.startSession({ signedUrl: signed_url });
+      const conversationId = await conversation.startSession({
+        signedUrl: signed_url,
+        dynamicVariables: {
+          first_message: first_message,
+        }
+      });
       if (user && user.id) {
         await chatRepo.registerConversation(conversationId, user?.id ?? 0, influencerId);
       }
