@@ -19,6 +19,7 @@ const CallScreen = lazy(() => import("@/ui/screens/CallScreen"));
 const UserProfile = lazy(() => import("@/ui/screens/user-profile/UserProfile"));
 const MJDashboard = lazy(() => import("@/mj-dashboard/ui/Dashboard"));
 const ButtonsTestPage = lazy(() => import("@/ui/screens/test/ButtonsTestPage"));
+const CreateInfluencer = lazy(() => import("@/ui/screens/create-influencer/CreateInfluencer"));
 
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
@@ -30,6 +31,9 @@ function AppRoutes() {
 
   const guestRoutes: { path: string; element: JSX.Element }[] = [
     { path: "/mj/dashboard", element: <MJDashboard /> },
+    {
+      path: "/mj/influencer", element: <CreateInfluencer />
+    },
     { path: "/login", element: <LoginScreen /> },
     { path: "/register", element: <RegisterScreen /> },
     { path: "/register/verify", element: <Confirmation /> },

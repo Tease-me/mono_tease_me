@@ -44,12 +44,11 @@ export const ChatRepository = () => ({
     },
     getSignedUrl: async (influencer_id: string, user_id: number): Promise<any> => {
         const response: SignedUrlResponse = await chatServices.getSignedUrl(influencer_id, user_id)
-        return { signed_url: response.signed_url, credits_remainder_secs: response.credits_remainder_secs };
+        return { signed_url: response.signed_url, credits_remainder_secs: response.credits_remainder_secs, first_message: response.greeting_used };
     },
     getFreeSignedUrl: async (influencer_id: string): Promise<any> => {
         const response: SignedUrlResponse = await chatServices.getSignedUrlFree(influencer_id)
-        console.warn("Free Signed URL response:", response);
-        return { signed_url: response.signed_url, credits_remainder_secs: response.credits_remainder_secs };
+        return { signed_url: response.signed_url, credits_remainder_secs: response.credits_remainder_secs, first_message: response.greeting_used };
     },
     registerConversation: async (conversation_id: string, user_id: number, influencer_id: string) => {
         await chatServices.registerConversation(conversation_id, user_id, influencer_id);
