@@ -1059,7 +1059,7 @@
 /*---------------------------- end of color vars ----------------------------*/
 .button-cta-outer.yellow .button-cta-inner {
     transition: all 200ms ease-in-out;
-    color: var(--black);
+    color: var(--white);
     background: var(--gradient-inner-mainhue);
     box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 97%, 71%, 0.55) inset,
         5px 3px 3px -4px var(--shadow-light) inset,
@@ -1071,7 +1071,7 @@
 
 .button-cta-outer.yellow .button-cta-inner .button-text {
     transition: all 200ms ease-in-out;
-    color: var(--black);
+    color: var(--white);
     text-shadow: 1px 1px 0 hsla(var(--hue-neutral), 0%, 0%, 0.2),
         1px 3px 3px hsla(var(--hue-neutral), 0%, 0%, 0.45);
 }
