@@ -26,6 +26,9 @@ const InfluencerProfile: React.FC<InfluencerProfileProps> = ({ influencer }) => 
         name: influencer?.name ?? "Olivia F.",
         img: influencer?.img ?? galleryA,
         bio: influencer?.bio ?? FALLBACK_BIO,
+        earnings: influencer?.earnings ?? 0,
+        joinedDate: influencer?.joinedDate ?? "01/01/2023",
+        isSelected: influencer?.isSelected ?? false,
     }), [influencer?.bio, influencer?.id, influencer?.img, influencer?.name, influencer?.username]);
 
     const firstName = useMemo(() => {
@@ -74,7 +77,7 @@ const InfluencerProfile: React.FC<InfluencerProfileProps> = ({ influencer }) => 
                     </div>
                     <div className={styles["panel"]}>
                         <h2 className={styles["about-title"]}>{`About ${firstName}`}</h2>
-                        <p className={styles["about-description"]}>{profile.bio ?? FALLBACK_BIO}</p>
+                        <p className={styles["about-description"]}>{FALLBACK_BIO}</p>
                         <div className={styles["about-grid"]}>
                             {stats.map((stat) => (
                                 <div key={stat.label} className={styles["about-grid__item"]}>

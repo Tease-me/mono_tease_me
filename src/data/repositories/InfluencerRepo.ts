@@ -18,6 +18,11 @@ export const InfluencerRepo = () => ({
                     username: item.id,
                     img: dummy.getImage(item.id as "loli" | "bella" | "anna"),
                     videoUrl: dummy.getVideo(item.id as "loli" | "bella" | "anna"),
+                    daily_scripts: item.daily_scripts,
+                    prompt_template: item.prompt_template,
+                    earnings: 0,
+                    joinedDate: "",
+                    isSelected: false,
                 }
             })
         } catch (e) {
@@ -34,7 +39,10 @@ export const InfluencerRepo = () => ({
                 img: dummy.getImage(response.id as "loli" | "bella" | "anna"),
                 videoUrl: dummy.getVideo(response.id as "loli" | "bella" | "anna"),
                 daily_scripts: response.daily_scripts,
-                prompt_template: response.prompt_template
+                prompt_template: response.prompt_template,
+                earnings: 0,
+                joinedDate: "",
+                isSelected: false,
             }
         } catch (e) {
             throw e;
