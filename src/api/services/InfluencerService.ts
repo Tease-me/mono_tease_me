@@ -64,4 +64,25 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
             throw error
         }
     },
+    uploadCsv: async (file: File, save: boolean = false): Promise<void> => {
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            await apiClient.post(
+                Endpoints.uploadCsv,
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    },
+                    params: {
+                        save: save
+                    }
+                },
+            );
+        } catch (error) {
+            throw error
+        }
+    }
 })

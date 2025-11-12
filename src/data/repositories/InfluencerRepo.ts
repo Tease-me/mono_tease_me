@@ -92,5 +92,15 @@ export const InfluencerRepo = () => ({
         } catch (e) {
             throw e
         }
+    },
+    uploadCsv: async (file: File, save: boolean): Promise<void> => {
+        try {
+            await influencerServices.uploadCsv(
+                file,
+                save
+            );
+        } catch (e) {
+            throw e
+        }
     }
 })
