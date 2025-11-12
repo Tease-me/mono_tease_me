@@ -117,7 +117,9 @@ const CreateInfluencer: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [csvFileName, setCsvFileName] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const dashboardRepo = useMemo(() => InfluencerRepo(), []);
+    const [saveState, setSaveState] = useState<"idle" | "saving" | "success" | "error">("idle");
+    const [saveError, setSaveError] = useState<string | null>(null);
+    const influencerRepo = useMemo(() => InfluencerRepo(), []);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -125,7 +127,7 @@ const CreateInfluencer: React.FC = () => {
         (async () => {
             setIsLoading(true);
             try {
-                const data = await dashboardRepo.getInfluencers();
+                const data = await influencerRepo.getInfluencers();
                 if (!isMounted) return;
                 setInfluencers(data);
                 setSelectedId(data.length ? data[0].id : "new");
@@ -139,7 +141,7 @@ const CreateInfluencer: React.FC = () => {
         return () => {
             isMounted = false;
         };
-    }, [dashboardRepo]);
+    }, [influencerRepo]);
 
     useEffect(() => {
         if (selectedId === "new") {
@@ -176,7 +178,18 @@ const CreateInfluencer: React.FC = () => {
         setFormState((prev) => ({ ...prev, [field]: value }));
     };
 
-    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    useEffect(() => {
+        if (saveState === "success" || saveState === "error") {
+            const timeout = setTimeout(() => {
+                setSaveState("idle");
+                setSaveError(null);
+            }, 3000);
+            return () => clearTimeout(timeout);
+        }
+        return undefined;
+    }, [saveState]);
+
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const existing = selectedId !== "new" ? influencers.find((influencer) => influencer.id === selectedId) : undefined;
         const nameFromFields = `${formState.firstName} ${formState.lastName}`.trim();
@@ -200,18 +213,30 @@ const CreateInfluencer: React.FC = () => {
             voice_prompt: formState.voice_prompt || existing?.voice_prompt || "",
             social_connections: { ...formState.social_connections },
         };
-
-        setInfluencers((prev) => {
-            const index = prev.findIndex((influencer) => influencer.id === base.id);
-            if (index === -1) {
-                return [base, ...prev];
-            }
-            const next = [...prev];
-            next[index] = base;
-            return next;
-        });
-
-        setSelectedId(base.id);
+        setSaveState("saving");
+        setSaveError(null);
+        try {
+            const patched = await influencerRepo.patchInfluencer(base, base.prompt_template, existing?.daily_scripts || []);
+            const mergedInfluencer = {
+                ...base,
+                ...patched,
+            };
+            setInfluencers((prev) => {
+                const index = prev.findIndex((influencer) => influencer.id === mergedInfluencer.id);
+                if (index === -1) {
+                    return [mergedInfluencer, ...prev];
+                }
+                const next = [...prev];
+                next[index] = mergedInfluencer;
+                return next;
+            });
+            setSelectedId(mergedInfluencer.id);
+            setSaveState("success");
+        } catch (err) {
+            console.error("Failed to save influencer:", err);
+            setSaveState("error");
+            setSaveError(err instanceof Error ? err.message : "Unknown error");
+        }
     };
 
     const handleCreateNew = () => {
@@ -504,11 +529,20 @@ const CreateInfluencer: React.FC = () => {
                         </div>
 
                         <div className={styles["form-footer"]}>
+                            {saveState !== "idle" && (
+                                <span
+                                    className={`${styles["save-status"]} ${saveState === "success" ? styles["save-status--success"] : ""} ${saveState === "error" ? styles["save-status--error"] : ""}`}
+                                >
+                                    {saveState === "success" && "Changes saved"}
+                                    {saveState === "error" && (saveError || "Failed to save changes")}
+                                    {saveState === "saving" && "Saving…"}
+                                </span>
+                            )}
                             <button type="button" className={styles["secondary-button"]} onClick={handleReset}>
                                 Reset
                             </button>
-                            <button type="submit" className={styles["primary-button"]}>
-                                Save changes
+                            <button type="submit" className={styles["primary-button"]} disabled={saveState === "saving"}>
+                                {saveState === "saving" ? "Saving…" : "Save changes"}
                             </button>
                         </div>
                     </form>
