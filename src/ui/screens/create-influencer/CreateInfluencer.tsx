@@ -212,14 +212,18 @@ const CreateInfluencer: React.FC = () => {
             elevenlabs_agent_id: formState.elevenlabs_agent_id || existing?.elevenlabs_agent_id || "",
             voice_prompt: formState.voice_prompt || existing?.voice_prompt || "",
             social_connections: { ...formState.social_connections },
+            daily_scripts: existing?.daily_scripts ?? [],
         };
+        const isNewInfluencer = selectedId === "new" || !existing;
         setSaveState("saving");
         setSaveError(null);
         try {
-            const patched = await influencerRepo.patchInfluencer(base, base.prompt_template, existing?.daily_scripts || []);
+            const serverInfluencer = isNewInfluencer
+                ? await influencerRepo.createInfluencer(base)
+                : await influencerRepo.patchInfluencer(base, base.prompt_template, existing?.daily_scripts || []);
             const mergedInfluencer = {
                 ...base,
-                ...patched,
+                ...serverInfluencer,
             };
             setInfluencers((prev) => {
                 const index = prev.findIndex((influencer) => influencer.id === mergedInfluencer.id);
