@@ -18,7 +18,7 @@ type InfluencerFormState = {
     email: string;
     phone: string;
     avatarUrl: string;
-    joinedDate: string;
+    created_at: string;
     notes: string;
     voice_id: string;
     prompt_template: string;
@@ -63,7 +63,7 @@ const createDefaultFormState = (): InfluencerFormState => ({
     email: "",
     phone: "",
     avatarUrl: "",
-    joinedDate: toDateInputValue(null),
+    created_at: toDateInputValue(null),
     notes: "",
     voice_id: "",
     prompt_template: "",
@@ -95,7 +95,7 @@ function createFormStateFromInfluencer(influencer: InfluencerDataModel): Influen
         email: "",
         phone: "",
         avatarUrl: influencer.img,
-        joinedDate: toDateInputValue(influencer.joinedDate),
+        created_at: toDateInputValue(influencer.created_at),
         notes: "",
         voice_id: influencer.voice_id ?? "",
         prompt_template: influencer.prompt_template ?? "",
@@ -191,7 +191,7 @@ const CreateInfluencer: React.FC = () => {
             name: fullName,
             username,
             img: formState.avatarUrl || existing?.img || "",
-            joinedDate: formState.joinedDate || existing?.joinedDate || new Date().toISOString().slice(0, 10),
+            created_at: formState.created_at || existing?.created_at || new Date().toISOString().slice(0, 10),
             earnings: existing?.earnings ?? 0,
             isSelected: false,
             voice_id: formState.voice_id || existing?.voice_id || "",
@@ -414,8 +414,8 @@ const CreateInfluencer: React.FC = () => {
                                 <input
                                     id="influencer-joined-date"
                                     type="date"
-                                    value={formState.joinedDate}
-                                    onChange={handleFieldChange("joinedDate")}
+                                    value={formState.created_at}
+                                    onChange={handleFieldChange("created_at")}
                                 />
                             </div>
 
@@ -488,7 +488,7 @@ const CreateInfluencer: React.FC = () => {
                                 value={formState.prompt_template}
                                 onChange={handleFieldChange("prompt_template")}
                                 placeholder="System prompt or guidance used for this influencer"
-                                rows={3}
+                                rows={20}
                             />
                         </div>
 
@@ -499,18 +499,7 @@ const CreateInfluencer: React.FC = () => {
                                 value={formState.voice_prompt}
                                 onChange={handleFieldChange("voice_prompt")}
                                 placeholder="Describe the desired voice style, pacing, tone, etc."
-                                rows={3}
-                            />
-                        </div>
-
-                        <div className={styles["field"]}>
-                            <label htmlFor="influencer-notes">Notes</label>
-                            <textarea
-                                id="influencer-notes"
-                                value={formState.notes}
-                                onChange={handleFieldChange("notes")}
-                                placeholder="Add any context or internal notes"
-                                rows={4}
+                                rows={20}
                             />
                         </div>
 

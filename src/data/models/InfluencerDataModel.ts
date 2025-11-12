@@ -15,7 +15,7 @@ export interface InfluencerDataModel {
     username: string;
     name: string;
     bio?: string;
-    joinedDate: string;
+    created_at: string;
     earnings: number;
     isSelected: boolean;
     voice_id?: string;

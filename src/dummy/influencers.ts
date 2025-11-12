@@ -31,7 +31,7 @@ export async function makeInfluencer(gender: "female" | "male" = "female"): Prom
         name: fullName,
         earnings: Math.floor(20000 + Math.random() * 40000),
         id: dummy.makeUsername(fullName),
-        joinedDate: dummy.formatDateDDMMYYYY(dummy.getRandomDate()),
+        created_at: dummy.formatDateDDMMYYYY(dummy.getRandomDate()),
         username: dummy.makeUsername(fullName),
         isSelected: false,
         prompt_template: "You are a charming conversational AI for TeaseMe.",

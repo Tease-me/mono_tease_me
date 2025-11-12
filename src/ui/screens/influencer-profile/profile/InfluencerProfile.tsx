@@ -27,9 +27,9 @@ const InfluencerProfile: React.FC<InfluencerProfileProps> = ({ influencer }) => 
         img: influencer?.img ?? galleryA,
         bio: influencer?.bio ?? FALLBACK_BIO,
         earnings: influencer?.earnings ?? 0,
-        joinedDate: influencer?.joinedDate ?? "01/01/2023",
         isSelected: influencer?.isSelected ?? false,
-    }), [influencer?.bio, influencer?.id, influencer?.img, influencer?.name, influencer?.username]);
+        created_at: influencer?.created_at ?? "01/01/2023",
+    }), [influencer]);
 
     const firstName = useMemo(() => {
         if (!profile.name) return profile.username ?? "Influencer";

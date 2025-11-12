@@ -20,8 +20,11 @@ export const InfluencerRepo = () => ({
                     videoUrl: dummy.getVideo(item.id as "loli" | "bella" | "anna"),
                     daily_scripts: item.daily_scripts,
                     prompt_template: item.prompt_template,
+                    elevenlabs_agent_id: item.influencer_agent_id_third_part,
+                    voice_prompt: item.voice_prompt,
+                    voice_id: item.voice_id,
+                    created_at: item.created_at,
                     earnings: 0,
-                    joinedDate: "",
                     isSelected: false,
                 }
             })
@@ -41,7 +44,7 @@ export const InfluencerRepo = () => ({
                 daily_scripts: response.daily_scripts,
                 prompt_template: response.prompt_template,
                 earnings: 0,
-                joinedDate: "",
+                created_at: "",
                 isSelected: false,
             }
         } catch (e) {
@@ -65,6 +68,5 @@ export const InfluencerRepo = () => ({
         } catch (e) {
             throw e
         }
-
     }
 })

@@ -4,4 +4,7 @@ export interface InfluencerResponse {
     prompt_template: string;
     daily_scripts: string[];
     id: string;
+    influencer_agent_id_third_part: string;
+    voice_prompt: string;
+    created_at: string;
 }
