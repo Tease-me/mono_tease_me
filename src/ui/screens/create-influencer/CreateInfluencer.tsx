@@ -3,6 +3,7 @@ import styles from "./CreateInfluencer.module.css";
 import SvgPack from "@/utils/SvgPack";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
+import { splitName } from "@/utils/StringUtils";
 
 type SocialConnections = {
     instagram: boolean;
@@ -71,19 +72,6 @@ const createDefaultFormState = (): InfluencerFormState => ({
     voice_prompt: "",
     social_connections: createDefaultSocialConnections(),
 });
-
-
-function splitName(fullName: string) {
-    if (!fullName) {
-        return { firstName: "", lastName: "" };
-    }
-    const parts = fullName.trim().split(" ");
-    if (parts.length === 1) {
-        return { firstName: parts[0], lastName: "" };
-    }
-    const [firstName, ...rest] = parts;
-    return { firstName, lastName: rest.join(" ") };
-}
 
 function createFormStateFromInfluencer(influencer: InfluencerDataModel): InfluencerFormState {
     const { firstName, lastName } = splitName(influencer.name);
