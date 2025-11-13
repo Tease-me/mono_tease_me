@@ -3,6 +3,7 @@ import styles from "./CreateInfluencer.module.css";
 import SvgPack from "@/utils/SvgPack";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
+import { Modal } from "@/ui/components/modals/Modal";
 import { splitName } from "@/utils/StringUtils";
 
 type SocialConnections = {
@@ -26,6 +27,106 @@ type InfluencerFormState = {
     elevenlabs_agent_id: string;
     voice_prompt: string;
     social_connections: SocialConnections;
+};
+
+type UploadRecord = Record<string, unknown>;
+
+const formatRecordKey = (key: string) => key.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+
+const formatRecordValue = (value: unknown): string => {
+    if (value === null || value === undefined) return "";
+    if (Array.isArray(value)) {
+        return value
+            .map((item) => (typeof item === "object" ? JSON.stringify(item) : String(item)))
+            .join(", ");
+    }
+    if (typeof value === "object") {
+        return JSON.stringify(value, null, 2);
+    }
+    return String(value);
+};
+
+const isRecord = (value: unknown): value is UploadRecord => typeof value === "object" && value !== null && !Array.isArray(value);
+
+const parseCsvText = (text: string): UploadRecord[] => {
+    const rows: string[][] = [];
+    let currentRow: string[] = [];
+    let currentValue = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < text.length; i += 1) {
+        const char = text[i];
+        if (char === "\"") {
+            if (inQuotes && text[i + 1] === "\"") {
+                currentValue += "\"";
+                i += 1;
+            } else {
+                inQuotes = !inQuotes;
+            }
+            continue;
+        }
+
+        if ((char === "\n" || char === "\r") && !inQuotes) {
+            if (char === "\r" && text[i + 1] === "\n") {
+                i += 1;
+            }
+            currentRow.push(currentValue.trim());
+            currentValue = "";
+            if (currentRow.some((value) => value.length > 0)) {
+                rows.push(currentRow);
+            }
+            currentRow = [];
+            continue;
+        }
+
+        if (char === "," && !inQuotes) {
+            currentRow.push(currentValue.trim());
+            currentValue = "";
+            continue;
+        }
+        currentValue += char;
+    }
+
+    currentRow.push(currentValue.trim());
+    if (currentRow.some((value) => value.length > 0)) {
+        rows.push(currentRow);
+    }
+
+    if (rows.length < 1) {
+        return [];
+    }
+
+    const headers = rows[0];
+    if (rows.length === 1) {
+        return [];
+    }
+
+    return rows.slice(1).map((row) => {
+        return headers.reduce<UploadRecord>((acc, header, index) => {
+            const key = header || `column_${index + 1}`;
+            acc[key] = row[index] ?? "";
+            return acc;
+        }, {});
+    });
+};
+
+const parseUploadFileContent = (content: string): UploadRecord[] => {
+    const trimmed = content.trim();
+    if (!trimmed) {
+        return [];
+    }
+    try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) {
+            return parsed.filter(isRecord);
+        }
+        if (isRecord(parsed)) {
+            return [parsed];
+        }
+    } catch {
+        // Fallback to CSV parsing if JSON parsing fails
+    }
+    return parseCsvText(content);
 };
 
 function toDateInputValue(value: string | undefined | null) {
@@ -107,8 +208,23 @@ const CreateInfluencer: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [saveState, setSaveState] = useState<"idle" | "saving" | "success" | "error">("idle");
     const [saveError, setSaveError] = useState<string | null>(null);
+    const [uploadRecords, setUploadRecords] = useState<UploadRecord[]>([]);
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const [uploadParseError, setUploadParseError] = useState<string | null>(null);
+    const [expandedRecords, setExpandedRecords] = useState<Set<number>>(() => new Set<number>());
     const influencerRepo = useMemo(() => InfluencerRepo(), []);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const getRecordLabel = (record: UploadRecord, index: number) => {
+        const candidateKeys: Array<keyof UploadRecord> = ["display_name", "name", "username", "id"];
+        for (const key of candidateKeys) {
+            const value = record[key];
+            if (typeof value === "string" && value.trim().length > 0) {
+                return value;
+            }
+        }
+        return `Row ${index + 1}`;
+    };
 
     useEffect(() => {
         let isMounted = true;
@@ -274,18 +390,64 @@ const CreateInfluencer: React.FC = () => {
 
     const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
-        if (file) {
-            setCsvFileName(file.name);
-        } else {
+        if (!file) {
             setCsvFileName(null);
+            setUploadRecords([]);
+            setIsUploadModalOpen(false);
+            return;
         }
+        setCsvFileName(file.name);
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                const text = String(reader.result ?? "");
+                const parsed = parseUploadFileContent(text);
+                if (parsed.length === 0) {
+                    throw new Error("No rows detected in the uploaded file.");
+                }
+                setUploadRecords(parsed);
+                setExpandedRecords(new Set<number>());
+                setUploadParseError(null);
+                setIsUploadModalOpen(true);
+            } catch (err) {
+                console.error("Failed to parse uploaded file:", err);
+                setUploadRecords([]);
+                setIsUploadModalOpen(false);
+                setUploadParseError(err instanceof Error ? err.message : "Unable to parse the uploaded file.");
+            }
+        };
+        reader.onerror = () => {
+            console.error("Failed to read uploaded file:", reader.error);
+            setUploadParseError("Failed to read the selected file.");
+        };
+        reader.readAsText(file);
+        event.target.value = "";
+    };
+
+    const toggleRecordExpansion = (index: number) => {
+        setExpandedRecords((prev) => {
+            const next = new Set(prev);
+            if (next.has(index)) {
+                next.delete(index);
+            } else {
+                next.add(index);
+            }
+            return next;
+        });
+    };
+
+    const closeUploadModal = () => {
+        setIsUploadModalOpen(false);
     };
 
     return (
         <div className={styles["create-ai"]}>
             <div className={styles["create-ai__header"]}>
                 <h1 className={styles["create-ai__title"]}>Influencer Manager</h1>
-                {csvFileName && <span className={styles["upload-feedback"]}>Imported: {csvFileName}</span>}
+                <div className={styles["upload-status-group"]}>
+                    {csvFileName && <span className={styles["upload-feedback"]}>Imported: {csvFileName}</span>}
+                    {uploadParseError && <span className={styles["upload-error"]}>{uploadParseError}</span>}
+                </div>
             </div>
 
             <div className={styles["create-ai__layout"]}>
@@ -540,6 +702,70 @@ const CreateInfluencer: React.FC = () => {
                     </form>
                 </section>
             </div>
+            <Modal
+                isOpen={isUploadModalOpen}
+                onClose={closeUploadModal}
+                size="lg"
+                ariaLabel="Uploaded influencer data preview"
+                closeOnOverlayClick
+            >
+                <div className={styles["upload-modal"]}>
+                    <div className={styles["upload-modal__header"]}>
+                        <div>
+                            <h3>Imported records</h3>
+                            <p>
+                                {csvFileName ? `${csvFileName} • ` : ""}
+                                {uploadRecords.length} row{uploadRecords.length === 1 ? "" : "s"}
+                            </p>
+                        </div>
+                        <button type="button" className={styles["upload-modal__close"]} onClick={closeUploadModal}>
+                            Close
+                        </button>
+                    </div>
+                    {uploadRecords.length === 0 ? (
+                        <div className={styles["upload-modal__empty"]}>No data to preview yet.</div>
+                    ) : (
+                        <ul className={styles["upload-modal__list"]}>
+                            {uploadRecords.map((record, index) => {
+                                const isExpanded = expandedRecords.has(index);
+                                const label = getRecordLabel(record, index);
+                                const entries = Object.entries(record);
+                                return (
+                                    <li key={`${label}-${index}`} className={styles["upload-modal__item"]}>
+                                        <button
+                                            type="button"
+                                            className={`${styles["upload-modal__toggle"]} ${isExpanded ? styles["upload-modal__toggle--expanded"] : ""}`}
+                                            onClick={() => toggleRecordExpansion(index)}
+                                            aria-expanded={isExpanded}
+                                        >
+                                            <span>{label}</span>
+                                            <span className={styles["upload-modal__chevron"]}>{isExpanded ? "-" : "+"}</span>
+                                        </button>
+                                        {isExpanded && (
+                                            <div className={styles["upload-modal__body"]}>
+                                                {entries.map(([key, value]) => {
+                                                    const formattedValue = formatRecordValue(value);
+                                                    const isMultiline = /\n/.test(formattedValue);
+                                                    return (
+                                                        <div key={key} className={styles["upload-modal__row"]}>
+                                                            <span className={styles["upload-modal__key"]}>{formatRecordKey(key)}</span>
+                                                            {isMultiline ? (
+                                                                <pre className={styles["upload-modal__value-pre"]}>{formattedValue}</pre>
+                                                            ) : (
+                                                                <span className={styles["upload-modal__value"]}>{formattedValue}</span>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )}
+                </div>
+            </Modal>
         </div>
     );
 };

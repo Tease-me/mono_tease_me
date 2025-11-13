@@ -5,18 +5,19 @@ import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 import OnBoardingTopNav from '@/ui/components/nav/OnBoardingTopNav';
 import TextInput from '@/ui/components/inputs/text-inputs/TextInput';
 import FullWidthLayout from '@/ui/templates/FullWidthLayout';
-import { AuthContext } from '@/context/AuthContext';
-import { BalanceServices } from '@/api/services/BalanceServices';
-import { formatCentsToDollars } from '@/utils/balance_utils';
 import ButtonRow from '@/ui/templates/ButtonRow';
 import BalanceView from '@/ui/components/stats/BalanceView';
 import VerticalDivider from '@/ui/components/dividers/VerticalDivider';
-import { useNavigate } from 'react-router-dom';
-import { apiClient } from '@/api/apis';
-import { BalanceResponse } from '@/api/models/balance';
 import logger from '@/utils/logger';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
+
+import { AuthContext } from '@/context/AuthContext';
+import { BalanceServices } from '@/api/services/BalanceServices';
+import { formatCentsToDollars } from '@/utils/balance_utils';
+import { useNavigate } from 'react-router-dom';
+import { apiClient } from '@/api/apis';
+import { BalanceResponse } from '@/api/models/balance';
 
 interface UserProfileProps { }
 
