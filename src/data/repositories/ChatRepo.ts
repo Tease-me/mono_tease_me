@@ -42,16 +42,16 @@ export const ChatRepository = () => ({
         const response: ChatIdResponse = await chatServices.getChatId(user_id, persona_id)
         return response.chat_id;
     },
-    getSignedUrl: async (influencer_id: string, user_id: number): Promise<any> => {
-        const response: SignedUrlResponse = await chatServices.getSignedUrl(influencer_id, user_id)
+    getSignedUrl: async (influencer_id: string, user_id: number, signal?: AbortSignal): Promise<any> => {
+        const response: SignedUrlResponse = await chatServices.getSignedUrl(influencer_id, user_id, signal)
         return { signed_url: response.signed_url, credits_remainder_secs: response.credits_remainder_secs, first_message: response.greeting_used };
     },
-    getFreeSignedUrl: async (influencer_id: string): Promise<any> => {
-        const response: SignedUrlResponse = await chatServices.getSignedUrlFree(influencer_id)
+    getFreeSignedUrl: async (influencer_id: string, signal?: AbortSignal): Promise<any> => {
+        const response: SignedUrlResponse = await chatServices.getSignedUrlFree(influencer_id, signal)
         return { signed_url: response.signed_url, credits_remainder_secs: response.credits_remainder_secs, first_message: response.greeting_used };
     },
-    registerConversation: async (conversation_id: string, user_id: number, influencer_id: string) => {
-        await chatServices.registerConversation(conversation_id, user_id, influencer_id);
+    registerConversation: async (conversation_id: string, user_id: number, influencer_id: string, signal?: AbortSignal) => {
+        await chatServices.registerConversation(conversation_id, user_id, influencer_id, signal);
     },
     sendAudioMessage: async (audioBlob: Blob, influencer_id: string, chat_id: string) => {
         const response: ChatAudioResponse = await chatServices.postAudioMessage(audioBlob, influencer_id, chat_id);

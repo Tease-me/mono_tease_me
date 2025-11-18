@@ -1,22 +1,132 @@
 import React, { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./CreateInfluencer.module.css";
 import SvgPack from "@/utils/SvgPack";
-import { DashboardRepo } from "@/mj-dashboard/data/repositories/DashboardRepo";
-import { DashboardInfluencerModel } from "@/mj-dashboard/data/models/DashboardInfluencerModel";
-import { AccountStatus, SubscriptionLevel } from "@/mj-dashboard/data/models/enums";
+import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
+import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
+import { Modal } from "@/ui/components/modals/Modal";
+import { splitName } from "@/utils/StringUtils";
+
+type SocialConnections = {
+    instagram: boolean;
+    facebook: boolean;
+    onlyfans: boolean;
+    twitter: boolean;
+};
 
 type InfluencerFormState = {
     id: string;
     firstName: string;
     lastName: string;
-    username: string;
     email: string;
     phone: string;
     avatarUrl: string;
-    joinedDate: string;
-    status: AccountStatus | "";
-    subscriptionLevel: SubscriptionLevel | "";
+    created_at: string;
     notes: string;
+    voice_id: string;
+    prompt_template: string;
+    elevenlabs_agent_id: string;
+    voice_prompt: string;
+    social_connections: SocialConnections;
+};
+
+type UploadRecord = Record<string, unknown>;
+
+const formatRecordKey = (key: string) => key.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+
+const formatRecordValue = (value: unknown): string => {
+    if (value === null || value === undefined) return "";
+    if (Array.isArray(value)) {
+        return value
+            .map((item) => (typeof item === "object" ? JSON.stringify(item) : String(item)))
+            .join(", ");
+    }
+    if (typeof value === "object") {
+        return JSON.stringify(value, null, 2);
+    }
+    return String(value);
+};
+
+const isRecord = (value: unknown): value is UploadRecord => typeof value === "object" && value !== null && !Array.isArray(value);
+
+const parseCsvText = (text: string): UploadRecord[] => {
+    const rows: string[][] = [];
+    let currentRow: string[] = [];
+    let currentValue = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < text.length; i += 1) {
+        const char = text[i];
+        if (char === "\"") {
+            if (inQuotes && text[i + 1] === "\"") {
+                currentValue += "\"";
+                i += 1;
+            } else {
+                inQuotes = !inQuotes;
+            }
+            continue;
+        }
+
+        if ((char === "\n" || char === "\r") && !inQuotes) {
+            if (char === "\r" && text[i + 1] === "\n") {
+                i += 1;
+            }
+            currentRow.push(currentValue.trim());
+            currentValue = "";
+            if (currentRow.some((value) => value.length > 0)) {
+                rows.push(currentRow);
+            }
+            currentRow = [];
+            continue;
+        }
+
+        if (char === "," && !inQuotes) {
+            currentRow.push(currentValue.trim());
+            currentValue = "";
+            continue;
+        }
+        currentValue += char;
+    }
+
+    currentRow.push(currentValue.trim());
+    if (currentRow.some((value) => value.length > 0)) {
+        rows.push(currentRow);
+    }
+
+    if (rows.length < 1) {
+        return [];
+    }
+
+    const headers = rows[0];
+    if (rows.length === 1) {
+        return [];
+    }
+
+    return rows.slice(1).map((row) => {
+        return headers.reduce<UploadRecord>((acc, header, index) => {
+            const key = header || `column_${index + 1}`;
+            acc[key] = row[index] ?? "";
+            return acc;
+        }, {});
+    });
+};
+
+const parseUploadFileContent = (content: string): UploadRecord[] => {
+    const trimmed = content.trim();
+    if (!trimmed) {
+        return [];
+    }
+    try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) {
+            return parsed.filter(isRecord);
+        }
+        if (isRecord(parsed)) {
+            return [parsed];
+        }
+    } catch {
+        // Fallback to CSV parsing if JSON parsing fails
+    }
+    return parseCsvText(content);
 };
 
 function toDateInputValue(value: string | undefined | null) {
@@ -41,87 +151,87 @@ function toDateInputValue(value: string | undefined | null) {
     return new Date().toISOString().slice(0, 10);
 }
 
-const defaultFormState: InfluencerFormState = {
+const createDefaultSocialConnections = (): SocialConnections => ({
+    instagram: false,
+    facebook: false,
+    onlyfans: false,
+    twitter: false,
+});
+
+const createDefaultFormState = (): InfluencerFormState => ({
     id: "",
     firstName: "",
     lastName: "",
-    username: "",
     email: "",
     phone: "",
     avatarUrl: "",
-    joinedDate: toDateInputValue(null),
-    status: "",
-    subscriptionLevel: "",
+    created_at: toDateInputValue(null),
     notes: "",
-};
+    voice_id: "",
+    prompt_template: "",
+    elevenlabs_agent_id: "",
+    voice_prompt: "",
+    social_connections: createDefaultSocialConnections(),
+});
 
-const accountStatusLabels: Record<AccountStatus, string> = {
-    [AccountStatus.active]: "Active",
-    [AccountStatus.black_list]: "Blacklisted",
-    [AccountStatus.frozen]: "Frozen",
-    [AccountStatus.suspended]: "Suspended",
-    [AccountStatus.inactive]: "Inactive",
-};
-
-const subscriptionLevelLabels: Record<SubscriptionLevel, string> = {
-    [SubscriptionLevel.basic]: "Basic",
-    [SubscriptionLevel.premium]: "Premium",
-    [SubscriptionLevel.ultimate]: "Ultimate",
-};
-
-const accountStatusClassMap: Record<AccountStatus, string> = {
-    [AccountStatus.active]: "status-badge--active",
-    [AccountStatus.black_list]: "status-badge--blacklist",
-    [AccountStatus.frozen]: "status-badge--frozen",
-    [AccountStatus.suspended]: "status-badge--suspended",
-    [AccountStatus.inactive]: "status-badge--inactive",
-};
-
-function splitName(fullName: string) {
-    if (!fullName) {
-        return { firstName: "", lastName: "" };
-    }
-    const parts = fullName.trim().split(" ");
-    if (parts.length === 1) {
-        return { firstName: parts[0], lastName: "" };
-    }
-    const [firstName, ...rest] = parts;
-    return { firstName, lastName: rest.join(" ") };
-}
-
-function createFormStateFromInfluencer(influencer: DashboardInfluencerModel): InfluencerFormState {
-    const { firstName, lastName } = splitName(influencer.fullName);
+function createFormStateFromInfluencer(influencer: InfluencerDataModel): InfluencerFormState {
+    const { firstName, lastName } = splitName(influencer.name);
+    const incomingSocial = influencer.social_connections ?? createDefaultSocialConnections();
     return {
         id: String(influencer.id),
         firstName,
         lastName,
-        username: influencer.username,
         email: "",
         phone: "",
-        avatarUrl: influencer.imgUrl,
-        joinedDate: toDateInputValue(influencer.joinedDate),
-        status: influencer.accountStatus,
-        subscriptionLevel: influencer.subscriptionLevel,
+        avatarUrl: influencer.img,
+        created_at: toDateInputValue(influencer.created_at),
         notes: "",
+        voice_id: influencer.voice_id ?? "",
+        prompt_template: influencer.prompt_template ?? "",
+        elevenlabs_agent_id: influencer.elevenlabs_agent_id ?? "",
+        voice_prompt: influencer.voice_prompt ?? "",
+        social_connections: {
+            instagram: incomingSocial.instagram ?? false,
+            facebook: incomingSocial.facebook ?? false,
+            onlyfans: incomingSocial.onlyfans ?? false,
+            twitter: incomingSocial.twitter ?? false,
+        },
     };
 }
 
 const CreateInfluencer: React.FC = () => {
-    const [influencers, setInfluencers] = useState<DashboardInfluencerModel[]>([]);
-    const [selectedId, setSelectedId] = useState<string | number | "new" | null>(null);
-    const [formState, setFormState] = useState<InfluencerFormState>(defaultFormState);
+    const [influencers, setInfluencers] = useState<InfluencerDataModel[]>([]);
+    const [selectedId, setSelectedId] = useState<string | "new" | null>(null);
+    const [formState, setFormState] = useState<InfluencerFormState>(() => createDefaultFormState());
     const [searchTerm, setSearchTerm] = useState("");
     const [csvFileName, setCsvFileName] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const dashboardRepo = useMemo(() => DashboardRepo(), []);
+    const [saveState, setSaveState] = useState<"idle" | "saving" | "success" | "error">("idle");
+    const [saveError, setSaveError] = useState<string | null>(null);
+    const [uploadRecords, setUploadRecords] = useState<UploadRecord[]>([]);
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const [uploadParseError, setUploadParseError] = useState<string | null>(null);
+    const [expandedRecords, setExpandedRecords] = useState<Set<number>>(() => new Set<number>());
+    const influencerRepo = useMemo(() => InfluencerRepo(), []);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const getRecordLabel = (record: UploadRecord, index: number) => {
+        const candidateKeys: Array<keyof UploadRecord> = ["display_name", "name", "username", "id"];
+        for (const key of candidateKeys) {
+            const value = record[key];
+            if (typeof value === "string" && value.trim().length > 0) {
+                return value;
+            }
+        }
+        return `Row ${index + 1}`;
+    };
 
     useEffect(() => {
         let isMounted = true;
         (async () => {
             setIsLoading(true);
             try {
-                const data = await dashboardRepo.getAllInfluencers();
+                const data = await influencerRepo.getInfluencers();
                 if (!isMounted) return;
                 setInfluencers(data);
                 setSelectedId(data.length ? data[0].id : "new");
@@ -135,11 +245,11 @@ const CreateInfluencer: React.FC = () => {
         return () => {
             isMounted = false;
         };
-    }, [dashboardRepo]);
+    }, [influencerRepo]);
 
     useEffect(() => {
         if (selectedId === "new") {
-            setFormState({ ...defaultFormState, joinedDate: toDateInputValue(null) });
+            setFormState(createDefaultFormState());
             return;
         }
 
@@ -160,7 +270,7 @@ const CreateInfluencer: React.FC = () => {
         const normalized = searchTerm.trim().toLowerCase();
         return influencers.filter((influencer) => {
             return (
-                influencer.fullName.toLowerCase().includes(normalized) ||
+                influencer.name.toLowerCase().includes(normalized) ||
                 influencer.username.toLowerCase().includes(normalized) ||
                 String(influencer.id).toLowerCase().includes(normalized)
             );
@@ -172,58 +282,79 @@ const CreateInfluencer: React.FC = () => {
         setFormState((prev) => ({ ...prev, [field]: value }));
     };
 
-    const handleStatusChange = (event: ChangeEvent<HTMLSelectElement>) => {
-        const value = event.target.value;
-        setFormState((prev) => ({
-            ...prev,
-            status: value === "" ? "" : (Number(value) as AccountStatus),
-        }));
-    };
+    useEffect(() => {
+        if (saveState === "success" || saveState === "error") {
+            const timeout = setTimeout(() => {
+                setSaveState("idle");
+                setSaveError(null);
+            }, 3000);
+            return () => clearTimeout(timeout);
+        }
+        return undefined;
+    }, [saveState]);
 
-    const handleSubscriptionChange = (event: ChangeEvent<HTMLSelectElement>) => {
-        const value = event.target.value;
-        setFormState((prev) => ({
-            ...prev,
-            subscriptionLevel: value === "" ? "" : (Number(value) as SubscriptionLevel),
-        }));
-    };
-
-    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const existing = selectedId !== "new" ? influencers.find((influencer) => influencer.id === selectedId) : undefined;
-        const base: DashboardInfluencerModel = {
+        const nameFromFields = `${formState.firstName} ${formState.lastName}`.trim();
+        const normalizedNameForUsername = nameFromFields
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "_")
+            .replace(/^_+|_+$/g, "");
+        const username = existing?.username || normalizedNameForUsername || "new_influencer";
+        const fullName = nameFromFields || existing?.name || "New Influencer";
+        const base: InfluencerDataModel = {
             id: formState.id || existing?.id || Date.now().toString(),
-            fullName: `${formState.firstName} ${formState.lastName}`.trim() || formState.username || "New Influencer",
-            username: formState.username || existing?.username || "new_influencer",
-            imgUrl: formState.avatarUrl || existing?.imgUrl || "",
-            joinedDate: formState.joinedDate || existing?.joinedDate || new Date().toISOString().slice(0, 10),
+            name: fullName,
+            username,
+            img: formState.avatarUrl || existing?.img || "",
+            created_at: formState.created_at || existing?.created_at || new Date().toISOString().slice(0, 10),
             earnings: existing?.earnings ?? 0,
-            accountStatus: (formState.status === "" ? AccountStatus.active : formState.status) as AccountStatus,
-            subscriptionLevel: (formState.subscriptionLevel === "" ? SubscriptionLevel.basic : formState.subscriptionLevel) as SubscriptionLevel,
             isSelected: false,
+            voice_id: formState.voice_id || existing?.voice_id || "",
+            prompt_template: formState.prompt_template || existing?.prompt_template || "",
+            elevenlabs_agent_id: formState.elevenlabs_agent_id || existing?.elevenlabs_agent_id || "",
+            voice_prompt: formState.voice_prompt || existing?.voice_prompt || "",
+            social_connections: { ...formState.social_connections },
+            daily_scripts: existing?.daily_scripts ?? [],
         };
-
-        setInfluencers((prev) => {
-            const index = prev.findIndex((influencer) => influencer.id === base.id);
-            if (index === -1) {
-                return [base, ...prev];
-            }
-            const next = [...prev];
-            next[index] = base;
-            return next;
-        });
-
-        setSelectedId(base.id);
+        const isNewInfluencer = selectedId === "new" || !existing;
+        setSaveState("saving");
+        setSaveError(null);
+        try {
+            const serverInfluencer = isNewInfluencer
+                ? await influencerRepo.createInfluencer(base)
+                : await influencerRepo.patchInfluencer(base, base.prompt_template, existing?.daily_scripts || []);
+            const mergedInfluencer = {
+                ...base,
+                ...serverInfluencer,
+            };
+            setInfluencers((prev) => {
+                const index = prev.findIndex((influencer) => influencer.id === mergedInfluencer.id);
+                if (index === -1) {
+                    return [mergedInfluencer, ...prev];
+                }
+                const next = [...prev];
+                next[index] = mergedInfluencer;
+                return next;
+            });
+            setSelectedId(mergedInfluencer.id);
+            setSaveState("success");
+        } catch (err) {
+            console.error("Failed to save influencer:", err);
+            setSaveState("error");
+            setSaveError(err instanceof Error ? err.message : "Unknown error");
+        }
     };
 
     const handleCreateNew = () => {
         setSelectedId("new");
-        setFormState({ ...defaultFormState, joinedDate: toDateInputValue(null) });
+        setFormState(createDefaultFormState());
     };
 
     const handleReset = () => {
         if (selectedId === "new" || selectedId === null) {
-            setFormState({ ...defaultFormState, joinedDate: toDateInputValue(null) });
+            setFormState(createDefaultFormState());
             return;
         }
         const selected = influencers.find((influencer) => influencer.id === selectedId);
@@ -236,26 +367,87 @@ const CreateInfluencer: React.FC = () => {
         fileInputRef.current?.click();
     };
 
-    const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            setCsvFileName(file.name);
-        } else {
-            setCsvFileName(null);
-        }
+    const handleSocialToggle = (platform: keyof SocialConnections) => {
+        setFormState((prev) => ({
+            ...prev,
+            socialConnections: {
+                ...prev.social_connections,
+                [platform]: !prev.social_connections[platform],
+            },
+        }));
     };
 
-    const statusBadge = (status: AccountStatus) => {
-        const statusClassKey = accountStatusClassMap[status];
-        const className = `${styles["status-badge"]} ${styles[statusClassKey]}`;
-        return <span className={className}>{accountStatusLabels[status]}</span>;
+    const socialPlatformMeta: Array<{
+        key: keyof SocialConnections;
+        label: string;
+        description: string;
+    }> = [
+            { key: "instagram", label: "Instagram", description: "Sync reels, DMs, and stories." },
+            { key: "facebook", label: "Facebook", description: "Manage posts and Messenger." },
+            { key: "onlyfans", label: "OnlyFans", description: "Mirror exclusive drops and chats." },
+            { key: "twitter", label: "X / Twitter", description: "Reply to mentions and DMs." },
+        ];
+
+    const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) {
+            setCsvFileName(null);
+            setUploadRecords([]);
+            setIsUploadModalOpen(false);
+            return;
+        }
+        setCsvFileName(file.name);
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                const text = String(reader.result ?? "");
+                const parsed = parseUploadFileContent(text);
+                if (parsed.length === 0) {
+                    throw new Error("No rows detected in the uploaded file.");
+                }
+                setUploadRecords(parsed);
+                setExpandedRecords(new Set<number>());
+                setUploadParseError(null);
+                setIsUploadModalOpen(true);
+            } catch (err) {
+                console.error("Failed to parse uploaded file:", err);
+                setUploadRecords([]);
+                setIsUploadModalOpen(false);
+                setUploadParseError(err instanceof Error ? err.message : "Unable to parse the uploaded file.");
+            }
+        };
+        reader.onerror = () => {
+            console.error("Failed to read uploaded file:", reader.error);
+            setUploadParseError("Failed to read the selected file.");
+        };
+        reader.readAsText(file);
+        event.target.value = "";
+    };
+
+    const toggleRecordExpansion = (index: number) => {
+        setExpandedRecords((prev) => {
+            const next = new Set(prev);
+            if (next.has(index)) {
+                next.delete(index);
+            } else {
+                next.add(index);
+            }
+            return next;
+        });
+    };
+
+    const closeUploadModal = () => {
+        setIsUploadModalOpen(false);
     };
 
     return (
         <div className={styles["create-ai"]}>
             <div className={styles["create-ai__header"]}>
                 <h1 className={styles["create-ai__title"]}>Influencer Manager</h1>
-                {csvFileName && <span className={styles["upload-feedback"]}>Imported: {csvFileName}</span>}
+                <div className={styles["upload-status-group"]}>
+                    {csvFileName && <span className={styles["upload-feedback"]}>Imported: {csvFileName}</span>}
+                    {uploadParseError && <span className={styles["upload-error"]}>{uploadParseError}</span>}
+                </div>
             </div>
 
             <div className={styles["create-ai__layout"]}>
@@ -298,7 +490,7 @@ const CreateInfluencer: React.FC = () => {
                         ) : (
                             filteredInfluencers.map((influencer) => {
                                 const isActive = selectedId === influencer.id;
-                                const { firstName, lastName } = splitName(influencer.fullName);
+                                const { firstName, lastName } = splitName(influencer.name);
                                 const initials = `${firstName?.charAt(0) ?? ""}${lastName?.charAt(0) ?? ""}`.trim() ||
                                     influencer.username.charAt(0).toUpperCase();
                                 return (
@@ -309,8 +501,8 @@ const CreateInfluencer: React.FC = () => {
                                         onClick={() => setSelectedId(influencer.id)}
                                     >
                                         <div className={styles["influencer-item__avatar"]}>
-                                            {influencer.imgUrl ? (
-                                                <img src={influencer.imgUrl} alt={influencer.fullName} />
+                                            {influencer.img ? (
+                                                <img src={influencer.img} alt={influencer.name} />
                                             ) : initials ? (
                                                 <span>{initials}</span>
                                             ) : (
@@ -318,10 +510,9 @@ const CreateInfluencer: React.FC = () => {
                                             )}
                                         </div>
                                         <div className={styles["influencer-item__copy"]}>
-                                            <span className={styles["influencer-name"]}>{influencer.fullName}</span>
+                                            <span className={styles["influencer-name"]}>{influencer.name}</span>
                                             <span className={styles["influencer-username"]}>@{influencer.username}</span>
                                         </div>
-                                        {statusBadge(influencer.accountStatus)}
                                     </button>
                                 );
                             })
@@ -353,17 +544,6 @@ const CreateInfluencer: React.FC = () => {
                                     value={formState.id}
                                     onChange={handleFieldChange("id")}
                                     placeholder="Auto-generated if left blank"
-                                />
-                            </div>
-
-                            <div className={styles["field"]}>
-                                <label htmlFor="influencer-username">Username</label>
-                                <input
-                                    id="influencer-username"
-                                    value={formState.username}
-                                    onChange={handleFieldChange("username")}
-                                    placeholder="@username"
-                                    required
                                 />
                             </div>
 
@@ -413,8 +593,8 @@ const CreateInfluencer: React.FC = () => {
                                 <input
                                     id="influencer-joined-date"
                                     type="date"
-                                    value={formState.joinedDate}
-                                    onChange={handleFieldChange("joinedDate")}
+                                    value={formState.created_at}
+                                    onChange={handleFieldChange("created_at")}
                                 />
                             </div>
 
@@ -429,64 +609,163 @@ const CreateInfluencer: React.FC = () => {
                             </div>
 
                             <div className={styles["field"]}>
-                                <label htmlFor="influencer-status">Status</label>
-                                <select
-                                    id="influencer-status"
-                                    value={formState.status === "" ? "" : Number(formState.status)}
-                                    onChange={handleStatusChange}
-                                >
-                                    <option value="">Select status</option>
-                                    {Object.values(AccountStatus)
-                                        .filter((value) => typeof value === "number")
-                                        .map((status) => (
-                                            <option key={status} value={status as number}>
-                                                {accountStatusLabels[status as AccountStatus]}
-                                            </option>
-                                        ))}
-                                </select>
+                                <label htmlFor="influencer-voice-id">Voice ID</label>
+                                <input
+                                    id="influencer-voice-id"
+                                    value={formState.voice_id}
+                                    onChange={handleFieldChange("voice_id")}
+                                    placeholder="voice_123"
+                                />
                             </div>
 
                             <div className={styles["field"]}>
-                                <label htmlFor="influencer-tier">Subscription tier</label>
-                                <select
-                                    id="influencer-tier"
-                                    value={formState.subscriptionLevel === "" ? "" : Number(formState.subscriptionLevel)}
-                                    onChange={handleSubscriptionChange}
-                                >
-                                    <option value="">Select tier</option>
-                                    {Object.values(SubscriptionLevel)
-                                        .filter((value) => typeof value === "number")
-                                        .map((tier) => (
-                                            <option key={tier} value={tier as number}>
-                                                {subscriptionLevelLabels[tier as SubscriptionLevel]}
-                                            </option>
-                                        ))}
-                                </select>
+                                <label htmlFor="influencer-agent-id">ElevenLabs Agent ID</label>
+                                <input
+                                    id="influencer-agent-id"
+                                    value={formState.elevenlabs_agent_id}
+                                    onChange={handleFieldChange("elevenlabs_agent_id")}
+                                    placeholder="agent_abc"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <div className={styles["section-heading"]}>
+                                <h3>Social media connectors</h3>
+                                <p>Link first-party profiles so calls and messages stay in sync.</p>
+                            </div>
+                            <div className={styles["social-connectors"]}>
+                                {socialPlatformMeta.map(({ key, label, description }) => {
+                                    const connected = formState.social_connections[key];
+                                    return (
+                                        <div
+                                            key={key}
+                                            className={`${styles["social-card"]} ${connected ? styles["social-card--connected"] : ""}`}
+                                        >
+                                            <div>
+                                                <span className={styles["social-card__label"]}>{label}</span>
+                                                <p className={styles["social-card__description"]}>{description}</p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                className={`${styles["social-button"]} ${connected ? styles["social-button--connected"] : ""}`}
+                                                onClick={() => handleSocialToggle(key)}
+                                                aria-pressed={connected}
+                                            >
+                                                {connected ? "Connected" : "Connect"}
+                                            </button>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
 
                         <div className={styles["field"]}>
-                            <label htmlFor="influencer-notes">Notes</label>
+                            <label htmlFor="influencer-prompt">Prompt</label>
                             <textarea
-                                id="influencer-notes"
-                                value={formState.notes}
-                                onChange={handleFieldChange("notes")}
-                                placeholder="Add any context or internal notes"
-                                rows={4}
+                                id="influencer-prompt"
+                                value={formState.prompt_template}
+                                onChange={handleFieldChange("prompt_template")}
+                                placeholder="System prompt or guidance used for this influencer"
+                                rows={20}
+                            />
+                        </div>
+
+                        <div className={styles["field"]}>
+                            <label htmlFor="influencer-voice-prompt">Voice prompt</label>
+                            <textarea
+                                id="influencer-voice-prompt"
+                                value={formState.voice_prompt}
+                                onChange={handleFieldChange("voice_prompt")}
+                                placeholder="Describe the desired voice style, pacing, tone, etc."
+                                rows={20}
                             />
                         </div>
 
                         <div className={styles["form-footer"]}>
+                            {saveState !== "idle" && (
+                                <span
+                                    className={`${styles["save-status"]} ${saveState === "success" ? styles["save-status--success"] : ""} ${saveState === "error" ? styles["save-status--error"] : ""}`}
+                                >
+                                    {saveState === "success" && "Changes saved"}
+                                    {saveState === "error" && (saveError || "Failed to save changes")}
+                                    {saveState === "saving" && "Saving…"}
+                                </span>
+                            )}
                             <button type="button" className={styles["secondary-button"]} onClick={handleReset}>
                                 Reset
                             </button>
-                            <button type="submit" className={styles["primary-button"]}>
-                                Save changes
+                            <button type="submit" className={styles["primary-button"]} disabled={saveState === "saving"}>
+                                {saveState === "saving" ? "Saving…" : "Save changes"}
                             </button>
                         </div>
                     </form>
                 </section>
             </div>
+            <Modal
+                isOpen={isUploadModalOpen}
+                onClose={closeUploadModal}
+                size="lg"
+                ariaLabel="Uploaded influencer data preview"
+                closeOnOverlayClick
+            >
+                <div className={styles["upload-modal"]}>
+                    <div className={styles["upload-modal__header"]}>
+                        <div>
+                            <h3>Imported records</h3>
+                            <p>
+                                {csvFileName ? `${csvFileName} • ` : ""}
+                                {uploadRecords.length} row{uploadRecords.length === 1 ? "" : "s"}
+                            </p>
+                        </div>
+                        <button type="button" className={styles["upload-modal__close"]} onClick={closeUploadModal}>
+                            Close
+                        </button>
+                    </div>
+                    {uploadRecords.length === 0 ? (
+                        <div className={styles["upload-modal__empty"]}>No data to preview yet.</div>
+                    ) : (
+                        <ul className={styles["upload-modal__list"]}>
+                            {uploadRecords.map((record, index) => {
+                                const isExpanded = expandedRecords.has(index);
+                                const label = getRecordLabel(record, index);
+                                const entries = Object.entries(record);
+                                return (
+                                    <li key={`${label}-${index}`} className={styles["upload-modal__item"]}>
+                                        <button
+                                            type="button"
+                                            className={`${styles["upload-modal__toggle"]} ${isExpanded ? styles["upload-modal__toggle--expanded"] : ""}`}
+                                            onClick={() => toggleRecordExpansion(index)}
+                                            aria-expanded={isExpanded}
+                                        >
+                                            <span>{label}</span>
+                                            <span className={styles["upload-modal__chevron"]}>{isExpanded ? "-" : "+"}</span>
+                                        </button>
+                                        {isExpanded && (
+                                            <div className={styles["upload-modal__body"]}>
+                                                {entries.map(([key, value]) => {
+                                                    const formattedValue = formatRecordValue(value);
+                                                    const isMultiline = /\n/.test(formattedValue);
+                                                    return (
+                                                        <div key={key} className={styles["upload-modal__row"]}>
+                                                            <span className={styles["upload-modal__key"]}>{formatRecordKey(key)}</span>
+                                                            {isMultiline ? (
+                                                                <pre className={styles["upload-modal__value-pre"]}>{formattedValue}</pre>
+                                                            ) : (
+                                                                <span className={styles["upload-modal__value"]}>{formattedValue}</span>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )}
+                </div>
+            </Modal>
         </div>
     );
 };

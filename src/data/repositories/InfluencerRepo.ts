@@ -18,6 +18,14 @@ export const InfluencerRepo = () => ({
                     username: item.id,
                     img: dummy.getImage(item.id as "loli" | "bella" | "anna"),
                     videoUrl: dummy.getVideo(item.id as "loli" | "bella" | "anna"),
+                    daily_scripts: item.daily_scripts,
+                    prompt_template: item.prompt_template,
+                    elevenlabs_agent_id: item.influencer_agent_id_third_part,
+                    voice_prompt: item.voice_prompt,
+                    voice_id: item.voice_id,
+                    created_at: item.created_at,
+                    earnings: 0,
+                    isSelected: false,
                 }
             })
         } catch (e) {
@@ -34,7 +42,10 @@ export const InfluencerRepo = () => ({
                 img: dummy.getImage(response.id as "loli" | "bella" | "anna"),
                 videoUrl: dummy.getVideo(response.id as "loli" | "bella" | "anna"),
                 daily_scripts: response.daily_scripts,
-                prompt_template: response.prompt_template
+                prompt_template: response.prompt_template,
+                earnings: 0,
+                created_at: "",
+                isSelected: false,
             }
         } catch (e) {
             throw e;
@@ -57,6 +68,39 @@ export const InfluencerRepo = () => ({
         } catch (e) {
             throw e
         }
-
+    },
+    createInfluencer: async (influencer: InfluencerDataModel) => {
+        try {
+            const response: InfluencerResponse = await influencerServices.createInfluencer(
+                influencer.id,
+                influencer.prompt_template ?? "",
+                influencer.name,
+                influencer.daily_scripts,
+                influencer.elevenlabs_agent_id,
+                influencer.voice_prompt,
+                influencer.voice_id
+            );
+            return {
+                id: response.id,
+                name: response.display_name,
+                username: response.id,
+                img: dummy.getImage(response.id as "loli" | "bella" | "anna"),
+                videoUrl: dummy.getVideo(response.id as "loli" | "bella" | "anna"),
+                daily_scripts: response.daily_scripts,
+                prompt_template: response.prompt_template
+            }
+        } catch (e) {
+            throw e
+        }
+    },
+    uploadCsv: async (file: File, save: boolean): Promise<void> => {
+        try {
+            await influencerServices.uploadCsv(
+                file,
+                save
+            );
+        } catch (e) {
+            throw e
+        }
     }
 })

@@ -327,7 +327,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                     error={error}
                     inputAudio={inputAudio} />
             </div>
-            <CallModal timeRemaining={timeRemaining} status={status} isOpen={openWelcomeCallModal} onClose={() => setOpenWelcomeCallModal(false)} stopConversation={stopConversation} influencer={influencer} />
+            <CallModal
+                timeRemaining={timeRemaining}
+                status={status}
+                isOpen={openWelcomeCallModal}
+                onClose={() => setOpenWelcomeCallModal(false)}
+                stopConversation={stopConversation}
+                influencer={influencer} />
         </div>
     );
 };
