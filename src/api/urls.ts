@@ -20,6 +20,11 @@ export const Endpoints = {
         history: (chat_id: string) => `/chat/history/${chat_id}`,
         audio: "/chat/chat_audio"
     },
+    knowledge: {
+        list: (influencerId: string) => `/influencer/${influencerId}/knowledge`,
+        upload: (influencerId: string) => `/influencer/${influencerId}/knowledge/upload`,
+        delete: (influencerId: string, fileId: number) => `/influencer/${influencerId}/knowledge/${fileId}`,
+    },
     push: {
         subscribe: "/push/subscribe",
     },
@@ -31,6 +36,7 @@ export const Endpoints = {
     influencers: "/influencer",
     influencer: (id: string) => `/influencer/${id}`,
     uploadCsv: "persona/import-csv",
+    mcpToolsCall: "/mcp/tools/call",
     ws: {
         chat: "/chat/ws",
         notifications: "/ws/notifications",
