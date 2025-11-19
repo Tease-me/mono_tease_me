@@ -23,14 +23,25 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
             throw error
         }
     },
-    patchInfluencer: async (influencer_id: string, display_name: string, prompt_template: string, daily_scripts: string[]): Promise<InfluencerResponse> => {
+    patchInfluencer: async (
+        influencer_id: string,
+        display_name: string,
+        prompt_template: string,
+        daily_scripts: string[],
+        elevenlabs_agent_id?: string,
+        voice_prompt?: string,
+        voice_id?: string
+    ): Promise<InfluencerResponse> => {
         try {
             const response = await apiClient.patch(
                 Endpoints.influencer(influencer_id),
                 {
                     "display_name": display_name,
                     "prompt_template": prompt_template,
-                    "daily_scripts": daily_scripts
+                    "daily_scripts": daily_scripts,
+                    ...(elevenlabs_agent_id !== undefined && { "influencer_agent_id_third_part": elevenlabs_agent_id }),
+                    ...(voice_prompt !== undefined && { "voice_prompt": voice_prompt }),
+                    ...(voice_id !== undefined && { "voice_id": voice_id })
                 }
             );
             return response.data;

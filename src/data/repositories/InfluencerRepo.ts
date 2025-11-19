@@ -51,11 +51,24 @@ export const InfluencerRepo = () => ({
             throw e;
         }
     },
-    patchInfluencer: async (influencer: InfluencerDataModel, prompt_template?: string, daily_scripts?: string[]) => {
+    patchInfluencer: async (
+        influencer: InfluencerDataModel,
+        prompt_template?: string,
+        daily_scripts?: string[],
+        elevenlabs_agent_id?: string,
+        voice_prompt?: string,
+        voice_id?: string
+    ) => {
         try {
-            const response: InfluencerResponse = await influencerServices.patchInfluencer(influencer.id, influencer.name,
+            const response: InfluencerResponse = await influencerServices.patchInfluencer(
+                influencer.id,
+                influencer.name,
                 (prompt_template ?? influencer.prompt_template ?? ""),
-                (daily_scripts ?? influencer.daily_scripts ?? []));
+                (daily_scripts ?? influencer.daily_scripts ?? []),
+                (elevenlabs_agent_id ?? influencer.elevenlabs_agent_id),
+                (voice_prompt ?? influencer.voice_prompt),
+                (voice_id ?? influencer.voice_id)
+            );
             return {
                 id: response.id,
                 name: response.display_name,
@@ -63,7 +76,13 @@ export const InfluencerRepo = () => ({
                 img: dummy.getImage(response.id as "loli" | "bella" | "anna"),
                 videoUrl: dummy.getVideo(response.id as "loli" | "bella" | "anna"),
                 daily_scripts: response.daily_scripts,
-                prompt_template: response.prompt_template
+                prompt_template: response.prompt_template,
+                elevenlabs_agent_id: response.influencer_agent_id_third_part,
+                voice_prompt: response.voice_prompt,
+                voice_id: response.voice_id,
+                created_at: response.created_at,
+                earnings: influencer.earnings,
+                isSelected: influencer.isSelected,
             }
         } catch (e) {
             throw e
@@ -87,7 +106,13 @@ export const InfluencerRepo = () => ({
                 img: dummy.getImage(response.id as "loli" | "bella" | "anna"),
                 videoUrl: dummy.getVideo(response.id as "loli" | "bella" | "anna"),
                 daily_scripts: response.daily_scripts,
-                prompt_template: response.prompt_template
+                prompt_template: response.prompt_template,
+                elevenlabs_agent_id: response.influencer_agent_id_third_part,
+                voice_prompt: response.voice_prompt,
+                voice_id: response.voice_id,
+                created_at: response.created_at,
+                earnings: influencer.earnings,
+                isSelected: influencer.isSelected,
             }
         } catch (e) {
             throw e

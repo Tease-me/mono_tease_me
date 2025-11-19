@@ -212,6 +212,10 @@ const CreateInfluencer: React.FC = () => {
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [uploadParseError, setUploadParseError] = useState<string | null>(null);
     const [expandedRecords, setExpandedRecords] = useState<Set<number>>(() => new Set<number>());
+    const [promptSaveState, setPromptSaveState] = useState<"idle" | "saving" | "success" | "error">("idle");
+    const [voicePromptSaveState, setVoicePromptSaveState] = useState<"idle" | "saving" | "success" | "error">("idle");
+    const [promptSaveError, setPromptSaveError] = useState<string | null>(null);
+    const [voicePromptSaveError, setVoicePromptSaveError] = useState<string | null>(null);
     const influencerRepo = useMemo(() => InfluencerRepo(), []);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -293,6 +297,28 @@ const CreateInfluencer: React.FC = () => {
         return undefined;
     }, [saveState]);
 
+    useEffect(() => {
+        if (promptSaveState === "success" || promptSaveState === "error") {
+            const timeout = setTimeout(() => {
+                setPromptSaveState("idle");
+                setPromptSaveError(null);
+            }, 3000);
+            return () => clearTimeout(timeout);
+        }
+        return undefined;
+    }, [promptSaveState]);
+
+    useEffect(() => {
+        if (voicePromptSaveState === "success" || voicePromptSaveState === "error") {
+            const timeout = setTimeout(() => {
+                setVoicePromptSaveState("idle");
+                setVoicePromptSaveError(null);
+            }, 3000);
+            return () => clearTimeout(timeout);
+        }
+        return undefined;
+    }, [voicePromptSaveState]);
+
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const existing = selectedId !== "new" ? influencers.find((influencer) => influencer.id === selectedId) : undefined;
@@ -324,7 +350,14 @@ const CreateInfluencer: React.FC = () => {
         try {
             const serverInfluencer = isNewInfluencer
                 ? await influencerRepo.createInfluencer(base)
-                : await influencerRepo.patchInfluencer(base, base.prompt_template, existing?.daily_scripts || []);
+                : await influencerRepo.patchInfluencer(
+                    base,
+                    base.prompt_template,
+                    existing?.daily_scripts || [],
+                    base.elevenlabs_agent_id,
+                    base.voice_prompt,
+                    base.voice_id
+                );
             const mergedInfluencer = {
                 ...base,
                 ...serverInfluencer,
@@ -344,6 +377,113 @@ const CreateInfluencer: React.FC = () => {
             console.error("Failed to save influencer:", err);
             setSaveState("error");
             setSaveError(err instanceof Error ? err.message : "Unknown error");
+        }
+    };
+
+    const updateInfluencerCollection = (updated: InfluencerDataModel) => {
+        setInfluencers((prev) => {
+            const index = prev.findIndex((influencer) => influencer.id === updated.id);
+            if (index === -1) {
+                return [updated, ...prev];
+            }
+            const next = [...prev];
+            next[index] = { ...next[index], ...updated };
+            return next;
+        });
+        setSelectedId(updated.id);
+    };
+
+    const handlePromptTemplateSave = async () => {
+        if (!selectedId || selectedId === "new") {
+            setPromptSaveState("error");
+            setPromptSaveError("Select an influencer to update the prompt.");
+            return;
+        }
+        const existing = influencers.find((influencer) => influencer.id === selectedId);
+        if (!existing) {
+            setPromptSaveState("error");
+            setPromptSaveError("Influencer not found.");
+            return;
+        }
+
+        const payload: InfluencerDataModel = {
+            ...existing,
+            prompt_template: formState.prompt_template,
+            elevenlabs_agent_id: existing.elevenlabs_agent_id,
+            voice_prompt: existing.voice_prompt,
+            voice_id: formState.voice_id || existing.voice_id,
+        };
+
+        setPromptSaveState("saving");
+        setPromptSaveError(null);
+
+        try {
+            const serverInfluencer = await influencerRepo.patchInfluencer(
+                payload,
+                payload.prompt_template,
+                payload.daily_scripts,
+                payload.elevenlabs_agent_id,
+                payload.voice_prompt,
+                payload.voice_id
+            );
+            const mergedInfluencer = { ...payload, ...serverInfluencer };
+            updateInfluencerCollection(mergedInfluencer);
+            setFormState((prev) => ({ ...prev, id: mergedInfluencer.id, prompt_template: mergedInfluencer.prompt_template ?? prev.prompt_template }));
+            setPromptSaveState("success");
+        } catch (err) {
+            console.error("Failed to save prompt:", err);
+            setPromptSaveState("error");
+            setPromptSaveError(err instanceof Error ? err.message : "Unable to save prompt");
+        }
+    };
+
+    const handleVoicePromptSave = async () => {
+        if (!selectedId || selectedId === "new") {
+            setVoicePromptSaveState("error");
+            setVoicePromptSaveError("Select an influencer to update the voice prompt.");
+            return;
+        }
+        const existing = influencers.find((influencer) => influencer.id === selectedId);
+        if (!existing) {
+            setVoicePromptSaveState("error");
+            setVoicePromptSaveError("Influencer not found.");
+            return;
+        }
+
+        const payload: InfluencerDataModel = {
+            ...existing,
+            prompt_template: existing.prompt_template,
+            elevenlabs_agent_id: formState.elevenlabs_agent_id || existing.elevenlabs_agent_id,
+            voice_prompt: formState.voice_prompt,
+            voice_id: formState.voice_id || existing.voice_id,
+        };
+
+        setVoicePromptSaveState("saving");
+        setVoicePromptSaveError(null);
+
+        try {
+            const serverInfluencer = await influencerRepo.patchInfluencer(
+                payload,
+                payload.prompt_template,
+                payload.daily_scripts,
+                payload.elevenlabs_agent_id,
+                payload.voice_prompt,
+                payload.voice_id
+            );
+            const mergedInfluencer = { ...payload, ...serverInfluencer };
+            updateInfluencerCollection(mergedInfluencer);
+            setFormState((prev) => ({
+                ...prev,
+                id: mergedInfluencer.id,
+                elevenlabs_agent_id: mergedInfluencer.elevenlabs_agent_id ?? prev.elevenlabs_agent_id,
+                voice_id: mergedInfluencer.voice_id ?? prev.voice_id,
+                voice_prompt: mergedInfluencer.voice_prompt ?? prev.voice_prompt,
+            }));
+            setVoicePromptSaveState("success");
+        } catch (err) {
+            console.error("Failed to save voice prompt:", err);
+            setVoicePromptSaveState("error");
+            setVoicePromptSaveError(err instanceof Error ? err.message : "Unable to save voice prompt");
         }
     };
 
@@ -370,7 +510,7 @@ const CreateInfluencer: React.FC = () => {
     const handleSocialToggle = (platform: keyof SocialConnections) => {
         setFormState((prev) => ({
             ...prev,
-            socialConnections: {
+            social_connections: {
                 ...prev.social_connections,
                 [platform]: !prev.social_connections[platform],
             },
@@ -669,6 +809,20 @@ const CreateInfluencer: React.FC = () => {
                                 placeholder="System prompt or guidance used for this influencer"
                                 rows={20}
                             />
+                            <div className={styles["form-footer"]}>
+                                {promptSaveState !== "idle" && (
+                                    <span
+                                        className={`${styles["save-status"]} ${promptSaveState === "success" ? styles["save-status--success"] : ""} ${promptSaveState === "error" ? styles["save-status--error"] : ""}`}
+                                    >
+                                        {promptSaveState === "success" && "Prompt saved"}
+                                        {promptSaveState === "error" && (promptSaveError || "Failed to save prompt")}
+                                        {promptSaveState === "saving" && "Saving prompt…"}
+                                    </span>
+                                )}
+                                <button type="button" className={styles["primary-button"]} disabled={promptSaveState === "saving"} onClick={handlePromptTemplateSave}>
+                                    {promptSaveState === "saving" ? "Saving…" : "Save prompt only"}
+                                </button>
+                            </div>
                         </div>
 
                         <div className={styles["field"]}>
@@ -680,6 +834,20 @@ const CreateInfluencer: React.FC = () => {
                                 placeholder="Describe the desired voice style, pacing, tone, etc."
                                 rows={20}
                             />
+                            <div className={styles["form-footer"]}>
+                                {voicePromptSaveState !== "idle" && (
+                                    <span
+                                        className={`${styles["save-status"]} ${voicePromptSaveState === "success" ? styles["save-status--success"] : ""} ${voicePromptSaveState === "error" ? styles["save-status--error"] : ""}`}
+                                    >
+                                        {voicePromptSaveState === "success" && "Voice prompt saved"}
+                                        {voicePromptSaveState === "error" && (voicePromptSaveError || "Failed to save voice prompt")}
+                                        {voicePromptSaveState === "saving" && "Saving voice prompt…"}
+                                    </span>
+                                )}
+                                <button type="button" className={styles["primary-button"]} disabled={voicePromptSaveState === "saving"} onClick={handleVoicePromptSave}>
+                                    {voicePromptSaveState === "saving" ? "Saving…" : "Save voice prompt only"}
+                                </button>
+                            </div>
                         </div>
 
                         <div className={styles["form-footer"]}>
