@@ -4,6 +4,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import GuestRoute from "./components/GuestRoute";
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 import UpdateProfile from "@/ui/screens/register/UpdateProfile";
+import SuperRoute from "./components/SuperRoute";
 
 const InfluencerProfileScreen = lazy(() => import("@/ui/screens/influencer-profile/InfluencerProfileScreen"));
 const LoginScreen = lazy(() => import("@/ui/screens/login/LoginScreen"));
@@ -30,16 +31,17 @@ function AppRoutes() {
   ];
 
   const guestRoutes: { path: string; element: JSX.Element }[] = [
-    { path: "/mj/dashboard", element: <MJDashboard /> },
-    {
-      path: "/mj/influencer", element: <CreateInfluencer />
-    },
     { path: "/login", element: <LoginScreen /> },
     { path: "/register", element: <RegisterScreen /> },
     { path: "/register/verify", element: <Confirmation /> },
     { path: "/reset-password", element: <ResetPassword /> },
     { path: "/forgot-password", element: <ForgotPassword /> },
     { path: "/verify-email", element: <VerifyEmail /> },
+  ];
+
+  const superRoutes: { path: string; element: JSX.Element }[] = [
+    { path: "/mj/dashboard", element: <MJDashboard /> },
+    { path: "/mj/influencer", element: <CreateInfluencer /> },
   ];
 
   const privateRoutes: { path: string; element: JSX.Element }[] = [
@@ -62,6 +64,9 @@ function AppRoutes() {
           ))}
           {privateRoutes.map(({ path, element }) => (
             <Route key={path} path={path} element={<PrivateRoute>{element}</PrivateRoute>} />
+          ))}
+          {superRoutes.map(({ path, element }) => (
+            <Route key={path} path={path} element={<SuperRoute>{element}</SuperRoute>} />
           ))}
         </Routes>
       </Suspense>
