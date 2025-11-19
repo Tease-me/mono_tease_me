@@ -3,6 +3,8 @@ import { apiClient } from "@/api/apis";
 import { InfluencerDataModel } from "../models/InfluencerDataModel";
 import dummy from "@/dummy/dummy";
 import { InfluencerResponse } from "@/api/models/influencers";
+import { KnowledgeFile } from "@/api/models/knowledgeFiles";
+import { KnowledgeFileModel } from "../models/InfluencerDataModel";
 
 const influencerServices = InfluencerServices(apiClient);
 
@@ -127,5 +129,46 @@ export const InfluencerRepo = () => ({
         } catch (e) {
             throw e
         }
-    }
+    },
+    listKnowledgeFiles: async (influencer_id: string): Promise<KnowledgeFileModel[]> => {
+        try {
+            const response: KnowledgeFile[] = await influencerServices.listKnowledgeFiles(influencer_id);
+            return response.map((item) => ({
+                id: item.id ?? item.file_id ?? 0,
+                filename: item.filename,
+                file_type: item.file_type,
+                file_size_bytes: item.file_size_bytes,
+                status: item.status,
+                error_message: item.error_message,
+                created_at: item.created_at,
+                updated_at: item.updated_at,
+            }));
+        } catch (e) {
+            throw e;
+        }
+    },
+    uploadKnowledgeFile: async (influencer_id: string, file: File): Promise<KnowledgeFileModel> => {
+        try {
+            const item = await influencerServices.uploadKnowledgeFile(influencer_id, file);
+            return {
+                id: item.id ?? item.file_id ?? 0,
+                filename: item.filename,
+                file_type: item.file_type ?? (item.filename.split(".").pop() || "").toLowerCase(),
+                file_size_bytes: item.file_size_bytes ?? file.size ?? 0,
+                status: item.status,
+                error_message: item.error_message ?? null,
+                created_at: item.created_at ?? "",
+                updated_at: item.updated_at ?? "",
+            };
+        } catch (e) {
+            throw e;
+        }
+    },
+    deleteKnowledgeFile: async (influencer_id: string, file_id: number): Promise<void> => {
+        try {
+            await influencerServices.deleteKnowledgeFile(influencer_id, file_id);
+        } catch (e) {
+            throw e;
+        }
+    },
 })

@@ -5,6 +5,7 @@ import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { Modal } from "@/ui/components/modals/Modal";
 import { splitName } from "@/utils/StringUtils";
+import { KnowledgeFileModel } from "@/data/models/InfluencerDataModel";
 
 type SocialConnections = {
     instagram: boolean;
@@ -216,8 +217,13 @@ const CreateInfluencer: React.FC = () => {
     const [voicePromptSaveState, setVoicePromptSaveState] = useState<"idle" | "saving" | "success" | "error">("idle");
     const [promptSaveError, setPromptSaveError] = useState<string | null>(null);
     const [voicePromptSaveError, setVoicePromptSaveError] = useState<string | null>(null);
+    const [knowledgeFiles, setKnowledgeFiles] = useState<KnowledgeFileModel[]>([]);
+    const [knowledgeLoading, setKnowledgeLoading] = useState(false);
+    const [knowledgeError, setKnowledgeError] = useState<string | null>(null);
+    const [knowledgeUploading, setKnowledgeUploading] = useState(false);
     const influencerRepo = useMemo(() => InfluencerRepo(), []);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const knowledgeFileInputRef = useRef<HTMLInputElement>(null);
 
     const getRecordLabel = (record: UploadRecord, index: number) => {
         const candidateKeys: Array<keyof UploadRecord> = ["display_name", "name", "username", "id"];
@@ -266,6 +272,37 @@ const CreateInfluencer: React.FC = () => {
             setFormState(createFormStateFromInfluencer(selected));
         }
     }, [selectedId, influencers]);
+
+    useEffect(() => {
+        if (!selectedId || selectedId === "new") {
+            setKnowledgeFiles([]);
+            setKnowledgeError(null);
+            return;
+        }
+        let isCancelled = false;
+        const fetchFiles = async () => {
+            setKnowledgeLoading(true);
+            setKnowledgeError(null);
+            try {
+                const files = await influencerRepo.listKnowledgeFiles(selectedId);
+                if (!isCancelled) {
+                    setKnowledgeFiles(files);
+                }
+            } catch (err) {
+                if (!isCancelled) {
+                    setKnowledgeError(err instanceof Error ? err.message : "Unable to load documents");
+                }
+            } finally {
+                if (!isCancelled) {
+                    setKnowledgeLoading(false);
+                }
+            }
+        };
+        fetchFiles();
+        return () => {
+            isCancelled = true;
+        };
+    }, [selectedId, influencerRepo]);
 
     const filteredInfluencers = useMemo(() => {
         if (!searchTerm.trim()) {
@@ -507,26 +544,16 @@ const CreateInfluencer: React.FC = () => {
         fileInputRef.current?.click();
     };
 
-    const handleSocialToggle = (platform: keyof SocialConnections) => {
-        setFormState((prev) => ({
-            ...prev,
-            social_connections: {
-                ...prev.social_connections,
-                [platform]: !prev.social_connections[platform],
-            },
-        }));
+    const handleKnowledgeUploadClick = () => {
+        knowledgeFileInputRef.current?.click();
     };
 
-    const socialPlatformMeta: Array<{
-        key: keyof SocialConnections;
-        label: string;
-        description: string;
-    }> = [
-            { key: "instagram", label: "Instagram", description: "Sync reels, DMs, and stories." },
-            { key: "facebook", label: "Facebook", description: "Manage posts and Messenger." },
-            { key: "onlyfans", label: "OnlyFans", description: "Mirror exclusive drops and chats." },
-            { key: "twitter", label: "X / Twitter", description: "Reply to mentions and DMs." },
-        ];
+    const formatFileSize = (bytes: number) => {
+        if (!bytes) return "0 B";
+        const sizes = ["B", "KB", "MB", "GB"];
+        const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), sizes.length - 1);
+        return `${(bytes / 1024 ** i).toFixed(i === 0 ? 0 : 1)} ${sizes[i]}`;
+    };
 
     const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -562,6 +589,35 @@ const CreateInfluencer: React.FC = () => {
         };
         reader.readAsText(file);
         event.target.value = "";
+    };
+
+    const handleKnowledgeFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file || !selectedId || selectedId === "new") {
+            event.target.value = "";
+            return;
+        }
+        setKnowledgeUploading(true);
+        setKnowledgeError(null);
+        try {
+            const uploaded = await influencerRepo.uploadKnowledgeFile(selectedId, file);
+            setKnowledgeFiles((prev) => [uploaded, ...prev]);
+        } catch (err) {
+            setKnowledgeError(err instanceof Error ? err.message : "Failed to upload document");
+        } finally {
+            setKnowledgeUploading(false);
+            event.target.value = "";
+        }
+    };
+
+    const handleKnowledgeDelete = async (fileId: number) => {
+        if (!selectedId || selectedId === "new") return;
+        try {
+            await influencerRepo.deleteKnowledgeFile(selectedId, fileId);
+            setKnowledgeFiles((prev) => prev.filter((file) => file.id !== fileId));
+        } catch (err) {
+            setKnowledgeError(err instanceof Error ? err.message : "Failed to delete document");
+        }
     };
 
     const toggleRecordExpansion = (index: number) => {
@@ -771,32 +827,64 @@ const CreateInfluencer: React.FC = () => {
 
                         <div>
                             <div className={styles["section-heading"]}>
-                                <h3>Social media connectors</h3>
-                                <p>Link first-party profiles so calls and messages stay in sync.</p>
+                                <h3>Knowledge documents</h3>
+                                <p>Upload PDFs, DOC/DOCX, or TXT to enrich this influencer.</p>
                             </div>
-                            <div className={styles["social-connectors"]}>
-                                {socialPlatformMeta.map(({ key, label, description }) => {
-                                    const connected = formState.social_connections[key];
-                                    return (
-                                        <div
-                                            key={key}
-                                            className={`${styles["social-card"]} ${connected ? styles["social-card--connected"] : ""}`}
-                                        >
+                            <div className={styles["knowledge-actions"]}>
+                                <button
+                                    type="button"
+                                    className={styles["upload-button"]}
+                                    onClick={handleKnowledgeUploadClick}
+                                    disabled={!selectedId || selectedId === "new" || knowledgeUploading}
+                                >
+                                    {knowledgeUploading ? "Uploading…" : "Upload document"}
+                                </button>
+                                <input
+                                    ref={knowledgeFileInputRef}
+                                    className={styles["file-input"]}
+                                    type="file"
+                                    accept=".pdf,.doc,.docx,.txt"
+                                    onChange={handleKnowledgeFileChange}
+                                />
+                                {knowledgeError && <span className={styles["upload-error"]}>{knowledgeError}</span>}
+                            </div>
+                            <div className={styles["knowledge-list"]}>
+                                {selectedId === "new" ? (
+                                    <div className={styles["list-placeholder"]}>Save the influencer first to attach documents.</div>
+                                ) : knowledgeLoading ? (
+                                    <div className={styles["list-placeholder"]}>Loading documents…</div>
+                                ) : knowledgeFiles.length === 0 ? (
+                                    <div className={styles["list-placeholder"]}>No documents uploaded yet.</div>
+                                ) : (
+                                    knowledgeFiles.map((file) => (
+                                        <div key={file.id} className={styles["knowledge-item"]}>
                                             <div>
-                                                <span className={styles["social-card__label"]}>{label}</span>
-                                                <p className={styles["social-card__description"]}>{description}</p>
+                                                <div className={styles["knowledge-item__name"]}>{file.filename}</div>
+                                                <div className={styles["knowledge-item__meta"]}>
+                                                    <span>{file.file_type.toUpperCase()}</span>
+                                                    <span>•</span>
+                                                    <span>{formatFileSize(file.file_size_bytes)}</span>
+                                                    <span>•</span>
+                                                    <span>Status: {file.status}</span>
+                                                    {file.error_message && (
+                                                        <>
+                                                            <span>•</span>
+                                                            <span className={styles["upload-error"]}>{file.error_message}</span>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </div>
                                             <button
                                                 type="button"
-                                                className={`${styles["social-button"]} ${connected ? styles["social-button--connected"] : ""}`}
-                                                onClick={() => handleSocialToggle(key)}
-                                                aria-pressed={connected}
+                                                className={styles["secondary-button"]}
+                                                onClick={() => handleKnowledgeDelete(file.id)}
+                                                disabled={knowledgeUploading}
                                             >
-                                                {connected ? "Connected" : "Connect"}
+                                                Delete
                                             </button>
                                         </div>
-                                    );
-                                })}
+                                    ))
+                                )}
                             </div>
                         </div>
 
