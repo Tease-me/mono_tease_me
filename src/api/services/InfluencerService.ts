@@ -33,18 +33,29 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
         voice_id?: string
     ): Promise<InfluencerResponse> => {
         try {
-            const response = await apiClient.patch(
-                Endpoints.influencer(influencer_id),
-                {
-                    "display_name": display_name,
-                    "prompt_template": prompt_template,
-                    "daily_scripts": daily_scripts,
-                    ...(elevenlabs_agent_id !== undefined && { "influencer_agent_id_third_part": elevenlabs_agent_id }),
-                    ...(voice_prompt !== undefined && { "voice_prompt": voice_prompt }),
-                    ...(voice_id !== undefined && { "voice_id": voice_id })
-                }
-            );
-            return response.data;
+            const response = await apiClient.post(Endpoints.mcpToolsCall, {
+                name: "update_influencer",
+                arguments: {
+                    influencer_id,
+                    display_name,
+                    prompt_template,
+                    daily_scripts,
+                    ...(elevenlabs_agent_id !== undefined && { influencer_agent_id_third_part: elevenlabs_agent_id }),
+                    ...(voice_prompt !== undefined && { voice_prompt }),
+                    ...(voice_id !== undefined && { voice_id }),
+                },
+            });
+            const content = (response.data && response.data.content) || response.data || {};
+            return {
+                display_name: content.display_name ?? display_name,
+                prompt_template: content.prompt_template ?? prompt_template,
+                daily_scripts: content.daily_scripts ?? daily_scripts,
+                id: content.id ?? influencer_id,
+                influencer_agent_id_third_part: content.influencer_agent_id_third_part ?? elevenlabs_agent_id ?? "",
+                voice_prompt: content.voice_prompt ?? voice_prompt ?? "",
+                voice_id: content.voice_id ?? voice_id ?? "",
+                created_at: content.created_at ?? "",
+            };
         } catch (error) {
             throw error
         }

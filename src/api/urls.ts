@@ -31,6 +31,7 @@ export const Endpoints = {
     influencers: "/influencer",
     influencer: (id: string) => `/influencer/${id}`,
     uploadCsv: "persona/import-csv",
+    mcpToolsCall: "/mcp/tools/call",
     ws: {
         chat: "/chat/ws",
         notifications: "/ws/notifications",
