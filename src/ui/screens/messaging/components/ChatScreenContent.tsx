@@ -32,6 +32,7 @@ const MessagesList = React.memo(({ messages, typing, messagesEndRef }: { message
                 {typing && <MessageBubble />}
             </div>
             <div ref={messagesEndRef} style={{ height: "50px" }} />
+            {messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })}
         </>
     );
 });
@@ -170,7 +171,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         if (!chatId) return;
 
         const { audio_url } = await chatRepository.sendAudioMessage(audioBlob, influencer.id, chatId);
-
+        setTyping(false);
         setMessages((prev) => {
             if (!prev) return prev;
             return [
@@ -225,6 +226,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
             setInputText("");
         } else if (inputAudio) {
+            setTyping(true);
             sendAndPlay(inputAudio);
             setMessages(prev => {
                 if (!prev) return
