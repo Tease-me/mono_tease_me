@@ -35,7 +35,8 @@ export async function makeInfluencer(gender: "female" | "male" = "female"): Prom
         username: dummy.makeUsername(fullName),
         isSelected: false,
         prompt_template: "You are a charming conversational AI for TeaseMe.",
-        elevenlabs_agent_id: dummy.generateRandomId(),
+        influencer_agent_id_third_part: dummy.generateRandomId(),
+        influencer_gpt_agent_id: dummy.generateRandomId(),
         voice_prompt: "Engage warmly, keep responses concise and playful.",
         social_connections: {
             instagram: Math.random() > 0.5,

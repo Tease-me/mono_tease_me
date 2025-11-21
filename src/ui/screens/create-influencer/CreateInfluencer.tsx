@@ -25,7 +25,8 @@ type InfluencerFormState = {
     notes: string;
     voice_id: string;
     prompt_template: string;
-    elevenlabs_agent_id: string;
+    influencer_agent_id_third_part: string;
+    influencer_gpt_agent_id: string;
     voice_prompt: string;
     social_connections: SocialConnections;
 };
@@ -170,7 +171,8 @@ const createDefaultFormState = (): InfluencerFormState => ({
     notes: "",
     voice_id: "",
     prompt_template: "",
-    elevenlabs_agent_id: "",
+    influencer_agent_id_third_part: "",
+    influencer_gpt_agent_id: "",
     voice_prompt: "",
     social_connections: createDefaultSocialConnections(),
 });
@@ -189,7 +191,8 @@ function createFormStateFromInfluencer(influencer: InfluencerDataModel): Influen
         notes: "",
         voice_id: influencer.voice_id ?? "",
         prompt_template: influencer.prompt_template ?? "",
-        elevenlabs_agent_id: influencer.elevenlabs_agent_id ?? "",
+        influencer_agent_id_third_part: influencer.influencer_agent_id_third_part ?? "",
+        influencer_gpt_agent_id: influencer.influencer_gpt_agent_id ?? "",
         voice_prompt: influencer.voice_prompt ?? "",
         social_connections: {
             instagram: incomingSocial.instagram ?? false,
@@ -366,6 +369,8 @@ const CreateInfluencer: React.FC = () => {
             .replace(/^_+|_+$/g, "");
         const username = existing?.username || normalizedNameForUsername || "new_influencer";
         const fullName = nameFromFields || existing?.name || "New Influencer";
+        const thirdPartyAgentId = formState.influencer_agent_id_third_part || existing?.influencer_agent_id_third_part || "";
+        const gptAgentId = formState.influencer_gpt_agent_id || existing?.influencer_gpt_agent_id || "";
         const base: InfluencerDataModel = {
             id: formState.id || existing?.id || Date.now().toString(),
             name: fullName,
@@ -376,7 +381,8 @@ const CreateInfluencer: React.FC = () => {
             isSelected: false,
             voice_id: formState.voice_id || existing?.voice_id || "",
             prompt_template: formState.prompt_template || existing?.prompt_template || "",
-            elevenlabs_agent_id: formState.elevenlabs_agent_id || existing?.elevenlabs_agent_id || "",
+            influencer_agent_id_third_part: thirdPartyAgentId,
+            influencer_gpt_agent_id: gptAgentId,
             voice_prompt: formState.voice_prompt || existing?.voice_prompt || "",
             social_connections: { ...formState.social_connections },
             daily_scripts: existing?.daily_scripts ?? [],
@@ -391,9 +397,10 @@ const CreateInfluencer: React.FC = () => {
                     base,
                     base.prompt_template,
                     existing?.daily_scripts || [],
-                    base.elevenlabs_agent_id,
+                    base.influencer_agent_id_third_part,
                     base.voice_prompt,
-                    base.voice_id
+                    base.voice_id,
+                    base.influencer_gpt_agent_id
                 );
             const mergedInfluencer = {
                 ...base,
@@ -446,7 +453,8 @@ const CreateInfluencer: React.FC = () => {
         const payload: InfluencerDataModel = {
             ...existing,
             prompt_template: formState.prompt_template,
-            elevenlabs_agent_id: existing.elevenlabs_agent_id,
+            influencer_agent_id_third_part: existing.influencer_agent_id_third_part,
+            influencer_gpt_agent_id: existing.influencer_gpt_agent_id,
             voice_prompt: existing.voice_prompt,
             voice_id: formState.voice_id || existing.voice_id,
         };
@@ -459,13 +467,19 @@ const CreateInfluencer: React.FC = () => {
                 payload,
                 payload.prompt_template,
                 payload.daily_scripts,
-                payload.elevenlabs_agent_id,
+                payload.influencer_agent_id_third_part,
                 payload.voice_prompt,
-                payload.voice_id
+                payload.voice_id,
+                payload.influencer_gpt_agent_id
             );
             const mergedInfluencer = { ...payload, ...serverInfluencer };
             updateInfluencerCollection(mergedInfluencer);
-            setFormState((prev) => ({ ...prev, id: mergedInfluencer.id, prompt_template: mergedInfluencer.prompt_template ?? prev.prompt_template }));
+            setFormState((prev) => ({
+                ...prev,
+                id: mergedInfluencer.id,
+                prompt_template: mergedInfluencer.prompt_template ?? prev.prompt_template,
+                influencer_gpt_agent_id: mergedInfluencer.influencer_gpt_agent_id ?? prev.influencer_gpt_agent_id,
+            }));
             setPromptSaveState("success");
         } catch (err) {
             console.error("Failed to save prompt:", err);
@@ -490,7 +504,8 @@ const CreateInfluencer: React.FC = () => {
         const payload: InfluencerDataModel = {
             ...existing,
             prompt_template: existing.prompt_template,
-            elevenlabs_agent_id: formState.elevenlabs_agent_id || existing.elevenlabs_agent_id,
+            influencer_agent_id_third_part: formState.influencer_agent_id_third_part || existing.influencer_agent_id_third_part,
+            influencer_gpt_agent_id: formState.influencer_gpt_agent_id || existing.influencer_gpt_agent_id,
             voice_prompt: formState.voice_prompt,
             voice_id: formState.voice_id || existing.voice_id,
         };
@@ -503,16 +518,18 @@ const CreateInfluencer: React.FC = () => {
                 payload,
                 payload.prompt_template,
                 payload.daily_scripts,
-                payload.elevenlabs_agent_id,
+                payload.influencer_agent_id_third_part,
                 payload.voice_prompt,
-                payload.voice_id
+                payload.voice_id,
+                payload.influencer_gpt_agent_id
             );
             const mergedInfluencer = { ...payload, ...serverInfluencer };
             updateInfluencerCollection(mergedInfluencer);
             setFormState((prev) => ({
                 ...prev,
                 id: mergedInfluencer.id,
-                elevenlabs_agent_id: mergedInfluencer.elevenlabs_agent_id ?? prev.elevenlabs_agent_id,
+                influencer_agent_id_third_part: mergedInfluencer.influencer_agent_id_third_part ?? prev.influencer_agent_id_third_part,
+                influencer_gpt_agent_id: mergedInfluencer.influencer_gpt_agent_id ?? prev.influencer_gpt_agent_id,
                 voice_id: mergedInfluencer.voice_id ?? prev.voice_id,
                 voice_prompt: mergedInfluencer.voice_prompt ?? prev.voice_prompt,
             }));
@@ -815,12 +832,22 @@ const CreateInfluencer: React.FC = () => {
                             </div>
 
                             <div className={styles["field"]}>
-                                <label htmlFor="influencer-agent-id">ElevenLabs Agent ID</label>
+                                <label htmlFor="influencer-agent-id">Influencer Agent ID (Third Party)</label>
                                 <input
                                     id="influencer-agent-id"
-                                    value={formState.elevenlabs_agent_id}
-                                    onChange={handleFieldChange("elevenlabs_agent_id")}
+                                    value={formState.influencer_agent_id_third_part}
+                                    onChange={handleFieldChange("influencer_agent_id_third_part")}
                                     placeholder="agent_abc"
+                                />
+                            </div>
+
+                            <div className={styles["field"]}>
+                                <label htmlFor="influencer-gpt-agent-id">Influencer GPT Agent ID</label>
+                                <input
+                                    id="influencer-gpt-agent-id"
+                                    value={formState.influencer_gpt_agent_id}
+                                    onChange={handleFieldChange("influencer_gpt_agent_id")}
+                                    placeholder="gpt_agent_123"
                                 />
                             </div>
                         </div>
