@@ -22,7 +22,8 @@ export const InfluencerRepo = () => ({
                     videoUrl: dummy.getVideo(item.id as "loli" | "bella" | "anna"),
                     daily_scripts: item.daily_scripts,
                     prompt_template: item.prompt_template,
-                    elevenlabs_agent_id: item.influencer_agent_id_third_part,
+                    influencer_agent_id_third_part: item.influencer_agent_id_third_part,
+                    influencer_gpt_agent_id: item.influencer_gpt_agent_id,
                     voice_prompt: item.voice_prompt,
                     voice_id: item.voice_id,
                     created_at: item.created_at,
@@ -45,6 +46,8 @@ export const InfluencerRepo = () => ({
                 videoUrl: dummy.getVideo(response.id as "loli" | "bella" | "anna"),
                 daily_scripts: response.daily_scripts,
                 prompt_template: response.prompt_template,
+                influencer_agent_id_third_part: response.influencer_agent_id_third_part,
+                influencer_gpt_agent_id: response.influencer_gpt_agent_id,
                 earnings: 0,
                 created_at: "",
                 isSelected: false,
@@ -57,9 +60,10 @@ export const InfluencerRepo = () => ({
         influencer: InfluencerDataModel,
         prompt_template?: string,
         daily_scripts?: string[],
-        elevenlabs_agent_id?: string,
+        influencer_agent_id_third_part?: string,
         voice_prompt?: string,
-        voice_id?: string
+        voice_id?: string,
+        influencer_gpt_agent_id?: string
     ) => {
         try {
             const response: InfluencerResponse = await influencerServices.patchInfluencer(
@@ -67,9 +71,10 @@ export const InfluencerRepo = () => ({
                 influencer.name,
                 (prompt_template ?? influencer.prompt_template ?? ""),
                 (daily_scripts ?? influencer.daily_scripts ?? []),
-                (elevenlabs_agent_id ?? influencer.elevenlabs_agent_id),
+                (influencer_agent_id_third_part ?? influencer.influencer_agent_id_third_part),
                 (voice_prompt ?? influencer.voice_prompt),
-                (voice_id ?? influencer.voice_id)
+                (voice_id ?? influencer.voice_id),
+                (influencer_gpt_agent_id ?? influencer.influencer_gpt_agent_id)
             );
             return {
                 id: response.id,
@@ -79,7 +84,8 @@ export const InfluencerRepo = () => ({
                 videoUrl: dummy.getVideo(response.id as "loli" | "bella" | "anna"),
                 daily_scripts: response.daily_scripts,
                 prompt_template: response.prompt_template,
-                elevenlabs_agent_id: response.influencer_agent_id_third_part,
+                influencer_agent_id_third_part: response.influencer_agent_id_third_part,
+                influencer_gpt_agent_id: response.influencer_gpt_agent_id,
                 voice_prompt: response.voice_prompt,
                 voice_id: response.voice_id,
                 created_at: response.created_at,
@@ -97,9 +103,10 @@ export const InfluencerRepo = () => ({
                 influencer.prompt_template ?? "",
                 influencer.name,
                 influencer.daily_scripts,
-                influencer.elevenlabs_agent_id,
+                influencer.influencer_agent_id_third_part,
                 influencer.voice_prompt,
-                influencer.voice_id
+                influencer.voice_id,
+                influencer.influencer_gpt_agent_id
             );
             return {
                 id: response.id,
@@ -109,7 +116,8 @@ export const InfluencerRepo = () => ({
                 videoUrl: dummy.getVideo(response.id as "loli" | "bella" | "anna"),
                 daily_scripts: response.daily_scripts,
                 prompt_template: response.prompt_template,
-                elevenlabs_agent_id: response.influencer_agent_id_third_part,
+                influencer_agent_id_third_part: response.influencer_agent_id_third_part,
+                influencer_gpt_agent_id: response.influencer_gpt_agent_id,
                 voice_prompt: response.voice_prompt,
                 voice_id: response.voice_id,
                 created_at: response.created_at,
