@@ -6,6 +6,7 @@ import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { Modal } from "@/ui/components/modals/Modal";
 import { splitName } from "@/utils/StringUtils";
 import { KnowledgeFileModel } from "@/data/models/InfluencerDataModel";
+import defaultAvatar from "@/assets/image/avatar.png";
 
 type SocialConnections = {
     instagram: boolean;
@@ -160,6 +161,16 @@ const createDefaultSocialConnections = (): SocialConnections => ({
     twitter: false,
 });
 
+const resolveAvatarSrc = (value?: string | null) => {
+    if (typeof value === "string") {
+        const trimmed = value.trim();
+        if (trimmed.length > 0) {
+            return trimmed;
+        }
+    }
+    return defaultAvatar;
+};
+
 const createDefaultFormState = (): InfluencerFormState => ({
     id: "",
     firstName: "",
@@ -180,13 +191,15 @@ const createDefaultFormState = (): InfluencerFormState => ({
 function createFormStateFromInfluencer(influencer: InfluencerDataModel): InfluencerFormState {
     const { firstName, lastName } = splitName(influencer.name);
     const incomingSocial = influencer.social_connections ?? createDefaultSocialConnections();
+    const normalizedAvatar = (influencer.img ?? "").trim();
+    const avatarUrl = normalizedAvatar && normalizedAvatar !== defaultAvatar ? normalizedAvatar : "";
     return {
         id: String(influencer.id),
         firstName,
         lastName,
         email: "",
         phone: "",
-        avatarUrl: influencer.img,
+        avatarUrl,
         created_at: toDateInputValue(influencer.created_at),
         notes: "",
         voice_id: influencer.voice_id ?? "",
@@ -375,7 +388,7 @@ const CreateInfluencer: React.FC = () => {
             id: formState.id || existing?.id || Date.now().toString(),
             name: fullName,
             username,
-            img: formState.avatarUrl || existing?.img || "",
+            img: resolveAvatarSrc(formState.avatarUrl),
             created_at: formState.created_at || existing?.created_at || new Date().toISOString().slice(0, 10),
             earnings: existing?.earnings ?? 0,
             isSelected: false,
@@ -653,6 +666,8 @@ const CreateInfluencer: React.FC = () => {
         setIsUploadModalOpen(false);
     };
 
+    const avatarPreviewSrc = resolveAvatarSrc(formState.avatarUrl);
+
     return (
         <div className={styles["create-ai"]}>
             <div className={styles["create-ai__header"]}>
@@ -706,6 +721,7 @@ const CreateInfluencer: React.FC = () => {
                                 const { firstName, lastName } = splitName(influencer.name);
                                 const initials = `${firstName?.charAt(0) ?? ""}${lastName?.charAt(0) ?? ""}`.trim() ||
                                     influencer.username.charAt(0).toUpperCase();
+                                const avatarSrc = resolveAvatarSrc(influencer.img);
                                 return (
                                     <button
                                         type="button"
@@ -714,8 +730,8 @@ const CreateInfluencer: React.FC = () => {
                                         onClick={() => setSelectedId(influencer.id)}
                                     >
                                         <div className={styles["influencer-item__avatar"]}>
-                                            {influencer.img ? (
-                                                <img src={influencer.img} alt={influencer.name} />
+                                            {avatarSrc ? (
+                                                <img src={avatarSrc} alt={influencer.name} />
                                             ) : initials ? (
                                                 <span>{initials}</span>
                                             ) : (
@@ -741,8 +757,8 @@ const CreateInfluencer: React.FC = () => {
                                 <p>Fill out the profile details and save your changes.</p>
                             </div>
                             <div className={styles["avatar-preview"]}>
-                                {formState.avatarUrl ? (
-                                    <img src={formState.avatarUrl} alt={`${formState.firstName} ${formState.lastName}`} />
+                                {avatarPreviewSrc ? (
+                                    <img src={avatarPreviewSrc} alt={`${formState.firstName} ${formState.lastName}`} />
                                 ) : (
                                     <SvgPack.Profile />
                                 )}

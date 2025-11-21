@@ -5,8 +5,26 @@ import dummy from "@/dummy/dummy";
 import { InfluencerResponse } from "@/api/models/influencers";
 import { KnowledgeFile } from "@/api/models/knowledgeFiles";
 import { KnowledgeFileModel } from "../models/InfluencerDataModel";
+import defaultAvatar from "@/assets/empty-profile.png";
 
 const influencerServices = InfluencerServices(apiClient);
+
+const resolveAvatar = (requested?: string, influencerId?: string): string => {
+    if (requested && requested.trim().length > 0) {
+        return requested.trim();
+    }
+    if (influencerId) {
+        try {
+            const dummyImage = dummy.getImage(influencerId as "loli" | "bella" | "anna") as string | undefined;
+            if (dummyImage) {
+                return dummyImage;
+            }
+        } catch {
+            // ignore
+        }
+    }
+    return defaultAvatar;
+};
 
 export const InfluencerRepo = () => ({
     getInfluencers: async (): Promise<InfluencerDataModel[]> => {
@@ -18,7 +36,7 @@ export const InfluencerRepo = () => ({
                     id: item.id,
                     name: item.display_name,
                     username: item.id,
-                    img: dummy.getImage(item.id as "loli" | "bella" | "anna"),
+                    img: resolveAvatar(undefined, item.id),
                     videoUrl: dummy.getVideo(item.id as "loli" | "bella" | "anna"),
                     daily_scripts: item.daily_scripts,
                     prompt_template: item.prompt_template,
@@ -42,7 +60,7 @@ export const InfluencerRepo = () => ({
                 id: response.id,
                 name: response.display_name,
                 username: response.id,
-                img: dummy.getImage(response.id as "loli" | "bella" | "anna"),
+                img: resolveAvatar(undefined, response.id),
                 videoUrl: dummy.getVideo(response.id as "loli" | "bella" | "anna"),
                 daily_scripts: response.daily_scripts,
                 prompt_template: response.prompt_template,
@@ -80,7 +98,7 @@ export const InfluencerRepo = () => ({
                 id: response.id,
                 name: response.display_name,
                 username: response.id,
-                img: dummy.getImage(response.id as "loli" | "bella" | "anna"),
+                img: resolveAvatar(influencer.img, response.id),
                 videoUrl: dummy.getVideo(response.id as "loli" | "bella" | "anna"),
                 daily_scripts: response.daily_scripts,
                 prompt_template: response.prompt_template,
@@ -112,7 +130,7 @@ export const InfluencerRepo = () => ({
                 id: response.id,
                 name: response.display_name,
                 username: response.id,
-                img: dummy.getImage(response.id as "loli" | "bella" | "anna"),
+                img: resolveAvatar(influencer.img, response.id),
                 videoUrl: dummy.getVideo(response.id as "loli" | "bella" | "anna"),
                 daily_scripts: response.daily_scripts,
                 prompt_template: response.prompt_template,
