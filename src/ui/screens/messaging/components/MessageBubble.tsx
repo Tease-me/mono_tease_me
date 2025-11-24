@@ -5,12 +5,48 @@ import TypingIndicator from './TypingIndicator';
 import { MediaAttachment, Message } from '@/data/models/MessageDataModel';
 import AudioPlayer from '@/ui/components/audio-player/AudioPlayer';
 
-interface MessageBubbleProps {
-    msg?: Message;
+export interface CallMessageGroup {
+    type: 'call-group';
+    id: string;
+    sender: Message["sender"];
+    time: string;
+    messages: Message[];
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ msg }) => {
+interface MessageBubbleProps {
+    msg?: Message;
+    callGroup?: CallMessageGroup;
+    influencerName?: string;
+}
+
+const formatDuration = (ms: number) => {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (hours > 0) {
+        return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+    return `${minutes}:${String(seconds).padStart(2, "0")}`;
+};
+
+const getCallDuration = (group?: CallMessageGroup) => {
+    if (!group) return undefined;
+    const timestamps = group.messages
+        .map((m) => m.timestamp)
+        .filter((t): t is number => typeof t === "number");
+    if (!timestamps.length) return undefined;
+
+    const start = Math.min(...timestamps);
+    const end = Math.max(...timestamps);
+    if (end < start) return undefined;
+    return formatDuration(end - start);
+};
+
+const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, callGroup, influencerName }) => {
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+    const [expanded, setExpanded] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
     useLayoutEffect(() => {
@@ -32,25 +68,77 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ msg }) => {
         return "";
     }
 
+    const renderAttachments = (message?: Message) => {
+        if (!message?.attachments) return null;
+        return message.attachments.map((attachment, idx) =>
+            attachment.type === 'audio' ? (
+                <AudioPlayer
+                    key={idx}
+                    src={getAudioUrl(attachment)}
+                    height={dimensions.height}
+                    width={dimensions.width}
+                    progressColor={(message.sender ?? "received") === "received" ? '#FF8395' : "#FF981F"}
+                />
+            ) : null
+        );
+    };
+
+    if (!msg && !callGroup) {
+        return <div className={clsx(styles["message"], styles["received"])}>
+            <TypingIndicator />
+        </div>
+    }
+
+    const sender = callGroup?.sender ?? msg?.sender ?? "received";
+    const time = callGroup?.time ?? msg?.time ?? "";
+    const callDuration = getCallDuration(callGroup);
+    const callSpeakerName = (messageSender: Message["sender"]) => {
+        if (messageSender === "received") return influencerName || "Influencer";
+        return "You";
+    };
+
     return (
-        msg ? <div ref={containerRef} className={clsx(styles["message"], styles[msg.sender])}>
-            <div className={styles["message-content"]}>
-                {msg.text}
-                {msg.attachments?.map((attachment, idx) =>
-                    attachment.type === 'audio' ? (
-                        <AudioPlayer
-                            key={idx}
-                            src={getAudioUrl(attachment)}
-                            height={dimensions.height}
-                            width={dimensions.width}
-                            progressColor={msg.sender === "received" ? '#FF8395' : "#FF981F"}
-                        />
-                    ) : null
+        <div ref={containerRef} className={clsx(styles["message"], styles[sender])}>
+            <div className={clsx(styles["message-content"], callGroup && styles["call-transcript"])}>
+                {callGroup ? (
+                    <>
+                        <div className={styles["call-transcript-header"]}>
+                            <div className={styles["call-title"]}>Call log</div>
+                            <button
+                                type="button"
+                                className={styles["call-toggle"]}
+                                onClick={() => setExpanded((prev) => !prev)}
+                            >
+                                {expanded ? "Hide" : "Show"}
+                            </button>
+                        </div>
+                        {callDuration && (
+                            <div className={styles["call-duration"]}>Total call time: {callDuration}</div>
+                        )}
+                        {expanded && (
+                            <div className={styles["call-lines"]}>
+                                {callGroup.messages.map((message) => (
+                                    <div key={message.id} className={styles["call-line"]}>
+                                        <div className={styles["call-line-header"]}>
+                                            <span className={styles["call-speaker"]}>{callSpeakerName(message.sender)}</span>
+                                        </div>
+                                        <div className={styles["call-line-bubble"]}>
+                                            {message.text && <div className={styles["call-text"]}>{message.text}</div>}
+                                            {renderAttachments(message)}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </>
+                ) : (
+                    <>
+                        {msg?.text}
+                        {renderAttachments(msg)}
+                    </>
                 )}
             </div>
-            <span className={styles["time"]}>{msg.time}</span>
-        </div> : <div className={clsx(styles["message"], styles["received"])}>
-            <TypingIndicator />
+            {!callGroup && <span className={styles["time"]}>{time}</span>}
         </div>
     );
 };
