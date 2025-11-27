@@ -7,6 +7,7 @@ import { Modal } from "@/ui/components/modals/Modal";
 import { splitName } from "@/utils/StringUtils";
 import { KnowledgeFileModel } from "@/data/models/InfluencerDataModel";
 import defaultAvatar from "@/assets/image/avatar.png";
+import AdminLayout from "../AdminLayout";
 
 type SocialConnections = {
     instagram: boolean;
@@ -669,403 +670,406 @@ const CreateInfluencer: React.FC = () => {
     const avatarPreviewSrc = resolveAvatarSrc(formState.avatarUrl);
 
     return (
-        <div className={styles["create-ai"]}>
-            <div className={styles["create-ai__header"]}>
-                <h1 className={styles["create-ai__title"]}>Influencer Manager</h1>
+        <AdminLayout
+            title="Influencer Manager"
+            subtitle="Create or edit influencer profiles and prompts."
+            headerRight={
                 <div className={styles["upload-status-group"]}>
                     {csvFileName && <span className={styles["upload-feedback"]}>Imported: {csvFileName}</span>}
                     {uploadParseError && <span className={styles["upload-error"]}>{uploadParseError}</span>}
                 </div>
-            </div>
-
-            <div className={styles["create-ai__layout"]}>
-                <aside className={styles["sidebar"]}>
-                    <div className={styles["sidebar-top"]}>
-                        <div>
-                            <h2 className={styles["sidebar-title"]}>Influencers</h2>
-                            <p className={styles["sidebar-subtitle"]}>Select to edit or create a new profile.</p>
-                        </div>
-                        <button type="button" className={styles["upload-button"]} onClick={handleUploadClick}>
-                            Upload CSV
-                        </button>
-                        <input
-                            className={styles["file-input"]}
-                            ref={fileInputRef}
-                            type="file"
-                            accept=".csv"
-                            onChange={handleFileChange}
-                        />
-                    </div>
-
-                    <div className={styles["sidebar-actions"]}>
-                        <button type="button" className={styles["new-button"]} onClick={handleCreateNew}>
-                            + New Influencer
-                        </button>
-                        <div className={styles["search"]}>
-                            <input
-                                value={searchTerm}
-                                onChange={(event) => setSearchTerm(event.target.value)}
-                                placeholder="Search by name or username"
-                            />
-                        </div>
-                    </div>
-
-                    <div className={styles["influencer-list"]}>
-                        {isLoading ? (
-                            <div className={styles["list-placeholder"]}>Loading influencers…</div>
-                        ) : filteredInfluencers.length === 0 ? (
-                            <div className={styles["list-placeholder"]}>No influencers found</div>
-                        ) : (
-                            filteredInfluencers.map((influencer) => {
-                                const isActive = selectedId === influencer.id;
-                                const { firstName, lastName } = splitName(influencer.name);
-                                const initials = `${firstName?.charAt(0) ?? ""}${lastName?.charAt(0) ?? ""}`.trim() ||
-                                    influencer.username.charAt(0).toUpperCase();
-                                const avatarSrc = resolveAvatarSrc(influencer.img);
-                                return (
-                                    <button
-                                        type="button"
-                                        key={influencer.id}
-                                        className={`${styles["influencer-item"]} ${isActive ? styles["influencer-item--active"] : ""}`}
-                                        onClick={() => setSelectedId(influencer.id)}
-                                    >
-                                        <div className={styles["influencer-item__avatar"]}>
-                                            {avatarSrc ? (
-                                                <img src={avatarSrc} alt={influencer.name} />
-                                            ) : initials ? (
-                                                <span>{initials}</span>
-                                            ) : (
-                                                <SvgPack.Profile />
-                                            )}
-                                        </div>
-                                        <div className={styles["influencer-item__copy"]}>
-                                            <span className={styles["influencer-name"]}>{influencer.name}</span>
-                                            <span className={styles["influencer-username"]}>@{influencer.username}</span>
-                                        </div>
-                                    </button>
-                                );
-                            })
-                        )}
-                    </div>
-                </aside>
-
-                <section className={styles["detail-panel"]}>
-                    <form className={styles["detail-card"]} onSubmit={handleSubmit}>
-                        <div className={styles["detail-header"]}>
+            }
+        >
+            <div className={styles["create-ai"]}>
+                <div className={styles["create-ai__layout"]}>
+                    <aside className={styles["sidebar"]}>
+                        <div className={styles["sidebar-top"]}>
                             <div>
-                                <h2>{selectedId === "new" ? "Create new influencer" : "Edit influencer"}</h2>
-                                <p>Fill out the profile details and save your changes.</p>
+                                <h2 className={styles["sidebar-title"]}>Influencers</h2>
+                                <p className={styles["sidebar-subtitle"]}>Select to edit or create a new profile.</p>
                             </div>
-                            <div className={styles["avatar-preview"]}>
-                                {avatarPreviewSrc ? (
-                                    <img src={avatarPreviewSrc} alt={`${formState.firstName} ${formState.lastName}`} />
-                                ) : (
-                                    <SvgPack.Profile />
-                                )}
-                            </div>
-                        </div>
-
-                        <div className={styles["detail-grid"]}>
-                            <div className={styles["field"]}>
-                                <label htmlFor="influencer-id">Influencer ID</label>
-                                <input
-                                    id="influencer-id"
-                                    value={formState.id}
-                                    onChange={handleFieldChange("id")}
-                                    placeholder="Auto-generated if left blank"
-                                />
-                            </div>
-
-                            <div className={styles["field"]}>
-                                <label htmlFor="influencer-first-name">First name</label>
-                                <input
-                                    id="influencer-first-name"
-                                    value={formState.firstName}
-                                    onChange={handleFieldChange("firstName")}
-                                    placeholder="First name"
-                                />
-                            </div>
-
-                            <div className={styles["field"]}>
-                                <label htmlFor="influencer-last-name">Last name</label>
-                                <input
-                                    id="influencer-last-name"
-                                    value={formState.lastName}
-                                    onChange={handleFieldChange("lastName")}
-                                    placeholder="Last name"
-                                />
-                            </div>
-
-                            <div className={styles["field"]}>
-                                <label htmlFor="influencer-email">Contact email</label>
-                                <input
-                                    id="influencer-email"
-                                    type="email"
-                                    value={formState.email}
-                                    onChange={handleFieldChange("email")}
-                                    placeholder="name@example.com"
-                                />
-                            </div>
-
-                            <div className={styles["field"]}>
-                                <label htmlFor="influencer-phone">Contact phone</label>
-                                <input
-                                    id="influencer-phone"
-                                    value={formState.phone}
-                                    onChange={handleFieldChange("phone")}
-                                    placeholder="+1 (555) 000-0000"
-                                />
-                            </div>
-
-                            <div className={styles["field"]}>
-                                <label htmlFor="influencer-joined-date">Joined date</label>
-                                <input
-                                    id="influencer-joined-date"
-                                    type="date"
-                                    value={formState.created_at}
-                                    onChange={handleFieldChange("created_at")}
-                                />
-                            </div>
-
-                            <div className={styles["field"]}>
-                                <label htmlFor="influencer-avatar">Avatar URL</label>
-                                <input
-                                    id="influencer-avatar"
-                                    value={formState.avatarUrl}
-                                    onChange={handleFieldChange("avatarUrl")}
-                                    placeholder="https://"
-                                />
-                            </div>
-
-                            <div className={styles["field"]}>
-                                <label htmlFor="influencer-voice-id">Voice ID</label>
-                                <input
-                                    id="influencer-voice-id"
-                                    value={formState.voice_id}
-                                    onChange={handleFieldChange("voice_id")}
-                                    placeholder="voice_123"
-                                />
-                            </div>
-
-                            <div className={styles["field"]}>
-                                <label htmlFor="influencer-agent-id">Influencer Agent ID (Third Party)</label>
-                                <input
-                                    id="influencer-agent-id"
-                                    value={formState.influencer_agent_id_third_part}
-                                    onChange={handleFieldChange("influencer_agent_id_third_part")}
-                                    placeholder="agent_abc"
-                                />
-                            </div>
-
-                            <div className={styles["field"]}>
-                                <label htmlFor="influencer-gpt-agent-id">Influencer GPT Agent ID</label>
-                                <input
-                                    id="influencer-gpt-agent-id"
-                                    value={formState.influencer_gpt_agent_id}
-                                    onChange={handleFieldChange("influencer_gpt_agent_id")}
-                                    placeholder="gpt_agent_123"
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <div className={styles["section-heading"]}>
-                                <h3>Knowledge documents</h3>
-                                <p>Upload PDFs, DOC/DOCX, or TXT to enrich this influencer.</p>
-                            </div>
-                            <div className={styles["knowledge-actions"]}>
-                                <button
-                                    type="button"
-                                    className={styles["upload-button"]}
-                                    onClick={handleKnowledgeUploadClick}
-                                    disabled={!selectedId || selectedId === "new" || knowledgeUploading}
-                                >
-                                    {knowledgeUploading ? "Uploading…" : "Upload document"}
-                                </button>
-                                <input
-                                    ref={knowledgeFileInputRef}
-                                    className={styles["file-input"]}
-                                    type="file"
-                                    accept=".pdf,.doc,.docx,.txt"
-                                    onChange={handleKnowledgeFileChange}
-                                />
-                                {knowledgeError && <span className={styles["upload-error"]}>{knowledgeError}</span>}
-                            </div>
-                            <div className={styles["knowledge-list"]}>
-                                {selectedId === "new" ? (
-                                    <div className={styles["list-placeholder"]}>Save the influencer first to attach documents.</div>
-                                ) : knowledgeLoading ? (
-                                    <div className={styles["list-placeholder"]}>Loading documents…</div>
-                                ) : knowledgeFiles.length === 0 ? (
-                                    <div className={styles["list-placeholder"]}>No documents uploaded yet.</div>
-                                ) : (
-                                    knowledgeFiles.map((file) => (
-                                        <div key={file.id} className={styles["knowledge-item"]}>
-                                            <div>
-                                                <div className={styles["knowledge-item__name"]}>{file.filename}</div>
-                                                <div className={styles["knowledge-item__meta"]}>
-                                                    <span>{file.file_type.toUpperCase()}</span>
-                                                    <span>•</span>
-                                                    <span>{formatFileSize(file.file_size_bytes)}</span>
-                                                    <span>•</span>
-                                                    <span>Status: {file.status}</span>
-                                                    {file.error_message && (
-                                                        <>
-                                                            <span>•</span>
-                                                            <span className={styles["upload-error"]}>{file.error_message}</span>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                className={styles["secondary-button"]}
-                                                onClick={() => handleKnowledgeDelete(file.id)}
-                                                disabled={knowledgeUploading}
-                                            >
-                                                Delete
-                                            </button>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </div>
-
-                        <div className={styles["field"]}>
-                            <label htmlFor="influencer-prompt">Prompt</label>
-                            <textarea
-                                id="influencer-prompt"
-                                value={formState.prompt_template}
-                                onChange={handleFieldChange("prompt_template")}
-                                placeholder="System prompt or guidance used for this influencer"
-                                rows={20}
-                            />
-                            <div className={styles["form-footer"]}>
-                                {promptSaveState !== "idle" && (
-                                    <span
-                                        className={`${styles["save-status"]} ${promptSaveState === "success" ? styles["save-status--success"] : ""} ${promptSaveState === "error" ? styles["save-status--error"] : ""}`}
-                                    >
-                                        {promptSaveState === "success" && "Prompt saved"}
-                                        {promptSaveState === "error" && (promptSaveError || "Failed to save prompt")}
-                                        {promptSaveState === "saving" && "Saving prompt…"}
-                                    </span>
-                                )}
-                                <button type="button" className={styles["primary-button"]} disabled={promptSaveState === "saving"} onClick={handlePromptTemplateSave}>
-                                    {promptSaveState === "saving" ? "Saving…" : "Save prompt only"}
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className={styles["field"]}>
-                            <label htmlFor="influencer-voice-prompt">Voice prompt</label>
-                            <textarea
-                                id="influencer-voice-prompt"
-                                value={formState.voice_prompt}
-                                onChange={handleFieldChange("voice_prompt")}
-                                placeholder="Describe the desired voice style, pacing, tone, etc."
-                                rows={20}
-                            />
-                            <div className={styles["form-footer"]}>
-                                {voicePromptSaveState !== "idle" && (
-                                    <span
-                                        className={`${styles["save-status"]} ${voicePromptSaveState === "success" ? styles["save-status--success"] : ""} ${voicePromptSaveState === "error" ? styles["save-status--error"] : ""}`}
-                                    >
-                                        {voicePromptSaveState === "success" && "Voice prompt saved"}
-                                        {voicePromptSaveState === "error" && (voicePromptSaveError || "Failed to save voice prompt")}
-                                        {voicePromptSaveState === "saving" && "Saving voice prompt…"}
-                                    </span>
-                                )}
-                                <button type="button" className={styles["primary-button"]} disabled={voicePromptSaveState === "saving"} onClick={handleVoicePromptSave}>
-                                    {voicePromptSaveState === "saving" ? "Saving…" : "Save voice prompt only"}
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className={styles["form-footer"]}>
-                            {saveState !== "idle" && (
-                                <span
-                                    className={`${styles["save-status"]} ${saveState === "success" ? styles["save-status--success"] : ""} ${saveState === "error" ? styles["save-status--error"] : ""}`}
-                                >
-                                    {saveState === "success" && "Changes saved"}
-                                    {saveState === "error" && (saveError || "Failed to save changes")}
-                                    {saveState === "saving" && "Saving…"}
-                                </span>
-                            )}
-                            <button type="button" className={styles["secondary-button"]} onClick={handleReset}>
-                                Reset
+                            <button type="button" className={styles["upload-button"]} onClick={handleUploadClick}>
+                                Upload CSV
                             </button>
-                            <button type="submit" className={styles["primary-button"]} disabled={saveState === "saving"}>
-                                {saveState === "saving" ? "Saving…" : "Save changes"}
+                            <input
+                                className={styles["file-input"]}
+                                ref={fileInputRef}
+                                type="file"
+                                accept=".csv"
+                                onChange={handleFileChange}
+                            />
+                        </div>
+
+                        <div className={styles["sidebar-actions"]}>
+                            <button type="button" className={styles["new-button"]} onClick={handleCreateNew}>
+                                + New Influencer
                             </button>
+                            <div className={styles["search"]}>
+                                <input
+                                    value={searchTerm}
+                                    onChange={(event) => setSearchTerm(event.target.value)}
+                                    placeholder="Search by name or username"
+                                />
+                            </div>
                         </div>
-                    </form>
-                </section>
-            </div>
-            <Modal
-                isOpen={isUploadModalOpen}
-                onClose={closeUploadModal}
-                size="lg"
-                ariaLabel="Uploaded influencer data preview"
-                closeOnOverlayClick
-            >
-                <div className={styles["upload-modal"]}>
-                    <div className={styles["upload-modal__header"]}>
-                        <div>
-                            <h3>Imported records</h3>
-                            <p>
-                                {csvFileName ? `${csvFileName} • ` : ""}
-                                {uploadRecords.length} row{uploadRecords.length === 1 ? "" : "s"}
-                            </p>
-                        </div>
-                        <button type="button" className={styles["upload-modal__close"]} onClick={closeUploadModal}>
-                            Close
-                        </button>
-                    </div>
-                    {uploadRecords.length === 0 ? (
-                        <div className={styles["upload-modal__empty"]}>No data to preview yet.</div>
-                    ) : (
-                        <ul className={styles["upload-modal__list"]}>
-                            {uploadRecords.map((record, index) => {
-                                const isExpanded = expandedRecords.has(index);
-                                const label = getRecordLabel(record, index);
-                                const entries = Object.entries(record);
-                                return (
-                                    <li key={`${label}-${index}`} className={styles["upload-modal__item"]}>
+
+                        <div className={styles["influencer-list"]}>
+                            {isLoading ? (
+                                <div className={styles["list-placeholder"]}>Loading influencers…</div>
+                            ) : filteredInfluencers.length === 0 ? (
+                                <div className={styles["list-placeholder"]}>No influencers found</div>
+                            ) : (
+                                filteredInfluencers.map((influencer) => {
+                                    const isActive = selectedId === influencer.id;
+                                    const { firstName, lastName } = splitName(influencer.name);
+                                    const initials = `${firstName?.charAt(0) ?? ""}${lastName?.charAt(0) ?? ""}`.trim() ||
+                                        influencer.username.charAt(0).toUpperCase();
+                                    const avatarSrc = resolveAvatarSrc(influencer.img);
+                                    return (
                                         <button
                                             type="button"
-                                            className={`${styles["upload-modal__toggle"]} ${isExpanded ? styles["upload-modal__toggle--expanded"] : ""}`}
-                                            onClick={() => toggleRecordExpansion(index)}
-                                            aria-expanded={isExpanded}
+                                            key={influencer.id}
+                                            className={`${styles["influencer-item"]} ${isActive ? styles["influencer-item--active"] : ""}`}
+                                            onClick={() => setSelectedId(influencer.id)}
                                         >
-                                            <span>{label}</span>
-                                            <span className={styles["upload-modal__chevron"]}>{isExpanded ? "-" : "+"}</span>
-                                        </button>
-                                        {isExpanded && (
-                                            <div className={styles["upload-modal__body"]}>
-                                                {entries.map(([key, value]) => {
-                                                    const formattedValue = formatRecordValue(value);
-                                                    const isMultiline = /\n/.test(formattedValue);
-                                                    return (
-                                                        <div key={key} className={styles["upload-modal__row"]}>
-                                                            <span className={styles["upload-modal__key"]}>{formatRecordKey(key)}</span>
-                                                            {isMultiline ? (
-                                                                <pre className={styles["upload-modal__value-pre"]}>{formattedValue}</pre>
-                                                            ) : (
-                                                                <span className={styles["upload-modal__value"]}>{formattedValue}</span>
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })}
+                                            <div className={styles["influencer-item__avatar"]}>
+                                                {avatarSrc ? (
+                                                    <img src={avatarSrc} alt={influencer.name} />
+                                                ) : initials ? (
+                                                    <span>{initials}</span>
+                                                ) : (
+                                                    <SvgPack.Profile />
+                                                )}
                                             </div>
-                                        )}
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    )}
+                                            <div className={styles["influencer-item__copy"]}>
+                                                <span className={styles["influencer-name"]}>{influencer.name}</span>
+                                                <span className={styles["influencer-username"]}>@{influencer.username}</span>
+                                            </div>
+                                        </button>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </aside>
+
+                    <section className={styles["detail-panel"]}>
+                        <form className={styles["detail-card"]} onSubmit={handleSubmit}>
+                            <div className={styles["detail-header"]}>
+                                <div>
+                                    <h2>{selectedId === "new" ? "Create new influencer" : "Edit influencer"}</h2>
+                                    <p>Fill out the profile details and save your changes.</p>
+                                </div>
+                                <div className={styles["avatar-preview"]}>
+                                    {avatarPreviewSrc ? (
+                                        <img src={avatarPreviewSrc} alt={`${formState.firstName} ${formState.lastName}`} />
+                                    ) : (
+                                        <SvgPack.Profile />
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className={styles["detail-grid"]}>
+                                <div className={styles["field"]}>
+                                    <label htmlFor="influencer-id">Influencer ID</label>
+                                    <input
+                                        id="influencer-id"
+                                        value={formState.id}
+                                        onChange={handleFieldChange("id")}
+                                        placeholder="Auto-generated if left blank"
+                                    />
+                                </div>
+
+                                <div className={styles["field"]}>
+                                    <label htmlFor="influencer-first-name">First name</label>
+                                    <input
+                                        id="influencer-first-name"
+                                        value={formState.firstName}
+                                        onChange={handleFieldChange("firstName")}
+                                        placeholder="First name"
+                                    />
+                                </div>
+
+                                <div className={styles["field"]}>
+                                    <label htmlFor="influencer-last-name">Last name</label>
+                                    <input
+                                        id="influencer-last-name"
+                                        value={formState.lastName}
+                                        onChange={handleFieldChange("lastName")}
+                                        placeholder="Last name"
+                                    />
+                                </div>
+
+                                <div className={styles["field"]}>
+                                    <label htmlFor="influencer-email">Contact email</label>
+                                    <input
+                                        id="influencer-email"
+                                        type="email"
+                                        value={formState.email}
+                                        onChange={handleFieldChange("email")}
+                                        placeholder="name@example.com"
+                                    />
+                                </div>
+
+                                <div className={styles["field"]}>
+                                    <label htmlFor="influencer-phone">Contact phone</label>
+                                    <input
+                                        id="influencer-phone"
+                                        value={formState.phone}
+                                        onChange={handleFieldChange("phone")}
+                                        placeholder="+1 (555) 000-0000"
+                                    />
+                                </div>
+
+                                <div className={styles["field"]}>
+                                    <label htmlFor="influencer-joined-date">Joined date</label>
+                                    <input
+                                        id="influencer-joined-date"
+                                        type="date"
+                                        value={formState.created_at}
+                                        onChange={handleFieldChange("created_at")}
+                                    />
+                                </div>
+
+                                <div className={styles["field"]}>
+                                    <label htmlFor="influencer-avatar">Avatar URL</label>
+                                    <input
+                                        id="influencer-avatar"
+                                        value={formState.avatarUrl}
+                                        onChange={handleFieldChange("avatarUrl")}
+                                        placeholder="https://"
+                                    />
+                                </div>
+
+                                <div className={styles["field"]}>
+                                    <label htmlFor="influencer-voice-id">Voice ID</label>
+                                    <input
+                                        id="influencer-voice-id"
+                                        value={formState.voice_id}
+                                        onChange={handleFieldChange("voice_id")}
+                                        placeholder="voice_123"
+                                    />
+                                </div>
+
+                                <div className={styles["field"]}>
+                                    <label htmlFor="influencer-agent-id">Influencer Agent ID (Third Party)</label>
+                                    <input
+                                        id="influencer-agent-id"
+                                        value={formState.influencer_agent_id_third_part}
+                                        onChange={handleFieldChange("influencer_agent_id_third_part")}
+                                        placeholder="agent_abc"
+                                    />
+                                </div>
+
+                                <div className={styles["field"]}>
+                                    <label htmlFor="influencer-gpt-agent-id">Influencer GPT Agent ID</label>
+                                    <input
+                                        id="influencer-gpt-agent-id"
+                                        value={formState.influencer_gpt_agent_id}
+                                        onChange={handleFieldChange("influencer_gpt_agent_id")}
+                                        placeholder="gpt_agent_123"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <div className={styles["section-heading"]}>
+                                    <h3>Knowledge documents</h3>
+                                    <p>Upload PDFs, DOC/DOCX, or TXT to enrich this influencer.</p>
+                                </div>
+                                <div className={styles["knowledge-actions"]}>
+                                    <button
+                                        type="button"
+                                        className={styles["upload-button"]}
+                                        onClick={handleKnowledgeUploadClick}
+                                        disabled={!selectedId || selectedId === "new" || knowledgeUploading}
+                                    >
+                                        {knowledgeUploading ? "Uploading…" : "Upload document"}
+                                    </button>
+                                    <input
+                                        ref={knowledgeFileInputRef}
+                                        className={styles["file-input"]}
+                                        type="file"
+                                        accept=".pdf,.doc,.docx,.txt"
+                                        onChange={handleKnowledgeFileChange}
+                                    />
+                                    {knowledgeError && <span className={styles["upload-error"]}>{knowledgeError}</span>}
+                                </div>
+                                <div className={styles["knowledge-list"]}>
+                                    {selectedId === "new" ? (
+                                        <div className={styles["list-placeholder"]}>Save the influencer first to attach documents.</div>
+                                    ) : knowledgeLoading ? (
+                                        <div className={styles["list-placeholder"]}>Loading documents…</div>
+                                    ) : knowledgeFiles.length === 0 ? (
+                                        <div className={styles["list-placeholder"]}>No documents uploaded yet.</div>
+                                    ) : (
+                                        knowledgeFiles.map((file) => (
+                                            <div key={file.id} className={styles["knowledge-item"]}>
+                                                <div>
+                                                    <div className={styles["knowledge-item__name"]}>{file.filename}</div>
+                                                    <div className={styles["knowledge-item__meta"]}>
+                                                        <span>{file.file_type.toUpperCase()}</span>
+                                                        <span>•</span>
+                                                        <span>{formatFileSize(file.file_size_bytes)}</span>
+                                                        <span>•</span>
+                                                        <span>Status: {file.status}</span>
+                                                        {file.error_message && (
+                                                            <>
+                                                                <span>•</span>
+                                                                <span className={styles["upload-error"]}>{file.error_message}</span>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    className={styles["secondary-button"]}
+                                                    onClick={() => handleKnowledgeDelete(file.id)}
+                                                    disabled={knowledgeUploading}
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className={styles["field"]}>
+                                <label htmlFor="influencer-prompt">Prompt</label>
+                                <textarea
+                                    id="influencer-prompt"
+                                    value={formState.prompt_template}
+                                    onChange={handleFieldChange("prompt_template")}
+                                    placeholder="System prompt or guidance used for this influencer"
+                                    rows={20}
+                                />
+                                <div className={styles["form-footer"]}>
+                                    {promptSaveState !== "idle" && (
+                                        <span
+                                            className={`${styles["save-status"]} ${promptSaveState === "success" ? styles["save-status--success"] : ""} ${promptSaveState === "error" ? styles["save-status--error"] : ""}`}
+                                        >
+                                            {promptSaveState === "success" && "Prompt saved"}
+                                            {promptSaveState === "error" && (promptSaveError || "Failed to save prompt")}
+                                            {promptSaveState === "saving" && "Saving prompt…"}
+                                        </span>
+                                    )}
+                                    <button type="button" className={styles["primary-button"]} disabled={promptSaveState === "saving"} onClick={handlePromptTemplateSave}>
+                                        {promptSaveState === "saving" ? "Saving…" : "Save prompt only"}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className={styles["field"]}>
+                                <label htmlFor="influencer-voice-prompt">Voice prompt</label>
+                                <textarea
+                                    id="influencer-voice-prompt"
+                                    value={formState.voice_prompt}
+                                    onChange={handleFieldChange("voice_prompt")}
+                                    placeholder="Describe the desired voice style, pacing, tone, etc."
+                                    rows={20}
+                                />
+                                <div className={styles["form-footer"]}>
+                                    {voicePromptSaveState !== "idle" && (
+                                        <span
+                                            className={`${styles["save-status"]} ${voicePromptSaveState === "success" ? styles["save-status--success"] : ""} ${voicePromptSaveState === "error" ? styles["save-status--error"] : ""}`}
+                                        >
+                                            {voicePromptSaveState === "success" && "Voice prompt saved"}
+                                            {voicePromptSaveState === "error" && (voicePromptSaveError || "Failed to save voice prompt")}
+                                            {voicePromptSaveState === "saving" && "Saving voice prompt…"}
+                                        </span>
+                                    )}
+                                    <button type="button" className={styles["primary-button"]} disabled={voicePromptSaveState === "saving"} onClick={handleVoicePromptSave}>
+                                        {voicePromptSaveState === "saving" ? "Saving…" : "Save voice prompt only"}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className={styles["form-footer"]}>
+                                {saveState !== "idle" && (
+                                    <span
+                                        className={`${styles["save-status"]} ${saveState === "success" ? styles["save-status--success"] : ""} ${saveState === "error" ? styles["save-status--error"] : ""}`}
+                                    >
+                                        {saveState === "success" && "Changes saved"}
+                                        {saveState === "error" && (saveError || "Failed to save changes")}
+                                        {saveState === "saving" && "Saving…"}
+                                    </span>
+                                )}
+                                <button type="button" className={styles["secondary-button"]} onClick={handleReset}>
+                                    Reset
+                                </button>
+                                <button type="submit" className={styles["primary-button"]} disabled={saveState === "saving"}>
+                                    {saveState === "saving" ? "Saving…" : "Save changes"}
+                                </button>
+                            </div>
+                        </form>
+                    </section>
                 </div>
-            </Modal>
-        </div>
+                <Modal
+                    isOpen={isUploadModalOpen}
+                    onClose={closeUploadModal}
+                    size="lg"
+                    ariaLabel="Uploaded influencer data preview"
+                    closeOnOverlayClick
+                >
+                    <div className={styles["upload-modal"]}>
+                        <div className={styles["upload-modal__header"]}>
+                            <div>
+                                <h3>Imported records</h3>
+                                <p>
+                                    {csvFileName ? `${csvFileName} • ` : ""}
+                                    {uploadRecords.length} row{uploadRecords.length === 1 ? "" : "s"}
+                                </p>
+                            </div>
+                            <button type="button" className={styles["upload-modal__close"]} onClick={closeUploadModal}>
+                                Close
+                            </button>
+                        </div>
+                        {uploadRecords.length === 0 ? (
+                            <div className={styles["upload-modal__empty"]}>No data to preview yet.</div>
+                        ) : (
+                            <ul className={styles["upload-modal__list"]}>
+                                {uploadRecords.map((record, index) => {
+                                    const isExpanded = expandedRecords.has(index);
+                                    const label = getRecordLabel(record, index);
+                                    const entries = Object.entries(record);
+                                    return (
+                                        <li key={`${label}-${index}`} className={styles["upload-modal__item"]}>
+                                            <button
+                                                type="button"
+                                                className={`${styles["upload-modal__toggle"]} ${isExpanded ? styles["upload-modal__toggle--expanded"] : ""}`}
+                                                onClick={() => toggleRecordExpansion(index)}
+                                                aria-expanded={isExpanded}
+                                            >
+                                                <span>{label}</span>
+                                                <span className={styles["upload-modal__chevron"]}>{isExpanded ? "-" : "+"}</span>
+                                            </button>
+                                            {isExpanded && (
+                                                <div className={styles["upload-modal__body"]}>
+                                                    {entries.map(([key, value]) => {
+                                                        const formattedValue = formatRecordValue(value);
+                                                        const isMultiline = /\n/.test(formattedValue);
+                                                        return (
+                                                            <div key={key} className={styles["upload-modal__row"]}>
+                                                                <span className={styles["upload-modal__key"]}>{formatRecordKey(key)}</span>
+                                                                {isMultiline ? (
+                                                                    <pre className={styles["upload-modal__value-pre"]}>{formattedValue}</pre>
+                                                                ) : (
+                                                                    <span className={styles["upload-modal__value"]}>{formattedValue}</span>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
+                    </div>
+                </Modal>
+            </div>
+        </AdminLayout>
     );
 };
 
