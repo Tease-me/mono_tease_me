@@ -20,7 +20,8 @@ const CallScreen = lazy(() => import("@/ui/screens/CallScreen"));
 const UserProfile = lazy(() => import("@/ui/screens/user-profile/UserProfile"));
 const MJDashboard = lazy(() => import("@/mj-dashboard/ui/Dashboard"));
 const ButtonsTestPage = lazy(() => import("@/ui/screens/test/ButtonsTestPage"));
-const CreateInfluencer = lazy(() => import("@/ui/screens/create-influencer/CreateInfluencer"));
+const CreateInfluencer = lazy(() => import("@/ui/screens/admin/create-influencer/CreateInfluencer"));
+const PromptEditorAdmin = lazy(() => import("@/ui/screens/admin/PromptEditorAdmin"));
 
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
@@ -41,7 +42,8 @@ function AppRoutes() {
 
   const superRoutes: { path: string; element: JSX.Element }[] = [
     { path: "/mj/dashboard", element: <MJDashboard /> },
-    { path: "/mj/influencer", element: <CreateInfluencer /> },
+    { path: "/admin/influencer", element: <CreateInfluencer /> },
+    { path: "/admin/prompts", element: <PromptEditorAdmin /> },
   ];
 
   const privateRoutes: { path: string; element: JSX.Element }[] = [
