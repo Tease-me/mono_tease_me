@@ -32,7 +32,6 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
         influencer_agent_id_third_part?: string,
         voice_prompt?: string,
         voice_id?: string,
-        influencer_gpt_agent_id?: string
     ): Promise<InfluencerResponse> => {
         try {
             const response = await apiClient.patch(
@@ -43,8 +42,7 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
                     "daily_scripts": daily_scripts,
                     ...(influencer_agent_id_third_part !== undefined && { "influencer_agent_id_third_part": influencer_agent_id_third_part }),
                     ...(voice_prompt !== undefined && { "voice_prompt": voice_prompt }),
-                    ...(voice_id !== undefined && { "voice_id": voice_id }),
-                    ...(influencer_gpt_agent_id !== undefined && { "influencer_gpt_agent_id": influencer_gpt_agent_id })
+                    ...(voice_id !== undefined && { "voice_id": voice_id })
                 }
             );
             return response.data;
@@ -59,8 +57,7 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
         daily_scripts?: string[],
         influencer_agent_id_third_part?: string,
         voice_prompt?: string,
-        voice_id?: string,
-        influencer_gpt_agent_id?: string): Promise<InfluencerResponse> => {
+        voice_id?: string): Promise<InfluencerResponse> => {
         try {
             const response = await apiClient.post(
                 Endpoints.influencers,
@@ -72,7 +69,6 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
                     ...(influencer_agent_id_third_part && { "influencer_agent_id_third_part": influencer_agent_id_third_part }),
                     ...(voice_prompt && { "voice_prompt": voice_prompt }),
                     ...(voice_id && { "voice_id": voice_id }),
-                    ...(influencer_gpt_agent_id && { "influencer_gpt_agent_id": influencer_gpt_agent_id })
                 }
             );
             return response.data;
