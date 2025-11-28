@@ -37,6 +37,12 @@ export const Endpoints = {
     influencer: (id: string) => `/influencer/${id}`,
     uploadCsv: "persona/import-csv",
     mcpToolsCall: "/mcp/tools/call",
+    admin: {
+        systemPrompts: {
+            list: "admin/system-prompts",
+            byKey: (key: string) => `admin/system-prompts/${encodeURIComponent(key)}`,
+        },
+    },
     ws: {
         chat: "/chat/ws",
         notifications: "/ws/notifications",

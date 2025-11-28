@@ -102,6 +102,15 @@
     border-color: rgba(0, 169, 241, 0.4);
 }
 
+.list-placeholder {
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(24, 27, 36, 0.8);
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+    color: var(--color-text-secondary);
+    font-size: 13px;
+}
+
 .node-card__top {
     display: flex;
     align-items: center;
@@ -234,6 +243,13 @@
 
 .primary-button--saved {
     opacity: 0.8;
+}
+
+.error-text {
+    margin-top: -4px;
+    margin-bottom: 8px;
+    color: var(--color-alert);
+    font-size: 13px;
 }
 
 .fields-grid {
