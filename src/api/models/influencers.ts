@@ -5,7 +5,6 @@ export interface InfluencerResponse {
     daily_scripts: string[];
     id: string;
     influencer_agent_id_third_part: string;
-    influencer_gpt_agent_id: string;
     voice_prompt: string;
     created_at: string;
 }

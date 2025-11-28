@@ -22,7 +22,6 @@ export interface InfluencerDataModel {
     prompt_template?: string;
     daily_scripts?: string[];
     influencer_agent_id_third_part?: string;
-    influencer_gpt_agent_id?: string;
     voice_prompt?: string;
     social_connections?: {
         instagram: boolean;
