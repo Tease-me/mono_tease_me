@@ -1,27 +1,42 @@
-import React, { JSX, Suspense, lazy } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import PrivateRoute from "./components/PrivateRoute";
-import GuestRoute from "./components/GuestRoute";
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
+import LandingPage from "@/ui/screens/landing-page/LandingPage";
 import UpdateProfile from "@/ui/screens/register/UpdateProfile";
+import { JSX, Suspense, lazy } from "react";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import GuestRoute from "./components/GuestRoute";
+import PrivateRoute from "./components/PrivateRoute";
 import SuperRoute from "./components/SuperRoute";
 
-const InfluencerProfileScreen = lazy(() => import("@/ui/screens/influencer-profile/InfluencerProfileScreen"));
+const InfluencerProfileScreen = lazy(
+  () => import("@/ui/screens/influencer-profile/InfluencerProfileScreen")
+);
 const LoginScreen = lazy(() => import("@/ui/screens/login/LoginScreen"));
-const RegisterScreen = lazy(() => import("@/ui/screens/register/RegisterScreen"));
+const RegisterScreen = lazy(
+  () => import("@/ui/screens/register/RegisterScreen")
+);
 const Confirmation = lazy(() => import("@/ui/screens/register/Confirmation"));
-const ResetPassword = lazy(() => import("@/ui/screens/forgot-password/ResetPassword"));
-const ForgotPassword = lazy(() => import("@/ui/screens/forgot-password/ForgotPassword"));
+const ResetPassword = lazy(
+  () => import("@/ui/screens/forgot-password/ResetPassword")
+);
+const ForgotPassword = lazy(
+  () => import("@/ui/screens/forgot-password/ForgotPassword")
+);
 const VerifyEmail = lazy(() => import("@/ui/screens/verify-email/VerifyEmail"));
-const VoiceCallEleven = lazy(() => import("@/ui/screens/messaging/VoiceCallEleven"));
+const VoiceCallEleven = lazy(
+  () => import("@/ui/screens/messaging/VoiceCallEleven")
+);
 const HomeScreen = lazy(() => import("@/ui/screens/home/HomeScreen"));
 const ChatScreen = lazy(() => import("@/ui/screens/messaging/ChatScreen"));
 const CallScreen = lazy(() => import("@/ui/screens/CallScreen"));
 const UserProfile = lazy(() => import("@/ui/screens/user-profile/UserProfile"));
 const MJDashboard = lazy(() => import("@/mj-dashboard/ui/Dashboard"));
 const ButtonsTestPage = lazy(() => import("@/ui/screens/test/ButtonsTestPage"));
-const CreateInfluencer = lazy(() => import("@/ui/screens/admin/create-influencer/CreateInfluencer"));
-const PromptEditorAdmin = lazy(() => import("@/ui/screens/admin/PromptEditorAdmin"));
+const CreateInfluencer = lazy(
+  () => import("@/ui/screens/admin/create-influencer/CreateInfluencer")
+);
+const PromptEditorAdmin = lazy(
+  () => import("@/ui/screens/admin/PromptEditorAdmin")
+);
 
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
@@ -29,6 +44,7 @@ function AppRoutes() {
     { path: "/:username", element: <InfluencerProfileScreen /> },
     { path: "/test-buttons", element: <ButtonsTestPage /> },
     { path: "/update-profile", element: <UpdateProfile /> },
+    { path: "/landing-page", element: <LandingPage /> },
   ];
 
   const guestRoutes: { path: string; element: JSX.Element }[] = [
@@ -62,13 +78,25 @@ function AppRoutes() {
             <Route key={path} path={path} element={element} />
           ))}
           {guestRoutes.map(({ path, element }) => (
-            <Route key={path} path={path} element={<GuestRoute>{element}</GuestRoute>} />
+            <Route
+              key={path}
+              path={path}
+              element={<GuestRoute>{element}</GuestRoute>}
+            />
           ))}
           {privateRoutes.map(({ path, element }) => (
-            <Route key={path} path={path} element={<PrivateRoute>{element}</PrivateRoute>} />
+            <Route
+              key={path}
+              path={path}
+              element={<PrivateRoute>{element}</PrivateRoute>}
+            />
           ))}
           {superRoutes.map(({ path, element }) => (
-            <Route key={path} path={path} element={<SuperRoute>{element}</SuperRoute>} />
+            <Route
+              key={path}
+              path={path}
+              element={<SuperRoute>{element}</SuperRoute>}
+            />
           ))}
         </Routes>
       </Suspense>

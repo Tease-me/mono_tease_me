@@ -1,0 +1,17 @@
+import TeaseMeIncomeSection from "./sections/TeaseMeIncomeSection";
+import TeaseMeLanding from "./sections/TeaseMeLanding";
+import TeaseMeProcessSection from "./sections/TeaseMeProcessSection";
+import TeaseMeVideoSection from "./sections/TeaseMeVideoSection";
+import TeaseMeWhySection from "./sections/TeaseMeWhySection";
+
+export default function LandingPage() {
+  return (
+    <div style={{ overflowY: "auto", height: "100vh" }}>
+      <TeaseMeLanding />
+      <TeaseMeVideoSection />
+      <TeaseMeIncomeSection />
+      <TeaseMeWhySection />
+      <TeaseMeProcessSection />
+    </div>
+  );
+}

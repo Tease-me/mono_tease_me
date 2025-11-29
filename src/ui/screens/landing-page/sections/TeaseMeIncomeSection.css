@@ -1,0 +1,91 @@
+.tm-income-section {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 60px 16px 80px;
+  background: #0f0f10; /* same as 2nd section background */
+}
+
+.tm-income-card {
+  width: 100%;
+  max-width: 680px;
+
+  padding: 48px 32px;
+  border-radius: 32px;
+
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  backdrop-filter: blur(30px);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+
+  text-align: center;
+}
+
+/* Icon */
+.tm-income-icon-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 22px;
+}
+
+.tm-income-icon {
+  width: 42px;
+  height: 42px;
+  filter: drop-shadow(0 0 10px rgba(255, 79, 129, 0.4));
+}
+
+/* Title */
+.tm-income-title {
+  font-size: 22px;
+  line-height: 1.45;
+  font-weight: 400;
+  opacity: 0.9;
+  margin-bottom: 28px;
+  color: #e9e9e9;
+}
+
+.tm-income-title strong {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* Divider */
+.tm-income-divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.16);
+  margin-bottom: 32px;
+}
+
+/* Button */
+.tm-income-button {
+  width: 100%;
+  padding: 16px 20px;
+
+  background: linear-gradient(135deg, #ff4f81, #ff7a4d, #ff4f96);
+  color: #ffffff;
+  border: none;
+  border-radius: 999px;
+  font-size: 18px;
+  font-weight: 600;
+
+  box-shadow: 0 12px 28px rgba(255, 79, 129, 0.45);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.tm-income-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px rgba(255, 79, 129, 0.55);
+}
+
+.tm-income-arrow {
+  font-size: 20px;
+}
