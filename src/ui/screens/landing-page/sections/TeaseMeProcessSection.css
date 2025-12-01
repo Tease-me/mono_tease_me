@@ -45,21 +45,19 @@
   color: #ff4f81;
 }
 
-/* HORIZONTAL CARD LIST */
 .tm-process-scroll {
   display: flex;
   gap: 20px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   padding-bottom: 8px;
+
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE + Edge */
 }
 
 .tm-process-scroll::-webkit-scrollbar {
-  height: 6px;
-}
-.tm-process-scroll::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.4);
-  border-radius: 999px;
+  display: none; /* Chrome / Safari / Opera */
 }
 
 /* CARD */

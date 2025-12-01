@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import RotatingPill from "../components/RotatingPill";
 import "./TeaseMeIncomeCalculator.css";
 
 const TeaseMeIncomeCalculator: React.FC = () => {
+  const navigate = useNavigate();
   const [mode, setMode] = useState<"auto" | "manual">("auto");
   const [period, setPeriod] = useState<"WEEKLY" | "MONTHLY" | "YEARLY">(
     "WEEKLY"
@@ -11,7 +13,7 @@ const TeaseMeIncomeCalculator: React.FC = () => {
   const [converted, setConverted] = useState(2);
   const [followers, setFollowers] = useState<number | "">("");
 
-  const otherPhrases = ["income", "fans", "freedom", "travel"];
+  const otherPhrases = ["income", "freedom", "fans", "travel"];
 
   const followerCount = typeof followers === "number" ? followers : 0;
   const percentage = converted / 100;
@@ -136,7 +138,9 @@ const TeaseMeIncomeCalculator: React.FC = () => {
           />
         </div>
 
-        <button className="ic-cta">Start Building Persona →</button>
+        <button className="ic-cta" onClick={() => navigate("/profile-survey")}>
+          Start Building Persona →
+        </button>
       </div>
     </div>
   );

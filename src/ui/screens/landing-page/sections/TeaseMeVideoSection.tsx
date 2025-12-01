@@ -1,39 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
+import { videos, type VideoItem } from "../data/videoSection";
 import "./TeaseMeVideoSection.css";
-
-import avatarVideo from "@/assets/video/avatar_video.mp4";
-
-type VideoItem = {
-  id: number;
-  title: string;
-  src: string;
-  quote: string;
-  author: string;
-};
-
-const videos: VideoItem[] = [
-  {
-    id: 1,
-    title: "AI personas can make you high passive income",
-    src: avatarVideo,
-    quote: "My girlfriend AI made me a 24-year-old millionaire",
-    author: "@CARYN MARJORIE",
-  },
-  {
-    id: 2,
-    title: "Turn fan attention into real revenue",
-    src: avatarVideo,
-    quote: "I scaled my content income without burning out.",
-    author: "@TOP CREATOR",
-  },
-  {
-    id: 3,
-    title: "Let your AI persona work while you sleep",
-    src: avatarVideo,
-    quote: "I wake up to new conversations — and new sales.",
-    author: "@GLOBAL STREAMER",
-  },
-];
 
 type VideoCardProps = {
   video: VideoItem;
@@ -69,19 +36,10 @@ const VideoCard: React.FC<VideoCardProps> = ({
           muted
           playsInline
           preload="metadata"
-          onClick={onToggle} // 👈 só clicar no vídeo
+          onClick={onToggle}
         >
           <source src={video.src} type="video/mp4" />
         </video>
-      </div>
-
-      <div className="tm-video-meta">
-        <p className="tm-video-quote">
-          <span className="tm-video-quote-mark">❝</span>
-          {video.quote}
-          <span className="tm-video-quote-mark">❞</span>
-        </p>
-        <p className="tm-video-author">{video.author}</p>
       </div>
     </article>
   );
@@ -89,9 +47,13 @@ const VideoCard: React.FC<VideoCardProps> = ({
 
 const TeaseMeVideoSection: React.FC = () => {
   const [playingId, setPlayingId] = useState<number | null>(null);
+  const [activeVideo, setActiveVideo] = useState<VideoItem | null>(
+    videos[0] ?? null
+  );
 
-  const handleToggle = (id: number) => {
-    setPlayingId((prev) => (prev === id ? null : id));
+  const handleToggle = (video: VideoItem) => {
+    setPlayingId((prev) => (prev === video.id ? null : video.id));
+    setActiveVideo(video);
   };
 
   return (
@@ -111,10 +73,21 @@ const TeaseMeVideoSection: React.FC = () => {
               key={video.id}
               video={video}
               isPlaying={playingId === video.id}
-              onToggle={() => handleToggle(video.id)}
+              onToggle={() => handleToggle(video)}
             />
           ))}
         </div>
+
+        {activeVideo && (
+          <div className="tm-video-meta">
+            <p className="tm-video-quote">
+              <span className="tm-video-quote-mark">❝</span>
+              {activeVideo.quote}
+              <span className="tm-video-quote-mark">❞</span>
+            </p>
+            <p className="tm-video-author">{activeVideo.author}</p>
+          </div>
+        )}
       </div>
     </section>
   );

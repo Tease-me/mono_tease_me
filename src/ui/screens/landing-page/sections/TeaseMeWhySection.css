@@ -26,21 +26,19 @@
   margin-bottom: 28px;
 }
 
-/* HORIZONTAL SCROLL OF CARDS */
 .tm-why-scroll {
   display: flex;
   gap: 20px;
   overflow-x: auto;
   padding-bottom: 8px;
   scroll-snap-type: x mandatory;
+
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE + Edge */
 }
 
 .tm-why-scroll::-webkit-scrollbar {
-  height: 6px;
-}
-.tm-why-scroll::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.4);
-  border-radius: 999px;
+  display: none; /* Chrome/Safari */
 }
 
 /* SINGLE CARD */

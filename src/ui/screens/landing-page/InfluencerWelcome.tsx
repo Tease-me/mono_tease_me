@@ -19,7 +19,7 @@ import BackgroundGradient from "@/ui/templates/BackgroundGradient";
 import CenteredLayout from "@/ui/templates/CenteredLayout";
 
 import CallIcon from "@/assets/svg/Calling.svg?react";
-import DropCallIcon from "@/assets/svg/HangupCall.svg?react";
+import DropCallIcon from "@/assets/svg/DropCall.svg?react";
 
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import useCall from "@/hooks/useCall";
@@ -27,7 +27,7 @@ import logger from "@/utils/logger";
 import { storage } from "@/utils/storage";
 
 import InfluencerProfile from "../influencer-profile/profile/InfluencerProfile";
-import styles from "./WelcomeScreen.module.css"; // reaproveitando o CSS que você já tem
+import styles from "./WelcomeScreen.module.css";
 
 interface InfluencerWelcomeProps {}
 
@@ -39,6 +39,7 @@ const InfluencerWelcome: React.FC<InfluencerWelcomeProps> = () => {
   const [influencer, setInfluencer] = useState<InfluencerDataModel>();
   const [isFirstTime, setIsFirstTime] = useState(true);
   const [onTryClicked, setOnTryClicked] = useState(false);
+  const [hasConnected, setHasConnected] = useState(false);
 
   const { status, startConversation, stopConversation, setInfluencerId } =
     useCall();
@@ -47,7 +48,7 @@ const InfluencerWelcome: React.FC<InfluencerWelcomeProps> = () => {
 
   const influencerRepo = InfluencerRepo();
 
-  // Buscar influencer por username OU aleatório
+  // Fetch influencer by username OR random
   useEffect(() => {
     (async () => {
       try {
@@ -78,29 +79,45 @@ const InfluencerWelcome: React.FC<InfluencerWelcomeProps> = () => {
     })();
   }, [username]);
 
-  // Atualiza localStorage e estado conforme status da call
+  // React to call status changes
   useEffect(() => {
     if (status === "connected") {
       storage.setBoolean(LocalStorageKeys.VisitedWelcome, true);
-    } else if (status === "disconnected") {
+      setIsFirstTime(false);
+      setHasConnected(true);
+    }
+
+    if (status === "disconnected") {
       setIsFirstTime(false);
       setOnTryClicked(false);
-    }
-  }, [status]);
 
+      // If a call was actually connected before, go to the next screen
+      if (hasConnected) {
+        // TODO: change "/landing-page" to the route of your next screen
+        navigate("/income-dialog");
+      }
+    }
+  }, [status, hasConnected, navigate]);
+
+  // Start ringtone automatically when first opening the screen
   useEffect(() => {
     audioRef.current.currentTime = 0;
-    audioRef.current.play();
+    audioRef.current.play().catch(() => {});
     setOnTryClicked(true);
 
-    // para o toque depois de 60s se ninguém atender
-    setTimeout(() => {
+    const timeoutId = window.setTimeout(() => {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }, 60000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    };
   }, []);
 
-  // Passar influencerId pro hook de call
+  // Pass influencerId to call hook
   useEffect(() => {
     if (influencer?.id) {
       setInfluencerId(influencer.id);
@@ -113,11 +130,10 @@ const InfluencerWelcome: React.FC<InfluencerWelcomeProps> = () => {
 
   const handleTryClick = () => {
     audioRef.current.currentTime = 0;
-    audioRef.current.play();
+    audioRef.current.play().catch(() => {});
     setOnTryClicked(true);
 
-    // para o toque depois de 60s se ninguém atender
-    setTimeout(() => {
+    window.setTimeout(() => {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }, 60000);
@@ -133,19 +149,18 @@ const InfluencerWelcome: React.FC<InfluencerWelcomeProps> = () => {
     stopConversation();
     setIsFirstTime(false);
     setOnTryClicked(false);
+    // When user explicitly hangs up, also mark as connected so we navigate away
+    setHasConnected(true);
   };
 
   const incomingCall = status === "idle" && onTryClicked;
 
-  // Enquanto não carregou influencer, mostra loader
   if (!influencer) return <BlockingLoader />;
 
-  // Se usuário já está logado → mostra perfil diretamente
   if (isSignedIn) {
     return <InfluencerProfile influencer={influencer} />;
   }
 
-  // Se NÃO está logado → tela de Welcome + call
   return (
     <BackgroundGradient>
       <CenteredLayout>
