@@ -1,0 +1,218 @@
+.ic-wrapper {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 40px 16px;
+  background: linear-gradient(
+    180deg,
+    #0d0d0d 0%,
+    #1a1618 40%,
+    #221c20 75%,
+    #29222a 100%
+  );
+  background-image: url("/noise.png"),
+    linear-gradient(180deg, #0d0d0d 0%, #1a1618 40%, #221c20 75%, #29222a 100%);
+  background-blend-mode: overlay;
+}
+
+.ic-card {
+  width: 100%;
+  max-width: 380px;
+  padding: 28px 26px 24px;
+  border-radius: 20px;
+  background: rgba(46, 45, 45, 0.6);
+  border: 1px solid rgba(79, 71, 71, 0.8);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(20px);
+}
+
+.ic-title {
+  font-family: "Abril Fatface", serif;
+  font-size: 32px;
+  line-height: 1.15;
+  margin: 0 0 12px;
+  color: white;
+}
+
+.ic-question {
+  font-size: 14px;
+  color: #ddd;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px 16px;
+  border-radius: 16px;
+  margin-bottom: 16px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.ic-toggle {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.ic-toggle-btn {
+  flex: 1;
+  padding: 10px 0;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.3);
+  color: #ddd;
+  font-size: 14px;
+}
+
+.ic-toggle-btn.active {
+  border-color: #ff4f81;
+  background: rgba(255, 79, 129, 0.15);
+  color: #ff4f81;
+}
+
+.ic-income-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.ic-income-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #ff4f81;
+}
+
+.ic-period {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 4px 6px;
+  color: white;
+  font-size: 10px;
+  border-radius: 6px;
+}
+
+.ic-mode-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.ic-mode-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.ic-income-value {
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid #ff4f81;
+  background: rgba(0, 0, 0, 0.5);
+  color: #ff4f81;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.ic-divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.17);
+  margin: 8px 0 16px;
+}
+
+.ic-label {
+  color: #eee;
+  font-size: 14px;
+  margin-top: 8px;
+  display: block;
+}
+
+.req {
+  color: #ff4f81;
+}
+
+.ic-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  margin-top: 6px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.3);
+  color: white;
+}
+
+.ic-helper {
+  font-size: 11px;
+  opacity: 0.6;
+  margin-top: 4px;
+}
+
+.ic-slider {
+  position: relative;
+  margin-top: 12px;
+}
+
+.ic-slider-track {
+  height: 10px;
+  background: #000;
+  border-radius: 999px;
+}
+
+.ic-slider-fill {
+  height: 10px;
+  background: linear-gradient(90deg, #ff4f81, #ff7a4d);
+  border-radius: 999px;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.ic-slider-thumb {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 0%, #ff4f81, #b5003c);
+  position: absolute;
+  top: -10px;
+  transform: translateX(-50%);
+}
+
+.ic-slider-input {
+  width: 100%;
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.ic-cta {
+  width: 100%;
+  margin-top: 24px;
+  padding: 14px;
+  border-radius: 999px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  background: linear-gradient(
+    180deg,
+    #d90048 0%,
+    #d70048 16%,
+    #cc0044 33%,
+    #ff276f 50%,
+    #c20041 72%,
+    #b5003c 100%
+  );
+  box-shadow: 0 22px 46px rgba(255, 79, 129, 0.55),
+    inset 9px 10px 1px -11px rgba(254, 76, 103, 1),
+    inset 13px 9px 1px -11px rgba(255, 255, 255, 0.15),
+    inset -12px -9px 2px -10px rgba(255, 115, 115, 0.5),
+    inset -14px -7px 1px -15px rgba(254, 76, 103, 1),
+    inset 5px 3px 3px -4px rgba(253, 146, 127, 1),
+    inset -4px -4px 1px -4px rgba(255, 127, 104, 0.55);
+}

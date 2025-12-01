@@ -1,31 +1,29 @@
 window.global ||= window;
-import React from 'react'
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import AppRoutes from './routes/AppRoutes.jsx'
-import { AuthProvider } from './context/AuthContext'
-import logger from './utils/logger';
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { AuthProvider } from "./context/AuthContext";
+import "./index.css";
+import AppRoutes from "./routes/AppRoutes.jsx";
+import logger from "./utils/logger";
 
 function registerServiceWorker() {
-  if ('serviceWorker' in navigator) {
+  if ("serviceWorker" in navigator) {
     (async () => {
       try {
-        const registration = await navigator.serviceWorker.register(
-          "/sw.js",
-          { type: 'module' }
-        );
-        logger.info('ServiceWorker Successfully registered! 🎉', registration)
+        const registration = await navigator.serviceWorker.register("/sw.js", {
+          type: "module",
+        });
+        logger.info("ServiceWorker Successfully registered! 🎉", registration);
       } catch (error) {
-        logger.error('Failed to subscribe the user:', error);
+        logger.error("Failed to subscribe the user:", error);
       }
     })();
   } else {
-    logger.error('Service Worker or Push API not supported.');
+    logger.error("Service Worker or Push API not supported.");
   }
 }
 
-const rootElement = document.getElementById('root');
+const rootElement = document.getElementById("root");
 if (rootElement) {
   registerServiceWorker();
   createRoot(rootElement).render(
@@ -33,7 +31,7 @@ if (rootElement) {
       <AuthProvider>
         <AppRoutes />
       </AuthProvider>
-    </StrictMode>,
+    </StrictMode>
   );
 } else {
   throw new Error("Root element not found");

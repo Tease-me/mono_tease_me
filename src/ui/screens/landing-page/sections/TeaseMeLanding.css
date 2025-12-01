@@ -1,0 +1,315 @@
+/* =============== BACKGROUND =============== */
+.tm-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-right: 24px;
+  padding-left: 24px;
+
+  background: radial-gradient(circle at top, #2a0019, #050106 55%, #000 100%);
+  font-family: system-ui, Arial, sans-serif;
+  color: #fff;
+  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none; /* Firefox */
+  overflow-y: scroll;
+}
+
+.tm-page::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+/* =============== MAIN CARD =============== */
+.tm-device {
+  width: 100%;
+  max-width: 980px;
+  border-radius: 40px;
+  background: radial-gradient(
+    circle at top,
+    #1f0311,
+    #050106 55%,
+    #030006 100%
+  );
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 32px 40px 28px;
+  position: relative;
+  overflow: visible;
+}
+
+/* =============== TOP LOGO =============== */
+.tm-header {
+  position: relative;
+  width: 416px;
+  height: 137px;
+
+  top: -7px;
+  left: -7px;
+  justify-content: flex-end;
+
+  padding: 8px 28px 16px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+
+  background: linear-gradient(180deg, #3d0713 0%, #181818 100%);
+  border-bottom: 2px solid #570a20;
+  border-radius: 8px;
+}
+
+.tm-logo {
+  height: 53px;
+}
+
+/* =============== HERO LAYOUT =============== */
+.tm-hero {
+  position: relative;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding-top: 0; /* was 24px */
+  margin-top: -12px; /* pulls title up to match mockup */
+}
+
+/* LEFT (TEXT) */
+.tm-hero-text {
+  flex: 0 0 55%;
+  max-width: 460px;
+}
+
+/* TITLE */
+.tm-tagline {
+  font-size: 40px;
+  line-height: 1.1;
+  font-weight: 700;
+}
+
+/* =============== PILL =============== */
+.tm-tagline-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 4px 18px;
+  border-radius: 8px;
+
+  border: 1.6px solid #7d1132;
+  background: rgba(255, 79, 129, 0.1);
+
+  /* SOFT glow like mockup */
+  box-shadow: 0 0 12px rgba(255, 79, 129, 0.35);
+
+  height: 1.35em;
+  width: 200px;
+  overflow: hidden;
+}
+
+.tm-pill-layer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Base text */
+.tm-pill-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  text-align: center;
+  color: #ef074e;
+  font-weight: 700;
+  font-size: 0.9em;
+}
+
+/* Current text (resting) */
+.tm-pill-current {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* OUT animation (old text going up) */
+.tm-pill-out {
+  animation: pillOut 0.35s ease-out forwards;
+}
+
+/* IN animation (new text coming from bottom) */
+.tm-pill-in {
+  animation: pillIn 0.35s ease-out forwards;
+}
+
+@keyframes pillOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+}
+
+@keyframes pillIn {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =============== BENEFITS =============== */
+.tm-benefits {
+  list-style: none;
+  padding: 0;
+  margin: 26px 0 22px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tm-benefit-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  padding: 5px 10px; /* top/bottom 5px, left/right 10px */
+  border-radius: 8px; /* Figma radius */
+
+  /* Background #262626 @20% */
+  background: rgba(38, 38, 38, 0.2);
+
+  /* Border #FFA4C0 @11% */
+  border: 1px solid rgba(255, 164, 192, 0.11);
+
+  width: fit-content; /* hug width based on content */
+  max-width: 100%;
+
+  font-size: 14px;
+  font-weight: 400;
+  color: #f5f5f5;
+}
+
+/* bullet icon */
+.tm-benefit-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+/* =============== SOCIALS =============== */
+.tm-integrations {
+  margin-top: 14px;
+}
+
+.tm-integrations-img {
+  width: 200px;
+  opacity: 0.95;
+}
+
+/* =============== MODEL IMAGE =============== */
+.tm-hero-image-wrapper {
+  position: absolute;
+  right: -40px;
+  bottom: -30px;
+  width: 45%;
+  max-width: 340px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  pointer-events: none;
+  overflow: visible !important;
+}
+
+.tm-hero-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 0%, #ff4f81, transparent 60%);
+  filter: blur(20px);
+  z-index: 0;
+}
+
+.tm-hero-image {
+  width: 100%;
+  z-index: 2;
+}
+
+/* =============== CTA BUTTON =============== */
+.tm-cta {
+  margin-top: 30px;
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+
+  padding: 18px 26px; /* mais alto, como o Figma */
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+
+  /* ★ MULTI-GRADIENT EXACT DO FIGMA ★ */
+  background: linear-gradient(
+    180deg,
+    #d90048 0%,
+    #d70048 16%,
+    #cc0044 33%,
+    #ff276f 50%,
+    #c20041 72%,
+    #b5003c 100%
+  );
+
+  transition: transform 0.15s ease, filter 0.25s ease;
+}
+
+.tm-cta:hover {
+  transform: translateY(-3px);
+  filter: brightness(1.12);
+}
+
+.tm-cta-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+/* =============== SCROLL HINT =============== */
+.tm-scroll-hint {
+  margin-top: 10px;
+  opacity: 0.85;
+  font-size: 12px;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* =============== RESPONSIVE =============== */
+@media (max-width: 900px) {
+  .tm-hero {
+    padding-top: 24px;
+  }
+
+  .tm-hero-text {
+    flex: 0 0 62%;
+  }
+
+  .tm-hero-image-wrapper {
+    right: -24px;
+    bottom: -20px;
+    width: 58%;
+    max-width: 280px;
+  }
+
+  .tm-tagline {
+    font-size: 26px;
+  }
+}
