@@ -3,7 +3,10 @@
   display: flex;
   justify-content: center;
   padding: 60px 16px 80px;
-  background: #0f0f10; /* same as 2nd section background */
+  margin: 18px;
+  background: rgba(46, 45, 45, 0.6);
+  border: 1px solid rgba(79, 71, 71, 0.8);
+  padding: 20px;
 }
 
 .tm-income-card {
@@ -13,7 +16,13 @@
   padding: 48px 32px;
   border-radius: 32px;
 
-  background: rgba(255, 255, 255, 0.04);
+  background: linear-gradient(
+    180deg,
+    #302227 0%,
+    #392f2f 33%,
+    #2e2e2e 66%,
+    #39282f 100%
+  );
   border: 1px solid rgba(255, 255, 255, 0.08);
 
   backdrop-filter: blur(30px);

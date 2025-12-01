@@ -1,3 +1,4 @@
+import TeaseMeIncomeCalculatorSection from "./sections/TeaseMeIncomeCalculatorSection";
 import TeaseMeIncomeSection from "./sections/TeaseMeIncomeSection";
 import TeaseMeLanding from "./sections/TeaseMeLanding";
 import TeaseMeProcessSection from "./sections/TeaseMeProcessSection";
@@ -12,6 +13,7 @@ export default function LandingPage() {
       <TeaseMeIncomeSection />
       <TeaseMeWhySection />
       <TeaseMeProcessSection />
+      <TeaseMeIncomeCalculatorSection />
     </div>
   );
 }

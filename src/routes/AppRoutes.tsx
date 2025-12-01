@@ -1,4 +1,5 @@
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
+import InfluencerWelcome from "@/ui/screens/landing-page/InfluencerWelcome";
 import LandingPage from "@/ui/screens/landing-page/LandingPage";
 import UpdateProfile from "@/ui/screens/register/UpdateProfile";
 import { JSX, Suspense, lazy } from "react";
@@ -45,6 +46,7 @@ function AppRoutes() {
     { path: "/test-buttons", element: <ButtonsTestPage /> },
     { path: "/update-profile", element: <UpdateProfile /> },
     { path: "/landing-page", element: <LandingPage /> },
+    { path: "/welcome", element: <InfluencerWelcome /> },
   ];
 
   const guestRoutes: { path: string; element: JSX.Element }[] = [

@@ -4,10 +4,19 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 24px;
+  padding-right: 24px;
+  padding-left: 24px;
+
   background: radial-gradient(circle at top, #2a0019, #050106 55%, #000 100%);
   font-family: system-ui, Arial, sans-serif;
   color: #fff;
+  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none; /* Firefox */
+  overflow-y: scroll;
+}
+
+.tm-page::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
 }
 
 /* =============== MAIN CARD =============== */
@@ -30,13 +39,27 @@
 
 /* =============== TOP LOGO =============== */
 .tm-header {
+  position: relative;
+  width: 416px;
+  height: 137px;
+
+  top: -7px;
+  left: -7px;
+  justify-content: flex-end;
+
+  padding: 8px 28px 16px 28px;
   display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+
+  background: linear-gradient(180deg, #3d0713 0%, #181818 100%);
+  border-bottom: 2px solid #570a20;
+  border-radius: 8px;
 }
 
 .tm-logo {
-  height: 40px;
+  height: 53px;
 }
 
 /* =============== HERO LAYOUT =============== */
@@ -63,23 +86,22 @@
 }
 
 /* =============== PILL =============== */
-
 .tm-tagline-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
   padding: 4px 18px;
-  border-radius: 999px;
+  border-radius: 8px;
 
-  border: 1.6px solid #ff4f81;
+  border: 1.6px solid #7d1132;
   background: rgba(255, 79, 129, 0.1);
 
   /* SOFT glow like mockup */
   box-shadow: 0 0 12px rgba(255, 79, 129, 0.35);
 
-  height: 1.35em; /* thinner, like mockup */
-  width: 200px; /* EXACT proportion of right image */
+  height: 1.35em;
+  width: 200px;
   overflow: hidden;
 }
 
@@ -146,31 +168,39 @@
   list-style: none;
   padding: 0;
   margin: 26px 0 22px;
+
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
-
 .tm-benefit-pill {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  padding: 5px 5px;
-  gap: 10px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.05),
-    rgba(0, 0, 0, 0.3)
-  );
-  backdrop-filter: blur(18px);
-  z-index: 2;
+  gap: 5px;
+
+  padding: 5px 10px; /* top/bottom 5px, left/right 10px */
+  border-radius: 8px; /* Figma radius */
+
+  /* Background #262626 @20% */
+  background: rgba(38, 38, 38, 0.2);
+
+  /* Border #FFA4C0 @11% */
+  border: 1px solid rgba(255, 164, 192, 0.11);
+
+  width: fit-content; /* hug width based on content */
+  max-width: 100%;
+
+  font-size: 14px;
+  font-weight: 400;
+  color: #f5f5f5;
 }
 
+/* bullet icon */
 .tm-benefit-icon {
-  width: 20px;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
 }
-
 /* =============== SOCIALS =============== */
 .tm-integrations {
   margin-top: 14px;
@@ -214,16 +244,42 @@
   width: 100%;
   border: none;
   border-radius: 999px;
-  padding: 16px 22px;
-  font-size: 17px;
+
+  padding: 18px 26px; /* mais alto, como o Figma */
+  font-size: 18px;
   font-weight: 600;
   color: #fff;
+
   cursor: pointer;
-  background-image: linear-gradient(135deg, #ff4f81, #ff7a4d, #ff4f96);
-  box-shadow: 0 16px 34px rgba(255, 79, 129, 0.6);
-  display: flex;
+
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 12px;
+
+  /* ★ MULTI-GRADIENT EXACT DO FIGMA ★ */
+  background: linear-gradient(
+    180deg,
+    #d90048 0%,
+    #d70048 16%,
+    #cc0044 33%,
+    #ff276f 50%,
+    #c20041 72%,
+    #b5003c 100%
+  );
+
+  transition: transform 0.15s ease, filter 0.25s ease;
+}
+
+.tm-cta:hover {
+  transform: translateY(-3px);
+  filter: brightness(1.12);
+}
+
+.tm-cta-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
 }
 
 /* =============== SCROLL HINT =============== */
