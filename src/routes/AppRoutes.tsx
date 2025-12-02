@@ -52,7 +52,6 @@ function AppRoutes() {
     { path: "/income-dialog", element: <IncomeDialogStep01 /> },
     { path: "/profile-survey", element: <ProfileSurvey /> },
   ];
-
   const guestRoutes: { path: string; element: JSX.Element }[] = [
     { path: "/login", element: <LoginScreen /> },
     { path: "/register", element: <RegisterScreen /> },
