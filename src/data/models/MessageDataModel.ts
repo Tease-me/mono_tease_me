@@ -13,6 +13,8 @@ export interface Message {
     text?: string;
     time: string;
     attachments?: MediaAttachment[];
+    channel?: string;
+    timestamp?: number;
 }
 
 export interface MessagePagination {

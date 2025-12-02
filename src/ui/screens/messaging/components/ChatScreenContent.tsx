@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Endpoints, WS_BASE_URL } from "@/api/urls";
 import ProfileMedia from "@/ui/components/ProfileMedia";
@@ -6,7 +6,7 @@ import { truncateLastName } from "@/utils/StringUtils";
 import { AuthContext } from "@/context/AuthContext";
 import styles from "./ChatScreenContent.module.css"
 import { useParams } from 'react-router-dom';
-import MessageBubble from './MessageBubble';
+import MessageBubble, { CallMessageGroup } from './MessageBubble';
 import ChatInputArea from './ChatInputArea';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import ChatTopNav from '@/ui/components/nav/ChatTopNav';
@@ -22,16 +22,61 @@ import logger from '@/utils/logger';
 import useCall from '@/hooks/useCall';
 import CallModal from '@/ui/components/modals/call-modal/CallModal';
 
-const MessagesList = React.memo(({ messages, typing, messagesEndRef }: { messages: any[]; typing: boolean; messagesEndRef: React.RefObject<HTMLDivElement | null>; }) => {
+type DisplayMessage = Message | CallMessageGroup;
+
+const isCallGroup = (message: DisplayMessage): message is CallMessageGroup => {
+    return (message as CallMessageGroup).type === "call-group";
+};
+
+const isCallChannel = (message: Message) => {
+    if (!message.channel) return false;
+    return message.channel.toLowerCase().startsWith("call");
+};
+
+const mergeCallMessages = (messageList: Message[]): DisplayMessage[] => {
+    const merged: DisplayMessage[] = [];
+    let currentCallGroup: CallMessageGroup | null = null;
+
+    messageList.forEach((message) => {
+        if (isCallChannel(message)) {
+            if (!currentCallGroup) {
+                currentCallGroup = {
+                    id: `call-${message.id}`,
+                    sender: "sent",
+                    time: message.time,
+                    messages: [],
+                    type: "call-group",
+                };
+                merged.push(currentCallGroup);
+            }
+            currentCallGroup.messages.push(message);
+            currentCallGroup.time = message.time;
+            return;
+        }
+
+        currentCallGroup = null;
+        merged.push(message);
+    });
+
+    return merged;
+};
+
+const MessagesList = React.memo(({ messages, typing, messagesEndRef, influencerName }: { messages: DisplayMessage[]; typing: boolean; messagesEndRef: React.RefObject<HTMLDivElement | null>; influencerName?: string; }) => {
     return (
         <>
             <div className={styles["messages"]}>
                 {messages.map((msg) => (
-                    <MessageBubble key={msg.id} msg={msg} />
+                    <MessageBubble
+                        key={msg.id}
+                        msg={!isCallGroup(msg) ? msg : undefined}
+                        callGroup={isCallGroup(msg) ? msg : undefined}
+                        influencerName={influencerName}
+                    />
                 ))}
                 {typing && <MessageBubble />}
             </div>
             <div ref={messagesEndRef} style={{ height: "50px" }} />
+            {messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })}
         </>
     );
 });
@@ -70,6 +115,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const chatRepository = ChatRepository();
     const influencerRepo = InfluencerRepo();
     const { status, startConversation, stopConversation, setInfluencerId, timeRemaining } = useCall();
+    const displayMessages = useMemo(() => messages ? mergeCallMessages(messages) : [], [messages]);
     useEffect(() => {
         (async () => {
             if (!id) {
@@ -149,10 +195,12 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                             id: Date.now(),
                             sender: "received",
                             text: data.reply,
+                            channel: data.channel ?? "chat",
                             time: new Date().toLocaleTimeString([], {
                                 hour: "2-digit",
                                 minute: "2-digit",
                             }),
+                            timestamp: Date.now(),
                         },
                     ]
                 });
@@ -170,7 +218,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         if (!chatId) return;
 
         const { audio_url } = await chatRepository.sendAudioMessage(audioBlob, influencer.id, chatId);
-
+        setTyping(false);
         setMessages((prev) => {
             if (!prev) return prev;
             return [
@@ -178,10 +226,12 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 {
                     id: Date.now(),
                     sender: "received",
+                    channel: "chat",
                     time: new Date().toLocaleTimeString([], {
                         hour: "2-digit",
                         minute: "2-digit",
                     }),
+                    timestamp: Date.now(),
                     attachments: audio_url
                         ? [
                             {
@@ -214,17 +264,20 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                     {
                         id: Date.now(),
                         sender: "sent",
+                        channel: "chat",
                         text: inputText,
                         time: new Date().toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
                         }),
+                        timestamp: Date.now(),
                     },
                 ]
             });
 
             setInputText("");
         } else if (inputAudio) {
+            setTyping(true);
             sendAndPlay(inputAudio);
             setMessages(prev => {
                 if (!prev) return
@@ -233,10 +286,12 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                     {
                         id: Date.now(),
                         sender: 'sent',
+                        channel: "chat",
                         time: new Date().toLocaleTimeString([], {
                             hour: '2-digit',
                             minute: '2-digit',
                         }),
+                        timestamp: Date.now(),
                         attachments: [
                             {
                                 blob: inputAudio,
@@ -313,7 +368,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             >
                 {(messages) ? <>
                     {isLoadingMore && <LoadingSpinner size='small' />}
-                    <MessagesList messages={messages} typing={typing} messagesEndRef={messagesEndRef} />
+                    <MessagesList messages={displayMessages} typing={typing} messagesEndRef={messagesEndRef} influencerName={influencer?.name} />
                 </> : <LoadingSpinner />}
             </div>
 
@@ -327,7 +382,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                     error={error}
                     inputAudio={inputAudio} />
             </div>
-            <CallModal timeRemaining={timeRemaining} status={status} isOpen={openWelcomeCallModal} onClose={() => setOpenWelcomeCallModal(false)} stopConversation={stopConversation} influencer={influencer} />
+            <CallModal
+                timeRemaining={timeRemaining}
+                status={status}
+                isOpen={openWelcomeCallModal}
+                onClose={() => setOpenWelcomeCallModal(false)}
+                stopConversation={stopConversation}
+                influencer={influencer} />
         </div>
     );
 };

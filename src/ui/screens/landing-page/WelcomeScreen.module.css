@@ -1,0 +1,143 @@
+/* Container that wraps the big profile media (image/video) */
+.profile-container {
+  margin-top: 32px;
+  margin-bottom: 16px;
+  transition: transform 0.4s ease, filter 0.4s ease;
+}
+
+/* When user clicks "Talk to me Now", zoom the media */
+.zoomed {
+  transform: scale(1.06);
+  filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.7));
+}
+
+/* "Join {name} on" */
+.join-text {
+  margin: 0 0 24px;
+  font-size: 20px;
+  font-weight: 500;
+  text-align: center;
+  color: #f9fafb;
+}
+
+/* Incoming call text */
+.incoming-call-text {
+  margin-top: 16px;
+  font-size: 18px;
+  font-weight: 500;
+  text-align: center;
+  color: #f97373;
+}
+
+/* Influencer name under "Incoming Call" */
+.influencer-name {
+  margin-top: 6px;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+  color: #ffffff;
+}
+
+/* Row of call buttons (Reject / Answer) */
+.call-buttons {
+  margin-top: 20px;
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+/* Main welcome container (logo, buttons, links) */
+.welcome-screen-container {
+  margin-top: 24px;
+  width: 100%;
+  max-width: 420px;
+  padding: 24px 20px 28px;
+  border-radius: 32px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8);
+}
+
+/* "Don't have an account? Sign up" / "Already have an account? Login" */
+.signup-text {
+  margin-top: 14px;
+  margin-bottom: 14px;
+  font-size: 14px;
+  text-align: center;
+  color: #e5e7eb;
+}
+
+/* Link inside the signup text */
+.signup-link {
+  font-weight: 600;
+  color: #ff4d6d;
+  cursor: pointer;
+}
+
+/* Container for the primary buttons + secondary text */
+.buttons-container {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* "Sign in with email" button extra spacing */
+.sign-in-button {
+  margin-bottom: 4px;
+}
+
+/* Make it look good on mobile */
+@media (max-width: 600px) {
+  .profile-container {
+    margin-top: 24px;
+    margin-bottom: 12px;
+  }
+
+  .join-text {
+    font-size: 18px;
+  }
+
+  .welcome-screen-container {
+    margin-top: 18px;
+    padding: 20px 16px 24px;
+    border-radius: 24px;
+  }
+}
+
+/* Slightly larger on big screens */
+@media (min-width: 900px) {
+  .profile-container {
+    margin-top: 40px;
+  }
+
+  .welcome-screen-container {
+    max-width: 480px;
+    padding: 28px 24px 32px;
+  }
+}
+
+.welcome-root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+
+  animation: welcomeSlideUp 0.45s ease-out;
+}
+
+@keyframes welcomeSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(100px); /* bem embaixo */
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-4px); /* passa só um pouco */
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
