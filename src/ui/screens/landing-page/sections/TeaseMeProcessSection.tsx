@@ -8,7 +8,7 @@ const TeaseMeProcessSection: React.FC = () => {
       <div className="tm-process-container">
         {/* header */}
         <div className="tm-process-header">
-          <h2 className="tm-process-title">What is the process?</h2>
+          <h2 className="tm-video-title">What is the process?</h2>
           <span className="tm-process-tag">4 Easy Steps</span>
         </div>
 
@@ -22,6 +22,8 @@ const TeaseMeProcessSection: React.FC = () => {
                   alt={step.title}
                   className="tm-process-thumb"
                 />
+
+                
               </div>
 
               <div className="tm-process-body">

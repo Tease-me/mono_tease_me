@@ -1,22 +1,5 @@
 /* =============== PILL =============== */
-.tm-tagline-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 
-  padding: 4px 18px;
-  border-radius: 8px;
-
-  border: 1.6px solid #7d1132;
-  background: rgba(255, 79, 129, 0.1);
-
-  /* soft glow like the mockup */
-  box-shadow: 0 0 12px rgba(255, 79, 129, 0.35);
-
-  height: 1.35em;
-  width: 200px;
-  overflow: hidden;
-}
 
 .tm-pill-layer {
   position: relative;
