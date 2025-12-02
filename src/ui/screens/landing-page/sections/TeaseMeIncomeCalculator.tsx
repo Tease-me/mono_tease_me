@@ -9,6 +9,7 @@ const TeaseMeIncomeCalculator: React.FC = () => {
   const [period, setPeriod] = useState<"WEEKLY" | "MONTHLY" | "YEARLY">(
     "WEEKLY"
   );
+
   const [url, setUrl] = useState("");
   const [converted, setConverted] = useState(2);
   const [followers, setFollowers] = useState<number | "">("");
