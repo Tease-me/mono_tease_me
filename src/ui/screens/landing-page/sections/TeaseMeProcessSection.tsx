@@ -23,17 +23,17 @@ const TeaseMeProcessSection: React.FC = () => {
                   className="tm-process-thumb"
                 />
 
-                
+
               </div>
 
               <div className="tm-process-body">
                 <span className="tm-process-step-label">{step.stepLabel}</span>
 
-                <h3 className="tm-process-card-title">{step.title}</h3>
+                <h3 className="tm-why-card-title">{step.title}</h3>
 
-                <div className="tm-process-divider" />
+                <div className="tm-why-card-divider" />
 
-                <p className="tm-process-card-text">{step.description}</p>
+                <p className="tm-why-card-text">{step.description}</p>
               </div>
             </article>
           ))}

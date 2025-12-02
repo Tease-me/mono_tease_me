@@ -4,13 +4,11 @@
   display: flex;
   justify-content: center;
   padding: 40px 16px;
-  background: linear-gradient(
-    180deg,
-    #0d0d0d 0%,
-    #1a1618 40%,
-    #221c20 75%,
-    #29222a 100%
-  );
+  background: linear-gradient(180deg,
+      #0d0d0d 0%,
+      #1a1618 40%,
+      #221c20 75%,
+      #29222a 100%);
   background-image: url("/noise.png"),
     linear-gradient(180deg, #0d0d0d 0%, #1a1618 40%, #221c20 75%, #29222a 100%);
   background-blend-mode: overlay;
@@ -62,9 +60,9 @@
 }
 
 .ic-toggle-btn.active {
-  border-color: #ff4f81;
+  border-color: var(--color-primary);
   background: rgba(255, 79, 129, 0.15);
-  color: #ff4f81;
+  color: var(--color-primary);
 }
 
 .ic-income-row {
@@ -81,7 +79,7 @@
   font-size: 11px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #ff4f81;
+  color: var(--color-primary);
 }
 
 .ic-period {
@@ -110,11 +108,16 @@
 .ic-income-value {
   padding: 4px 12px;
   border-radius: 999px;
-  border: 1px solid #ff4f81;
-  background: rgba(0, 0, 0, 0.5);
-  color: #ff4f81;
-  font-weight: 700;
-  font-size: 14px;
+  border: 1px solid var(--color-primary);
+  background: rgba(239, 6, 78, 0.10);
+  color: var(--color-primary);
+  text-align: center;
+  font-family: "Abril Fatface";
+  font-size: 1.25rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.25rem;
+  /* 100% */
 }
 
 .ic-divider {
@@ -165,21 +168,25 @@
 
 .ic-slider-fill {
   height: 10px;
-  background: linear-gradient(90deg, #ff4f81, #ff7a4d);
-  border-radius: 999px;
+  border-radius: 0.5rem;
+  background: hsla(341, 95%, 48%, 0.5);
+  box-shadow: 0 2px 1px 0 #000 inset, 0 1px 0 0 rgba(255, 255, 255, 0.12);
   position: absolute;
   top: 0;
   left: 0;
 }
 
 .ic-slider-thumb {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 0%, #ff4f81, #b5003c);
+  display: flex;
+  width: 3.25rem;
+  height: 2.125rem;
+  border-radius: 3rem;
+  border: 1px solid rgba(199, 0, 61, 0.40);
+  background: linear-gradient(136deg, #EF064E 11.82%, #88002A 46.38%, #710023 64.17%, #9D0030 74.43%, #710023 82.98%);
   position: absolute;
-  top: -10px;
+  top: -125%;
   transform: translateX(-50%);
+  box-shadow: -4px 0px 8px hsl(331deg 96% 9% / 60%);
 }
 
 .ic-slider-input {
@@ -199,15 +206,13 @@
   font-size: 16px;
   font-weight: 600;
   border: none;
-  background: linear-gradient(
-    180deg,
-    #d90048 0%,
-    #d70048 16%,
-    #cc0044 33%,
-    #ff276f 50%,
-    #c20041 72%,
-    #b5003c 100%
-  );
+  background: linear-gradient(180deg,
+      #d90048 0%,
+      #d70048 16%,
+      #cc0044 33%,
+      #ff276f 50%,
+      #c20041 72%,
+      #b5003c 100%);
   box-shadow: 0 22px 46px rgba(255, 79, 129, 0.55),
     inset 9px 10px 1px -11px rgba(254, 76, 103, 1),
     inset 13px 9px 1px -11px rgba(255, 255, 255, 0.15),

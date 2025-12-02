@@ -38,7 +38,7 @@
   position: relative;
   height: 10vh;
   z-index: 4;
-  
+
 
   margin-bottom: 2rem;
   justify-content: flex-end;
@@ -70,9 +70,9 @@
 /* LEFT (TEXT) */
 .tm-hero-text {
   position: relative;
-  left:2rem;
+  left: 2rem;
   z-index: 4;
-  
+
 
 }
 
@@ -82,8 +82,8 @@
   font-size: 2.125rem;
   font-weight: 400;
 
-  line-height: 130%;
-   max-width: 14ch;
+  line-height: 145%;
+  max-width: 14ch;
 }
 
 .tm-icons-row {
@@ -107,7 +107,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-right: 0.5rem;
+  margin-right: 0.2rem;
 
   padding: 4px 18px;
 
@@ -123,7 +123,7 @@
   min-width: 13rem;
   overflow: hidden;
   position: relative;
-  bottom: -7px;
+  bottom: -6px;
 
 }
 
@@ -236,18 +236,22 @@
   flex-direction: column;
 }
 
-.tm-integrations p {font-size: 0.8rem;opacity: 0.5; font-weight: 300;}
+.tm-integrations p {
+  font-size: 0.8rem;
+  opacity: 0.5;
+  font-weight: 300;
+}
 
 
 
 /* =============== MODEL IMAGE =============== */
 .tm-hero-image-wrapper {
-    position: absolute;
-    right: -2rem;
-    bottom: -3vh;
-    pointer-events: none;
-    width: 66%;
-  
+  position: absolute;
+  right: -2rem;
+  bottom: -3vh;
+  pointer-events: none;
+  width: 66%;
+
 }
 
 .tm-hero-glow {
@@ -260,10 +264,10 @@
 
 .tm-hero-image {
   width: 100%;
-      z-index: 2;
-    position: relative;
-    left: -15%;
-    bottom: -3rem;
+  z-index: 2;
+  position: relative;
+  left: -15%;
+  bottom: -3rem;
 }
 
 /* =============== CTA BUTTON =============== */
@@ -276,11 +280,14 @@
   background: linear-gradient(rgba(0, 0, 0, 0.532), black);
   z-index: 10;
   bottom: 0;
-  backdrop-filter: blur(0.75rem);  
+  backdrop-filter: blur(0.75rem);
 }
 
-.tm-bottom-cta .tm-cta {    top: -3.7rem;
-    position: relative; margin-bottom: -3rem;}
+.tm-bottom-cta .tm-cta {
+  top: -3.7rem;
+  position: relative;
+  margin-bottom: -3rem;
+}
 
 .tm-cta {
   margin-top: 30px;
@@ -300,7 +307,7 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  
+
 
   /* ★ MULTI-GRADIENT EXACT DO FIGMA ★ */
   background: linear-gradient(180deg,
@@ -333,4 +340,6 @@
 
 }
 
-.tm-scroll-hint p {  opacity: 0.5;}
+.tm-scroll-hint p {
+  opacity: 0.5;
+}

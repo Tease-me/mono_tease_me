@@ -19,31 +19,31 @@ export const PROCESS_STEPS: ProcessStep[] = [
     stepLabel: "STEP 1",
     title: "Get to know you",
     description:
-      "Interview & questionnaire to understand your personality, likes, dislikes, and boundaries — the foundation of your AI persona.",
+      "Interview & questionnaire to understand your personality, likes, dislikes, and boundaries — the foundation of your Ai persona.",
     thumb: step1Thumb,
   },
   {
     id: 2,
     stepLabel: "STEP 2",
-    title: "Design your persona",
+    title: "Record Voice Sample",
     description:
-      "We co-create your persona’s voice, style, and fan experience so it feels like you — just amplified and always on.",
+      "Record a short voice sample in a quiet environment so we can capture the true tone, emotion, and nuances of your voice.",
     thumb: step2Thumb,
   },
   {
     id: 3,
     stepLabel: "STEP 3",
-    title: "Train & test",
+    title: "Persona Development",
     description:
-      "Your AI persona is trained, tested, and refined with real conversation flows until it’s ready to meet your fans.",
+      "Your voice and personality are combined in code and enhanced with the TeaseMe algorithm to create a natural, engaging AI persona.",
     thumb: step3Thumb,
   },
   {
     id: 4,
     stepLabel: "STEP 4",
-    title: "Launch & scale",
+    title: "Monetise your Persona",
     description:
-      "We plug your persona into your socials and funnels, monitor performance, and help you scale the passive income side.",
+      "Launch your Ai persona and earn passively from chats, and engagement all running automatically 24/7.",
     thumb: step4Thumb,
   },
 ];
