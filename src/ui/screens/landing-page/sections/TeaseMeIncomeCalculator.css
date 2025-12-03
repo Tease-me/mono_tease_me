@@ -75,6 +75,7 @@
 .ic-toggle {
   display: flex;
   gap: 0px;
+  min-width: 17rem;
   margin-bottom: 2rem;
 }
 
