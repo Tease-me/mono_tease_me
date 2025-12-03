@@ -123,7 +123,7 @@ const TeaseMeIncomeCalculator: React.FC = () => {
         />
         <p className="ic-helper">* Requires a public profile</p>
 
-        <label className="ic-label"><div className="tm-converted-value">{converted} %</div> converted audience</label>
+        <label className="ic-label ic-converted-audience-row">Converted Audience <div className="tm-converted-value">{converted} %</div></label>
         <div className="ic-slider">
           <div className="ic-slider-track" />
           <div className="ic-slider-fill" style={{ width: `${converted}%` }} />
