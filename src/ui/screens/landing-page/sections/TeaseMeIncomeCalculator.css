@@ -19,7 +19,7 @@
       height: 54rem;
   padding: 3rem 1.7rem;
   border-radius: 25px;
-  background: rgba(46, 45, 45, 0.6);
+      background: rgb(10 10 10 / 53%);
   border: 1px solid rgba(79, 71, 71, 0.8);
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(20px);

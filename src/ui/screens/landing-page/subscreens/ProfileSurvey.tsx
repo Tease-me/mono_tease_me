@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton"
+import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
+
+import SvgPack from "@/utils/SvgPack";
 import "./ProfileSurvey.css";
 
 type SocialKey =
@@ -54,10 +58,12 @@ const ProfileSurvey: React.FC = () => {
   return (
     <div className="ps-screen">
       <div className="ps-frame">
-        <div className="ps-card">
-          <button className="ps-back" onClick={handleBack}>
-            ← Back
-          </button>
+        <div className="ps-card"> 
+            <div className="tm-survey-back-button-container">
+          <NormalButton  onClick={handleBack} text="Back" leftIcon={<SvgPack.ArrowLeft/>}/>
+           </div>
+   
+          
 
           <h2 className="ps-title">Profile Survey</h2>
           <p className="ps-subtitle">Tell us about yourself</p>
@@ -97,8 +103,11 @@ const ProfileSurvey: React.FC = () => {
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-
-          <div className="ps-section-title">Socials</div>
+{/******************************************************************************
+  COMMENTED out SOCIAL Blocks
+**************************************************************************************************/ 
+}
+          {/* <div className="ps-section-title">Socials</div>
           <p className="ps-help">
             Which socials do you use? Activate and fill out your most active
             socials.
@@ -120,11 +129,14 @@ const ProfileSurvey: React.FC = () => {
                 </button>
               );
             })}
-          </div>
+          </div> */}
 
-          <button className="ps-next" onClick={handleNext}>
-            Next →
-          </button>
+      
+           <div className="tm-survey-button-container">
+              
+
+        <PrimaryButton  onClick={handleNext} text="Next" rightIcon={<SvgPack.ArrowRight/>}/>
+            </div>
         </div>
       </div>
     </div>
@@ -132,3 +144,4 @@ const ProfileSurvey: React.FC = () => {
 };
 
 export default ProfileSurvey;
+

@@ -14,6 +14,33 @@
 .tm-process-container {
   width: 100%;
   max-width: 1120px;
+  z-index: 0;
+}
+
+.tm-process-container:after { 
+  content: '';
+   background-image: url(/src/assets/image/bg-lp-section-reverse@2x.jpg);
+    background-repeat: no-repeat;
+      background-size: cover;
+    position:relative;
+    z-index:-1;
+    top: -100%;
+    left: -10%;
+    display: block;
+    width: 110%;
+    height: 100%;
+   mask-image: linear-gradient(180deg, transparent 0%, black 10%, black 80%, transparent 100%);
+  /* NEW — pulse animation */
+  opacity: 0.3;
+  user-select: none;
+  animation: gentlePulse 3s ease-in-out infinite;
+  }
+
+
+  @keyframes gentlePulse {
+  0%   { opacity: 0.3; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.3; }
 }
 
 /* HEADER */

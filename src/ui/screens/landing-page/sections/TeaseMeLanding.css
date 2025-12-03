@@ -101,7 +101,7 @@
   height: 1.5625rem;
 }
 
-.tm-income-button-container {height: 3.5rem; width: 80%; margin: 0 auto;}
+.tm-income-button-container {height: 3.5rem; width: 100%; margin: 0 auto;}
 
 /* =============== PILL =============== */
 .tm-tagline-pill {
