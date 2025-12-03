@@ -59,8 +59,7 @@ const TeaseMeVideoSection: React.FC = () => {
       <div className="tm-video-container">
         <div className="tm-video-header">
           <h2 className="tm-video-title">
-            AI personas can make you <br />
-            high passive income
+            Ai personas can make you high passive income
           </h2>
           <button className="tm-video-cta">Watch videos</button>
         </div>

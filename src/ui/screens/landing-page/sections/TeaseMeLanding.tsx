@@ -85,10 +85,10 @@ const TeaseMeLanding: React.FC = () => {
             <img src={icon_call} alt="" className="tm-cta-icon" />
           </button>
 
-          <p className="tm-scroll-hint">
+          <div className="tm-scroll-hint">
             <span className="tm-scroll-icon">ⓘ</span>
             <p>scroll down to find out more</p>
-          </p></div>
+          </div></div>
         </main>
       </div>
     </div>

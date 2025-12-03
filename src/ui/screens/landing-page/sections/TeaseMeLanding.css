@@ -108,23 +108,34 @@
   align-items: center;
   justify-content: center;
   margin-right: 0.2rem;
-
   padding: 4px 18px;
-
   border-radius: 0.5rem;
-
   border: 1.6px solid hsla(341, 84%, 44%, 0.618);
-  background: hsl(341deg 76% 3% / 25%);
+  background: hsla(338, 83%, 23%, 0.47);
   background-blend-mode: darken;
-
-
-
   height: 1.35em;
   min-width: 13rem;
   overflow: hidden;
   position: relative;
   bottom: -6px;
+}
 
+.tm-tagline-pill02 {
+  font-family: "Abril Fatface", serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.2rem;
+  padding: 4px 18px;
+  border-radius: 0.5rem;
+  border: 1.6px solid hsla(341, 84%, 44%, 0.618);
+  background: hsla(338, 95%, 16%, 0.524);
+  background-blend-mode: darken;
+  height: 1.35em;
+  min-width: 10.5rem;
+  overflow: hidden;
+  position: relative;
+  bottom: -6px;
 }
 
 .tm-pill-layer {

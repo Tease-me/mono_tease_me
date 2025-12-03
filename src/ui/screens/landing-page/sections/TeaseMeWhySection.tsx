@@ -8,7 +8,7 @@ const TeaseMeWhySection: React.FC = () => {
   return (
     <section className="tm-why-section">
       <div className="tm-why-container">
-        <h2 className="tm-video-title">Why create a TeaseMe persona?</h2>
+        <h2 className="tm-video-title">Why create your own TeaseMe persona?</h2>
 
         <div className="tm-why-scroll">
           {WHY_ITEMS.map((item) => (

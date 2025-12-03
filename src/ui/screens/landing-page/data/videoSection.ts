@@ -12,7 +12,7 @@ export type VideoItem = {
 export const videos: VideoItem[] = [
   {
     id: 1,
-    title: "AI personas can make you high passive income",
+    title: "Ai personas can make you high passive income",
     src: carynVideo,
     quote: "My girlfriend Ai made me a 24-year-old millionaire",
     author: "@CARYN MARJORIE",

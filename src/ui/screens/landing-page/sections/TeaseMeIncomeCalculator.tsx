@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import RotatingPill from "../components/RotatingPill";
+import RotatingPill02 from "../components/RotatingPill02";
 import "./TeaseMeIncomeCalculator.css";
 
 const TeaseMeIncomeCalculator: React.FC = () => {
@@ -49,20 +49,20 @@ const TeaseMeIncomeCalculator: React.FC = () => {
       <div className="ic-card">
         <h2 className="ic-title">
           Turn influence <br />
-          into <RotatingPill phrases={otherPhrases} />
+          into <RotatingPill02 phrases={otherPhrases} />
         </h2>
 
-        <div className="ic-question">How much could you earn?</div>
+        <div className="ic-question" id="ic-anchor">How much could you earn?</div>
 
         <div className="ic-toggle">
           <button
-            className={`ic-toggle-btn ${mode === "auto" ? "active" : ""}`}
+            className={`ic-toggle-btn-auto ${mode === "auto" ? "active" : ""}`}
             onClick={() => setMode("auto")}
           >
             Auto
           </button>
           <button
-            className={`ic-toggle-btn ${mode === "manual" ? "active" : ""}`}
+            className={`ic-toggle-btn-manual ${mode === "manual" ? "active" : ""}`}
             onClick={() => setMode("manual")}
           >
             Manual
@@ -88,7 +88,7 @@ const TeaseMeIncomeCalculator: React.FC = () => {
 
         <div className="ic-mode-row">
           <div className="ic-mode-title">
-            {mode === "auto" ? "Automode" : "Manual Mode"}
+            {mode === "auto" ? "Auto Mode" : "Manual Mode"}
           </div>
           <div className="ic-income-value">{formattedIncome}</div>
         </div>
@@ -123,7 +123,7 @@ const TeaseMeIncomeCalculator: React.FC = () => {
         />
         <p className="ic-helper">* Requires a public profile</p>
 
-        <label className="ic-label">% converted audience</label>
+        <label className="ic-label"><div className="tm-converted-value">{converted} %</div> converted audience</label>
         <div className="ic-slider">
           <div className="ic-slider-track" />
           <div className="ic-slider-fill" style={{ width: `${converted}%` }} />

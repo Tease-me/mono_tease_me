@@ -25,7 +25,12 @@ const TeaseMeIncomeSection: React.FC = () => {
         <div className="tm-income-divider"></div>
 
         {/* Button */}
-        <button className="tm-income-button">
+        <button className="tm-income-button" onClick={() => {
+    document.getElementById("ic-anchor")?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }}
+>
           Calculate Income <span className="tm-income-arrow">↓</span>
         </button>
       </div>
