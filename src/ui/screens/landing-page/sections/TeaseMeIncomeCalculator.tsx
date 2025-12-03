@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import RotatingPill02 from "../components/RotatingPill02";
 import "./TeaseMeIncomeCalculator.css";
+import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
+import SvgPack from "@/utils/SvgPack";
 
 
 const TeaseMeIncomeCalculator: React.FC = () => {
@@ -150,9 +152,11 @@ const TeaseMeIncomeCalculator: React.FC = () => {
           />
         </div>
 
-        <button className="ic-cta" onClick={() => navigate("/profile-survey")}>
-          Start Building Persona →
-        </button>
+        <div className="tm-income-button-container">
+
+          <PrimaryButton  onClick={() => navigate("/profile-survey")} text="Start Building Persona" rightIcon={<SvgPack.ArrowRight/>}/>
+
+</div>
       </div>
     </div>
   );

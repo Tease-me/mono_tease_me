@@ -1,11 +1,14 @@
 import React from "react";
 import "./TeaseMeIncomeSection.css";
+import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton"
+import SvgPack from "@/utils/SvgPack";
 
-import incomeIcon from "@/assets/image/calculator.png";
+import incomeIcon from "@/assets/svg/Calc.svg";
 
 const TeaseMeIncomeSection: React.FC = () => {
   return (
     <section className="tm-income-section">
+      <div className="tm-income-cta-card-wrapper">
       <div className="tm-income-card">
         {/* Icon */}
         <div className="tm-income-icon-wrapper">
@@ -25,15 +28,16 @@ const TeaseMeIncomeSection: React.FC = () => {
         <div className="tm-income-divider"></div>
 
         {/* Button */}
-        <button className="tm-income-button" onClick={() => {
+            <div className="tm-income-button-container">
+              
+
+        <PrimaryButton  onClick={() => {
     document.getElementById("ic-anchor")?.scrollIntoView({
       behavior: "smooth",
     });
-  }}
->
-          Calculate Income <span className="tm-income-arrow">↓</span>
-        </button>
-      </div>
+  }} text="Calculate Income" rightIcon={<SvgPack.ArrowDown/>}/>
+            </div>
+      </div></div>
     </section>
   );
 };

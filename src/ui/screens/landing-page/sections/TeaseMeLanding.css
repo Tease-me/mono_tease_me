@@ -101,6 +101,8 @@
   height: 1.5625rem;
 }
 
+.tm-income-button-container {height: 3.5rem; width: 80%; margin: 0 auto;}
+
 /* =============== PILL =============== */
 .tm-tagline-pill {
   font-family: "Abril Fatface", serif;
@@ -157,6 +159,8 @@
   font-weight: 700;
   font-size: 0.9em;
 }
+
+
 
 /* Current text (resting) */
 .tm-pill-current {
@@ -293,6 +297,8 @@
   bottom: 0;
   backdrop-filter: blur(0.75rem);
 }
+
+.tm-cta-button-container {height: 3.5rem; width: 80%; margin: 0 auto;margin-top: -1.5rem;}
 
 .tm-bottom-cta .tm-cta {
   top: -3.7rem;
