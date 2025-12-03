@@ -4,6 +4,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  background: black;
 }
 
 /* TOP BLACK → CARD WRAPPER (rounded rectangle) */
@@ -37,18 +38,27 @@ width: 100%;
   
 }
 
+.footer-content-container {width: 75%; display: flex;
+    flex-direction: column;
+    align-items: center;}
+
 .tm-income-footer img {
   height: 52px;
 }
 
 .tm-income-footer p {
-  font-size: 12px;
-  opacity: 0.8;
+  font-size: 0.8rem;
+  margin-top: 1rem;
+  opacity: 0.6;
 }
 
 .tm-income-links {
+  margin-top: 1rem;
+  opacity: 0.6;
   display: flex;
-  gap: 40px;
+  width: 100%;
+  flex-direction: row;
+  justify-content: space-between;
 }
 
 .tm-income-links button {

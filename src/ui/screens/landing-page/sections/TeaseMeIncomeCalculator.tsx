@@ -2,8 +2,12 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import RotatingPill02 from "../components/RotatingPill02";
 import "./TeaseMeIncomeCalculator.css";
+import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
+import SvgPack from "@/utils/SvgPack";
+
 
 const TeaseMeIncomeCalculator: React.FC = () => {
+  const [isHolding, setIsHolding] = useState(false);
   const navigate = useNavigate();
   const [mode, setMode] = useState<"auto" | "manual">("auto");
   const [period, setPeriod] = useState<"WEEKLY" | "MONTHLY" | "YEARLY">(
@@ -127,20 +131,32 @@ const TeaseMeIncomeCalculator: React.FC = () => {
         <div className="ic-slider">
           <div className="ic-slider-track" />
           <div className="ic-slider-fill" style={{ width: `${converted}%` }} />
-          <div className="ic-slider-thumb" style={{ left: `${converted}%` }} />
+          <div
+  className={`ic-slider-thumb ${isHolding ? "ic-slider-thumb-hold" : ""}`}
+  style={{ left: `${converted}%` }}
+/>
           <input
             type="range"
             min={0}
             max={100}
             value={converted}
             onChange={(e) => setConverted(Number(e.target.value))}
+              onMouseDown={() => setIsHolding(true)}
+  onMouseUp={() => setIsHolding(false)}
+  onMouseLeave={() => setIsHolding(false)}
+
+  onTouchStart={() => setIsHolding(true)}
+  onTouchEnd={() => setIsHolding(false)}
+
             className="ic-slider-input"
           />
         </div>
 
-        <button className="ic-cta" onClick={() => navigate("/profile-survey")}>
-          Start Building Persona →
-        </button>
+        <div className="tm-income-button-container">
+
+          <PrimaryButton  onClick={() => navigate("/profile-survey")} text="Start Building Persona" rightIcon={<SvgPack.ArrowRight/>}/>
+
+</div>
       </div>
     </div>
   );

@@ -2,7 +2,7 @@ import heroModel from "@/assets/image/hero-woman.png";
 import heroModel2x from "@/assets/image/hero-woman@2x.png"
 
 
-import icon_call from "@/assets/image/icon_call.png";
+
 import logoTeaseMe from "@/assets/logos/LogoTeaseMeDarkMode.svg";
 import landingBullets from "@/assets/svg/LandingBullets.svg";
 import React from "react";
@@ -14,6 +14,9 @@ import iconInstagram from "@/assets/logos/instagram.svg"
 import iconWhatsapp from "@/assets/logos/whatsapp.svg"
 import iconTikTok from "@/assets/logos/tiktok.svg"
 import iconSnapChat from "@/assets/logos/snapchat.svg"
+import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton"
+import SvgPack from "@/utils/SvgPack";
+
 
 
 const TeaseMeLanding: React.FC = () => {
@@ -79,12 +82,15 @@ const TeaseMeLanding: React.FC = () => {
           </section>
 
           {/* CTA */}
+         
           <div className="tm-bottom-cta">
-          <button className="tm-cta" onClick={() => navigate("/welcome")}>
+          {/* <button className="tm-cta" onClick={() => navigate("/welcome")}>
             <span>Try Demo Now</span>
             <img src={icon_call} alt="" className="tm-cta-icon" />
-          </button>
-
+          </button> */}
+          <div className="tm-cta-button-container">
+          <PrimaryButton  onClick={() => navigate("/welcome")} text="Try Demo Now" rightIcon={<SvgPack.Call/>}/>
+</div>
           <div className="tm-scroll-hint">
             <span className="tm-scroll-icon">ⓘ</span>
             <p>scroll down to find out more</p>

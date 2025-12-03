@@ -2,10 +2,8 @@
 .tm-why-section {
   width: 100%;
   padding: 5rem 0rem 8rem 1.75rem;
-  background: radial-gradient(circle at top,
-      #14000a 0%,
-      #050106 60%,
-      #000 100%);
+  background: url("../../../../assets/image/bg-lp-section.jpg");
+  background-size: cover;
   color: #f9fafb;
   display: flex;
   justify-content: center;
