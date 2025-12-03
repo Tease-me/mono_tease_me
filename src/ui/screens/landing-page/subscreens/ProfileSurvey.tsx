@@ -1,11 +1,11 @@
+import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
+import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton"
-import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 
 import SvgPack from "@/utils/SvgPack";
 import "./ProfileSurvey.css";
-
+/*
 type SocialKey =
   | "instagram"
   | "tiktok"
@@ -14,6 +14,7 @@ type SocialKey =
   | "x"
   | "telegram"
   | "whatsapp";
+
 
 const SOCIALS: { key: SocialKey; label: string }[] = [
   { key: "instagram", label: "Instagram" },
@@ -24,46 +25,33 @@ const SOCIALS: { key: SocialKey; label: string }[] = [
   { key: "telegram", label: "Telegram" },
   { key: "whatsapp", label: "Whatsapp" },
 ];
-
+*/
 const ProfileSurvey: React.FC = () => {
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [email, setEmail] = useState("");
-  const [selectedSocials, setSelectedSocials] = useState<SocialKey[]>([
-    "instagram",
-  ]);
-
-  const toggleSocial = (key: SocialKey) => {
-    setSelectedSocials((prev) =>
-      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
-    );
-  };
 
   const handleBack = () => {
     navigate(-1);
   };
 
   const handleNext = () => {
-    // TODO: submit data or go to next step
-    //console.log({
-    // name,
-    //location,
-    //email,
-    //socials: selectedSocials,
-    //});
+    navigate("/thank-you");
   };
 
   return (
     <div className="ps-screen">
       <div className="ps-frame">
-        <div className="ps-card"> 
-            <div className="tm-survey-back-button-container">
-          <NormalButton  onClick={handleBack} text="Back" leftIcon={<SvgPack.ArrowLeft/>}/>
-           </div>
-   
-          
+        <div className="ps-card">
+          <div className="tm-survey-back-button-container">
+            <NormalButton
+              onClick={handleBack}
+              text="Back"
+              leftIcon={<SvgPack.ArrowLeft />}
+            />
+          </div>
 
           <h2 className="ps-title">Profile Survey</h2>
           <p className="ps-subtitle">Tell us about yourself</p>
@@ -103,10 +91,9 @@ const ProfileSurvey: React.FC = () => {
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-{/******************************************************************************
+          {/******************************************************************************
   COMMENTED out SOCIAL Blocks
-**************************************************************************************************/ 
-}
+**************************************************************************************************/}
           {/* <div className="ps-section-title">Socials</div>
           <p className="ps-help">
             Which socials do you use? Activate and fill out your most active
@@ -131,12 +118,13 @@ const ProfileSurvey: React.FC = () => {
             })}
           </div> */}
 
-      
-           <div className="tm-survey-button-container">
-              
-
-        <PrimaryButton  onClick={handleNext} text="Next" rightIcon={<SvgPack.ArrowRight/>}/>
-            </div>
+          <div className="tm-survey-button-container">
+            <PrimaryButton
+              onClick={handleNext}
+              text="Next"
+              rightIcon={<SvgPack.ArrowRight />}
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -144,4 +132,3 @@ const ProfileSurvey: React.FC = () => {
 };
 
 export default ProfileSurvey;
-

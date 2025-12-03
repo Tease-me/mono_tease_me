@@ -3,6 +3,7 @@ import InfluencerWelcome from "@/ui/screens/landing-page/InfluencerWelcome";
 import LandingPage from "@/ui/screens/landing-page/LandingPage";
 import IncomeDialogStep01 from "@/ui/screens/landing-page/subscreens/IncomeDialogStep01";
 import ProfileSurvey from "@/ui/screens/landing-page/subscreens/ProfileSurvey";
+import ThankYouScreen from "@/ui/screens/landing-page/subscreens/ThankYouScreen";
 import UpdateProfile from "@/ui/screens/register/UpdateProfile";
 import { JSX, Suspense, lazy } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
@@ -51,6 +52,7 @@ function AppRoutes() {
     { path: "/welcome", element: <InfluencerWelcome /> },
     { path: "/income-dialog", element: <IncomeDialogStep01 /> },
     { path: "/profile-survey", element: <ProfileSurvey /> },
+    { path: "/thank-you", element: <ThankYouScreen /> },
   ];
 
   const guestRoutes: { path: string; element: JSX.Element }[] = [
