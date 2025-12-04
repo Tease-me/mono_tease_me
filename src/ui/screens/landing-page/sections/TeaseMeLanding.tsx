@@ -1,6 +1,5 @@
 import heroModel from "@/assets/image/hero-woman.png";
 import heroModel2x from "@/assets/image/hero-woman@2x.png"
-import logoTeaseMe from "@/assets/logos/LogoTeaseMeDarkMode.svg";
 import landingBullets from "@/assets/svg/LandingBullets.svg";
 import React, { useEffect, useState } from "react";
 import RotatingPill from "../components/RotatingPill";
@@ -19,6 +18,7 @@ import useCallLanding from "@/hooks/useCallLanding";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { storage } from "@/utils/storage";
 import { useNavigate } from "react-router-dom";
+import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
 
 
 const TeaseMeLanding: React.FC = () => {
@@ -61,9 +61,8 @@ const TeaseMeLanding: React.FC = () => {
     <div className="tm-page">
       <div className="tm-device">
         <header className="tm-header">
-          <img src={logoTeaseMe} alt="Tease Me" className="tm-logo" />
+          <TeaseMeLogo variant="full-dark" />
         </header>
-
         <main className="tm-content">
           <section className="tm-hero">
             <div className="tm-hero-text">
