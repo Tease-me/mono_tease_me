@@ -83,7 +83,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
                     <a href='#'>Delete Account</a>
                 </div>
                 <div className={styles["top-up-button"]}>
-                    <PrimaryButton text='TopUp' onClick={() => {
+                    <PrimaryButton text='Link Card' onClick={() => {
+                        setShowTopUpModal(true);
+                    }} />
+                </div>
+                <div className={styles["top-up-button"]}>
+                    <PrimaryButton text='Topup' onClick={() => {
                         setShowTopUpModal(true);
                     }} />
                 </div>
