@@ -18,6 +18,8 @@ import logger from '@/utils/logger';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
 import LinkCardModal from '@/ui/components/modals/payment-modal/LinkCardModal';
+import TopUpModal from '@/ui/components/modals/payment-modal/TopUpModal';
+
 
 interface UserProfileProps { }
 
@@ -28,6 +30,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
     const [balance, setBalance] = useState<number>(0);
     const balanceService = BalanceServices(apiClient);
     const [showTopUpModal, setShowTopUpModal] = useState<boolean>(false);
+    const [showLinkCardModal, setShowLinkCardModal] = useState<boolean>(false);
 
     const navigate = useNavigate()
 
@@ -84,11 +87,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
                 </div>
                 <div className={styles["top-up-button"]}>
                     <PrimaryButton text='Link Card' onClick={() => {
-                        setShowTopUpModal(true);
+                        setShowLinkCardModal(true);
                     }} />
                 </div>
                 <div className={styles["top-up-button"]}>
-                    <PrimaryButton text='Topup' onClick={() => {
+                    <PrimaryButton text='Top Up' onClick={() => {
                         setShowTopUpModal(true);
                     }} />
                 </div>
@@ -96,7 +99,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
                     <NormalButton text='Discard' color='black' />
                     <PrimaryButton text='Update' />
                 </ButtonRow>
-                <LinkCardModal isOpen={showTopUpModal} onClose={() => setShowTopUpModal(false)} />
+                <LinkCardModal isOpen={showLinkCardModal} onClose={() => setShowLinkCardModal(false)} />
+                <TopUpModal isOpen={showTopUpModal} onClose={() => setShowTopUpModal(false)} />
             </FullWidthLayout>
         </BackgroundGradient>
     );
