@@ -1,4 +1,5 @@
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
+import InfluencerAudioManagerRoute from "@/ui/screens/influencer-audio-manager/InfluencerAudioManagerRoute";
 import InfluencerWelcome from "@/ui/screens/landing-page/InfluencerWelcome";
 import LandingPage from "@/ui/screens/landing-page/LandingPage";
 import IncomeDialogStep01 from "@/ui/screens/landing-page/subscreens/IncomeDialogStep01";
@@ -51,6 +52,10 @@ function AppRoutes() {
     { path: "/welcome", element: <InfluencerWelcome /> },
     { path: "/income-dialog", element: <IncomeDialogStep01 /> },
     { path: "/profile-survey", element: <ProfileSurvey /> },
+    {
+      path: "/influencer/:id/audio-manager",
+      element: <InfluencerAudioManagerRoute />,
+    },
   ];
   const guestRoutes: { path: string; element: JSX.Element }[] = [
     { path: "/login", element: <LoginScreen /> },
