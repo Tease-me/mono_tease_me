@@ -27,16 +27,16 @@ export default defineConfig({
       overlay: true,
     },
     https: {
-      key: fs.readFileSync('./.cert/key.pem'),
-      cert: fs.readFileSync('./.cert/cert.pem'),
+    key: fs.readFileSync('./.cert/key.pem'),
+     cert: fs.readFileSync('./.cert/cert.pem'),
     },
   },
   preview: {
     port: 4174,
     host: true,
     https: {
-      key: fs.readFileSync('./.cert/key.pem'),
-      cert: fs.readFileSync('./.cert/cert.pem'),
+    key: fs.readFileSync('./.cert/key.pem'),
+    cert: fs.readFileSync('./.cert/cert.pem'),
     },
   },
   resolve: {

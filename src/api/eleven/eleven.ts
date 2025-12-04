@@ -1,5 +1,5 @@
-import { ELEVENLABS_AGENT_ID, ELEVENLABS_API_KEY } from "@/env";
-import axios from "axios";
+import { ELEVENLABS_API_KEY } from "@/env";
+import axios from 'axios';
 
 const API_BASE_URL = "https://api.elevenlabs.io/v1";
 
@@ -10,14 +10,12 @@ export const elevenLabsClient = axios.create({
 });
 
 export const elevenLabsServices = {
+
   getSignedUrl: async (influencer_id?: string) => {
-    const agent_id = influencer_id ?? ELEVENLABS_AGENT_ID;
-    const response = await elevenLabsClient.get(
-      "/convai/conversation/get-signed-url",
-      {
-        params: { agent_id },
-      }
-    );
+    const agent_id = influencer_id;
+    const response = await elevenLabsClient.get("/convai/conversation/get-signed-url", {
+      params: { agent_id }
+    })
     if (response.status !== 200) {
       return;
     }

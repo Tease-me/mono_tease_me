@@ -54,7 +54,6 @@ function AppRoutes() {
     { path: "/profile-survey", element: <ProfileSurvey /> },
     { path: "/thank-you", element: <ThankYouScreen /> },
   ];
-
   const guestRoutes: { path: string; element: JSX.Element }[] = [
     { path: "/login", element: <LoginScreen /> },
     { path: "/register", element: <RegisterScreen /> },

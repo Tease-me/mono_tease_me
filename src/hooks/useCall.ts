@@ -46,6 +46,16 @@ export default function useCall() {
   }, []);
 
   const conversation = useConversation({
+      audio: {
+    constraints: {
+      audio: {
+        noiseSuppression: true,
+        echoCancellation: true,
+        autoGainControl: true,
+        voiceIsolation: true
+      }
+    }
+  },
     onConnect: () => {
       setStatus("connected");
       stopRing();

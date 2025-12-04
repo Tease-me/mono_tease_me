@@ -12,6 +12,7 @@ const TeaseMeIncomeCalculator: React.FC = () => {
     "WEEKLY"
   );
 
+
   const [converted, setConverted] = useState(2);
   const [followers, setFollowers] = useState<number | "">("");
 
@@ -34,16 +35,16 @@ const TeaseMeIncomeCalculator: React.FC = () => {
     period === "WEEKLY"
       ? weeklyIncome
       : period === "MONTHLY"
-      ? monthlyIncome
-      : yearlyIncome;
+        ? monthlyIncome
+        : yearlyIncome;
 
   const formattedIncome =
     followerCount > 0
       ? rawIncome.toLocaleString("en-US", {
-          style: "currency",
-          currency: "USD",
-          maximumFractionDigits: 0,
-        })
+        style: "currency",
+        currency: "USD",
+        maximumFractionDigits: 0,
+      })
       : "$0";
 
   return (
@@ -107,9 +108,8 @@ const TeaseMeIncomeCalculator: React.FC = () => {
           <div className="ic-slider-track" />
           <div className="ic-slider-fill" style={{ width: `${converted}%` }} />
           <div
-            className={`ic-slider-thumb ${
-              isHolding ? "ic-slider-thumb-hold" : ""
-            }`}
+            className={`ic-slider-thumb ${isHolding ? "ic-slider-thumb-hold" : ""
+              }`}
             style={{ left: `${converted}%` }}
           />
           <input
