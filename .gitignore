@@ -33,5 +33,3 @@ dist-ssr
 tsconfig.tsbuildinfo
 .tscache/
 node_modules/.cache/tsbuildinfo
-
-vite.config.js
