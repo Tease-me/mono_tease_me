@@ -1,7 +1,7 @@
 /* SECTION WRAPPER */
 .tm-video-section {
   width: 100%;
-  padding: 64px 24px 80px;
+  padding: 5rem 0rem 8rem 1.75rem;
   background: radial-gradient(circle at top, #12000a, #050106 60%, #000 100%);
   color: #f9fafb;
   display: flex;
@@ -22,27 +22,32 @@
 }
 
 .tm-video-title {
-  font-size: 28px;
-  line-height: 1.2;
-  font-weight: 700;
+  color: #FFF;
+  font-family: "Abril Fatface";
+  font-size: 1.625rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 2.125rem;
+  max-width: 18ch;
 }
 
 /* Button like “Watch Videos” tag */
 .tm-video-cta {
   padding: 8px 18px;
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.5);
-  background: rgba(15, 23, 42, 0.8);
-  color: #e5e7eb;
-  font-size: 13px;
+  border-radius: 0.5rem;
+  border: 1px solid hsla(342, 0%, 82%, 0.21);
+
+  color: var(--color-secondary, #A2A2A2);
+  font-family: "DM Sans";
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
   cursor: pointer;
   transition: background 0.15s ease, transform 0.1s ease;
 }
 
-.tm-video-cta:hover {
-  background: rgba(31, 41, 55, 0.95);
-  transform: translateY(-1px);
-}
+
 
 .tm-video-scroll {
   display: flex;
@@ -51,12 +56,15 @@
   padding-bottom: 8px;
   scroll-snap-type: x mandatory;
 
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE + Edge */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE + Edge */
 }
 
 .tm-video-scroll::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
+  display: none;
+  /* Chrome/Safari */
 }
 
 .tm-video-scroll::-webkit-scrollbar-thumb {
@@ -65,7 +73,7 @@
 }
 
 .tm-video-card {
-  flex: 0 0 260px;
+  flex: 0 0 18.6875rem;
   scroll-snap-align: start;
   display: flex;
   flex-direction: column;
@@ -78,7 +86,8 @@
   overflow: hidden;
   background: #020617;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.65);
-  aspect-ratio: 9 / 16; /* vertical video */
+  aspect-ratio: 9 / 16;
+  /* vertical video */
 }
 
 .tm-video-thumb {
@@ -109,39 +118,41 @@
 
 /* Quote + author */
 .tm-video-meta {
+  display: flex;
+  flex-direction: column;
   margin-top: 14px;
   font-size: 13px;
+  align-items: center;
+  left: -1rem;
+  position: relative;
+  max-width: 30ch;
+  margin: 2rem auto;
 }
 
 .tm-video-quote {
-  color: #e5e7eb;
-  line-height: 1.4;
+  color: #FFF;
+  text-align: center;
+  font-family: "DM Sans";
+  font-size: 1.25rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
 }
 
 .tm-video-quote-mark {
-  color: #f97373;
+  color: var(--color-primary);
   margin: 0 2px;
 }
 
 .tm-video-author {
-  margin-top: 6px;
-  font-size: 11px;
+  margin-top: 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #f97373;
+  color: var(--color-primary);
+  text-decoration: underline;
 }
 
 /* MOBILE */
-@media (max-width: 640px) {
-  .tm-video-section {
-    padding: 48px 16px 64px;
-  }
-
-  .tm-video-title {
-    font-size: 22px;
-  }
-
-  .tm-video-card {
-    flex: 0 0 220px;
-  }
-}
+@media (max-width: 640px) {}

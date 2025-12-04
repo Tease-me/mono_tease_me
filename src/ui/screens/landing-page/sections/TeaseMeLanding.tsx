@@ -1,40 +1,75 @@
-import heroModel from "@/assets/image/hero_model.png";
-import icon_call from "@/assets/image/icon_call.png";
-import socialMedias from "@/assets/image/social_medias.png";
+import heroModel from "@/assets/image/hero-woman.png";
+import heroModel2x from "@/assets/image/hero-woman@2x.png"
 import logoTeaseMe from "@/assets/logos/LogoTeaseMeDarkMode.svg";
 import landingBullets from "@/assets/svg/LandingBullets.svg";
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import RotatingPill from "../components/RotatingPill";
 import { BENEFITS } from "../data/benefits";
 import "./TeaseMeLanding.css";
+import iconInstagram from "@/assets/logos/instagram.svg"
+import iconWhatsapp from "@/assets/logos/whatsapp.svg"
+import iconTikTok from "@/assets/logos/tiktok.svg"
+import iconSnapChat from "@/assets/logos/snapchat.svg"
+import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton"
+import SvgPack from "@/utils/SvgPack";
+import WelcomeCallModal from "@/ui/components/modals/welcome-call/WelcomeCallModal";
+import dummy from "@/dummy/dummy";
+import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
+import useCallLanding from "@/hooks/useCallLanding";
+import { LocalStorageKeys } from "@/constants/localStorageKeys";
+import { storage } from "@/utils/storage";
+import { useNavigate } from "react-router-dom";
+
 
 const TeaseMeLanding: React.FC = () => {
-  const navigate = useNavigate();
+  const [openModal, setOpenModal] = React.useState(false);
+  const { startConversation, status, stopConversation, timeRemaining } = useCallLanding();
 
   const phrases = ["Go travel", "Earn money", "Save time", "Live your life"];
+  const [hasConnected, setHasConnected] = useState(false);
+  const navigate = useNavigate();
+
+  const demoInfluencer: InfluencerDataModel = {
+    id: "landing-loli",
+    username: "loli",
+    name: "Loli",
+    img: dummy.getImage("loli"),
+    videoUrl: dummy.getVideo("loli"),
+    bio: "",
+    created_at: "2024-01-01T00:00:00Z",
+    earnings: 0,
+    isSelected: false,
+  };
+
+  const handleTryDemoCall = () => {
+    setOpenModal(true);
+    startConversation();
+  };
+
+  useEffect(() => {
+    if (status === "connected") {
+      storage.setBoolean(LocalStorageKeys.VisitedWelcome, true);
+      setHasConnected(true);
+    }
+
+    if (status === "disconnected" && hasConnected) {
+      navigate("/income-dialog");
+    }
+  }, [status, hasConnected, navigate]);
 
   return (
     <div className="tm-page">
       <div className="tm-device">
-        {/* Top logo */}
         <header className="tm-header">
           <img src={logoTeaseMe} alt="Tease Me" className="tm-logo" />
         </header>
 
         <main className="tm-content">
           <section className="tm-hero">
-            {/* LEFT SIDE — TEXT */}
             <div className="tm-hero-text">
               <p className="tm-tagline">
-                {/* Reusable rotating pill */}
                 <RotatingPill phrases={phrases} />
-
-                <span> and</span>
-                <br />
-                <span>let your persona</span>
-                <br />
-                <span>work for you.</span>
+                <span> and let your persona work for you.</span>
               </p>
 
               <ul className="tm-benefits">
@@ -50,35 +85,45 @@ const TeaseMeLanding: React.FC = () => {
                 ))}
               </ul>
 
-              {/* SOCIALS */}
               <div className="tm-integrations">
-                <img
-                  src={socialMedias}
-                  alt="Social media icons"
-                  className="tm-integrations-img"
-                />
+                <p>Integrates your</p>
+                <div className="tm-icons-row">
+                  <div className="tm-integrates-icon"><img src={iconInstagram} alt="" /></div>
+                  <div className="tm-integrates-icon"><img src={iconTikTok} alt="" /></div>
+                  <div className="tm-integrates-icon"><img src={iconSnapChat} alt="" /></div>
+                  <div className="tm-integrates-icon"><img src={iconWhatsapp} alt="" /></div>
+                </div>
               </div>
             </div>
 
-            {/* RIGHT SIDE — MODEL */}
             <div className="tm-hero-image-wrapper">
               <div className="tm-hero-glow" />
-              <img src={heroModel} alt="" className="tm-hero-image" />
+              <img
+                src={heroModel}
+                srcSet={`${heroModel} 1x, ${heroModel2x} 2x`}
+                alt=""
+                className="tm-hero-image"
+              />
             </div>
           </section>
 
-          {/* CTA */}
-          <button className="tm-cta" onClick={() => navigate("/welcome")}>
-            <span>Try Demo Now</span>
-            <img src={icon_call} alt="" className="tm-cta-icon" />
-          </button>
-
-          <p className="tm-scroll-hint">
-            <span className="tm-scroll-icon">ⓘ</span>
-            <span>scroll down to find out more</span>
-          </p>
+          <div className="tm-bottom-cta">
+            <div className="tm-cta-button-container">
+              <PrimaryButton onClick={handleTryDemoCall} text="Try Demo Now" rightIcon={<SvgPack.Call />} />
+            </div>
+            <div className="tm-scroll-hint">
+              <span className="tm-scroll-icon">ⓘ</span>
+              <p>scroll down to find out more</p>
+            </div></div>
         </main>
       </div>
+
+      <WelcomeCallModal initalSecondsLeft={timeRemaining || 120} influencer={demoInfluencer} isOpen={openModal} onClose={() => {
+
+      }} status={status} stopConversation={function (): void {
+        stopConversation();
+        setOpenModal(false);
+      }} />
     </div>
   );
 };

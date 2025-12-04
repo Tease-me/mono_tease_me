@@ -4,6 +4,8 @@ import { lazy } from "react";
 export default {
     Ai: lazy(() => import("@/assets/mj-dashboard/svg/Ai.svg?react")),
     ArrowRight: lazy(() => import("@/assets/mj-dashboard/svg/ArrowRight.svg?react")),
+    ArrowLeft: lazy(() => import("@/assets/svg/ArrowLeft.svg?react")),
+    ArrowDown: lazy(() => import("@/assets/svg/ArrowDown.svg?react")),
     Bill: lazy(() => import("@/assets/mj-dashboard/svg/Bill.svg?react")),
     Chat: lazy(() => import("@/assets/mj-dashboard/svg/Chat.svg?react")),
     Danger: lazy(() => import("@/assets/mj-dashboard/svg/DangerTriangle.svg?react")),

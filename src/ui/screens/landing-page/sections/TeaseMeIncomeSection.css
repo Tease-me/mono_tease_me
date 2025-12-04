@@ -1,4 +1,4 @@
-.tm-income-section {
+/* .tm-income-section {
   width: 100%;
   display: flex;
   justify-content: center;
@@ -7,28 +7,54 @@
   background: rgba(46, 45, 45, 0.6);
   border: 1px solid rgba(79, 71, 71, 0.8);
   padding: 20px;
+} */
+
+
+.tm-income-cta-card-wrapper {
+     width: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.7rem;
+    border-radius: 32px;
+    background: rgba(30, 25, 28, 0.35);
+    border: 1px solid rgb(255 255 255 / 15%);
+    backdrop-filter: blur(10px);
+
+    z-index: 2;
+   
 }
 
 .tm-income-card {
-  width: 100%;
-  max-width: 680px;
+ width: 100%;
+    
+    padding: 3rem 1.7rem;
+    border-radius: 25px;
+    background: rgba(46, 45, 45, 0.6);
+    border: 1px solid rgba(79, 71, 71, 0.8);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(20px);
+}
 
-  padding: 48px 32px;
-  border-radius: 32px;
 
-  background: linear-gradient(
-    180deg,
-    #302227 0%,
-    #392f2f 33%,
-    #2e2e2e 66%,
-    #39282f 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.08);
-
-  backdrop-filter: blur(30px);
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
-
-  text-align: center;
+.tm-income-card:before {
+content: '';
+    background-image: url(/src/assets/image/noise-bg.jpg);
+    background-repeat: repeat;
+    background-size: 20rem;
+    background-blend-mode: luminosity;
+    filter: invert(1);
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000000;
+    border-radius: 25px;
+    opacity: 0.5;
+    mask-image: linear-gradient(0deg, black 0%, transparent 90%);
+    user-select: none;
 }
 
 /* Icon */
@@ -41,17 +67,21 @@
 .tm-income-icon {
   width: 42px;
   height: 42px;
-  filter: drop-shadow(0 0 10px rgba(255, 79, 129, 0.4));
+  filter: drop-shadow(0 5px 8px rgba(255, 79, 129, 0.8));
 }
 
 /* Title */
 .tm-income-title {
-  font-size: 22px;
-  line-height: 1.45;
-  font-weight: 400;
-  opacity: 0.9;
-  margin-bottom: 28px;
-  color: #e9e9e9;
+color: rgba(255, 255, 255, 0.75);
+
+text-align: center;
+font-family: "DM Sans";
+font-size: 1.25rem;
+font-style: normal;
+font-weight: 400;
+line-height: 145%; /* 143.75% */
+max-width: 24ch;
+margin: 0 auto;
 }
 
 .tm-income-title strong {
@@ -62,32 +92,43 @@
 /* Divider */
 .tm-income-divider {
   width: 100%;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.16);
-  margin-bottom: 32px;
+  height: 2px;
+  background: rgb(0, 0, 0);
+  box-shadow: 0px 1px 1px rgba(255, 255, 255, 0.087);
+  margin: 2rem auto;
 }
 
 /* Button */
 .tm-income-button {
-  width: 100%;
-  padding: 16px 20px;
 
-  background: linear-gradient(135deg, #ff4f81, #ff7a4d, #ff4f96);
-  color: #ffffff;
+  width: 100%;
   border: none;
   border-radius: 999px;
+
+  padding: 18px 26px;
+  /* mais alto, como o Figma */
   font-size: 18px;
   font-weight: 600;
-
-  box-shadow: 0 12px 28px rgba(255, 79, 129, 0.45);
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  color: #fff;
 
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.2s ease;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  
+
+  /* ★ MULTI-GRADIENT EXACT DO FIGMA ★ */
+  background: linear-gradient(180deg,
+      #d90048 0%,
+      #d70048 16%,
+      #cc0044 33%,
+      #ff276f 50%,
+      #c20041 72%,
+      #b5003c 100%);
+
+  transition: transform 0.15s ease, filter 0.25s ease;
 }
 
 .tm-income-button:hover {

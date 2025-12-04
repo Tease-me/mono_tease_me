@@ -1,16 +1,14 @@
-import {
-  default as step1Thumb,
-  default as step2Thumb,
-  default as step3Thumb,
-  default as step4Thumb,
-} from "@/assets/image/process_steps.png";
+import step1Video from "@/assets/video/gettoknowyou-min.mp4";
+import step2Video from "@/assets/video/recordvoice-min.mp4";
+import step3Video from "@/assets/video/buildpersona-min.mp4";
+import step4Video from "@/assets/video/monetize-min.mp4";
 
 export type ProcessStep = {
   id: number;
   stepLabel: string;
   title: string;
   description: string;
-  thumb: string;
+  thumb: string; // keep the name for compatibility
 };
 
 export const PROCESS_STEPS: ProcessStep[] = [
@@ -19,31 +17,31 @@ export const PROCESS_STEPS: ProcessStep[] = [
     stepLabel: "STEP 1",
     title: "Get to know you",
     description:
-      "Interview & questionnaire to understand your personality, likes, dislikes, and boundaries — the foundation of your AI persona.",
-    thumb: step1Thumb,
+      "Interview & questionnaire to understand your personality, likes, dislikes, and boundaries — the foundation of your Ai persona.",
+    thumb: step1Video,
   },
   {
     id: 2,
     stepLabel: "STEP 2",
-    title: "Design your persona",
+    title: "Record Voice Sample",
     description:
-      "We co-create your persona’s voice, style, and fan experience so it feels like you — just amplified and always on.",
-    thumb: step2Thumb,
+      "Record a short voice sample in a quiet environment so we can capture the true tone, emotion, and nuances of your voice.",
+    thumb: step2Video,
   },
   {
     id: 3,
     stepLabel: "STEP 3",
-    title: "Train & test",
+    title: "Persona Development",
     description:
-      "Your AI persona is trained, tested, and refined with real conversation flows until it’s ready to meet your fans.",
-    thumb: step3Thumb,
+      "Your voice and personality are combined in code and enhanced with the TeaseMe algorithm to create a natural, engaging AI persona.",
+    thumb: step3Video,
   },
   {
     id: 4,
     stepLabel: "STEP 4",
-    title: "Launch & scale",
+    title: "Monetise your Persona",
     description:
-      "We plug your persona into your socials and funnels, monitor performance, and help you scale the passive income side.",
-    thumb: step4Thumb,
+      "Launch your Ai persona and earn passively from chats, and engagement all running automatically 24/7.",
+    thumb: step4Video,
   },
 ];
