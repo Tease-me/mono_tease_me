@@ -19,10 +19,11 @@ interface WelcomeCallModalProps {
     influencer?: InfluencerDataModel;
     status: string;
     stopConversation: () => void;
+    initalSecondsLeft?: number;
 }
 
-const WelcomeCallModal: React.FC<WelcomeCallModalProps> = ({ isOpen, onClose, influencer, status, stopConversation }) => {
-    const [secondsLeft, setSecondsLeft] = useState<number>(30);
+const WelcomeCallModal: React.FC<WelcomeCallModalProps> = ({ isOpen, onClose, influencer, status, stopConversation, initalSecondsLeft = 30 }) => {
+    const [secondsLeft, setSecondsLeft] = useState<number>(initalSecondsLeft);
     const formatTime = (totalSeconds: number) => {
         const minutes = Math.floor(totalSeconds / 60);
         const seconds = totalSeconds % 60;
@@ -40,7 +41,7 @@ const WelcomeCallModal: React.FC<WelcomeCallModalProps> = ({ isOpen, onClose, in
     useEffect(() => {
         let timer: number | undefined;
         if (isOpen && status === "connected") {
-            setSecondsLeft(30);
+            setSecondsLeft(initalSecondsLeft);
             timer = window.setInterval(() => {
                 setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 0));
             }, 1000);
@@ -58,11 +59,11 @@ const WelcomeCallModal: React.FC<WelcomeCallModalProps> = ({ isOpen, onClose, in
     }, [secondsLeft, isOpen, status, onClose, stopConversation]);
 
     const handlePickUpCall = () => {
-        setSecondsLeft(30);
+        setSecondsLeft(initalSecondsLeft);
     }
 
     const handleHangUpCall = () => {
-        setSecondsLeft(30);
+        setSecondsLeft(initalSecondsLeft);
         stopConversation();
         onClose();
     }

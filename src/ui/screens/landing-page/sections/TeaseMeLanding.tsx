@@ -23,7 +23,7 @@ import { useNavigate } from "react-router-dom";
 
 const TeaseMeLanding: React.FC = () => {
   const [openModal, setOpenModal] = React.useState(false);
-  const { startConversation, status, stopConversation } = useCallLanding();
+  const { startConversation, status, stopConversation, timeRemaining } = useCallLanding();
 
   const phrases = ["Go travel", "Earn money", "Save time", "Live your life"];
   const [hasConnected, setHasConnected] = useState(false);
@@ -118,7 +118,7 @@ const TeaseMeLanding: React.FC = () => {
         </main>
       </div>
 
-      <WelcomeCallModal influencer={demoInfluencer} isOpen={openModal} onClose={() => {
+      <WelcomeCallModal initalSecondsLeft={timeRemaining || 120} influencer={demoInfluencer} isOpen={openModal} onClose={() => {
 
       }} status={status} stopConversation={function (): void {
         stopConversation();

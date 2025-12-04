@@ -114,7 +114,7 @@ export default function useCallLanding() {
         await conversation.endSession();
         return;
       }
-      setTimeRemaining(60);
+      setTimeRemaining(120);
     } catch (error) {
       if (!abortController.signal.aborted) {
         setStatus("error");
