@@ -79,7 +79,7 @@ const LinkCardModal: React.FC<LinkCardModalProps> = ({
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={handleClose} size="sm" className={styles.modal} ariaLabel="Link your card">
+        <Modal isOpen={isOpen} onClose={handleClose} size="md" className={styles.modal} ariaLabel="Link your card">
             <div className={styles.content}>
                 <TeaseMeLogo className={styles.logo} variant="mono-lips-only" size="small" />
                 <h2 className={styles.heading}>Link your Card</h2>
