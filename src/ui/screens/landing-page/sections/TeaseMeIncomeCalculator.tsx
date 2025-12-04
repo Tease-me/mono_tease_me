@@ -1,19 +1,17 @@
+import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
+import SvgPack from "@/utils/SvgPack";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import RotatingPill02 from "../components/RotatingPill02";
 import "./TeaseMeIncomeCalculator.css";
-import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
-import SvgPack from "@/utils/SvgPack";
-
 
 const TeaseMeIncomeCalculator: React.FC = () => {
   const [isHolding, setIsHolding] = useState(false);
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"auto" | "manual">("auto");
   const [period, setPeriod] = useState<"WEEKLY" | "MONTHLY" | "YEARLY">(
     "WEEKLY"
   );
-  const [url, setUrl] = useState("");
+
   const [converted, setConverted] = useState(2);
   const [followers, setFollowers] = useState<number | "">("");
 
@@ -56,21 +54,8 @@ const TeaseMeIncomeCalculator: React.FC = () => {
           into <RotatingPill02 phrases={otherPhrases} />
         </h2>
 
-        <div className="ic-question" id="ic-anchor">How much could you earn?</div>
-
-        <div className="ic-toggle">
-          <button
-            className={`ic-toggle-btn-auto ${mode === "auto" ? "active" : ""}`}
-            onClick={() => setMode("auto")}
-          >
-            Auto
-          </button>
-          <button
-            className={`ic-toggle-btn-manual ${mode === "manual" ? "active" : ""}`}
-            onClick={() => setMode("manual")}
-          >
-            Manual
-          </button>
+        <div className="ic-question" id="ic-anchor">
+          How much could you earn?
         </div>
 
         <div className="ic-income-row">
@@ -91,15 +76,13 @@ const TeaseMeIncomeCalculator: React.FC = () => {
         </div>
 
         <div className="ic-mode-row">
-          <div className="ic-mode-title">
-            {mode === "auto" ? "Auto Mode" : "Manual Mode"}
-          </div>
+          <div className="ic-mode-title">{"Calculate"}</div>
           <div className="ic-income-value">{formattedIncome}</div>
         </div>
 
         <div className="ic-divider" />
 
-        {mode === "manual" && (
+        {
           <>
             <label className="ic-label">Total Followers</label>
             <input
@@ -114,49 +97,43 @@ const TeaseMeIncomeCalculator: React.FC = () => {
               }
             />
           </>
-        )}
+        }
 
-        <label className="ic-label">
-          Social Profile <span className="req">*</span>
+        <label className="ic-label ic-converted-audience-row">
+          Converted Audience{" "}
+          <div className="tm-converted-value">{converted} %</div>
         </label>
-        <input
-          className="ic-input"
-          placeholder="Enter URL"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-        />
-        <p className="ic-helper">* Requires a public profile</p>
-
-        <label className="ic-label ic-converted-audience-row">Converted Audience <div className="tm-converted-value">{converted} %</div></label>
         <div className="ic-slider">
           <div className="ic-slider-track" />
           <div className="ic-slider-fill" style={{ width: `${converted}%` }} />
           <div
-  className={`ic-slider-thumb ${isHolding ? "ic-slider-thumb-hold" : ""}`}
-  style={{ left: `${converted}%` }}
-/>
+            className={`ic-slider-thumb ${
+              isHolding ? "ic-slider-thumb-hold" : ""
+            }`}
+            style={{ left: `${converted}%` }}
+          />
           <input
             type="range"
             min={0}
             max={100}
             value={converted}
             onChange={(e) => setConverted(Number(e.target.value))}
-              onMouseDown={() => setIsHolding(true)}
-  onMouseUp={() => setIsHolding(false)}
-  onMouseLeave={() => setIsHolding(false)}
-
-  onTouchStart={() => setIsHolding(true)}
-  onTouchEnd={() => setIsHolding(false)}
-
+            onMouseDown={() => setIsHolding(true)}
+            onMouseUp={() => setIsHolding(false)}
+            onMouseLeave={() => setIsHolding(false)}
+            onTouchStart={() => setIsHolding(true)}
+            onTouchEnd={() => setIsHolding(false)}
             className="ic-slider-input"
           />
         </div>
 
         <div className="tm-income-button-container">
-
-          <PrimaryButton  onClick={() => navigate("/profile-survey")} text="Start Building Persona" rightIcon={<SvgPack.ArrowRight/>}/>
-
-</div>
+          <PrimaryButton
+            onClick={() => navigate("/profile-survey")}
+            text="Start Building Persona"
+            rightIcon={<SvgPack.ArrowRight />}
+          />
+        </div>
       </div>
     </div>
   );
