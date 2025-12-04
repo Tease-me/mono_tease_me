@@ -8,10 +8,10 @@ import CallIcon from "@/assets/Call.svg?react";
 import DropCallIcon from "@/assets/svg/DropCall.svg?react";
 import { Modal } from "../Modal";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
-import BlockingLoader from "../../loading/BlockingLoader";
 
 import styles from "./WelcomeCallModal.module.css";
 import IconButton from "../../inputs/buttons/IconButton";
+import LoadingSpinner from "../../loading/LoadingSpinner";
 
 interface WelcomeCallModalProps {
     isOpen: boolean;
@@ -67,7 +67,7 @@ const WelcomeCallModal: React.FC<WelcomeCallModalProps> = ({ isOpen, onClose, in
         onClose();
     }
 
-    if (!influencer) return <BlockingLoader />
+    if (isOpen && !influencer) return <LoadingSpinner />
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} size="sm" ariaLabel="Welcome Call">
