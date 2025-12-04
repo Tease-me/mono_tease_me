@@ -2,7 +2,7 @@ import heroModel from "@/assets/image/hero-woman.png";
 import heroModel2x from "@/assets/image/hero-woman@2x.png"
 import logoTeaseMe from "@/assets/logos/LogoTeaseMeDarkMode.svg";
 import landingBullets from "@/assets/svg/LandingBullets.svg";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import RotatingPill from "../components/RotatingPill";
 import { BENEFITS } from "../data/benefits";
 import "./TeaseMeLanding.css";
@@ -16,6 +16,9 @@ import WelcomeCallModal from "@/ui/components/modals/welcome-call/WelcomeCallMod
 import dummy from "@/dummy/dummy";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import useCallLanding from "@/hooks/useCallLanding";
+import { LocalStorageKeys } from "@/constants/localStorageKeys";
+import { storage } from "@/utils/storage";
+import { useNavigate } from "react-router-dom";
 
 
 const TeaseMeLanding: React.FC = () => {
@@ -23,6 +26,8 @@ const TeaseMeLanding: React.FC = () => {
   const { startConversation, status, stopConversation } = useCallLanding();
 
   const phrases = ["Go travel", "Earn money", "Save time", "Live your life"];
+  const [hasConnected, setHasConnected] = useState(false);
+  const navigate = useNavigate();
 
   const demoInfluencer: InfluencerDataModel = {
     id: "landing-loli",
@@ -40,6 +45,17 @@ const TeaseMeLanding: React.FC = () => {
     setOpenModal(true);
     startConversation();
   };
+
+  useEffect(() => {
+    if (status === "connected") {
+      storage.setBoolean(LocalStorageKeys.VisitedWelcome, true);
+      setHasConnected(true);
+    }
+
+    if (status === "disconnected" && hasConnected) {
+      navigate("/income-dialog");
+    }
+  }, [status, hasConnected, navigate]);
 
   return (
     <div className="tm-page">
