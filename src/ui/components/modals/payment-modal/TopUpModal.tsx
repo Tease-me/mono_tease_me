@@ -7,7 +7,7 @@ import SvgPack from "@/utils/SvgPack";
 import clsx from "clsx";
 import PrimaryButton from "../../inputs/buttons/PrimaryButton";
 import NormalButton from "../../inputs/buttons/NormalButton";
-
+import CircularIconButton from "../../inputs/buttons/CircularIconButton";
 
 interface TopUpModalProps {
   isOpen: boolean;
@@ -37,12 +37,36 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
   const renderAmountForm = () => {
     return <div>
 
-      <h3 style={{ textAlign: "center", marginBlock: "16px", fontWeight: 400 }}>Quick credit selection</h3>
-
-
-
-
-
+      <h3 className={styles.mdText}>
+        Quick credit selection
+      </h3>
+      <div className={styles.quickCreditButtonArea}>
+        {[5, 10, 30, 50, 100, 500].map((amount) => (
+          <NormalButton
+            key={amount}
+            className={styles.quickCreditButton}
+            text={`$${amount}`}
+          />
+        ))}
+      </div>
+      <div className={styles.plainDivider}></div>
+      <h4 style={{ textAlign: "center", marginBlock: "16px", fontWeight: 400 }}>Or enter a custom amount</h4>
+      <div className={styles.customAmountArea}>
+        <CircularIconButton size="small" className={styles.paymentCircularButton} text="-" />
+        <TextInput size="small" type="number" placeholder="$5" className={styles.customAmountInput} />
+        <CircularIconButton className={styles.paymentCircularButton} text="+" />
+      </div>
+      <div className={styles.cancelRow}>
+        <NormalButton
+          type="nobg"
+          text="Cancel"
+          className={styles.cancelButton}
+        />
+      </div>
+      <div className={styles.finalButtonArea}>
+        <NormalButton text="Back" disabled={true}></NormalButton>
+        <PrimaryButton text="Continue" onClick={() => { }} />
+      </div>
     </div>
   }
 
@@ -89,10 +113,14 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
             aria-label="Expiry date"
           />
         </div>
-        <button className={styles.cancelButton}>cancel</button>
+        <NormalButton
+          type="nobg"
+          text="Cancel"
+          className={styles.cancelButton}
+        />
         <div className={styles.finalButtonArea}>
           <NormalButton text="Back"></NormalButton>
-          <PrimaryButton text="Submit" onClick={() => { }} />
+          <PrimaryButton text="Continue" onClick={() => { }} />
         </div>
 
       </form>
@@ -102,11 +130,38 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
   }
 
 
-  // Amount Form
-  const renderForm = () => {
+  // Low Form
+  const renderLowForm = () => {
     return <div>
-
-
+      <h3 className={styles.mdText}>
+        Set Low Credit
+      </h3>
+      <div className={styles.lowCreditButtonArea}>
+        {
+          [5, 10, 15, 20].map((amount) => (
+            <NormalButton key={amount} className={styles.lowCreditButton} text={`$${amount}`} />
+          ))
+        }
+      </div>
+      <div className={styles.lowCreditOptions}>
+        <div className={styles.lowCreditOptionsLine}>
+          <h3> Auto TopUp when low </h3>
+        </div>
+        <div className={styles.lowCreditOptionsLine}>
+          <h3> Notify me when credit is low</h3>
+        </div>
+      </div>
+      <div className={styles.cancelRow}>
+        <NormalButton
+          type="nobg"
+          text="Cancel"
+          className={styles.cancelButton}
+        />
+      </div>
+      <div className={styles.finalButtonArea}>
+        <NormalButton text="Back" disabled={true}></NormalButton>
+        <PrimaryButton text="Top Up Now" onClick={() => { }} />
+      </div>
     </div>
   }
 
@@ -118,7 +173,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
       case "card":
         return renderCardForm();
       case "low":
-        return renderForm();
+        return renderLowForm();
       default:
         return null;
     }
@@ -132,8 +187,11 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
         activeTab={activeTab}
         setActiveTab={(t) => setTopUpState(tabs[t.id])}
       />
-      <h2 className={styles.heading}>Select top up your credit</h2>
-      <div>{renderStep()}</div>
+      <div className={styles.content}>
+
+        <h2 className={styles.heading}>Select top up your credit</h2>
+        <div>{renderStep()}</div>
+      </div>
     </Modal>
   );
 }

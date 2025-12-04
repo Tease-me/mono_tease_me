@@ -4,6 +4,7 @@
   background-color: #121316;
   background-blend-mode: overlay, normal;
   backdrop-filter: blur(16px);
+  padding-inline: 48px;
 
 }
 
@@ -18,17 +19,76 @@
 h2 {
   color: var(--Others-White, #FFF);
   text-align: center;
-  /* H3/bold */
   font-family: Urbanist;
   font-size: 32px;
   font-style: normal;
   font-weight: 700;
   line-height: 120%;
-  /* 38.4px */
 }
 
 .heading {
   margin-block: 16px;
+}
+
+.mdText {
+  text-align: center;
+  margin-block: 16px;
+  font-weight: 400;
+}
+
+.quickCreditButtonArea {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.quickCreditButton {
+  flex: 0 1 calc(50% - 12px);
+  width: 222.5px;
+  height: 38px;
+}
+
+.customAmountArea {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  padding-top: 12px;
+  align-items: center;
+}
+
+.customAmountInput {
+  max-width: 150px;
+}
+
+.customAmountInput input[type=number]::-webkit-outer-spin-button,
+.customAmountInput input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.lowCreditButtonArea {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.lowCreditButton {
+  flex: 0 1 calc(50% - 12px);
+  width: 222.5px;
+  height: 38px;
+}
+
+.lowCreditOptions {
+  margin-block: 16px;
+}
+
+.paymentCircularButton {
+  width: 48px;
+  height: 48px;
+  font-size: 24px;
 }
 
 
@@ -64,14 +124,34 @@ h2 {
 }
 
 .cancelButton {
-  background: none;
-  border: none;
-  color: var(--Others-White, #FFF);
-  font-family: Urbanist;
-  font-size: 16px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 150%;
-  /* 24px */
-  cursor: pointer;
+    color: var(--color-text);
+    font-weight: 600;
+    cursor: pointer;
 }
+
+.cancelRow {
+  display: flex;
+  justify-content: center;
+  margin: 12px 0;
+}
+
+.plainDivider {
+  border-bottom: 1px solid #424242;
+  margin-left: 10px;
+  margin-right: 10px;;
+  margin-block: 32px;
+  align-items: center;
+}
+
+ .lowCreditOptions h3{
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 28px;
+  letter-spacing: 0.2px;
+ }
+
+ .lowCreditOptionsLine {
+  margin-block: 8px;
+  display: flex;
+  width: 100%;
+ }
