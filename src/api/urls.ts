@@ -31,6 +31,7 @@ export const Endpoints = {
     elevenlabs: {
         signed_url: "/elevenlabs/signed-url",
         signed_url_free: "/elevenlabs/signed-url-free",
+        signed_landing_url_free: "/elevenlabs/signed-url-free-landing",
         register: (conversationId: string) => `/elevenlabs/conversations/${encodeURIComponent(conversationId)}/register`,
     },
     influencers: "/influencer",

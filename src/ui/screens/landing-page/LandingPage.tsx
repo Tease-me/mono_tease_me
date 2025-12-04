@@ -7,7 +7,7 @@ import TeaseMeWhySection from "./sections/TeaseMeWhySection";
 
 export default function LandingPage() {
   return (
-    <div style={{ overflowY: "auto", height: "100vh" }}>
+    <div style={{ overflowY: "auto", overflowX: "hidden" }}>
       <TeaseMeLanding />
       <TeaseMeVideoSection />
       <TeaseMeIncomeSection />
