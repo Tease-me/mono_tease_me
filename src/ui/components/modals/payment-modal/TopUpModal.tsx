@@ -57,9 +57,9 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
       <div className={styles.plainDivider}></div>
       <h4 style={{ textAlign: "center", marginBlock: "16px", fontWeight: 400 }}>Or enter a custom amount</h4>
       <div className={styles.customAmountArea}>
-        <CircularIconButton size="small" className={styles.paymentCircularButton} text="-" />
+        <CircularIconButton size="small" className={styles.paymentCircularButton} icon="-" />
         <TextInput size="small" type="number" placeholder="$5" className={styles.customAmountInput} />
-        <CircularIconButton size="small" className={styles.paymentCircularButton} text="+" />
+        <CircularIconButton size="small" className={styles.paymentCircularButton} icon="+" />
       </div>
     </div>
   }
@@ -171,6 +171,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
               type="nobg"
               text="Cancel"
               className={styles.cancelButton}
+              onClick={onClose}
             />
           </div>
           <div className={styles.finalButtonArea}>

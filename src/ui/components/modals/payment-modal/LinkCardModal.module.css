@@ -10,6 +10,8 @@
     padding: 40px 48px;
     align-items: center;
     gap: 32px;
+    width: 553px;
+    height: 705px;
 }
 
 .content {
@@ -83,6 +85,7 @@
     width: 100%;
     justify-content: center;
 }
+
 
 .fullWidthInput {
     width: 100%;

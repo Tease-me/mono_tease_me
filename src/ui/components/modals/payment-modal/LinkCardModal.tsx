@@ -145,6 +145,7 @@ const LinkCardModal: React.FC<LinkCardModalProps> = ({
                         />
                         <PrimaryButton
                             text="Link My Card"
+                            leftIcon={<SvgPack.Link />} 
                             onClick={handleSubmit}
                             className={styles.linkButton}
                             disabled={submitDisabled}
