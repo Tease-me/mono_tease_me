@@ -1,0 +1,35 @@
+.toggle {
+  width: 56px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #3a3c45; /* off */
+  display: inline-flex;
+  align-items: center;
+  padding: 4px;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  cursor: pointer;
+}
+
+.toggle.checked {
+  background: var(--color-primary, #ff4d67); /* on */
+  border-color: transparent;
+}
+
+.toggle.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.knob {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s ease;
+  transform: translateX(0);
+}
+
+.toggle.checked .knob {
+  transform: translateX(24px);
+}

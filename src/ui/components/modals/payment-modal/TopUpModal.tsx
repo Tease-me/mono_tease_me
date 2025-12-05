@@ -8,6 +8,7 @@ import clsx from "clsx";
 import PrimaryButton from "../../inputs/buttons/PrimaryButton";
 import NormalButton from "../../inputs/buttons/NormalButton";
 import CircularIconButton from "../../inputs/buttons/CircularIconButton";
+import Toggle from "../../inputs/toggle/Toggle";
 
 interface TopUpModalProps {
   isOpen: boolean;
@@ -33,6 +34,9 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
   }));
   const activeTab = tabItems.find(tab => tabs[tab.id] === topUpState) || (tabItems[0]);
 
+  const [autoTopUp, setAutoTopUp] = useState<boolean>(true);
+  const [notifyLow, setNotifyLow] = useState<boolean>(false);
+
   // Amount Form
   const renderAmountForm = () => {
     return <div>
@@ -55,17 +59,6 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
         <CircularIconButton size="small" className={styles.paymentCircularButton} text="-" />
         <TextInput size="small" type="number" placeholder="$5" className={styles.customAmountInput} />
         <CircularIconButton className={styles.paymentCircularButton} text="+" />
-      </div>
-      <div className={styles.cancelRow}>
-        <NormalButton
-          type="nobg"
-          text="Cancel"
-          className={styles.cancelButton}
-        />
-      </div>
-      <div className={styles.finalButtonArea}>
-        <NormalButton text="Back" disabled={true}></NormalButton>
-        <PrimaryButton text="Continue" onClick={() => { }} />
       </div>
     </div>
   }
@@ -113,19 +106,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
             aria-label="Expiry date"
           />
         </div>
-        <NormalButton
-          type="nobg"
-          text="Cancel"
-          className={styles.cancelButton}
-        />
-        <div className={styles.finalButtonArea}>
-          <NormalButton text="Back"></NormalButton>
-          <PrimaryButton text="Continue" onClick={() => { }} />
-        </div>
-
       </form>
-
-
     </div>
   }
 
@@ -146,21 +127,12 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
       <div className={styles.lowCreditOptions}>
         <div className={styles.lowCreditOptionsLine}>
           <h3> Auto TopUp when low </h3>
+          <Toggle checked={autoTopUp} onChange={() => { setAutoTopUp(!autoTopUp) }} />
         </div>
         <div className={styles.lowCreditOptionsLine}>
           <h3> Notify me when credit is low</h3>
+          <Toggle checked={notifyLow} onChange={() => { setNotifyLow(!notifyLow) }} />
         </div>
-      </div>
-      <div className={styles.cancelRow}>
-        <NormalButton
-          type="nobg"
-          text="Cancel"
-          className={styles.cancelButton}
-        />
-      </div>
-      <div className={styles.finalButtonArea}>
-        <NormalButton text="Back" disabled={true}></NormalButton>
-        <PrimaryButton text="Top Up Now" onClick={() => { }} />
       </div>
     </div>
   }
@@ -188,9 +160,21 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
         setActiveTab={(t) => setTopUpState(tabs[t.id])}
       />
       <div className={styles.content}>
-
         <h2 className={styles.heading}>Select top up your credit</h2>
         <div>{renderStep()}</div>
+        <div className={styles.containerFooter}>
+          <div className={styles.cancelRow}>
+            <NormalButton
+              type="nobg"
+              text="Cancel"
+              className={styles.cancelButton}
+            />
+          </div>
+          <div className={styles.finalButtonArea}>
+            <NormalButton text="Back"></NormalButton>
+            <PrimaryButton text="Top Up Now" onClick={() => { }} />
+          </div>
+        </div>
       </div>
     </Modal>
   );

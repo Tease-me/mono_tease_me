@@ -5,6 +5,8 @@
   background-blend-mode: overlay, normal;
   backdrop-filter: blur(16px);
   padding-inline: 48px;
+  min-height: 705px;
+  width: 553px;
 
 }
 
@@ -14,6 +16,7 @@
   align-items: center;
   width: 100%;
   gap: 28px;
+  flex: 1;
 }
 
 h2 {
@@ -124,34 +127,44 @@ h2 {
 }
 
 .cancelButton {
-    color: var(--color-text);
-    font-weight: 600;
-    cursor: pointer;
+  color: var(--color-text);
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .cancelRow {
   display: flex;
   justify-content: center;
-  margin: 12px 0;
+
 }
 
 .plainDivider {
   border-bottom: 1px solid #424242;
   margin-left: 10px;
-  margin-right: 10px;;
+  margin-right: 10px;
+  ;
   margin-block: 32px;
   align-items: center;
 }
 
- .lowCreditOptions h3{
+.lowCreditOptions h3 {
   font-size: 18px;
   font-weight: 600;
   line-height: 28px;
   letter-spacing: 0.2px;
- }
+}
 
- .lowCreditOptionsLine {
+.lowCreditOptionsLine {
   margin-block: 8px;
   display: flex;
   width: 100%;
- }
+  justify-content: space-between;
+}
+
+.containerFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-top: auto;
+}
