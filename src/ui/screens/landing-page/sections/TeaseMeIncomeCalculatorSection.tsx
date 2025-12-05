@@ -11,11 +11,13 @@ const TeaseMeIncomeCalculatorSection: React.FC = () => {
       </div>
 
       <div className="tm-income-footer">
+        <div className="footer-content-container">
         <img src={logoTeaseMe} alt="" />
         <p>© 2026 TeaseMe All Rights Reserved.</p>
         <div className="tm-income-links">
           <button>Privacy Policy</button>
           <button>Contact Us</button>
+          </div>
         </div>
       </div>
     </section>

@@ -134,6 +134,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         })()
     }, [id, user_id]);
 
+    useEffect(() => {
+        setTyping(false); // Reset typing indicator when switching DMs
+    }, [influencer]);
+
     const fetchMessages = async (chat_id: string, page: number) => {
         try {
             const responseMessagesPagination: MessagePagination = await chatRepository.getChatHistory(chat_id, page, pageSize);
