@@ -1,5 +1,13 @@
 .modal {
-    background: radial-gradient(120% 120% at 50% 0%, rgba(255, 255, 255, 0.08) 0%, rgba(10, 12, 16, 0.95) 45%), var(--color-dark-2);
+    background-color: rgba(0, 0, 0, 0.9);
+    background-image: url("../../../../assets/background/light_toast.png");
+    background-size: contain;
+    background-repeat: repeat;
+    background-position: 0 0;
+    background-blend-mode: overlay;
+    backdrop-filter: blur(16px);
+
+
     border-radius: 24px;
     padding: 40px 48px;
     align-items: center;

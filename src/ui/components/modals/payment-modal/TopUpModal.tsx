@@ -10,6 +10,7 @@ import NormalButton from "../../inputs/buttons/NormalButton";
 import CircularIconButton from "../../inputs/buttons/CircularIconButton";
 import Toggle from "../../inputs/toggle/Toggle";
 
+
 interface TopUpModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -159,8 +160,11 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
         activeTab={activeTab}
         setActiveTab={(t) => setTopUpState(tabs[t.id])}
       />
+
       <div className={styles.content}>
+        <div>
         <h2 className={styles.heading}>Select top up your credit</h2>
+        </div>
         <div>{renderStep()}</div>
         <div className={styles.containerFooter}>
           <div className={styles.cancelRow}>
