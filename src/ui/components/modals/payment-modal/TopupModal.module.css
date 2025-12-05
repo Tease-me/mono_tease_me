@@ -1,7 +1,6 @@
 .modal {
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.20);
-
   background-color: rgba(0, 0, 0, 0.9);
   background-image: url("../../../../assets/background/light_toast.png");
   background-size: contain;
@@ -9,7 +8,6 @@
   background-position: 0 0;
   background-blend-mode: overlay;
   backdrop-filter: blur(16px);
-  
   padding-inline: 48px;
   min-height: 705px;
   width: 553px;
@@ -97,7 +95,7 @@ h2 {
 .paymentCircularButton {
   width: 48px;
   height: 48px;
-  font-size: 24px;
+  font-size: 32px;
 }
 
 

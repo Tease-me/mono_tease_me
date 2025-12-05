@@ -1,9 +1,10 @@
+
 .toggle {
-  width: 56px;
-  height: 32px;
+  width: 48px;
+  height: 28px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  background: #3a3c45; /* off */
+  background: #3a3c45;
   display: inline-flex;
   align-items: center;
   padding: 4px;
@@ -12,7 +13,7 @@
 }
 
 .toggle.checked {
-  background: var(--color-primary, #ff4d67); /* on */
+  background: var(--color-primary, #ff4d67); 
   border-color: transparent;
 }
 
@@ -21,15 +22,17 @@
   cursor: not-allowed;
 }
 
+
 .knob {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: #fff;
   transition: transform 0.2s ease;
   transform: translateX(0);
 }
 
+
 .toggle.checked .knob {
-  transform: translateX(24px);
+  transform: translateX(20px);
 }

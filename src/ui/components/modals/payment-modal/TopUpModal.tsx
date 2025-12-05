@@ -59,7 +59,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
       <div className={styles.customAmountArea}>
         <CircularIconButton size="small" className={styles.paymentCircularButton} text="-" />
         <TextInput size="small" type="number" placeholder="$5" className={styles.customAmountInput} />
-        <CircularIconButton className={styles.paymentCircularButton} text="+" />
+        <CircularIconButton size="small" className={styles.paymentCircularButton} text="+" />
       </div>
     </div>
   }
@@ -160,7 +160,6 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
         activeTab={activeTab}
         setActiveTab={(t) => setTopUpState(tabs[t.id])}
       />
-
       <div className={styles.content}>
         <div>
         <h2 className={styles.heading}>Select top up your credit</h2>
