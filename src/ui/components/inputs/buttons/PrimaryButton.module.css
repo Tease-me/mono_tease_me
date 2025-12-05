@@ -96,8 +96,8 @@
 .left-icon,
 .right-icon {
     display: flex;
-    width: 1rem;
-    height: 1rem;
+    width: 1.5rem;
+    height: 1.5rem;
     padding: 0.08331rem 0.08338rem 0.08338rem 0.08331rem;
     justify-content: center;
     align-items: center;
@@ -260,6 +260,8 @@
 .button-cta-outer.pink {
     background: var(--gradient-outer-mainhue);
     transition: all 200ms ease-in-out;
+    width: 100%;
+    height: 100%;
 }
 
 .button-cta-outer.pink .button-cta-inner {

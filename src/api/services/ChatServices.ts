@@ -69,6 +69,19 @@ export const ChatServices = () => ({
             throw error;
         }
     },
+    getSignedLandingUrlFree: async (signal?: AbortSignal): Promise<SignedUrlResponse> => {
+        try {
+            const response = await apiClient.get(
+                Endpoints.elevenlabs.signed_landing_url_free,
+                {
+                    signal,
+                }
+            );
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
     registerConversation: async (conversation_id: string, user_id: number, influencer_id: string, signal?: AbortSignal) => {
         let attempt = 0;
         let delay = 400;

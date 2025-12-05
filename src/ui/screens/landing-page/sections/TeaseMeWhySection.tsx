@@ -1,20 +1,25 @@
 import React from "react";
 import "./TeaseMeWhySection.css";
 
-import chatIcon from "@/assets/image/heart_3d_like.png";
+
 import { WHY_ITEMS } from "../data/whyItems";
 
 const TeaseMeWhySection: React.FC = () => {
   return (
     <section className="tm-why-section">
       <div className="tm-why-container">
-        <h2 className="tm-why-title">Why create a TeaseMe persona?</h2>
+        <h2 className="tm-video-title">Why create your own TeaseMe persona?</h2>
 
         <div className="tm-why-scroll">
           {WHY_ITEMS.map((item) => (
             <article key={item.id} className="tm-why-card">
               <div className="tm-why-icon-wrapper">
-                <img src={chatIcon} alt="" className="tm-why-icon" />
+                <img
+                  src={item.thumb}
+                  srcSet={`${item.thumb} 1x, ${item.thumb2x} 2x`}
+                  alt=""
+                  className="tm-why-icon"
+                />
               </div>
 
               <h3 className="tm-why-card-title">{item.title}</h3>

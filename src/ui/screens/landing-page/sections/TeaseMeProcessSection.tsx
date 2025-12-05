@@ -8,7 +8,7 @@ const TeaseMeProcessSection: React.FC = () => {
       <div className="tm-process-container">
         {/* header */}
         <div className="tm-process-header">
-          <h2 className="tm-process-title">What is the process?</h2>
+          <h2 className="tm-video-title">What is the process?</h2>
           <span className="tm-process-tag">4 Easy Steps</span>
         </div>
 
@@ -17,21 +17,25 @@ const TeaseMeProcessSection: React.FC = () => {
           {PROCESS_STEPS.map((step) => (
             <article key={step.id} className="tm-process-card">
               <div className="tm-process-thumb-wrapper">
-                <img
-                  src={step.thumb}
-                  alt={step.title}
-                  className="tm-process-thumb"
-                />
+              <video
+  src={step.thumb}
+  className="tm-process-thumb"
+  autoPlay
+  muted
+  loop
+  playsInline
+/>
+
               </div>
 
               <div className="tm-process-body">
                 <span className="tm-process-step-label">{step.stepLabel}</span>
 
-                <h3 className="tm-process-card-title">{step.title}</h3>
+                <h3 className="tm-why-card-title">{step.title}</h3>
 
-                <div className="tm-process-divider" />
+                <div className="tm-why-card-divider" />
 
-                <p className="tm-process-card-text">{step.description}</p>
+                <p className="tm-why-card-text">{step.description}</p>
               </div>
             </article>
           ))}

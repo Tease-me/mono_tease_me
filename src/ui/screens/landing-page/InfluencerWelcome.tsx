@@ -1,19 +1,15 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
-
+// InfluencerWelcome.tsx
 import clsx from "clsx";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { AuthContext } from "@/context/AuthContext";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 
-import DividerWithLabel from "@/ui/components/dividers/DividerWithLabel";
-import AnimatedButton from "@/ui/components/inputs/buttons/AnimatedButton";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
-import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
-import WelcomeCallModal from "@/ui/components/modals/welcome-call/WelcomeCallModal";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import BackgroundGradient from "@/ui/templates/BackgroundGradient";
 import CenteredLayout from "@/ui/templates/CenteredLayout";
@@ -27,7 +23,7 @@ import logger from "@/utils/logger";
 import { storage } from "@/utils/storage";
 
 import InfluencerProfile from "../influencer-profile/profile/InfluencerProfile";
-import styles from "./WelcomeScreen.module.css";
+import styles from "./InfluencerWelcome.module.css";
 
 interface InfluencerWelcomeProps {}
 
@@ -37,18 +33,15 @@ const InfluencerWelcome: React.FC<InfluencerWelcomeProps> = () => {
   const navigate = useNavigate();
 
   const [influencer, setInfluencer] = useState<InfluencerDataModel>();
-  const [isFirstTime, setIsFirstTime] = useState(true);
-  const [onTryClicked, setOnTryClicked] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [hasConnected, setHasConnected] = useState(false);
 
   const { status, startConversation, stopConversation, setInfluencerId } =
     useCall();
 
   const audioRef = useRef(new Audio("/audio/ringtone.wav"));
-
   const influencerRepo = InfluencerRepo();
 
-  // Fetch influencer by username OR random
   useEffect(() => {
     (async () => {
       try {
@@ -79,31 +72,20 @@ const InfluencerWelcome: React.FC<InfluencerWelcomeProps> = () => {
     })();
   }, [username]);
 
-  // React to call status changes
   useEffect(() => {
     if (status === "connected") {
       storage.setBoolean(LocalStorageKeys.VisitedWelcome, true);
-      setIsFirstTime(false);
       setHasConnected(true);
     }
 
-    if (status === "disconnected") {
-      setIsFirstTime(false);
-      setOnTryClicked(false);
-
-      // If a call was actually connected before, go to the next screen
-      if (hasConnected) {
-        // TODO: change "/landing-page" to the route of your next screen
-        navigate("/income-dialog");
-      }
+    if (status === "disconnected" && hasConnected) {
+      navigate("/income-dialog");
     }
   }, [status, hasConnected, navigate]);
 
-  // Start ringtone automatically when first opening the screen
   useEffect(() => {
     audioRef.current.currentTime = 0;
     audioRef.current.play().catch(() => {});
-    setOnTryClicked(true);
 
     const timeoutId = window.setTimeout(() => {
       audioRef.current.pause();
@@ -117,26 +99,31 @@ const InfluencerWelcome: React.FC<InfluencerWelcomeProps> = () => {
     };
   }, []);
 
-  // Pass influencerId to call hook
   useEffect(() => {
     if (influencer?.id) {
       setInfluencerId(influencer.id);
     }
   }, [influencer, setInfluencerId]);
 
-  const handleSignInClick = () => {
-    navigate("/login");
-  };
+  useEffect(() => {
+    let timer: number | undefined;
+    if (status === "connected") {
+      setElapsedSeconds(0);
+      timer = window.setInterval(() => {
+        setElapsedSeconds((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => {
+      if (timer) window.clearInterval(timer);
+    };
+  }, [status]);
 
-  const handleTryClick = () => {
-    audioRef.current.currentTime = 0;
-    audioRef.current.play().catch(() => {});
-    setOnTryClicked(true);
-
-    window.setTimeout(() => {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }, 60000);
+  const formatTime = (totalSeconds: number) => {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   const handlePickUpCall = () => {
@@ -147,13 +134,7 @@ const InfluencerWelcome: React.FC<InfluencerWelcomeProps> = () => {
   const handleHangUpCall = () => {
     audioRef.current.pause();
     stopConversation();
-    setIsFirstTime(false);
-    setOnTryClicked(false);
-    // When user explicitly hangs up, also mark as connected so we navigate away
-    setHasConnected(true);
   };
-
-  const incomingCall = status === "idle" && onTryClicked;
 
   if (!influencer) return <BlockingLoader />;
 
@@ -164,97 +145,50 @@ const InfluencerWelcome: React.FC<InfluencerWelcomeProps> = () => {
   return (
     <BackgroundGradient>
       <CenteredLayout>
-        <div className={styles["welcome-root"]}>
-          <ProfileMedia
-            className={clsx(
-              styles["profile-container"],
-              onTryClicked && styles["zoomed"]
-            )}
-            imageSrc={influencer.img}
-            videoSrc={influencer.videoUrl}
-            showHearts={!onTryClicked}
-            active
-            size="xlarge"
-            mediaType="video"
+        <div className={styles["call-screen-root"]}>
+          <TeaseMeLogo
+            className={styles["call-logo"]}
+            variant="mono-lips-only"
+            size="medium"
           />
 
-          {!onTryClicked && (
-            <h2 className={styles["join-text"]}>Join {influencer.name} on</h2>
-          )}
+          <div className={styles["call-avatar-wrapper"]}>
+            <ProfileMedia
+              className={clsx(styles["call-avatar"])}
+              imageSrc={influencer.img}
+              videoSrc={influencer.videoUrl}
+              active
+              size="xlarge"
+              mediaType="video"
+            />
+          </div>
 
-          {incomingCall ? (
-            <>
-              <div className={styles["incoming-call-text"]}>Incoming Call</div>
-              <div className={styles["influencer-name"]}>{influencer.name}</div>
-              <div className={styles["call-buttons"]}>
+          <h2 className={styles["call-name"]}>{influencer.name}</h2>
+
+          <div className={styles["call-timer"]}>
+            {status === "connected" ? formatTime(elapsedSeconds) : "00:00"}
+          </div>
+
+          <div className={styles["call-buttons-row"]}>
+            {status === "idle" ? (
+              // RINGING → single green answer button centered
+              <IconButton
+                leftIcon={<CallIcon />}
+                onClick={handlePickUpCall}
+                className={styles["answer-btn"]}
+              />
+            ) : (
+              // CONNECTED → speaker, mic, hangup (no green call)
+              <>
+                <IconButton leftIcon={<CallIcon />} />
+                <IconButton leftIcon={<CallIcon />} />
                 <IconButton
-                  leftIcon={<DropCallIcon color="red" />}
+                  leftIcon={<DropCallIcon />}
                   onClick={handleHangUpCall}
-                  text="Reject"
-                  color="black"
                 />
-                <AnimatedButton
-                  leftIcon={<CallIcon />}
-                  onClick={handlePickUpCall}
-                  text="Answer"
-                  color="green"
-                />
-              </div>
-            </>
-          ) : (
-            <div className={styles["welcome-screen-container"]}>
-              <TeaseMeLogo size="xlarge" variant="full-dark" />
-
-              <p className={styles["signup-text"]}>
-                Don&apos;t have an account?{" "}
-                <span
-                  className={styles["signup-link"]}
-                  onClick={() => navigate("/register")}
-                  style={{ cursor: "pointer", color: "#ff4d6d" }}
-                >
-                  Sign up
-                </span>
-              </p>
-
-              <DividerWithLabel text="or" />
-
-              <div className={styles["buttons-container"]}>
-                {!isFirstTime ? (
-                  <PrimaryButton
-                    text="Sign in with email"
-                    className={styles["sign-in-button"]}
-                    onClick={handleSignInClick}
-                  />
-                ) : (
-                  <PrimaryButton
-                    text="Talk to me Now"
-                    onClick={handleTryClick}
-                  />
-                )}
-
-                <p className={styles["signup-text"]}>
-                  Already have an account?{" "}
-                  <span
-                    className={styles["signup-link"]}
-                    onClick={() => navigate("/login")}
-                    style={{ cursor: "pointer", color: "#ff4d6d" }}
-                  >
-                    Login
-                  </span>
-                </p>
-              </div>
-            </div>
-          )}
-
-          <WelcomeCallModal
-            isOpen={status === "connected"}
-            onClose={() => {
-              setOnTryClicked(false);
-            }}
-            influencer={influencer}
-            status={status}
-            stopConversation={stopConversation}
-          />
+              </>
+            )}
+          </div>
         </div>
       </CenteredLayout>
     </BackgroundGradient>
