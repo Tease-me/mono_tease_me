@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Modal } from "../Modal";
 import styles from "./TopUpModal.module.css";
 import TabsLayout from "../../tabs/TabsLayout";
@@ -16,17 +16,15 @@ interface TopUpModalProps {
   onClose: () => void;
 }
 
-type Step = "amount" | "card" | "low";
-const tabs: Step[] = ["amount", "card", "low"];
-const stepLabels: Record<Step, string> = {
-  amount: "Amount Select",
-  card: "Card Details",
-  low: "Low Credit"
-}
-
 
 export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
-
+  type Step = "amount" | "card" | "low";
+  const tabs: Step[] = ["amount", "card", "low"];
+  const stepLabels: Record<Step, string> = {
+    amount: "Amount Select",
+    card: "Card Details",
+    low: "Low Credit"
+  }
   const [topUpState, setTopUpState] = useState<Step>("amount");
   const tabItems = tabs.map((step, index) => ({
     id: index,
@@ -38,6 +36,14 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
   const [autoTopUp, setAutoTopUp] = useState<boolean>(true);
   const [notifyLow, setNotifyLow] = useState<boolean>(false);
 
+  //Amount selection
+  const amountOptions = [5, 10, 30, 50, 100, 500];
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
+  const [customAmount, setCustomAmount] = useState<number>(5);
+
+
+
+
   // Amount Form
   const renderAmountForm = () => {
     return <div>
@@ -46,20 +52,57 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
         Quick credit selection
       </h3>
       <div className={styles.quickCreditButtonArea}>
-        {[5, 10, 30, 50, 100, 500].map((amount) => (
+        {amountOptions.map((amount) => (
           <NormalButton
             key={amount}
             className={styles.quickCreditButton}
             text={`$${amount}`}
+            onClick={() => {
+              setSelectedAmount(amount);
+              setCustomAmount(amount);
+            }}
+            selected={selectedAmount === amount}
           />
         ))}
       </div>
       <div className={styles.plainDivider}></div>
       <h4 style={{ textAlign: "center", marginBlock: "16px", fontWeight: 400 }}>Or enter a custom amount</h4>
       <div className={styles.customAmountArea}>
-        <CircularIconButton size="small" className={styles.paymentCircularButton} icon="-" />
-        <TextInput size="small" type="number" placeholder="$5" className={styles.customAmountInput} />
-        <CircularIconButton size="small" className={styles.paymentCircularButton} icon="+" />
+        <CircularIconButton
+          size="small"
+          className={styles.paymentCircularButton}
+          icon="-"
+          onClick={() => {
+            setCustomAmount((prev) => (prev ?? 0) - 1)
+            setSelectedAmount(() => null)
+          }
+          }
+          disabled={customAmount <= 0}
+        />
+        <TextInput
+          size="small"
+          type="number"
+          placeholder="$5"
+          className={styles.customAmountInput}
+          value={customAmount !== null ? customAmount : ""}
+          onChange={
+            (e) => {
+              setCustomAmount(Number(e.currentTarget.value))
+              setSelectedAmount(() => null)
+            }
+          }
+        />
+        <CircularIconButton
+          size="small"
+          className={styles.paymentCircularButton}
+          icon="+"
+          onClick={() => {
+            setCustomAmount((prev) => (prev ?? 0) + 1)
+            setSelectedAmount(() => null)
+          }
+
+          }
+        />
       </div>
     </div>
   }
@@ -111,6 +154,9 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
     </div>
   }
 
+  //Low auto-topup
+  const lowCreditOptions = [5, 10, 15, 20];
+  const [selectedlowCredit, setSelectedLowCredit] = useState<number>(5);
 
   // Low Form
   const renderLowForm = () => {
@@ -120,8 +166,11 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
       </h3>
       <div className={styles.lowCreditButtonArea}>
         {
-          [5, 10, 15, 20].map((amount) => (
-            <NormalButton key={amount} className={styles.lowCreditButton} text={`$${amount}`} />
+          lowCreditOptions.map((amount) => (
+            <NormalButton key={amount} className={styles.lowCreditButton} text={`$${amount}`}
+              selected={selectedlowCredit === amount}
+              onClick={() => { setSelectedLowCredit((amt) => { amt = amount; return amt }) }}
+            />
           ))
         }
       </div>
@@ -162,7 +211,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
       />
       <div className={styles.content}>
         <div>
-        <h2 className={styles.heading}>Select top up your credit</h2>
+          <h2 className={styles.heading}>Select top up your credit</h2>
         </div>
         <div>{renderStep()}</div>
         <div className={styles.containerFooter}>
@@ -176,7 +225,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
           </div>
           <div className={styles.finalButtonArea}>
             <NormalButton text="Back"></NormalButton>
-            <PrimaryButton text="Top Up Now" onClick={() => { }} />
+            <PrimaryButton text="Continue" onClick={() => { }} />
           </div>
         </div>
       </div>
