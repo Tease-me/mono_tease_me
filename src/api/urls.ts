@@ -20,16 +20,30 @@ export const Endpoints = {
         history: (chat_id: string) => `/chat/history/${chat_id}`,
         audio: "/chat/chat_audio"
     },
+    knowledge: {
+        list: (influencerId: string) => `/influencer/${influencerId}/knowledge`,
+        upload: (influencerId: string) => `/influencer/${influencerId}/knowledge/upload`,
+        delete: (influencerId: string, fileId: number) => `/influencer/${influencerId}/knowledge/${fileId}`,
+    },
     push: {
         subscribe: "/push/subscribe",
     },
     elevenlabs: {
         signed_url: "/elevenlabs/signed-url",
         signed_url_free: "/elevenlabs/signed-url-free",
+        signed_landing_url_free: "/elevenlabs/signed-url-free-landing",
         register: (conversationId: string) => `/elevenlabs/conversations/${encodeURIComponent(conversationId)}/register`,
     },
     influencers: "/influencer",
     influencer: (id: string) => `/influencer/${id}`,
+    uploadCsv: "persona/import-csv",
+    mcpToolsCall: "/mcp/tools/call",
+    admin: {
+        systemPrompts: {
+            list: "admin/system-prompts",
+            byKey: (key: string) => `admin/system-prompts/${encodeURIComponent(key)}`,
+        },
+    },
     ws: {
         chat: "/chat/ws",
         notifications: "/ws/notifications",

@@ -1,0 +1,181 @@
+/* SECTION WRAPPER */
+.tm-process-section {
+  width: 100%;
+  padding: 72px 24px 80px;
+  background: radial-gradient(circle at top,
+      #10000a 0%,
+      #050106 60%,
+      #000 100%);
+  color: #f9fafb;
+  display: flex;
+  justify-content: center;
+}
+
+.tm-process-container {
+  width: 100%;
+  max-width: 1120px;
+  z-index: 0;
+}
+
+.tm-process-container:after { 
+  content: '';
+   background-image: url(/src/assets/image/bg-lp-section-reverse@2x.jpg);
+    background-repeat: no-repeat;
+      background-size: cover;
+    position:relative;
+    z-index:-1;
+    top: -100%;
+    left: -10%;
+    display: block;
+    width: 110%;
+    height: 100%;
+   mask-image: linear-gradient(180deg, transparent 0%, black 10%, black 80%, transparent 100%);
+  /* NEW — pulse animation */
+  opacity: 0.3;
+  user-select: none;
+  animation: gentlePulse 3s ease-in-out infinite;
+  }
+
+
+  @keyframes gentlePulse {
+  0%   { opacity: 0.3; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
+/* HEADER */
+.tm-process-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 26px;
+}
+
+.tm-process-title {
+  font-size: 32px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+/* “4 Easy Steps” pill */
+.tm-process-tag {
+  align-self: flex-start;
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--color-primary);
+  background: rgba(255, 79, 129, 0.08);
+  font-size: 13px;
+  color: var(--color-primary);
+}
+
+.tm-process-scroll {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 8px;
+
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE + Edge */
+}
+
+.tm-process-scroll::-webkit-scrollbar {
+  display: none;
+  /* Chrome / Safari / Opera */
+}
+
+/* CARD */
+.tm-process-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  border-radius: 1rem;
+  background: linear-gradient(199deg, rgba(67, 11, 28, 0.70) 0.6%, rgba(29, 29, 29, 0.70) 23.33%, rgba(29, 29, 29, 0.70) 73.04%, rgba(54, 13, 26, 0.70) 99.08%);
+  box-shadow: -5px 11px 9px -3px rgba(255, 255, 255, 0.05) inset, -4px 5px 0 -4px rgba(255, 255, 255, 0.40) inset, 4px -4px 0 -3px rgba(255, 255, 255, 0.17) inset;
+  backdrop-filter: blur(20px);
+  min-width: 18.75rem;
+}
+
+/* THUMB (top image/video) */
+.tm-process-thumb-wrapper {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.tm-process-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  overflow: clip;
+    border-radius: 1rem 1rem 2.5rem 0rem;
+}
+
+/* BODY */
+.tm-process-body {
+  padding: 1.5625rem 1.5rem 2.25rem 1.5rem;
+}
+
+/* STEP LABEL */
+.tm-process-step-label {
+  display: flex;
+  padding: 0.3125rem 0.625rem;
+  align-items: center;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 164, 192, 0.11);
+  color: #FFF;
+  font-family: "DM Sans";
+  font-size: 0.875rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  text-transform: uppercase;
+  width: max-content;
+  margin-bottom: 1rem;
+}
+
+/* TITLE */
+.tm-process-card-title {
+  color: #EF064E;
+
+  text-shadow: 1px 1px 0 #6E0022;
+  font-family: "DM Sans";
+  font-size: 1.25rem;
+  font-style: normal;
+  font-weight: 900;
+  line-height: normal;
+  color: var(--color-primary);
+}
+
+/* DIVIDER */
+.tm-process-divider {
+  height: 1px;
+  width: 100%;
+  background: rgba(148, 163, 184, 0.35);
+  margin-bottom: 14px;
+}
+
+/* TEXT */
+.tm-process-card-text {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #e5e7eb;
+}
+
+/* MOBILE */
+@media (max-width: 640px) {
+  .tm-process-section {
+    padding: 56px 16px 72px;
+  }
+
+  .tm-process-title {
+    font-size: 24px;
+  }
+
+  .tm-process-card {
+    flex: 0 0 260px;
+  }
+}

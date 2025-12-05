@@ -15,6 +15,7 @@ export interface MessageResponse {
     sender: string;
     content: string;
     audio_url: string;
+    channel?: string;
     created_at: string;
 }
 

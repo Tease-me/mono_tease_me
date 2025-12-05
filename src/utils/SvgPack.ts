@@ -4,6 +4,8 @@ import { lazy } from "react";
 export default {
     Ai: lazy(() => import("@/assets/mj-dashboard/svg/Ai.svg?react")),
     ArrowRight: lazy(() => import("@/assets/mj-dashboard/svg/ArrowRight.svg?react")),
+    ArrowLeft: lazy(() => import("@/assets/svg/ArrowLeft.svg?react")),
+    ArrowDown: lazy(() => import("@/assets/svg/ArrowDown.svg?react")),
     Bill: lazy(() => import("@/assets/mj-dashboard/svg/Bill.svg?react")),
     Chat: lazy(() => import("@/assets/mj-dashboard/svg/Chat.svg?react")),
     Danger: lazy(() => import("@/assets/mj-dashboard/svg/DangerTriangle.svg?react")),
@@ -13,6 +15,7 @@ export default {
     Users: lazy(() => import("@/assets/mj-dashboard/svg/Users.svg?react")),
     MoreCircle: lazy(() => import("@/assets/svg/MoreCircle.svg?react")),
     CloseSquare: lazy(() => import("@/assets/mj-dashboard/svg/CloseSquare.svg?react")),
+    CloseSquareSolid: lazy(() => import("@/assets/CloseSquare.svg?react")),
     DangerTriangleSmall: lazy(() => import("@/assets/mj-dashboard/svg/Danger.svg?react")),
     DangerCircleSmall: lazy(() => import("@/assets/mj-dashboard/svg/DangerCircle.svg?react")),
     Star: lazy(() => import("@/assets/mj-dashboard/svg/Star.svg?react")),

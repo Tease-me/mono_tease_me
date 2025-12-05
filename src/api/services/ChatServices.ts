@@ -36,7 +36,7 @@ export const ChatServices = () => ({
             throw error;
         }
     },
-    getSignedUrl: async (influencer_id: string, user_id: number): Promise<SignedUrlResponse> => {
+    getSignedUrl: async (influencer_id: string, user_id: number, signal?: AbortSignal): Promise<SignedUrlResponse> => {
         try {
             const response = await apiClient.get(
                 Endpoints.elevenlabs.signed_url,
@@ -44,7 +44,8 @@ export const ChatServices = () => ({
                     params: {
                         influencer_id,
                         user_id
-                    }
+                    },
+                    signal,
                 }
             );
             return response.data;
@@ -52,14 +53,15 @@ export const ChatServices = () => ({
             throw error;
         }
     },
-    getSignedUrlFree: async (influencer_id: string): Promise<SignedUrlResponse> => {
+    getSignedUrlFree: async (influencer_id: string, signal?: AbortSignal): Promise<SignedUrlResponse> => {
         try {
             const response = await apiClient.get(
                 Endpoints.elevenlabs.signed_url_free,
                 {
                     params: {
                         influencer_id
-                    }
+                    },
+                    signal,
                 }
             );
             return response.data;
@@ -67,19 +69,41 @@ export const ChatServices = () => ({
             throw error;
         }
     },
-    registerConversation: async (conversation_id: string, user_id: number, influencer_id: string) => {
+    getSignedLandingUrlFree: async (signal?: AbortSignal): Promise<SignedUrlResponse> => {
+        try {
+            const response = await apiClient.get(
+                Endpoints.elevenlabs.signed_landing_url_free,
+                {
+                    signal,
+                }
+            );
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+    registerConversation: async (conversation_id: string, user_id: number, influencer_id: string, signal?: AbortSignal) => {
         let attempt = 0;
         let delay = 400;
         let maxRetries = 3;
         while (true) {
             try {
-                await apiClient.post(Endpoints.elevenlabs.register(conversation_id), {
-                    user_id: user_id,
-                    influencer_id: influencer_id,
-                    sid: crypto.randomUUID()
-                });
+                await apiClient.post(
+                    Endpoints.elevenlabs.register(conversation_id),
+                    {
+                        user_id: user_id,
+                        influencer_id: influencer_id,
+                        sid: crypto.randomUUID()
+                    },
+                    {
+                        signal,
+                    }
+                );
                 return;
             } catch (err: any) {
+                if (signal?.aborted) {
+                    throw err;
+                }
                 attempt += 1;
                 if (attempt > maxRetries) {
                     const status = err?.response?.status;

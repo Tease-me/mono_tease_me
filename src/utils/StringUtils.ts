@@ -48,3 +48,15 @@ export function italicizeStarActions(text: string): string {
     // Restore escaped asterisks
     return safe.replace(new RegExp(ESC, 'g'), '*');
 }
+
+export function splitName(fullName: string) {
+    if (!fullName) {
+        return { firstName: "", lastName: "" };
+    }
+    const parts = fullName.trim().split(" ");
+    if (parts.length === 1) {
+        return { firstName: parts[0], lastName: "" };
+    }
+    const [firstName, ...rest] = parts;
+    return { firstName, lastName: rest.join(" ") };
+}

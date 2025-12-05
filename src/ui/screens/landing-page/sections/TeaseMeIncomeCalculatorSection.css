@@ -1,0 +1,70 @@
+/* Section full */
+.tm-income-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: black;
+}
+
+/* TOP BLACK → CARD WRAPPER (rounded rectangle) */
+.tm-income-card-wrapper {
+     width: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.7rem;
+    border-radius: 32px;
+    background: rgba(30, 25, 28, 0.35);
+    border: 1px solid rgb(255 255 255 / 15%);
+    backdrop-filter: blur(10px);
+    margin-top: 48px;
+    z-index: 2;
+    min-height: 882px;
+}
+
+/* BOTTOM RED GRADIENT BLOCK */
+.tm-income-footer {
+width: 100%;
+    height: 70rem;
+    position: relative;
+    bottom: 0;
+    margin-top: -45rem;
+    background: linear-gradient(180deg, #b3123d 0%, #b3123d 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 49rem;
+  
+}
+
+.footer-content-container {width: 75%; display: flex;
+    flex-direction: column;
+    align-items: center;}
+
+.tm-income-footer img {
+  height: 52px;
+}
+
+.tm-income-footer p {
+  font-size: 0.8rem;
+  margin-top: 1rem;
+  opacity: 0.6;
+}
+
+.tm-income-links {
+  margin-top: 1rem;
+  opacity: 0.6;
+  display: flex;
+  width: 100%;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.tm-income-links button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 14px;
+  opacity: 0.9;
+}
