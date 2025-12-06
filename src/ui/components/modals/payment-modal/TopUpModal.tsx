@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Modal } from "../Modal";
 import styles from "./TopUpModal.module.css";
 import TabsLayout from "../../tabs/TabsLayout";
@@ -9,6 +9,7 @@ import PrimaryButton from "../../inputs/buttons/PrimaryButton";
 import NormalButton from "../../inputs/buttons/NormalButton";
 import CircularIconButton from "../../inputs/buttons/CircularIconButton";
 import Toggle from "../../inputs/toggle/Toggle";
+import AnimatedButton from "../../inputs/buttons/AnimatedButton";
 
 
 interface TopUpModalProps {
@@ -16,15 +17,17 @@ interface TopUpModalProps {
   onClose: () => void;
 }
 
-
 export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
-  type Step = "amount" | "card" | "low";
+  type Step = "amount" | "card" | "low" | "success" | "error";
   const tabs: Step[] = ["amount", "card", "low"];
   const stepLabels: Record<Step, string> = {
     amount: "Amount Select",
     card: "Card Details",
-    low: "Low Credit"
+    low: "Low Credit",
+    success: "Success",
+    error: "Error"
   }
+
   const [topUpState, setTopUpState] = useState<Step>("amount");
   const tabItems = tabs.map((step, index) => ({
     id: index,
@@ -40,9 +43,6 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
   const amountOptions = [5, 10, 30, 50, 100, 500];
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState<number>(5);
-
-
-
 
   // Amount Form
   const renderAmountForm = () => {
@@ -88,7 +88,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
           onChange={
             (e) => {
               setCustomAmount(Number(e.currentTarget.value))
-              setSelectedAmount(() => null)
+              setSelectedAmount(null)
             }
           }
         />
@@ -98,7 +98,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
           icon="+"
           onClick={() => {
             setCustomAmount((prev) => (prev ?? 0) + 1)
-            setSelectedAmount(() => null)
+            setSelectedAmount(null)
           }
 
           }
@@ -187,6 +187,31 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
     </div>
   }
 
+  const renderSuccess = () => {
+    return (<div className={styles.resultArea}>
+      <div className={styles.resultTitle}>
+        <h5 >Payment Successful!</h5>
+      </div>
+      <div className={styles.resultTrasactionTxt}>
+        <h5>Transaction ID</h5>
+      </div>
+      <div className={styles.resultTransactionId}>
+        <h5>#1234567890</h5>
+      </div>
+      <div className={styles.backHomeBtnArea}>
+
+        <AnimatedButton className={styles.backHomeBtn} text="Back Home" onClick={cancelTopUp} />
+      </div>
+    </div>)
+
+  }
+
+  const renderError = () => {
+    return (<div>
+      <h2 className={styles.errorTitle}>Top-up Failed!</h2>
+      <h3 className={styles.transactionMessage}>Please try again.</h3>
+    </div>)
+  }
 
   const renderStep = () => {
     switch (topUpState) {
@@ -197,39 +222,96 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
       case "low":
         return renderLowForm();
       default:
+      case "success":
+        return renderSuccess();
+      case "error":
+        return renderError();
         return null;
     }
   }
 
 
+  const cancelTopUp = () => {
+    setTopUpState("amount");
+    setSelectedAmount(5);
+    setCustomAmount(5);
+    onClose();
+  }
+
+
+
+  const isFormPage = topUpState === "amount" || topUpState === "card" || topUpState === "low";
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="md" ariaLabel="Top up balance" className={styles.modal}>
-      <TabsLayout
-        tabs={tabItems}
-        activeTab={activeTab}
-        setActiveTab={(t) => setTopUpState(tabs[t.id])}
-      />
+      {
+        isFormPage && (<TabsLayout
+          tabs={tabItems}
+          activeTab={activeTab}
+          setActiveTab={() => { }} />
+        )
+      }
       <div className={styles.content}>
-        <div>
-          <h2 className={styles.heading}>Select top up your credit</h2>
+        {
+          isFormPage && (
+            <div>
+              <h2 className={styles.heading}>Select top up your credit</h2>
+            </div>
+          )
+        }
+        <div className={isFormPage ? styles.body : styles.resultContainer}>
+          {renderStep()}
         </div>
-        <div>{renderStep()}</div>
-        <div className={styles.containerFooter}>
-          <div className={styles.cancelRow}>
-            <NormalButton
-              type="nobg"
-              text="Cancel"
-              className={styles.cancelButton}
-              onClick={onClose}
-            />
-          </div>
-          <div className={styles.finalButtonArea}>
-            <NormalButton text="Back"></NormalButton>
-            <PrimaryButton text="Continue" onClick={() => { }} />
-          </div>
-        </div>
+
+
+        {isFormPage &&
+          (<div className={styles.containerFooter}>
+            <div className={styles.cancelRow}>
+              <NormalButton
+                type="nobg"
+                text="Cancel"
+                className={styles.cancelButton}
+                onClick={cancelTopUp}
+              />
+            </div>
+            <div className={styles.finalButtonArea}>
+              <NormalButton text="Back"
+                onClick={() => {
+                  switch (topUpState) {
+                    case "card":
+                      setTopUpState("amount");
+                      break;
+                    case "low":
+                      setTopUpState("card");
+                      break;
+                    default:
+                      break;
+                  }
+
+                }}
+
+              ></NormalButton>
+
+              <PrimaryButton text="Continue"
+                onClick={() => {
+                  switch (topUpState) {
+                    case "amount":
+                      setTopUpState("card");
+                      break;
+                    case "card":
+                      setTopUpState("low");
+                      break;
+                    case "low":
+                      setTopUpState("success");
+                      break;
+                  }
+                }}
+              />
+            </div>
+          </div>)}
+
       </div>
-    </Modal>
+    </Modal >
   );
 }
 

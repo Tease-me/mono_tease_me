@@ -86,16 +86,15 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
                 <div className={styles["delete-account-section"]}>
                     <a href='#'>Delete Account</a>
                 </div>
-                <div className={styles["top-up-button"]}>
+                <ButtonRow className={styles["button-row"]}>
+
                     <PrimaryButton text='Link Card' onClick={() => {
                         setShowLinkCardModal(true);
                     }} />
-                </div>
-                <div className={styles["top-up-button"]}>
-                    <PrimaryButton text='Top Up' onClick={() => {
+                    <NormalButton text='Top Up' onClick={() => {
                         setShowTopUpModal(true);
                     }} />
-                </div>
+                </ButtonRow>
                 <ButtonRow className={styles["button-row"]}>
                     <NormalButton text='Discard' color='black' />
                     <PrimaryButton text='Update' />
