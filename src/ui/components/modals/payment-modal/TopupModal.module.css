@@ -65,9 +65,14 @@ h2 {
   align-items: center;
 }
 
-.customAmountInput {
-  max-width: 150px;
+.customAmountInput *{
+  max-width: 200px;
+  text-align: center;
+  color: gray;
+  font-size: 16px;
 }
+
+.customActive { border-color: var(--color-primary); }
 
 .customAmountInput input[type=number]::-webkit-outer-spin-button,
 .customAmountInput input[type=number]::-webkit-inner-spin-button {

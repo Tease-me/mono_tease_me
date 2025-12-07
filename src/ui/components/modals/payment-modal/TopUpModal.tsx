@@ -41,8 +41,12 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
 
   //Amount selection
   const amountOptions = [5, 10, 30, 50, 100, 500];
-  const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(5);
   const [customAmount, setCustomAmount] = useState<number>(5);
+
+  const displayValue = customAmount > 0 ? `$${customAmount.toFixed(0)}` : "";
+  const minCustomAmout = 5;
+
 
   // Amount Form
   const renderAmountForm = () => {
@@ -73,31 +77,38 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
           className={styles.paymentCircularButton}
           icon="-"
           onClick={() => {
-            setCustomAmount((prev) => (prev ?? 0) - 1)
+            setCustomAmount((prev) => Math.max(minCustomAmout, prev-1));
             setSelectedAmount(() => null)
           }
           }
-          disabled={customAmount <= 0}
+          disabled={customAmount <= 5}
         />
+
         <TextInput
-          size="small"
-          type="number"
-          placeholder="$5"
-          className={styles.customAmountInput}
-          value={customAmount !== null ? customAmount : ""}
-          onChange={
-            (e) => {
-              setCustomAmount(Number(e.currentTarget.value))
-              setSelectedAmount(null)
-            }
-          }
+          type="text"
+          value={displayValue}
+          onChange={(e) => {
+            const raw = e.currentTarget.value.replace(/[^0-9.]/g, "");
+            const num = raw ? parseFloat(raw) : 0;
+            const clamped = isNaN(num) ? 0 : num;
+            setCustomAmount(clamped);
+            setSelectedAmount(null);
+          }}
+
+          onBlur={() => {
+  const coerced = customAmount !== null && customAmount >= minCustomAmout ? customAmount : minCustomAmout;
+  setCustomAmount(coerced);
+}}
+
+          className={clsx(styles.customAmountInput)}
         />
+
         <CircularIconButton
           size="small"
           className={styles.paymentCircularButton}
           icon="+"
           onClick={() => {
-            setCustomAmount((prev) => (prev ?? 0) + 1)
+            setCustomAmount((prev) => Math.max(minCustomAmout, prev + 1))
             setSelectedAmount(null)
           }
 
@@ -243,7 +254,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
   const isFormPage = topUpState === "amount" || topUpState === "card" || topUpState === "low";
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="md" ariaLabel="Top up balance" className={styles.modal}>
+    <Modal isOpen={isOpen} onClose={cancelTopUp} size="md" ariaLabel="Top up balance" className={styles.modal}>
       {
         isFormPage && (<TabsLayout
           tabs={tabItems}
