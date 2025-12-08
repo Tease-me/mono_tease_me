@@ -27,11 +27,5 @@ export const videos: VideoItem[] = [
   
 
   },
-  {
-    id: 3,
-    title: "Let your AI persona work while you sleep",
-    src: carynVideo,
-    poster: carynPoster,
-    
-  },
+  
 ];
