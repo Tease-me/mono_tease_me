@@ -208,8 +208,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
         <h5>#1234567890</h5>
       </div>
       <div className={styles.backHomeBtnArea}>
-
-        <AnimatedButton className={styles.backHomeBtn} text="Back Home" onClick={cancelTopUp} />
+        <AnimatedButton className={styles.backHomeBtn} type="square" text="Back Home" onClick={cancelTopUp} />
       </div>
     </div>)
 
