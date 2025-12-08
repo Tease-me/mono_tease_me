@@ -1,45 +1,84 @@
 .dialog-screen {
   width: 100%;
   min-height: 100vh;
-  padding: 32px 16px;
+  background: radial-gradient(#ff7878, rgb(247, 8, 72));
+  background-position: bottom;
   display: flex;
   justify-content: center;
-  align-items: center;
-  background: linear-gradient(180deg, #111111 0%, #b3123d 55%, #b3123d 100%);
+  align-items: flex-start;
+  padding: 32px 16px;
 }
+
+.dialog-screen:before {
+  content: '';
+  position: absolute;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  background-image: url(/src/assets/image/noise-bg.jpg);
+  background-repeat: repeat;
+  background-size: 10rem;
+  mix-blend-mode: multiply;
+  z-index: 1;
+  top: 0;
+}
+
 
 .dialog-frame {
   width: 100%;
-  max-width: 380px;
-  border-radius: 32px;
-  padding: 16px;
-  background: #b3123d;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9);
-}
-
-.thanks-card {
-  height: 620px;
-  border-radius: 26px;
-  background: radial-gradient(
-    circle at top,
-    rgba(42, 34, 38, 0.95) 0%,
-    rgba(20, 18, 20, 0.98) 60%,
-    rgba(20, 16, 18, 1) 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 40px 32px 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  padding: 0.7rem;
+  border-radius: 32px;
+  background: rgba(30, 25, 28, 0.35);
+  border: 1px solid rgb(255 255 255 / 15%);
+  backdrop-filter: blur(10px);
+  z-index: 2;
 }
+
+.thanks-card {
+  height: 83dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+
+  padding: 3rem 1.7rem;
+  border-radius: 25px;
+  background: rgba(3, 3, 3, 0.6);
+  border: 1px solid rgba(79, 71, 71, 0.8);
+
+  backdrop-filter: blur(20px);
+}
+
+.thanks-card:before {
+  content: '';
+  background-image: url(/src/assets/image/noise-bg.jpg);
+  background-repeat: repeat;
+  background-size: 20rem;
+  background-blend-mode: luminosity;
+  filter: invert(1);
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000000;
+  border-radius: 25px;
+  opacity: 0.5;
+  mask-image: linear-gradient(0deg, black 0%, transparent 90%);
+}
+
+
 
 /* icon bubble */
 .thanks-icon {
-  width: 96px;
-  height: 96px;
+  width: 100%;
+
   border-radius: 24px;
-  border: 3px solid #ff3b73;
+
   display: flex;
   align-items: center;
   justify-content: center;
@@ -49,17 +88,18 @@
   position: relative;
 }
 
-.thanks-icon-lips {
-  font-size: 42px;
+.tm-logo-outline {
+  height: 96px
 }
 
 .thanks-title {
   font-family: "DM Serif Display", "Playfair Display", serif;
-  font-size: 34px;
+  font-size: 2.5rem;
   font-weight: 600;
   color: #ffffff;
-  margin: 0 0 24px;
+  margin: 0 0 0.5rem;
   text-align: center;
+  letter-spacing: -1px;
 }
 
 .thanks-pill {

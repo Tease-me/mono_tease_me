@@ -1,8 +1,8 @@
 /* SECTION WRAPPER */
 .tm-video-section {
-  margin-top:6rem;
+  margin-top:3rem;
   width: 100%;
-  padding: 5rem 0rem 8rem 1.75rem;
+  padding: 5rem 0rem 6rem 1.75rem;
  
 
   display: flex;
@@ -25,11 +25,11 @@
 .tm-video-title {
   color: #FFF;
   font-family: "Abril Fatface";
-  font-size: 1.625rem;
+  font-size: 2.2rem;
   font-style: normal;
   font-weight: 400;
-  line-height: 2.125rem;
-  max-width: 18ch;
+  line-height: 120%;
+  max-width: 22ch;
 }
 
 /* Button like “Watch Videos” tag */
@@ -126,7 +126,7 @@
   align-items: center;
   left: -1rem;
   position: relative;
-  max-width: 30ch;
+  max-width: 45ch;
   margin: 2rem auto;
 }
 
@@ -134,10 +134,10 @@
   color: #FFF;
   text-align: center;
   font-family: "DM Sans";
-  font-size: 1.25rem;
+  font-size: 2.5rem;
   font-style: normal;
-  font-weight: 400;
-  line-height: normal;
+  font-weight: 600;
+  line-height: 120%;
 }
 
 .tm-video-quote-mark {

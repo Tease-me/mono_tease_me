@@ -198,7 +198,7 @@ select.ic-period::-webkit-text-size-adjust {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 0.5rem;
+  margin-top: 1.5rem;
   margin-bottom: 1.5rem;
 }
 
@@ -291,22 +291,22 @@ position: relative;
 
 .ic-slider-thumb {
   display: flex;
-  width: 2.15rem;
-  height: 2.125rem;
+width: 3rem;
+height: 1.8rem;
   border-radius: 3rem;
   border: 1px solid rgba(199, 0, 61, 0.40);
-  background: linear-gradient(136deg, #EF064E 11.82%, #88002A 46.38%, #710023 64.17%, #9D0030 74.43%, #710023 82.98%);
+  background: linear-gradient(136deg, #7b0128 11.82%, #88002A 46.38%, #710023 64.17%, #9D0030 74.43%, #710023 82.98%);
   position: absolute;
-  top: -125%;
-  transform: translateX(-50%);
+  top: -100%;
+  transform: translateX(-30%);
   box-shadow: -4px 0px 8px hsl(331deg 96% 9% / 60%);
   transition: width 300ms ease, height 300ms ease;
 }
 
 .ic-slider-thumb-hold {
-  transform:  translateX(-56%) translateY(-5%);
-   width: 4.125rem;
-  height: 2.125rem;
+  transform:  translateX(-30%) translateY(-15%);
+  width: 5.13rem;
+height: 3.13rem;
   opacity: 0.7;
     background: radial-gradient(136deg, #EF064E 11.82%, #88002A 46.38%, #710023 64.17%, #9D0030 74.43%, #710023 82.98%);
   background-color: #ef0650;

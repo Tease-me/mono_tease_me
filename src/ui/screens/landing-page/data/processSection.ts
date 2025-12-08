@@ -17,7 +17,7 @@ export const PROCESS_STEPS: ProcessStep[] = [
     stepLabel: "STEP 1",
     title: "Get to know you",
     description:
-      "Interview & questionnaire to understand your personality, likes, dislikes, and boundaries — the foundation of your Ai persona.",
+      "Questionnaire to understand your personality, likes, dislikes, and boundaries — the foundation of your Ai persona.",
     thumb: step1Video,
   },
   {

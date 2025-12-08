@@ -109,24 +109,23 @@
 
 /* =============== PILL =============== */
 .tm-tagline-pill {
-  font-family: "Abril Fatface", serif;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: -0.2rem;
-  padding: 6px 18px;
-  border-radius: 0rem 1.1rem 0rem 1.1rem;
-  border: 1.6px solid hsla(341, 84%, 44%, 0.618);
-  background: hsla(338, 83%, 23%, 0.47);
-  background-blend-mode: darken;
-  height: 1.5em;
-  min-width: 15rem;
-  overflow: hidden;
-  position: relative;
-  bottom: -6px;
-  left: -12px;
-  box-shadow: 4px -5px 1px -5.5px rgba(255, 255, 255, 0.38) inset, 10px -6px 11px -5.5px rgba(255, 40, 93, 0.33) inset, rgba(255, 247, 247, 0.73) -3px 3px 1px -3.4px inset;
-}
+font-family: "Abril Fatface", serif;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+margin-right: -0.2rem;
+padding: 6px 18px;
+border-radius: 0rem 1.1rem 0rem 1.1rem;
+border: 1.6px solid hsla(341, 84%, 44%, 0.618);
+background: hsla(338, 83%, 23%, 0.47);
+background-blend-mode: darken;
+height: 1.3em;
+min-width: 15rem;
+overflow: hidden;
+position: relative;
+bottom: -2px;
+left: -12px;
+box-shadow: 4px -5px 1px -5.5px rgba(255, 255, 255, 0.38) inset, 10px -6px 11px -5.5px rgba(255, 40, 93, 0.33) inset, rgba(255, 247, 247, 0.73) -3px 3px 1px -3.4px inset;}
 
 .tm-tagline-pill02 {
   font-family: "Abril Fatface", serif;
@@ -135,7 +134,7 @@
   justify-content: center;
   margin-right: 0.2rem;
   padding: 4px 18px;
-  border-radius: 0.5rem;
+border-radius: 0rem 1.1rem 0rem 1.1rem;
   border: 1.6px solid hsla(341, 84%, 44%, 0.618);
   background: hsla(338, 95%, 16%, 0.524);
   background-blend-mode: darken;
@@ -143,8 +142,12 @@
   min-width: 10.5rem;
   overflow: hidden;
   position: relative;
-  bottom: -6px;
+  bottom: -9px;
+  left: 6px;
+  box-shadow: 4px -5px 1px -5.5px rgba(255, 255, 255, 0.38) inset, 10px -6px 11px -5.5px rgba(255, 40, 93, 0.33) inset, rgba(255, 247, 247, 0.73) -3px 3px 1px -3.4px inset;
 }
+
+
 
 .tm-pill-layer {
   position: relative;

@@ -160,17 +160,3 @@
   color: #e5e7eb;
 }
 
-/* MOBILE */
-@media (max-width: 640px) {
-  .tm-process-section {
-    padding: 56px 16px 72px;
-  }
-
-  .tm-process-title {
-    font-size: 24px;
-  }
-
-  .tm-process-card {
-    flex: 0 0 260px;
-  }
-}
