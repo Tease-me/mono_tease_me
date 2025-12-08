@@ -17,6 +17,7 @@ interface TopUpModalProps {
   onClose: () => void;
 }
 
+
 export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
   type Step = "amount" | "card" | "low" | "success" | "error";
   const tabs: Step[] = ["amount", "card", "low"];
@@ -77,7 +78,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
           className={styles.paymentCircularButton}
           icon="-"
           onClick={() => {
-            setCustomAmount((prev) => Math.max(minCustomAmout, prev-1));
+            setCustomAmount((prev) => Math.max(minCustomAmout, prev - 1));
             setSelectedAmount(() => null)
           }
           }
@@ -96,13 +97,11 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
           }}
 
           onBlur={() => {
-  const coerced = customAmount !== null && customAmount >= minCustomAmout ? customAmount : minCustomAmout;
-  setCustomAmount(coerced);
-}}
-
+            const coerced = customAmount !== null && customAmount >= minCustomAmout ? customAmount : minCustomAmout;
+            setCustomAmount(coerced);
+          }}
           className={clsx(styles.customAmountInput)}
         />
-
         <CircularIconButton
           size="small"
           className={styles.paymentCircularButton}
@@ -111,7 +110,6 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
             setCustomAmount((prev) => Math.max(minCustomAmout, prev + 1))
             setSelectedAmount(null)
           }
-
           }
         />
       </div>
@@ -171,7 +169,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
 
   // Low Form
   const renderLowForm = () => {
-    return <div>
+    return <div className={styles.lowCreditContainer}>
       <h3 className={styles.mdText}>
         Set Low Credit
       </h3>
@@ -256,10 +254,13 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={cancelTopUp} size="md" ariaLabel="Top up balance" className={styles.modal}>
       {
-        isFormPage && (<TabsLayout
-          tabs={tabItems}
-          activeTab={activeTab}
-          setActiveTab={() => { }} />
+        isFormPage && (
+          <div className={styles.topUpTabDiv}>
+            <TabsLayout
+              tabs={tabItems}
+              activeTab={activeTab}
+              setActiveTab={() => { }} />
+          </div>
         )
       }
       <div className={styles.content}>
@@ -287,6 +288,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
             </div>
             <div className={styles.finalButtonArea}>
               <NormalButton text="Back"
+                disabled={topUpState === "amount"}
                 onClick={() => {
                   switch (topUpState) {
                     case "card":
@@ -303,7 +305,8 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
 
               ></NormalButton>
 
-              <PrimaryButton text="Continue"
+              <PrimaryButton
+                text={topUpState === "low" ? "Top Up Now" : "Continue"}
                 onClick={() => {
                   switch (topUpState) {
                     case "amount":
