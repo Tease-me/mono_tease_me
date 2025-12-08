@@ -18,9 +18,11 @@
     background: rgba(30, 25, 28, 0.35);
     border: 1px solid rgb(255 255 255 / 15%);
     backdrop-filter: blur(10px);
-    margin-top: 48px;
-    z-index: 2;
-    min-height: 882px;
+ margin-top: 200px;
+ position: relative;
+z-index: 2;
+top: -180px;
+    
 }
 
 /* BOTTOM RED GRADIENT BLOCK */

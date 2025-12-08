@@ -19,6 +19,8 @@ import useCallLanding from "@/hooks/useCallLanding";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { storage } from "@/utils/storage";
 import { useNavigate } from "react-router-dom";
+import LottieAnimation from "@/ui/components/LottieAnimation";
+import ScrollDownMouse from '@/assets/lottie/scrollDownMouse.json'
 
 
 const TeaseMeLanding: React.FC = () => {
@@ -112,7 +114,8 @@ const TeaseMeLanding: React.FC = () => {
               <PrimaryButton onClick={handleTryDemoCall} text="Try Demo Now" rightIcon={<SvgPack.Call />} />
             </div>
             <div className="tm-scroll-hint">
-              <span className="tm-scroll-icon">ⓘ</span>
+              <span className="tm-scroll-icon"> <LottieAnimation autoplay loop animationData={ScrollDownMouse} />
+</span>
               <p>scroll down to find out more</p>
             </div></div>
         </main>

@@ -1,9 +1,10 @@
 /* SECTION WRAPPER */
 .tm-video-section {
+  margin-top:6rem;
   width: 100%;
   padding: 5rem 0rem 8rem 1.75rem;
-  background: radial-gradient(circle at top, #12000a, #050106 60%, #000 100%);
-  color: #f9fafb;
+ 
+
   display: flex;
   justify-content: center;
 }

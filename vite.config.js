@@ -26,18 +26,18 @@ export default defineConfig({
     hmr: {
       overlay: true,
     },
-    https: {
-      key: fs.readFileSync('./.cert/key.pem'),
-      cert: fs.readFileSync('./.cert/cert.pem'),
-    },
+    // https: {
+    //   key: fs.readFileSync('./.cert/key.pem'),
+    //   cert: fs.readFileSync('./.cert/cert.pem'),
+    // },
   },
   preview: {
     port: 4174,
     host: true,
-    https: {
-      key: fs.readFileSync('./.cert/key.pem'),
-      cert: fs.readFileSync('./.cert/cert.pem'),
-    },
+    // https: {
+    //   key: fs.readFileSync('./.cert/key.pem'),
+    //   cert: fs.readFileSync('./.cert/cert.pem'),
+    // },
   },
   resolve: {
     alias: {
