@@ -1,9 +1,9 @@
 /* SECTION WRAPPER */
 .tm-video-section {
-  margin-top:3rem;
+  margin-top: 3rem;
   width: 100%;
   padding: 5rem 0rem 6rem 1.75rem;
- 
+
 
   display: flex;
   justify-content: center;
@@ -156,4 +156,26 @@
 }
 
 /* MOBILE */
-@media (max-width: 640px) {}
+@media (min-width: 431px) {
+
+
+  .tm-video-section {
+    padding: 5rem 0rem 6rem 0rem
+  }
+
+  .tm-video-scroll {
+    justify-content: center;
+  }
+
+  .tm-video-card {
+    flex: 0 0 25rem;
+  }
+
+  .tm-video-header {
+    align-items: center;
+  }
+
+  .tm-video-title {
+    text-align: center;
+  }
+}

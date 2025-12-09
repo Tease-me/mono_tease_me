@@ -61,10 +61,11 @@ const TeaseMeLanding: React.FC = () => {
 
   return (
     <div className="tm-page">
+      <header className="tm-header">
+        <img src={logoTeaseMe} alt="Tease Me" className="tm-logo" />
+      </header>
       <div className="tm-device">
-        <header className="tm-header">
-          <img src={logoTeaseMe} alt="Tease Me" className="tm-logo" />
-        </header>
+
 
         <main className="tm-content">
           <section className="tm-hero">
@@ -109,17 +110,17 @@ const TeaseMeLanding: React.FC = () => {
             </div>
           </section>
 
-          <div className="tm-bottom-cta">
-            <div className="tm-cta-button-container">
-              <PrimaryButton onClick={handleTryDemoCall} text="Try Demo Now" rightIcon={<SvgPack.Call />} />
-            </div>
-            <div className="tm-scroll-hint">
-              <span className="tm-scroll-icon"> <LottieAnimation autoplay loop animationData={ScrollDownMouse} />
-</span>
-              <p>scroll down to find out more</p>
-            </div></div>
         </main>
       </div>
+      <div className="tm-bottom-cta">
+        <div className="tm-cta-button-container">
+          <PrimaryButton onClick={handleTryDemoCall} text="Try Demo Now" rightIcon={<SvgPack.Call />} />
+        </div>
+        <div className="tm-scroll-hint">
+          <span className="tm-scroll-icon"> <LottieAnimation autoplay loop animationData={ScrollDownMouse} />
+          </span>
+          <p>scroll down to find out more</p>
+        </div></div>
 
       <WelcomeCallModal initalSecondsLeft={timeRemaining || 120} influencer={demoInfluencer} isOpen={openModal} onClose={() => {
 
