@@ -18,6 +18,8 @@ import useCallLanding from "@/hooks/useCallLanding";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { storage } from "@/utils/storage";
 import { useNavigate } from "react-router-dom";
+import LottieAnimation from "@/ui/components/LottieAnimation";
+import ScrollDownMouse from '@/assets/lottie/scrollDownMouse.json'
 import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
 
 
@@ -59,10 +61,11 @@ const TeaseMeLanding: React.FC = () => {
 
   return (
     <div className="tm-page">
+      <header className="tm-header">
+        <TeaseMeLogo variant="full-dark" />
+      </header>
       <div className="tm-device">
-        <header className="tm-header">
-          <TeaseMeLogo variant="full-dark" />
-        </header>
+
         <main className="tm-content">
           <section className="tm-hero">
             <div className="tm-hero-text">
@@ -106,18 +109,19 @@ const TeaseMeLanding: React.FC = () => {
             </div>
           </section>
 
-          <div className="tm-bottom-cta">
-            <div className="tm-cta-button-container">
-              <PrimaryButton onClick={handleTryDemoCall} text="Try Demo Now" rightIcon={<SvgPack.Call />} />
-            </div>
-            <div className="tm-scroll-hint">
-              <span className="tm-scroll-icon">ⓘ</span>
-              <p>scroll down to find out more</p>
-            </div></div>
         </main>
       </div>
+      <div className="tm-bottom-cta">
+        <div className="tm-cta-button-container">
+          <PrimaryButton onClick={handleTryDemoCall} text="Try Demo Now" rightIcon={<SvgPack.Call />} />
+        </div>
+        <div className="tm-scroll-hint">
+          <span className="tm-scroll-icon"> <LottieAnimation autoplay loop animationData={ScrollDownMouse} />
+          </span>
+          <p>scroll down to find out more</p>
+        </div></div>
 
-      <WelcomeCallModal initalSecondsLeft={timeRemaining || 120} influencer={demoInfluencer} isOpen={openModal} onClose={() => {
+      <WelcomeCallModal initalSecondsLeft={timeRemaining || 300} influencer={demoInfluencer} isOpen={openModal} onClose={() => {
 
       }} status={status} stopConversation={function (): void {
         stopConversation();

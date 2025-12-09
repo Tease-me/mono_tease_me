@@ -19,17 +19,16 @@ const TeaseMeIncomeCalculator: React.FC = () => {
   const otherPhrases = ["income", "freedom", "fans", "travel"];
 
   const followerCount = typeof followers === "number" ? followers : 0;
-  const percentage = converted / 100;
+  const convertingPeople = Math.floor((converted / 100) * followerCount);
 
   const MINUTES_PER_DAY = 15;
   const RATE_PER_MINUTE = 0.3;
 
-  const weeklyIncome =
-    followerCount * percentage * MINUTES_PER_DAY * 7 * RATE_PER_MINUTE;
+  const weeklyIncome = convertingPeople * MINUTES_PER_DAY * 7 * RATE_PER_MINUTE;
   const monthlyIncome =
-    followerCount * percentage * MINUTES_PER_DAY * 30 * RATE_PER_MINUTE;
+    convertingPeople * MINUTES_PER_DAY * 30 * RATE_PER_MINUTE;
   const yearlyIncome =
-    followerCount * percentage * MINUTES_PER_DAY * 365 * RATE_PER_MINUTE;
+    convertingPeople * MINUTES_PER_DAY * 365 * RATE_PER_MINUTE;
 
   const rawIncome =
     period === "WEEKLY"
@@ -48,14 +47,14 @@ const TeaseMeIncomeCalculator: React.FC = () => {
       : "$0";
 
   return (
-    <div className="ic-wrapper">
+    <div className="ic-wrapper" id="ic-anchor">
       <div className="ic-card">
         <h2 className="ic-title">
-          Turn influence <br />
+          Turn influence
           into <RotatingPill02 phrases={otherPhrases} />
         </h2>
 
-        <div className="ic-question" id="ic-anchor">
+        <div className="ic-question" >
           How much could you earn?
         </div>
 
@@ -102,7 +101,9 @@ const TeaseMeIncomeCalculator: React.FC = () => {
 
         <label className="ic-label ic-converted-audience-row">
           Converted Audience{" "}
-          <div className="tm-converted-value">{converted} %</div>
+          <div className="tm-converted-value">
+            {followerCount > 0 ? convertingPeople.toLocaleString() : 0} People
+          </div>
         </label>
         <div className="ic-slider">
           <div className="ic-slider-track" />
@@ -110,7 +111,9 @@ const TeaseMeIncomeCalculator: React.FC = () => {
           <div
             className={`ic-slider-thumb ${isHolding ? "ic-slider-thumb-hold" : ""
               }`}
-            style={{ left: `${converted}%` }}
+            style={{
+              left: `${converted >= 100 ? converted - 10 : converted}%`
+            }}
           />
           <input
             type="range"

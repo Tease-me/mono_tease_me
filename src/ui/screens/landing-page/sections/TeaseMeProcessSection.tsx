@@ -39,6 +39,7 @@ const TeaseMeProcessSection: React.FC = () => {
               </div>
             </article>
           ))}
+          <div className="spacer"></div>
         </div>
       </div>
     </section>
