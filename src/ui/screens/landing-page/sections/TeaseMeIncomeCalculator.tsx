@@ -100,7 +100,9 @@ const TeaseMeIncomeCalculator: React.FC = () => {
 
         <label className="ic-label ic-converted-audience-row">
           Converted Audience{" "}
-          <div className="tm-converted-value">{converted} People</div>
+          <div className="tm-converted-value">
+            {followerCount > 0 ? convertingPeople.toLocaleString() : 0} People
+          </div>
         </label>
         <div className="ic-slider">
           <div className="ic-slider-track" />
