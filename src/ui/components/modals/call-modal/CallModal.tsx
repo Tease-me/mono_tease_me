@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from "./CallModal.module.css"
 import { Modal } from '../Modal';
 import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
@@ -41,8 +41,16 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose, influencer, stat
         }
     }, [status])
 
-    const handlePickUpCall = () => {
-        // Answer call logic here
+    const [callMuted, setCallMuted] = useState<boolean>(false);
+    const muteUnmuteCall = () => {
+
+
+        setCallMuted(prev => {
+            return !prev;
+        });
+
+
+
     }
 
     const handleHangUpCall = () => {
@@ -72,7 +80,7 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose, influencer, stat
                             <div className={styles["status"]}>Ringing...</div>
                     }
                     <div className={styles["call-buttons"]}>
-                        <IconButton leftIcon={<SvgPack.Voice />} onClick={handlePickUpCall} color='black' />
+                        <IconButton leftIcon={callMuted? <SvgPack.Voice /> : <SvgPack.Muted />} onClick={muteUnmuteCall} color='black' />
                         <IconButton leftIcon={<SvgPack.Call />} onClick={handleHangUpCall} color='red' />
                     </div>
                 </>}
