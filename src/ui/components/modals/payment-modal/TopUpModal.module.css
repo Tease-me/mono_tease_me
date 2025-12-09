@@ -1,0 +1,265 @@
+.modal {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  background-color: rgba(0, 0, 0, 0.9);
+  background-image: url("../../../../assets/background/light_toast.png");
+  background-size: contain;
+  background-repeat: repeat;
+  background-position: 0 0;
+  background-blend-mode: overlay;
+  backdrop-filter: blur(16px);
+  padding-inline: 48px;
+  min-height: 705px;
+  width: 553px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  gap: 28px;
+  flex: 1;
+}
+
+h2 {
+  color: var(--Others-White, #FFF);
+  text-align: center;
+  font-family: Urbanist;
+  font-size: 32px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 120%;
+}
+
+.heading {
+  margin-block: 16px;
+}
+
+.mdText {
+  text-align: center;
+  margin-block: 16px;
+  font-weight: 400;
+}
+
+.topUpTabDiv {
+  pointer-events: none;
+  cursor: default;
+}
+
+.quickCreditButtonArea {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.quickCreditButton {
+  flex: 0 1 calc(50% - 12px);
+  width: 222.5px;
+  height: 38px;
+}
+
+.customAmountArea {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  padding-top: 12px;
+  align-items: center;
+}
+
+.customAmountInput * {
+  text-align: center;
+
+  color: gray;
+  font-size: 16px;
+
+}
+
+.customAmountInput {
+  flex: 0 0 auto;
+  width: 140px;
+
+}
+
+.customActive {
+  border-color: var(--color-primary);
+}
+
+.customAmountInput input[type=number]::-webkit-outer-spin-button,
+.customAmountInput input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.lowCreditButtonArea {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+  justify-content: center;
+}
+
+.lowCreditButton {
+  flex: 0 1 calc(50% - 12px);
+  width: 222.5px;
+  height: 38px;
+}
+
+.lowCreditOptions {
+  margin-block: 16px;
+}
+
+.lowCreditContainer {
+
+  min-width: 100%;
+}
+
+.paymentCircularButton {
+  width: 36px;
+  height: 36px;
+  font-size: 28px;
+  background: linear-gradient(var(--gradient-angle), var(--gradient-start-red-start) 100%, var(--gradient-end-red-end) 0%) !important;
+}
+
+
+
+.finalButtonArea {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  gap: 16px;
+}
+
+.form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+}
+
+.inlineFields {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.fullWidthInput {
+  width: 100%;
+}
+
+.inlineFieldInput {
+  flex: 1 1 180px;
+}
+
+.cancelButton {
+  color: var(--color-text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancelRow {
+  display: flex;
+  justify-content: center;
+
+}
+
+.plainDivider {
+  border-bottom: 1px solid #424242;
+  margin-left: 10px;
+  margin-right: 10px;
+  ;
+  margin-block: 32px;
+  align-items: center;
+}
+
+.lowCreditContainer {
+  width: 100%;
+}
+
+.lowCreditOptions h3 {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 28px;
+  letter-spacing: 0.2px;
+}
+
+.lowCreditOptionsLine {
+  margin-block: 8px;
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.containerFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-top: auto;
+}
+
+.resultContainer {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.resultArea {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  width: 100%;
+  align-items: stretch;
+}
+
+.resultTitle {
+  color: var(--color-success);
+  text-align: center;
+  font-family: Urbanist;
+  font-size: 32px;
+  font-style: normal;
+  font-weight: 300;
+  line-height: 120%;
+}
+
+.resultTrasactionTxt {
+  margin-top: 16px;
+  color: var(--Others-White, #FFF);
+  text-align: center;
+  font-family: Urbanist;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 140%;
+  letter-spacing: 0.2px;
+}
+
+.resultTransactionId {
+  color: var(--color-text-secondary);
+  text-align: center;
+  font-family: Urbanist;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 140%;
+  letter-spacing: 0.2px;
+}
+
+.backHomeBtnArea {
+  display: flex;
+  margin-top: 30px;
+  width: 100%;
+  align-items: stretch;
+}
+
+.backHomeBtn {
+  align-self: stretch;
+  display: inline-flex;
+  width: 100%;
+}
