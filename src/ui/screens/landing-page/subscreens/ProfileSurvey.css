@@ -171,9 +171,18 @@
   color: #ffffff;
 }
 .ps-error {
-  color: red;
-  font-size: 12px;
-  margin-top: 4px;
+color: #ff9797;
+    font-size: 13px;
+    margin-top: 4px;
+    background-color: #ff000054;
+    min-height: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 1rem;
+    margin-bottom: 1rem;
+
+    box-shadow: -3px 4px 0px -3px #ff97973b inset;
 }
 
 /* next button */
