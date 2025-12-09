@@ -45,6 +45,7 @@ export const Endpoints = {
       `/elevenlabs/conversations/${encodeURIComponent(
         conversationId
       )}/register`,
+    conversation_token: "/elevenlabs/conversation-token",
   },
   influencers: "/influencer",
   influencer: (id: string) => `/influencer/${id}`,

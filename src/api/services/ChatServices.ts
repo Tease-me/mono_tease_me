@@ -1,5 +1,5 @@
 import { Endpoints } from "../urls";
-import { ChatAudioResponse, ChatHistoryResponse, ChatIdResponse, SignedUrlResponse } from "../models/chat";
+import { ChatAudioResponse, ChatHistoryResponse, ChatIdResponse, ConversationTokenResponse, SignedUrlResponse } from "../models/chat";
 import { apiClient } from "../apis";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { storage } from "@/utils/storage";
@@ -82,6 +82,24 @@ export const ChatServices = () => ({
             throw error;
         }
     },
+
+    getConversationToken: async (influencer_id: string, signal?: AbortSignal): Promise<ConversationTokenResponse> => {
+        try {
+            const response = await apiClient.get(
+                Endpoints.elevenlabs.conversation_token,
+                {
+                    params: {
+                        influencer_id,
+                    },
+                    signal,
+                }
+            );
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
     registerConversation: async (conversation_id: string, user_id: number, influencer_id: string, signal?: AbortSignal) => {
         let attempt = 0;
         let delay = 400;

@@ -32,3 +32,8 @@ export interface SignedUrlResponse {
     agent_id: string;
     credits_remainder_secs: number;
 }
+
+export interface ConversationTokenResponse {
+    token: string;
+    agent_id: string;
+}
