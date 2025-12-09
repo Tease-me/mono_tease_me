@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import styles from "./CallModal.module.css"
 import { Modal } from '../Modal';
 import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
@@ -30,9 +30,11 @@ interface CallModalProps {
     status: string;
     stopConversation: () => void;
     timeRemaining: number | null;
+    micMuted: boolean;
+    toggleMute: () => void;
 }
 
-const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose, influencer, status, stopConversation, timeRemaining }) => {
+const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose, influencer, status, stopConversation, timeRemaining, micMuted, toggleMute }) => {
     useEffect(() => {
         if (status === "connected") {
             storage.setBoolean(LocalStorageKeys.VisitedWelcome, true);
@@ -41,16 +43,8 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose, influencer, stat
         }
     }, [status])
 
-    const [callMuted, setCallMuted] = useState<boolean>(false);
     const muteUnmuteCall = () => {
-
-
-        setCallMuted(prev => {
-            return !prev;
-        });
-
-
-
+        toggleMute();
     }
 
     const handleHangUpCall = () => {
@@ -80,7 +74,7 @@ const CallModal: React.FC<CallModalProps> = ({ isOpen, onClose, influencer, stat
                             <div className={styles["status"]}>Ringing...</div>
                     }
                     <div className={styles["call-buttons"]}>
-                        <IconButton leftIcon={callMuted? <SvgPack.Voice /> : <SvgPack.Muted />} onClick={muteUnmuteCall} color='black' />
+                        <IconButton leftIcon={micMuted ? <SvgPack.Muted /> : <SvgPack.Voice />} onClick={muteUnmuteCall} color='black' />
                         <IconButton leftIcon={<SvgPack.Call />} onClick={handleHangUpCall} color='red' />
                     </div>
                 </>}
