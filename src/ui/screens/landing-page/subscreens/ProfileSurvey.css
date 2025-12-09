@@ -1,94 +1,109 @@
 .ps-screen {
   width: 100%;
   min-height: 100vh;
-    background: linear-gradient(180deg, #b3123d 0%, #b3123d 100%);
+  background: radial-gradient(#ff7878, rgb(247, 8, 72));
+  background-position: bottom;
   display: flex;
   justify-content: center;
   align-items: flex-start;
   padding: 32px 16px;
 }
 
+.ps-screen:before {
+  content: "";
+  position: absolute;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  background-image: url(/src/assets/image/noise-bg.jpg);
+  background-repeat: repeat;
+
+  background-size: 10rem;
+  mix-blend-mode: multiply;
+  z-index: 1;
+  top: 0;
+}
+
 /* outer red frame (igual ao dialogStep01) */
 .ps-frame {
-width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0.7rem;
-    border-radius: 32px;
-    background: rgba(30, 25, 28, 0.35);
-    border: 1px solid rgb(255 255 255 / 15%);
-    backdrop-filter: blur(10px);
-   
-    z-index: 2;
-  
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.7rem;
+  border-radius: 32px;
+  background: rgba(30, 25, 28, 0.35);
+  border: 1px solid rgb(255 255 255 / 15%);
+  backdrop-filter: blur(10px);
+  z-index: 2;
 }
 
 /* inner dark card */
 .ps-card {
-width: 100%;
+  width: 100%;
 
-    padding: 3rem 1.7rem;
-    border-radius: 25px;
-    background: rgba(3, 3, 3, 0.6);
-    border: 1px solid rgba(79, 71, 71, 0.8);
-    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(20px);
+  padding: 3rem 1.7rem;
+  border-radius: 25px;
+  background: rgba(3, 3, 3, 0.6);
+  border: 1px solid rgba(79, 71, 71, 0.8);
+
+  backdrop-filter: blur(20px);
 }
 
+.ps-card:before {
+  content: "";
+  background-image: url(/src/assets/image/noise-bg.jpg);
+  background-repeat: repeat;
+  background-size: 20rem;
+  background-blend-mode: luminosity;
+  filter: invert(1);
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000000;
+  border-radius: 25px;
+  opacity: 0.5;
+  mask-image: linear-gradient(0deg, black 0%, transparent 90%);
+}
 
-.ps-card:before{content: '';
-    background-image: url(/src/assets/image/noise-bg.jpg);
-    background-repeat: repeat;
-    background-size: 20rem;
-    background-blend-mode: luminosity;
-    filter: invert(1);
-    position: absolute;
-    z-index: -1;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #000000;
-    border-radius: 25px;
-    opacity: 0.5;
-    mask-image: linear-gradient(0deg, black 0%, transparent 90%);}
-
-    
 /* back button */
-.tm-survey-back-button-container { height: 2rem;
-    width: 45%;
-    margin: 0 auto 2rem 0;}
+.tm-survey-back-button-container {
+  height: 2rem;
+  width: 45%;
+  margin: 0 auto 2rem 0;
+}
 
 /* title + subtitle */
 .ps-title {
-    font-family: "Abril Fatface", serif;
-    font-weight: 400;
-    letter-spacing: 1px;
-    font-size: 2.125rem;
-    line-height: 1.15;
-    margin: 0 0 12px;
-    color: white;
-
+  font-family: "Abril Fatface", serif;
+  font-weight: 400;
+  letter-spacing: 1px;
+  font-size: 2.125rem;
+  line-height: 1.15;
+  margin: 0 0 12px;
+  color: white;
 }
 
 .ps-subtitle {
-    color: #FFF;
-    font-family: "DM Sans";
-    font-size: 1rem;
-    font-style: normal;
-    font-weight: 300;
-    line-height: normal;
-    border-radius: 0.5rem;
-    border: 1px solid rgba(255, 164, 192, 0.11);
-    display: inline-flex;
-    height: 2.3125rem;
-    padding: 0.3125rem 0.625rem;
-    align-items: center;
-    gap: 0.3125rem;
-    background: rgba(38, 38, 38, 0.20);
-    width: max-content;
-    margin: 0.5rem auto 1.5rem;
+  color: #fff;
+  font-family: "DM Sans";
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 300;
+  line-height: normal;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 164, 192, 0.11);
+  display: inline-flex;
+  height: 2.3125rem;
+  padding: 0.3125rem 0.625rem;
+  align-items: center;
+  gap: 0.3125rem;
+  background: rgba(38, 38, 38, 0.2);
+  width: max-content;
+  margin: 0.5rem auto 1.5rem;
 }
 
 /* fields */
@@ -109,12 +124,13 @@ width: 100%;
 
 .ps-input {
   width: 100%;
+  min-height: 3.5rem;
   padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.3);
   background: rgba(0, 0, 0, 0.45);
   color: #f9fafb;
-  font-size: 13px;
+  font-size: 1rem;
 }
 
 /* socials section */
@@ -154,13 +170,30 @@ width: 100%;
   background: linear-gradient(135deg, #ff4f81, #ff7a4d);
   color: #ffffff;
 }
+.ps-error {
+  color: red;
+  font-size: 12px;
+  margin-top: 4px;
+}
 
 /* next button */
 
 .tm-survey-button-container {
-    height: 3.5rem;
-    width: 100%;
-    margin: 3rem auto 0 auto;
+  height: 3.5rem;
+  width: 100%;
+  margin: 3rem auto 0 auto;
+}
 
+@media (min-width: 26.9375rem) {
+  .ps-screen {
+    align-items: center;
+  }
 
+  .ps-screen:before {
+    background: unset;
+  }
+
+  .ps-frame {
+    width: 40rem;
+  }
 }
