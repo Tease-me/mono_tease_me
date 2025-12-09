@@ -370,7 +370,7 @@ select.ic-period::-webkit-text-size-adjust {
 
   .ic-question {
     display: flex;
-    margin: 2rem auto 3rem auto
+    margin: 2rem auto 2rem auto
   }
 
   .ic-income-row {
@@ -386,10 +386,7 @@ select.ic-period::-webkit-text-size-adjust {
     max-width: 80%;
   }
 
-  .ic-slider-thumb-end {
-    transform-origin: right;
-    translate: -2rem 0;
-  }
+
 
 
 

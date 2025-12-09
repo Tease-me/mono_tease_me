@@ -274,10 +274,10 @@
 /* =============== MODEL IMAGE =============== */
 .tm-hero-image-wrapper {
   position: absolute;
-  right: -2rem;
+  right: -42vw;
   bottom: -3vh;
   pointer-events: none;
-  width: 66%;
+  width: 99%;
 
 }
 

@@ -123,3 +123,27 @@
   font-size: 14px;
   text-align: center;
 }
+
+@media (min-width: 26.9375rem) {
+  .dialog-screen {
+    align-items: center;
+
+  }
+
+  .dialog-screen:before {
+    background: unset;
+  }
+
+  .dialog-frame {
+    width: 40rem;
+    height: 49dvh;
+  }
+
+  .thanks-pill {
+    width: max-content;
+    margin: 0.5rem auto 2rem;
+  }
+
+
+
+}

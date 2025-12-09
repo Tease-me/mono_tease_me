@@ -126,6 +126,22 @@
 /* DESKTOP TWEAKS */
 @media (min-width: 26.9375rem) {
 
+  .tm-why-section:before {
+    content: '';
+    background-image: url(/src/assets/image/bg-lp-section@2x.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: absolute;
+    z-index: 3;
+    top: -100%;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 1;
+    outline: 1px solid red;
+
+  }
+
   .tm-why-container {
     display: flex;
     flex-direction: column;
@@ -135,6 +151,7 @@
   .tm-why-container .tm-video-title {
     margin-left: auto;
     margin-right: auto;
+    margin-bottom: 3rem;
   }
 
   .tm-why-container:after {

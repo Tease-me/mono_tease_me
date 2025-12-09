@@ -33,23 +33,23 @@ const TeaseMeIncomeCalculator: React.FC = () => {
     period === "WEEKLY"
       ? weeklyIncome
       : period === "MONTHLY"
-      ? monthlyIncome
-      : yearlyIncome;
+        ? monthlyIncome
+        : yearlyIncome;
 
   const formattedIncome =
     followerCount > 0
       ? rawIncome.toLocaleString("en-US", {
-          style: "currency",
-          currency: "USD",
-          maximumFractionDigits: 0,
-        })
+        style: "currency",
+        currency: "USD",
+        maximumFractionDigits: 0,
+      })
       : "$0";
 
   return (
     <div className="ic-wrapper">
       <div className="ic-card">
         <h2 className="ic-title">
-          Turn influence <br />
+          Turn influence
           into <RotatingPill02 phrases={otherPhrases} />
         </h2>
 
@@ -108,10 +108,11 @@ const TeaseMeIncomeCalculator: React.FC = () => {
           <div className="ic-slider-track" />
           <div className="ic-slider-fill" style={{ width: `${converted}%` }} />
           <div
-            className={`ic-slider-thumb ${
-              isHolding ? "ic-slider-thumb-hold" : ""
-            }`}
-            style={{ left: `${converted}%` }}
+            className={`ic-slider-thumb ${isHolding ? "ic-slider-thumb-hold" : ""
+              }`}
+            style={{
+              left: `${converted >= 100 ? converted - 10 : converted}%`
+            }}
           />
           <input
             type="range"

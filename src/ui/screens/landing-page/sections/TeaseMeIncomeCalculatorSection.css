@@ -81,4 +81,8 @@
     width: 40rem;
   }
 
+  .footer-content-container {
+    max-width: 80rem;
+  }
+
 }
