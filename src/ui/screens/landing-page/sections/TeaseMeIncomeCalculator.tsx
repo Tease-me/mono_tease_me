@@ -46,14 +46,14 @@ const TeaseMeIncomeCalculator: React.FC = () => {
       : "$0";
 
   return (
-    <div className="ic-wrapper">
+    <div className="ic-wrapper" id="ic-anchor">
       <div className="ic-card">
         <h2 className="ic-title">
           Turn influence
           into <RotatingPill02 phrases={otherPhrases} />
         </h2>
 
-        <div className="ic-question" id="ic-anchor">
+        <div className="ic-question" >
           How much could you earn?
         </div>
 
