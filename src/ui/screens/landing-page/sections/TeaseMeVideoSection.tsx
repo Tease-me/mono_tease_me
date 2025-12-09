@@ -21,7 +21,7 @@ const VideoCard: React.FC<VideoCardProps> = ({
     if (!v) return;
 
     if (isPlaying) {
-      v.play().catch(() => {});
+      v.play().catch(() => { });
     } else {
       v.pause();
     }
@@ -79,11 +79,11 @@ const TeaseMeVideoSection: React.FC = () => {
         {activeVideo && (
           <div className="tm-video-meta">
             <p className="tm-video-quote">
-              <span className="tm-video-quote-mark">
+
+              <span className="tm-video-quote-mark01">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="17"
-                  height="12"
+
                   viewBox="0 0 17 12"
                   fill="none"
                 >
@@ -96,13 +96,10 @@ const TeaseMeVideoSection: React.FC = () => {
                     fill="#EF064E"
                   />
                 </svg>
-              </span>
-              <p>My girlfriend Ai made me a 24-year-old millionaire</p>
-              <span className="tm-video-quote-mark">
+              </span> My girlfriend Ai made me a 24-year-old millionaire <span className="tm-video-quote-mark02">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="17"
-                  height="12"
+
                   viewBox="0 0 17 12"
                   fill="none"
                 >
@@ -116,6 +113,7 @@ const TeaseMeVideoSection: React.FC = () => {
                   />
                 </svg>
               </span>
+
             </p>
             <a
               href="https://www.instagram.com/cutiecaryn/"

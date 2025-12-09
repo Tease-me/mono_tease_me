@@ -396,22 +396,35 @@
 
 
 /*** media query ***/
-@media (min-width: 431px) {
+@media (min-width: 26.9375rem) {
 
+  .tm-logo {
+    height: 6.25rem;
+  }
 
+  .tm-bottom-cta {
+    width: 20rem;
+    right: 3vw;
+    top: 4vh;
+    bottom: unset;
+    background: unset;
+    box-shadow: unset;
+    border-radius: unset;
+  }
 
 
   .tm-device {
     max-width: 80rem;
     margin-left: auto;
-    margin-right: auto
+    margin-right: auto;
+    background: unset;
   }
 
   .tm-hero-image-wrapper {
-    right: 15rem;
-    bottom: -3vh;
+    right: 3rem;
+    bottom: -7vh;
     pointer-events: none;
-    width: 26%;
+    width: 36%;
   }
 
   .tm-tagline {
@@ -424,5 +437,12 @@
     min-width: 20rem;
 
   }
+
+  .tm-tagline-pill02 {
+    min-width: 15rem;
+  }
+
+
+
 
 }

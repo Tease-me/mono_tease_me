@@ -21,8 +21,7 @@ const TeaseMeIncomeSection: React.FC = () => {
 
           {/* Title */}
           <p className="tm-income-title">
-            Want to know how much passive{" "}
-            <strong>income you could earn?</strong>
+            Want to know how much passive <strong>income you could earn?</strong>
           </p>
 
           {/* Divider */}

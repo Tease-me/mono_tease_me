@@ -9,40 +9,43 @@
 
 /* TOP BLACK → CARD WRAPPER (rounded rectangle) */
 .tm-income-card-wrapper {
-     width: 90%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0.7rem;
-    border-radius: 32px;
-    background: rgba(30, 25, 28, 0.35);
-    border: 1px solid rgb(255 255 255 / 15%);
-    backdrop-filter: blur(10px);
- margin-top: 200px;
- position: relative;
-z-index: 2;
-top: -180px;
-    
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.7rem;
+  border-radius: 32px;
+  background: rgba(30, 25, 28, 0.35);
+  border: 1px solid rgb(255 255 255 / 15%);
+  backdrop-filter: blur(10px);
+  margin-top: 200px;
+  position: relative;
+  z-index: 2;
+  top: -180px;
+
 }
 
 /* BOTTOM RED GRADIENT BLOCK */
 .tm-income-footer {
-width: 100%;
-    height: 56rem;
-    position: relative;
-    bottom: 0;
-    margin-top: -45rem;
-    background: linear-gradient(180deg, #b3123d 0%, #b3123d 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 38rem;
-  
+  width: 100%;
+  height: 56rem;
+  position: relative;
+  bottom: 0;
+  margin-top: -45rem;
+  background: linear-gradient(180deg, #b3123d 0%, #b3123d 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 38rem;
+
 }
 
-.footer-content-container {width: 75%; display: flex;
-    flex-direction: column;
-    align-items: center;}
+.footer-content-container {
+  width: 75%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
 .tm-income-footer img {
   height: 52px;
@@ -69,4 +72,13 @@ width: 100%;
   color: white;
   font-size: 14px;
   opacity: 0.9;
+}
+
+
+/* DESKTOP TWEAKS */
+@media (min-width: 26.9375rem) {
+  .tm-income-card-wrapper {
+    width: 40rem;
+  }
+
 }
