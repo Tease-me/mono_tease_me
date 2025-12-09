@@ -58,11 +58,11 @@ const ProfileSurvey: React.FC = () => {
 
           <div className="ps-field">
             <label className="ps-label">
-              Name <span className="ps-required">*</span>
+              Full Name <span className="ps-required">*</span>
             </label>
             <input
               className="ps-input"
-              placeholder="Your name"
+              placeholder="Your full name"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -74,7 +74,7 @@ const ProfileSurvey: React.FC = () => {
             </label>
             <input
               className="ps-input"
-              placeholder="City"
+              placeholder="Country or Region"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
             />
