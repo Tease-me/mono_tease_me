@@ -27,6 +27,7 @@ export default {
     Message: lazy(() => import("@/assets/svg/Message.svg?react")),
     Lock: lazy(() => import("@/assets/svg/Lock.svg?react")),
     Voice: lazy(() => import("@/assets/svg/Voice.svg?react")),
+    Muted: lazy(() => import("@/assets/svg/Muted.svg?react")),
     Call: lazy(() => import("@/assets/svg/Call.svg?react")),
     Heart: lazy(() => import("@/assets/svg/Heart.svg?react")),
     ChatRound: lazy(() => import("@/assets/svg/Chat.svg?react")),

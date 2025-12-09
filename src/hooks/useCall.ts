@@ -45,17 +45,20 @@ export default function useCall() {
     ringtoneRef.current.currentTime = 0;
   }, []);
 
+  const [micMuted, setMicMuted] = useState<boolean>(false);
+
   const conversation = useConversation({
-      audio: {
-    constraints: {
-      audio: {
-        noiseSuppression: true,
-        echoCancellation: true,
-        autoGainControl: true,
-        voiceIsolation: true
+    micMuted,
+    audio: {
+      constraints: {
+        audio: {
+          noiseSuppression: true,
+          echoCancellation: true,
+          autoGainControl: true,
+          voiceIsolation: true
+        }
       }
-    }
-  },
+    },
     onConnect: () => {
       setStatus("connected");
       stopRing();
@@ -236,12 +239,22 @@ export default function useCall() {
     };
   }, [timeRemaining, stopConversation]);
 
+const toggleMute = useCallback(() => {
+  setMicMuted(prev => {
+    const next = !prev;
+    return next;
+  });
+}, []);
+
   return {
     setInfluencerId,
     startConversation,
     stopConversation,
     permissionState,
     status,
-    timeRemaining
+    timeRemaining,
+    micMuted,
+    toggleMute,
+    setMicMuted,
   };
 }
