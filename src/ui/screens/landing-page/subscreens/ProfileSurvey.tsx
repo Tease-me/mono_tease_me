@@ -74,7 +74,7 @@ const ProfileSurvey: React.FC = () => {
             </label>
             <input
               className="ps-input"
-              placeholder="City"
+              placeholder="Country or Region"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
             />
