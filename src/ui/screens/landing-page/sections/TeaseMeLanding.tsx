@@ -117,7 +117,7 @@ const TeaseMeLanding: React.FC = () => {
         </main>
       </div>
 
-      <WelcomeCallModal initalSecondsLeft={timeRemaining || 120} influencer={demoInfluencer} isOpen={openModal} onClose={() => {
+      <WelcomeCallModal initalSecondsLeft={timeRemaining || 300} influencer={demoInfluencer} isOpen={openModal} onClose={() => {
 
       }} status={status} stopConversation={function (): void {
         stopConversation();
