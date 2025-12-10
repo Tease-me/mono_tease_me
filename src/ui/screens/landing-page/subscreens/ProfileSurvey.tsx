@@ -178,6 +178,7 @@ const ProfileSurvey: React.FC = () => {
               rightIcon={<SvgPack.ArrowRight />}
             />
           </div>
+          <div className="spacer-profile"></div>
         </div>
       </div>
     </div>

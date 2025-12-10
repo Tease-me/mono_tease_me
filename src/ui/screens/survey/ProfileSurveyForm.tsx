@@ -2,6 +2,9 @@ import { apiClient } from "@/api/apis";
 import { SURVEY_STEPS } from "@/utils/surveyConfig";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
+import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
+import SvgPack from "@/utils/SvgPack";
 import styles from "./ProfileSurvey.module.css";
 
 //interface SurveyState {
@@ -252,14 +255,13 @@ const ProfileSurveyForm: React.FC = () => {
 
   return (
     <div className={styles.screen}>
+      <div className={styles.outerframe}>
       <div className={styles.frame}>
         <div className={`${styles.card} ${styles.formCard}`}>
           <div className={styles.headerRow}>
             <div>
               <h2 className={styles.title}>{step.title}</h2>
-              <p className={styles.subtitle}>
-                Step {stepIndex + 1} of {SURVEY_STEPS.length}
-              </p>
+            
             </div>
             <span className={styles.saving}>
               {saving ? "Saving..." : "Saved"}
@@ -278,6 +280,9 @@ const ProfileSurveyForm: React.FC = () => {
                       {q.label}{" "}
                       {q.required && <span className={styles.required}>*</span>}
                     </label>
+                    {fieldErrors[q.id] && (
+                      <div className={styles.error}>{fieldErrors[q.id]}</div>
+                    )}
                     <InputTag
                       className={styles.input}
                       value={answers[q.id] || ""}
@@ -287,9 +292,7 @@ const ProfileSurveyForm: React.FC = () => {
                         >
                       ) => updateAnswer(q.id, e.target.value)}
                     />
-                    {fieldErrors[q.id] && (
-                      <div className={styles.error}>{fieldErrors[q.id]}</div>
-                    )}
+                   
                   </div>
                 );
               }
@@ -332,20 +335,26 @@ const ProfileSurveyForm: React.FC = () => {
               Step {stepIndex + 1} of {SURVEY_STEPS.length}
             </div>
             <div className={styles.buttonRow}>
-              <button
-                className={styles.btnOutline}
-                disabled={stepIndex === 0}
-                onClick={handleBack}
-              >
-                Back
-              </button>
-              <button className={styles.btnPrimary} onClick={handleNext}>
-                {isLastStep ? "Finish" : "Next"}
-              </button>
+                          <div className="">
+                          <NormalButton
+                            onClick={handleBack}
+                            text="Back"
+                             disabled={stepIndex === 0}
+                            leftIcon={<SvgPack.ArrowLeft />}
+                          />
+                        </div>
+                      <div className="tm-income-button-container">
+          <PrimaryButton
+            onClick={handleNext}
+            text={isLastStep ? "Finish" : "Next"}
+            rightIcon={<SvgPack.ArrowRight />}
+          />
+        </div>
             </div>
           </div>
+          <div className={styles.spacerSurvey}></div>
         </div>
-      </div>
+      </div></div>
     </div>
   );
 };
