@@ -11,7 +11,7 @@ import IconButton from '@/ui/components/inputs/buttons/IconButton';
 import SvgPack from '@/utils/SvgPack';
 
 interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
-    onSendMessage?: () => void;
+    onSendMessage?: (forcedAudio?: Blob) => void;
     inputText?: string;
     setInputText?: (text: string) => void;
     inputAudio?: Blob;
@@ -31,6 +31,8 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     const containerRef = useRef<HTMLDivElement>(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const { startRecording, stopRecording, recordingStatus, audio, streamRef, clearAudio } = useAudioRecorder();
+    const [sendOnStop, setSendOnStop] = useState(false);
+    const [showViz, setShowViz] = useState(false);
 
     useLayoutEffect(() => {
         function updateSize() {
@@ -76,12 +78,15 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     };
 
     useEffect(() => {
-        if (audio && setInputAudio) {
-            setInputAudio(audio);
+        if (audio && sendOnStop) {
+            onSendMessage?.(audio);
+            setSendOnStop(false);
+            clearAudio();
         }
-    }, [audio, setInputAudio]);
+    }, [audio, sendOnStop, onSendMessage, clearAudio]);
 
     const handleOnLongPressStart = () => {
+        setShowViz(true);
         if (audio) {
             setInputAudio?.(undefined);
             clearAudio();
@@ -90,8 +95,26 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     }
 
     const handleOnLongPressEnd = () => {
+        setShowViz(false);
+        setSendOnStop(true);
         stopRecording();
+        if (streamRef.current) {
+            streamRef.current.getTracks().forEach(t => t.stop());
+            streamRef.current = null;
+        }
     }
+
+    const handleCancelRecording = () => {
+        setShowViz(false);
+        setSendOnStop(false);
+        stopRecording();
+        if (streamRef.current) {
+            streamRef.current.getTracks().forEach(t => t.stop());
+            streamRef.current = null;
+        }
+        clearAudio();
+        setInputAudio?.(undefined);
+    };
 
     return (
         <div className={styles["chat-input-area"]} >
@@ -106,12 +129,12 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                         onKeyDown={handleKeyDown}
                         disabled={disabled}
                     />}
-                {audio && (
+                {audio && !sendOnStop && (
                     <AudioWaveform audioBlob={audio}
                         width={dimensions.width}
                         height={dimensions.height} />
                 )}
-                {(recordingStatus === "recording" && streamRef.current) && (
+                {(recordingStatus === "recording" && streamRef.current && showViz) && (
                     <AudioVisualizer
                         mediaStream={streamRef.current}
                         speed={1}
@@ -125,10 +148,12 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
             <div className={styles["buttons"]}>
                 <LongPressButton
                     onShortPress={handleOnShortPress}
-                    onDrag={handleOnLongPressEnd}
                     onLongPressStart={handleOnLongPressStart}
                     onLongPressEnd={handleOnLongPressEnd}
-                    leftIcon={inputAudio ? <SvgPack.CloseSquareSolid /> : <SvgPack.Voice />}
+                    onDragStart={handleCancelRecording}
+                    onDrag={handleCancelRecording}
+                    onDragEnd={handleCancelRecording}
+                    leftIcon={inputAudio ? <SvgPack.CloseSquare /> : <SvgPack.Voice />}
                     className={styles["voice-btn"]}
                     color='yellow'
                     disabled={disabled} />
