@@ -32,6 +32,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const { startRecording, stopRecording, recordingStatus, audio, streamRef, clearAudio } = useAudioRecorder();
     const [sendOnStop, setSendOnStop] = useState(false);
+    const [isCancelling, setIsCancelling] = useState(false);
     const [showViz, setShowViz] = useState(false);
 
     useLayoutEffect(() => {
@@ -78,14 +79,19 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     };
 
     useEffect(() => {
+        if (audio && isCancelling) {
+            clearAudio();
+            return;
+        }
         if (audio && sendOnStop) {
             onSendMessage?.(audio);
             setSendOnStop(false);
             clearAudio();
         }
-    }, [audio, sendOnStop, onSendMessage, clearAudio]);
+    }, [audio, sendOnStop, isCancelling, onSendMessage, clearAudio]);
 
     const handleOnLongPressStart = () => {
+        setIsCancelling(false);
         setShowViz(true);
         if (audio) {
             setInputAudio?.(undefined);
@@ -106,6 +112,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 
     const handleCancelRecording = () => {
         setShowViz(false);
+        setIsCancelling(true);
         setSendOnStop(false);
         stopRecording();
         if (streamRef.current) {
@@ -129,7 +136,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                         onKeyDown={handleKeyDown}
                         disabled={disabled}
                     />}
-                {audio && !sendOnStop && (
+                {audio && !sendOnStop && !isCancelling && (
                     <AudioWaveform audioBlob={audio}
                         width={dimensions.width}
                         height={dimensions.height} />
