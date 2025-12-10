@@ -10,6 +10,19 @@
 }
 
 
+.audioWrapper {
+  margin-top: 8px;
+}
+
+/* CARD BASE */
+.card {
+  background: rgba(10, 10, 20, 0.96);
+  border-radius: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.7), 0 0 0 1px rgba(15, 23, 42, 0.9);
+  padding: 24px 18px;
+  box-sizing: border-box;
+}
 .outerframe {
   display: flex;
   flex-direction: column;
@@ -376,5 +389,25 @@ textarea.input {
     gap: 8px;
   }
 
+  .btnPrimary,
+  .btnOutline {
+    flex: 1;
+    justify-content: center;
+  }
+}
 
+.picturePreviewWrapper {
+  margin-top: 10px;
+}
+
+.picturePreview {
+  display: block;
+  max-width: 220px;
+  max-height: 220px;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  object-fit: cover;
+}
+.audioWrapper {
+  margin-top: 8px;
 }
