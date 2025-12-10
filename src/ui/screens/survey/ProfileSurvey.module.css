@@ -1,0 +1,261 @@
+.screen {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  box-sizing: border-box;
+}
+
+.frame {
+  width: 100%;
+  max-width: 960px;
+}
+
+/* CARD BASE */
+.card {
+  background: rgba(10, 10, 20, 0.96);
+  border-radius: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.7), 0 0 0 1px rgba(15, 23, 42, 0.9);
+  padding: 24px 18px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+
+.formCard {
+  padding: 24px 20px 20px;
+}
+
+/* HEADER */
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #e5e7eb;
+}
+
+.subtitle {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+/* SAVING PILL */
+.saving {
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.9);
+  color: #9ca3af;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* SCROLLABLE CONTENT */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+  margin-top: 8px;
+}
+
+/* FIELDS */
+.field {
+  margin-bottom: 16px;
+}
+
+.label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #e5e7eb;
+  margin-bottom: 6px;
+}
+
+.required {
+  color: #f97373;
+  margin-left: 2px;
+}
+
+/* INPUT / TEXTAREA */
+.input {
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: rgba(15, 23, 42, 0.85);
+  color: #f9fafb;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 140ms ease, box-shadow 140ms ease,
+    background 140ms ease;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  border-color: #f97373;
+  box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.45);
+  background: rgba(15, 23, 42, 0.96);
+}
+
+textarea.input {
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* RADIO GROUP */
+.radioGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 9px 10px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.radioGroup label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #cbd5f5;
+  cursor: pointer;
+}
+
+.radioGroup input[type="radio"] {
+  accent-color: #f97373;
+  width: 14px;
+  height: 14px;
+}
+
+/* ERRORS */
+.error {
+  font-size: 0.8rem;
+  color: #f97373;
+  margin-top: 4px;
+}
+
+.errorGeneral {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.6);
+  padding: 8px 10px;
+  border-radius: 10px;
+  margin-bottom: 14px;
+}
+
+/* BOTTOM BAR FIXA DENTRO DO CARD */
+.bottomBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 12px;
+  margin-top: 8px;
+  border-top: 1px solid rgba(31, 41, 55, 0.85);
+}
+
+.stepInfo {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+/* BUTTON ROW */
+.buttonRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* BUTTONS */
+.btnPrimary,
+.btnOutline {
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 130ms ease, color 130ms ease, border-color 130ms ease,
+    transform 80ms ease, box-shadow 130ms ease;
+}
+
+/* PRIMARY */
+.btnPrimary {
+  background: linear-gradient(135deg, #f97373, #fb7185);
+  color: #111827;
+}
+
+.btnPrimary:hover {
+  background: linear-gradient(135deg, #fb7185, #f97373);
+  transform: translateY(-1px);
+}
+
+.btnOutline {
+  background: transparent;
+  color: #e5e7eb;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+}
+
+.btnOutline:hover:not(:disabled) {
+  background: rgba(15, 23, 42, 0.9);
+  border-color: #e5e7eb;
+}
+
+.btnOutline:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .card {
+    border-radius: 18px;
+    padding: 18px 14px;
+  }
+
+  .formCard {
+    padding: 18px 14px 16px;
+  }
+
+  .headerRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .bottomBar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .buttonRow {
+    width: 100%;
+    justify-content: stretch;
+    gap: 8px;
+  }
+
+  .btnPrimary,
+  .btnOutline {
+    flex: 1;
+    justify-content: center;
+  }
+}
