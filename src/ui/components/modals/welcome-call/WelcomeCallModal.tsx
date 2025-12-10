@@ -4,7 +4,6 @@ import ProfileMedia from "@/ui/components/ProfileMedia";
 import { storage } from "@/utils/storage";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
-import CallIcon from "@/assets/Call.svg?react";
 import DropCallIcon from "@/assets/svg/DropCall.svg?react";
 import { Modal } from "../Modal";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
@@ -58,9 +57,9 @@ const WelcomeCallModal: React.FC<WelcomeCallModalProps> = ({ isOpen, onClose, in
         }
     }, [secondsLeft, isOpen, status, onClose, stopConversation]);
 
-    const handlePickUpCall = () => {
-        setSecondsLeft(initalSecondsLeft);
-    }
+    // const handlePickUpCall = () => {
+    //     setSecondsLeft(initalSecondsLeft);
+    // }
 
     const handleHangUpCall = () => {
         setSecondsLeft(initalSecondsLeft);
@@ -89,8 +88,13 @@ const WelcomeCallModal: React.FC<WelcomeCallModalProps> = ({ isOpen, onClose, in
                             <div className={styles["status"]}>{status}</div>
                     }
                     <div className={styles["call-buttons"]}>
-                        <IconButton leftIcon={<DropCallIcon />} onClick={handleHangUpCall} />
-                        {status === "idle" && <IconButton leftIcon={<CallIcon />} onClick={handlePickUpCall} />}
+                        <IconButton
+                            color="red"
+                            leftIcon={<DropCallIcon style={{ color: "#fff", width: 24, height: 24 }} />}
+                            onClick={handleHangUpCall}
+                        />
+
+                        {/* {status === "idle" && <IconButton leftIcon={<CallIcon />} onClick={handlePickUpCall} />} */}
                     </div>
                 </>}
             </div>

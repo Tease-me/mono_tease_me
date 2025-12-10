@@ -376,6 +376,7 @@
     color: var(--white);
     text-shadow: 1px 1px 0 hsla(var(--hue-neutral), 0%, 0%, 0.2),
         1px 3px 3px hsla(var(--hue-neutral), 0%, 0%, 0.45);
+    
 }
 
 /**---- Hover state ----**/

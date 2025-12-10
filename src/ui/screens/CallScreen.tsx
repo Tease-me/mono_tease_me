@@ -108,7 +108,6 @@ export default function CallScreen() {
           <button className={styles["call-action-btn video-btn"]}>🎥</button>
           <button className={styles["call-action-btn speaker-btn"]}>🔈</button>
         </div>
-
         <button className={styles["end-call-btn"]} onClick={endCall}>
           📞 End Call
         </button>

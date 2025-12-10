@@ -19,8 +19,8 @@ import clsx from 'clsx';
 import { ChatRepository } from '@/data/repositories/ChatRepo';
 import { InfluencerRepo } from '@/data/repositories/InfluencerRepo';
 import logger from '@/utils/logger';
-import useCall from '@/hooks/useCall';
 import CallModal from '@/ui/components/modals/call-modal/CallModal';
+import useCallWebRTC from '@/hooks/useCallWebRTC';
 
 type DisplayMessage = Message | CallMessageGroup;
 
@@ -114,7 +114,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
     const chatRepository = ChatRepository();
     const influencerRepo = InfluencerRepo();
-    const { status, startConversation, stopConversation, setInfluencerId, timeRemaining } = useCall();
+    const { status, startConversation, stopConversation, setInfluencerId, timeRemaining, micMuted, toggleMute } = useCallWebRTC();
     const displayMessages = useMemo(() => messages ? mergeCallMessages(messages) : [], [messages]);
     useEffect(() => {
         (async () => {
@@ -392,7 +392,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 isOpen={openWelcomeCallModal}
                 onClose={() => setOpenWelcomeCallModal(false)}
                 stopConversation={stopConversation}
-                influencer={influencer} />
+                influencer={influencer}
+                micMuted={micMuted}
+                toggleMute={toggleMute} />
         </div>
     );
 };

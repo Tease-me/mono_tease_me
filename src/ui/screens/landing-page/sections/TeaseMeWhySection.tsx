@@ -29,6 +29,7 @@ const TeaseMeWhySection: React.FC = () => {
               <p className="tm-why-card-text">{item.description}</p>
             </article>
           ))}
+          <div className="spacer"></div>
         </div>
       </div>
     </section>

@@ -1,5 +1,6 @@
 // src/screens/ThankYouScreen.tsx
 import React from "react";
+import logoTeaseMeOutline from "@/assets/logos/lipsOutline.svg"
 import "./ThankYouScreen.css";
 
 const ThankYouScreen: React.FC = () => {
@@ -8,7 +9,7 @@ const ThankYouScreen: React.FC = () => {
       <div className="dialog-frame">
         <div className="thanks-card">
           <div className="thanks-icon">
-            <span className="thanks-icon-lips">💋</span>
+            <img src={logoTeaseMeOutline} alt="Tease Me" className="tm-logo-outline" />
           </div>
 
           <h1 className="thanks-title">Thank You!</h1>
