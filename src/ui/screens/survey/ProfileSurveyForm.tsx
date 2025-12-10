@@ -4,11 +4,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import styles from "./ProfileSurvey.module.css";
 
-interface SurveyState {
-  pre_influencer_id: number;
-  survey_answers: Record<string, any>;
-  survey_step: number;
-}
+//interface SurveyState {
+//pre_influencer_id: number;
+//survey_answers: Record<string, any>;
+//survey_step: number;
+//}
 
 interface SurveyRadioOption {
   value: string | number;
@@ -40,20 +40,88 @@ const ProfileSurveyForm: React.FC = () => {
     {}
   );
 
-  // 1) Carregar estado inicial pelo token
   useEffect(() => {
     const load = async () => {
-      if (!token) {
-        setLoadError("Invalid survey link.");
-        setLoading(false);
-        return;
-      }
+      //if (!token) {
+      // setLoadError("Invalid survey link.");
+      //setLoading(false);
+      //return;
+      //}
 
       try {
-        const { data } = await apiClient.get<SurveyState>(
-          "/pre-influencers/survey",
-          { params: { token } }
-        );
+        //const { data } = await apiClient.get<SurveyState>(
+        //"/pre-influencers/survey",
+        //{ params: { token } }
+        //);
+
+        const data = {
+          pre_influencer_id: 9,
+          survey_answers: {
+            q1_name: "Glauco Martins Pereira",
+            q2_email: "glauco.mjpro@gmail.com",
+            q3_social_name: "dvxcv",
+            q4_country: "xcvxc",
+            q5_main_language: "xcv",
+            q6_secondary_language: "cxvcxv",
+            q7_at_parties: "talk_many",
+            q8_after_talking: "energised",
+            q9_make_friends: "very_fast",
+            q10_focus_more_on: "now",
+            q11_like_to_talk_about: "real_daily",
+            q12_first_remember: "details",
+            q13_when_someone_cries: "fix_problem",
+            q14_decisions_with: "logic",
+            q15_if_partner_wrong: "tell_directly",
+            q16_daily_life_is: "planned",
+            q17_you_like: "clean",
+            q18_plan_date: "decide_exact",
+            q19_you_are_more: "talkative",
+            q20_care_more_about: "facts",
+            q21_weekend_prefer: "stay_home",
+            q22_rules_are: "important",
+            q23_my_future: "clear_plan",
+            q24_compliments_make_you: "shy",
+            q25_when_friend_telling: "listen_story",
+            q26_secrets: "keep_inside",
+            q27_love_style: "actions",
+            q28_when_annoying: "be_straight",
+            q29_catchphrases: "sdfsdrf",
+            q30_wakeup_time: "dsfsdf",
+            q31_sleep_time: "sdfdsf",
+            q32_must_do_morning: "sdfdsf",
+            q33_must_do_night: "sdfdsf",
+            q34_favorite_food: "sdfds",
+            q35_favorite_food_type: "sdfsdf",
+            q36_favorite_drink: "sdfdsf",
+            q37_sweet_or_salty: "sweet",
+            q38_favorite_snack: "sdfdsf",
+            q39_favorite_color: "sdfsdf",
+            q40_favorite_animal: "fsdfsdf",
+            q41_favorite_season: "sdfdsf",
+            q42_favorite_weather: "sdfdsf",
+            q43_favorite_sport: "sdfdsf",
+            q44_favorite_party_type: "sdfsdf",
+            q45_favorite_movie_or_series: "sdfdsf",
+            q46_favorite_song_now: "sdfdsf",
+            q47_favorite_music_type: "sdfdsf",
+            q48_what_do_when_bored: "sdfsdf",
+            q49_favorite_app_or_game: "sdfsdf",
+            q50_like_shopping: "yes",
+            q51_what_do_you_shop_most: "sdfdsfsdf",
+            q52_favorite_with_partner: "sdfsdf",
+            q53_great_date: "sdfdsf",
+            q54_favorite_date_place: "sdfdsf",
+            q55_best_gift: "sdfsdf",
+            q56_most_memorable_gift: "sdfsdf",
+            q57_call_loved_ones: "sdfsf",
+            q58_how_loved_ones_call_you: "sfddsfs",
+            q59_makes_you_laugh: "sdfdsf",
+            q60_makes_you_angry: "sdfdsf",
+            q61_when_miss_someone: "sdfds",
+            q62_biggest_dream: "sdfsdf",
+          },
+          survey_step: 0,
+        };
 
         setPreInfluencerId(data.pre_influencer_id);
         setAnswers(data.survey_answers || {});
@@ -69,17 +137,14 @@ const ProfileSurveyForm: React.FC = () => {
     load();
   }, [token]);
 
-  // 2) Atualiza resposta local
   const updateAnswer = (key: string, value: any) => {
     setAnswers((prev) => ({
       ...prev,
       [key]: value,
     }));
-    // limpa erro desse campo ao digitar
     setFieldErrors((prev) => ({ ...prev, [key]: null }));
   };
 
-  // 3) Autosave no backend com debounce (para não perder nada)
   useEffect(() => {
     if (!preInfluencerId) return;
     if (loading) return;
@@ -101,7 +166,6 @@ const ProfileSurveyForm: React.FC = () => {
     return () => clearTimeout(timeout);
   }, [answers, stepIndex, preInfluencerId, loading]);
 
-  // 4) Validação dos campos obrigatórios do step atual
   const validateCurrentStep = (): boolean => {
     const step = SURVEY_STEPS[stepIndex];
     const newErrors: Record<string, string> = {};
@@ -124,7 +188,6 @@ const ProfileSurveyForm: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // 5) Save imediato quando clico Next/Finish (além do autosave)
   const saveNow = async () => {
     if (!preInfluencerId) return;
     try {
