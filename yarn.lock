@@ -1913,6 +1913,13 @@ lru-cache@^5.1.1:
   dependencies:
     yallist "^3.0.2"
 
+make-cert@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/make-cert/-/make-cert-1.2.1.tgz#fccb34f5f0e5d7a514c4b9a3d427a09f30a3b360"
+  integrity sha512-mvQkS2rSZE0rfgxycg/g2gcFaNm/XzDgkDF3CIp9StDaPU8f+3NL+gwg/qzsgL8bDy50jwak6OonVrAc/U/xEw==
+  dependencies:
+    node-forge "^0.10.0"
+
 math-intrinsics@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/math-intrinsics/-/math-intrinsics-1.1.0.tgz#a0dd74be81e2aa5c2f27e65ce283605ee4e2b7f9"
@@ -1971,6 +1978,11 @@ no-case@^3.0.4:
   dependencies:
     lower-case "^2.0.2"
     tslib "^2.0.3"
+
+node-forge@^0.10.0:
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/node-forge/-/node-forge-0.10.0.tgz#32dea2afb3e9926f02ee5ce8794902691a676bf3"
+  integrity sha512-PPmu8eEeG9saEUvI97fm4OYxXVB6bFvyNTyiUOBichBpFG8A1Ljw3bY62+5oOjDEMHRnd0Y7HQ+x7uzxOzC6JA==
 
 node-releases@^2.0.27:
   version "2.0.27"
