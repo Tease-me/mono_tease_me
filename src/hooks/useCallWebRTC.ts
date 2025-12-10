@@ -106,7 +106,7 @@ export default function useCallWebRTC() {
         return;
       }
 
-      const { token: conversationToken, credits_remainder_secs } = await chatRepo.getConversationToken(
+      const { token: conversationToken, credits_remainder_secs, greeting_used } = await chatRepo.getConversationToken(
         influencerId,
         user.id,
         abortController.signal,
@@ -132,6 +132,9 @@ export default function useCallWebRTC() {
       const conversationId = await conversation.startSession({
         conversationToken,
         connectionType: "webrtc",
+        dynamicVariables: {
+          first_message: greeting_used ?? "",
+        },
       });
 
       if (abortController.signal.aborted) {
