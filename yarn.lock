@@ -185,7 +185,7 @@
 
 "@elevenlabs/react@^0.12.1":
   version "0.12.1"
-  resolved "https://registry.yarnpkg.com/@elevenlabs/react/-/react-0.12.1.tgz#877499d8cea3c02ca5e8612dfac0a62062278553"
+  resolved "https://registry.npmjs.org/@elevenlabs/react/-/react-0.12.1.tgz#877499d8cea3c02ca5e8612dfac0a62062278553"
   integrity sha512-7dNT1dcSnsbGk3wv8LETFJn9O6zjD/qbcu75j7PvcrK7DS7P6YadPweheKt4KTlq6MnIh+X/nWZNKvpxd2ggBw==
   dependencies:
     "@elevenlabs/client" "0.12.0"
