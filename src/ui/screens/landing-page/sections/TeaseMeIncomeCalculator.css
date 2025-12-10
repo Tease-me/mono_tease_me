@@ -263,6 +263,18 @@ select.ic-period::-webkit-text-size-adjust {
   font-size: 1rem;
 }
 
+.ic-input:focus,
+.ic-input:focus-visible {
+  outline: none;
+  border-color: hsla(340, 50%, 50%, 0.8);
+  padding-left:1.2rem;
+ box-shadow: -9px 8px 4px -8px hsla(340, 100%, 73.06%, 0.34) inset,
+10px -12px 14px -8px hsla(340, 89.82%, 80.49%, 0.25) inset,
+8px -9px 0 -6px hsla(340, 83.22%, 44.25%, 0.23) inset;
+background: hsla(339, 100%, 10.75%, 0.96);
+transition: all 350ms ease;
+}
+
 .ic-helper {
   font-size: 12px;
   opacity: 0.6;

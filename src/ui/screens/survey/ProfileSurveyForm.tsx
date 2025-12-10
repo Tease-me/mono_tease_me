@@ -3,6 +3,9 @@ import { SURVEY_STEPS } from "@/utils/surveyConfig";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import InfluencerAudioManager from "../influencer-audio-manager/InfluencerAudioManager";
+import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
+import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
+import SvgPack from "@/utils/SvgPack";
 import styles from "./ProfileSurvey.module.css";
 
 interface SurveyState {
@@ -325,6 +328,7 @@ const ProfileSurveyForm: React.FC = () => {
 
   return (
     <div className={styles.screen}>
+      <div className={styles.outerframe}>
       <div className={styles.frame}>
         <div className={`${styles.card} ${styles.formCard}`}>
           <div className={styles.headerRow}>
@@ -343,6 +347,8 @@ const ProfileSurveyForm: React.FC = () => {
               <p className={styles.subtitle}>
                 Step {stepIndex + 1} of {wizardTotalSteps}
               </p>
+              <h2 className={styles.title}>{step.title}</h2>
+
             </div>
             <span className={styles.saving}>
               {saving ? "Saving..." : "Saved"}
@@ -350,6 +356,7 @@ const ProfileSurveyForm: React.FC = () => {
           </div>
 
           <div className={styles.content}>
+
             {/* STEPS DO FORM PDF */}
             {isSurveyStep &&
               currentSurveyStep &&
@@ -377,6 +384,55 @@ const ProfileSurveyForm: React.FC = () => {
                       {fieldErrors[q.id] && (
                         <div className={styles.error}>{fieldErrors[q.id]}</div>
                       )}
+
+            {step.questions.map((q: SurveyQuestion) => {
+              // text / textarea
+              if (q.type === "text" || q.type === "textarea") {
+                const InputTag: React.ElementType =
+                  q.type === "textarea" ? "textarea" : "input";
+                return (
+                  <div key={q.id} className={styles.field}>
+                    <label className={styles.label}>
+                      {q.label}{" "}
+                      {q.required && <span className={styles.required}>*</span>}
+                    </label>
+                    {fieldErrors[q.id] && (
+                      <div className={styles.error}>{fieldErrors[q.id]}</div>
+                    )}
+                    <InputTag
+                      className={styles.input}
+                      value={answers[q.id] || ""}
+                      onChange={(
+                        e: React.ChangeEvent<
+                          HTMLInputElement | HTMLTextAreaElement
+                        >
+                      ) => updateAnswer(q.id, e.target.value)}
+                    />
+                   
+                  </div>
+                );
+              }
+
+              // radio
+              if (q.type === "radio") {
+                return (
+                  <div key={q.id} className={styles.field}>
+                    <label className={styles.label}>
+                      {q.label}{" "}
+                      {q.required && <span className={styles.required}>*</span>}
+                    </label>
+                    <div className={styles.radioGroup}>
+                      {q.options?.map((opt: SurveyRadioOption) => (
+                        <label key={opt.value}>
+                          <input
+                            type="radio"
+                            name={q.id}
+                            checked={answers[q.id] === opt.value}
+                            onChange={() => updateAnswer(q.id, opt.value)}
+                          />
+                          {opt.label}
+                        </label>
+                      ))}
                     </div>
                   );
                 }
@@ -583,20 +639,26 @@ const ProfileSurveyForm: React.FC = () => {
               Step {stepIndex + 1} of {wizardTotalSteps}
             </div>
             <div className={styles.buttonRow}>
-              <button
-                className={styles.btnOutline}
-                disabled={stepIndex === 0}
-                onClick={handleBack}
-              >
-                Back
-              </button>
-              <button className={styles.btnPrimary} onClick={handleNext}>
-                {isLastStep ? "Finish" : "Next"}
-              </button>
+                          <div className="">
+                          <NormalButton
+                            onClick={handleBack}
+                            text="Back"
+                             disabled={stepIndex === 0}
+                            leftIcon={<SvgPack.ArrowLeft />}
+                          />
+                        </div>
+                      <div className="tm-income-button-container">
+          <PrimaryButton
+            onClick={handleNext}
+            text={isLastStep ? "Finish" : "Next"}
+            rightIcon={<SvgPack.ArrowRight />}
+          />
+        </div>
             </div>
           </div>
+          <div className={styles.spacerSurvey}></div>
         </div>
-      </div>
+      </div></div>
     </div>
   );
 };

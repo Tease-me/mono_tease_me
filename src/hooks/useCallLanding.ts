@@ -1,9 +1,9 @@
-import { useConversation } from "@11labs/react";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useMicrophonePermission } from "./useMicrophonePermission";
 import { ChatRepository } from "@/data/repositories/ChatRepo";
 import logger from "@/utils/logger";
 import { AuthContext } from "@/context/AuthContext";
+import { useConversation } from "@elevenlabs/react";
 
 export default function useCallLanding() {
   const [status, setStatus] = useState<

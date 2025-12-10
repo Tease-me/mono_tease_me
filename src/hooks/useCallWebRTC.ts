@@ -5,7 +5,7 @@ import logger from "@/utils/logger";
 import { AuthContext } from "@/context/AuthContext";
 import { useConversation } from "@elevenlabs/react";
 
-export default function useCall() {
+export default function useCallWebRTC() {
   const [status, setStatus] = useState<
     "connecting" | "connected" | "disconnected" | "idle" | "error"
   >("idle");
@@ -96,46 +96,33 @@ export default function useCall() {
         stopRing();
         return;
       }
+      if (!user || !user.id) {
+        alert("Please log in to start a call.");
+        setStatus("idle");
+        stopRing();
+        return;
+      }
       if (abortController.signal.aborted) {
         return;
       }
 
-      let signed_url: string | null = null;
-      let credits_remainder_secs = 30;
-      let first_message = "Hi there who am I speaking to?";
+      const { token: conversationToken, credits_remainder_secs, greeting_used } = await chatRepo.getConversationToken(
+        influencerId,
+        user.id,
+        abortController.signal,
+      );
 
-      if (!user || !user.id) {
-        const response = await chatRepo.getFreeSignedUrl(
-          influencerId,
-          abortController.signal,
-        );
-        if (abortController.signal.aborted) {
-          return;
-        }
-        signed_url = response.signed_url;
-        credits_remainder_secs = response.credits_remainder_secs;
-        first_message = response.first_message || first_message;
-      } else {
-        const response = await chatRepo.getSignedUrl(
-          influencerId,
-          user.id ?? 0,
-          abortController.signal,
-        );
-        if (abortController.signal.aborted) {
-          return;
-        }
-        signed_url = response.signed_url;
-        credits_remainder_secs = response.credits_remainder_secs;
-        first_message = response.first_message || first_message;
+      if (abortController.signal.aborted) {
+        return;
       }
 
-      if (!signed_url) {
+      if (!conversationToken) {
         stopRing();
         setStatus("idle");
         return;
       }
 
-      if (credits_remainder_secs <= 0) {
+      if ((credits_remainder_secs ?? 0) <= 0) {
         alert("You have no remaining credits. Please top up to start a conversation.");
         stopRing();
         setStatus("idle");
@@ -143,10 +130,11 @@ export default function useCall() {
       }
 
       const conversationId = await conversation.startSession({
-        signedUrl: signed_url,
+        conversationToken,
+        connectionType: "webrtc",
         dynamicVariables: {
-          first_message: first_message,
-        }
+          first_message: greeting_used ?? "",
+        },
       });
 
       if (abortController.signal.aborted) {
@@ -168,7 +156,7 @@ export default function useCall() {
         return;
       }
 
-      setTimeRemaining(credits_remainder_secs);
+      setTimeRemaining(credits_remainder_secs ?? null);
     } catch (error) {
       if (!abortController.signal.aborted) {
         setStatus("error");

@@ -2,18 +2,6 @@
 # yarn lockfile v1
 
 
-"@11labs/client@0.1.4":
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/@11labs/client/-/client-0.1.4.tgz#acaba70f591f5d1dd1033c6dbc7b8c43bdd04a08"
-  integrity sha512-XxNl4GpNW9NYOD1P5apzZBpcNOP0Zu4goZu8Lud1iTIVkjv3fDp+hyurZoSTUdsik/TIeuxMgbd392M/EQgoKw==
-
-"@11labs/react@^0.1.4":
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/@11labs/react/-/react-0.1.4.tgz#c4baddf2bc7936a31da381d4d201f75e11d0e05d"
-  integrity sha512-iJ+cRfoj6WNQ9U48Umvhf4yw+LhmLYtkPXiU85Nj74paPQbSNBDTq6kwi7BTu2DtfgqP65T5BEjWhheV2IxogA==
-  dependencies:
-    "@11labs/client" "0.1.4"
-
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.27.1":
   version "7.27.1"
   resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.27.1.tgz#200f715e66d52a23b221a9435534a91cc13ad5be"
@@ -187,12 +175,25 @@
   resolved "https://registry.yarnpkg.com/@dimforge/rapier3d-compat/-/rapier3d-compat-0.12.0.tgz#7b3365e1dfdc5cd957b45afe920b4ac06c7cd389"
   integrity sha512-uekIGetywIgopfD97oDL5PfeezkFpNhwlzlaEYNOA0N6ghdsOvh/HYjSMek5Q2O1PYvRSDFcqFVJl4r4ZBwOow==
 
-"@elevenlabs/client@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@elevenlabs/client/-/client-0.3.0.tgz#5c12a2f6c91d013bfc89f35d979868e89b743f45"
-  integrity sha512-xyNGNo3L6z4Sog44jpGWIIXgRskPolDhly7nQ+H62Ca2Q3s1CTkJ/xhDNk06eRr21aAzW8122FMOyTemg0t8kQ==
+"@elevenlabs/client@0.12.0", "@elevenlabs/client@^0.12.0":
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/@elevenlabs/client/-/client-0.12.0.tgz#bf55191879014ed2c9b9137705d8e43a70235529"
+  integrity sha512-iMpDqvte8ozXT/jWcD4eKiik4yLigTMpmyMGCiuKsKajbS5ebSja/8T+qc/ZXmI1iRUy+wLTUJRGGYns1Tqj+g==
   dependencies:
+    "@elevenlabs/types" "0.4.0"
     livekit-client "^2.11.4"
+
+"@elevenlabs/react@^0.12.1":
+  version "0.12.1"
+  resolved "https://registry.yarnpkg.com/@elevenlabs/react/-/react-0.12.1.tgz#877499d8cea3c02ca5e8612dfac0a62062278553"
+  integrity sha512-7dNT1dcSnsbGk3wv8LETFJn9O6zjD/qbcu75j7PvcrK7DS7P6YadPweheKt4KTlq6MnIh+X/nWZNKvpxd2ggBw==
+  dependencies:
+    "@elevenlabs/client" "0.12.0"
+
+"@elevenlabs/types@0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@elevenlabs/types/-/types-0.4.0.tgz#f5a45ef2b8ed5a304eef9f28ba0da0af8ccdd7c2"
+  integrity sha512-6CQb4r9DjepILhLybDxW0h8rvbsR8jPAp74HvFGYuvYdXcQRTkYTD9BQ4PV6VcuC1iqx0UljzJj8js3ADQ8EXw==
 
 "@esbuild/aix-ppc64@0.25.12":
   version "0.25.12"
