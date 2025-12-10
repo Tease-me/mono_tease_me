@@ -10,8 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@11labs/react": "^0.1.4",
-    "@elevenlabs/client": "^0.3.0",
+    "@elevenlabs/client": "^0.12.0",
+    "@elevenlabs/react": "^0.12.1",
     "@react-three/fiber": "^9.2.0",
     "@types/dom-mediacapture-record": "^1",
     "@types/three": "^0.178.1",
