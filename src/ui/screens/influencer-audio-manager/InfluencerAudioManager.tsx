@@ -14,7 +14,7 @@ interface InfluencerAudioResponse {
 
 interface Props {
   influencerId: string;
-  onCountChange?: (count: number) => void; // 👈 NOVO
+  onCountChange?: (count: number) => void;
 }
 
 const API_BASE_URL = `${import.meta.env.VITE_TEASE_ME_PROTOCOL}://${
@@ -103,7 +103,7 @@ const InfluencerAudioManager: React.FC<Props> = ({
       );
 
       setFile(null);
-      await fetchAudio(); // 👈 isso já atualiza count
+      await fetchAudio();
     } finally {
       setUploading(false);
     }
