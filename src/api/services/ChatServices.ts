@@ -83,13 +83,14 @@ export const ChatServices = () => ({
         }
     },
 
-    getConversationToken: async (influencer_id: string, signal?: AbortSignal): Promise<ConversationTokenResponse> => {
+    getConversationToken: async (influencer_id: string, user_id: number, signal?: AbortSignal): Promise<ConversationTokenResponse> => {
         try {
             const response = await apiClient.get(
                 Endpoints.elevenlabs.conversation_token,
                 {
                     params: {
                         influencer_id,
+                        user_id,
                     },
                     signal,
                 }

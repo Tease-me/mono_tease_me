@@ -36,4 +36,6 @@ export interface SignedUrlResponse {
 export interface ConversationTokenResponse {
     token: string;
     agent_id: string;
+    credits_remainder_secs: number;
+    greeting_used?: string;
 }

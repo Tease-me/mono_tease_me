@@ -57,8 +57,8 @@ export const ChatRepository = () => ({
         const response: SignedUrlResponse = await chatServices.getSignedLandingUrlFree(signal)
         return { signed_url: response.signed_url, credits_remainder_secs: response.credits_remainder_secs, first_message: response.greeting_used };
     },
-    getConversationToken: async (influencer_id: string, signal?: AbortSignal): Promise<ConversationTokenResponse> => {
-        return await chatServices.getConversationToken(influencer_id, signal);
+    getConversationToken: async (influencer_id: string, user_id: number, signal?: AbortSignal): Promise<ConversationTokenResponse> => {
+        return await chatServices.getConversationToken(influencer_id, user_id, signal);
     },
     registerConversation: async (conversation_id: string, user_id: number, influencer_id: string, signal?: AbortSignal) => {
         await chatServices.registerConversation(conversation_id, user_id, influencer_id, signal);
