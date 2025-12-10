@@ -6,6 +6,7 @@ import IncomeDialogStep01 from "@/ui/screens/landing-page/subscreens/IncomeDialo
 import ProfileSurvey from "@/ui/screens/landing-page/subscreens/ProfileSurvey";
 import ThankYouScreen from "@/ui/screens/landing-page/subscreens/ThankYouScreen";
 import UpdateProfile from "@/ui/screens/register/UpdateProfile";
+import ProfileSurveyForm from "@/ui/screens/survey/ProfileSurveyForm";
 import { JSX, Suspense, lazy } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import GuestRoute from "./components/GuestRoute";
@@ -58,7 +59,9 @@ function AppRoutes() {
       element: <InfluencerAudioManagerRoute />,
     },
     { path: "/thank-you", element: <ThankYouScreen /> },
+    { path: "/profile-survey-form", element: <ProfileSurveyForm /> },
   ];
+
   const guestRoutes: { path: string; element: JSX.Element }[] = [
     { path: "/login", element: <LoginScreen /> },
     { path: "/register", element: <RegisterScreen /> },
