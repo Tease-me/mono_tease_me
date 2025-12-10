@@ -13,6 +13,7 @@ export interface MessageResponse {
     id: number;
     chat_id: string;
     sender: string;
+    conversation_id?: string;
     content: string;
     audio_url: string;
     channel?: string;

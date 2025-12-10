@@ -19,9 +19,11 @@ export const ChatRepository = () => ({
                     sender: item.sender === 'ai' ? "received" : "sent",
                     channel: item.channel ?? "chat",
                     text: item.content,
+                    callId: item.conversation_id ?? item.chat_id,
                     time: formatDateTimeRelative(item.created_at),
                     timestamp: new Date(item.created_at).getTime(),
                 }
+
                 if (item.audio_url != null) {
                     message.attachments = [
                         { audioUrl: item.audio_url, type: "audio" }
