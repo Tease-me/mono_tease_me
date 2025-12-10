@@ -114,7 +114,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
     const chatRepository = ChatRepository();
     const influencerRepo = InfluencerRepo();
-    const { status, startConversation, stopConversation, setInfluencerId, timeRemaining } = useCall();
+    const { status, startConversation, stopConversation, setInfluencerId, timeRemaining, micMuted, toggleMute } = useCall();
     const displayMessages = useMemo(() => messages ? mergeCallMessages(messages) : [], [messages]);
     useEffect(() => {
         (async () => {
@@ -392,7 +392,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 isOpen={openWelcomeCallModal}
                 onClose={() => setOpenWelcomeCallModal(false)}
                 stopConversation={stopConversation}
-                influencer={influencer} />
+                influencer={influencer}
+                micMuted={micMuted}
+                toggleMute={toggleMute} />
         </div>
     );
 };
