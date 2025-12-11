@@ -265,8 +265,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         scrollToBottom();
     }
 
-    const sendMessage = () => {
+    const sendMessage = (forcedAudio?: Blob) => {
         if (!influencer) return;
+
+        const audioToSend = forcedAudio ?? inputAudio;
 
         if (inputText.trim()) {
             setTyping(true);
@@ -295,9 +297,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             });
 
             setInputText("");
-        } else if (inputAudio) {
+        } else if (audioToSend) {
             setTyping(true);
-            sendAndPlay(inputAudio);
+            sendAndPlay(audioToSend);
             setMessages(prev => {
                 if (!prev) return
                 return [
@@ -313,7 +315,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                         timestamp: Date.now(),
                         attachments: [
                             {
-                                blob: inputAudio,
+                                blob: audioToSend,
                                 type: "audio"
                             }
                         ]

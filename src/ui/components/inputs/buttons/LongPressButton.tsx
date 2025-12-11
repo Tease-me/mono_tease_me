@@ -29,7 +29,7 @@ const LongPressButton: React.FC<LongPressButtonProps> = ({
     const isLongPress = useRef(false);
     const isDragging = useRef(false);
     const startPosition = useRef<{ x: number; y: number } | null>(null);
-    const movementThreshold = 5;
+    const movementThreshold = 20;
 
     const handleMouseDown = (event: React.MouseEvent) => {
         startPosition.current = { x: event.clientX, y: event.clientY };
@@ -99,6 +99,17 @@ const LongPressButton: React.FC<LongPressButtonProps> = ({
         }
     };
 
+    const handleMouseLeave = () => {
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+        }
+        if (isLongPress.current || isDragging.current) {
+            props.onDragEnd?.();
+        }
+        isLongPress.current = false;
+        isDragging.current = false;
+    };
+
     const handleTouchMove = (event: React.TouchEvent) => {
         const touch = event.touches[0];
         if (startPosition.current && !isDragging.current) {
@@ -114,15 +125,28 @@ const LongPressButton: React.FC<LongPressButtonProps> = ({
             props.onDrag?.();
         }
     };
+
+    const handleTouchCancel = () => {
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+        }
+        if (isLongPress.current || isDragging.current) {
+            props.onDragEnd?.();
+        }
+        isLongPress.current = false;
+        isDragging.current = false;
+    };
     return (
         <IconButton draggable={false}
             {...props}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
             onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
             onTouchMove={handleTouchMove}
+            onTouchCancel={handleTouchCancel}
             onContextMenu={(e) => e.preventDefault()} />
     );
 };
