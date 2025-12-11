@@ -39,4 +39,5 @@ export interface ConversationTokenResponse {
     credits_remainder_secs: number;
     greeting_used?: string;
     prompt?: string;
+    native_language?: string;
 }
