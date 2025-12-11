@@ -39,4 +39,6 @@ export interface ConversationTokenResponse {
     agent_id: string;
     credits_remainder_secs: number;
     greeting_used?: string;
+    prompt?: string;
+    native_language?: string;
 }
