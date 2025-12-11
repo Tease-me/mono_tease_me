@@ -228,9 +228,9 @@ const CreateInfluencer: React.FC = () => {
     const [uploadParseError, setUploadParseError] = useState<string | null>(null);
     const [expandedRecords, setExpandedRecords] = useState<Set<number>>(() => new Set<number>());
     const [promptSaveState, setPromptSaveState] = useState<"idle" | "saving" | "success" | "error">("idle");
-    const [voicePromptSaveState, setVoicePromptSaveState] = useState<"idle" | "saving" | "success" | "error">("idle");
+    // const [voicePromptSaveState, setVoicePromptSaveState] = useState<"idle" | "saving" | "success" | "error">("idle");
     const [promptSaveError, setPromptSaveError] = useState<string | null>(null);
-    const [voicePromptSaveError, setVoicePromptSaveError] = useState<string | null>(null);
+    // const [voicePromptSaveError, setVoicePromptSaveError] = useState<string | null>(null);
     const [knowledgeFiles, setKnowledgeFiles] = useState<KnowledgeFileModel[]>([]);
     const [knowledgeLoading, setKnowledgeLoading] = useState(false);
     const [knowledgeError, setKnowledgeError] = useState<string | null>(null);
@@ -359,16 +359,16 @@ const CreateInfluencer: React.FC = () => {
         return undefined;
     }, [promptSaveState]);
 
-    useEffect(() => {
-        if (voicePromptSaveState === "success" || voicePromptSaveState === "error") {
-            const timeout = setTimeout(() => {
-                setVoicePromptSaveState("idle");
-                setVoicePromptSaveError(null);
-            }, 3000);
-            return () => clearTimeout(timeout);
-        }
-        return undefined;
-    }, [voicePromptSaveState]);
+    // useEffect(() => {
+    //     if (voicePromptSaveState === "success" || voicePromptSaveState === "error") {
+    //         const timeout = setTimeout(() => {
+    //             setVoicePromptSaveState("idle");
+    //             setVoicePromptSaveError(null);
+    //         }, 3000);
+    //         return () => clearTimeout(timeout);
+    //     }
+    //     return undefined;
+    // }, [voicePromptSaveState]);
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -493,55 +493,55 @@ const CreateInfluencer: React.FC = () => {
         }
     };
 
-    const handleVoicePromptSave = async () => {
-        if (!selectedId || selectedId === "new") {
-            setVoicePromptSaveState("error");
-            setVoicePromptSaveError("Select an influencer to update the voice prompt.");
-            return;
-        }
-        const existing = influencers.find((influencer) => influencer.id === selectedId);
-        if (!existing) {
-            setVoicePromptSaveState("error");
-            setVoicePromptSaveError("Influencer not found.");
-            return;
-        }
+    // const handleVoicePromptSave = async () => {
+    //     if (!selectedId || selectedId === "new") {
+    //         setVoicePromptSaveState("error");
+    //         setVoicePromptSaveError("Select an influencer to update the voice prompt.");
+    //         return;
+    //     }
+    //     const existing = influencers.find((influencer) => influencer.id === selectedId);
+    //     if (!existing) {
+    //         setVoicePromptSaveState("error");
+    //         setVoicePromptSaveError("Influencer not found.");
+    //         return;
+    //     }
 
-        const payload: InfluencerDataModel = {
-            ...existing,
-            prompt_template: existing.prompt_template,
-            influencer_agent_id_third_part: formState.influencer_agent_id_third_part || existing.influencer_agent_id_third_part,
-            voice_prompt: formState.voice_prompt,
-            voice_id: formState.voice_id || existing.voice_id,
-        };
+    //     const payload: InfluencerDataModel = {
+    //         ...existing,
+    //         prompt_template: existing.prompt_template,
+    //         influencer_agent_id_third_part: formState.influencer_agent_id_third_part || existing.influencer_agent_id_third_part,
+    //         voice_prompt: formState.voice_prompt,
+    //         voice_id: formState.voice_id || existing.voice_id,
+    //     };
 
-        setVoicePromptSaveState("saving");
-        setVoicePromptSaveError(null);
+    //     setVoicePromptSaveState("saving");
+    //     setVoicePromptSaveError(null);
 
-        try {
-            const serverInfluencer = await influencerRepo.patchInfluencer(
-                payload,
-                payload.prompt_template,
-                payload.daily_scripts,
-                payload.influencer_agent_id_third_part,
-                payload.voice_prompt,
-                payload.voice_id,
-            );
-            const mergedInfluencer = { ...payload, ...serverInfluencer };
-            updateInfluencerCollection(mergedInfluencer);
-            setFormState((prev) => ({
-                ...prev,
-                id: mergedInfluencer.id,
-                influencer_agent_id_third_part: mergedInfluencer.influencer_agent_id_third_part ?? prev.influencer_agent_id_third_part,
-                voice_id: mergedInfluencer.voice_id ?? prev.voice_id,
-                voice_prompt: mergedInfluencer.voice_prompt ?? prev.voice_prompt,
-            }));
-            setVoicePromptSaveState("success");
-        } catch (err) {
-            console.error("Failed to save voice prompt:", err);
-            setVoicePromptSaveState("error");
-            setVoicePromptSaveError(err instanceof Error ? err.message : "Unable to save voice prompt");
-        }
-    };
+    //     try {
+    //         const serverInfluencer = await influencerRepo.patchInfluencer(
+    //             payload,
+    //             payload.prompt_template,
+    //             payload.daily_scripts,
+    //             payload.influencer_agent_id_third_part,
+    //             payload.voice_prompt,
+    //             payload.voice_id,
+    //         );
+    //         const mergedInfluencer = { ...payload, ...serverInfluencer };
+    //         updateInfluencerCollection(mergedInfluencer);
+    //         setFormState((prev) => ({
+    //             ...prev,
+    //             id: mergedInfluencer.id,
+    //             influencer_agent_id_third_part: mergedInfluencer.influencer_agent_id_third_part ?? prev.influencer_agent_id_third_part,
+    //             voice_id: mergedInfluencer.voice_id ?? prev.voice_id,
+    //             voice_prompt: mergedInfluencer.voice_prompt ?? prev.voice_prompt,
+    //         }));
+    //         setVoicePromptSaveState("success");
+    //     } catch (err) {
+    //         console.error("Failed to save voice prompt:", err);
+    //         setVoicePromptSaveState("error");
+    //         setVoicePromptSaveError(err instanceof Error ? err.message : "Unable to save voice prompt");
+    //     }
+    // };
 
     const handleCreateNew = () => {
         setSelectedId("new");
@@ -937,7 +937,7 @@ const CreateInfluencer: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className={styles["field"]}>
+                            {/* <div className={styles["field"]}>
                                 <label htmlFor="influencer-voice-prompt">Voice prompt</label>
                                 <textarea
                                     id="influencer-voice-prompt"
@@ -960,7 +960,7 @@ const CreateInfluencer: React.FC = () => {
                                         {voicePromptSaveState === "saving" ? "Saving…" : "Save voice prompt only"}
                                     </button>
                                 </div>
-                            </div>
+                            </div> */}
 
                             <div className={styles["form-footer"]}>
                                 {saveState !== "idle" && (
