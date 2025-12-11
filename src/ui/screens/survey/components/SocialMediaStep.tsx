@@ -5,12 +5,18 @@ interface SocialMediaStepProps {
   answers: Record<string, any>;
   updateAnswer: (key: string, value: any) => void;
   socialError: string | null;
+  onVerifyInstagram: () => void;
+  instagramVerifying: boolean;
+  onConnectInstagram: () => void; // 👈 ADD AQUI
 }
 
 const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
   answers,
   updateAnswer,
   socialError,
+  onVerifyInstagram,
+  instagramVerifying,
+  onConnectInstagram,
 }) => {
   return (
     <div className={styles.field}>
@@ -22,16 +28,61 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
         required.
       </p>
 
+      {/* INSTAGRAM + VERIFY */}
       <div className={styles.field}>
         <label className={styles.label}>Instagram</label>
-        <input
-          className={styles.input}
-          placeholder="@username"
-          value={answers["social_instagram"] || ""}
-          onChange={(e) => updateAnswer("social_instagram", e.target.value)}
-        />
+
+        <div className={styles.inlineGroup}>
+          <input
+            className={styles.input}
+            placeholder="@username"
+            value={answers["social_instagram"] || ""}
+            onChange={(e) => {
+              updateAnswer("social_instagram", e.target.value);
+              // limpamos status se ela mudar o @
+              updateAnswer("social_instagram_verified", false);
+              updateAnswer("social_instagram_verify_error", null);
+            }}
+          />
+          <div className={styles.field}>
+            <button
+              type="button"
+              className={styles.connectButton}
+              onClick={onConnectInstagram}
+            >
+              🔗 Connect Instagram
+            </button>
+            <p className={styles.subtitle}>
+              Connect your account so we can verify it and fetch follower count.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            className={styles.verifyButton}
+            onClick={onVerifyInstagram}
+            disabled={!answers["social_instagram"] || instagramVerifying}
+          >
+            {instagramVerifying ? "Verifying..." : "Verify"}
+          </button>
+        </div>
+
+        {answers["social_instagram_verified"] && (
+          <div className={styles.subtitleSuccess}>
+            ✅ Verified –{" "}
+            {answers["social_instagram_followers"]?.toLocaleString() || "0"}{" "}
+            followers
+          </div>
+        )}
+
+        {answers["social_instagram_verify_error"] && (
+          <div className={styles.error}>
+            {answers["social_instagram_verify_error"]}
+          </div>
+        )}
       </div>
 
+      {/* RESTO IGUAL */}
       <div className={styles.field}>
         <label className={styles.label}>TikTok</label>
         <input

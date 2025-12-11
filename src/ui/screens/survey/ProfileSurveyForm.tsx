@@ -56,6 +56,7 @@ const ProfileSurveyForm: React.FC = () => {
   const [pictureError, setPictureError] = useState<string | null>(null);
   const [socialError, setSocialError] = useState<string | null>(null);
   const [pictureUrl, setPictureUrl] = useState<string | null>(null);
+  const [instagramVerifying, setInstagramVerifying] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -65,7 +66,6 @@ const ProfileSurveyForm: React.FC = () => {
   const audioStepIndex = surveyStepsCount + 2;
   const wizardTotalSteps = surveyStepsCount + 3;
 
-  // 1) Load initial state via token
   useEffect(() => {
     const load = async () => {
       if (!token) {
@@ -97,7 +97,6 @@ const ProfileSurveyForm: React.FC = () => {
     load();
   }, [token, wizardTotalSteps]);
 
-  // 2) Update answer locally
   const updateAnswer = (key: string, value: any) => {
     setAnswers((prev) => ({
       ...prev,
@@ -106,7 +105,6 @@ const ProfileSurveyForm: React.FC = () => {
     setFieldErrors((prev) => ({ ...prev, [key]: null }));
   };
 
-  // 3) Autosave
   useEffect(() => {
     if (!preInfluencerId) return;
     if (loading) return;
@@ -128,7 +126,6 @@ const ProfileSurveyForm: React.FC = () => {
     return () => clearTimeout(timeout);
   }, [answers, stepIndex, preInfluencerId, loading]);
 
-  // 4) Load picture URL when we have a key
   useEffect(() => {
     if (!preInfluencerId) return;
 
@@ -153,7 +150,35 @@ const ProfileSurveyForm: React.FC = () => {
     fetchUrl();
   }, [preInfluencerId, answers["profile_picture_key"]]);
 
-  // Validation for survey steps (PDF questions)
+  const handleVerifyInstagram = async () => {
+    const handle = answers["social_instagram"];
+    if (!handle || typeof handle !== "string") return;
+
+    updateAnswer("social_instagram_verify_error", null);
+    updateAnswer("social_instagram_verified", false);
+
+    try {
+      setInstagramVerifying(true);
+
+      const { data } = await apiClient.post("/social/validate", {
+        platform: "instagram",
+        handle,
+      });
+
+      updateAnswer("social_instagram_normalized", data.username);
+      updateAnswer("social_instagram_followers", data.followers_count);
+      updateAnswer("social_instagram_verified", true);
+    } catch (err) {
+      console.error("Error verifying Instagram:", err);
+      updateAnswer(
+        "social_instagram_verify_error",
+        "Could not verify this Instagram. Please check the username."
+      );
+    } finally {
+      setInstagramVerifying(false);
+    }
+  };
+
   const validateSurveyStep = (): boolean => {
     const step = SURVEY_STEPS[stepIndex];
     const newErrors: Record<string, string> = {};
@@ -333,6 +358,20 @@ const ProfileSurveyForm: React.FC = () => {
   const currentSurveyStep =
     isSurveyStep && SURVEY_STEPS[stepIndex] ? SURVEY_STEPS[stepIndex] : null;
 
+  const handleConnectInstagram = async () => {
+    try {
+      const { data } = await apiClient.get("/auth/instagram/login");
+
+      if (data.url) {
+        window.location.href = data.url + "&pre_inf_id=" + preInfluencerId;
+      } else {
+        console.error("No Instagram login URL returned.");
+      }
+    } catch (err) {
+      console.error("Error starting Instagram login:", err);
+    }
+  };
+
   return (
     <div className={styles.screen}>
       <div className={styles.outerframe}>
@@ -471,6 +510,9 @@ const ProfileSurveyForm: React.FC = () => {
                   answers={answers}
                   updateAnswer={updateAnswer}
                   socialError={socialError}
+                  onVerifyInstagram={handleVerifyInstagram}
+                  instagramVerifying={instagramVerifying}
+                  onConnectInstagram={handleConnectInstagram}
                 />
               )}
 
