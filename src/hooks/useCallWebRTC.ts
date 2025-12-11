@@ -48,6 +48,7 @@ export default function useCallWebRTC() {
   const [micMuted, setMicMuted] = useState<boolean>(false);
   const [agentPrompt, setAgentPrompt] = useState<string | undefined>(undefined);
   const [agentFirstMessage, setAgentFirstMessage] = useState<string | undefined>(undefined);
+  const [agentLanguage, setAgentLanguage] = useState<string>("en");
 
   const conversation = useConversation({
     micMuted,
@@ -65,7 +66,7 @@ export default function useCallWebRTC() {
       agent: {
         prompt: { prompt: agentPrompt },
         firstMessage: agentFirstMessage,
-        language: "en",
+        language: agentLanguage,
       },
     },
     onConnect: () => {
@@ -122,13 +123,16 @@ export default function useCallWebRTC() {
         return;
       }
 
-      const { token: conversationToken, credits_remainder_secs, greeting_used, prompt } = await chatRepo.getConversationToken(
+      const { token: conversationToken, credits_remainder_secs, greeting_used, prompt, native_language } = await chatRepo.getConversationToken(
         influencerId,
         user.id,
         abortController.signal,
       );
+
+      setAgentLanguage(native_language || "en");
       setAgentPrompt(prompt || undefined);
       setAgentFirstMessage(greeting_used ?? undefined);
+
       if (abortController.signal.aborted) {
         return;
       }
