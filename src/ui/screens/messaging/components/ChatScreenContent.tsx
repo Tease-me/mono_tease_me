@@ -34,31 +34,35 @@ const isCallChannel = (message: Message) => {
 };
 
 const mergeCallMessages = (messageList: Message[]): DisplayMessage[] => {
-    const merged: DisplayMessage[] = [];
-    let currentCallGroup: CallMessageGroup | null = null;
+  const merged: DisplayMessage[] = [];
+  let currentCallGroup: CallMessageGroup | null = null;
 
-    messageList.forEach((message) => {
-        if (isCallChannel(message)) {
-            if (!currentCallGroup) {
-                currentCallGroup = {
-                    id: `call-${message.id}`,
-                    sender: "sent",
-                    time: message.time,
-                    messages: [],
-                    type: "call-group",
-                };
-                merged.push(currentCallGroup);
-            }
-            currentCallGroup.messages.push(message);
-            currentCallGroup.time = message.time;
-            return;
-        }
+  messageList.forEach((message) => {
+    if (isCallChannel(message)) {
+      const id = message.callId || `call-${message.id}`;
+      const needsNew = !currentCallGroup || currentCallGroup.id !== id;
 
-        currentCallGroup = null;
-        merged.push(message);
-    });
+      if (needsNew) {
+        currentCallGroup = {
+          id,
+          sender: "sent",
+          time: message.time,
+          messages: [],
+          type: "call-group",
+        };
+        merged.push(currentCallGroup);
+      }
 
-    return merged;
+      currentCallGroup!.messages.push(message);
+      currentCallGroup!.time = message.time;
+      return;
+    }
+
+    currentCallGroup = null;
+    merged.push(message);
+  });
+
+  return merged;
 };
 
 const MessagesList = React.memo(({ messages, typing, messagesEndRef, influencerName }: { messages: DisplayMessage[]; typing: boolean; messagesEndRef: React.RefObject<HTMLDivElement | null>; influencerName?: string; }) => {
@@ -250,8 +254,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         scrollToBottom();
     }
 
-    const sendMessage = () => {
+    const sendMessage = (forcedAudio?: Blob) => {
         if (!influencer) return;
+
+        const audioToSend = forcedAudio ?? inputAudio;
 
         if (inputText.trim()) {
             setTyping(true);
@@ -280,9 +286,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             });
 
             setInputText("");
-        } else if (inputAudio) {
+        } else if (audioToSend) {
             setTyping(true);
-            sendAndPlay(inputAudio);
+            sendAndPlay(audioToSend);
             setMessages(prev => {
                 if (!prev) return
                 return [
@@ -298,7 +304,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                         timestamp: Date.now(),
                         attachments: [
                             {
-                                blob: inputAudio,
+                                blob: audioToSend,
                                 type: "audio"
                             }
                         ]
@@ -313,6 +319,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
     const onCall = () => {
         startConversation();
+        
         setOpenWelcomeCallModal(true);
         // if (!id) {
         //     navigate("/voice", {
