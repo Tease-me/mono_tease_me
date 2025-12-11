@@ -359,13 +359,20 @@ const ProfileSurveyForm: React.FC = () => {
     isSurveyStep && SURVEY_STEPS[stepIndex] ? SURVEY_STEPS[stepIndex] : null;
 
   const handleConnectInstagram = async () => {
+    if (!preInfluencerId) {
+      console.error("No preInfluencerId loaded yet");
+      return;
+    }
+
     try {
-      const { data } = await apiClient.get("/auth/instagram/login");
+      const { data } = await apiClient.get("/auth/instagram/login", {
+        params: { pre_inf_id: preInfluencerId },
+      });
 
       if (data.url) {
-        window.location.href = data.url + "&pre_inf_id=" + preInfluencerId;
+        window.location.href = data.url;
       } else {
-        console.error("No Instagram login URL returned.");
+        console.error("No url returned from /auth/instagram/login");
       }
     } catch (err) {
       console.error("Error starting Instagram login:", err);

@@ -7,7 +7,7 @@ interface SocialMediaStepProps {
   socialError: string | null;
   onVerifyInstagram: () => void;
   instagramVerifying: boolean;
-  onConnectInstagram: () => void; // 👈 ADD AQUI
+  onConnectInstagram: () => void;
 }
 
 const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
@@ -39,7 +39,6 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
             value={answers["social_instagram"] || ""}
             onChange={(e) => {
               updateAnswer("social_instagram", e.target.value);
-              // limpamos status se ela mudar o @
               updateAnswer("social_instagram_verified", false);
               updateAnswer("social_instagram_verify_error", null);
             }}
