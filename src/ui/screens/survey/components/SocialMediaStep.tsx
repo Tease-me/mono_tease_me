@@ -6,8 +6,8 @@ interface SocialMediaStepProps {
   updateAnswer: (key: string, value: any) => void;
   socialError: string | null;
   onVerifyInstagram: () => void;
+  onVerifyTwitter: () => void;
   instagramVerifying: boolean;
-  onConnectInstagram: () => void;
 }
 
 const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
@@ -15,8 +15,8 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
   updateAnswer,
   socialError,
   onVerifyInstagram,
+  onVerifyTwitter,
   instagramVerifying,
-  onConnectInstagram,
 }) => {
   return (
     <div className={styles.field}>
@@ -41,20 +41,9 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
               updateAnswer("social_instagram", e.target.value);
               updateAnswer("social_instagram_verified", false);
               updateAnswer("social_instagram_verify_error", null);
+              updateAnswer("social_instagram_followers", null);
             }}
           />
-          <div className={styles.field}>
-            <button
-              type="button"
-              className={styles.connectButton}
-              onClick={onConnectInstagram}
-            >
-              🔗 Connect Instagram
-            </button>
-            <p className={styles.subtitle}>
-              Connect your account so we can verify it and fetch follower count.
-            </p>
-          </div>
 
           <button
             type="button"
@@ -68,7 +57,6 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
 
         {answers["social_instagram_verified"] && (
           <div className={styles.subtitleSuccess}>
-            ✅ Verified –{" "}
             {answers["social_instagram_followers"]?.toLocaleString() || "0"}{" "}
             followers
           </div>
@@ -114,12 +102,42 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
 
       <div className={styles.field}>
         <label className={styles.label}>X (Twitter)</label>
-        <input
-          className={styles.input}
-          placeholder="@username"
-          value={answers["social_x"] || ""}
-          onChange={(e) => updateAnswer("social_x", e.target.value)}
-        />
+
+        <div className={styles.inlineGroup}>
+          <input
+            className={styles.input}
+            placeholder="@username"
+            value={answers["social_x"] || ""}
+            onChange={(e) => {
+              updateAnswer("social_x", e.target.value);
+              updateAnswer("social_twitter_verified", false);
+              updateAnswer("social_twitter_verify_error", null);
+              updateAnswer("social_twitter_followers", null);
+            }}
+          />
+
+          <button
+            type="button"
+            className={styles.verifyButton}
+            onClick={onVerifyTwitter}
+            disabled={!answers["social_x"] || instagramVerifying}
+          >
+            {instagramVerifying ? "Verifying..." : "Verify"}
+          </button>
+        </div>
+
+        {answers["social_twitter_verified"] && (
+          <div className={styles.subtitleSuccess}>
+            {answers["social_twitter_followers"]?.toLocaleString() || "0"}{" "}
+            followers
+          </div>
+        )}
+
+        {answers["social_twitter_verify_error"] && (
+          <div className={styles.error}>
+            {answers["social_twitter_verify_error"]}
+          </div>
+        )}
       </div>
 
       <div className={styles.field}>
