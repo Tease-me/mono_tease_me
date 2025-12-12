@@ -8,6 +8,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import InfluencerAudioManager from "../influencer-audio-manager/InfluencerAudioManager";
 import SocialMediaStep from "./components/SocialMediaStep";
 import styles from "./ProfileSurvey.module.css";
+import UploadPictureStep from "./components/UploadPictureStep";
+
 
 interface SurveyState {
   pre_influencer_id: number;
@@ -390,12 +392,12 @@ const ProfileSurveyForm: React.FC = () => {
                   {isSurveyStep && currentSurveyStep
                     ? currentSurveyStep.title
                     : isPictureStep
-                    ? "Upload Your Picture"
-                    : isSocialsStep
-                    ? "Add Your Social Media"
-                    : isAudioStep
-                    ? "Upload Your Audio"
-                    : "Profile Survey"}
+                      ? "Upload Your Picture"
+                      : isSocialsStep
+                        ? "Add Your Social Media"
+                        : isAudioStep
+                          ? "Upload Your Audio"
+                          : "Profile Survey"}
                 </h2>
                 <p className={styles.subtitle}>
                   Step {stepIndex + 1} of {wizardTotalSteps}
@@ -476,39 +478,7 @@ const ProfileSurveyForm: React.FC = () => {
 
               {/* STEP: PICTURE */}
               {isPictureStep && (
-                <div className={styles.field}>
-                  <label className={styles.label}>
-                    Picture of influencer{" "}
-                    <span className={styles.required}>*</span>
-                  </label>
-                  <p className={styles.subtitle}>
-                    Upload a clear profile picture. This will be used in your
-                    TeaseMe profile.
-                  </p>
-                  <input
-                    ref={fileInputRef}
-                    className={styles.input}
-                    type="file"
-                    accept="image/*"
-                    onChange={handlePictureSelect}
-                  />
-                  {uploadingPicture && (
-                    <div className={styles.subtitle}>Uploading…</div>
-                  )}
-                  {pictureUrl && !uploadingPicture && (
-                    <div className={styles.picturePreviewWrapper}>
-                      <div className={styles.subtitle}>Current picture:</div>
-                      <img
-                        src={pictureUrl}
-                        alt="Influencer profile"
-                        className={styles.picturePreview}
-                      />
-                    </div>
-                  )}
-                  {pictureError && (
-                    <div className={styles.error}>{pictureError}</div>
-                  )}
-                </div>
+                <UploadPictureStep uploading={uploadingPicture} pictureUrl={pictureUrl} pictureError={pictureError} onSelect={handlePictureSelect} inputRef={fileInputRef} />
               )}
 
               {/* STEP: SOCIAL MEDIA */}
