@@ -21,6 +21,13 @@ export const ChatServices = () => ({
             throw error;
         }
     },
+    clearChatHistory: async (chat_id: string): Promise<void> => {
+        try {
+            await apiClient.delete(Endpoints.admin.history(chat_id));
+        } catch (error) {
+            throw error;
+        }
+    },
     getChatId: async (user_id: number, influencer_id: string): Promise<ChatIdResponse> => {
         try {
             const response = await apiClient.post(
