@@ -421,3 +421,13 @@ textarea.input {
 .connectButton:hover {
   background: #ff4788;
 }
+
+.surveySubtitle {
+  font-size: 15px;
+  line-height: 1.55;
+  color: gray;          /* light, readable on dark bg */
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  margin: 4px 0 14px;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+}

@@ -1,6 +1,9 @@
 import React from "react";
 import surveyStyles from "../ProfileSurvey.module.css";
 import styles from "./UploadPictureStep.module.css";
+import iconCheckCircle from "@/assets/svg/iconCheckCircle.svg";
+import iconCross from "@/assets/svg/iconCross.svg";
+
 
 type Props = {
   uploading: boolean;
@@ -18,12 +21,28 @@ const UploadPictureStep: React.FC<Props> = ({
   inputRef,
 }) => (
   <div className={surveyStyles.field}>
+    <p className={surveyStyles.surveySubtitle}>Upload your best clear profile photo. This will be used as TeaseMe profile photo.</p><br></br>
     <label className={surveyStyles.label}>
-      Picture of influencer <span className={surveyStyles.required}>*</span>
+      Photo Tips
     </label>
-    <p className={surveyStyles.subtitle}>
-      Upload a clear profile picture. This will be used in your TeaseMe profile.
-    </p>
+    <ul className={styles.tipsList}>
+      <li className={styles.tip}>
+        <img className={styles.tipIcon} src={iconCheckCircle} alt="" />
+        Face camera directly
+      </li>
+      <li className={styles.tip}>
+        <img className={styles.tipIcon} src={iconCheckCircle} alt="" />
+        Neutral simple background
+      </li>
+      <li className={styles.tip}>
+        <img className={styles.tipIcon} src={iconCross} alt="" />
+        Crop face or head
+      </li>
+      <li className={styles.tip}>
+        <img className={styles.tipIcon} src={iconCross} alt="" />
+        Full body shot
+      </li>
+    </ul>
 
     <label className={styles.dropzone} htmlFor="profile-picture-upload">
       <div className={styles.dropContent}>
