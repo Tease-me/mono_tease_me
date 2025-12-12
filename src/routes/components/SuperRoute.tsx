@@ -16,7 +16,7 @@ const SuperRoute: React.FC<SuperRouteProps> = ({ children }) => {
         );
     }
 
-    if (!isSignedIn && user?.id !== 1) {
+    if (!isSignedIn || user !== undefined && user.id !== 1) {
         return <Navigate to="/home" />;
     }
 

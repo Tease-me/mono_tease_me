@@ -56,6 +56,7 @@ export const Endpoints = {
       list: "admin/system-prompts",
       byKey: (key: string) => `admin/system-prompts/${encodeURIComponent(key)}`,
     },
+    history: (chat_id: string) => `admin/chats/history/${chat_id}`,
   },
   ws: {
     chat: "/chat/ws",
