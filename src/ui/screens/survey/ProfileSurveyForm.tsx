@@ -153,8 +153,11 @@ const ProfileSurveyForm: React.FC = () => {
   }, [preInfluencerId, answers["profile_picture_key"]]);
 
   const handleVerifyInstagram = async () => {
-    const handle = answers["social_instagram"];
-    if (!handle || typeof handle !== "string") return;
+    const raw = answers["social_instagram"];
+    if (!raw || typeof raw !== "string") return;
+
+    const username = raw.trim().replace(/^@/, "");
+    if (!username) return;
 
     updateAnswer("social_instagram_verify_error", null);
     updateAnswer("social_instagram_verified", false);
@@ -162,19 +165,21 @@ const ProfileSurveyForm: React.FC = () => {
     try {
       setInstagramVerifying(true);
 
-      const { data } = await apiClient.post("/social/validate", {
-        platform: "instagram",
-        handle,
+      const { data } = await apiClient.get("/social/api/followers", {
+        params: { service: "instagram", username },
       });
 
-      updateAnswer("social_instagram_normalized", data.username);
-      updateAnswer("social_instagram_followers", data.followers_count);
+      if (!data?.success) {
+        throw new Error("Provider returned success=false");
+      }
+
+      updateAnswer("social_instagram_followers", data.count ?? 0);
       updateAnswer("social_instagram_verified", true);
     } catch (err) {
       console.error("Error verifying Instagram:", err);
       updateAnswer(
         "social_instagram_verify_error",
-        "Could not verify this Instagram. Please check the username."
+        "Could not fetch followers right now. Please try again."
       );
     } finally {
       setInstagramVerifying(false);
@@ -360,24 +365,40 @@ const ProfileSurveyForm: React.FC = () => {
   const currentSurveyStep =
     isSurveyStep && SURVEY_STEPS[stepIndex] ? SURVEY_STEPS[stepIndex] : null;
 
-  const handleConnectInstagram = async () => {
-    if (!preInfluencerId) {
-      console.error("No preInfluencerId loaded yet");
-      return;
-    }
+  const handleVerifyTwitter = async () => {
+    const raw = answers["social_x"];
+    if (!raw || typeof raw !== "string") return;
+
+    const username = raw.trim().replace(/^@/, "");
+    if (!username) return;
+
+    updateAnswer("social_twitter_verify_error", null);
+    updateAnswer("social_twitter_verified", false);
 
     try {
-      const { data } = await apiClient.get("/auth/instagram/login", {
-        params: { pre_inf_id: preInfluencerId },
+      setInstagramVerifying(true);
+
+      const { data } = await apiClient.get("/social/api/followers", {
+        params: {
+          service: "twitter",
+          username,
+        },
       });
 
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        console.error("No url returned from /auth/instagram/login");
+      if (!data?.success) {
+        throw new Error("API returned success=false");
       }
+
+      updateAnswer("social_twitter_followers", data.count ?? 0);
+      updateAnswer("social_twitter_verified", true);
     } catch (err) {
-      console.error("Error starting Instagram login:", err);
+      console.error(err);
+      updateAnswer(
+        "social_twitter_verify_error",
+        "Could not fetch Twitter followers."
+      );
+    } finally {
+      setInstagramVerifying(false);
     }
   };
 
@@ -488,8 +509,8 @@ const ProfileSurveyForm: React.FC = () => {
                   updateAnswer={updateAnswer}
                   socialError={socialError}
                   onVerifyInstagram={handleVerifyInstagram}
+                  onVerifyTwitter={handleVerifyTwitter}
                   instagramVerifying={instagramVerifying}
-                  onConnectInstagram={handleConnectInstagram}
                 />
               )}
 
