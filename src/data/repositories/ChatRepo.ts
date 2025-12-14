@@ -19,9 +19,11 @@ export const ChatRepository = () => ({
                     sender: item.sender === 'ai' ? "received" : "sent",
                     channel: item.channel ?? "chat",
                     text: item.content,
+                    callId: item.conversation_id ?? item.chat_id,
                     time: formatDateTimeRelative(item.created_at),
                     timestamp: new Date(item.created_at).getTime(),
                 }
+
                 if (item.audio_url != null) {
                     message.attachments = [
                         { audioUrl: item.audio_url, type: "audio" }
@@ -39,6 +41,9 @@ export const ChatRepository = () => ({
         } catch (e) {
             throw e;
         }
+    },
+    clearChatHistory: async (chat_id: string): Promise<void> => {
+        await chatServices.clearChatHistory(chat_id);
     },
     getChatId: async (user_id: number, persona_id: string): Promise<string> => {
         const response: ChatIdResponse = await chatServices.getChatId(user_id, persona_id)

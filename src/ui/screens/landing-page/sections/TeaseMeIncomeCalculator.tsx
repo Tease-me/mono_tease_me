@@ -108,13 +108,10 @@ const TeaseMeIncomeCalculator: React.FC = () => {
         <div className="ic-slider">
           <div className="ic-slider-track" />
           <div className="ic-slider-fill" style={{ width: `${converted}%` }} />
-          <div
-            className={`ic-slider-thumb ${isHolding ? "ic-slider-thumb-hold" : ""
-              }`}
-            style={{
-              left: `${converted >= 100 ? converted - 10 : converted}%`
-            }}
-          />
+       <div
+  className={`ic-slider-thumb ${isHolding ? "ic-slider-thumb-hold" : ""}`}
+  style={{ left: `${converted}%` }}
+/>
           <input
             type="range"
             min={0}

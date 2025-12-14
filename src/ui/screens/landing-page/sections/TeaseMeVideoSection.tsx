@@ -2,12 +2,14 @@ import React, { useEffect, useRef, useState } from "react";
 import { videos, type VideoItem } from "../data/videoSection";
 import "./TeaseMeVideoSection.css";
 
-type VideoCardProps = {
-  video: VideoItem;
+interface VideoCardProps {
+  video: {
+    src: string;
+    poster?: string;
+  };
   isPlaying: boolean;
-
   onToggle: () => void;
-};
+}
 
 const VideoCard: React.FC<VideoCardProps> = ({
   video,
@@ -16,29 +18,63 @@ const VideoCard: React.FC<VideoCardProps> = ({
 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
+  const [overlayVisible, setOverlayVisible] = useState(true);
+  const [overlayMode, setOverlayMode] = useState<"play" | "pause">("play");
+
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
 
+    let timeoutId: number | undefined;
+
     if (isPlaying) {
-      v.play().catch(() => { });
+      v.play().catch(() => {});
+      setOverlayMode("pause");
+      setOverlayVisible(true);
+
+      timeoutId = window.setTimeout(() => {
+        setOverlayVisible(false);
+      }, 600);
     } else {
       v.pause();
+      setOverlayMode("play");
+      setOverlayVisible(true);
     }
+
+    return () => {
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
+    };
   }, [isPlaying]);
+
+  const handleClick = () => {
+    onToggle();
+  };
 
   return (
     <article className="tm-video-card">
-      <div className="tm-video-frame">
+      <div className="tm-video-frame" onClick={handleClick}>
         <video
           ref={videoRef}
           poster={video.poster}
           className="tm-video-thumb"
           preload="metadata"
-          onClick={onToggle}
         >
           <source src={video.src} type="video/mp4" />
         </video>
+
+        {overlayVisible && (
+          <div
+            className={[
+              "tm-video-play-overlay",
+              "show",
+              overlayMode === "pause" ? "is-pause" : "is-play",
+            ].join(" ")}
+          >
+            <div className="tm-play-button" />
+          </div>
+        )}
       </div>
     </article>
   );
@@ -79,11 +115,9 @@ const TeaseMeVideoSection: React.FC = () => {
         {activeVideo && (
           <div className="tm-video-meta">
             <p className="tm-video-quote">
-
               <span className="tm-video-quote-mark01">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-
                   viewBox="0 0 17 12"
                   fill="none"
                 >
@@ -96,10 +130,11 @@ const TeaseMeVideoSection: React.FC = () => {
                     fill="#EF064E"
                   />
                 </svg>
-              </span> My girlfriend Ai made me a 24-year-old millionaire <span className="tm-video-quote-mark02">
+              </span>{" "}
+              My girlfriend Ai made me a 24-year-old millionaire{" "}
+              <span className="tm-video-quote-mark02">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-
                   viewBox="0 0 17 12"
                   fill="none"
                 >
@@ -113,7 +148,6 @@ const TeaseMeVideoSection: React.FC = () => {
                   />
                 </svg>
               </span>
-
             </p>
             <a
               href="https://www.instagram.com/cutiecaryn/"
