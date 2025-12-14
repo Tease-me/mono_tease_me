@@ -29,6 +29,7 @@ export default {
     Voice: lazy(() => import("@/assets/svg/Voice.svg?react")),
     Muted: lazy(() => import("@/assets/svg/Muted.svg?react")),
     Call: lazy(() => import("@/assets/svg/Call.svg?react")),
+    Speaker: lazy(() => import("@/assets/svg/IconSpeaker.svg?react")),
     Heart: lazy(() => import("@/assets/svg/Heart.svg?react")),
     ChatRound: lazy(() => import("@/assets/svg/Chat.svg?react")),
     OnlyFans: lazy(() => import("@/assets/svg/OnlyFans.svg?react")),
@@ -44,4 +45,5 @@ export default {
     Male: lazy(() => import("@/assets/svg/Male.svg?react")),
     Female: lazy(() => import("@/assets/svg/Female.svg?react")),
     Link: lazy(() => import("@/assets/svg/Link.svg?react")),
+    UploadPhoto: lazy(() => import("@/assets/svg/iconUploadPhoto.svg?react")),
 }

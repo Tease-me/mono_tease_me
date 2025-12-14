@@ -297,7 +297,7 @@ const ProfileSurveyForm: React.FC = () => {
   ) => {
     const file = e.target.files?.[0];
     if (!file || !preInfluencerId) return;
-
+    setPictureUrl(URL.createObjectURL(file));
     setUploadingPicture(true);
     setPictureError(null);
 
@@ -478,7 +478,7 @@ const ProfileSurveyForm: React.FC = () => {
 
               {/* STEP: PICTURE */}
               {isPictureStep && (
-                <UploadPictureStep uploading={uploadingPicture} pictureUrl={pictureUrl} pictureError={pictureError} onSelect={handlePictureSelect} inputRef={fileInputRef} />
+                <UploadPictureStep uploading={uploadingPicture} pictureUrl={pictureUrl} pictureError={pictureError} onSelect={handlePictureSelect} inputRef={fileInputRef} name={preInfluencerUsername || ""} />
               )}
 
               {/* STEP: SOCIAL MEDIA */}
@@ -525,9 +525,11 @@ const ProfileSurveyForm: React.FC = () => {
 
             {/* BOTTOM BAR */}
             <div className={styles.bottomBar}>
-              <div className={styles.stepInfo}>
+              
+              {/*<div className={styles.stepInfo}>
                 Step {stepIndex + 1} of {wizardTotalSteps}
-              </div>
+              </div>*/}
+
               <div className={styles.buttonRow}>
                 <div>
                   <NormalButton
