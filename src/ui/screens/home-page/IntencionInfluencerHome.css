@@ -1,0 +1,510 @@
+.intencion-influencer-home {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #000;
+  overflow-x: hidden;
+}
+
+/* Background Hearts */
+.intencion-hearts-bg {
+  position: absolute;
+  left: -67px;
+  top: 804px;
+  width: 537px;
+  height: 537px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.intencion-hearts-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  max-width: none;
+}
+
+/* Header */
+.intencion-header {
+  position: absolute;
+  left: 50%;
+  top: -7px;
+  transform: translateX(-50%);
+  width: 416px;
+  height: 137px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 8px 28px 16px 28px;
+  background: linear-gradient(180deg, #3d0713 0%, #181818 100%);
+  border: 0px 0px 2px 0px;
+  border-style: solid;
+  border-color: rgba(87, 10, 32, 0.5);
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 1);
+  z-index: 10;
+}
+
+/* Main Content */
+.intencion-content {
+  position: absolute;
+  left: 29px;
+  top: 176px;
+  width: 344px;
+  z-index: 5;
+}
+
+.intencion-title {
+  font-family: "Abril Fatface", serif;
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 44px;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+}
+
+.intencion-subtitle {
+  font-family: "DM Sans", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: normal;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 8px 0;
+}
+
+.intencion-description {
+  font-family: "DM Sans", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: normal;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+.intencion-bold {
+  font-family: "DM Sans", sans-serif;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+/* Email Notification Section */
+.intencion-email-section {
+  position: absolute;
+  left: 1px;
+  top: 490px;
+  width: 402px;
+  height: 356px;
+  background: linear-gradient(
+    180deg,
+    #ef064e 0%,
+    #a70034 77.407%,
+    #60001e 100%
+  );
+  z-index: 5;
+}
+
+.intencion-email-title {
+  position: absolute;
+  left: 29px;
+  top: 37px;
+  width: 344px;
+  font-family: "Abril Fatface", serif;
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 28px;
+  color: #ffffff;
+  margin: 0;
+}
+
+.intencion-email-input-container {
+  position: absolute;
+  left: 29px;
+  top: 108px;
+  width: 344px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.intencion-email-label {
+  font-family: "DM Sans", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: normal;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+.intencion-email-input-wrapper {
+  position: relative;
+  width: 100%;
+  height: 68px;
+}
+
+.intencion-email-input-outer {
+  position: absolute;
+  width: 100%;
+  height: 68px;
+  background: rgba(46, 45, 45, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  top: 0;
+  left: 0;
+}
+
+.intencion-email-input-inner {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  width: calc(100% - 12px);
+  height: 56px;
+  background: rgba(38, 38, 38, 0.75);
+  border: 1px solid rgba(255, 164, 192, 0.11);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  padding: 5px 10px 5px 16px;
+}
+
+.intencion-email-input {
+  width: 100%;
+  background: transparent !important;
+  border: none !important;
+}
+
+.intencion-email-input .text-input-container {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.intencion-email-input input {
+  background: transparent !important;
+  border: none !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-family: "DM Sans", sans-serif;
+  font-size: 16px;
+  padding: 0 !important;
+}
+
+.intencion-notify-button {
+  width: 283px;
+  height: 42px;
+  margin: 0 auto;
+}
+
+.intencion-email-disclaimer {
+  position: absolute;
+  left: 50%;
+  top: 288px;
+  transform: translateX(-50%);
+  width: 344px;
+  font-family: "DM Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: normal;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  margin: 0;
+}
+
+.intencion-email-disclaimer .intencion-bold {
+  font-weight: 700;
+}
+
+.intencion-logo-decoration {
+  position: absolute;
+  left: 307.29px;
+  top: 29.29px;
+  width: 67.417px;
+  height: 47.418px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(5deg);
+}
+
+.intencion-logo-icon {
+  width: 64px;
+  height: 42px;
+  object-fit: contain;
+  filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+}
+
+/* Vote Counter Card */
+.intencion-vote-card {
+  position: absolute;
+  left: 58px;
+  top: 940px;
+  width: 284px;
+  height: 134px;
+  padding: 16px;
+  background: linear-gradient(
+    189.413deg,
+    rgba(67, 11, 28, 0.7) 0.59506%,
+    rgba(29, 29, 29, 0.7) 23.325%,
+    rgba(29, 29, 29, 0.7) 73.045%,
+    rgba(54, 13, 26, 0.7) 99.085%
+  );
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  z-index: 5;
+}
+
+.intencion-vote-number {
+  display: flex;
+  gap: 0;
+  font-family: "Abril Fatface", serif;
+  font-size: 26px;
+  line-height: 44px;
+  color: #ffffff;
+}
+
+.intencion-vote-digit {
+  width: 18px;
+  text-align: center;
+}
+
+.intencion-vote-text {
+  font-family: "DM Sans", sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: normal;
+  color: #ef064e;
+  text-align: center;
+  text-shadow: 1px 1px 0px #6e0022;
+  margin: 0;
+  width: 194px;
+}
+
+/* Why It Matters Section */
+.intencion-why-section {
+  position: absolute;
+  left: 29px;
+  top: 1141px;
+  width: 344px;
+  z-index: 5;
+}
+
+.intencion-why-title {
+  font-family: "Abril Fatface", serif;
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 44px;
+  color: #ffffff;
+  margin: 0 0 20px 0;
+}
+
+.intencion-why-text {
+  font-family: "DM Sans", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: normal;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+/* Invite Link Section */
+.intencion-invite-section {
+  position: absolute;
+  left: 29px;
+  top: 1335px;
+  width: 344px;
+  z-index: 5;
+}
+
+.intencion-invite-card {
+  background: rgba(46, 45, 45, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 8px;
+}
+
+.intencion-invite-content {
+  position: relative;
+  background: linear-gradient(
+    -47.115deg,
+    rgb(48, 34, 39) 31.606%,
+    rgb(57, 47, 47) 42.372%,
+    rgb(46, 46, 46) 68.235%,
+    rgb(57, 40, 47) 74.167%
+  );
+  border-radius: 13px;
+  padding: 37px 22px 56px 22px;
+}
+
+.intencion-invite-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 284.585px;
+}
+
+.intencion-invite-label {
+  font-family: "DM Sans", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: normal;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+.intencion-invite-input-wrapper {
+  position: relative;
+  width: 100%;
+  height: 68px;
+}
+
+.intencion-invite-input-outer {
+  position: absolute;
+  width: 100%;
+  height: 68px;
+  background: rgba(46, 45, 45, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  top: 0;
+  left: 0;
+}
+
+.intencion-invite-input-inner {
+  position: absolute;
+  left: 4.96px;
+  top: 6px;
+  width: calc(100% - 9.92px);
+  height: 56px;
+  background: rgba(38, 38, 38, 0.75);
+  border: 1px solid rgba(255, 164, 192, 0.11);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  padding: 5px 10px 5px 16px;
+}
+
+.intencion-invite-input {
+  width: 100%;
+  background: transparent !important;
+  border: none !important;
+}
+
+.intencion-invite-input .text-input-container {
+  background: transparent !important;
+  border: none !important;
+}
+
+.intencion-invite-input input {
+  background: transparent !important;
+  border: none !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-family: "DM Sans", sans-serif;
+  font-size: 16px;
+  padding: 0 !important;
+}
+
+.intencion-invite-input-readonly {
+  background: transparent !important;
+  border: none !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-family: "DM Sans", sans-serif;
+  font-size: 16px;
+  padding: 0;
+  width: 100%;
+  outline: none;
+  cursor: default;
+}
+
+.intencion-copy-button {
+  width: 100%;
+  height: 42px;
+}
+
+.intencion-invite-logo {
+  position: absolute;
+  left: 224.72px;
+  top: 23.71px;
+  width: 61.282px;
+  height: 43.152px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(5deg);
+}
+
+.intencion-invite-logo-icon {
+  width: 58.172px;
+  height: 38.227px;
+  object-fit: contain;
+  filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+}
+
+/* Discover More Section */
+.intencion-discover-section {
+  position: absolute;
+  left: 29px;
+  top: 1633px;
+  width: 344px;
+  z-index: 5;
+}
+
+.intencion-discover-title {
+  font-family: "Abril Fatface", serif;
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 44px;
+  color: #ffffff;
+  margin: 0 0 20px 0;
+}
+
+.intencion-discover-button {
+  width: 284px;
+  height: 42px;
+  margin: 0 auto;
+}
+
+/* Hearts Feedback */
+.intencion-hearts-feedback {
+  position: absolute;
+  left: 102px;
+  top: 786px;
+  width: 197px;
+  height: 428px;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.intencion-hearts-feedback-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Responsive */
+@media (min-width: 430px) {
+  .intencion-influencer-home {
+    display: flex;
+    justify-content: center;
+  }
+
+  .intencion-header,
+  .intencion-content,
+  .intencion-email-section,
+  .intencion-vote-card,
+  .intencion-why-section,
+  .intencion-invite-section,
+  .intencion-discover-section {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .intencion-email-section {
+    transform: translateX(-50%);
+  }
+}
