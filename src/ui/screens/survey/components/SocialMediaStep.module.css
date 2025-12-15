@@ -1,4 +1,124 @@
 .modal {
-  border-radius: 13px;
-  background: linear-gradient(307deg, #333 31.61%, #353535 42.37%, #2E2E2E 68.23%, #393939 74.17%);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  background-color: rgba(0, 0, 0, 0.8);
+  background-image: url("../../../../assets/background/light_toast.png");
+  background-size: contain;
+  background-repeat: repeat;
+  background-position: 0 0;
+  background-blend-mode: overlay;
+  backdrop-filter: blur(16px);
+}
+
+.socialGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.error {
+  color: #ff5f5f;
+  font-size: 13px;
+  margin-top: 8px;
+  background-color: #ff00002c;
+  min-height: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 1rem;
+  margin-bottom: 0.25rem;
+  box-shadow: -3px 4px 0px -3px #ff97973b inset;
+}
+
+.modalCard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 16px;
+  background-size: contain;
+  background-repeat: repeat;
+  background-position: 0 0;
+  background-blend-mode: overlay;
+  backdrop-filter: blur(16px);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.modalTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.modalIcon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.closeButton {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: radial-gradient(circle at 30% 30%, #444, #111);
+  color: #fff;
+  font-size: 36px;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inputLabel {
+  color: #dcdcdc;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.textInput {
+  background: rgba(20, 20, 20, 0.7);
+  border-radius: 12px;
+}
+
+.modalActions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+
+.submitButton:hover:not(.disabled) {
+  transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 10px 20px rgba(0, 0, 0, 0.38);
+}
+
+.submitButton.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.validationPill {
+  align-self: center;
+}
+
+@media (max-width: 600px) {
+  .socialGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

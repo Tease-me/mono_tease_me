@@ -2,7 +2,6 @@ import React, { useMemo, useState } from "react";
 import { Modal } from "@/ui/components/modals/Modal";
 import SocialSelectorButton from "@/ui/components/inputs/buttons/SocialSelectorButton";
 import styles from "./SocialMediaStep.module.css"
-import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 import ValidationPill from "@/ui/components/inputs/buttons/ValidationPill";
 
@@ -20,6 +19,7 @@ import onlyfansWhite from "@/assets/svg/iconSocialOnlyFansWhite.svg";
 import onlyfansRed from "@/assets/svg/iconSocialOnlyFansRed.svg";
 import whatsappWhite from "@/assets/svg/iconSocialWhatsAppWhite.svg";
 import whatsappRed from "@/assets/svg/iconSocialWhatsAppRed.svg";
+import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 
 
 
@@ -38,6 +38,7 @@ interface SocialPlatform {
   label: string;
   icon: string;
   iconError: string;
+  placeholder: string;
 }
 
 interface SocialMediaStepProps {
@@ -45,36 +46,38 @@ interface SocialMediaStepProps {
   updateAnswer: (key: string, value: any) => void;
   socialError: string | null;
   onVerifyInstagram?: () => Promise<void> | void;
-  onVerifyTwitter?: () => Promise<void> | void;
+  onVerifyX?: () => Promise<void> | void;
   instagramVerifying?: boolean;
 }
 
 const platforms: SocialPlatform[] = [
-  { id: "instagram", label: "Instagram", icon: igWhite, iconError: igRed },
-  { id: "tiktok", label: "TikTok", icon: tiktokWhite, iconError: tiktokRed },
-  { id: "snapchat", label: "SnapChat", icon: snapWhite, iconError: snapRed },
-  { id: "telegram", label: "Telegram", icon: telegramWhite, iconError: telegramRed },
-  { id: "x", label: "X", icon: xWhite, iconError: xRed },
-  { id: "onlyfans", label: "Only Fans", icon: onlyfansWhite, iconError: onlyfansRed },
-  { id: "whatsapp", label: "Whatsapp", icon: whatsappWhite, iconError: whatsappRed },
+  { id: "instagram", label: "Instagram", icon: igWhite, iconError: igRed, placeholder: "@username" },
+  { id: "tiktok", label: "TikTok", icon: tiktokWhite, iconError: tiktokRed, placeholder: "@username" },
+  { id: "snapchat", label: "SnapChat", icon: snapWhite, iconError: snapRed, placeholder: "@username" },
+  { id: "telegram", label: "Telegram", icon: telegramWhite, iconError: telegramRed, placeholder: "handle" },
+  { id: "x", label: "X", icon: xWhite, iconError: xRed, placeholder: "@username" },
+  { id: "onlyfans", label: "Only Fans", icon: onlyfansWhite, iconError: onlyfansRed, placeholder: "username" },
+  { id: "whatsapp", label: "Whatsapp", icon: whatsappWhite, iconError: whatsappRed, placeholder: "phone or wa.me/number" },
 ];
+
 
 const handleKey = (id: SocialId) => `social_${id}`;
 const followerKey = (id: SocialId) => `social_${id}_followers`;
 const verifiedKey = (id: SocialId) => `social_${id}_verified`;
 const errorKey = (id: SocialId) => `social_${id}_verify_error`;
+const connectable = new Set<SocialId>(["instagram", "x"]);
 
 const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
   answers,
   updateAnswer,
   socialError,
   onVerifyInstagram,
-  onVerifyTwitter,
-  instagramVerifying,
+  onVerifyX,
 }) => {
   const [openId, setOpenId] = useState<SocialId | null>(null);
   const [localHandle, setLocalHandle] = useState("");
   const [localFollowers, setLocalFollowers] = useState("");
+  const [verifying, setVerifying] = useState<SocialId | null>(null);
 
   const selected = useMemo<string[]>(
     () => (Array.isArray(answers["social_selected_platforms"]) ? answers["social_selected_platforms"] : []),
@@ -113,42 +116,74 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
       localFollowers ? Number(localFollowers) : null
     );
     updateAnswer(verifiedKey(openId), false);
+    updateAnswer(errorKey(openId), null);
     saveSelection(openId);
     setOpenId(null);
   };
 
   const handleConnect = async () => {
     if (!openId) return;
+    const canConnect = connectable.has(openId);
     const trimmedHandle = localHandle.trim();
     if (trimmedHandle) {
       updateAnswer(handleKey(openId), trimmedHandle);
       saveSelection(openId);
     }
 
-    if (openId === "instagram" && onVerifyInstagram) {
-      await onVerifyInstagram();
-      setOpenId(null);
-      return;
-    }
-    if (openId === "x" && onVerifyTwitter) {
-      await onVerifyTwitter();
-      setOpenId(null);
+    if (!canConnect) {
+      saveAndClose();
       return;
     }
 
-    saveAndClose();
+    setVerifying(openId);
+    updateAnswer(errorKey(openId), null);
+    updateAnswer(verifiedKey(openId), false);
+
+    try {
+      if (openId === "instagram" && onVerifyInstagram) {
+        await onVerifyInstagram();
+      } else if (openId === "x" && onVerifyX) {
+        await onVerifyX();
+      } else {
+        saveAndClose();
+        return;
+      }
+      updateAnswer(verifiedKey(openId), true);
+      setOpenId(null);
+    } catch (err) {
+      console.error("Error connecting social", err);
+      updateAnswer(
+        errorKey(openId),
+        "Connection failed. Please enter manually."
+      );
+      updateAnswer(verifiedKey(openId), false);
+    } finally {
+      setVerifying(null);
+    }
   };
+
+  const modalStatus = (): "idle" | "verifying" | "verified" | "error" => {
+    if (!openId) return "idle";
+    if (verifying === openId) return "verifying";
+    if (answers[verifiedKey(openId)]) return "verified";
+    if (answers[errorKey(openId)]) return "error";
+    return "idle";
+  };
+
+  const modalPlatform = openId ? platforms.find((p) => p.id === openId) : null;
+  const canConnect = openId ? connectable.has(openId) : false;
+  const status = modalStatus();
+  const showPrimary = status !== "verified";
+  const primaryLabel =
+    status === "verifying"
+      ? "Connecting..."
+      : canConnect && status !== "error"
+        ? "Connect"
+        : "Submit";
 
   return (
     <div>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: "10px",
-          marginTop: "8px",
-        }}
-      >
+      <div className={styles.socialGrid}>
         {platforms.map((platform) => (
           <SocialSelectorButton
             key={platform.id}
@@ -161,11 +196,7 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
         ))}
       </div>
 
-      {socialError && <div className="error">{socialError}</div>}
-      <ValidationPill variant="error">Connection Failed</ValidationPill>
-<ValidationPill variant="success">Verified</ValidationPill>
-<ValidationPill variant="warning">Error. Please enter manually</ValidationPill>
-
+      {socialError && <div className={styles.error}>{socialError}</div>}
 
       <Modal
         isOpen={Boolean(openId)}
@@ -174,51 +205,67 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
         ariaLabel="Add social"
         className={styles.modal}
       >
-        {openId && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <img
-                  src={platforms.find((s) => s.id === openId)?.icon}
-                  alt=""
-                  width={22}
-                  height={22}
-                />
-                <strong>{platforms.find((s) => s.id === openId)?.label}</strong>
-              </div>
-              <button onClick={() => setOpenId(null)}>×</button>
+        {modalPlatform && (
+          <div className={styles.modalCard}>
+            <div className={styles.modalHeader}>
+              {/*
+
+              <div className={styles.modalTitle}>
+                <img src={modalPlatform.icon} alt="" className={styles.modalIcon} />
+                <strong>{modalPlatform.label}</strong>
+              </div> 
+               */}
+              <button className={styles.closeButton} onClick={() => setOpenId(null)}>×</button>
             </div>
 
-            <label>
-              Handle / URL
+
+            <div className={styles.inputGroup}>
+              <label className={styles.inputLabel}>Handle</label>
               <TextInput
                 value={localHandle}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setLocalHandle(e.target.value)
                 }
-                placeholder="instagram.com/janeDoe"
+                placeholder={modalPlatform.placeholder}
+                className={styles.textInput}
               />
-            </label>
+            </div>
 
-            <label>
-              Followers
+            <div className={styles.inputGroup}>
+              <label className={styles.inputLabel}>Follower Count</label>
               <TextInput
                 type="number"
                 value={localFollowers}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setLocalFollowers(e.target.value)
                 }
-                placeholder="30000"
+                placeholder="Followers"
+                className={styles.textInput}
               />
-            </label>
+            </div>
 
-            <div>
-              <PrimaryButton
-                onClick={handleConnect}
-                aria-disabled={instagramVerifying}
-              >
-                {instagramVerifying ? "Connecting..." : "Submit →"}
-              </PrimaryButton>
+            <div className={styles.modalActions}>
+              {showPrimary && (
+                <PrimaryButton
+                  className={`${styles.submitButton} ${status === "verifying" ? styles.disabled : ""}`}
+                  onClick={handleConnect}
+                  aria-disabled={status === "verifying"}
+                  text={primaryLabel}
+                >
+                </PrimaryButton>
+              )}
+
+              {status === "verified" && (
+                <ValidationPill variant="success" className={styles.validationPill}>
+                  Verified
+                </ValidationPill>
+              )}
+
+              {status === "error" && (
+                <ValidationPill variant="warning" className={styles.validationPill}>
+                  Alert. Please enter manually
+                </ValidationPill>
+              )}
             </div>
           </div>
         )}

@@ -514,7 +514,7 @@ const ProfileSurveyForm: React.FC = () => {
                   updateAnswer={updateAnswer}
                   socialError={socialError}
                   onVerifyInstagram={handleVerifyInstagram}
-                  onVerifyTwitter={handleVerifyTwitter}
+                  onVerifyX={handleVerifyTwitter}
                   instagramVerifying={instagramVerifying}
                 />
               )}
