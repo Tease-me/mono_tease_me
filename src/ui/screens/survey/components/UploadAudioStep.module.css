@@ -1,0 +1,103 @@
+.uploadBox {
+  padding: 16px 14px;
+  border-radius: 18px;
+  background: linear-gradient(
+    180deg,
+    rgba(20, 20, 24, 0.92),
+    rgba(12, 6, 10, 0.78)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.subtitle {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+}
+
+.tipsTitle {
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.tips {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tipList {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.tip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #e9e9e9;
+}
+
+.tipIcon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.tipGood {
+  color: #3bf27b;
+}
+
+.tipBad {
+  color: #ff6b6b;
+}
+
+.actionCard {
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.actionCardTitle {
+  font-weight: 700;
+  color: #fff;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.managerWrapper {
+  margin-top: 14px;
+}
