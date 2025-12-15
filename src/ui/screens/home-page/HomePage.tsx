@@ -9,6 +9,8 @@ import logger from "@/utils/logger";
 import SvgPack from "@/utils/SvgPack";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import imageHPHero from "@/assets/image/creator-collage.jpg";
+import imageTeaseMeLight from "@/assets/image/iconTeaseMeLight.png";
 import "./HomePage.css";
 
 const HomePage: React.FC = () => {
@@ -21,6 +23,16 @@ const HomePage: React.FC = () => {
 
   const preInfluencerServices = PreInfluencerServices(apiClient);
   const influencerRepo = InfluencerRepo();
+
+  
+
+    const [errors, setErrors] = useState<{
+      name?: string;
+      location?: string;
+      username?: string;
+      email?: string;
+      general?: string;
+    }>({});
 
   useEffect(() => {
     const checkInfluencerStatus = async () => {
@@ -100,13 +112,6 @@ const HomePage: React.FC = () => {
   return (
     <div className="home-page">
       {/* Background Image */}
-      <div className="home-page-background">
-        <img
-          src="http://localhost:3845/assets/97ccaab3ffc4434e2bfd8fdddc14a7fac9a69967.png"
-          alt=""
-          className="home-page-bg-image"
-        />
-      </div>
 
       {/* Header with Logo */}
       <header className="home-page-header">
@@ -114,28 +119,40 @@ const HomePage: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <div className="home-page-content">
-        <h1 className="home-page-title">
-          Is your{" "}
-          <span className="home-page-title-highlight">
-            favourite influencer
-          </span>{" "}
-          on TeaseMe?
-        </h1>
-        <p className="home-page-subtitle">
-          Search now to see if you can chat with them instantly — or invite them
-          to join and be the first to know when they're live.
-        </p>
+      <div className="home-page-hero-content">
+        <div className="hp-inner-container">
+          <div className="hp-hero-col01">
+            <h1 className="home-page-title">
+              Is your{" "}
+              <span className="home-page-title-highlight">
+                favourite influencer
+              </span>{" "}
+              on TeaseMe?
+            </h1>
+            <p className="home-page-subtitle">
+              Search now to see if you can chat with them instantly — or invite
+              them to join and be the first to know when they're live.
+            </p>
+          </div>
+        </div>
+        <img src={imageHPHero} alt="" className="hp-hero-image" />
       </div>
 
       {/* Search Section */}
       <div className="home-page-search-section">
         <div className="home-page-search-container">
-          <label className="home-page-search-label">Search</label>
+            <div className="home-page-logo-decoration">
+          <img
+            src={imageTeaseMeLight}
+            alt=""
+            className="home-page-logo-icon"
+          />
+        </div>
+
           <div className="home-page-input-wrapper">
-            <div className="home-page-input-outer">
-              <div className="home-page-input-inner">
-                <TextInput
+          
+         
+                {/* <TextInput
                   type="text"
                   placeholder="Enter influencer instagram"
                   value={instagramUsername}
@@ -144,10 +161,25 @@ const HomePage: React.FC = () => {
                   }
                   onKeyPress={handleKeyPress}
                   className="home-page-search-input"
-                />
-              </div>
-            </div>
+                /> */}
+           
+
+              <div className="ps-field">
+            <label className="ps-label">
+              Search <span className="ps-required"></span>
+            </label>
+            {errors.name && <span className="ps-error">{errors.name}</span>}
+            <div className="home-page-input-outer"><input
+              className="ps-input"
+              placeholder="Your full name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            /></div>
           </div>
+
+            
+          </div>
+          <div className="hp-search-button-container">
           <PrimaryButton
             text="Search"
             rightIcon={<SvgPack.ArrowRight />}
@@ -155,14 +187,9 @@ const HomePage: React.FC = () => {
             disabled={searching}
             className="home-page-search-button"
           />
+          </div>
         </div>
-        <div className="home-page-logo-decoration">
-          <img
-            src="http://localhost:3845/assets/a010421442b76263c51653d93d332d39364f4f0c.png"
-            alt=""
-            className="home-page-logo-icon"
-          />
-        </div>
+      
       </div>
     </div>
   );

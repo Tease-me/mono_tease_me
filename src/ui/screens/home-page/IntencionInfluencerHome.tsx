@@ -1,10 +1,11 @@
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
-import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
+
 import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
 import SvgPack from "@/utils/SvgPack";
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import "./IntencionInfluencerHome.css";
+import hpImageRequestBg from "@/assets/image/hpImageRequestBg@2x.jpg"
+import "./HomePage.css";
 
 const IntencionInfluencerHome: React.FC = () => {
   const navigate = useNavigate();
@@ -30,14 +31,8 @@ const IntencionInfluencerHome: React.FC = () => {
 
   return (
     <div className="intencion-influencer-home">
-      {/* Background hearts */}
-      <div className="intencion-hearts-bg">
-        <img
-          src="http://localhost:3845/assets/e88a4bf4292e63d953b0e187c1a7be89d2ffed6a.png"
-          alt=""
-          className="intencion-hearts-image"
-        />
-      </div>
+  
+   
 
       {/* Header */}
       <header className="intencion-header">
@@ -52,9 +47,9 @@ const IntencionInfluencerHome: React.FC = () => {
         <p className="intencion-subtitle">
           …but you can help us bring them here!
         </p>
-        <p className="intencion-description">
+        <p className="intencion-subtitle">
           Tell us who you want to see —{" "}
-          <span className="intencion-bold">we'll reach out to them</span> and
+          <strong>we'll reach out to them</strong> and
           update you when they join.
         </p>
       </div>
@@ -65,19 +60,20 @@ const IntencionInfluencerHome: React.FC = () => {
           Be the first to know when {influencerName} joins
         </h2>
         <div className="intencion-email-input-container">
-          <label className="intencion-email-label">Email</label>
+     <label className="ps-label">
+              Email <span className="ps-required"></span>
+            </label>
           <div className="intencion-email-input-wrapper">
             <div className="intencion-email-input-outer">
               <div className="intencion-email-input-inner">
-                <TextInput
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
+                                <div className="home-page-input-outer"><input
+              className="ps-input"
+              type="email"
+             placeholder="Enter your email"
+              value={email}
                   onChange={(e) =>
-                    setEmail((e.target as HTMLInputElement).value)
-                  }
-                  className="intencion-email-input"
-                />
+                    setEmail((e.target as HTMLInputElement).value)}
+            /></div>
               </div>
             </div>
           </div>
@@ -90,9 +86,11 @@ const IntencionInfluencerHome: React.FC = () => {
           />
           <p className="intencion-email-disclaimer">
             We'll only email you about this influencer.{" "}
-            <span className="intencion-bold">No spam.</span>
+            <strong>No spam.</strong>
           </p>
         </div>
+
+        
         <div className="intencion-logo-decoration">
           <img
             src="http://localhost:3845/assets/a010421442b76263c51653d93d332d39364f4f0c.png"
@@ -103,6 +101,8 @@ const IntencionInfluencerHome: React.FC = () => {
       </div>
 
       {/* Vote Counter Card */}
+<section className="why-it-matters">
+   <div className="hp-inner-container">
       <div className="intencion-vote-card">
         <div className="intencion-vote-number">
           {String(voteCount)
@@ -118,6 +118,7 @@ const IntencionInfluencerHome: React.FC = () => {
 
       {/* Why It Matters Section */}
       <div className="intencion-why-section">
+        
         <h2 className="intencion-why-title">Why It Matters…</h2>
         <p className="intencion-why-text">
           The more fans request this creator, the more likely they are to join
@@ -126,11 +127,14 @@ const IntencionInfluencerHome: React.FC = () => {
           Your vote helps us show real demand.
         </p>
       </div>
+      </div>
+      <img className="hp-request-bg" src={hpImageRequestBg} alt="" srcset={hpImageRequestBg} />
 
+</section>
       {/* Invite Link Section */}
       <div className="intencion-invite-section">
-        <div className="intencion-invite-card">
-          <div className="intencion-invite-content">
+ 
+           <div className="hp-inner-container">
             <div className="intencion-invite-input-container">
               <label className="intencion-invite-label">Send Invite Link</label>
               <div className="intencion-invite-input-wrapper">
@@ -160,7 +164,7 @@ const IntencionInfluencerHome: React.FC = () => {
               />
             </div>
           </div>
-        </div>
+        
       </div>
 
       {/* Discover More Section */}

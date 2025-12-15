@@ -486,25 +486,4 @@
   object-fit: cover;
 }
 
-/* Responsive */
-@media (min-width: 430px) {
-  .intencion-influencer-home {
-    display: flex;
-    justify-content: center;
-  }
 
-  .intencion-header,
-  .intencion-content,
-  .intencion-email-section,
-  .intencion-vote-card,
-  .intencion-why-section,
-  .intencion-invite-section,
-  .intencion-discover-section {
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
-  .intencion-email-section {
-    transform: translateX(-50%);
-  }
-}
