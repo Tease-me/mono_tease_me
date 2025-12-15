@@ -3,7 +3,6 @@ import axios from "axios";
 import surveyStyles from "../ProfileSurvey.module.css";
 import styles from "./UploadAudioStep.module.css";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
-import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import iconCheckCircle from "@/assets/svg/iconCheckCircle.svg";
 import iconCross from "@/assets/svg/iconCross.svg";
 import SvgPack from "@/utils/SvgPack";
@@ -13,11 +12,13 @@ interface UploadAudioStepProps {
   onCountChange: (count: number) => void;
   audioError: string | null;
   setAudioError: (msg: string | null) => void;
+  influencerName: string;
 }
 
 const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
   influencerId,
   onCountChange,
+  influencerName,
   audioError,
   setAudioError,
 }) => {
@@ -31,7 +32,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
 
   useEffect(() => {
     return () => {
-      if (localAudioUrl) {
+      if (localAudioUrl && localAudioUrl.startsWith("blob:")) {
         URL.revokeObjectURL(localAudioUrl);
       }
     };
@@ -43,8 +44,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
       const formData = new FormData();
       formData.append("file", file);
       await axios.post(
-        `${import.meta.env.VITE_TEASE_ME_PROTOCOL}://${
-          import.meta.env.VITE_TEASE_ME_HOST
+        `${import.meta.env.VITE_TEASE_ME_PROTOCOL}://${import.meta.env.VITE_TEASE_ME_HOST
         }/influencer/influencer-audio/${influencerId}`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
@@ -105,50 +105,54 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
     }
   };
 
+  const name = influencerName || "your name";
+
   return (
     <div className={surveyStyles.field}>
+      <div className={styles.header}>
+        <div className={styles.title}>Upload Audio</div>
+        <p className={styles.subtitle}>
+          Upload your best clear audio. This is how your fans will hear your AI persona.
+        </p>
+      </div>
+
+      <div className={styles.tips}>
+        <div className={styles.tipsTitle}>Audio Tips</div>
+        <ul className={styles.tipList}>
+          <li className={`${styles.tip} ${styles.tipGood}`}>
+            <img className={styles.tipIcon} src={iconCheckCircle} alt="" />
+            Quiet room
+          </li>
+          <li className={`${styles.tip} ${styles.tipGood}`}>
+            <img className={styles.tipIcon} src={iconCheckCircle} alt="" />
+            Speak naturally
+          </li>
+          <li className={`${styles.tip} ${styles.tipBad}`}>
+            <img className={styles.tipIcon} src={iconCross} alt="" />
+            Background noise
+          </li>
+          <li className={`${styles.tip} ${styles.tipBad}`}>
+            <img className={styles.tipIcon} src={iconCross} alt="" />
+            Speakerphone
+          </li>
+          <li className={`${styles.tip} ${styles.tipBad}`}>
+            <img className={styles.tipIcon} src={iconCross} alt="" />
+            Bluetooth headsets
+          </li>
+        </ul>
+      </div>
+
       <div className={surveyStyles.glassBox}>
         {!isRecording && (
           <>
-            <div className={styles.header}>
-              <div className={styles.title}>Upload Audio</div>
-              <p className={styles.subtitle}>
-                Upload your best clear audio. This is how your fans will hear your AI
-                persona.
-              </p>
-            </div>
-
-            <div className={styles.tips}>
-              <div className={styles.tipsTitle}>Audio Tips</div>
-              <ul className={styles.tipList}>
-                <li className={`${styles.tip} ${styles.tipGood}`}>
-                  <img className={styles.tipIcon} src={iconCheckCircle} alt="" />
-                  Quiet room
-                </li>
-                <li className={`${styles.tip} ${styles.tipGood}`}>
-                  <img className={styles.tipIcon} src={iconCheckCircle} alt="" />
-                  Speak naturally
-                </li>
-                <li className={`${styles.tip} ${styles.tipBad}`}>
-                  <img className={styles.tipIcon} src={iconCross} alt="" />
-                  Background noise
-                </li>
-                <li className={`${styles.tip} ${styles.tipBad}`}>
-                  <img className={styles.tipIcon} src={iconCross} alt="" />
-                  Speakerphone
-                </li>
-                <li className={`${styles.tip} ${styles.tipBad}`}>
-                  <img className={styles.tipIcon} src={iconCross} alt="" />
-                  Bluetooth headsets
-                </li>
-              </ul>
-            </div>
-
+            <div className={styles.reviewTitle}>Get Started</div>
             <div className={styles.actionButtons}>
-              <IconButton
+              <NormalButton
+                type="square"
                 color="pink"
-                leftIcon={<SvgPack.Voice />}
+                leftIcon={<SvgPack.RecordingStart />}
                 text="Record Script"
+                className={surveyStyles.glassButton}
                 onClick={startRecording}
               />
             </div>
@@ -165,7 +169,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
             <p className={styles.subtitle}>Please read the script below.</p>
 
             <div className={styles.scriptBox}>
-              <p>Hello, my name is [inf_name], and I’m recording this sample for voice cloning.</p>
+              <p>Hello, my name is {name}, and I’m recording this sample for voice cloning.</p>
               <p>I speak in a calm and natural tone. The quick brown fox jumps over the lazy dog.</p>
               <p>Artificial intelligence is transforming the way we live, work, and communicate.</p>
               <p>In the morning, I enjoy coffee, while in the evening I might choose tea.</p>
@@ -176,10 +180,10 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
             </div>
 
             <NormalButton
-              type="square"
               color="black"
               className={surveyStyles.glassButton}
               text="Stop Recording"
+              leftIcon={<SvgPack.RecordingStop />}
               onClick={stopRecording}
             />
           </>
@@ -194,7 +198,6 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
               className={styles.audioPreview}
               controls
               src={localAudioUrl}
-              autoPlay
             />
           )}
           <div className={styles.dividerText}>Or</div>
@@ -222,6 +225,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
           setLocalAudioUrl(objectUrl);
           setHasRecording(true);
           setAudioError(null);
+          onCountChange(1);
           handleUploadOwn(file);
         }}
       />

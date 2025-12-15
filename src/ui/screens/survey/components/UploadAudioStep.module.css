@@ -17,6 +17,9 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  text-align: left;
+  align-items: flex-start;
+  margin-bottom: 8px;
 }
 
 .title {
@@ -29,6 +32,7 @@
   margin: 0;
   color: rgba(255, 255, 255, 0.8);
   font-size: 13px;
+  text-align: left;
 }
 
 .tipsTitle {
@@ -41,6 +45,9 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  text-align: left;
+  align-items: flex-start;
+  margin-bottom: 12px;
 }
 
 .tipList {
@@ -131,8 +138,9 @@
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.65), rgba(15, 5, 10, 0.6));
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: rgba(235, 235, 235, 0.92);
-  font-size: 14px;
+  font-size: 24px;
   line-height: 1.55;
+  font-weight: 200;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -140,7 +148,7 @@
 }
 
 .reviewTitle {
-  color: #ff2e74;
+  color: var(--color-primary);
   font-weight: 700;
   margin-bottom: 8px;
   text-align: center;

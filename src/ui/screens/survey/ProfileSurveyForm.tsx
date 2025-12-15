@@ -9,6 +9,7 @@ import SocialMediaStep from "./components/SocialMediaStep";
 import styles from "./ProfileSurvey.module.css";
 import UploadPictureStep from "./components/UploadPictureStep";
 import UploadAudioStep from "./components/UploadAudioStep";
+import ThankYouStep from "./components/ThankYouStep";
 
 
 
@@ -50,6 +51,7 @@ const ProfileSurveyForm: React.FC = () => {
   const [audioCount, setAudioCount] = useState<number>(0);
   const [audioError, setAudioError] = useState<string | null>(null);
 
+
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [stepIndex, setStepIndex] = useState<number>(0);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | null>>(
@@ -67,7 +69,8 @@ const ProfileSurveyForm: React.FC = () => {
   const pictureStepIndex = surveyStepsCount;
   const socialsStepIndex = surveyStepsCount + 1;
   const audioStepIndex = surveyStepsCount + 2;
-  const wizardTotalSteps = surveyStepsCount + 3;
+  const thankYouStep = surveyStepsCount + 3;
+  const wizardTotalSteps = surveyStepsCount + 4;
 
   useEffect(() => {
     const load = async () => {
@@ -361,7 +364,10 @@ const ProfileSurveyForm: React.FC = () => {
   const isPictureStep = stepIndex === pictureStepIndex;
   const isSocialsStep = stepIndex === socialsStepIndex;
   const isAudioStep = stepIndex === audioStepIndex;
+  const isThankYouStep = stepIndex === thankYouStep;
   const isLastStep = stepIndex === wizardTotalSteps - 1;
+  const isAudioInvalid = isAudioStep && audioCount <= 0;
+
 
   const currentSurveyStep =
     isSurveyStep && SURVEY_STEPS[stepIndex] ? SURVEY_STEPS[stepIndex] : null;
@@ -519,6 +525,7 @@ const ProfileSurveyForm: React.FC = () => {
               {isAudioStep && preInfluencerUsername && (
                 <UploadAudioStep
                   influencerId={preInfluencerUsername}
+                  influencerName={preInfluencerUsername}
                   onCountChange={(count) => {
                     setAudioCount(count);
                     setAudioError(null);
@@ -527,6 +534,11 @@ const ProfileSurveyForm: React.FC = () => {
                   audioError={audioError}
                   setAudioError={setAudioError}
                 />
+              )}
+
+              {/* Thank you page */}
+              {isThankYouStep && (
+                <ThankYouStep />
               )}
 
             </div>
@@ -548,11 +560,13 @@ const ProfileSurveyForm: React.FC = () => {
                   />
                 </div>
                 <div>
+                  {!isAudioInvalid && (
                   <PrimaryButton
                     onClick={handleNext}
                     text={isLastStep ? "Finish" : "Next"}
                     rightIcon={<SvgPack.ArrowRight />}
                   />
+                  )}
                 </div>
               </div>
             </div>
