@@ -133,6 +133,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, callGroup, influence
                     </>
                 ) : (
                     <>
+                    
                         {msg?.text}
                         {renderAttachments(msg)}
                     </>

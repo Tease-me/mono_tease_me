@@ -13,6 +13,7 @@ export interface MessageResponse {
     id: number;
     chat_id: string;
     sender: string;
+    conversation_id?: string;
     content: string;
     audio_url: string;
     channel?: string;
@@ -38,4 +39,6 @@ export interface ConversationTokenResponse {
     agent_id: string;
     credits_remainder_secs: number;
     greeting_used?: string;
+    prompt?: string;
+    native_language?: string;
 }
