@@ -4,6 +4,8 @@ import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
 import SvgPack from "@/utils/SvgPack";
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import LottieAnimation from "@/ui/components/LottieAnimation";
+import heartFloat from "@/assets/lottie/heartFloat.json"
 import hpImageRequestBg from "@/assets/image/hpImageRequestBg@2x.jpg"
 import "./HomePage.css";
 
@@ -41,6 +43,8 @@ const IntencionInfluencerHome: React.FC = () => {
 
       {/* Main Content */}
       <div className="intencion-content">
+      <div className="hp-inner-container">
+        <div className="hp-negative-col01">
         <h1 className="intencion-title">
           We haven't onboarded {influencerName} yet…
         </h1>
@@ -50,8 +54,10 @@ const IntencionInfluencerHome: React.FC = () => {
         <p className="intencion-subtitle">
           Tell us who you want to see —{" "}
           <strong>we'll reach out to them</strong> and
-          update you when they join.
+          update you when they join
         </p>
+        </div>
+      </div>
       </div>
 
       {/* Email Notification Section */}
@@ -60,6 +66,7 @@ const IntencionInfluencerHome: React.FC = () => {
           Be the first to know when {influencerName} joins
         </h2>
         <div className="intencion-email-input-container">
+     <div className="hp-updated-input-container">
      <label className="ps-label">
               Email <span className="ps-required"></span>
             </label>
@@ -75,29 +82,27 @@ const IntencionInfluencerHome: React.FC = () => {
                     setEmail((e.target as HTMLInputElement).value)}
             /></div>
               </div>
-            </div>
+            </div></div>
           </div>
+         <div className="updated-button-container">
+          
+          <div className="hp-updated-button-container">
           <PrimaryButton
             text="Notify Me & Count My Vote"
             rightIcon={<SvgPack.ArrowRight />}
             onClick={handleNotifyMe}
             disabled={!email.trim()}
             className="intencion-notify-button"
-          />
+          /></div>
           <p className="intencion-email-disclaimer">
             We'll only email you about this influencer.{" "}
             <strong>No spam.</strong>
-          </p>
+          </p></div>
+         
         </div>
 
         
-        <div className="intencion-logo-decoration">
-          <img
-            src="http://localhost:3845/assets/a010421442b76263c51653d93d332d39364f4f0c.png"
-            alt=""
-            className="intencion-logo-icon"
-          />
-        </div>
+      
       </div>
 
       {/* Vote Counter Card */}
@@ -129,7 +134,7 @@ const IntencionInfluencerHome: React.FC = () => {
       </div>
       </div>
       <img className="hp-request-bg" src={hpImageRequestBg} alt="" srcset={hpImageRequestBg} />
-
+<div className="intencion-invite-lottie-holder"><LottieAnimation autoplay loop animationData={heartFloat} /></div>
 </section>
       {/* Invite Link Section */}
       <div className="intencion-invite-section">
@@ -156,13 +161,7 @@ const IntencionInfluencerHome: React.FC = () => {
                 className="intencion-copy-button"
               />
             </div>
-            <div className="intencion-invite-logo">
-              <img
-                src="http://localhost:3845/assets/a010421442b76263c51653d93d332d39364f4f0c.png"
-                alt=""
-                className="intencion-invite-logo-icon"
-              />
-            </div>
+            
           </div>
         
       </div>
@@ -172,22 +171,16 @@ const IntencionInfluencerHome: React.FC = () => {
         <h2 className="intencion-discover-title">
           Want to discover more creators?
         </h2>
+        <div className="hp-footer-button-container">
         <PrimaryButton
           text="Search New Influencer"
           rightIcon={<SvgPack.ArrowRight />}
           onClick={() => navigate("/home-page")}
           className="intencion-discover-button"
-        />
+        /></div>
       </div>
 
-      {/* Hearts Feedback */}
-      <div className="intencion-hearts-feedback">
-        <img
-          src="http://localhost:3845/assets/b0ac715c08a220ed65cec6407bd02c6db0ed1f38.png"
-          alt=""
-          className="intencion-hearts-feedback-image"
-        />
-      </div>
+     
     </div>
   );
 };

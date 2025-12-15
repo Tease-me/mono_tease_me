@@ -134,6 +134,10 @@
   overflow: scroll;
 }
 
+.intencion-content {
+  min-height: 50svh;
+}
+
 .intencion-header {
   position: relative;
   height: 10vh;
@@ -148,8 +152,22 @@
 }
 
 
-.intencion-content, .intencion-email-section {position: relative;z-index: 1;}
+.intencion-content,
+.intencion-email-section {
+  position: relative;
+  z-index: 1;
+}
 
+
+.hp-negative-col01 {
+  max-width: 34ch;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  height: stretch;
+  justify-content: center;
+  margin: 0 auto;
+}
 
 .intencion-title {
   font-family: "Abril Fatface", serif;
@@ -171,13 +189,17 @@
   line-height: 140%;
 }
 
-
+/** stay updated section ***/
 
 .intencion-email-section {
   background: linear-gradient(180deg, #EF064E 0%, #A70034 77.41%, #60001E 100%);
   z-index: 1;
   position: relative;
-  padding: 1rem;
+  padding: 4rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+
 }
 
 .intencion-email-title {
@@ -189,10 +211,30 @@
   line-height: 120%;
 }
 
+.intencion-email-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.hp-updated-input-container {}
+
+.updated-button-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+
+.hp-updated-button-container {
+  width: 80%;
+  height: 3.5rem;
+  filter: drop-shadow(0px 6px 2px hsl(100, 0%, 0%, 0.15));
+  align-self: center;
+}
 
 .intencion-email-disclaimer {
   color: #FFF;
-
   text-align: center;
   font-family: "DM Sans";
   font-size: 0.875rem;
@@ -202,30 +244,44 @@
   opacity: 0.7;
 }
 
+/** End stay updated section ***/
 
-.why-it-matters { display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;padding: 3rem 0;
-    overflow: clip;}
-.hp-request-bg {  position:relative;
+.why-it-matters {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 6rem 0;
+  overflow: clip;
+}
+
+.hp-request-bg {
+  position: relative;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   scale: 1.4;
-   object-position: bottom;
+  object-position: bottom;
   display: block;
   z-index: 0;
 
-opacity: 0.9;
-pointer-events: none;
-margin-top: -26rem;}
+  opacity: 0.9;
+  pointer-events: none;
+  margin-top: -26rem;
+}
 
+.intencion-invite-lottie-holder {
+  position: relative;
+  margin-top: -50rem;
+  mask-image: linear-gradient(180deg, hsla(0, 0%, 0%, 0.7), hsla(0, 0%, 0%, 0));
+  overflow: clip;
+  pointer-events: none;
+}
 
 .intencion-vote-card {
   display: flex;
-  width: 17.75rem;
+  width: 18rem;
   height: 8.375rem;
   padding: 1rem;
   flex-direction: column;
@@ -237,36 +293,88 @@ margin-top: -26rem;}
   backdrop-filter: blur(5px);
   margin: 0 auto;
   z-index: 1;
-    position: relative;
+  position: relative;
 }
 
-.intencion-why-section {gap: 1rem;
-    display: flex;
-    flex-direction: column;}
-
-.hp-inner-container {padding: 2rem;    gap: 4rem;
-    display: flex;
-    flex-direction: column;}
-
-.intencion-why-title {color: #FFF;
-font-family: "Abril Fatface";
-font-size: 2.125rem;
-font-style: normal;
-font-weight: 400;
-line-height: 130%;
-z-index: 1;
-    position: relative;
+.intencion-vote-number {
+  color: #FFF;
+  text-align: center;
+  font-family: "Abril Fatface";
+  font-size: 1.625rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 2.75rem;
+  /* 169.231% */
 }
 
-.intencion-why-text{color: rgba(255, 255, 255, 0.70);
-font-family: "DM Sans";
-font-size: 1rem;
-font-style: normal;
-font-weight: 400;
-line-height: normal;
-z-index: 1;
-    position: relative;}
+.intencion-vote-text {
+  color: #EF064E;
+  text-align: center;
+  text-shadow: 1px 1px 0 #6E0022;
+  font-family: "DM Sans";
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 100%;
+  max-width: 16ch;
+}
 
+
+
+.intencion-why-section {
+  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+}
+
+
+
+.intencion-why-title {
+  color: #FFF;
+  font-family: "Abril Fatface";
+  font-size: 2.125rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 130%;
+  z-index: 1;
+  position: relative;
+  margin-top: 2rem;
+}
+
+.intencion-why-text {
+  color: rgba(255, 255, 255, 0.70);
+  font-family: "DM Sans";
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+  z-index: 1;
+  position: relative;
+}
+
+.intencion-invite-section {background-color: aqua; max-width: 90%; margin: 0 auto;}
+
+/**** Footer ***/
+.intencion-discover-section {
+  background: linear-gradient(180deg, #EF064E 0%, #A70034 77.41%, #60001E 100%);
+  padding: 2rem 2rem 6rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.intencion-discover-title {
+  color: #FFF;
+  font-family: "Abril Fatface";
+  font-size: 2.125rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 2.75rem;
+  /* 129.412% */
+}
+
+.hp-footer-button-container {height: 3.5rem;     filter: drop-shadow(0px 6px 2px hsl(100, 0%, 0%, 0.15));}
 
 
 
