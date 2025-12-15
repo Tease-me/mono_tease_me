@@ -353,7 +353,7 @@
   position: relative;
 }
 
-.intencion-invite-section {background-color: aqua; max-width: 90%; margin: 0 auto;}
+.intencion-invite-section-outer {background-color: aqua; max-width: 90%; margin: 0 auto;}
 
 /**** Footer ***/
 .intencion-discover-section {

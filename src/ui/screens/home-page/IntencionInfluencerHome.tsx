@@ -137,9 +137,9 @@ const IntencionInfluencerHome: React.FC = () => {
 <div className="intencion-invite-lottie-holder"><LottieAnimation autoplay loop animationData={heartFloat} /></div>
 </section>
       {/* Invite Link Section */}
-      <div className="intencion-invite-section">
+      <div className="intencion-invite-section-outer">
  
-           <div className="hp-inner-container">
+           <div className="intencion-invite-section-inner">
             <div className="intencion-invite-input-container">
               <label className="intencion-invite-label">Send Invite Link</label>
               <div className="intencion-invite-input-wrapper">
