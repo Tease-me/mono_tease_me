@@ -1,4 +1,5 @@
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
+import RelationshipDashboard from "@/ui/screens/admin/dashboard_relationship/RelationshipDashboard";
 import InfluencerAudioManagerRoute from "@/ui/screens/influencer-audio-manager/InfluencerAudioManagerRoute";
 import InfluencerWelcome from "@/ui/screens/landing-page/InfluencerWelcome";
 import LandingPage from "@/ui/screens/landing-page/LandingPage";
@@ -60,6 +61,7 @@ function AppRoutes() {
     },
     { path: "/thank-you", element: <ThankYouScreen /> },
     { path: "/profile-survey-form", element: <ProfileSurveyForm /> },
+    { path: "/relationship-dashboard", element: <RelationshipDashboard /> }, // Placeholder for RelationshipDashboard
   ];
 
   const guestRoutes: { path: string; element: JSX.Element }[] = [
