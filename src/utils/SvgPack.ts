@@ -36,6 +36,8 @@ export default {
     Instagram: lazy(() => import("@/assets/svg/Instagram.svg?react")),
     TikTok: lazy(() => import("@/assets/svg/TikTok.svg?react")),
     Calling: lazy(() => import("@/assets/svg/Calling.svg?react")),
+    RecordingStart: lazy(() => import("@/assets/svg/iconStartRecording.svg?react")),
+    RecordingStop: lazy(() => import("@/assets/svg/iconStopRecording.svg?react")),
     Mail: {
         Outlook: lazy(() => import("@/assets/svg/MicrosoftOutlook2019.svg?react")),
         Yahoo: lazy(() => import("@/assets/svg/YahooMailApp.svg?react")),

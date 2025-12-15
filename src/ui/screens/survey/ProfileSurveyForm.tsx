@@ -5,10 +5,11 @@ import { SURVEY_STEPS } from "@/utils/surveyConfig";
 import SvgPack from "@/utils/SvgPack";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import InfluencerAudioManager from "../influencer-audio-manager/InfluencerAudioManager";
 import SocialMediaStep from "./components/SocialMediaStep";
 import styles from "./ProfileSurvey.module.css";
 import UploadPictureStep from "./components/UploadPictureStep";
+import UploadAudioStep from "./components/UploadAudioStep";
+
 
 
 interface SurveyState {
@@ -516,37 +517,23 @@ const ProfileSurveyForm: React.FC = () => {
 
               {/* STEP: AUDIO */}
               {isAudioStep && preInfluencerUsername && (
-                <div className={styles.field}>
-                  <label className={styles.label}>
-                    Voice & Audio Samples{" "}
-                    <span className={styles.required}>*</span>
-                  </label>
-                  <p className={styles.subtitle}>
-                    Upload at least one audio sample so fans can hear how you
-                    sound.
-                  </p>
-
-                  <div className={styles.audioWrapper}>
-                    <InfluencerAudioManager
-                      influencerId={preInfluencerUsername}
-                      onCountChange={(count) => {
-                        setAudioCount(count);
-                        setAudioError(null);
-                        updateAnswer("audio_count", count);
-                      }}
-                    />
-                  </div>
-
-                  {audioError && (
-                    <div className={styles.error}>{audioError}</div>
-                  )}
-                </div>
+                <UploadAudioStep
+                  influencerId={preInfluencerUsername}
+                  onCountChange={(count) => {
+                    setAudioCount(count);
+                    setAudioError(null);
+                    updateAnswer("audio_count", count);
+                  }}
+                  audioError={audioError}
+                  setAudioError={setAudioError}
+                />
               )}
+
             </div>
 
             {/* BOTTOM BAR */}
             <div className={styles.bottomBar}>
-              
+
               {/*<div className={styles.stepInfo}>
                 Step {stepIndex + 1} of {wizardTotalSteps}
               </div>*/}
