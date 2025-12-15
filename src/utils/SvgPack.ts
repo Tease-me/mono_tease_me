@@ -48,4 +48,5 @@ export default {
     Female: lazy(() => import("@/assets/svg/Female.svg?react")),
     Link: lazy(() => import("@/assets/svg/Link.svg?react")),
     UploadPhoto: lazy(() => import("@/assets/svg/iconUploadPhoto.svg?react")),
+    Upload: lazy(() => import("@/assets/svg/iconUpload.svg?react")),
 }

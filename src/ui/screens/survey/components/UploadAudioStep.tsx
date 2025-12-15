@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import axios from "axios";
+import { apiClient } from "@/api/apis";
 import surveyStyles from "../ProfileSurvey.module.css";
 import styles from "./UploadAudioStep.module.css";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
@@ -8,7 +8,7 @@ import iconCross from "@/assets/svg/iconCross.svg";
 import SvgPack from "@/utils/SvgPack";
 
 interface UploadAudioStepProps {
-  influencerId: string;
+  influencerId: string | number;
   onCountChange: (count: number) => void;
   audioError: string | null;
   setAudioError: (msg: string | null) => void;
@@ -24,46 +24,153 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [hasRecording, setHasRecording] = useState(false);
   const [uploadingOwn, setUploadingOwn] = useState(false);
   const [localAudioUrl, setLocalAudioUrl] = useState<string | null>(null);
+  const [lastAction, setLastAction] = useState<"record" | "upload" | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [initializing, setInitializing] = useState(true);
+  const [hasLocalPending, setHasLocalPending] = useState(false);
+  const stableAudioUrlRef = useRef<string | null>(null);
+  const stableAudioBaseRef = useRef<string | null>(null);
+  const audioUrlRef = useRef<string | null>(null);
+
+  const withCacheBust = (url: string) =>
+    `${url}${url.includes("?") ? "&" : "?"}cb=${Date.now()}`;
 
   useEffect(() => {
     return () => {
       if (localAudioUrl && localAudioUrl.startsWith("blob:")) {
         URL.revokeObjectURL(localAudioUrl);
       }
+      if (recorderRef.current && recorderRef.current.state !== "inactive") {
+        recorderRef.current.stop();
+      }
     };
   }, [localAudioUrl]);
 
-  const handleUploadOwn = async (file: File) => {
+  useEffect(() => {
+    if (!influencerId) {
+      setInitializing(false);
+      return;
+    }
+    let canceled = false;
+    const loadLatest = async () => {
+      try {
+        const res = await apiClient.get<{
+          files: { download_url: string }[];
+          count?: number;
+        }>(`/influencer/influencer-audio/${influencerId}`);
+
+        if (canceled) return;
+
+        const latest = res.data.files?.[0];
+        if (latest?.download_url && !hasLocalPending) {
+          if (localAudioUrl?.startsWith("blob:")) {
+            setInitializing(false);
+            return;
+          }
+          const busted = withCacheBust(latest.download_url);
+          const base = latest.download_url.split("?")[0];
+          setLocalAudioUrl((prev) => {
+            if (prev && prev.startsWith("blob:") && prev !== busted) {
+              URL.revokeObjectURL(prev);
+            }
+            audioUrlRef.current = busted;
+            return busted;
+          });
+          stableAudioUrlRef.current = busted;
+          stableAudioBaseRef.current = base;
+          setLastAction((prev) => (prev === "record" ? "record" : "upload"));
+          onCountChange(res.data.count ?? res.data.files.length ?? 1);
+          setAudioError(null);
+        } else if (latest?.download_url && hasLocalPending) {
+          const base = latest.download_url.split("?")[0];
+          const busted = withCacheBust(latest.download_url);
+          setLocalAudioUrl((prev) => {
+            if (prev && prev.startsWith("blob:") && prev !== busted) {
+              URL.revokeObjectURL(prev);
+            }
+            audioUrlRef.current = busted;
+            return busted;
+          });
+          stableAudioUrlRef.current = busted;
+          stableAudioBaseRef.current = base;
+          setLastAction((prev) => (prev === "record" ? "record" : "upload"));
+          onCountChange(res.data.count ?? res.data.files.length ?? 1);
+          setAudioError(null);
+          setHasLocalPending(false);
+        } else if (!latest && !hasLocalPending) {
+          if (audioUrlRef.current && audioUrlRef.current.startsWith("blob:")) {
+            URL.revokeObjectURL(audioUrlRef.current);
+          }
+          audioUrlRef.current = null;
+          stableAudioUrlRef.current = null;
+          setLocalAudioUrl(null);
+          setLastAction(null);
+          onCountChange(0);
+        }
+      } catch (err) {
+        console.error("Error fetching latest audio", err);
+      }
+      setInitializing(false);
+    };
+
+    loadLatest();
+    return () => {
+      canceled = true;
+    };
+  }, [influencerId, refreshKey, hasLocalPending]);
+
+  const handleUploadOwn = async (file: File, origin: "upload" | "record" = "upload") => {
+    if (!influencerId) {
+      setAudioError("Missing influencer id.");
+      return;
+    }
+    onCountChange(0);
+    setHasLocalPending(true);
     setUploadingOwn(true);
     try {
       const formData = new FormData();
       formData.append("file", file);
-      await axios.post(
-        `${import.meta.env.VITE_TEASE_ME_PROTOCOL}://${import.meta.env.VITE_TEASE_ME_HOST
-        }/influencer/influencer-audio/${influencerId}`,
+      await apiClient.post(
+        `/influencer/influencer-audio/${influencerId}`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
-      setHasRecording(true);
+      setLastAction(origin);
       setAudioError(null);
       onCountChange(1);
+      setRefreshKey((n) => n + 1);
+      setTimeout(() => setRefreshKey((n) => n + 1), 1200);
     } catch (err) {
       console.error("Error uploading audio", err);
       setAudioError("Failed to upload audio. Please try again.");
+      if (localAudioUrl && localAudioUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(localAudioUrl);
+      }
+      const fallback = stableAudioUrlRef.current;
+      setLocalAudioUrl(fallback);
+      setLastAction(fallback ? "upload" : null);
+      setHasLocalPending(false);
+      audioUrlRef.current = fallback || null;
+      onCountChange(fallback ? 1 : 0);
     } finally {
       setUploadingOwn(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
-  const hasAudio = hasRecording || Boolean(localAudioUrl);
+  const hasAudio = Boolean(localAudioUrl);
 
   const startRecording = async () => {
+    if (isRecording) return;
+    onCountChange(0);
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setAudioError("Recording not supported in this browser.");
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
@@ -80,18 +187,20 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
         if (localAudioUrl) URL.revokeObjectURL(localAudioUrl);
         const url = URL.createObjectURL(blob);
         setLocalAudioUrl(url);
-        setHasRecording(true);
+        audioUrlRef.current = url;
+        setHasLocalPending(true);
+        setLastAction("record");
         setAudioError(null);
 
         const file = new File([blob], "recording.webm", { type: "audio/webm" });
-        handleUploadOwn(file);
+        handleUploadOwn(file, "record");
         stream.getTracks().forEach((t) => t.stop());
+        setIsRecording(false);
       };
 
       recorder.start();
       recorderRef.current = recorder;
       setIsRecording(true);
-      setHasRecording(false);
     } catch (err) {
       console.error("Recording failed", err);
       setAudioError("Unable to access microphone. Check permissions.");
@@ -109,50 +218,55 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
 
   return (
     <div className={surveyStyles.field}>
-      <div className={styles.header}>
-        <div className={styles.title}>Upload Audio</div>
-        <p className={styles.subtitle}>
-          Upload your best clear audio. This is how your fans will hear your AI persona.
-        </p>
-      </div>
+      {!isRecording && !hasAudio && !initializing && (
+        <>
+          <div className={styles.header}>
+            <div className={styles.title}>Upload Audio</div>
+            <p className={styles.subtitle}>
+              Upload your best clear audio. This is how your fans will hear your AI persona.
+            </p>
+          </div>
 
-      <div className={styles.tips}>
-        <div className={styles.tipsTitle}>Audio Tips</div>
-        <ul className={styles.tipList}>
-          <li className={`${styles.tip} ${styles.tipGood}`}>
-            <img className={styles.tipIcon} src={iconCheckCircle} alt="" />
-            Quiet room
-          </li>
-          <li className={`${styles.tip} ${styles.tipGood}`}>
-            <img className={styles.tipIcon} src={iconCheckCircle} alt="" />
-            Speak naturally
-          </li>
-          <li className={`${styles.tip} ${styles.tipBad}`}>
-            <img className={styles.tipIcon} src={iconCross} alt="" />
-            Background noise
-          </li>
-          <li className={`${styles.tip} ${styles.tipBad}`}>
-            <img className={styles.tipIcon} src={iconCross} alt="" />
-            Speakerphone
-          </li>
-          <li className={`${styles.tip} ${styles.tipBad}`}>
-            <img className={styles.tipIcon} src={iconCross} alt="" />
-            Bluetooth headsets
-          </li>
-        </ul>
-      </div>
+          <div className={styles.tips}>
+            <div className={styles.tipsTitle}>Audio Tips</div>
+            <ul className={styles.tipList}>
+              <li className={`${styles.tip} ${styles.tipGood}`}>
+                <img className={styles.tipIcon} src={iconCheckCircle} alt="" />
+                Quiet room
+              </li>
+              <li className={`${styles.tip} ${styles.tipGood}`}>
+                <img className={styles.tipIcon} src={iconCheckCircle} alt="" />
+                Speak naturally
+              </li>
+              <li className={`${styles.tip} ${styles.tipBad}`}>
+                <img className={styles.tipIcon} src={iconCross} alt="" />
+                Background noise
+              </li>
+              <li className={`${styles.tip} ${styles.tipBad}`}>
+                <img className={styles.tipIcon} src={iconCross} alt="" />
+                Speakerphone
+              </li>
+              <li className={`${styles.tip} ${styles.tipBad}`}>
+                <img className={styles.tipIcon} src={iconCross} alt="" />
+                Bluetooth headsets
+              </li>
+            </ul>
+          </div>
+        </>
+      )}
 
       <div className={surveyStyles.glassBox}>
-        {!isRecording && (
+        {!isRecording && !initializing && (
           <>
-            <div className={styles.reviewTitle}>Get Started</div>
+            {!hasAudio && <div className={styles.reviewTitle}>Get Started</div>}
             <div className={styles.actionButtons}>
               <NormalButton
                 type="square"
                 color="pink"
                 leftIcon={<SvgPack.RecordingStart />}
-                text="Record Script"
+                text={hasAudio ? "Record Again" : "Record Script"}
                 className={surveyStyles.glassButton}
+                disabled={uploadingOwn}
                 onClick={startRecording}
               />
             </div>
@@ -192,7 +306,13 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
 
       {hasAudio && (
         <div className={surveyStyles.glassBox}>
-          <div className={styles.reviewTitle}>Recording Complete!</div>
+          <div className={styles.reviewTitle}>
+            {uploadingOwn
+              ? "Uploading..."
+              : lastAction === "upload"
+              ? "Upload Complete"
+              : "Recording Complete"}
+          </div>
           {localAudioUrl && (
             <audio
               className={styles.audioPreview}
@@ -205,9 +325,13 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
             type="square"
             color="black"
             className={surveyStyles.glassButton}
-            leftIcon={<SvgPack.UploadPhoto />}
+            leftIcon={<SvgPack.Upload />}
             text={uploadingOwn ? "Uploading…" : "Upload your own"}
-            onClick={() => !uploadingOwn && fileInputRef.current?.click()}
+            disabled={isRecording || uploadingOwn}
+            onClick={() => {
+              if (isRecording || uploadingOwn) return;
+              fileInputRef.current?.click();
+            }}
           />
         </div>
       )}
@@ -223,10 +347,11 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
           if (localAudioUrl) URL.revokeObjectURL(localAudioUrl);
           const objectUrl = URL.createObjectURL(file);
           setLocalAudioUrl(objectUrl);
-          setHasRecording(true);
+          audioUrlRef.current = objectUrl;
+          setHasLocalPending(true);
           setAudioError(null);
-          onCountChange(1);
-          handleUploadOwn(file);
+          onCountChange(0);
+          handleUploadOwn(file, "upload");
         }}
       />
 
