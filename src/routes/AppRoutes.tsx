@@ -61,7 +61,6 @@ function AppRoutes() {
     },
     { path: "/thank-you", element: <ThankYouScreen /> },
     { path: "/profile-survey-form", element: <ProfileSurveyForm /> },
-    { path: "/relationship-dashboard", element: <RelationshipDashboard /> }, // Placeholder for RelationshipDashboard
   ];
 
   const guestRoutes: { path: string; element: JSX.Element }[] = [
@@ -77,6 +76,7 @@ function AppRoutes() {
     { path: "/mj/dashboard", element: <MJDashboard /> },
     { path: "/admin/influencer", element: <CreateInfluencer /> },
     { path: "/admin/prompts", element: <PromptEditorAdmin /> },
+    { path: "/admin/relationship", element: <RelationshipDashboard /> }
   ];
 
   const privateRoutes: { path: string; element: JSX.Element }[] = [
