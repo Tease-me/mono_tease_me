@@ -786,3 +786,19 @@
 
 
 /*:::::::::::::: NOT AVAILABLE ::::::::::::::*/
+
+
+
+
+@media (min-width:27rem) {
+  .home-page {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    grid-template-columns: 1fr 1fr;
+  }
+
+}
+
+.home-page-header {
+  grid-column: -1 / 1;
+}
