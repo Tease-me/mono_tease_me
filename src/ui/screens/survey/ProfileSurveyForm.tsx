@@ -58,7 +58,7 @@ const ProfileSurveyForm: React.FC = () => {
   const [pictureError, setPictureError] = useState<string | null>(null);
   const [socialError, setSocialError] = useState<string | null>(null);
   const [pictureUrl, setPictureUrl] = useState<string | null>(null);
-  const [instagramVerifying, setInstagramVerifying] = useState(false);
+  const [verifyingSocial, setVerifyingSocial] = useState<Record<string, boolean>>({});
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -154,37 +154,49 @@ const ProfileSurveyForm: React.FC = () => {
     fetchUrl();
   }, [preInfluencerId, answers["profile_picture_key"]]);
 
-  const handleVerifyInstagram = async () => {
-    const raw = answers["social_instagram"];
-    if (!raw || typeof raw !== "string") return;
+  const handleVerifySocial = async (platform: string, handle: string) => {
+    const cleanHandle = (handle || "").trim().replace(/^@/, "");
+    if (!cleanHandle) return;
 
-    const username = raw.trim().replace(/^@/, "");
-    if (!username) return;
+    const handleKey = `social_${platform}`;
+    const followerKey = `social_${platform}_followers`;
+    const verifiedKey = `social_${platform}_verified`;
+    const errorKey = `social_${platform}_verify_error`;
 
-    updateAnswer("social_instagram_verify_error", null);
-    updateAnswer("social_instagram_verified", false);
+    updateAnswer(errorKey, null);
+    updateAnswer(verifiedKey, false);
+
+    setVerifyingSocial((prev) => ({ ...prev, [platform]: true }));
 
     try {
-      setInstagramVerifying(true);
+      const serviceMap: Record<string, string> = {
+        instagram: "instagram",
+        x: "twitter",
+      };
+      const service = serviceMap[platform] || platform;
 
       const { data } = await apiClient.get("/social/api/followers", {
-        params: { service: "instagram", username },
+        params: { service, username: cleanHandle },
       });
 
       if (!data?.success) {
         throw new Error("Provider returned success=false");
       }
 
-      updateAnswer("social_instagram_followers", data.count ?? 0);
-      updateAnswer("social_instagram_verified", true);
-    } catch (err) {
-      console.error("Error verifying Instagram:", err);
-      updateAnswer(
-        "social_instagram_verify_error",
-        "Could not fetch followers right now. Please try again."
-      );
+      updateAnswer(handleKey, data.username ?? cleanHandle);
+      updateAnswer(followerKey, data.count ?? null);
+      updateAnswer(verifiedKey, true);
+    } catch (err: any) {
+      console.error("Error verifying social", err);
+      const backendMsg = err?.response?.data?.detail;
+      const msg = Array.isArray(backendMsg)
+        ? backendMsg.map((d: any) => d?.msg).filter(Boolean).join(" ")
+        : backendMsg || "Connection failed. Please enter manually.";
+
+      updateAnswer(errorKey, msg);
+      updateAnswer(verifiedKey, false);
     } finally {
-      setInstagramVerifying(false);
+      setVerifyingSocial((prev) => ({ ...prev, [platform]: false }));
     }
   };
 
@@ -370,43 +382,6 @@ const ProfileSurveyForm: React.FC = () => {
   const currentSurveyStep =
     isSurveyStep && SURVEY_STEPS[stepIndex] ? SURVEY_STEPS[stepIndex] : null;
 
-  const handleVerifyTwitter = async () => {
-    const raw = answers["social_x"];
-    if (!raw || typeof raw !== "string") return;
-
-    const username = raw.trim().replace(/^@/, "");
-    if (!username) return;
-
-    updateAnswer("social_twitter_verify_error", null);
-    updateAnswer("social_twitter_verified", false);
-
-    try {
-      setInstagramVerifying(true);
-
-      const { data } = await apiClient.get("/social/api/followers", {
-        params: {
-          service: "twitter",
-          username,
-        },
-      });
-
-      if (!data?.success) {
-        throw new Error("API returned success=false");
-      }
-
-      updateAnswer("social_twitter_followers", data.count ?? 0);
-      updateAnswer("social_twitter_verified", true);
-    } catch (err) {
-      console.error(err);
-      updateAnswer(
-        "social_twitter_verify_error",
-        "Could not fetch Twitter followers."
-      );
-    } finally {
-      setInstagramVerifying(false);
-    }
-  };
-
   return (
     <div className={styles.screen}>
       <div className={styles.outerframe}>
@@ -513,9 +488,8 @@ const ProfileSurveyForm: React.FC = () => {
                   answers={answers}
                   updateAnswer={updateAnswer}
                   socialError={socialError}
-                  onVerifyInstagram={handleVerifyInstagram}
-                  onVerifyX={handleVerifyTwitter}
-                  instagramVerifying={instagramVerifying}
+                  onVerifySocial={handleVerifySocial}
+                  verifyingSocial={verifyingSocial}
                 />
               )}
 

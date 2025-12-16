@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/ui/components/modals/Modal";
 import SocialSelectorButton from "@/ui/components/inputs/buttons/SocialSelectorButton";
 import styles from "./SocialMediaStep.module.css"
@@ -45,17 +45,16 @@ interface SocialMediaStepProps {
   answers: Record<string, any>;
   updateAnswer: (key: string, value: any) => void;
   socialError: string | null;
-  onVerifyInstagram?: () => Promise<void> | void;
-  onVerifyX?: () => Promise<void> | void;
-  instagramVerifying?: boolean;
+  onVerifySocial?: (platform: SocialId, handle: string) => Promise<void> | void;
+  verifyingSocial?: Record<string, boolean>;
 }
 
 const platforms: SocialPlatform[] = [
-  { id: "instagram", label: "Instagram", icon: igWhite, iconError: igRed, placeholder: "@username" },
-  { id: "tiktok", label: "TikTok", icon: tiktokWhite, iconError: tiktokRed, placeholder: "@username" },
-  { id: "snapchat", label: "SnapChat", icon: snapWhite, iconError: snapRed, placeholder: "@username" },
+  { id: "instagram", label: "Instagram", icon: igWhite, iconError: igRed, placeholder: "username" },
+  { id: "tiktok", label: "TikTok", icon: tiktokWhite, iconError: tiktokRed, placeholder: "username" },
+  { id: "snapchat", label: "SnapChat", icon: snapWhite, iconError: snapRed, placeholder: "username" },
   { id: "telegram", label: "Telegram", icon: telegramWhite, iconError: telegramRed, placeholder: "handle" },
-  { id: "x", label: "X", icon: xWhite, iconError: xRed, placeholder: "@username" },
+  { id: "x", label: "X", icon: xWhite, iconError: xRed, placeholder: "username" },
   { id: "onlyfans", label: "Only Fans", icon: onlyfansWhite, iconError: onlyfansRed, placeholder: "username" },
   { id: "whatsapp", label: "Whatsapp", icon: whatsappWhite, iconError: whatsappRed, placeholder: "phone or wa.me/number" },
 ];
@@ -71,13 +70,12 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
   answers,
   updateAnswer,
   socialError,
-  onVerifyInstagram,
-  onVerifyX,
+  onVerifySocial,
+  verifyingSocial,
 }) => {
   const [openId, setOpenId] = useState<SocialId | null>(null);
   const [localHandle, setLocalHandle] = useState("");
   const [localFollowers, setLocalFollowers] = useState("");
-  const [verifying, setVerifying] = useState<SocialId | null>(null);
 
   const selected = useMemo<string[]>(
     () => (Array.isArray(answers["social_selected_platforms"]) ? answers["social_selected_platforms"] : []),
@@ -135,44 +133,51 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
       return;
     }
 
-    setVerifying(openId);
     updateAnswer(errorKey(openId), null);
     updateAnswer(verifiedKey(openId), false);
 
     try {
-      if (openId === "instagram" && onVerifyInstagram) {
-        await onVerifyInstagram();
-      } else if (openId === "x" && onVerifyX) {
-        await onVerifyX();
+      if (onVerifySocial) {
+        await onVerifySocial(openId, trimmedHandle);
       } else {
         saveAndClose();
         return;
       }
-      updateAnswer(verifiedKey(openId), true);
-      setOpenId(null);
+      // parent sets verified/error state; keep modal open to reflect status
     } catch (err) {
       console.error("Error connecting social", err);
       updateAnswer(
         errorKey(openId),
         "Connection failed. Please enter manually."
       );
-      updateAnswer(verifiedKey(openId), false);
-    } finally {
-      setVerifying(null);
     }
   };
 
   const modalStatus = (): "idle" | "verifying" | "verified" | "error" => {
     if (!openId) return "idle";
-    if (verifying === openId) return "verifying";
+    if (verifyingSocial?.[openId]) return "verifying";
     if (answers[verifiedKey(openId)]) return "verified";
     if (answers[errorKey(openId)]) return "error";
     return "idle";
   };
 
+  useEffect(() => {
+    if (!openId) return;
+    const val = answers[followerKey(openId)];
+    if (val === undefined || val === null || val === "") return;
+    setLocalFollowers(String(val));
+  }, [openId, answers]);
+
+  React.useEffect(() => {
+    if (!openId) return;
+    const val = answers[followerKey(openId)];
+    setLocalFollowers(val === 0 || val ? String(val) : "");
+  }, [openId, answers]);
+
   const modalPlatform = openId ? platforms.find((p) => p.id === openId) : null;
   const canConnect = openId ? connectable.has(openId) : false;
   const status = modalStatus();
+  const errorMsg = openId ? answers[errorKey(openId)] : null;
   const showPrimary = status !== "verified";
   const primaryLabel =
     status === "verifying"
@@ -253,6 +258,12 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
                   text={primaryLabel}
                 >
                 </PrimaryButton>
+              )}
+
+              {status === "error" && errorMsg && (
+                <ValidationPill variant="error" className={styles.validationPill}>
+                  {errorMsg}
+                </ValidationPill>
               )}
 
               {status === "verified" && (
