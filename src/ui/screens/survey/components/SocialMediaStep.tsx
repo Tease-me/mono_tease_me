@@ -105,7 +105,7 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
     }
   };
 
-  const saveAndClose = () => {
+  const saveManualAndClose = () => {
     if (!openId) return;
     const trimmedHandle = localHandle.trim();
     updateAnswer(handleKey(openId), trimmedHandle);
@@ -123,13 +123,9 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
     if (!openId) return;
     const canConnect = connectable.has(openId);
     const trimmedHandle = localHandle.trim();
-    if (trimmedHandle) {
-      updateAnswer(handleKey(openId), trimmedHandle);
-      saveSelection(openId);
-    }
 
     if (!canConnect) {
-      saveAndClose();
+      saveManualAndClose();
       return;
     }
 
@@ -140,7 +136,7 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
       if (onVerifySocial) {
         await onVerifySocial(openId, trimmedHandle);
       } else {
-        saveAndClose();
+        saveManualAndClose();
         return;
       }
       // parent sets verified/error state; keep modal open to reflect status
@@ -253,11 +249,10 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
               {showPrimary && (
                 <PrimaryButton
                   className={`${styles.submitButton} ${status === "verifying" ? styles.disabled : ""}`}
-                  onClick={handleConnect}
+                  onClick={status === "error" || !canConnect ? saveManualAndClose : handleConnect}
                   aria-disabled={status === "verifying"}
                   text={primaryLabel}
-                >
-                </PrimaryButton>
+                />
               )}
 
               {status === "error" && errorMsg && (
