@@ -25,6 +25,8 @@ type RelRow = {
   attraction: number;
   safety: number;
   state: string;
+  stage_points: number;
+  sentiment_score: number;
   exclusive_agreed: boolean;
   girlfriend_confirmed: boolean;
   updated_at?: string | null;
@@ -47,6 +49,15 @@ async function fetchJson<T>(url: string): Promise<T> {
       `Invalid JSON from ${url}. First bytes:\n${text.slice(0, 160)}`
     );
   }
+}
+
+function sentimentLabel(score: number) {
+  if (score <= -60) return "HATE";
+  if (score <= -20) return "DISLIKE";
+  if (score < 20) return "NEUTRAL";
+  if (score < 50) return "FRIENDLY";
+  if (score < 75) return "FLIRTY";
+  return "IN_LOVE";
 }
 
 function clamp01to100(x: number) {
@@ -644,7 +655,6 @@ export default function RelationshipDashboard() {
           >
             {selectedRel ? (
               <>
-                <Pill tone={badge}>{selectedRel.state}</Pill>
                 <Pill>
                   Exclusive: {selectedRel.exclusive_agreed ? "Yes" : "No"}
                 </Pill>
@@ -652,6 +662,14 @@ export default function RelationshipDashboard() {
                   Girlfriend: {selectedRel.girlfriend_confirmed ? "Yes" : "No"}
                 </Pill>
                 <Pill>● Live</Pill>
+
+                <Pill>Stage: {selectedRel?.state}</Pill>
+                <Pill>
+                  Sentiment:{" "}
+                  {selectedRel
+                    ? sentimentLabel(selectedRel.sentiment_score ?? 0)
+                    : "—"}
+                </Pill>
               </>
             ) : (
               <Pill>Select a user + influencer</Pill>
@@ -680,6 +698,80 @@ export default function RelationshipDashboard() {
                 : undefined
             }
           />
+
+          {/* ✅ NEW: Stage progress */}
+          <MetricCard
+            title="Stage Progress"
+            value={selectedRel?.stage_points ?? 0}
+            hint={
+              selectedRel
+                ? `${selectedRel.state} (${(
+                    selectedRel.stage_points ?? 0
+                  ).toFixed(1)}/100)`
+                : undefined
+            }
+          />
+
+          {/* ✅ NEW: Sentiment (can be negative) */}
+          <div
+            style={{
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: 16,
+              padding: 14,
+              background: "rgba(255,255,255,0.03)",
+            }}
+          >
+            <div style={{ fontSize: 12, opacity: 0.82 }}>Sentiment</div>
+            <div style={{ fontSize: 22, fontWeight: 900, marginTop: 6 }}>
+              {selectedRel
+                ? sentimentLabel(selectedRel.sentiment_score ?? 0)
+                : "—"}
+            </div>
+            <div style={{ fontSize: 12, opacity: 0.72, marginTop: 4 }}>
+              Score:{" "}
+              {selectedRel
+                ? (selectedRel.sentiment_score ?? 0).toFixed(1)
+                : "—"}{" "}
+              (−100..100)
+            </div>
+
+            {/* progress bar from -100..100 */}
+            <div
+              style={{
+                height: 8,
+                borderRadius: 999,
+                background: "rgba(255,255,255,0.08)",
+                overflow: "hidden",
+                marginTop: 10,
+                position: "relative",
+              }}
+            >
+              {/* center line */}
+              <div
+                style={{
+                  position: "absolute",
+                  left: "50%",
+                  top: 0,
+                  bottom: 0,
+                  width: 2,
+                  background: "rgba(255,255,255,0.12)",
+                }}
+              />
+              <div
+                style={{
+                  width: `${Math.max(
+                    0,
+                    Math.min(
+                      100,
+                      ((selectedRel?.sentiment_score ?? 0) + 100) / 2
+                    )
+                  )}%`,
+                  height: "100%",
+                  background: "rgba(255,255,255,0.78)",
+                }}
+              />
+            </div>
+          </div>
         </div>
 
         {/* Panels */}
