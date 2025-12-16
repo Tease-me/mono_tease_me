@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import LottieAnimation from "@/ui/components/LottieAnimation";
 import heartFloat from "@/assets/lottie/heartFloat.json"
 import hpImageRequestBg from "@/assets/image/hpImageRequestBg@2x.jpg"
+import imageTeaseMeLight from "@/assets/image/iconTeaseMeLight.png";
 import "./HomePage.css";
 
 const IntencionInfluencerHome: React.FC = () => {
@@ -47,10 +48,10 @@ const IntencionInfluencerHome: React.FC = () => {
         <div className="hp-negative-col01">
         <h1 className="intencion-title">
           We haven't onboarded {influencerName} yet…
-        </h1>
+        </h1>   <br />
         <p className="intencion-subtitle">
           …but you can help us bring them here!
-        </p>
+        </p>   <br />
         <p className="intencion-subtitle">
           Tell us who you want to see —{" "}
           <strong>we'll reach out to them</strong> and
@@ -141,19 +142,26 @@ const IntencionInfluencerHome: React.FC = () => {
  
            <div className="intencion-invite-section-inner">
             <div className="intencion-invite-input-container">
+             <div className="invitelink-sendlink-container"> 
+                   <div className="home-page-logo-decoration">
+          <img
+            src={imageTeaseMeLight}
+            alt=""
+            className="invite-link-logo-icon"
+          />
+        </div>
               <label className="intencion-invite-label">Send Invite Link</label>
               <div className="intencion-invite-input-wrapper">
                 <div className="intencion-invite-input-outer">
-                  <div className="intencion-invite-input-inner">
-                    <input
+                      <input
                       type="text"
                       value={inviteLink}
                       readOnly
                       className="intencion-invite-input-readonly"
                     />
-                  </div>
+                  
                 </div>
-              </div>
+              </div></div>
               <PrimaryButton
                 text={copied ? "Copied!" : "Copy Invite Link"}
                 rightIcon={<SvgPack.ArrowRight />}
