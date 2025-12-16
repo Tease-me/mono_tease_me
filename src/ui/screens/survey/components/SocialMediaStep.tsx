@@ -144,7 +144,7 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
       console.error("Error connecting social", err);
       updateAnswer(
         errorKey(openId),
-        "Connection failed. Please enter manually."
+        "Connection failed."
       );
     }
   };
@@ -164,16 +164,11 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
     setLocalFollowers(String(val));
   }, [openId, answers]);
 
-  React.useEffect(() => {
-    if (!openId) return;
-    const val = answers[followerKey(openId)];
-    setLocalFollowers(val === 0 || val ? String(val) : "");
-  }, [openId, answers]);
-
   const modalPlatform = openId ? platforms.find((p) => p.id === openId) : null;
   const canConnect = openId ? connectable.has(openId) : false;
   const status = modalStatus();
-  const errorMsg = openId ? answers[errorKey(openId)] : null;
+  const rawError = openId ? answers[errorKey(openId)] : null;
+  const errorMsg = typeof rawError === "string" ? rawError : "Connection failed.";
   const showPrimary = status !== "verified";
   const primaryLabel =
     status === "verifying"
@@ -269,7 +264,7 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
 
               {status === "error" && (
                 <ValidationPill variant="warning" className={styles.validationPill}>
-                  Alert. Please enter manually
+                  Please enter manually
                 </ValidationPill>
               )}
             </div>
