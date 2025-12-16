@@ -3,6 +3,12 @@ import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
 import SvgPack from "@/utils/SvgPack";
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import imageProfile from "@/assets/image/imageProfile.jpg";
+import imageTeaseMeDark from "@/assets/image/iconTeaseMeDark.png";
+import imageTeaseMeDark2x from "@/assets/image/iconTeaseMeDark@2x.png";
+import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButton";
+import CloseSquareIcon from "@/assets/CloseSquare.svg?react";
+import CallIcon from "@/assets/Call.svg?react";
 import "./HomePage.css";
 
 const InfluencerHome: React.FC = () => {
@@ -28,19 +34,20 @@ const InfluencerHome: React.FC = () => {
         <TeaseMeLogo variant="full-dark" size="medium" />
       </header>
 
-      {/* Main Content */}
+     
+      {/* Profile Card */}
+      <section className="influencer-content-inner">
+ {/* Main Content */}
       <div className="influencer-content">
         <h1 className="influencer-title">
-          {influencerName} is <br /> on TeaseMe!
+          {influencerName} is on TeaseMe!
         </h1>
       </div>
-
-      {/* Profile Card */}
-      <div className="influencer-profile-card">
+<div className="influencer-profile-card">
         <div className="influencer-avatar-container">
           <div className="influencer-avatar-outer">
             <img
-              src={influencerAvatar}
+              src={imageProfile}
               alt={influencerName}
               className="influencer-avatar"
             />
@@ -55,45 +62,19 @@ const InfluencerHome: React.FC = () => {
             </div>
           </div>
           <div className="influencer-actions">
-            <button className="influencer-action-btn influencer-action-btn-volume">
-              <div className="influencer-action-icon">
-                <img
-                  src="http://localhost:3845/assets/4eab24fc23941f1b33958146927a0122dd36df5b.svg"
-                  alt="Volume"
-                />
-              </div>
-            </button>
-            <button className="influencer-action-btn influencer-action-btn-voice">
-              <div className="influencer-action-icon">
-                <img
-                  src="http://localhost:3845/assets/327a8da48b8964969d0458eca08e97ae91bfda3e.svg"
-                  alt="Voice"
-                />
-              </div>
-            </button>
-            <button className="influencer-action-btn influencer-action-btn-call">
-              <div className="influencer-action-icon">
-                <img
-                  src="http://localhost:3845/assets/ccdb5f0beaf9c0d4bd39082d1233e211744cb2ec.svg"
-                  alt="Call"
-                />
-              </div>
-            </button>
+            <CircularIconButton size="xsmall" variant="primary" icon={<CallIcon />} />
+            <CircularIconButton size="xsmall" variant="primary" icon={<CallIcon />} />
+              <CircularIconButton size="xsmall" variant="primary" icon={<CallIcon />} />
+            
+            
+            
           </div>
         </div>
       </div>
-
-      {/* Features Text */}
-      <p className="influencer-features">
-        <span>Instant replies</span>
-        <span className="influencer-features-dot">•</span>
-        <span>24/7</span>
-        <span className="influencer-features-dot">•</span>
-        <span>Personalised experience</span>
-      </p>
-
-      {/* Talk Now Button */}
-      <div className="influencer-talk-button-container">
+  {/* Talk Now Button */}
+      <div className="influencer-cta-button-row">
+        
+        <div className="influencer-talk-button-container">
         <PrimaryButton
           text="Talk to her now"
           rightIcon={<SvgPack.ArrowRight />}
@@ -101,28 +82,45 @@ const InfluencerHome: React.FC = () => {
           className="influencer-talk-button"
         />
       </div>
+      {/* Features Text */}
+      <p className="influencer-features">
+        <span>Instant replies</span>
+        <span className="influencer-features-dot">•</span>
+        <span>24/7</span>
+        <span className="influencer-features-dot">•</span>
+        <span>Personalised experience</span>
+      </p></div>
+
+      </section>
+
+
+    
 
       {/* Discover More Section */}
       <div className="influencer-discover-section">
+        <div className="home-page-logo-decoration">
+          <img
+            src={imageTeaseMeDark}
+            alt=""
+            className="influencer-page-logo-icon"
+          />
+        </div>
         <h2 className="influencer-discover-title">
           Want to discover more creators?
         </h2>
+       
+      <div className="hp-footer-button-container">
+       
         <PrimaryButton
           text="Search New Influencer"
           rightIcon={<SvgPack.ArrowRight />}
           onClick={() => navigate("/home-page")}
           className="influencer-discover-button"
         />
+        </div>
       </div>
 
-      {/* Decorative Logo */}
-      <div className="influencer-logo-decoration">
-        <img
-          src="http://localhost:3845/assets/7b67cb56f0cd8b0b85e718cd6c94a32032ca9683.png"
-          alt=""
-          className="influencer-logo-icon"
-        />
-      </div>
+  
     </div>
   );
 };
