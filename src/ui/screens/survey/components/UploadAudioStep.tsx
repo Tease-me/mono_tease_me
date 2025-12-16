@@ -13,14 +13,12 @@ interface UploadAudioStepProps {
   onCountChange: (count: number) => void;
   audioError: string | null;
   setAudioError: (msg: string | null) => void;
-  influencerName: string;
 }
 
 const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
   influencerId,
   token,
   onCountChange,
-  influencerName,
   audioError,
   setAudioError,
 }) => {
@@ -266,8 +264,6 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
     }
   };
 
-  const name = influencerName || "your name";
-
   return (
     <div className={surveyStyles.field}>
       {!isRecording && !initializing && (
@@ -335,14 +331,17 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
             <p className={styles.subtitle}>Please read the script below.</p>
 
             <div className={styles.scriptBox}>
-              <p>Hello, my name is {name}, and I’m recording this sample for voice cloning.</p>
-              <p>I speak in a calm and natural tone. The quick brown fox jumps over the lazy dog.</p>
-              <p>Artificial intelligence is transforming the way we live, work, and communicate.</p>
-              <p>In the morning, I enjoy coffee, while in the evening I might choose tea.</p>
-              <p>Sometimes I speak softly, and other times I raise my voice for emphasis.</p>
-              <p>Can you hear the difference in my tone, my pitch, and my rhythm?</p>
-              <p>This recording should capture the natural flow of my everyday speech.</p>
-              <p>Thank you for listening.</p>
+              <p>Hey, babe, I just got home from work. I thought about you all day.</p>
+              <p>I miss you so much already. How was your morning?</p>
+              <p>Did you drink your favorite coffee today?</p>
+              <p>I keep thinking about your smile. It always makes my world feel bright.</p>
+              <p>Do you remember our walk in the park last weekend?</p>
+              <p>Holding your hand felt so perfect. I loved every second.</p>
+              <p>What are your plans tonight? Maybe we can video call later?</p>
+              <p>I love how your silly jokes always make me laugh.</p>
+              <p>You really are my everything, babe.</p>
+              <p>I can’t wait to hear your voice again.</p>
+              <p>Tell me, what are you doing right now?</p>
             </div>
 
             <NormalButton
@@ -370,12 +369,12 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
               className={styles.audioPreview}
               controls
               src={localAudioUrl}
-onError={() => {
-  setLastAction(null);
-  setHasLocalPending(false);
-  onCountChange(0);
-  setAudioError("Audio failed to load. Please re-upload.");
-}}
+              onError={() => {
+                setLastAction(null);
+                setHasLocalPending(false);
+                onCountChange(0);
+                setAudioError("Audio failed to load. Please re-upload.");
+              }}
 
             />
           )}

@@ -498,7 +498,6 @@ const ProfileSurveyForm: React.FC = () => {
                 <UploadAudioStep
                   influencerId={preInfluencerId}
                   token={token}
-                  influencerName={preInfluencerUsername || ""}
                   onCountChange={(count) => {
                     setAudioCount(count);
                     setAudioError(null);
