@@ -9,6 +9,7 @@ import SvgPack from "@/utils/SvgPack";
 
 interface UploadAudioStepProps {
   influencerId: string | number;
+  token?: string;
   onCountChange: (count: number) => void;
   audioError: string | null;
   setAudioError: (msg: string | null) => void;
@@ -17,6 +18,7 @@ interface UploadAudioStepProps {
 
 const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
   influencerId,
+  token,
   onCountChange,
   influencerName,
   audioError,
@@ -35,6 +37,8 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
   const stableAudioUrlRef = useRef<string | null>(null);
   const stableAudioBaseRef = useRef<string | null>(null);
   const audioUrlRef = useRef<string | null>(null);
+  const isMediaRecorderSupported = typeof window !== "undefined" && "MediaRecorder" in window;
+  const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024; // 20MB safety cap
 
   const withCacheBust = (url: string) =>
     `${url}${url.includes("?") ? "&" : "?"}cb=${Date.now()}`;
@@ -61,18 +65,22 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
         const res = await apiClient.get<{
           files: { download_url: string }[];
           count?: number;
-        }>(`/influencer/influencer-audio/${influencerId}`);
+        }>(`/influencer/influencer-audio/${influencerId}`, {
+          params: token ? { token } : undefined,
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        });
 
         if (canceled) return;
 
         const latest = res.data.files?.[0];
         if (latest?.download_url && !hasLocalPending) {
-          if (localAudioUrl?.startsWith("blob:")) {
+          const base = latest.download_url.split("?")[0];
+          // If we already have this file loaded, avoid swapping URLs (prevents player flicker)
+          if (stableAudioBaseRef.current === base && localAudioUrl) {
             setInitializing(false);
             return;
           }
           const busted = withCacheBust(latest.download_url);
-          const base = latest.download_url.split("?")[0];
           setLocalAudioUrl((prev) => {
             if (prev && prev.startsWith("blob:") && prev !== busted) {
               URL.revokeObjectURL(prev);
@@ -87,6 +95,11 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
           setAudioError(null);
         } else if (latest?.download_url && hasLocalPending) {
           const base = latest.download_url.split("?")[0];
+          if (stableAudioBaseRef.current === base && localAudioUrl) {
+            setHasLocalPending(false);
+            setAudioError(null);
+            return;
+          }
           const busted = withCacheBust(latest.download_url);
           setLocalAudioUrl((prev) => {
             if (prev && prev.startsWith("blob:") && prev !== busted) {
@@ -111,8 +124,17 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
           setLastAction(null);
           onCountChange(0);
         }
-      } catch (err) {
-        console.error("Error fetching latest audio", err);
+      } catch (err: any) {
+        const detail = err?.response?.data?.detail;
+        if (detail === "Influencer has no audio file stored") {
+          onCountChange(0);
+          setLocalAudioUrl(null);
+          setLastAction(null);
+          setAudioError(null);
+        } else {
+          console.error("Error fetching latest audio", err);
+          setAudioError("Unable to load your audio. Please re-upload.");
+        }
       }
       setInitializing(false);
     };
@@ -121,11 +143,19 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
     return () => {
       canceled = true;
     };
-  }, [influencerId, refreshKey, hasLocalPending]);
+  }, [influencerId, token, refreshKey, hasLocalPending, onCountChange]);
 
   const handleUploadOwn = async (file: File, origin: "upload" | "record" = "upload") => {
     if (!influencerId) {
       setAudioError("Missing influencer id.");
+      return;
+    }
+    if (!file.type?.startsWith("audio/")) {
+      setAudioError("Please upload an audio file.");
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      setAudioError("Audio file is too large. Please upload under 20MB.");
       return;
     }
     onCountChange(0);
@@ -137,25 +167,35 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
       await apiClient.post(
         `/influencer/influencer-audio/${influencerId}`,
         formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          params: token ? { token } : undefined,
+        }
       );
       setLastAction(origin);
       setAudioError(null);
+      setHasLocalPending(false);
       onCountChange(1);
       setRefreshKey((n) => n + 1);
-      setTimeout(() => setRefreshKey((n) => n + 1), 1200);
     } catch (err) {
       console.error("Error uploading audio", err);
       setAudioError("Failed to upload audio. Please try again.");
-      if (localAudioUrl && localAudioUrl.startsWith("blob:")) {
-        URL.revokeObjectURL(localAudioUrl);
-      }
       const fallback = stableAudioUrlRef.current;
-      setLocalAudioUrl(fallback);
-      setLastAction(fallback ? "upload" : null);
-      setHasLocalPending(false);
-      audioUrlRef.current = fallback || null;
-      onCountChange(fallback ? 1 : 0);
+      if (fallback) {
+        setLocalAudioUrl(fallback);
+        setLastAction("upload");
+        setHasLocalPending(false);
+        audioUrlRef.current = fallback;
+        onCountChange(1);
+      } else {
+        // keep the local preview so the user can retry or re-record
+        setHasLocalPending(true);
+        audioUrlRef.current = localAudioUrl;
+        onCountChange(localAudioUrl ? 1 : 0);
+      }
     } finally {
       setUploadingOwn(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -167,11 +207,16 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
   const startRecording = async () => {
     if (isRecording) return;
     onCountChange(0);
-    if (!navigator.mediaDevices?.getUserMedia) {
+    if (!navigator.mediaDevices?.getUserMedia || !isMediaRecorderSupported) {
       setAudioError("Recording not supported in this browser.");
       return;
     }
     try {
+      if (!window.MediaRecorder) {
+        setAudioError("Recording not supported in this browser.");
+        return;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
       chunksRef.current = [];
@@ -184,6 +229,12 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
 
       recorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        if (blob.size === 0) {
+          setAudioError("No audio captured. Please try recording again.");
+          setHasLocalPending(false);
+          setIsRecording(false);
+          return;
+        }
         if (localAudioUrl) URL.revokeObjectURL(localAudioUrl);
         const url = URL.createObjectURL(blob);
         setLocalAudioUrl(url);
@@ -191,6 +242,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
         setHasLocalPending(true);
         setLastAction("record");
         setAudioError(null);
+        onCountChange(1);
 
         const file = new File([blob], "recording.webm", { type: "audio/webm" });
         handleUploadOwn(file, "record");
@@ -218,7 +270,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
 
   return (
     <div className={surveyStyles.field}>
-      {!isRecording && !hasAudio && !initializing && (
+      {!isRecording && !initializing && (
         <>
           <div className={styles.header}>
             <div className={styles.title}>Upload Audio</div>
@@ -310,14 +362,21 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
             {uploadingOwn
               ? "Uploading..."
               : lastAction === "upload"
-              ? "Upload Complete"
-              : "Recording Complete"}
+                ? "Upload Complete"
+                : "Recording Complete"}
           </div>
           {localAudioUrl && (
             <audio
               className={styles.audioPreview}
               controls
               src={localAudioUrl}
+onError={() => {
+  setLastAction(null);
+  setHasLocalPending(false);
+  onCountChange(0);
+  setAudioError("Audio failed to load. Please re-upload.");
+}}
+
             />
           )}
           <div className={styles.dividerText}>Or</div>
