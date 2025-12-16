@@ -76,7 +76,7 @@
 
 
 /* DESKTOP TWEAKS */
-@media (min-width: 26.9375rem) {
+@media (min-width: 32rem) {
   .tm-income-card-wrapper {
     width: 40rem;
   }

@@ -789,16 +789,24 @@
 
 
 
+@media (min-width: 32rem) {
 
-@media (min-width:27rem) {
   .home-page {
     display: grid;
     grid-template-rows: auto 1fr;
     grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 2rem;
   }
+
+  .hp-hero-col01 {    max-width: 55ch; margin: 0 0 0 auto;         gap: 1rem;}
+  .home-page-title {font-size: 4rem;}
+  .home-page-subtitle {    font-size: 1.5rem;}
 
 }
 
 .home-page-header {
   grid-column: -1 / 1;
 }
+
+.home-page-search-container {max-width: 35rem;border-radius: 1rem;}

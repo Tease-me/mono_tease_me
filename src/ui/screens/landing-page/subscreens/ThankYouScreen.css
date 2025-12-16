@@ -131,7 +131,7 @@
   text-align: center;
 }
 
-@media (min-width: 26.9375rem) {
+@media (min-width: 32rem) {
   .dialog-screen {
     align-items: center;
 
