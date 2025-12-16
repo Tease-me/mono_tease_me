@@ -3,7 +3,7 @@ import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
 import SvgPack from "@/utils/SvgPack";
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import "./InfluencerHome.css";
+import "./HomePage.css";
 
 const InfluencerHome: React.FC = () => {
   const navigate = useNavigate();
