@@ -65,6 +65,11 @@ const followerKey = (id: SocialId) => `social_${id}_followers`;
 const verifiedKey = (id: SocialId) => `social_${id}_verified`;
 const errorKey = (id: SocialId) => `social_${id}_verify_error`;
 const connectable = new Set<SocialId>(["instagram", "x"]);
+const parseFollowers = (value: string) => {
+  const num = Number(value);
+  return Number.isFinite(num) && num >= 0 ? num : 0;
+};
+
 
 const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
   answers,
@@ -105,15 +110,30 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
     }
   };
 
+  const removeSelection = (id: SocialId) => {
+    if (selected.includes(id)) {
+      updateAnswer(
+        "social_selected_platforms",
+        selected.filter((item) => item !== id)
+      );
+    }
+  };
+
   const saveManualAndClose = () => {
     if (!openId) return;
     const trimmedHandle = localHandle.trim();
+    const parsedFollowers = parseFollowers(localFollowers);
+
     updateAnswer(handleKey(openId), trimmedHandle);
-    updateAnswer(
-      followerKey(openId),
-      localFollowers ? Number(localFollowers) : null
-    );
+    updateAnswer(followerKey(openId), parsedFollowers);
     updateAnswer(verifiedKey(openId), false);
+
+    if (!trimmedHandle) {
+      removeSelection(openId);
+      updateAnswer(errorKey(openId), "Please enter your handle before continuing.");
+      return;
+    }
+
     updateAnswer(errorKey(openId), null);
     saveSelection(openId);
     setOpenId(null);
@@ -121,14 +141,26 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
 
   const handleConnect = async () => {
     if (!openId) return;
+    if (verifyingSocial?.[openId]) return;
     const canConnect = connectable.has(openId);
     const trimmedHandle = localHandle.trim();
+    const parsedFollowers = parseFollowers(localFollowers);
+
+    updateAnswer(followerKey(openId), parsedFollowers);
+    updateAnswer(handleKey(openId), trimmedHandle);
 
     if (!canConnect) {
       saveManualAndClose();
       return;
     }
 
+    if (!trimmedHandle) {
+      removeSelection(openId);
+      updateAnswer(errorKey(openId), "Please enter your handle before connecting.");
+      return;
+    }
+
+    saveSelection(openId);
     updateAnswer(errorKey(openId), null);
     updateAnswer(verifiedKey(openId), false);
 

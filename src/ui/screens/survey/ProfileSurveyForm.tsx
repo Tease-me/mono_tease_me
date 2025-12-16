@@ -190,12 +190,8 @@ const ProfileSurveyForm: React.FC = () => {
       console.error("Error verifying social", err);
       const backendMsg = err?.response?.data?.detail;
       const msg = Array.isArray(backendMsg)
-        ? backendMsg.map((d: any) => d?.msg || d?.error).filter(Boolean).join(" ")
-        : typeof backendMsg === "string"
-          ? backendMsg
-          : err?.response?.data?.error
-            ? String(err.response.data.error)
-            : "Connection failed.";
+        ? backendMsg.map((d: any) => d?.msg).filter(Boolean).join(" ")
+        : backendMsg || "Connection failed. Please enter manually.";
 
       updateAnswer(errorKey, msg);
       updateAnswer(verifiedKey, false);
