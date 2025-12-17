@@ -4,9 +4,12 @@ import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import { SURVEY_STEPS } from "@/utils/surveyConfig";
 import SvgPack from "@/utils/SvgPack";
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import InfluencerAudioManager from "../influencer-audio-manager/InfluencerAudioManager";
+import {useNavigate, useSearchParams } from "react-router-dom";
+import SocialMediaStep from "./components/SocialMediaStep";
 import styles from "./ProfileSurvey.module.css";
+import UploadPictureStep from "./components/UploadPictureStep";
+import UploadAudioStep from "./components/UploadAudioStep";
+
 
 interface SurveyState {
   pre_influencer_id: number;
@@ -30,7 +33,6 @@ interface SurveyQuestion {
 
 const ProfileSurveyForm: React.FC = () => {
   const [params] = useSearchParams();
-  const navigate = useNavigate();
 
   const token = params.get("token") || "";
 
@@ -44,7 +46,10 @@ const ProfileSurveyForm: React.FC = () => {
   >(null);
 
   const [audioCount, setAudioCount] = useState<number>(0);
+  const [audioHasRecorded, setAudioHasRecorded] = useState<boolean>(false);
+  const [audioIsRecording, setAudioIsRecording] = useState<boolean>(false);
   const [audioError, setAudioError] = useState<string | null>(null);
+
 
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [stepIndex, setStepIndex] = useState<number>(0);
@@ -55,6 +60,7 @@ const ProfileSurveyForm: React.FC = () => {
   const [pictureError, setPictureError] = useState<string | null>(null);
   const [socialError, setSocialError] = useState<string | null>(null);
   const [pictureUrl, setPictureUrl] = useState<string | null>(null);
+  const [verifyingSocial, setVerifyingSocial] = useState<Record<string, boolean>>({});
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -64,7 +70,8 @@ const ProfileSurveyForm: React.FC = () => {
   const audioStepIndex = surveyStepsCount + 2;
   const wizardTotalSteps = surveyStepsCount + 3;
 
-  // 1) Load initial state via token
+  const navigate = useNavigate();
+
   useEffect(() => {
     const load = async () => {
       if (!token) {
@@ -96,7 +103,6 @@ const ProfileSurveyForm: React.FC = () => {
     load();
   }, [token, wizardTotalSteps]);
 
-  // 2) Update answer locally
   const updateAnswer = (key: string, value: any) => {
     setAnswers((prev) => ({
       ...prev,
@@ -105,7 +111,6 @@ const ProfileSurveyForm: React.FC = () => {
     setFieldErrors((prev) => ({ ...prev, [key]: null }));
   };
 
-  // 3) Autosave
   useEffect(() => {
     if (!preInfluencerId) return;
     if (loading) return;
@@ -127,7 +132,6 @@ const ProfileSurveyForm: React.FC = () => {
     return () => clearTimeout(timeout);
   }, [answers, stepIndex, preInfluencerId, loading]);
 
-  // 4) Load picture URL when we have a key
   useEffect(() => {
     if (!preInfluencerId) return;
 
@@ -152,7 +156,52 @@ const ProfileSurveyForm: React.FC = () => {
     fetchUrl();
   }, [preInfluencerId, answers["profile_picture_key"]]);
 
-  // Validation for survey steps (PDF questions)
+  const handleVerifySocial = async (platform: string, handle: string) => {
+    const cleanHandle = (handle || "").trim().replace(/^@/, "");
+    if (!cleanHandle) return;
+
+    const handleKey = `social_${platform}`;
+    const followerKey = `social_${platform}_followers`;
+    const verifiedKey = `social_${platform}_verified`;
+    const errorKey = `social_${platform}_verify_error`;
+
+    updateAnswer(errorKey, null);
+    updateAnswer(verifiedKey, false);
+
+    setVerifyingSocial((prev) => ({ ...prev, [platform]: true }));
+
+    try {
+      const serviceMap: Record<string, string> = {
+        instagram: "instagram",
+        x: "twitter",
+      };
+      const service = serviceMap[platform] || platform;
+
+      const { data } = await apiClient.get("/social/api/followers", {
+        params: { service, username: cleanHandle },
+      });
+
+      if (!data?.success) {
+        throw new Error("Provider returned success=false");
+      }
+
+      updateAnswer(handleKey, data.username ?? cleanHandle);
+      updateAnswer(followerKey, data.count ?? null);
+      updateAnswer(verifiedKey, true);
+    } catch (err: any) {
+      console.error("Error verifying social", err);
+      const backendMsg = err?.response?.data?.detail;
+      const msg = Array.isArray(backendMsg)
+        ? backendMsg.map((d: any) => d?.msg).filter(Boolean).join(" ")
+        : backendMsg || "Connection failed. Please enter manually.";
+
+      updateAnswer(errorKey, msg);
+      updateAnswer(verifiedKey, false);
+    } finally {
+      setVerifyingSocial((prev) => ({ ...prev, [platform]: false }));
+    }
+  };
+
   const validateSurveyStep = (): boolean => {
     const step = SURVEY_STEPS[stepIndex];
     const newErrors: Record<string, string> = {};
@@ -253,9 +302,10 @@ const ProfileSurveyForm: React.FC = () => {
 
     if (stepIndex < wizardTotalSteps - 1) {
       setStepIndex((i) => i + 1);
-    } else {
-      navigate("/thank-you");
-    }
+    }else {
+  navigate("/thank-you");}
+
+    
   };
 
   const handleBack = async () => {
@@ -269,7 +319,7 @@ const ProfileSurveyForm: React.FC = () => {
   ) => {
     const file = e.target.files?.[0];
     if (!file || !preInfluencerId) return;
-
+    setPictureUrl(URL.createObjectURL(file));
     setUploadingPicture(true);
     setPictureError(null);
 
@@ -328,6 +378,8 @@ const ProfileSurveyForm: React.FC = () => {
   const isSocialsStep = stepIndex === socialsStepIndex;
   const isAudioStep = stepIndex === audioStepIndex;
   const isLastStep = stepIndex === wizardTotalSteps - 1;
+  const isAudioInvalid = isAudioStep && (!audioHasRecorded || audioCount <= 0);
+
 
   const currentSurveyStep =
     isSurveyStep && SURVEY_STEPS[stepIndex] ? SURVEY_STEPS[stepIndex] : null;
@@ -343,12 +395,12 @@ const ProfileSurveyForm: React.FC = () => {
                   {isSurveyStep && currentSurveyStep
                     ? currentSurveyStep.title
                     : isPictureStep
-                    ? "Upload Your Picture"
-                    : isSocialsStep
-                    ? "Add Your Social Media"
-                    : isAudioStep
-                    ? "Upload Your Audio"
-                    : "Profile Survey"}
+                      ? "Upload Your Picture"
+                      : isSocialsStep
+                        ? "Add Your Social Media"
+                        : isAudioStep
+                          ? "Upload Your Audio"
+                          : "Profile Survey"}
                 </h2>
                 <p className={styles.subtitle}>
                   Step {stepIndex + 1} of {wizardTotalSteps}
@@ -429,192 +481,66 @@ const ProfileSurveyForm: React.FC = () => {
 
               {/* STEP: PICTURE */}
               {isPictureStep && (
-                <div className={styles.field}>
-                  <label className={styles.label}>
-                    Picture of influencer{" "}
-                    <span className={styles.required}>*</span>
-                  </label>
-                  <p className={styles.subtitle}>
-                    Upload a clear profile picture. This will be used in your
-                    TeaseMe profile.
-                  </p>
-                  <input
-                    ref={fileInputRef}
-                    className={styles.input}
-                    type="file"
-                    accept="image/*"
-                    onChange={handlePictureSelect}
-                  />
-                  {uploadingPicture && (
-                    <div className={styles.subtitle}>Uploading…</div>
-                  )}
-                  {pictureUrl && !uploadingPicture && (
-                    <div className={styles.picturePreviewWrapper}>
-                      <div className={styles.subtitle}>Current picture:</div>
-                      <img
-                        src={pictureUrl}
-                        alt="Influencer profile"
-                        className={styles.picturePreview}
-                      />
-                    </div>
-                  )}
-                  {pictureError && (
-                    <div className={styles.error}>{pictureError}</div>
-                  )}
-                </div>
+                <UploadPictureStep uploading={uploadingPicture} pictureUrl={pictureUrl} pictureError={pictureError} onSelect={handlePictureSelect} inputRef={fileInputRef} name={preInfluencerUsername || ""} />
               )}
 
               {/* STEP: SOCIAL MEDIA */}
               {isSocialsStep && (
-                <div className={styles.field}>
-                  <label className={styles.label}>
-                    Social Media <span className={styles.required}>*</span>
-                  </label>
-                  <p className={styles.subtitle}>
-                    Add all social media where your fans can find you. At least
-                    one is required.
-                  </p>
-
-                  <div className={styles.field}>
-                    <label className={styles.label}>Instagram</label>
-                    <input
-                      className={styles.input}
-                      placeholder="@username"
-                      value={answers["social_instagram"] || ""}
-                      onChange={(e) =>
-                        updateAnswer("social_instagram", e.target.value)
-                      }
-                    />
-                  </div>
-
-                  <div className={styles.field}>
-                    <label className={styles.label}>TikTok</label>
-                    <input
-                      className={styles.input}
-                      placeholder="@username"
-                      value={answers["social_tiktok"] || ""}
-                      onChange={(e) =>
-                        updateAnswer("social_tiktok", e.target.value)
-                      }
-                    />
-                  </div>
-
-                  <div className={styles.field}>
-                    <label className={styles.label}>OnlyFans</label>
-                    <input
-                      className={styles.input}
-                      placeholder="@username"
-                      value={answers["social_onlyfans"] || ""}
-                      onChange={(e) =>
-                        updateAnswer("social_onlyfans", e.target.value)
-                      }
-                    />
-                  </div>
-
-                  <div className={styles.field}>
-                    <label className={styles.label}>Snapchat</label>
-                    <input
-                      className={styles.input}
-                      placeholder="@username"
-                      value={answers["social_snapchat"] || ""}
-                      onChange={(e) =>
-                        updateAnswer("social_snapchat", e.target.value)
-                      }
-                    />
-                  </div>
-
-                  <div className={styles.field}>
-                    <label className={styles.label}>X (Twitter)</label>
-                    <input
-                      className={styles.input}
-                      placeholder="@username"
-                      value={answers["social_x"] || ""}
-                      onChange={(e) => updateAnswer("social_x", e.target.value)}
-                    />
-                  </div>
-
-                  <div className={styles.field}>
-                    <label className={styles.label}>Telegram</label>
-                    <input
-                      className={styles.input}
-                      placeholder="@username"
-                      value={answers["social_telegram"] || ""}
-                      onChange={(e) =>
-                        updateAnswer("social_telegram", e.target.value)
-                      }
-                    />
-                  </div>
-
-                  <div className={styles.field}>
-                    <label className={styles.label}>WhatsApp</label>
-                    <input
-                      className={styles.input}
-                      placeholder="Phone or link"
-                      value={answers["social_whatsapp"] || ""}
-                      onChange={(e) =>
-                        updateAnswer("social_whatsapp", e.target.value)
-                      }
-                    />
-                  </div>
-
-                  {socialError && (
-                    <div className={styles.error}>{socialError}</div>
-                  )}
-                </div>
+                <SocialMediaStep
+                  answers={answers}
+                  updateAnswer={updateAnswer}
+                  socialError={socialError}
+                  onVerifySocial={handleVerifySocial}
+                  verifyingSocial={verifyingSocial}
+                />
               )}
 
               {/* STEP: AUDIO */}
-              {isAudioStep && preInfluencerUsername && (
-                <div className={styles.field}>
-                  <label className={styles.label}>
-                    Voice & Audio Samples{" "}
-                    <span className={styles.required}>*</span>
-                  </label>
-                  <p className={styles.subtitle}>
-                    Upload at least one audio sample so fans can hear how you
-                    sound.
-                  </p>
-
-                  <div className={styles.audioWrapper}>
-                    <InfluencerAudioManager
-                      influencerId={preInfluencerUsername}
-                      onCountChange={(count) => {
-                        setAudioCount(count);
-                        setAudioError(null);
-                        updateAnswer("audio_count", count);
-                      }}
-                    />
-                  </div>
-
-                  {audioError && (
-                    <div className={styles.error}>{audioError}</div>
-                  )}
-                </div>
+              {isAudioStep && preInfluencerId && (
+                <UploadAudioStep
+                  influencerId={preInfluencerId}
+                  token={token}
+                  onCountChange={(count) => {
+                    setAudioCount(count);
+                    setAudioError(null);
+                    updateAnswer("audio_count", count);
+                  }}
+                  onRecordingChange={(recording) => setAudioIsRecording(recording)}
+                  onRecorded={(hasRecorded) => setAudioHasRecorded(hasRecorded)}
+                  audioError={audioError}
+                  setAudioError={setAudioError}
+                />
               )}
             </div>
 
             {/* BOTTOM BAR */}
             <div className={styles.bottomBar}>
-              <div className={styles.stepInfo}>
+
+              {/*<div className={styles.stepInfo}>
                 Step {stepIndex + 1} of {wizardTotalSteps}
-              </div>
-              <div className={styles.buttonRow}>
-                <div>
-                  <NormalButton
-                    onClick={handleBack}
-                    text="Back"
-                    disabled={stepIndex === 0}
-                    leftIcon={<SvgPack.ArrowLeft />}
-                  />
+              </div>*/}
+
+              {!audioIsRecording && (
+                <div className={styles.buttonRow}>
+                  <div>
+                    <NormalButton
+                      onClick={handleBack}
+                      text="Back"
+                      disabled={stepIndex === 0}
+                      leftIcon={<SvgPack.ArrowLeft />}
+                    />
+                  </div>
+                  <div>
+                    {!isAudioInvalid && (
+                      <PrimaryButton
+                        onClick={handleNext}
+                        text={isLastStep ? "Finish" : "Next"}
+                        rightIcon={<SvgPack.ArrowRight />}
+                      />
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <PrimaryButton
-                    onClick={handleNext}
-                    text={isLastStep ? "Finish" : "Next"}
-                    rightIcon={<SvgPack.ArrowRight />}
-                  />
-                </div>
-              </div>
+              )}
             </div>
 
             <div className={styles.spacerSurvey}></div>
