@@ -11,6 +11,8 @@ interface UploadAudioStepProps {
   influencerId: string | number;
   token?: string;
   onCountChange: (count: number) => void;
+  onRecordingChange?: (isRecording: boolean) => void;
+  onRecorded?: (hasRecorded: boolean) => void;
   audioError: string | null;
   setAudioError: (msg: string | null) => void;
 }
@@ -30,6 +32,8 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
   influencerId,
   token,
   onCountChange,
+  onRecordingChange,
+  onRecorded,
   audioError,
   setAudioError,
 }) => {
@@ -101,6 +105,10 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
         setHasRecorded(newHasRecorded);
         setAudioData({ ...res.data, files, count });
         onCountChange(newHasRecorded ? count : 0);
+        if (newHasRecorded) {
+          setHasRecorded(true);
+          onRecorded?.(true);
+        }
         setAudioError(null);
       } catch (err: any) {
         if (canceled) return;
@@ -168,6 +176,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
       setLastAction(origin);
       if (origin === "record") {
         setHasRecorded(true);
+        onRecorded?.(true);
         onCountChange(1);
       }
       setRefreshKey((n) => n + 1);
@@ -203,6 +212,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
   const hasUploadedAudio = (audioData?.files?.length ?? 0) > 0;
   const hasAudio = hasUploadedAudio || hasRecorded;
   const files = audioData?.files ?? [];
+  const filesNewestFirst = [...files].reverse();
 
   const startRecording = async () => {
     if (isRecording) return;
@@ -213,6 +223,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
     // reset recorder state up front so UI flips immediately
     setAudioError(null);
     setIsRecording(true);
+    onRecordingChange?.(true);
     setLastAction(null);
     setElapsedSeconds(0);
     // stop any stale recorder/stream
@@ -269,6 +280,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
         setIsRecording(false);
         stream.getTracks().forEach((t) => t.stop());
         mediaStreamRef.current = null;
+        onRecordingChange?.(false);
         if (timerRef.current) {
           window.clearInterval(timerRef.current);
           timerRef.current = null;
@@ -281,6 +293,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
       console.error("Recording failed", err);
       setAudioError("Unable to access microphone. Check permissions.");
       setIsRecording(false);
+      onRecordingChange?.(false);
       if (timerRef.current) {
         window.clearInterval(timerRef.current);
         timerRef.current = null;
@@ -304,6 +317,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
       window.clearInterval(timerRef.current);
       timerRef.current = null;
     }
+    onRecordingChange?.(false);
   };
 
   return (
@@ -354,7 +368,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
                 type="square"
                 color="pink"
                 leftIcon={<SvgPack.RecordingStart />}
-                text={hasAudio ? "Record Again" : "Record Script"}
+                text={hasAudio ? "Record Script" : "Record Script"}
                 className={surveyStyles.glassButton}
                 disabled={uploadingOwn}
                 onClick={startRecording}
@@ -369,8 +383,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
               <span className={styles.statusDot} />
               Recording...
             </div>
-            <div className={styles.title}>Recording...</div>
-            <p className={styles.subtitle}>Please read the script below.</p>
+            <div className={styles.title}>Please read the script below and stop recording after a minimum of 15 seconds.</div>
 
             <div className={styles.scriptBox}>
               <ul className={styles.scriptList}>
@@ -427,17 +440,17 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
             }}
           />
 
-          {loadingList && <div>Loading audio files…</div>}
+      {loadingList && <div>Loading audio files…</div>}
 
-          {!loadingList && files.length === 0 && (
-            <div>No audio files uploaded yet.</div>
-          )}
+      {!loadingList && files.length === 0 && (
+        <div>No audio files uploaded yet.</div>
+      )}
 
-          {!loadingList && files.length > 0 && (
-            <ul style={{ listStyle: "none", padding: 0, margin: "16px 0 0" }}>
-              {files.map((file) => (
-                <li
-                  key={file.key ?? file.download_url}
+      {!loadingList && filesNewestFirst.length > 0 && (
+        <ul style={{ listStyle: "none", padding: 0, margin: "16px 0 0" }}>
+          {filesNewestFirst.map((file) => (
+            <li
+              key={file.key ?? file.download_url}
                   style={{
                     padding: "12px 0",
                     borderBottom: "1px solid rgba(255,255,255,0.12)",

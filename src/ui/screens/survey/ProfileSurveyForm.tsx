@@ -46,6 +46,8 @@ const ProfileSurveyForm: React.FC = () => {
   >(null);
 
   const [audioCount, setAudioCount] = useState<number>(0);
+  const [audioHasRecorded, setAudioHasRecorded] = useState<boolean>(false);
+  const [audioIsRecording, setAudioIsRecording] = useState<boolean>(false);
   const [audioError, setAudioError] = useState<string | null>(null);
 
 
@@ -376,7 +378,7 @@ const ProfileSurveyForm: React.FC = () => {
   const isSocialsStep = stepIndex === socialsStepIndex;
   const isAudioStep = stepIndex === audioStepIndex;
   const isLastStep = stepIndex === wizardTotalSteps - 1;
-  const isAudioInvalid = isAudioStep && audioCount <= 0;
+  const isAudioInvalid = isAudioStep && (!audioHasRecorded || audioCount <= 0);
 
 
   const currentSurveyStep =
@@ -503,6 +505,8 @@ const ProfileSurveyForm: React.FC = () => {
                     setAudioError(null);
                     updateAnswer("audio_count", count);
                   }}
+                  onRecordingChange={(recording) => setAudioIsRecording(recording)}
+                  onRecorded={(hasRecorded) => setAudioHasRecorded(hasRecorded)}
                   audioError={audioError}
                   setAudioError={setAudioError}
                 />
@@ -516,25 +520,27 @@ const ProfileSurveyForm: React.FC = () => {
                 Step {stepIndex + 1} of {wizardTotalSteps}
               </div>*/}
 
-              <div className={styles.buttonRow}>
-                <div>
-                  <NormalButton
-                    onClick={handleBack}
-                    text="Back"
-                    disabled={stepIndex === 0}
-                    leftIcon={<SvgPack.ArrowLeft />}
-                  />
-                </div>
-                <div>
-                  {!isAudioInvalid && (
-                    <PrimaryButton
-                      onClick={handleNext}
-                      text={isLastStep ? "Finish" : "Next"}
-                      rightIcon={<SvgPack.ArrowRight />}
+              {!audioIsRecording && (
+                <div className={styles.buttonRow}>
+                  <div>
+                    <NormalButton
+                      onClick={handleBack}
+                      text="Back"
+                      disabled={stepIndex === 0}
+                      leftIcon={<SvgPack.ArrowLeft />}
                     />
-                  )}
+                  </div>
+                  <div>
+                    {!isAudioInvalid && (
+                      <PrimaryButton
+                        onClick={handleNext}
+                        text={isLastStep ? "Finish" : "Next"}
+                        rightIcon={<SvgPack.ArrowRight />}
+                      />
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             <div className={styles.spacerSurvey}></div>
