@@ -337,6 +337,10 @@ const CreateInfluencer: React.FC = () => {
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [uploadParseError, setUploadParseError] = useState<string | null>(null);
     const [expandedRecords, setExpandedRecords] = useState<Set<number>>(() => new Set<number>());
+    const [personaListDrafts, setPersonaListDrafts] = useState<{ likes: string; dislikes: string }>({
+        likes: "",
+        dislikes: "",
+    });
     const influencerRepo = useMemo(() => InfluencerRepo(), []);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -407,17 +411,31 @@ const CreateInfluencer: React.FC = () => {
         setFormState((prev) => ({ ...prev, [field]: value }));
     };
 
-    const handlePersonaListChange = (field: "likes" | "dislikes") => (event: ChangeEvent<HTMLTextAreaElement>) => {
-        const { value } = event.target;
-        const items = value
-            .split("\n")
-            .map((line) => line.trim())
-            .filter(Boolean);
+    const handlePersonaListKeyDown = (field: "likes" | "dislikes") => (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        const value = personaListDrafts[field].trim();
+        if (!value) return;
         setFormState((prev) => ({
             ...prev,
             bio_json: {
                 ...prev.bio_json,
-                [field]: items,
+                [field]: [...prev.bio_json[field], value],
+            },
+        }));
+        setPersonaListDrafts((prev) => ({ ...prev, [field]: "" }));
+    };
+
+    const handlePersonaListDraftChange = (field: "likes" | "dislikes") => (event: ChangeEvent<HTMLInputElement>) => {
+        setPersonaListDrafts((prev) => ({ ...prev, [field]: event.target.value }));
+    };
+
+    const handleRemovePersonaItem = (field: "likes" | "dislikes", value: string) => {
+        setFormState((prev) => ({
+            ...prev,
+            bio_json: {
+                ...prev.bio_json,
+                [field]: prev.bio_json[field].filter((item) => item !== value),
             },
         }));
     };
@@ -849,24 +867,62 @@ const CreateInfluencer: React.FC = () => {
                             </div>
                             <div className={styles["persona-grid"]}>
                                 <div className={styles["field"]}>
-                                    <label htmlFor="persona-likes">Likes (one per line)</label>
-                                    <textarea
+                                    <label htmlFor="persona-likes">Likes (press Enter to add)</label>
+                                    <input
                                         id="persona-likes"
-                                        value={formState.bio_json.likes.join("\n")}
-                                        onChange={handlePersonaListChange("likes")}
-                                        placeholder="Daal Vaat&#10;Chinese food&#10;Water"
-                                        rows={10}
+                                        value={personaListDrafts.likes}
+                                        onChange={handlePersonaListDraftChange("likes")}
+                                        onKeyDown={handlePersonaListKeyDown("likes")}
+                                        placeholder="Type a like and press Enter"
                                     />
+                                    <div className={styles["tag-list"]}>
+                                        {formState.bio_json.likes.length === 0 ? (
+                                            <span className={styles["tag-placeholder"]}>No likes added yet</span>
+                                        ) : (
+                                            formState.bio_json.likes.map((item) => (
+                                                <span key={item} className={styles["tag"]}>
+                                                    {item}
+                                                    <button
+                                                        type="button"
+                                                        className={styles["tag-remove"]}
+                                                        onClick={() => handleRemovePersonaItem("likes", item)}
+                                                        aria-label={`Remove ${item}`}
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </span>
+                                            ))
+                                        )}
+                                    </div>
                                 </div>
                                 <div className={styles["field"]}>
-                                    <label htmlFor="persona-dislikes">Dislikes (one per line)</label>
-                                    <textarea
+                                    <label htmlFor="persona-dislikes">Dislikes (press Enter to add)</label>
+                                    <input
                                         id="persona-dislikes"
-                                        value={formState.bio_json.dislikes.join("\n")}
-                                        onChange={handlePersonaListChange("dislikes")}
-                                        placeholder="Cold drinks&#10;Rotten smells&#10;Liars"
-                                        rows={10}
+                                        value={personaListDrafts.dislikes}
+                                        onChange={handlePersonaListDraftChange("dislikes")}
+                                        onKeyDown={handlePersonaListKeyDown("dislikes")}
+                                        placeholder="Type a dislike and press Enter"
                                     />
+                                    <div className={styles["tag-list"]}>
+                                        {formState.bio_json.dislikes.length === 0 ? (
+                                            <span className={styles["tag-placeholder"]}>No dislikes added yet</span>
+                                        ) : (
+                                            formState.bio_json.dislikes.map((item) => (
+                                                <span key={item} className={styles["tag"]}>
+                                                    {item}
+                                                    <button
+                                                        type="button"
+                                                        className={styles["tag-remove"]}
+                                                        onClick={() => handleRemovePersonaItem("dislikes", item)}
+                                                        aria-label={`Remove ${item}`}
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </span>
+                                            ))
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
