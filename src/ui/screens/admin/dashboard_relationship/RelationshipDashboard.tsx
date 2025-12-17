@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   PolarAngleAxis,
   PolarGrid,
@@ -8,6 +8,11 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
+
+import { apiClient } from "@/api/apis";
+import { AdminServices } from "@/api/services/AdminServices";
+
+const admin = AdminServices(apiClient);
 
 type UserRow = {
   id: number;
@@ -30,26 +35,25 @@ type RelRow = {
   exclusive_agreed: boolean;
   girlfriend_confirmed: boolean;
   updated_at?: string | null;
+  sentiment?: string;
 };
 
-const API_BASE = `${import.meta.env.VITE_TEASE_ME_PROTOCOL}://${
-  import.meta.env.VITE_TEASE_ME_HOST
-}`.replace(/\/$/, "");
-
-async function fetchJson<T>(url: string): Promise<T> {
-  const r = await fetch(`${API_BASE}${url}`);
-  const text = await r.text().catch(() => "");
-  if (!r.ok) {
-    throw new Error(`HTTP ${r.status} ${r.statusText} for ${url}\n${text}`);
-  }
-  try {
-    return JSON.parse(text) as T;
-  } catch {
-    throw new Error(
-      `Invalid JSON from ${url}. First bytes:\n${text.slice(0, 160)}`
-    );
-  }
-}
+type RelPatch = {
+  user_id: number;
+  influencer_id: string;
+  trust?: number;
+  closeness?: number;
+  attraction?: number;
+  safety?: number;
+  state?: string;
+  stage_points?: number;
+  sentiment_score?: number;
+  exclusive_agreed?: boolean;
+  girlfriend_confirmed?: boolean;
+  dtr_stage?: number;
+  dtr_cooldown_until?: string;
+  last_interaction_at?: string;
+};
 
 function sentimentLabel(score: number) {
   if (score <= -60) return "HATE";
@@ -100,6 +104,16 @@ function stateBadge(state?: string) {
       bg: "rgba(148,163,184,0.10)",
       fg: "#e2e8f0",
       border: "rgba(148,163,184,0.20)",
+    },
+    DISLIKE: {
+      bg: "rgba(245,158,11,0.18)",
+      fg: "#fde68a",
+      border: "rgba(245,158,11,0.30)",
+    },
+    HATE: {
+      bg: "rgba(239,68,68,0.22)",
+      fg: "#fecaca",
+      border: "rgba(239,68,68,0.35)",
     },
     STRAINED: {
       bg: "rgba(239,68,68,0.14)",
@@ -245,7 +259,6 @@ function MetricCard({
   );
 }
 
-/** Responsive helpers */
 function useBreakpoints() {
   const [w, setW] = useState<number>(() =>
     typeof window !== "undefined" ? window.innerWidth : 1200
@@ -278,6 +291,10 @@ export default function RelationshipDashboard() {
   const [errorUsers, setErrorUsers] = useState<string | null>(null);
   const [errorRels, setErrorRels] = useState<string | null>(null);
 
+  const [edit, setEdit] = useState<RelPatch | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   const selectedUser = useMemo(
     () => users.find((u) => u.id === selectedUserId) || null,
     [users, selectedUserId]
@@ -288,27 +305,35 @@ export default function RelationshipDashboard() {
     [rels, selectedInfluencer]
   );
 
-  // Load users
+  // Load users (AdminServices)
   useEffect(() => {
-    const q = userQuery.trim();
-    const url = q ? `/admin/users?q=${encodeURIComponent(q)}` : `/admin/users`;
-
+    let alive = true;
     setLoadingUsers(true);
     setErrorUsers(null);
 
-    fetchJson<UserRow[]>(url)
+    admin
+      .getUsers(userQuery)
       .then((data) => {
+        if (!alive) return;
         setUsers(data || []);
         setSelectedUserId((prev) => prev ?? data?.[0]?.id ?? null);
       })
       .catch((e) => {
+        if (!alive) return;
         setUsers([]);
-        setErrorUsers(String(e?.message || e));
+        setErrorUsers(e instanceof Error ? e.message : String(e));
       })
-      .finally(() => setLoadingUsers(false));
+      .finally(() => {
+        if (!alive) return;
+        setLoadingUsers(false);
+      });
+
+    return () => {
+      alive = false;
+    };
   }, [userQuery]);
 
-  // Load relationships for selected user
+  // Load relationships (AdminServices)
   useEffect(() => {
     if (!selectedUserId) {
       setRels([]);
@@ -316,19 +341,30 @@ export default function RelationshipDashboard() {
       return;
     }
 
+    let alive = true;
     setLoadingRels(true);
     setErrorRels(null);
 
-    fetchJson<RelRow[]>(`/admin/relationships?user_id=${selectedUserId}`)
+    admin
+      .getRelationships(selectedUserId)
       .then((data) => {
+        if (!alive) return;
         setRels(data || []);
         setSelectedInfluencer((prev) => prev || data?.[0]?.influencer_id || "");
       })
       .catch((e) => {
+        if (!alive) return;
         setRels([]);
         setErrorRels(e instanceof Error ? e.message : String(e));
       })
-      .finally(() => setLoadingRels(false));
+      .finally(() => {
+        if (!alive) return;
+        setLoadingRels(false);
+      });
+
+    return () => {
+      alive = false;
+    };
   }, [selectedUserId]);
 
   // Keep influencer selection valid
@@ -341,24 +377,67 @@ export default function RelationshipDashboard() {
     if (!ok) setSelectedInfluencer(rels[0].influencer_id);
   }, [rels, selectedInfluencer]);
 
-  // Live refresh (selected only)
+  // Init editor when selection changes
+  useEffect(() => {
+    if (!selectedRel) {
+      setEdit(null);
+      return;
+    }
+    setEdit({
+      user_id: selectedRel.user_id,
+      influencer_id: selectedRel.influencer_id,
+      state: selectedRel.state,
+      stage_points: selectedRel.stage_points,
+      trust: selectedRel.trust,
+      closeness: selectedRel.closeness,
+      attraction: selectedRel.attraction,
+      safety: selectedRel.safety,
+      sentiment_score: selectedRel.sentiment_score,
+      exclusive_agreed: selectedRel.exclusive_agreed,
+      girlfriend_confirmed: selectedRel.girlfriend_confirmed,
+    });
+    setSaveError(null);
+  }, [selectedRel]);
+
+  // Refresh helper
   const refreshSelected = async () => {
     if (!selectedUserId) return;
     try {
-      const data = await fetchJson<RelRow[]>(
-        `/admin/relationships?user_id=${selectedUserId}`
-      );
+      const data = await admin.getRelationships(selectedUserId);
       setRels(data || []);
     } catch (e) {
       setErrorRels(e instanceof Error ? e.message : String(e));
     }
   };
 
+  // Live refresh
   useEffect(() => {
     if (!selectedUserId || !selectedInfluencer) return;
-    const interval = setInterval(() => refreshSelected(), 1000);
+    const interval = setInterval(() => refreshSelected(), 5000);
     return () => clearInterval(interval);
   }, [selectedUserId, selectedInfluencer]);
+
+  // Save edits (AdminServices PATCH)
+  const saveEdits = async () => {
+    if (!edit) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await admin.patchRelationship(edit);
+      await refreshSelected();
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const badge = stateBadge(selectedRel?.state);
+
+  const rootGridCols = isTablet ? "1fr" : "320px 1fr";
+  const cardsCols = isMobile ? "1fr" : isTablet ? "1fr 1fr" : "repeat(4, 1fr)";
+  const panelsCols = isMobile ? "1fr" : "1fr 1fr";
+  const radarHeight = isMobile ? 240 : 300;
 
   const radarData = useMemo(() => {
     if (!selectedRel) return [];
@@ -376,13 +455,6 @@ export default function RelationshipDashboard() {
     ];
   }, [selectedRel]);
 
-  const badge = stateBadge(selectedRel?.state);
-
-  const rootGridCols = isTablet ? "1fr" : "320px 1fr";
-  const cardsCols = isMobile ? "1fr" : isTablet ? "1fr 1fr" : "repeat(4, 1fr)";
-  const panelsCols = isMobile ? "1fr" : "1fr 1fr";
-  const radarHeight = isMobile ? 240 : 300;
-
   const Sidebar = (
     <aside
       style={{
@@ -399,9 +471,6 @@ export default function RelationshipDashboard() {
         }}
       >
         <div style={{ fontWeight: 900, fontSize: 14 }}>Relationship Admin</div>
-        <div style={{ fontSize: 12, opacity: 0.65, marginTop: 6 }}>
-          API: <code>{API_BASE}</code>
-        </div>
 
         <input
           value={userQuery}
@@ -425,14 +494,7 @@ export default function RelationshipDashboard() {
           </div>
         )}
         {errorUsers && (
-          <div
-            style={{
-              marginTop: 10,
-              fontSize: 12,
-              color: "#ffb4b4",
-              whiteSpace: "pre-wrap",
-            }}
-          >
+          <div style={{ marginTop: 10, fontSize: 12, color: "#ffb4b4" }}>
             Users error: {errorUsers}
           </div>
         )}
@@ -483,14 +545,7 @@ export default function RelationshipDashboard() {
           </div>
         )}
         {errorRels && (
-          <div
-            style={{
-              marginTop: 10,
-              fontSize: 12,
-              color: "#ffb4b4",
-              whiteSpace: "pre-wrap",
-            }}
-          >
+          <div style={{ marginTop: 10, fontSize: 12, color: "#ffb4b4" }}>
             Relationships error: {errorRels}
           </div>
         )}
@@ -546,12 +601,6 @@ export default function RelationshipDashboard() {
               </button>
             );
           })}
-
-          {!loadingRels && selectedUserId && rels.length === 0 && (
-            <div style={{ padding: 10, opacity: 0.8 }}>
-              No relationships yet for this user.
-            </div>
-          )}
         </div>
       </div>
     </aside>
@@ -568,7 +617,6 @@ export default function RelationshipDashboard() {
         color: "rgba(255,255,255,0.92)",
       }}
     >
-      {/* Mobile top controls */}
       {isMobile && (
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <button
@@ -593,11 +641,9 @@ export default function RelationshipDashboard() {
         </div>
       )}
 
-      {/* Sidebar */}
       {!isMobile && Sidebar}
       {isMobile && showSidebarMobile && Sidebar}
 
-      {/* Main */}
       <main
         style={{
           border: "1px solid rgba(255,255,255,0.08)",
@@ -612,7 +658,6 @@ export default function RelationshipDashboard() {
             display: "flex",
             justifyContent: "space-between",
             gap: 12,
-            alignItems: "flex-start",
             flexWrap: "wrap",
           }}
         >
@@ -645,37 +690,173 @@ export default function RelationshipDashboard() {
             </div>
           </div>
 
+          {/* Editable */}
           <div
             style={{
               display: "flex",
               gap: 10,
               flexWrap: "wrap",
-              justifyContent: "flex-end",
+              alignItems: "center",
             }}
           >
-            {selectedRel ? (
+            {selectedRel && edit ? (
               <>
-                <Pill>
-                  Exclusive: {selectedRel.exclusive_agreed ? "Yes" : "No"}
-                </Pill>
-                <Pill>
-                  Girlfriend: {selectedRel.girlfriend_confirmed ? "Yes" : "No"}
-                </Pill>
-                <Pill>● Live</Pill>
+                <Pill tone={badge}>Stage</Pill>
 
-                <Pill>Stage: {selectedRel?.state}</Pill>
+                <select
+                  value={edit.state || "STRANGERS"}
+                  onChange={(e) =>
+                    setEdit((p) => (p ? { ...p, state: e.target.value } : p))
+                  }
+                  style={{
+                    padding: "8px 10px",
+                    borderRadius: 12,
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    background: "rgba(0,0,0,0.25)",
+                    color: "rgba(255,255,255,0.92)",
+                    fontWeight: 800,
+                  }}
+                >
+                  {[
+                    "HATE",
+                    "DISLIKE",
+                    "STRANGERS",
+                    "TALKING",
+                    "FLIRTING",
+                    "DATING",
+                    "GIRLFRIEND",
+                  ].map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+
                 <Pill>
-                  Sentiment:{" "}
-                  {selectedRel
-                    ? sentimentLabel(selectedRel.sentiment_score ?? 0)
-                    : "—"}
+                  Sentiment: {sentimentLabel(edit.sentiment_score ?? 0)}
                 </Pill>
+
+                <label
+                  style={{ display: "flex", gap: 8, alignItems: "center" }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={!!edit.exclusive_agreed}
+                    onChange={(e) =>
+                      setEdit((p) =>
+                        p ? { ...p, exclusive_agreed: e.target.checked } : p
+                      )
+                    }
+                  />
+                  <span style={{ fontSize: 12, fontWeight: 800 }}>
+                    Exclusive
+                  </span>
+                </label>
+
+                <label
+                  style={{ display: "flex", gap: 8, alignItems: "center" }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={!!edit.girlfriend_confirmed}
+                    onChange={(e) =>
+                      setEdit((p) =>
+                        p ? { ...p, girlfriend_confirmed: e.target.checked } : p
+                      )
+                    }
+                  />
+                  <span style={{ fontSize: 12, fontWeight: 800 }}>
+                    Girlfriend
+                  </span>
+                </label>
+
+                <button
+                  onClick={saveEdits}
+                  disabled={saving}
+                  style={{
+                    padding: "10px 12px",
+                    borderRadius: 12,
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    background: saving
+                      ? "rgba(255,255,255,0.05)"
+                      : "rgba(255,255,255,0.10)",
+                    color: "rgba(255,255,255,0.92)",
+                    fontWeight: 900,
+                    cursor: saving ? "default" : "pointer",
+                  }}
+                >
+                  {saving ? "Saving…" : "Save"}
+                </button>
+
+                {saveError && (
+                  <Pill
+                    tone={{
+                      bg: "rgba(239,68,68,0.14)",
+                      fg: "#fecaca",
+                      border: "rgba(239,68,68,0.26)",
+                    }}
+                  >
+                    Save error
+                  </Pill>
+                )}
               </>
             ) : (
               <Pill>Select a user + influencer</Pill>
             )}
           </div>
         </div>
+
+        {/* Sliders */}
+        {selectedRel && edit && (
+          <div
+            style={{
+              marginTop: 12,
+              display: "grid",
+              gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+              gap: 12,
+            }}
+          >
+            {(
+              [
+                ["trust", "Trust", 0, 100],
+                ["closeness", "Closeness", 0, 100],
+                ["attraction", "Attraction", 0, 100],
+                ["safety", "Safety", 0, 100],
+                ["stage_points", "Stage Points", 0, 100],
+                ["sentiment_score", "Sentiment Score", -100, 100],
+              ] as const
+            ).map(([key, label, min, max]) => (
+              <div
+                key={key}
+                style={{
+                  padding: 12,
+                  borderRadius: 14,
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  background: "rgba(0,0,0,0.12)",
+                }}
+              >
+                <div style={{ fontSize: 12, opacity: 0.8, fontWeight: 800 }}>
+                  {label}
+                </div>
+                <input
+                  type="range"
+                  min={min}
+                  max={max}
+                  value={Number((edit as any)[key] ?? 0)}
+                  onChange={(e) =>
+                    setEdit((p) =>
+                      p ? { ...p, [key]: Number(e.target.value) } : p
+                    )
+                  }
+                  style={{ width: "100%", marginTop: 8 }}
+                />
+                <div style={{ marginTop: 6, fontWeight: 900 }}>
+                  {Number((edit as any)[key] ?? 0).toFixed(0)}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Metrics */}
         <div
@@ -689,89 +870,7 @@ export default function RelationshipDashboard() {
           <MetricCard title="Trust" value={selectedRel?.trust ?? 0} />
           <MetricCard title="Closeness" value={selectedRel?.closeness ?? 0} />
           <MetricCard title="Attraction" value={selectedRel?.attraction ?? 0} />
-          <MetricCard
-            title="Safety"
-            value={selectedRel?.safety ?? 0}
-            hint={
-              selectedRel?.safety != null && selectedRel.safety < 40
-                ? "Low safety — boundaries needed"
-                : undefined
-            }
-          />
-
-          {/* ✅ NEW: Stage progress */}
-          <MetricCard
-            title="Stage Progress"
-            value={selectedRel?.stage_points ?? 0}
-            hint={
-              selectedRel
-                ? `${selectedRel.state} (${(
-                    selectedRel.stage_points ?? 0
-                  ).toFixed(1)}/100)`
-                : undefined
-            }
-          />
-
-          {/* ✅ NEW: Sentiment (can be negative) */}
-          <div
-            style={{
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: 16,
-              padding: 14,
-              background: "rgba(255,255,255,0.03)",
-            }}
-          >
-            <div style={{ fontSize: 12, opacity: 0.82 }}>Sentiment</div>
-            <div style={{ fontSize: 22, fontWeight: 900, marginTop: 6 }}>
-              {selectedRel
-                ? sentimentLabel(selectedRel.sentiment_score ?? 0)
-                : "—"}
-            </div>
-            <div style={{ fontSize: 12, opacity: 0.72, marginTop: 4 }}>
-              Score:{" "}
-              {selectedRel
-                ? (selectedRel.sentiment_score ?? 0).toFixed(1)
-                : "—"}{" "}
-              (−100..100)
-            </div>
-
-            {/* progress bar from -100..100 */}
-            <div
-              style={{
-                height: 8,
-                borderRadius: 999,
-                background: "rgba(255,255,255,0.08)",
-                overflow: "hidden",
-                marginTop: 10,
-                position: "relative",
-              }}
-            >
-              {/* center line */}
-              <div
-                style={{
-                  position: "absolute",
-                  left: "50%",
-                  top: 0,
-                  bottom: 0,
-                  width: 2,
-                  background: "rgba(255,255,255,0.12)",
-                }}
-              />
-              <div
-                style={{
-                  width: `${Math.max(
-                    0,
-                    Math.min(
-                      100,
-                      ((selectedRel?.sentiment_score ?? 0) + 100) / 2
-                    )
-                  )}%`,
-                  height: "100%",
-                  background: "rgba(255,255,255,0.78)",
-                }}
-              />
-            </div>
-          </div>
+          <MetricCard title="Safety" value={selectedRel?.safety ?? 0} />
         </div>
 
         {/* Panels */}
@@ -826,10 +925,6 @@ export default function RelationshipDashboard() {
                     title="Avg Safety"
                     value={rels.reduce((a, r) => a + r.safety, 0) / rels.length}
                   />
-                </div>
-                <div style={{ fontSize: 12, opacity: 0.75 }}>
-                  Tip: add <code>relationship_snapshots</code> to display
-                  timeline charts.
                 </div>
               </div>
             ) : (

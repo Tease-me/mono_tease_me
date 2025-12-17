@@ -17,15 +17,14 @@ const TeaseMeProcessSection: React.FC = () => {
           {PROCESS_STEPS.map((step) => (
             <article key={step.id} className="tm-process-card">
               <div className="tm-process-thumb-wrapper">
-              <video
-  src={step.thumb}
-  className="tm-process-thumb"
-  autoPlay
-  muted
-  loop
-  playsInline
-/>
-
+                <video
+                  src={step.thumb}
+                  className="tm-process-thumb"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                />
               </div>
 
               <div className="tm-process-body">
