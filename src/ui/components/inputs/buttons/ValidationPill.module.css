@@ -1,0 +1,39 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px 25px;
+  min-width: 280px;
+  border-radius: 999px;
+  font-weight: 300;
+  letter-spacing: 0.01em;
+  font-size: 12px;
+  text-align: center;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+  border: 1px solid transparent;
+  transition: transform 120ms ease, box-shadow 160ms ease;
+}
+
+.pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.28);
+}
+
+.error {
+  background: linear-gradient(180deg, #6d0c1f 0%, #4f0b18 100%);
+  color: #ffb9b9;
+  border-color: rgba(255, 107, 107, 0.55);
+}
+
+.success {
+  background: linear-gradient(180deg, #0f3a32 0%, #0c2c25 100%);
+  color: #2fe36c;
+  border-color: rgba(47, 227, 108, 0.6);
+}
+
+.warning {
+  background: linear-gradient(180deg, #5a3c0d 0%, #4a310c 100%);
+  color: #f2b441;
+  border-color: rgba(242, 180, 65, 0.65);
+}

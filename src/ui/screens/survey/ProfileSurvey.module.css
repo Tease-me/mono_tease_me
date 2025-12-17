@@ -6,9 +6,12 @@
   justify-content: center;
   padding: 24px 16px;
   box-sizing: border-box;
-  background: linear-gradient(0deg, rgb(247, 8, 72), rgb(247, 8, 72) 65%, black 65%, black);
+  background: linear-gradient(0deg,
+      rgb(247, 8, 72),
+      rgb(247, 8, 72) 65%,
+      black 65%,
+      black);
 }
-
 
 .audioWrapper {
   margin-top: 8px;
@@ -23,6 +26,7 @@
   padding: 24px 18px;
   box-sizing: border-box;
 }
+
 .outerframe {
   display: flex;
   flex-direction: column;
@@ -41,8 +45,6 @@
 .outerframe>div {
   width: 100%;
 }
-
-
 
 .formCard {
   width: 100%;
@@ -103,7 +105,6 @@
   font-size: 13px;
   color: var(--color-primary);
   width: max-content;
-
 }
 
 /* SAVING PILL */
@@ -128,7 +129,8 @@
   margin-top: 8px;
   --auto-grid-min-size: 20rem;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(var(--auto-grid-min-size), 1fr));
+  grid-template-columns: repeat(auto-fill,
+      minmax(var(--auto-grid-min-size), 1fr));
   grid-gap: 0rem;
 }
 
@@ -139,7 +141,6 @@
 }
 
 .label {
-
   font-size: 1rem;
   font-weight: 500;
   color: #e5e7eb;
@@ -164,19 +165,18 @@
   color: white;
   min-height: 3.5rem;
   font-size: 1rem;
-  
 }
 
 .input:focus,
 .input:focus-visible {
   outline: none;
   border-color: hsla(340, 50%, 50%, 0.8);
-  padding-left:1.2rem;
- box-shadow: -9px 8px 4px -8px hsla(340, 100%, 73.06%, 0.34) inset,
-10px -12px 14px -8px hsla(340, 89.82%, 80.49%, 0.25) inset,
-8px -9px 0 -6px hsla(340, 83.22%, 44.25%, 0.23) inset;
-background: hsla(339, 100%, 10.75%, 0.96);
-transition: all 350ms ease;
+  padding-left: 1.2rem;
+  box-shadow: -9px 8px 4px -8px hsla(340, 100%, 73.06%, 0.34) inset,
+    10px -12px 14px -8px hsla(340, 89.82%, 80.49%, 0.25) inset,
+    8px -9px 0 -6px hsla(340, 83.22%, 44.25%, 0.23) inset;
+  background: hsla(339, 100%, 10.75%, 0.96);
+  transition: all 350ms ease;
 }
 
 textarea.input {
@@ -193,8 +193,9 @@ textarea.input {
   border-radius: 14px;
   background: hsla(222, 0%, 11%, 0.3);
   border: 1px solid #ffffff1c;
-  box-shadow: 4px -5px 1px -5.5px hsl(0deg 0% 100% / 15%) inset, 10px -6px 11px -5.5px hsl(0deg 0% 58% / 17%) inset, hsl(0deg 0% 98% / 40%) -3px 3px 1px -3.4px inset;
-
+  box-shadow: 4px -5px 1px -5.5px hsl(0deg 0% 100% / 15%) inset,
+    10px -6px 11px -5.5px hsl(0deg 0% 58% / 17%) inset,
+    hsl(0deg 0% 98% / 40%) -3px 3px 1px -3.4px inset;
 }
 
 .radioGroup label {
@@ -203,7 +204,7 @@ textarea.input {
   gap: 8px;
   font-size: 1rem;
   line-height: 130%;
-  color: rgba(255, 255, 255, 0.60);
+  color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   align-items: flex-start;
 }
@@ -217,19 +218,18 @@ textarea.input {
 
 /* ERRORS */
 .error {
- color: #ff5f5f;
-    font-size: 13px;
-    margin-top: 4px;
-    background-color: #ff00002c;
-    min-height: 2rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 1rem;
-     margin-bottom: 0.25rem;
+  color: #ff5f5f;
+  font-size: 13px;
+  margin-top: 4px;
+  background-color: #ff00002c;
+  min-height: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 1rem;
+  margin-bottom: 0.25rem;
 
-    box-shadow: -3px 4px 0px -3px #ff97973b inset;
-
+  box-shadow: -3px 4px 0px -3px #ff97973b inset;
 }
 
 .errorGeneral {
@@ -322,7 +322,8 @@ textarea.input {
   min-height: 6rem;
 }
 
-@media (min-width: 26.9375rem) {
+
+@media (min-width: 32rem) {
   .content {
     grid-gap: 1rem;
   }
@@ -340,11 +341,9 @@ textarea.input {
     padding-left: 1px;
   }
 
-
   .bottomBar {
     flex-direction: row;
     align-items: center;
-
   }
 
   .formCard {
@@ -361,7 +360,6 @@ textarea.input {
     width: max-content;
     display: flex;
     min-height: unset;
-
   }
 
   .spacerSurvey {
@@ -372,16 +370,10 @@ textarea.input {
 
 /* RESPONSIVE */
 @media (max-width: 768px) {
-
   .card {
     border-radius: 1.4rem;
     padding: 2rem 1.5rem;
   }
-
-
-
-
-
 
   .buttonRow {
     width: 100%;
@@ -408,6 +400,81 @@ textarea.input {
   border: 1px solid rgba(148, 163, 184, 0.6);
   object-fit: cover;
 }
+
 .audioWrapper {
   margin-top: 8px;
+}
+
+.connectButton {
+  padding: 10px 16px;
+  background: #ff2e74;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 6px;
+  display: inline-block;
+}
+
+.connectButton:hover {
+  background: #ff4788;
+}
+
+.surveySubtitle {
+  font-size: 15px;
+  line-height: 1.55;
+  color: gray;
+  /* light, readable on dark bg */
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  margin: 4px 0 14px;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+}
+
+.glassButton {
+  background: rgba(18, 18, 18, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+}
+
+.glassBox {
+  padding: 16px 14px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(20, 20, 24, 0.92), rgba(12, 6, 10, 0.78));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+  .bottomBar {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .buttonRow {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .buttonRow>div {
+    flex: 1;
+  }
+
+  .buttonRow>div:first-child {
+    flex: 0.8;
+  }
+
+  .buttonRow>div:last-child {
+    flex: 1.2;
+  }
 }

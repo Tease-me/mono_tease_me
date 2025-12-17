@@ -1,4 +1,5 @@
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
+import RelationshipDashboard from "@/ui/screens/admin/dashboard_relationship/RelationshipDashboard";
 import InfluencerAudioManagerRoute from "@/ui/screens/influencer-audio-manager/InfluencerAudioManagerRoute";
 import InfluencerWelcome from "@/ui/screens/landing-page/InfluencerWelcome";
 import LandingPage from "@/ui/screens/landing-page/LandingPage";
@@ -43,14 +44,21 @@ const CreateInfluencer = lazy(
 const PromptEditorAdmin = lazy(
   () => import("@/ui/screens/admin/PromptEditorAdmin")
 );
+const HomePage = lazy(() => import("@/ui/screens/home-page/HomePage"));
+const InfluencerHome = lazy(
+  () => import("@/ui/screens/home-page/InfluencerHome")
+);
+const IntencionInfluencerHome = lazy(
+  () => import("@/ui/screens/home-page/IntencionInfluencerHome")
+);
 
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
-    { path: "*", element: <InfluencerProfileScreen /> },
+    { path: "*", element: <HomePage /> },
     { path: "/:username", element: <InfluencerProfileScreen /> },
     { path: "/test-buttons", element: <ButtonsTestPage /> },
     { path: "/update-profile", element: <UpdateProfile /> },
-    { path: "/landing-page", element: <LandingPage /> },
+    { path: "/join", element: <LandingPage /> },
     { path: "/welcome", element: <InfluencerWelcome /> },
     { path: "/income-dialog", element: <IncomeDialogStep01 /> },
     { path: "/profile-survey", element: <ProfileSurvey /> },
@@ -60,6 +68,11 @@ function AppRoutes() {
     },
     { path: "/thank-you", element: <ThankYouScreen /> },
     { path: "/profile-survey-form", element: <ProfileSurveyForm /> },
+    { path: "/influencer-home", element: <InfluencerHome /> },
+    {
+      path: "/intencion-influencer-home",
+      element: <IntencionInfluencerHome />,
+    },
   ];
 
   const guestRoutes: { path: string; element: JSX.Element }[] = [
@@ -75,6 +88,7 @@ function AppRoutes() {
     { path: "/mj/dashboard", element: <MJDashboard /> },
     { path: "/admin/influencer", element: <CreateInfluencer /> },
     { path: "/admin/prompts", element: <PromptEditorAdmin /> },
+    { path: "/admin/relationship", element: <RelationshipDashboard /> }
   ];
 
   const privateRoutes: { path: string; element: JSX.Element }[] = [
