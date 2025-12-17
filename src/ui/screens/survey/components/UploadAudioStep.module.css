@@ -1,3 +1,11 @@
+.modal{
+   background: linear-gradient(
+    180deg,
+    rgba(20, 20, 24, 0.92),
+    rgba(12, 6, 10, 0.78)
+  );
+}
+
 .uploadBox {
   padding: 16px 14px;
   border-radius: 18px;

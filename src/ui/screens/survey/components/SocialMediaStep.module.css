@@ -1,8 +1,7 @@
 .modal {
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.20);
-  background-color: rgba(0, 0, 0, 0.8);
-  background-image: url("../../../../assets/background/light_toast.png");
+  background-color: rgba(0, 0, 0, 0.5);
   background-size: contain;
   background-repeat: repeat;
   background-position: 0 0;
@@ -67,13 +66,13 @@
 }
 
 .closeButton {
-  width: 36px;
-  height: 36px;
+  width: 24px;
+  height: 24;
   border-radius: 50%;
   border: none;
   background: radial-gradient(circle at 30% 30%, #444, #111);
   color: #fff;
-  font-size: 36px;
+  font-size: 24px;
   cursor: pointer;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
 }
