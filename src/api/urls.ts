@@ -57,6 +57,15 @@ export const Endpoints = {
       byKey: (key: string) => `admin/system-prompts/${encodeURIComponent(key)}`,
     },
     history: (chat_id: string) => `admin/chats/history/${chat_id}`,
+    users: (q?: string) =>
+      q?.trim()
+        ? `admin/users?q=${encodeURIComponent(q.trim())}`
+        : `admin/users`,
+
+    relationships: (user_id: number) =>
+      `admin/relationships?user_id=${user_id}`,
+
+    patchRelationship: `admin/relationships`,
   },
   ws: {
     chat: "/chat/ws",

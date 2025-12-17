@@ -6,6 +6,7 @@ import SvgPack from "@/utils/SvgPack";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import InfluencerAudioManager from "../influencer-audio-manager/InfluencerAudioManager";
+import SocialMediaStep from "./components/SocialMediaStep";
 import styles from "./ProfileSurvey.module.css";
 
 interface SurveyState {
@@ -55,6 +56,7 @@ const ProfileSurveyForm: React.FC = () => {
   const [pictureError, setPictureError] = useState<string | null>(null);
   const [socialError, setSocialError] = useState<string | null>(null);
   const [pictureUrl, setPictureUrl] = useState<string | null>(null);
+  const [instagramVerifying, setInstagramVerifying] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -64,7 +66,6 @@ const ProfileSurveyForm: React.FC = () => {
   const audioStepIndex = surveyStepsCount + 2;
   const wizardTotalSteps = surveyStepsCount + 3;
 
-  // 1) Load initial state via token
   useEffect(() => {
     const load = async () => {
       if (!token) {
@@ -96,7 +97,6 @@ const ProfileSurveyForm: React.FC = () => {
     load();
   }, [token, wizardTotalSteps]);
 
-  // 2) Update answer locally
   const updateAnswer = (key: string, value: any) => {
     setAnswers((prev) => ({
       ...prev,
@@ -105,7 +105,6 @@ const ProfileSurveyForm: React.FC = () => {
     setFieldErrors((prev) => ({ ...prev, [key]: null }));
   };
 
-  // 3) Autosave
   useEffect(() => {
     if (!preInfluencerId) return;
     if (loading) return;
@@ -127,7 +126,6 @@ const ProfileSurveyForm: React.FC = () => {
     return () => clearTimeout(timeout);
   }, [answers, stepIndex, preInfluencerId, loading]);
 
-  // 4) Load picture URL when we have a key
   useEffect(() => {
     if (!preInfluencerId) return;
 
@@ -152,7 +150,40 @@ const ProfileSurveyForm: React.FC = () => {
     fetchUrl();
   }, [preInfluencerId, answers["profile_picture_key"]]);
 
-  // Validation for survey steps (PDF questions)
+  const handleVerifyInstagram = async () => {
+    const raw = answers["social_instagram"];
+    if (!raw || typeof raw !== "string") return;
+
+    const username = raw.trim().replace(/^@/, "");
+    if (!username) return;
+
+    updateAnswer("social_instagram_verify_error", null);
+    updateAnswer("social_instagram_verified", false);
+
+    try {
+      setInstagramVerifying(true);
+
+      const { data } = await apiClient.get("/social/api/followers", {
+        params: { service: "instagram", username },
+      });
+
+      if (!data?.success) {
+        throw new Error("Provider returned success=false");
+      }
+
+      updateAnswer("social_instagram_followers", data.count ?? 0);
+      updateAnswer("social_instagram_verified", true);
+    } catch (err) {
+      console.error("Error verifying Instagram:", err);
+      updateAnswer(
+        "social_instagram_verify_error",
+        "Could not fetch followers right now. Please try again."
+      );
+    } finally {
+      setInstagramVerifying(false);
+    }
+  };
+
   const validateSurveyStep = (): boolean => {
     const step = SURVEY_STEPS[stepIndex];
     const newErrors: Record<string, string> = {};
@@ -332,6 +363,43 @@ const ProfileSurveyForm: React.FC = () => {
   const currentSurveyStep =
     isSurveyStep && SURVEY_STEPS[stepIndex] ? SURVEY_STEPS[stepIndex] : null;
 
+  const handleVerifyTwitter = async () => {
+    const raw = answers["social_x"];
+    if (!raw || typeof raw !== "string") return;
+
+    const username = raw.trim().replace(/^@/, "");
+    if (!username) return;
+
+    updateAnswer("social_twitter_verify_error", null);
+    updateAnswer("social_twitter_verified", false);
+
+    try {
+      setInstagramVerifying(true);
+
+      const { data } = await apiClient.get("/social/api/followers", {
+        params: {
+          service: "twitter",
+          username,
+        },
+      });
+
+      if (!data?.success) {
+        throw new Error("API returned success=false");
+      }
+
+      updateAnswer("social_twitter_followers", data.count ?? 0);
+      updateAnswer("social_twitter_verified", true);
+    } catch (err) {
+      console.error(err);
+      updateAnswer(
+        "social_twitter_verify_error",
+        "Could not fetch Twitter followers."
+      );
+    } finally {
+      setInstagramVerifying(false);
+    }
+  };
+
   return (
     <div className={styles.screen}>
       <div className={styles.outerframe}>
@@ -466,101 +534,14 @@ const ProfileSurveyForm: React.FC = () => {
 
               {/* STEP: SOCIAL MEDIA */}
               {isSocialsStep && (
-                <div className={styles.field}>
-                  <label className={styles.label}>
-                    Social Media <span className={styles.required}>*</span>
-                  </label>
-                  <p className={styles.subtitle}>
-                    Add all social media where your fans can find you. At least
-                    one is required.
-                  </p>
-
-                  <div className={styles.field}>
-                    <label className={styles.label}>Instagram</label>
-                    <input
-                      className={styles.input}
-                      placeholder="@username"
-                      value={answers["social_instagram"] || ""}
-                      onChange={(e) =>
-                        updateAnswer("social_instagram", e.target.value)
-                      }
-                    />
-                  </div>
-
-                  <div className={styles.field}>
-                    <label className={styles.label}>TikTok</label>
-                    <input
-                      className={styles.input}
-                      placeholder="@username"
-                      value={answers["social_tiktok"] || ""}
-                      onChange={(e) =>
-                        updateAnswer("social_tiktok", e.target.value)
-                      }
-                    />
-                  </div>
-
-                  <div className={styles.field}>
-                    <label className={styles.label}>OnlyFans</label>
-                    <input
-                      className={styles.input}
-                      placeholder="@username"
-                      value={answers["social_onlyfans"] || ""}
-                      onChange={(e) =>
-                        updateAnswer("social_onlyfans", e.target.value)
-                      }
-                    />
-                  </div>
-
-                  <div className={styles.field}>
-                    <label className={styles.label}>Snapchat</label>
-                    <input
-                      className={styles.input}
-                      placeholder="@username"
-                      value={answers["social_snapchat"] || ""}
-                      onChange={(e) =>
-                        updateAnswer("social_snapchat", e.target.value)
-                      }
-                    />
-                  </div>
-
-                  <div className={styles.field}>
-                    <label className={styles.label}>X (Twitter)</label>
-                    <input
-                      className={styles.input}
-                      placeholder="@username"
-                      value={answers["social_x"] || ""}
-                      onChange={(e) => updateAnswer("social_x", e.target.value)}
-                    />
-                  </div>
-
-                  <div className={styles.field}>
-                    <label className={styles.label}>Telegram</label>
-                    <input
-                      className={styles.input}
-                      placeholder="@username"
-                      value={answers["social_telegram"] || ""}
-                      onChange={(e) =>
-                        updateAnswer("social_telegram", e.target.value)
-                      }
-                    />
-                  </div>
-
-                  <div className={styles.field}>
-                    <label className={styles.label}>WhatsApp</label>
-                    <input
-                      className={styles.input}
-                      placeholder="Phone or link"
-                      value={answers["social_whatsapp"] || ""}
-                      onChange={(e) =>
-                        updateAnswer("social_whatsapp", e.target.value)
-                      }
-                    />
-                  </div>
-
-                  {socialError && (
-                    <div className={styles.error}>{socialError}</div>
-                  )}
-                </div>
+                <SocialMediaStep
+                  answers={answers}
+                  updateAnswer={updateAnswer}
+                  socialError={socialError}
+                  onVerifyInstagram={handleVerifyInstagram}
+                  onVerifyTwitter={handleVerifyTwitter}
+                  instagramVerifying={instagramVerifying}
+                />
               )}
 
               {/* STEP: AUDIO */}

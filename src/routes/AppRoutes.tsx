@@ -1,4 +1,5 @@
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
+import RelationshipDashboard from "@/ui/screens/admin/dashboard_relationship/RelationshipDashboard";
 import InfluencerAudioManagerRoute from "@/ui/screens/influencer-audio-manager/InfluencerAudioManagerRoute";
 import InfluencerWelcome from "@/ui/screens/landing-page/InfluencerWelcome";
 import LandingPage from "@/ui/screens/landing-page/LandingPage";
@@ -88,6 +89,7 @@ function AppRoutes() {
     { path: "/mj/dashboard", element: <MJDashboard /> },
     { path: "/admin/influencer", element: <CreateInfluencer /> },
     { path: "/admin/prompts", element: <PromptEditorAdmin /> },
+    { path: "/admin/relationship", element: <RelationshipDashboard /> }
   ];
 
   const privateRoutes: { path: string; element: JSX.Element }[] = [
