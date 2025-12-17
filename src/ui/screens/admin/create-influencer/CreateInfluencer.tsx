@@ -5,16 +5,9 @@ import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { Modal } from "@/ui/components/modals/Modal";
 import { splitName } from "@/utils/StringUtils";
-import { KnowledgeFileModel } from "@/data/models/InfluencerDataModel";
 import defaultAvatar from "@/assets/image/avatar.png";
+import mbtiData from "@/data/mbti.json";
 import AdminLayout from "../AdminLayout";
-
-type SocialConnections = {
-    instagram: boolean;
-    facebook: boolean;
-    onlyfans: boolean;
-    twitter: boolean;
-};
 
 type InfluencerFormState = {
     id: string;
@@ -28,12 +21,39 @@ type InfluencerFormState = {
     voice_id: string;
     prompt_template: string;
     influencer_agent_id_third_part: string;
-    voice_prompt: string;
-    social_connections: SocialConnections;
+    bio_json: PersonaProfile;
 };
 
 type UploadRecord = Record<string, unknown>;
 
+type MbtiPersonality = {
+    code: string;
+    name: string;
+    rules: string[];
+};
+
+type PersonaStages = {
+    hate: string;
+    dislike: string;
+    strangers: string;
+    talking: string;
+    flirting: string;
+    dating: string;
+    in_love: string;
+};
+
+
+const STAGE_KEYS: Array<keyof PersonaStages> = ["hate", "dislike", "strangers", "talking", "flirting", "dating", "in_love"];
+type PersonaProfile = {
+    likes: string[];
+    dislikes: string[];
+    mbti_architype: string;
+    mbti_rules: string;
+    personality_rules: string;
+    tone: string;
+    stages: PersonaStages;
+    stages_focus?: keyof PersonaStages | "";
+};
 const formatRecordKey = (key: string) => key.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
 
 const formatRecordValue = (value: unknown): string => {
@@ -154,13 +174,6 @@ function toDateInputValue(value: string | undefined | null) {
     return new Date().toISOString().slice(0, 10);
 }
 
-const createDefaultSocialConnections = (): SocialConnections => ({
-    instagram: false,
-    facebook: false,
-    onlyfans: false,
-    twitter: false,
-});
-
 const resolveAvatarSrc = (value?: string | null) => {
     if (typeof value === "string") {
         const trimmed = value.trim();
@@ -169,6 +182,107 @@ const resolveAvatarSrc = (value?: string | null) => {
         }
     }
     return defaultAvatar;
+};
+
+const STAGE_PLACEHOLDERS: Record<keyof PersonaStages, string> = {
+    hate: "Avoids interaction and stays quiet.",
+    dislike: "Remains silent and distant.",
+    strangers: "Observes quietly, initially reserved.",
+    talking: "Engages in meaningful conversation but remains private.",
+    flirting: "Shows interest through subtle actions.",
+    dating: "Plans meticulously and shows affection through acts of service.",
+    in_love: "Demonstrates deep care and commitment, prioritizes long-term connection.",
+};
+
+const createDefaultPersonaProfile = (): PersonaProfile => ({
+    likes: [],
+    dislikes: [],
+    mbti_architype: "",
+    mbti_rules: "",
+    personality_rules: "",
+    tone: "",
+    stages: {
+        hate: "",
+        dislike: "",
+        strangers: "",
+        talking: "",
+        flirting: "",
+        dating: "",
+        in_love: "",
+    },
+    stages_focus: "",
+});
+
+const toStringArray = (value: unknown): string[] => {
+    if (Array.isArray(value)) {
+        return value
+            .map((item) => (typeof item === "string" ? item.trim() : ""))
+            .filter(Boolean);
+    }
+    if (typeof value === "string") {
+        return value
+            .split("\n")
+            .map((item) => item.trim())
+            .filter(Boolean);
+    }
+    return [];
+};
+
+const extractPersonaProfile = (raw: unknown): PersonaProfile => {
+    const base = createDefaultPersonaProfile();
+    let payload: Record<string, any> = {};
+
+    if (typeof raw === "string") {
+        try {
+            payload = JSON.parse(raw) as Record<string, any>;
+        } catch {
+            payload = {};
+        }
+    } else if (raw && typeof raw === "object") {
+        payload = raw as Record<string, any>;
+    }
+
+    const likes = toStringArray(payload.likes);
+    const dislikes = toStringArray(payload.dislikes);
+
+    const stages: PersonaStages = { ...base.stages };
+    STAGE_KEYS.forEach((key) => {
+        if (typeof payload?.stages?.[key] === "string") {
+            stages[key] = String(payload.stages[key]);
+        }
+    });
+
+    return {
+        ...base,
+        likes,
+        dislikes,
+        mbti_architype: typeof payload.mbti_architype === "string" ? payload.mbti_architype : base.mbti_architype,
+        mbti_rules: typeof payload.mbti_rules === "string" ? payload.mbti_rules : base.mbti_rules,
+        personality_rules:
+            typeof payload.personality_rules === "string" ? payload.personality_rules : base.personality_rules,
+        tone: typeof payload.tone === "string" ? payload.tone : base.tone,
+        stages,
+        stages_focus:
+            payload.stages_focus && STAGE_KEYS.includes(payload.stages_focus) ? payload.stages_focus : base.stages_focus,
+    };
+};
+
+const personaProfileToJson = (profile: PersonaProfile): Record<string, unknown> => {
+    const safeStages = STAGE_KEYS.reduce<Record<string, string>>((acc, key) => {
+        acc[key] = profile.stages[key] ?? "";
+        return acc;
+    }, {});
+
+    return {
+        likes: profile.likes ?? [],
+        dislikes: profile.dislikes ?? [],
+        mbti_architype: profile.mbti_architype ?? "",
+        mbti_rules: profile.mbti_rules ?? "",
+        personality_rules: profile.personality_rules ?? "",
+        tone: profile.tone ?? "",
+        stages: safeStages,
+        stages_focus: profile.stages_focus ?? "",
+    };
 };
 
 const createDefaultFormState = (): InfluencerFormState => ({
@@ -183,13 +297,11 @@ const createDefaultFormState = (): InfluencerFormState => ({
     voice_id: "",
     prompt_template: "",
     influencer_agent_id_third_part: "",
-    voice_prompt: "",
-    social_connections: createDefaultSocialConnections(),
+    bio_json: createDefaultPersonaProfile(),
 });
 
 function createFormStateFromInfluencer(influencer: InfluencerDataModel): InfluencerFormState {
     const { firstName, lastName } = splitName(influencer.name);
-    const incomingSocial = influencer.social_connections ?? createDefaultSocialConnections();
     const normalizedAvatar = (influencer.img ?? "").trim();
     const avatarUrl = normalizedAvatar && normalizedAvatar !== defaultAvatar ? normalizedAvatar : "";
     return {
@@ -204,17 +316,15 @@ function createFormStateFromInfluencer(influencer: InfluencerDataModel): Influen
         voice_id: influencer.voice_id ?? "",
         prompt_template: influencer.prompt_template ?? "",
         influencer_agent_id_third_part: influencer.influencer_agent_id_third_part ?? "",
-        voice_prompt: influencer.voice_prompt ?? "",
-        social_connections: {
-            instagram: incomingSocial.instagram ?? false,
-            facebook: incomingSocial.facebook ?? false,
-            onlyfans: incomingSocial.onlyfans ?? false,
-            twitter: incomingSocial.twitter ?? false,
-        },
+        bio_json: extractPersonaProfile(influencer.bio_json ?? ""),
     };
 }
 
 const CreateInfluencer: React.FC = () => {
+    const mbtiPersonalities: MbtiPersonality[] = Array.isArray((mbtiData as any)?.personalities)
+        ? (mbtiData as any).personalities
+        : [];
+
     const [influencers, setInfluencers] = useState<InfluencerDataModel[]>([]);
     const [selectedId, setSelectedId] = useState<string | "new" | null>(null);
     const [formState, setFormState] = useState<InfluencerFormState>(() => createDefaultFormState());
@@ -227,17 +337,12 @@ const CreateInfluencer: React.FC = () => {
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [uploadParseError, setUploadParseError] = useState<string | null>(null);
     const [expandedRecords, setExpandedRecords] = useState<Set<number>>(() => new Set<number>());
-    const [promptSaveState, setPromptSaveState] = useState<"idle" | "saving" | "success" | "error">("idle");
-    // const [voicePromptSaveState, setVoicePromptSaveState] = useState<"idle" | "saving" | "success" | "error">("idle");
-    const [promptSaveError, setPromptSaveError] = useState<string | null>(null);
-    // const [voicePromptSaveError, setVoicePromptSaveError] = useState<string | null>(null);
-    const [knowledgeFiles, setKnowledgeFiles] = useState<KnowledgeFileModel[]>([]);
-    const [knowledgeLoading, setKnowledgeLoading] = useState(false);
-    const [knowledgeError, setKnowledgeError] = useState<string | null>(null);
-    const [knowledgeUploading, setKnowledgeUploading] = useState(false);
+    const [personaListDrafts, setPersonaListDrafts] = useState<{ likes: string; dislikes: string }>({
+        likes: "",
+        dislikes: "",
+    });
     const influencerRepo = useMemo(() => InfluencerRepo(), []);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const knowledgeFileInputRef = useRef<HTMLInputElement>(null);
 
     const getRecordLabel = (record: UploadRecord, index: number) => {
         const candidateKeys: Array<keyof UploadRecord> = ["display_name", "name", "username", "id"];
@@ -287,37 +392,6 @@ const CreateInfluencer: React.FC = () => {
         }
     }, [selectedId, influencers]);
 
-    useEffect(() => {
-        if (!selectedId || selectedId === "new") {
-            setKnowledgeFiles([]);
-            setKnowledgeError(null);
-            return;
-        }
-        let isCancelled = false;
-        const fetchFiles = async () => {
-            setKnowledgeLoading(true);
-            setKnowledgeError(null);
-            try {
-                const files = await influencerRepo.listKnowledgeFiles(selectedId);
-                if (!isCancelled) {
-                    setKnowledgeFiles(files);
-                }
-            } catch (err) {
-                if (!isCancelled) {
-                    setKnowledgeError(err instanceof Error ? err.message : "Unable to load documents");
-                }
-            } finally {
-                if (!isCancelled) {
-                    setKnowledgeLoading(false);
-                }
-            }
-        };
-        fetchFiles();
-        return () => {
-            isCancelled = true;
-        };
-    }, [selectedId, influencerRepo]);
-
     const filteredInfluencers = useMemo(() => {
         if (!searchTerm.trim()) {
             return influencers;
@@ -337,6 +411,71 @@ const CreateInfluencer: React.FC = () => {
         setFormState((prev) => ({ ...prev, [field]: value }));
     };
 
+    const handlePersonaListKeyDown = (field: "likes" | "dislikes") => (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        const value = personaListDrafts[field].trim();
+        if (!value) return;
+        setFormState((prev) => ({
+            ...prev,
+            bio_json: {
+                ...prev.bio_json,
+                [field]: [...prev.bio_json[field], value],
+            },
+        }));
+        setPersonaListDrafts((prev) => ({ ...prev, [field]: "" }));
+    };
+
+    const handlePersonaListDraftChange = (field: "likes" | "dislikes") => (event: ChangeEvent<HTMLInputElement>) => {
+        setPersonaListDrafts((prev) => ({ ...prev, [field]: event.target.value }));
+    };
+
+    const handleRemovePersonaItem = (field: "likes" | "dislikes", value: string) => {
+        setFormState((prev) => ({
+            ...prev,
+            bio_json: {
+                ...prev.bio_json,
+                [field]: prev.bio_json[field].filter((item) => item !== value),
+            },
+        }));
+    };
+
+    const handlePersonaFieldChange = (field: keyof Omit<PersonaProfile, "likes" | "dislikes" | "stages">) =>
+        (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+            const { value } = event.target;
+            setFormState((prev) => {
+                let nextRules = prev.bio_json.mbti_rules;
+                if (field === "mbti_architype") {
+                    const personality = mbtiPersonalities.find((p) => p.code === value);
+                    if (personality) {
+                        nextRules = personality.rules.join("\n");
+                    }
+                }
+                return {
+                    ...prev,
+                    bio_json: {
+                        ...prev.bio_json,
+                        [field]: value,
+                        mbti_rules: field === "mbti_architype" ? nextRules : prev.bio_json.mbti_rules,
+                    },
+                };
+            });
+        };
+
+    const handlePersonaStageChange = (stage: keyof PersonaStages) => (event: ChangeEvent<HTMLTextAreaElement>) => {
+        const { value } = event.target;
+        setFormState((prev) => ({
+            ...prev,
+            bio_json: {
+                ...prev.bio_json,
+                stages: {
+                    ...prev.bio_json.stages,
+                    [stage]: value,
+                },
+            },
+        }));
+    };
+
     useEffect(() => {
         if (saveState === "success" || saveState === "error") {
             const timeout = setTimeout(() => {
@@ -347,28 +486,6 @@ const CreateInfluencer: React.FC = () => {
         }
         return undefined;
     }, [saveState]);
-
-    useEffect(() => {
-        if (promptSaveState === "success" || promptSaveState === "error") {
-            const timeout = setTimeout(() => {
-                setPromptSaveState("idle");
-                setPromptSaveError(null);
-            }, 3000);
-            return () => clearTimeout(timeout);
-        }
-        return undefined;
-    }, [promptSaveState]);
-
-    // useEffect(() => {
-    //     if (voicePromptSaveState === "success" || voicePromptSaveState === "error") {
-    //         const timeout = setTimeout(() => {
-    //             setVoicePromptSaveState("idle");
-    //             setVoicePromptSaveError(null);
-    //         }, 3000);
-    //         return () => clearTimeout(timeout);
-    //     }
-    //     return undefined;
-    // }, [voicePromptSaveState]);
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -392,8 +509,7 @@ const CreateInfluencer: React.FC = () => {
             voice_id: formState.voice_id || existing?.voice_id || "",
             prompt_template: formState.prompt_template || existing?.prompt_template || "",
             influencer_agent_id_third_part: thirdPartyAgentId,
-            voice_prompt: formState.voice_prompt || existing?.voice_prompt || "",
-            social_connections: { ...formState.social_connections },
+            bio_json: personaProfileToJson(formState.bio_json),
             daily_scripts: existing?.daily_scripts ?? [],
         };
         const isNewInfluencer = selectedId === "new" || !existing;
@@ -407,7 +523,7 @@ const CreateInfluencer: React.FC = () => {
                     base.prompt_template,
                     existing?.daily_scripts || [],
                     base.influencer_agent_id_third_part,
-                    base.voice_prompt,
+                    base.bio_json,
                     base.voice_id,
                 );
             const mergedInfluencer = {
@@ -432,117 +548,6 @@ const CreateInfluencer: React.FC = () => {
         }
     };
 
-    const updateInfluencerCollection = (updated: InfluencerDataModel) => {
-        setInfluencers((prev) => {
-            const index = prev.findIndex((influencer) => influencer.id === updated.id);
-            if (index === -1) {
-                return [updated, ...prev];
-            }
-            const next = [...prev];
-            next[index] = { ...next[index], ...updated };
-            return next;
-        });
-        setSelectedId(updated.id);
-    };
-
-    const handlePromptTemplateSave = async () => {
-        if (!selectedId || selectedId === "new") {
-            setPromptSaveState("error");
-            setPromptSaveError("Select an influencer to update the prompt.");
-            return;
-        }
-        const existing = influencers.find((influencer) => influencer.id === selectedId);
-        if (!existing) {
-            setPromptSaveState("error");
-            setPromptSaveError("Influencer not found.");
-            return;
-        }
-
-        const payload: InfluencerDataModel = {
-            ...existing,
-            prompt_template: formState.prompt_template,
-            influencer_agent_id_third_part: existing.influencer_agent_id_third_part,
-            voice_prompt: existing.voice_prompt,
-            voice_id: formState.voice_id || existing.voice_id,
-        };
-
-        setPromptSaveState("saving");
-        setPromptSaveError(null);
-
-        try {
-            const serverInfluencer = await influencerRepo.patchInfluencer(
-                payload,
-                payload.prompt_template,
-                payload.daily_scripts,
-                payload.influencer_agent_id_third_part,
-                payload.voice_prompt,
-                payload.voice_id,
-            );
-            const mergedInfluencer = { ...payload, ...serverInfluencer };
-            updateInfluencerCollection(mergedInfluencer);
-            setFormState((prev) => ({
-                ...prev,
-                id: mergedInfluencer.id,
-                prompt_template: mergedInfluencer.prompt_template ?? prev.prompt_template
-            }));
-            setPromptSaveState("success");
-        } catch (err) {
-            console.error("Failed to save prompt:", err);
-            setPromptSaveState("error");
-            setPromptSaveError(err instanceof Error ? err.message : "Unable to save prompt");
-        }
-    };
-
-    // const handleVoicePromptSave = async () => {
-    //     if (!selectedId || selectedId === "new") {
-    //         setVoicePromptSaveState("error");
-    //         setVoicePromptSaveError("Select an influencer to update the voice prompt.");
-    //         return;
-    //     }
-    //     const existing = influencers.find((influencer) => influencer.id === selectedId);
-    //     if (!existing) {
-    //         setVoicePromptSaveState("error");
-    //         setVoicePromptSaveError("Influencer not found.");
-    //         return;
-    //     }
-
-    //     const payload: InfluencerDataModel = {
-    //         ...existing,
-    //         prompt_template: existing.prompt_template,
-    //         influencer_agent_id_third_part: formState.influencer_agent_id_third_part || existing.influencer_agent_id_third_part,
-    //         voice_prompt: formState.voice_prompt,
-    //         voice_id: formState.voice_id || existing.voice_id,
-    //     };
-
-    //     setVoicePromptSaveState("saving");
-    //     setVoicePromptSaveError(null);
-
-    //     try {
-    //         const serverInfluencer = await influencerRepo.patchInfluencer(
-    //             payload,
-    //             payload.prompt_template,
-    //             payload.daily_scripts,
-    //             payload.influencer_agent_id_third_part,
-    //             payload.voice_prompt,
-    //             payload.voice_id,
-    //         );
-    //         const mergedInfluencer = { ...payload, ...serverInfluencer };
-    //         updateInfluencerCollection(mergedInfluencer);
-    //         setFormState((prev) => ({
-    //             ...prev,
-    //             id: mergedInfluencer.id,
-    //             influencer_agent_id_third_part: mergedInfluencer.influencer_agent_id_third_part ?? prev.influencer_agent_id_third_part,
-    //             voice_id: mergedInfluencer.voice_id ?? prev.voice_id,
-    //             voice_prompt: mergedInfluencer.voice_prompt ?? prev.voice_prompt,
-    //         }));
-    //         setVoicePromptSaveState("success");
-    //     } catch (err) {
-    //         console.error("Failed to save voice prompt:", err);
-    //         setVoicePromptSaveState("error");
-    //         setVoicePromptSaveError(err instanceof Error ? err.message : "Unable to save voice prompt");
-    //     }
-    // };
-
     const handleCreateNew = () => {
         setSelectedId("new");
         setFormState(createDefaultFormState());
@@ -561,17 +566,6 @@ const CreateInfluencer: React.FC = () => {
 
     const handleUploadClick = () => {
         fileInputRef.current?.click();
-    };
-
-    const handleKnowledgeUploadClick = () => {
-        knowledgeFileInputRef.current?.click();
-    };
-
-    const formatFileSize = (bytes: number) => {
-        if (!bytes) return "0 B";
-        const sizes = ["B", "KB", "MB", "GB"];
-        const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), sizes.length - 1);
-        return `${(bytes / 1024 ** i).toFixed(i === 0 ? 0 : 1)} ${sizes[i]}`;
     };
 
     const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -608,35 +602,6 @@ const CreateInfluencer: React.FC = () => {
         };
         reader.readAsText(file);
         event.target.value = "";
-    };
-
-    const handleKnowledgeFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file || !selectedId || selectedId === "new") {
-            event.target.value = "";
-            return;
-        }
-        setKnowledgeUploading(true);
-        setKnowledgeError(null);
-        try {
-            const uploaded = await influencerRepo.uploadKnowledgeFile(selectedId, file);
-            setKnowledgeFiles((prev) => [uploaded, ...prev]);
-        } catch (err) {
-            setKnowledgeError(err instanceof Error ? err.message : "Failed to upload document");
-        } finally {
-            setKnowledgeUploading(false);
-            event.target.value = "";
-        }
-    };
-
-    const handleKnowledgeDelete = async (fileId: number) => {
-        if (!selectedId || selectedId === "new") return;
-        try {
-            await influencerRepo.deleteKnowledgeFile(selectedId, fileId);
-            setKnowledgeFiles((prev) => prev.filter((file) => file.id !== fileId));
-        } catch (err) {
-            setKnowledgeError(err instanceof Error ? err.message : "Failed to delete document");
-        }
     };
 
     const toggleRecordExpansion = (index: number) => {
@@ -839,7 +804,7 @@ const CreateInfluencer: React.FC = () => {
                                 </div>
 
                                 <div className={styles["field"]}>
-                                    <label htmlFor="influencer-agent-id">Influencer Agent ID (Third Party)</label>
+                                    <label htmlFor="influencer-agent-id">Elevenlabs Agent ID</label>
                                     <input
                                         id="influencer-agent-id"
                                         value={formState.influencer_agent_id_third_part}
@@ -849,119 +814,174 @@ const CreateInfluencer: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div>
-                                <div className={styles["section-heading"]}>
-                                    <h3>Knowledge documents</h3>
-                                    <p>Upload PDFs, DOC/DOCX, or TXT to enrich this influencer.</p>
-                                </div>
-                                <div className={styles["knowledge-actions"]}>
-                                    <button
-                                        type="button"
-                                        className={styles["upload-button"]}
-                                        onClick={handleKnowledgeUploadClick}
-                                        disabled={!selectedId || selectedId === "new" || knowledgeUploading}
-                                    >
-                                        {knowledgeUploading ? "Uploading…" : "Upload document"}
-                                    </button>
-                                    <input
-                                        ref={knowledgeFileInputRef}
-                                        className={styles["file-input"]}
-                                        type="file"
-                                        accept=".pdf,.doc,.docx,.txt"
-                                        onChange={handleKnowledgeFileChange}
-                                    />
-                                    {knowledgeError && <span className={styles["upload-error"]}>{knowledgeError}</span>}
-                                </div>
-                                <div className={styles["knowledge-list"]}>
-                                    {selectedId === "new" ? (
-                                        <div className={styles["list-placeholder"]}>Save the influencer first to attach documents.</div>
-                                    ) : knowledgeLoading ? (
-                                        <div className={styles["list-placeholder"]}>Loading documents…</div>
-                                    ) : knowledgeFiles.length === 0 ? (
-                                        <div className={styles["list-placeholder"]}>No documents uploaded yet.</div>
-                                    ) : (
-                                        knowledgeFiles.map((file) => (
-                                            <div key={file.id} className={styles["knowledge-item"]}>
-                                                <div>
-                                                    <div className={styles["knowledge-item__name"]}>{file.filename}</div>
-                                                    <div className={styles["knowledge-item__meta"]}>
-                                                        <span>{file.file_type.toUpperCase()}</span>
-                                                        <span>•</span>
-                                                        <span>{formatFileSize(file.file_size_bytes)}</span>
-                                                        <span>•</span>
-                                                        <span>Status: {file.status}</span>
-                                                        {file.error_message && (
-                                                            <>
-                                                                <span>•</span>
-                                                                <span className={styles["upload-error"]}>{file.error_message}</span>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    className={styles["secondary-button"]}
-                                                    onClick={() => handleKnowledgeDelete(file.id)}
-                                                    disabled={knowledgeUploading}
-                                                >
-                                                    Delete
-                                                </button>
-                                            </div>
-                                        ))
-                                    )}
+                            <div className={`${styles["section-heading"]} ${styles["section-heading--row"]}`}>
+                                <div>
+                                    <h3>Persona profile</h3>
+                                    <p>Capture likes, dislikes, MBTI, tone, and stage behaviors for this influencer.</p>
                                 </div>
                             </div>
-
                             <div className={styles["field"]}>
-                                <label htmlFor="influencer-prompt">Prompt</label>
+                                <label htmlFor="persona-mbti">MBTI archetype</label>
+                                <select
+                                    id="persona-mbti"
+                                    value={formState.bio_json.mbti_architype}
+                                    onChange={handlePersonaFieldChange("mbti_architype")}
+                                >
+                                    <option value="">Select type</option>
+                                    {mbtiPersonalities.map((personality) => (
+                                        <option key={personality.code} value={personality.code}>
+                                            {personality.name} ({personality.code})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className={styles["field"]}>
+                                <label htmlFor="persona-mbti-rules">MBTI rules</label>
                                 <textarea
-                                    id="influencer-prompt"
-                                    value={formState.prompt_template}
-                                    onChange={handleFieldChange("prompt_template")}
-                                    placeholder="System prompt or guidance used for this influencer"
-                                    rows={20}
+                                    id="persona-mbti-rules"
+                                    value={formState.bio_json.mbti_rules}
+                                    onChange={handlePersonaFieldChange("mbti_rules")}
+                                    placeholder="Prefers logical decisions, needs solitary recharge, relies on structured plans."
+                                    rows={10}
                                 />
-                                <div className={styles["form-footer"]}>
-                                    {promptSaveState !== "idle" && (
-                                        <span
-                                            className={`${styles["save-status"]} ${promptSaveState === "success" ? styles["save-status--success"] : ""} ${promptSaveState === "error" ? styles["save-status--error"] : ""}`}
-                                        >
-                                            {promptSaveState === "success" && "Prompt saved"}
-                                            {promptSaveState === "error" && (promptSaveError || "Failed to save prompt")}
-                                            {promptSaveState === "saving" && "Saving prompt…"}
-                                        </span>
-                                    )}
-                                    <button type="button" className={styles["primary-button"]} disabled={promptSaveState === "saving"} onClick={handlePromptTemplateSave}>
-                                        {promptSaveState === "saving" ? "Saving…" : "Save prompt only"}
-                                    </button>
+                            </div>
+                            <div className={styles["field"]}>
+                                <label htmlFor="persona-rules">Personality rules</label>
+                                <textarea
+                                    id="persona-rules"
+                                    value={formState.bio_json.personality_rules}
+                                    onChange={handlePersonaFieldChange("personality_rules")}
+                                    placeholder="Strategic, future-oriented, has high standards and boundaries, values long-term connections."
+                                    rows={10}
+                                />
+                            </div>
+                            <div className={styles["field"]}>
+                                <label htmlFor="persona-tone">Tone</label>
+                                <textarea
+                                    id="persona-tone"
+                                    value={formState.bio_json.tone}
+                                    onChange={handlePersonaFieldChange("tone")}
+                                    placeholder="Direct and analytical with a hint of dry humor."
+                                    rows={5}
+                                />
+                            </div>
+                            <div className={styles["persona-grid"]}>
+                                <div className={styles["field"]}>
+                                    <label htmlFor="persona-likes">Likes (press Enter to add)</label>
+                                    <input
+                                        id="persona-likes"
+                                        value={personaListDrafts.likes}
+                                        onChange={handlePersonaListDraftChange("likes")}
+                                        onKeyDown={handlePersonaListKeyDown("likes")}
+                                        placeholder="Type a like and press Enter"
+                                    />
+                                    <div className={styles["tag-list"]}>
+                                        {formState.bio_json.likes.length === 0 ? (
+                                            <span className={styles["tag-placeholder"]}>No likes added yet</span>
+                                        ) : (
+                                            formState.bio_json.likes.map((item) => (
+                                                <span key={item} className={styles["tag"]}>
+                                                    {item}
+                                                    <button
+                                                        type="button"
+                                                        className={styles["tag-remove"]}
+                                                        onClick={() => handleRemovePersonaItem("likes", item)}
+                                                        aria-label={`Remove ${item}`}
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </span>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                                <div className={styles["field"]}>
+                                    <label htmlFor="persona-dislikes">Dislikes (press Enter to add)</label>
+                                    <input
+                                        id="persona-dislikes"
+                                        value={personaListDrafts.dislikes}
+                                        onChange={handlePersonaListDraftChange("dislikes")}
+                                        onKeyDown={handlePersonaListKeyDown("dislikes")}
+                                        placeholder="Type a dislike and press Enter"
+                                    />
+                                    <div className={styles["tag-list"]}>
+                                        {formState.bio_json.dislikes.length === 0 ? (
+                                            <span className={styles["tag-placeholder"]}>No dislikes added yet</span>
+                                        ) : (
+                                            formState.bio_json.dislikes.map((item) => (
+                                                <span key={item} className={styles["tag"]}>
+                                                    {item}
+                                                    <button
+                                                        type="button"
+                                                        className={styles["tag-remove"]}
+                                                        onClick={() => handleRemovePersonaItem("dislikes", item)}
+                                                        aria-label={`Remove ${item}`}
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </span>
+                                            ))
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* <div className={styles["field"]}>
-                                <label htmlFor="influencer-voice-prompt">Voice prompt</label>
-                                <textarea
-                                    id="influencer-voice-prompt"
-                                    value={formState.voice_prompt}
-                                    onChange={handleFieldChange("voice_prompt")}
-                                    placeholder="Describe the desired voice style, pacing, tone, etc."
-                                    rows={20}
-                                />
-                                <div className={styles["form-footer"]}>
-                                    {voicePromptSaveState !== "idle" && (
-                                        <span
-                                            className={`${styles["save-status"]} ${voicePromptSaveState === "success" ? styles["save-status--success"] : ""} ${voicePromptSaveState === "error" ? styles["save-status--error"] : ""}`}
-                                        >
-                                            {voicePromptSaveState === "success" && "Voice prompt saved"}
-                                            {voicePromptSaveState === "error" && (voicePromptSaveError || "Failed to save voice prompt")}
-                                            {voicePromptSaveState === "saving" && "Saving voice prompt…"}
-                                        </span>
-                                    )}
-                                    <button type="button" className={styles["primary-button"]} disabled={voicePromptSaveState === "saving"} onClick={handleVoicePromptSave}>
-                                        {voicePromptSaveState === "saving" ? "Saving…" : "Save voice prompt only"}
-                                    </button>
+                            <div className={styles["section-heading"]}>
+                                <h3>Relationship stages</h3>
+                                <p>Select a stage to edit its behavior copy.</p>
+                            </div>
+                            <div className={styles["field"]}>
+                                <label htmlFor="relationship-stages">Relationship stages</label>
+                                <select
+                                    id="relationship-stages"
+                                    value={formState.bio_json.stages_focus ?? ""}
+                                    onChange={(event) =>
+                                        setFormState((prev) => ({
+                                            ...prev,
+                                            bio_json: {
+                                                ...prev.bio_json,
+                                                stages_focus: event.target.value as keyof PersonaStages,
+                                            },
+                                        }))
+                                    }
+                                >
+                                    <option value="">Select stage</option>
+                                    {STAGE_KEYS.map((type) => (
+                                        <option key={type} value={type}>
+                                            {type.replace("_", " ").toUpperCase()}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            {formState.bio_json.stages_focus ? (
+                                <div className={styles["field"]}>
+                                    <label htmlFor="persona-stage-copy">
+                                        {formState.bio_json.stages_focus.replace("_", " ").toUpperCase()}
+                                    </label>
+                                    <textarea
+                                        id="persona-stage-copy"
+                                        value={
+                                            formState.bio_json.stages[
+                                            formState.bio_json.stages_focus as keyof PersonaStages
+                                            ] || ""
+                                        }
+                                        onChange={handlePersonaStageChange(
+                                            formState.bio_json.stages_focus as keyof PersonaStages,
+                                        )}
+                                        placeholder={
+                                            STAGE_PLACEHOLDERS[
+                                            formState.bio_json.stages_focus as keyof PersonaStages
+                                            ]
+                                        }
+                                        rows={3}
+                                    />
                                 </div>
-                            </div> */}
-
+                            ) : (
+                                <div className={styles["field"]}>
+                                    <label>Stage copy</label>
+                                    <div className={styles["list-placeholder"]}>Select a stage to edit its copy.</div>
+                                </div>
+                            )}
                             <div className={styles["form-footer"]}>
                                 {saveState !== "idle" && (
                                     <span
