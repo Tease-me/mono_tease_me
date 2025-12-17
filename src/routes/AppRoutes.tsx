@@ -54,12 +54,11 @@ const IntencionInfluencerHome = lazy(
 
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
-    { path: "/home-page", element: <HomePage /> },
-    { path: "*", element: <InfluencerProfileScreen /> },
+    { path: "*", element: <HomePage /> },
     { path: "/:username", element: <InfluencerProfileScreen /> },
     { path: "/test-buttons", element: <ButtonsTestPage /> },
     { path: "/update-profile", element: <UpdateProfile /> },
-    { path: "/landing-page", element: <LandingPage /> },
+    { path: "/join", element: <LandingPage /> },
     { path: "/welcome", element: <InfluencerWelcome /> },
     { path: "/income-dialog", element: <IncomeDialogStep01 /> },
     { path: "/profile-survey", element: <ProfileSurvey /> },

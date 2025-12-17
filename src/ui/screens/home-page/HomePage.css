@@ -39,7 +39,7 @@
   pointer-events: none;
   display: block;
   z-index: 0;
-  mask-image: radial-gradient(black 70%, rgba(0, 0, 0, 0));
+  mask-image: radial-gradient(black 20%, rgba(0, 0, 0, 0));
 }
 
 .hp-inner-container {
@@ -827,7 +827,7 @@
     margin-top: 3rem;
     margin-bottom: 3rem;
   }
- .intenction-top-section > .hp-hero-image {pointer-events: none; mask-image: radial-gradient(black, transparent);}
+ .intenction-top-section > .hp-hero-image {pointer-events: none; mask-image: radial-gradient(black, transparent 70%);}
 
 
   .hp-negative-col01 {
