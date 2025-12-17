@@ -19,21 +19,25 @@ export const useAudioRecorder = (mimeType: string = "audio/webm"): UseAudioRecor
 
     const [recordingStatus, setRecordingStatus] = useState<RecordingStatus>("inactive");
     const [audio, setAudio] = useState<Blob | null>(null);
-    const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+    const audioChunksRef = useRef<Blob[]>([]);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
     const clearAudio = useCallback(() => {
         setAudio(null);
-        setAudioChunks([]);
+        audioChunksRef.current = [];
         setRecordingStatus("inactive");
         releaseMicrophonePermission();
     }, [releaseMicrophonePermission]);
 
     const startRecording = useCallback(async () => {
+        // Ask for permission and continue in the same tap instead of requiring a second press
         if (!streamRef || permissionState !== "granted") {
-            await requestMicrophonePermission();
-            return;
+            const granted = await requestMicrophonePermission();
+            if (!granted) return;
         }
+
+        // clear previous buffer
+        audioChunksRef.current = [];
 
         setRecordingStatus("recording");
 
@@ -41,13 +45,11 @@ export const useAudioRecorder = (mimeType: string = "audio/webm"): UseAudioRecor
         const media = new MediaRecorder(streamRef.current, { mimeType });
         mediaRecorderRef.current = media;
 
-        const localChunks: Blob[] = [];
         media.ondataavailable = (event) => {
-            if (event.data && event.data.size > 0) localChunks.push(event.data);
+            if (event.data && event.data.size > 0) audioChunksRef.current.push(event.data);
         };
 
         media.start();
-        setAudioChunks(localChunks);
     }, [permissionState, requestMicrophonePermission, mimeType, streamRef]);
 
     const stopRecording = useCallback(() => {
@@ -56,12 +58,12 @@ export const useAudioRecorder = (mimeType: string = "audio/webm"): UseAudioRecor
 
         mediaRecorderRef.current.stop();
         mediaRecorderRef.current.onstop = () => {
-            const audioBlob = new Blob(audioChunks, { type: mimeType });
+            const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
             setAudio(audioBlob);
-            setAudioChunks([]);
+            audioChunksRef.current = [];
             releaseMicrophonePermission();
         };
-    }, [audioChunks, mimeType, releaseMicrophonePermission]);
+    }, [mimeType, releaseMicrophonePermission]);
 
     return { recordingStatus, audio, startRecording, stopRecording, clearAudio, permissionState, streamRef };
 };

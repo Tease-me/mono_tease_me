@@ -32,10 +32,30 @@ export default {
     Call: lazy(() => import("@/assets/svg/Call.svg?react")),
     Heart: lazy(() => import("@/assets/svg/Heart.svg?react")),
     ChatRound: lazy(() => import("@/assets/svg/Chat.svg?react")),
+
+    // Social Media Icons
     OnlyFans: lazy(() => import("@/assets/svg/OnlyFans.svg?react")),
     Instagram: lazy(() => import("@/assets/svg/Instagram.svg?react")),
     TikTok: lazy(() => import("@/assets/svg/TikTok.svg?react")),
+    SocialInstagramWhite: lazy(() => import("@/assets/svg/iconSocialInstagramWhite.svg?react")),
+    SocialInstagramRed: lazy(() => import("@/assets/svg/iconSocialInstagramRed.svg?react")),
+    SocialOnlyFansWhite: lazy(() => import("@/assets/svg/iconSocialOnlyFansWhite.svg?react")),
+    SocialOnlyFansRed: lazy(() => import("@/assets/svg/iconSocialOnlyFansRed.svg?react")),
+    SocialSnapChatWhite: lazy(() => import("@/assets/svg/iconSocialSnapChatWhite.svg?react")),
+    SocialSnapChatRed: lazy(() => import("@/assets/svg/iconSocialSnapChatRed.svg?react")),
+    SocialTelegramWhite: lazy(() => import("@/assets/svg/iconSocialTelegramWhite.svg?react")),
+    SocialTelegramRed: lazy(() => import("@/assets/svg/iconSocialTelegramRed.svg?react")),
+    SocialTikTokWhite: lazy(() => import("@/assets/svg/iconSocialTiktTokWhite.svg?react")),
+    SocialTikTokRed: lazy(() => import("@/assets/svg/iconSocialTiktTokRed.svg?react")),
+    SocialWhatsAppWhite: lazy(() => import("@/assets/svg/iconSocialWhatsAppWhite.svg?react")),
+    SocialWhatsAppRed: lazy(() => import("@/assets/svg/iconSocialWhatsAppRed.svg?react")),
+    SocialXWhite: lazy(() => import("@/assets/svg/iconSocialXWhite.svg?react")),
+    SocialXRed: lazy(() => import("@/assets/svg/iconSocialXRed.svg?react")),
+    // End of Social Media Icons
+
     Calling: lazy(() => import("@/assets/svg/Calling.svg?react")),
+    RecordingStart: lazy(() => import("@/assets/svg/iconStartRecording.svg?react")),
+    RecordingStop: lazy(() => import("@/assets/svg/iconStopRecording.svg?react")),
     Mail: {
         Outlook: lazy(() => import("@/assets/svg/MicrosoftOutlook2019.svg?react")),
         Yahoo: lazy(() => import("@/assets/svg/YahooMailApp.svg?react")),
@@ -45,4 +65,6 @@ export default {
     Male: lazy(() => import("@/assets/svg/Male.svg?react")),
     Female: lazy(() => import("@/assets/svg/Female.svg?react")),
     Link: lazy(() => import("@/assets/svg/Link.svg?react")),
+    UploadPhoto: lazy(() => import("@/assets/svg/iconUploadPhoto.svg?react")),
+    Upload: lazy(() => import("@/assets/svg/iconUpload.svg?react")),
 }
