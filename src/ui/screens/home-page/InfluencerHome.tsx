@@ -10,6 +10,7 @@ import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButto
 import CloseSquareIcon from "@/assets/CloseSquare.svg?react";
 import CallIcon from "@/assets/Call.svg?react";
 import "./HomePage.css";
+import IconButton from "@/ui/components/inputs/buttons/IconButton";
 
 const InfluencerHome: React.FC = () => {
   const navigate = useNavigate();
@@ -34,67 +35,64 @@ const InfluencerHome: React.FC = () => {
         <TeaseMeLogo variant="full-dark" size="medium" />
       </header>
 
-     
+
       {/* Profile Card */}
       <section className="influencer-content-inner">
- {/* Main Content */}
-      <div className="influencer-content">
-        <h1 className="influencer-title">
-          {influencerName} is on TeaseMe!
-        </h1>
-      </div>
-<div className="influencer-profile-card">
-        <div className="influencer-avatar-container">
-          <div className="influencer-avatar-outer">
-            <img
-              src={imageProfile}
-              alt={influencerName}
-              className="influencer-avatar"
-            />
-          </div>
-          <div className="influencer-avatar-glow"></div>
+        {/* Main Content */}
+        <div className="influencer-content">
+          <h1 className="influencer-title">
+            {influencerName} is on TeaseMe!
+          </h1>
         </div>
-        <div className="influencer-profile-info">
-          <div className="influencer-name-container">
-            <h2 className="influencer-name">{influencerName}</h2>
-            <div className="influencer-timer">
-              <span className="influencer-timer-text">{timer}</span>
+        <div className="influencer-profile-card">
+          <div className="influencer-avatar-container">
+            <div className="influencer-avatar-outer">
+              <img
+                src={imageProfile}
+                alt={influencerName}
+                className="influencer-avatar"
+              />
+            </div>
+            <div className="influencer-avatar-glow"></div>
+          </div>
+          <div className="influencer-profile-info">
+            <div className="influencer-name-container">
+              <h2 className="influencer-name">{influencerName}</h2>
+              <div className="influencer-timer">
+                <span className="influencer-timer-text">{timer}</span>
+              </div>
+            </div>
+            <div className="influencer-actions">
+              <IconButton leftIcon={<SvgPack.Voice />} color="black" />
+              <IconButton leftIcon={<SvgPack.Speaker />} color="black" />
+              <IconButton leftIcon={<CallIcon />} color="green" />
             </div>
           </div>
-          <div className="influencer-actions">
-            <CircularIconButton size="xsmall" variant="primary" icon={<CallIcon />} />
-            <CircularIconButton size="xsmall" variant="primary" icon={<CallIcon />} />
-              <CircularIconButton size="xsmall" variant="primary" icon={<CallIcon />} />
-            
-            
-            
-          </div>
         </div>
-      </div>
-  {/* Talk Now Button */}
-      <div className="influencer-cta-button-row">
-        
-        <div className="influencer-talk-button-container">
-        <PrimaryButton
-          text="Talk to her now"
-          rightIcon={<SvgPack.ArrowRight />}
-          onClick={handleTalkNow}
-          className="influencer-talk-button"
-        />
-      </div>
-      {/* Features Text */}
-      <p className="influencer-features">
-        <span>Instant replies</span>
-        <span className="influencer-features-dot">•</span>
-        <span>24/7</span>
-        <span className="influencer-features-dot">•</span>
-        <span>Personalised experience</span>
-      </p></div>
+        {/* Talk Now Button */}
+        <div className="influencer-cta-button-row">
+
+          <div className="influencer-talk-button-container">
+            <PrimaryButton
+              text="Talk to her now"
+              rightIcon={<SvgPack.ArrowRight />}
+              onClick={handleTalkNow}
+              className="influencer-talk-button"
+            />
+          </div>
+          {/* Features Text */}
+          <p className="influencer-features">
+            <span>Instant replies</span>
+            <span className="influencer-features-dot">•</span>
+            <span>24/7</span>
+            <span className="influencer-features-dot">•</span>
+            <span>Personalised experience</span>
+          </p></div>
 
       </section>
 
 
-    
+
 
       {/* Discover More Section */}
       <div className="influencer-discover-section">
@@ -108,19 +106,19 @@ const InfluencerHome: React.FC = () => {
         <h2 className="influencer-discover-title">
           Want to discover more creators?
         </h2>
-       
-      <div className="hp-footer-button-container">
-       
-        <PrimaryButton
-          text="Search New Influencer"
-          rightIcon={<SvgPack.ArrowRight />}
-          onClick={() => navigate("/home-page")}
-          className="influencer-discover-button"
-        />
+
+        <div className="hp-footer-button-container">
+
+          <PrimaryButton
+            text="Search New Influencer"
+            rightIcon={<SvgPack.ArrowRight />}
+            onClick={() => navigate("/home-page")}
+            className="influencer-discover-button"
+          />
         </div>
       </div>
 
-  
+
     </div>
   );
 };
