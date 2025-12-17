@@ -15,6 +15,7 @@ export interface Message {
     attachments?: MediaAttachment[];
     channel?: string;
     timestamp?: number;
+    callId?: string;
 }
 
 export interface MessagePagination {

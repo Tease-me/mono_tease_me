@@ -21,6 +21,7 @@ import { InfluencerRepo } from '@/data/repositories/InfluencerRepo';
 import logger from '@/utils/logger';
 import CallModal from '@/ui/components/modals/call-modal/CallModal';
 import useCallWebRTC from '@/hooks/useCallWebRTC';
+import IconButton from '@/ui/components/inputs/buttons/IconButton';
 
 type DisplayMessage = Message | CallMessageGroup;
 
@@ -39,9 +40,12 @@ const mergeCallMessages = (messageList: Message[]): DisplayMessage[] => {
 
     messageList.forEach((message) => {
         if (isCallChannel(message)) {
-            if (!currentCallGroup) {
+            const id = message.callId || `call-${message.id}`;
+            const needsNew = !currentCallGroup || currentCallGroup.id !== id;
+
+            if (needsNew) {
                 currentCallGroup = {
-                    id: `call-${message.id}`,
+                    id,
                     sender: "sent",
                     time: message.time,
                     messages: [],
@@ -49,8 +53,9 @@ const mergeCallMessages = (messageList: Message[]): DisplayMessage[] => {
                 };
                 merged.push(currentCallGroup);
             }
-            currentCallGroup.messages.push(message);
-            currentCallGroup.time = message.time;
+
+            currentCallGroup!.messages.push(message);
+            currentCallGroup!.time = message.time;
             return;
         }
 
@@ -102,6 +107,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
     const [hasMore, setHasMore] = useState<boolean>(true);
     const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+    const [isClearingHistory, setIsClearingHistory] = useState<boolean>(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const ws = useRef<WebSocket | null>(null);
@@ -109,6 +115,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
     const { user } = useContext(AuthContext);
     const { user_id } = useParams();
+    const isSuperUser = user?.id === 1;
 
     const pageSize = 20;
 
@@ -180,6 +187,17 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
+    //Load call-log 5 seconds after disconnecting the call  
+    useEffect(() => {
+        if ((status === "disconnected" || status === "idle") && chatId) {
+            const t = setTimeout(() => {
+                fetchMessages(chatId, 1);
+            }, 10000);
+            return () => clearTimeout(t);
+        }
+    }, [status, chatId]);
+
+
     function connectChat(influencerId: string) {
         const access_token = storage.get(LocalStorageKeys.AccessToken);
         ws.current = new window.WebSocket(`${WS_BASE_URL}${Endpoints.ws.chat}/${influencerId}?token=${access_token}`);
@@ -250,8 +268,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         scrollToBottom();
     }
 
-    const sendMessage = () => {
+    const sendMessage = (forcedAudio?: Blob) => {
         if (!influencer) return;
+
+        const audioToSend = forcedAudio ?? inputAudio;
 
         if (inputText.trim()) {
             setTyping(true);
@@ -280,9 +300,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             });
 
             setInputText("");
-        } else if (inputAudio) {
+        } else if (audioToSend) {
             setTyping(true);
-            sendAndPlay(inputAudio);
+            sendAndPlay(audioToSend);
             setMessages(prev => {
                 if (!prev) return
                 return [
@@ -298,7 +318,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                         timestamp: Date.now(),
                         attachments: [
                             {
-                                blob: inputAudio,
+                                blob: audioToSend,
                                 type: "audio"
                             }
                         ]
@@ -313,6 +333,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
     const onCall = () => {
         startConversation();
+
         setOpenWelcomeCallModal(true);
         // if (!id) {
         //     navigate("/voice", {
@@ -351,6 +372,25 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         }
     };
 
+    const handleClearHistory = async () => {
+        if (!chatId || !isSuperUser) return;
+        const confirmed = window.confirm("Delete this chat history? This cannot be undone.");
+        if (!confirmed) return;
+
+        try {
+            setIsClearingHistory(true);
+            await chatRepository.clearChatHistory(chatId);
+            setMessages([]);
+            setHasMore(false);
+            setPageNumber(1);
+            setTyping(false);
+        } catch (err) {
+            logger.error("Error clearing chat history", err);
+        } finally {
+            setIsClearingHistory(false);
+        }
+    };
+
     if (!influencer) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
     return (
         <div className={styles["chat-screen-content"]}>
@@ -362,6 +402,17 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                         <h3><a href={`/${influencer.username}`}>{influencer && truncateLastName(influencer?.name)}</a></h3>
                         <p>{isWsConnected ? "Connected" : "Not Connected"}</p>
                     </div>
+                    {isSuperUser && chatId && (
+                        <div className={styles["admin-actions"]}>
+                            <IconButton
+                                onClick={handleClearHistory}
+                                color='red'
+                                text={isClearingHistory ? "Clearing..." : "Clear history"}
+                                className={styles["clear-history-button"]}
+                                disabled={isClearingHistory}
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
 

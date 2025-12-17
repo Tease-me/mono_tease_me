@@ -50,6 +50,16 @@
     bottom: 0dvh;
 }
 
+.admin-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
+.clear-history-button {
+    cursor: pointer;
+}
+
 .chat-avatar {
     width: 60px;
     height: 60px;
