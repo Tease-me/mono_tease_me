@@ -60,7 +60,9 @@ const ProfileSurveyForm: React.FC = () => {
   const [pictureError, setPictureError] = useState<string | null>(null);
   const [socialError, setSocialError] = useState<string | null>(null);
   const [pictureUrl, setPictureUrl] = useState<string | null>(null);
+  const [pendingPictureKey, setPendingPictureKey] = useState<string | null>(null);
   const [verifyingSocial, setVerifyingSocial] = useState<Record<string, boolean>>({});
+  const objectUrlRef = useRef<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -147,14 +149,37 @@ const ProfileSurveyForm: React.FC = () => {
           `/pre-influencers/${preInfluencerId}/picture-url`
         );
         setPictureUrl(data.url);
+        if (objectUrlRef.current) {
+          URL.revokeObjectURL(objectUrlRef.current);
+          objectUrlRef.current = null;
+        }
       } catch (err) {
         console.error("Error fetching picture URL", err);
         setPictureUrl(null);
       }
     };
 
+    // If we just uploaded and are showing a local blob for this key, delay
+    if (pendingPictureKey && pendingPictureKey === key && pictureUrl?.startsWith("blob:")) {
+      return;
+    }
+
     fetchUrl();
-  }, [preInfluencerId, answers["profile_picture_key"]]);
+  }, [preInfluencerId, answers["profile_picture_key"], pendingPictureKey, pictureUrl]);
+
+  useEffect(() => {
+    if (!pendingPictureKey) return;
+    const timeout = setTimeout(() => setPendingPictureKey(null), 1500);
+    return () => clearTimeout(timeout);
+  }, [pendingPictureKey]);
+
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+      }
+    };
+  }, []);
 
   const handleVerifySocial = async (platform: string, handle: string) => {
     const cleanHandle = (handle || "").trim().replace(/^@/, "");
@@ -319,7 +344,12 @@ const ProfileSurveyForm: React.FC = () => {
   ) => {
     const file = e.target.files?.[0];
     if (!file || !preInfluencerId) return;
-    setPictureUrl(URL.createObjectURL(file));
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+    }
+    const localUrl = URL.createObjectURL(file);
+    objectUrlRef.current = localUrl;
+    setPictureUrl(localUrl);
     setUploadingPicture(true);
     setPictureError(null);
 
@@ -337,6 +367,7 @@ const ProfileSurveyForm: React.FC = () => {
       );
 
       updateAnswer("profile_picture_key", data.s3_key);
+      setPendingPictureKey(data.s3_key);
     } catch (err) {
       console.error(err);
       setPictureError("Error uploading picture. Please try again.");
