@@ -1,7 +1,6 @@
 import { apiClient } from "@/api/apis";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
-import { SURVEY_STEPS } from "@/utils/surveyConfig";
 import SvgPack from "@/utils/SvgPack";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -29,6 +28,12 @@ interface SurveyQuestion {
   options?: SurveyRadioOption[];
 }
 
+interface SurveyStep {
+  id: string;
+  title: string;
+  questions: SurveyQuestion[];
+}
+
 const ProfileSurveyForm: React.FC = () => {
   const [params] = useSearchParams();
   const navigate = useNavigate();
@@ -38,6 +43,9 @@ const ProfileSurveyForm: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  const [surveySteps, setSurveySteps] = useState<SurveyStep[]>([]);
+  const [surveyStepsLoading, setSurveyStepsLoading] = useState(true);
 
   const [preInfluencerId, setPreInfluencerId] = useState<number | null>(null);
   const [preInfluencerUsername, setPreInfluencerUsername] = useState<
@@ -60,7 +68,7 @@ const ProfileSurveyForm: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const surveyStepsCount = SURVEY_STEPS.length;
+  const surveyStepsCount = surveySteps.length;
   const pictureStepIndex = surveyStepsCount;
   const socialsStepIndex = surveyStepsCount + 1;
   const audioStepIndex = surveyStepsCount + 2;
@@ -71,16 +79,35 @@ const ProfileSurveyForm: React.FC = () => {
       if (!token) {
         setLoadError("Invalid survey link.");
         setLoading(false);
+        setSurveyStepsLoading(false);
         return;
       }
 
       try {
-        const { data } = await apiClient.get<SurveyState>(
-          "/pre-influencers/survey",
-          { params: { token } }
-        );
+        const [{ data }, questionsResponse] = await Promise.all([
+          apiClient.get<SurveyState>("/pre-influencers/survey", {
+            params: { token },
+          }),
+          apiClient.get("/pre-influencers/survey/questions"),
+        ]);
 
-        const safeStep = Math.min(data.survey_step || 0, wizardTotalSteps - 1);
+        const questionsData = questionsResponse.data;
+        const fetchedSteps: SurveyStep[] = Array.isArray(questionsData)
+          ? questionsData
+          : Array.isArray(questionsData?.sections)
+            ? questionsData.sections
+            : Array.isArray(questionsData?.steps)
+              ? questionsData.steps
+              : [];
+
+        if (!fetchedSteps.length) {
+          throw new Error("No survey questions returned.");
+        }
+
+        setSurveySteps(fetchedSteps);
+
+        const totalSteps = fetchedSteps.length + 3;
+        const safeStep = Math.min(data.survey_step || 0, totalSteps - 1);
 
         setPreInfluencerId(data.pre_influencer_id);
         setPreInfluencerUsername(data.username);
@@ -91,11 +118,12 @@ const ProfileSurveyForm: React.FC = () => {
         setLoadError("This survey link is invalid or expired.");
       } finally {
         setLoading(false);
+        setSurveyStepsLoading(false);
       }
     };
 
     load();
-  }, [token, wizardTotalSteps]);
+  }, [token]);
 
   const updateAnswer = (key: string, value: any) => {
     setAnswers((prev) => ({
@@ -185,8 +213,13 @@ const ProfileSurveyForm: React.FC = () => {
   };
 
   const validateSurveyStep = (): boolean => {
-    const step = SURVEY_STEPS[stepIndex];
+    const step = surveySteps[stepIndex];
     const newErrors: Record<string, string> = {};
+
+    if (!step) {
+      setFieldErrors(newErrors);
+      return false;
+    }
 
     step.questions.forEach((q: SurveyQuestion) => {
       if (!q.required) return;
@@ -330,7 +363,7 @@ const ProfileSurveyForm: React.FC = () => {
     }
   };
 
-  if (loading) {
+  if (loading || surveyStepsLoading) {
     return (
       <div className={styles.screen}>
         <div className={styles.frame}>
@@ -361,7 +394,7 @@ const ProfileSurveyForm: React.FC = () => {
   const isLastStep = stepIndex === wizardTotalSteps - 1;
 
   const currentSurveyStep =
-    isSurveyStep && SURVEY_STEPS[stepIndex] ? SURVEY_STEPS[stepIndex] : null;
+    isSurveyStep && surveySteps[stepIndex] ? surveySteps[stepIndex] : null;
 
   const handleVerifyTwitter = async () => {
     const raw = answers["social_x"];
@@ -411,12 +444,12 @@ const ProfileSurveyForm: React.FC = () => {
                   {isSurveyStep && currentSurveyStep
                     ? currentSurveyStep.title
                     : isPictureStep
-                    ? "Upload Your Picture"
-                    : isSocialsStep
-                    ? "Add Your Social Media"
-                    : isAudioStep
-                    ? "Upload Your Audio"
-                    : "Profile Survey"}
+                      ? "Upload Your Picture"
+                      : isSocialsStep
+                        ? "Add Your Social Media"
+                        : isAudioStep
+                          ? "Upload Your Audio"
+                          : "Profile Survey"}
                 </h2>
                 <p className={styles.subtitle}>
                   Step {stepIndex + 1} of {wizardTotalSteps}
