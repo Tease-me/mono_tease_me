@@ -2,7 +2,6 @@ import { apiClient } from "@/api/apis";
 import { PreInfluencerServices } from "@/api/services/PreInfluencerServices";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
-import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
 import logger from "@/utils/logger";
@@ -16,23 +15,12 @@ import "./HomePage.css";
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   //const { isSignedIn } = useContext(AuthContext);
-  const [instagramUsername, setInstagramUsername] = useState("");
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
   const [hasInfluencer, setHasInfluencer] = useState<boolean | null>(null);
 
   const preInfluencerServices = PreInfluencerServices(apiClient);
   const influencerRepo = InfluencerRepo();
-
-
-
-  const [errors, setErrors] = useState<{
-    name?: string;
-    location?: string;
-    username?: string;
-    email?: string;
-    general?: string;
-  }>({});
 
   useEffect(() => {
     const checkInfluencerStatus = async () => {
@@ -66,19 +54,10 @@ const HomePage: React.FC = () => {
   }, [navigate]);
 
   const handleSearch = async () => {
-    // If field is empty, navigate to IntencionInfluencerHome
-    if (!instagramUsername.trim()) {
-      navigate("/intencion-influencer-home");
-      return;
-    }
-
-    // If field has content, navigate to InfluencerHome
     setSearching(true);
     try {
       // Try to find influencer by username
-      const influencer = await influencerRepo.getInfluencer(
-        instagramUsername.trim()
-      );
+      const influencer = await influencerRepo.getInfluencer("");
       if (influencer) {
         navigate("/influencer-home");
       } else {
@@ -91,12 +70,6 @@ const HomePage: React.FC = () => {
       navigate("/intencion-influencer-home");
     } finally {
       setSearching(false);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      handleSearch();
     }
   };
 
@@ -147,33 +120,15 @@ const HomePage: React.FC = () => {
 
           <div className="home-page-input-wrapper">
 
-
-            {/* <TextInput
-                  type="text"
-                  placeholder="Enter influencer instagram"
-                  value={instagramUsername}
-                  onChange={(e) =>
-                    setInstagramUsername((e.target as HTMLInputElement).value)
-                  }
-                  onKeyPress={handleKeyPress}
-                  className="home-page-search-input"
-                /> */}
-
-
             <div className="ps-field">
               <label className="ps-label">
                 Search <span className="ps-required"></span>
               </label>
-              {errors.name && <span className="ps-error">{errors.name}</span>}
               <div className="home-page-input-outer"><input
                 className="ps-input"
                 placeholder="Enter Instagram Account"
-              // value={name}
-              // onChange={(e) => setName(e.target.value)}
               /></div>
             </div>
-
-
           </div>
           <div className="hp-search-button-container">
             <PrimaryButton
