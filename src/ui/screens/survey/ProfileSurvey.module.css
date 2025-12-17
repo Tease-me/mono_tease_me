@@ -322,7 +322,8 @@ textarea.input {
   min-height: 6rem;
 }
 
-@media (min-width: 26.9375rem) {
+
+@media (min-width: 32rem) {
   .content {
     grid-gap: 1rem;
   }
