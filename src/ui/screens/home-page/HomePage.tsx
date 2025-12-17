@@ -24,15 +24,15 @@ const HomePage: React.FC = () => {
   const preInfluencerServices = PreInfluencerServices(apiClient);
   const influencerRepo = InfluencerRepo();
 
-  
 
-    const [errors, setErrors] = useState<{
-      name?: string;
-      location?: string;
-      username?: string;
-      email?: string;
-      general?: string;
-    }>({});
+
+  const [errors, setErrors] = useState<{
+    name?: string;
+    location?: string;
+    username?: string;
+    email?: string;
+    general?: string;
+  }>({});
 
   useEffect(() => {
     const checkInfluencerStatus = async () => {
@@ -137,18 +137,18 @@ const HomePage: React.FC = () => {
       {/* Search Section */}
       <div className="home-page-search-section">
         <div className="home-page-search-container">
-            <div className="home-page-logo-decoration">
-          <img
-            src={imageTeaseMeLight}
-            alt=""
-            className="home-page-logo-icon"
-          />
-        </div>
+          <div className="home-page-logo-decoration">
+            <img
+              src={imageTeaseMeLight}
+              alt=""
+              className="home-page-logo-icon"
+            />
+          </div>
 
           <div className="home-page-input-wrapper">
-          
-         
-                {/* <TextInput
+
+
+            {/* <TextInput
                   type="text"
                   placeholder="Enter influencer instagram"
                   value={instagramUsername}
@@ -158,34 +158,34 @@ const HomePage: React.FC = () => {
                   onKeyPress={handleKeyPress}
                   className="home-page-search-input"
                 /> */}
-           
 
-              <div className="ps-field">
-            <label className="ps-label">
-              Search <span className="ps-required"></span>
-            </label>
-            {errors.name && <span className="ps-error">{errors.name}</span>}
-            <div className="home-page-input-outer"><input
-              className="ps-input"
-              placeholder="Enter Instagram Account"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            /></div>
-          </div>
 
-            
+            <div className="ps-field">
+              <label className="ps-label">
+                Search <span className="ps-required"></span>
+              </label>
+              {errors.name && <span className="ps-error">{errors.name}</span>}
+              <div className="home-page-input-outer"><input
+                className="ps-input"
+                placeholder="Enter Instagram Account"
+              // value={name}
+              // onChange={(e) => setName(e.target.value)}
+              /></div>
+            </div>
+
+
           </div>
           <div className="hp-search-button-container">
-          <PrimaryButton
-            text="Search"
-            rightIcon={<SvgPack.ArrowRight />}
-            onClick={handleSearch}
-            disabled={searching}
-            className="home-page-search-button"
-          />
+            <PrimaryButton
+              text="Search"
+              rightIcon={<SvgPack.ArrowRight />}
+              onClick={handleSearch}
+              disabled={searching}
+              className="home-page-search-button"
+            />
           </div>
         </div>
-      
+
       </div>
     </div>
   );
