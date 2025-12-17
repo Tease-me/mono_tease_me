@@ -171,7 +171,7 @@ const HomePage: React.FC = () => {
             {errors.name && <span className="ps-error">{errors.name}</span>}
             <div className="home-page-input-outer"><input
               className="ps-input"
-              placeholder="Your full name"
+              placeholder="Enter Instagram Account"
               value={name}
               onChange={(e) => setName(e.target.value)}
             /></div>

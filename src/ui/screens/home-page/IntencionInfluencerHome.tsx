@@ -128,13 +128,13 @@ const IntencionInfluencerHome: React.FC = () => {
         <h2 className="intencion-why-title">Why It Matters…</h2>
         <p className="intencion-why-text">
           The more fans request this creator, the more likely they are to join
-          the platform.
-          <br />
-          Your vote helps us show real demand.
+          the platform.</p>
+ 
+           <p className="intencion-why-text">Your vote helps us show real demand.
         </p>
       </div>
       </div>
-      <img className="hp-request-bg" src={hpImageRequestBg} alt="" srcset={hpImageRequestBg} />
+      <img className="hp-request-bg" src={hpImageRequestBg} alt="" srcSet={hpImageRequestBg} />
 <div className="intencion-invite-lottie-holder"><LottieAnimation autoplay loop animationData={heartFloat} /></div>
 </section>
       {/* Invite Link Section */}
