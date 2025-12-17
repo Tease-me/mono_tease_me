@@ -5,8 +5,8 @@ import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { Modal } from "@/ui/components/modals/Modal";
 import { splitName } from "@/utils/StringUtils";
-import { KnowledgeFileModel } from "@/data/models/InfluencerDataModel";
 import defaultAvatar from "@/assets/image/avatar.png";
+import mbtiData from "@/data/mbti.json";
 import AdminLayout from "../AdminLayout";
 
 type SocialConnections = {
@@ -35,6 +35,12 @@ type InfluencerFormState = {
 
 type UploadRecord = Record<string, unknown>;
 
+type MbtiPersonality = {
+    code: string;
+    name: string;
+    rules: string[];
+};
+
 type PersonaStages = {
     hate: string;
     dislike: string;
@@ -53,6 +59,7 @@ type PersonaProfile = {
     personality_rules: string;
     tone: string;
     stages: PersonaStages;
+    stages_focus?: keyof PersonaStages | "";
 };
 
 const formatRecordKey = (key: string) => key.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
@@ -192,6 +199,18 @@ const resolveAvatarSrc = (value?: string | null) => {
     return defaultAvatar;
 };
 
+const STAGE_KEYS: Array<keyof PersonaStages> = ["hate", "dislike", "strangers", "talking", "flirting", "dating", "in_love"];
+
+const STAGE_PLACEHOLDERS: Record<keyof PersonaStages, string> = {
+    hate: "Avoids interaction and stays quiet.",
+    dislike: "Remains silent and distant.",
+    strangers: "Observes quietly, initially reserved.",
+    talking: "Engages in meaningful conversation but remains private.",
+    flirting: "Shows interest through subtle actions.",
+    dating: "Plans meticulously and shows affection through acts of service.",
+    in_love: "Demonstrates deep care and commitment, prioritizes long-term connection.",
+};
+
 const DEMO_PERSONA_PROFILE: PersonaProfile = {
     likes: [
         "Daal Vaat",
@@ -238,6 +257,7 @@ const DEMO_PERSONA_PROFILE: PersonaProfile = {
         dating: "Plans meticulously and shows affection through acts of service.",
         in_love: "Demonstrates deep care and commitment, prioritizes long-term connection.",
     },
+    stages_focus: "talking",
 };
 
 const createDefaultPersonaProfile = (): PersonaProfile => ({
@@ -304,6 +324,10 @@ function createFormStateFromInfluencer(influencer: InfluencerDataModel): Influen
 }
 
 const CreateInfluencer: React.FC = () => {
+    const mbtiPersonalities: MbtiPersonality[] = Array.isArray((mbtiData as any)?.personalities)
+        ? (mbtiData as any).personalities
+        : [];
+
     const [influencers, setInfluencers] = useState<InfluencerDataModel[]>([]);
     const [selectedId, setSelectedId] = useState<string | "new" | null>(null);
     const [formState, setFormState] = useState<InfluencerFormState>(() => createDefaultFormState());
@@ -317,16 +341,9 @@ const CreateInfluencer: React.FC = () => {
     const [uploadParseError, setUploadParseError] = useState<string | null>(null);
     const [expandedRecords, setExpandedRecords] = useState<Set<number>>(() => new Set<number>());
     const [promptSaveState, setPromptSaveState] = useState<"idle" | "saving" | "success" | "error">("idle");
-    // const [voicePromptSaveState, setVoicePromptSaveState] = useState<"idle" | "saving" | "success" | "error">("idle");
     const [promptSaveError, setPromptSaveError] = useState<string | null>(null);
-    // const [voicePromptSaveError, setVoicePromptSaveError] = useState<string | null>(null);
-    const [knowledgeFiles, setKnowledgeFiles] = useState<KnowledgeFileModel[]>([]);
-    const [knowledgeLoading, setKnowledgeLoading] = useState(false);
-    const [knowledgeError, setKnowledgeError] = useState<string | null>(null);
-    const [knowledgeUploading, setKnowledgeUploading] = useState(false);
     const influencerRepo = useMemo(() => InfluencerRepo(), []);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const knowledgeFileInputRef = useRef<HTMLInputElement>(null);
 
     const getRecordLabel = (record: UploadRecord, index: number) => {
         const candidateKeys: Array<keyof UploadRecord> = ["display_name", "name", "username", "id"];
@@ -381,37 +398,6 @@ const CreateInfluencer: React.FC = () => {
         }));
     }, [selectedId, influencers]);
 
-    useEffect(() => {
-        if (!selectedId || selectedId === "new") {
-            setKnowledgeFiles([]);
-            setKnowledgeError(null);
-            return;
-        }
-        let isCancelled = false;
-        const fetchFiles = async () => {
-            setKnowledgeLoading(true);
-            setKnowledgeError(null);
-            try {
-                const files = await influencerRepo.listKnowledgeFiles(selectedId);
-                if (!isCancelled) {
-                    setKnowledgeFiles(files);
-                }
-            } catch (err) {
-                if (!isCancelled) {
-                    setKnowledgeError(err instanceof Error ? err.message : "Unable to load documents");
-                }
-            } finally {
-                if (!isCancelled) {
-                    setKnowledgeLoading(false);
-                }
-            }
-        };
-        fetchFiles();
-        return () => {
-            isCancelled = true;
-        };
-    }, [selectedId, influencerRepo]);
-
     const filteredInfluencers = useMemo(() => {
         if (!searchTerm.trim()) {
             return influencers;
@@ -449,13 +435,23 @@ const CreateInfluencer: React.FC = () => {
     const handlePersonaFieldChange = (field: keyof Omit<PersonaProfile, "likes" | "dislikes" | "stages">) =>
         (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
             const { value } = event.target;
-            setFormState((prev) => ({
-                ...prev,
-                persona_profile: {
-                    ...prev.persona_profile,
-                    [field]: value,
-                },
-            }));
+            setFormState((prev) => {
+                let nextRules = prev.persona_profile.mbti_rules;
+                if (field === "mbti_architype") {
+                    const personality = mbtiPersonalities.find((p) => p.code === value);
+                    if (personality) {
+                        nextRules = personality.rules.join("\n");
+                    }
+                }
+                return {
+                    ...prev,
+                    persona_profile: {
+                        ...prev.persona_profile,
+                        [field]: value,
+                        mbti_rules: field === "mbti_architype" ? nextRules : prev.persona_profile.mbti_rules,
+                    },
+                };
+            });
         };
 
     const handlePersonaStageChange = (stage: keyof PersonaStages) => (event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -493,17 +489,6 @@ const CreateInfluencer: React.FC = () => {
         }
         return undefined;
     }, [promptSaveState]);
-
-    // useEffect(() => {
-    //     if (voicePromptSaveState === "success" || voicePromptSaveState === "error") {
-    //         const timeout = setTimeout(() => {
-    //             setVoicePromptSaveState("idle");
-    //             setVoicePromptSaveError(null);
-    //         }, 3000);
-    //         return () => clearTimeout(timeout);
-    //     }
-    //     return undefined;
-    // }, [voicePromptSaveState]);
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -648,17 +633,6 @@ const CreateInfluencer: React.FC = () => {
         fileInputRef.current?.click();
     };
 
-    const handleKnowledgeUploadClick = () => {
-        knowledgeFileInputRef.current?.click();
-    };
-
-    const formatFileSize = (bytes: number) => {
-        if (!bytes) return "0 B";
-        const sizes = ["B", "KB", "MB", "GB"];
-        const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), sizes.length - 1);
-        return `${(bytes / 1024 ** i).toFixed(i === 0 ? 0 : 1)} ${sizes[i]}`;
-    };
-
     const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) {
@@ -693,35 +667,6 @@ const CreateInfluencer: React.FC = () => {
         };
         reader.readAsText(file);
         event.target.value = "";
-    };
-
-    const handleKnowledgeFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file || !selectedId || selectedId === "new") {
-            event.target.value = "";
-            return;
-        }
-        setKnowledgeUploading(true);
-        setKnowledgeError(null);
-        try {
-            const uploaded = await influencerRepo.uploadKnowledgeFile(selectedId, file);
-            setKnowledgeFiles((prev) => [uploaded, ...prev]);
-        } catch (err) {
-            setKnowledgeError(err instanceof Error ? err.message : "Failed to upload document");
-        } finally {
-            setKnowledgeUploading(false);
-            event.target.value = "";
-        }
-    };
-
-    const handleKnowledgeDelete = async (fileId: number) => {
-        if (!selectedId || selectedId === "new") return;
-        try {
-            await influencerRepo.deleteKnowledgeFile(selectedId, fileId);
-            setKnowledgeFiles((prev) => prev.filter((file) => file.id !== fileId));
-        } catch (err) {
-            setKnowledgeError(err instanceof Error ? err.message : "Failed to delete document");
-        }
     };
 
     const toggleRecordExpansion = (index: number) => {
@@ -948,9 +893,9 @@ const CreateInfluencer: React.FC = () => {
                                     onChange={handlePersonaFieldChange("mbti_architype")}
                                 >
                                     <option value="">Select type</option>
-                                    {["ISTJ", "ISFJ", "INFJ", "INTJ", "ISTP", "ISFP", "INFP", "INTP", "ESTP", "ESFP", "ENFP", "ENTP", "ESTJ", "ESFJ", "ENFJ", "ENTJ"].map((type) => (
-                                        <option key={type} value={type}>
-                                            {type}
+                                    {mbtiPersonalities.map((personality) => (
+                                        <option key={personality.code} value={personality.code}>
+                                            {personality.name} ({personality.code})
                                         </option>
                                     ))}
                                 </select>
@@ -1010,49 +955,86 @@ const CreateInfluencer: React.FC = () => {
 
                             <div className={styles["section-heading"]}>
                                 <h3>Relationship stages</h3>
-                                <p>Describe behaviors across stages to help generate tailored prompts.</p>
+                                <p>Select a stage to edit its behavior copy.</p>
                             </div>
                             <div className={styles["field"]}>
-                                <label htmlFor="relationship-stages">Relationship Stages</label>
+                                <label htmlFor="relationship-stages">Relationship stages</label>
                                 <select
                                     id="relationship-stages"
-                                    value={formState.persona_profile.mbti_architype}
-                                    onChange={handlePersonaFieldChange("mbti_architype")}
+                                    value={formState.persona_profile.stages_focus ?? ""}
+                                    onChange={(event) =>
+                                        setFormState((prev) => ({
+                                            ...prev,
+                                            persona_profile: {
+                                                ...prev.persona_profile,
+                                                stages_focus: event.target.value as keyof PersonaStages,
+                                            },
+                                        }))
+                                    }
                                 >
-                                    <option value="">Select type</option>
-                                    {["ISTJ", "ISFJ", "INFJ", "INTJ", "ISTP", "ISFP", "INFP", "INTP", "ESTP", "ESFP", "ENFP", "ENTP", "ESTJ", "ESFJ", "ENFJ", "ENTJ"].map((type) => (
+                                    <option value="">Select stage</option>
+                                    {STAGE_KEYS.map((type) => (
                                         <option key={type} value={type}>
-                                            {type}
+                                            {type.replace("_", " ").toUpperCase()}
                                         </option>
                                     ))}
                                 </select>
                             </div>
-                            <div className={styles["stage-grid"]}>
-                                {(
-                                    [
-                                        ["hate", "Avoids interaction and stays quiet."],
-                                        ["dislike", "Remains silent and distant."],
-                                        ["strangers", "Observes quietly, initially reserved."],
-                                        ["talking", "Engages in meaningful conversation but remains private."],
-                                        ["flirting", "Shows interest through subtle actions."],
-                                        ["dating", "Plans meticulously and shows affection through acts of service."],
-                                        ["in_love", "Demonstrates deep care and commitment, prioritizes long-term connection."],
-                                    ] as const
-                                ).map(([key, example]) => (
-                                    <div key={key} className={styles["field"]}>
-                                        <label htmlFor={`persona-stage-${key}`}>{key.replace("_", " ").toUpperCase()}</label>
-                                        <textarea
-                                            id={`persona-stage-${key}`}
-                                            value={formState.persona_profile.stages[key]}
-                                            onChange={handlePersonaStageChange(key)}
-                                            placeholder={example}
-                                            rows={2}
-                                        />
-                                    </div>
-                                ))}
-                            </div>
+                            {formState.persona_profile.stages_focus ? (
+                                <div className={styles["field"]}>
+                                    <label htmlFor="persona-stage-copy">
+                                        {formState.persona_profile.stages_focus.replace("_", " ").toUpperCase()}
+                                    </label>
+                                    <textarea
+                                        id="persona-stage-copy"
+                                        value={
+                                            formState.persona_profile.stages[
+                                            formState.persona_profile.stages_focus as keyof PersonaStages
+                                            ] || ""
+                                        }
+                                        onChange={handlePersonaStageChange(
+                                            formState.persona_profile.stages_focus as keyof PersonaStages,
+                                        )}
+                                        placeholder={
+                                            STAGE_PLACEHOLDERS[
+                                            formState.persona_profile.stages_focus as keyof PersonaStages
+                                            ]
+                                        }
+                                        rows={3}
+                                    />
+                                </div>
+                            ) : (
+                                <div className={styles["field"]}>
+                                    <label>Stage copy</label>
+                                    <div className={styles["list-placeholder"]}>Select a stage to edit its copy.</div>
+                                </div>
+                            )}
 
-                            <div>
+                            <div className={styles["field"]}>
+                                <label htmlFor="influencer-prompt">Prompt</label>
+                                <textarea
+                                    id="influencer-prompt"
+                                    value={formState.prompt_template}
+                                    onChange={handleFieldChange("prompt_template")}
+                                    placeholder="System prompt or guidance used for this influencer"
+                                    rows={20}
+                                />
+                                <div className={styles["form-footer"]}>
+                                    {promptSaveState !== "idle" && (
+                                        <span
+                                            className={`${styles["save-status"]} ${promptSaveState === "success" ? styles["save-status--success"] : ""} ${promptSaveState === "error" ? styles["save-status--error"] : ""}`}
+                                        >
+                                            {promptSaveState === "success" && "Prompt saved"}
+                                            {promptSaveState === "error" && (promptSaveError || "Failed to save prompt")}
+                                            {promptSaveState === "saving" && "Saving prompt…"}
+                                        </span>
+                                    )}
+                                    <button type="button" className={styles["primary-button"]} disabled={promptSaveState === "saving"} onClick={handlePromptTemplateSave}>
+                                        {promptSaveState === "saving" ? "Saving…" : "Save prompt only"}
+                                    </button>
+                                </div>
+                            </div>
+                            {/* <div>
                                 <div className={styles["section-heading"]}>
                                     <h3>Knowledge documents</h3>
                                     <p>Upload PDFs, DOC/DOCX, or TXT to enrich this influencer.</p>
@@ -1113,33 +1095,7 @@ const CreateInfluencer: React.FC = () => {
                                         ))
                                     )}
                                 </div>
-                            </div>
-
-                            <div className={styles["field"]}>
-                                <label htmlFor="influencer-prompt">Prompt</label>
-                                <textarea
-                                    id="influencer-prompt"
-                                    value={formState.prompt_template}
-                                    onChange={handleFieldChange("prompt_template")}
-                                    placeholder="System prompt or guidance used for this influencer"
-                                    rows={20}
-                                />
-                                <div className={styles["form-footer"]}>
-                                    {promptSaveState !== "idle" && (
-                                        <span
-                                            className={`${styles["save-status"]} ${promptSaveState === "success" ? styles["save-status--success"] : ""} ${promptSaveState === "error" ? styles["save-status--error"] : ""}`}
-                                        >
-                                            {promptSaveState === "success" && "Prompt saved"}
-                                            {promptSaveState === "error" && (promptSaveError || "Failed to save prompt")}
-                                            {promptSaveState === "saving" && "Saving prompt…"}
-                                        </span>
-                                    )}
-                                    <button type="button" className={styles["primary-button"]} disabled={promptSaveState === "saving"} onClick={handlePromptTemplateSave}>
-                                        {promptSaveState === "saving" ? "Saving…" : "Save prompt only"}
-                                    </button>
-                                </div>
-                            </div>
-
+                            </div> */}
                             {/* <div className={styles["field"]}>
                                 <label htmlFor="influencer-voice-prompt">Voice prompt</label>
                                 <textarea
