@@ -5,6 +5,7 @@ import SvgPack from "@/utils/SvgPack";
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import LottieAnimation from "@/ui/components/LottieAnimation";
+import imageHPHero from "@/assets/image/creator-collage.jpg";
 import heartFloat from "@/assets/lottie/heartFloat.json"
 import hpImageRequestBg from "@/assets/image/hpImageRequestBg@2x.jpg"
 import imageTeaseMeLight from "@/assets/image/iconTeaseMeLight.png";
@@ -43,6 +44,8 @@ const IntencionInfluencerHome: React.FC = () => {
       </header>
 
       {/* Main Content */}
+<section className="intenction-top-section">
+      <div className="intenction-col01">
       <div className="intencion-content">
       <div className="hp-inner-container">
         <div className="hp-negative-col01">
@@ -59,8 +62,8 @@ const IntencionInfluencerHome: React.FC = () => {
         </p>
         </div>
       </div>
-      </div>
-
+      </div></div>
+<div className="intenction-col02">
       {/* Email Notification Section */}
       <div className="intencion-email-section">
         <h2 className="intencion-email-title">
@@ -101,10 +104,13 @@ const IntencionInfluencerHome: React.FC = () => {
           </p></div>
          
         </div>
+        </div>
 
         
       
       </div>
+     <img src={imageHPHero} alt="" className="hp-hero-image" />
+</section>
 
       {/* Vote Counter Card */}
 <section className="why-it-matters">

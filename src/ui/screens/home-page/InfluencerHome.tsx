@@ -4,6 +4,7 @@ import SvgPack from "@/utils/SvgPack";
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import imageProfile from "@/assets/image/imageProfile.jpg";
+import imageHPHero from "@/assets/image/creator-collage.jpg";
 import imageTeaseMeDark from "@/assets/image/iconTeaseMeDark.png";
 import imageTeaseMeDark2x from "@/assets/image/iconTeaseMeDark@2x.png";
 import CircularIconButton from "@/ui/components/inputs/buttons/CircularIconButton";
@@ -38,12 +39,13 @@ const InfluencerHome: React.FC = () => {
       {/* Profile Card */}
       <section className="influencer-content-inner">
         {/* Main Content */}
-        <div className="influencer-content">
+        <div className="influencer-col01">
           <h1 className="influencer-title">
             {influencerName} is on TeaseMe!
           </h1>
         </div>
-        <div className="influencer-profile-card">
+      <div className="influencer-col02">
+  <div className="influencer-profile-card">
           <div className="influencer-avatar-container">
             <div className="influencer-avatar-outer">
               <img
@@ -87,6 +89,9 @@ const InfluencerHome: React.FC = () => {
             <span className="influencer-features-dot">•</span>
             <span>Personalised experience</span>
           </p></div>
+
+      </div>
+    
 
       </section>
 

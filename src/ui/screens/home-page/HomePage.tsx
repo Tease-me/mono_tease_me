@@ -123,11 +123,7 @@ const HomePage: React.FC = () => {
         <div className="hp-inner-container">
           <div className="hp-hero-col01">
             <h1 className="home-page-title">
-              Is your{" "}
-              <span className="home-page-title-highlight">
-                favourite influencer
-              </span>{" "}
-              on TeaseMe?
+              Is your <span className="home-page-title-highlight"> favourite influencer </span> on TeaseMe?
             </h1>
             <p className="home-page-subtitle">
               Search now to see if you can chat with them instantly — or invite
