@@ -28,9 +28,8 @@ type InfluencerFormState = {
     voice_id: string;
     prompt_template: string;
     influencer_agent_id_third_part: string;
-    bio_json: string;
+    bio_json: PersonaProfile;
     social_connections: SocialConnections;
-    persona_profile: PersonaProfile;
 };
 
 type UploadRecord = Record<string, unknown>;
@@ -51,6 +50,8 @@ type PersonaStages = {
     in_love: string;
 };
 
+
+const STAGE_KEYS: Array<keyof PersonaStages> = ["hate", "dislike", "strangers", "talking", "flirting", "dating", "in_love"];
 type PersonaProfile = {
     likes: string[];
     dislikes: string[];
@@ -61,7 +62,6 @@ type PersonaProfile = {
     stages: PersonaStages;
     stages_focus?: keyof PersonaStages | "";
 };
-
 const formatRecordKey = (key: string) => key.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
 
 const formatRecordValue = (value: unknown): string => {
@@ -199,8 +199,6 @@ const resolveAvatarSrc = (value?: string | null) => {
     return defaultAvatar;
 };
 
-const STAGE_KEYS: Array<keyof PersonaStages> = ["hate", "dislike", "strangers", "talking", "flirting", "dating", "in_love"];
-
 const STAGE_PLACEHOLDERS: Record<keyof PersonaStages, string> = {
     hate: "Avoids interaction and stays quiet.",
     dislike: "Remains silent and distant.",
@@ -209,55 +207,6 @@ const STAGE_PLACEHOLDERS: Record<keyof PersonaStages, string> = {
     flirting: "Shows interest through subtle actions.",
     dating: "Plans meticulously and shows affection through acts of service.",
     in_love: "Demonstrates deep care and commitment, prioritizes long-term connection.",
-};
-
-const DEMO_PERSONA_PROFILE: PersonaProfile = {
-    likes: [
-        "Daal Vaat",
-        "Chinese food",
-        "Water",
-        "Salty snacks",
-        "Chatapate",
-        "Teal",
-        "Tortoise",
-        "Autumn weather",
-        "Coding",
-        "YouTube",
-        "Casual parties",
-        "Country music",
-        "Careless Whisper",
-        "Breaking Bad",
-        "Watching movies at home",
-    ],
-    dislikes: [
-        "Cold Drinks",
-        "Rotten smells",
-        "Indian movies",
-        "Liars",
-        "Show-offs",
-        "Ghosts",
-        "Heights",
-        "Cold winters",
-        "Spiders",
-        "Antarctica",
-        "Onion cutting",
-        "Smoking",
-        "Murders",
-    ],
-    mbti_architype: "INTJ",
-    mbti_rules: "",
-    personality_rules: "Strategic, future-oriented, has high standards and boundaries, values long-term connections.",
-    tone: "Direct and analytical with a hint of dry humor.",
-    stages: {
-        hate: "Avoids interaction and stays quiet.",
-        dislike: "Remains silent and distant.",
-        strangers: "Observes quietly, initially reserved.",
-        talking: "Engages in meaningful conversation but remains private.",
-        flirting: "Shows interest through subtle actions.",
-        dating: "Plans meticulously and shows affection through acts of service.",
-        in_love: "Demonstrates deep care and commitment, prioritizes long-term connection.",
-    },
-    stages_focus: "talking",
 };
 
 const createDefaultPersonaProfile = (): PersonaProfile => ({
@@ -276,7 +225,80 @@ const createDefaultPersonaProfile = (): PersonaProfile => ({
         dating: "",
         in_love: "",
     },
+    stages_focus: "",
 });
+
+const toStringArray = (value: unknown): string[] => {
+    if (Array.isArray(value)) {
+        return value
+            .map((item) => (typeof item === "string" ? item.trim() : ""))
+            .filter(Boolean);
+    }
+    if (typeof value === "string") {
+        return value
+            .split("\n")
+            .map((item) => item.trim())
+            .filter(Boolean);
+    }
+    return [];
+};
+
+const extractPersonaProfile = (raw: unknown): PersonaProfile => {
+    const base = createDefaultPersonaProfile();
+    let payload: Record<string, any> = {};
+
+    if (typeof raw === "string") {
+        try {
+            payload = JSON.parse(raw) as Record<string, any>;
+        } catch {
+            payload = {};
+        }
+    } else if (raw && typeof raw === "object") {
+        payload = raw as Record<string, any>;
+    }
+
+    const likes = toStringArray(payload.likes);
+    const dislikes = toStringArray(payload.dislikes);
+
+    const stages: PersonaStages = { ...base.stages };
+    STAGE_KEYS.forEach((key) => {
+        if (typeof payload?.stages?.[key] === "string") {
+            stages[key] = String(payload.stages[key]);
+        }
+    });
+
+    return {
+        ...base,
+        likes,
+        dislikes,
+        mbti_architype: typeof payload.mbti_architype === "string" ? payload.mbti_architype : base.mbti_architype,
+        mbti_rules: typeof payload.mbti_rules === "string" ? payload.mbti_rules : base.mbti_rules,
+        personality_rules:
+            typeof payload.personality_rules === "string" ? payload.personality_rules : base.personality_rules,
+        tone: typeof payload.tone === "string" ? payload.tone : base.tone,
+        stages,
+        stages_focus:
+            payload.stages_focus && STAGE_KEYS.includes(payload.stages_focus) ? payload.stages_focus : base.stages_focus,
+    };
+};
+
+const personaProfileToJson = (profile: PersonaProfile): Record<string, unknown> => {
+    const safeStages = STAGE_KEYS.reduce<Record<string, string>>((acc, key) => {
+        acc[key] = profile.stages[key] ?? "";
+        return acc;
+    }, {});
+
+    return {
+        likes: profile.likes ?? [],
+        dislikes: profile.dislikes ?? [],
+        mbti_architype: profile.mbti_architype ?? "",
+        mbti_rules: profile.mbti_rules ?? "",
+        personality_rules: profile.personality_rules ?? "",
+        tone: profile.tone ?? "",
+        stages: safeStages,
+        stages_focus: profile.stages_focus ?? "",
+    };
+};
 
 const createDefaultFormState = (): InfluencerFormState => ({
     id: "",
@@ -290,9 +312,8 @@ const createDefaultFormState = (): InfluencerFormState => ({
     voice_id: "",
     prompt_template: "",
     influencer_agent_id_third_part: "",
-    bio_json: "",
+    bio_json: createDefaultPersonaProfile(),
     social_connections: createDefaultSocialConnections(),
-    persona_profile: createDefaultPersonaProfile(),
 });
 
 function createFormStateFromInfluencer(influencer: InfluencerDataModel): InfluencerFormState {
@@ -312,14 +333,13 @@ function createFormStateFromInfluencer(influencer: InfluencerDataModel): Influen
         voice_id: influencer.voice_id ?? "",
         prompt_template: influencer.prompt_template ?? "",
         influencer_agent_id_third_part: influencer.influencer_agent_id_third_part ?? "",
-        bio_json: influencer.bio_json ?? "",
+        bio_json: extractPersonaProfile(influencer.bio_json ?? ""),
         social_connections: {
             instagram: incomingSocial.instagram ?? false,
             facebook: incomingSocial.facebook ?? false,
             onlyfans: incomingSocial.onlyfans ?? false,
             twitter: incomingSocial.twitter ?? false,
         },
-        persona_profile: createDefaultPersonaProfile(),
     };
 }
 
@@ -389,15 +409,6 @@ const CreateInfluencer: React.FC = () => {
         if (selected) {
             setFormState(createFormStateFromInfluencer(selected));
         }
-
-        setFormState((prev) => ({
-            ...prev,
-            persona_profile: {
-                ...DEMO_PERSONA_PROFILE,
-                mbti_rules: mbtiPersonalities.find((p) => p.code === DEMO_PERSONA_PROFILE.mbti_architype)?.rules.join("\n") || "",
-            },
-
-        }));
     }, [selectedId, influencers]);
 
     const filteredInfluencers = useMemo(() => {
@@ -427,8 +438,8 @@ const CreateInfluencer: React.FC = () => {
             .filter(Boolean);
         setFormState((prev) => ({
             ...prev,
-            persona_profile: {
-                ...prev.persona_profile,
+            bio_json: {
+                ...prev.bio_json,
                 [field]: items,
             },
         }));
@@ -438,7 +449,7 @@ const CreateInfluencer: React.FC = () => {
         (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
             const { value } = event.target;
             setFormState((prev) => {
-                let nextRules = prev.persona_profile.mbti_rules;
+                let nextRules = prev.bio_json.mbti_rules;
                 if (field === "mbti_architype") {
                     const personality = mbtiPersonalities.find((p) => p.code === value);
                     if (personality) {
@@ -447,10 +458,10 @@ const CreateInfluencer: React.FC = () => {
                 }
                 return {
                     ...prev,
-                    persona_profile: {
-                        ...prev.persona_profile,
+                    bio_json: {
+                        ...prev.bio_json,
                         [field]: value,
-                        mbti_rules: field === "mbti_architype" ? nextRules : prev.persona_profile.mbti_rules,
+                        mbti_rules: field === "mbti_architype" ? nextRules : prev.bio_json.mbti_rules,
                     },
                 };
             });
@@ -460,10 +471,10 @@ const CreateInfluencer: React.FC = () => {
         const { value } = event.target;
         setFormState((prev) => ({
             ...prev,
-            persona_profile: {
-                ...prev.persona_profile,
+            bio_json: {
+                ...prev.bio_json,
                 stages: {
-                    ...prev.persona_profile.stages,
+                    ...prev.bio_json.stages,
                     [stage]: value,
                 },
             },
@@ -503,7 +514,7 @@ const CreateInfluencer: React.FC = () => {
             voice_id: formState.voice_id || existing?.voice_id || "",
             prompt_template: formState.prompt_template || existing?.prompt_template || "",
             influencer_agent_id_third_part: thirdPartyAgentId,
-            bio_json: formState.bio_json || existing?.bio_json || "",
+            bio_json: personaProfileToJson(formState.bio_json),
             social_connections: { ...formState.social_connections },
             daily_scripts: existing?.daily_scripts ?? [],
         };
@@ -819,7 +830,7 @@ const CreateInfluencer: React.FC = () => {
                                 <label htmlFor="persona-mbti">MBTI archetype</label>
                                 <select
                                     id="persona-mbti"
-                                    value={formState.persona_profile.mbti_architype}
+                                    value={formState.bio_json.mbti_architype}
                                     onChange={handlePersonaFieldChange("mbti_architype")}
                                 >
                                     <option value="">Select type</option>
@@ -834,7 +845,7 @@ const CreateInfluencer: React.FC = () => {
                                 <label htmlFor="persona-mbti-rules">MBTI rules</label>
                                 <textarea
                                     id="persona-mbti-rules"
-                                    value={formState.persona_profile.mbti_rules}
+                                    value={formState.bio_json.mbti_rules}
                                     onChange={handlePersonaFieldChange("mbti_rules")}
                                     placeholder="Prefers logical decisions, needs solitary recharge, relies on structured plans."
                                     rows={10}
@@ -844,7 +855,7 @@ const CreateInfluencer: React.FC = () => {
                                 <label htmlFor="persona-rules">Personality rules</label>
                                 <textarea
                                     id="persona-rules"
-                                    value={formState.persona_profile.personality_rules}
+                                    value={formState.bio_json.personality_rules}
                                     onChange={handlePersonaFieldChange("personality_rules")}
                                     placeholder="Strategic, future-oriented, has high standards and boundaries, values long-term connections."
                                     rows={10}
@@ -854,7 +865,7 @@ const CreateInfluencer: React.FC = () => {
                                 <label htmlFor="persona-tone">Tone</label>
                                 <textarea
                                     id="persona-tone"
-                                    value={formState.persona_profile.tone}
+                                    value={formState.bio_json.tone}
                                     onChange={handlePersonaFieldChange("tone")}
                                     placeholder="Direct and analytical with a hint of dry humor."
                                     rows={10}
@@ -865,7 +876,7 @@ const CreateInfluencer: React.FC = () => {
                                     <label htmlFor="persona-likes">Likes (one per line)</label>
                                     <textarea
                                         id="persona-likes"
-                                        value={formState.persona_profile.likes.join("\n")}
+                                        value={formState.bio_json.likes.join("\n")}
                                         onChange={handlePersonaListChange("likes")}
                                         placeholder="Daal Vaat&#10;Chinese food&#10;Water"
                                         rows={10}
@@ -875,7 +886,7 @@ const CreateInfluencer: React.FC = () => {
                                     <label htmlFor="persona-dislikes">Dislikes (one per line)</label>
                                     <textarea
                                         id="persona-dislikes"
-                                        value={formState.persona_profile.dislikes.join("\n")}
+                                        value={formState.bio_json.dislikes.join("\n")}
                                         onChange={handlePersonaListChange("dislikes")}
                                         placeholder="Cold drinks&#10;Rotten smells&#10;Liars"
                                         rows={10}
@@ -891,12 +902,12 @@ const CreateInfluencer: React.FC = () => {
                                 <label htmlFor="relationship-stages">Relationship stages</label>
                                 <select
                                     id="relationship-stages"
-                                    value={formState.persona_profile.stages_focus ?? ""}
+                                    value={formState.bio_json.stages_focus ?? ""}
                                     onChange={(event) =>
                                         setFormState((prev) => ({
                                             ...prev,
-                                            persona_profile: {
-                                                ...prev.persona_profile,
+                                            bio_json: {
+                                                ...prev.bio_json,
                                                 stages_focus: event.target.value as keyof PersonaStages,
                                             },
                                         }))
@@ -910,24 +921,24 @@ const CreateInfluencer: React.FC = () => {
                                     ))}
                                 </select>
                             </div>
-                            {formState.persona_profile.stages_focus ? (
+                            {formState.bio_json.stages_focus ? (
                                 <div className={styles["field"]}>
                                     <label htmlFor="persona-stage-copy">
-                                        {formState.persona_profile.stages_focus.replace("_", " ").toUpperCase()}
+                                        {formState.bio_json.stages_focus.replace("_", " ").toUpperCase()}
                                     </label>
                                     <textarea
                                         id="persona-stage-copy"
                                         value={
-                                            formState.persona_profile.stages[
-                                            formState.persona_profile.stages_focus as keyof PersonaStages
+                                            formState.bio_json.stages[
+                                            formState.bio_json.stages_focus as keyof PersonaStages
                                             ] || ""
                                         }
                                         onChange={handlePersonaStageChange(
-                                            formState.persona_profile.stages_focus as keyof PersonaStages,
+                                            formState.bio_json.stages_focus as keyof PersonaStages,
                                         )}
                                         placeholder={
                                             STAGE_PLACEHOLDERS[
-                                            formState.persona_profile.stages_focus as keyof PersonaStages
+                                            formState.bio_json.stages_focus as keyof PersonaStages
                                             ]
                                         }
                                         rows={3}
@@ -939,94 +950,6 @@ const CreateInfluencer: React.FC = () => {
                                     <div className={styles["list-placeholder"]}>Select a stage to edit its copy.</div>
                                 </div>
                             )}
-
-                            {/* <div>
-                                <div className={styles["section-heading"]}>
-                                    <h3>Knowledge documents</h3>
-                                    <p>Upload PDFs, DOC/DOCX, or TXT to enrich this influencer.</p>
-                                </div>
-                                <div className={styles["knowledge-actions"]}>
-                                    <button
-                                        type="button"
-                                        className={styles["upload-button"]}
-                                        onClick={handleKnowledgeUploadClick}
-                                        disabled={!selectedId || selectedId === "new" || knowledgeUploading}
-                                    >
-                                        {knowledgeUploading ? "Uploading…" : "Upload document"}
-                                    </button>
-                                    <input
-                                        ref={knowledgeFileInputRef}
-                                        className={styles["file-input"]}
-                                        type="file"
-                                        accept=".pdf,.doc,.docx,.txt"
-                                        onChange={handleKnowledgeFileChange}
-                                    />
-                                    {knowledgeError && <span className={styles["upload-error"]}>{knowledgeError}</span>}
-                                </div>
-                                <div className={styles["knowledge-list"]}>
-                                    {selectedId === "new" ? (
-                                        <div className={styles["list-placeholder"]}>Save the influencer first to attach documents.</div>
-                                    ) : knowledgeLoading ? (
-                                        <div className={styles["list-placeholder"]}>Loading documents…</div>
-                                    ) : knowledgeFiles.length === 0 ? (
-                                        <div className={styles["list-placeholder"]}>No documents uploaded yet.</div>
-                                    ) : (
-                                        knowledgeFiles.map((file) => (
-                                            <div key={file.id} className={styles["knowledge-item"]}>
-                                                <div>
-                                                    <div className={styles["knowledge-item__name"]}>{file.filename}</div>
-                                                    <div className={styles["knowledge-item__meta"]}>
-                                                        <span>{file.file_type.toUpperCase()}</span>
-                                                        <span>•</span>
-                                                        <span>{formatFileSize(file.file_size_bytes)}</span>
-                                                        <span>•</span>
-                                                        <span>Status: {file.status}</span>
-                                                        {file.error_message && (
-                                                            <>
-                                                                <span>•</span>
-                                                                <span className={styles["upload-error"]}>{file.error_message}</span>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    className={styles["secondary-button"]}
-                                                    onClick={() => handleKnowledgeDelete(file.id)}
-                                                    disabled={knowledgeUploading}
-                                                >
-                                                    Delete
-                                                </button>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            </div> */}
-                            {/* <div className={styles["field"]}>
-                                <label htmlFor="influencer-voice-prompt">Voice prompt</label>
-                                <textarea
-                                    id="influencer-voice-prompt"
-                                    value={formState.voice_prompt}
-                                    onChange={handleFieldChange("voice_prompt")}
-                                    placeholder="Describe the desired voice style, pacing, tone, etc."
-                                    rows={20}
-                                />
-                                <div className={styles["form-footer"]}>
-                                    {voicePromptSaveState !== "idle" && (
-                                        <span
-                                            className={`${styles["save-status"]} ${voicePromptSaveState === "success" ? styles["save-status--success"] : ""} ${voicePromptSaveState === "error" ? styles["save-status--error"] : ""}`}
-                                        >
-                                            {voicePromptSaveState === "success" && "Voice prompt saved"}
-                                            {voicePromptSaveState === "error" && (voicePromptSaveError || "Failed to save voice prompt")}
-                                            {voicePromptSaveState === "saving" && "Saving voice prompt…"}
-                                        </span>
-                                    )}
-                                    <button type="button" className={styles["primary-button"]} disabled={voicePromptSaveState === "saving"} onClick={handleVoicePromptSave}>
-                                        {voicePromptSaveState === "saving" ? "Saving…" : "Save voice prompt only"}
-                                    </button>
-                                </div>
-                            </div> */}
-
                             <div className={styles["form-footer"]}>
                                 {saveState !== "idle" && (
                                     <span

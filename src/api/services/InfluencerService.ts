@@ -30,10 +30,11 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
         prompt_template: string,
         daily_scripts: string[],
         influencer_agent_id_third_part?: string,
-        voice_prompt?: string,
+        bio_json?: unknown,
         voice_id?: string,
     ): Promise<InfluencerResponse> => {
         try {
+            const bioPayload = bio_json && typeof bio_json === "object" ? { "bio_json": bio_json } : {};
             const response = await apiClient.patch(
                 Endpoints.influencer(influencer_id),
                 {
@@ -41,7 +42,7 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
                     "prompt_template": prompt_template,
                     "daily_scripts": daily_scripts,
                     ...(influencer_agent_id_third_part !== undefined && { "influencer_agent_id_third_part": influencer_agent_id_third_part }),
-                    ...(voice_prompt !== undefined && { "voice_prompt": voice_prompt }),
+                    ...bioPayload,
                     ...(voice_id !== undefined && { "voice_id": voice_id })
                 }
             );
@@ -56,9 +57,10 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
         display_name?: string,
         daily_scripts?: string[],
         influencer_agent_id_third_part?: string,
-        bio_json?: string,
+        bio_json?: unknown,
         voice_id?: string): Promise<InfluencerResponse> => {
         try {
+            const bioPayload = bio_json && typeof bio_json === "object" ? { "bio_json": bio_json } : {};
             const response = await apiClient.post(
                 Endpoints.influencers,
                 {
@@ -67,7 +69,7 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
                     "prompt_template": prompt_template,
                     ...(daily_scripts && { "daily_scripts": daily_scripts }),
                     ...(influencer_agent_id_third_part && { "influencer_agent_id_third_part": influencer_agent_id_third_part }),
-                    ...(bio_json && { "bio_json": bio_json }),
+                    ...bioPayload,
                     ...(voice_id && { "voice_id": voice_id }),
                 }
             );
