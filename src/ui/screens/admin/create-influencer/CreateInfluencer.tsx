@@ -28,7 +28,7 @@ type InfluencerFormState = {
     voice_id: string;
     prompt_template: string;
     influencer_agent_id_third_part: string;
-    voice_prompt: string;
+    bio_json: string;
     social_connections: SocialConnections;
     persona_profile: PersonaProfile;
 };
@@ -290,7 +290,7 @@ const createDefaultFormState = (): InfluencerFormState => ({
     voice_id: "",
     prompt_template: "",
     influencer_agent_id_third_part: "",
-    voice_prompt: "",
+    bio_json: "",
     social_connections: createDefaultSocialConnections(),
     persona_profile: createDefaultPersonaProfile(),
 });
@@ -312,7 +312,7 @@ function createFormStateFromInfluencer(influencer: InfluencerDataModel): Influen
         voice_id: influencer.voice_id ?? "",
         prompt_template: influencer.prompt_template ?? "",
         influencer_agent_id_third_part: influencer.influencer_agent_id_third_part ?? "",
-        voice_prompt: influencer.voice_prompt ?? "",
+        bio_json: influencer.bio_json ?? "",
         social_connections: {
             instagram: incomingSocial.instagram ?? false,
             facebook: incomingSocial.facebook ?? false,
@@ -503,7 +503,7 @@ const CreateInfluencer: React.FC = () => {
             voice_id: formState.voice_id || existing?.voice_id || "",
             prompt_template: formState.prompt_template || existing?.prompt_template || "",
             influencer_agent_id_third_part: thirdPartyAgentId,
-            voice_prompt: formState.voice_prompt || existing?.voice_prompt || "",
+            bio_json: formState.bio_json || existing?.bio_json || "",
             social_connections: { ...formState.social_connections },
             daily_scripts: existing?.daily_scripts ?? [],
         };
@@ -518,7 +518,7 @@ const CreateInfluencer: React.FC = () => {
                     base.prompt_template,
                     existing?.daily_scripts || [],
                     base.influencer_agent_id_third_part,
-                    base.voice_prompt,
+                    base.bio_json,
                     base.voice_id,
                 );
             const mergedInfluencer = {

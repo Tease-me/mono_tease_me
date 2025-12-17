@@ -41,7 +41,7 @@ export const InfluencerRepo = () => ({
                     daily_scripts: item.daily_scripts,
                     prompt_template: item.prompt_template,
                     influencer_agent_id_third_part: item.influencer_agent_id_third_part,
-                    voice_prompt: item.voice_prompt,
+                    bio_json: item.bio_json,
                     voice_id: item.voice_id,
                     created_at: item.created_at,
                     earnings: 0,
@@ -77,7 +77,7 @@ export const InfluencerRepo = () => ({
         prompt_template?: string,
         daily_scripts?: string[],
         influencer_agent_id_third_part?: string,
-        voice_prompt?: string,
+        bio_json?: string,
         voice_id?: string,
     ) => {
         try {
@@ -87,7 +87,7 @@ export const InfluencerRepo = () => ({
                 (prompt_template ?? influencer.prompt_template ?? ""),
                 (daily_scripts ?? influencer.daily_scripts ?? []),
                 (influencer_agent_id_third_part ?? influencer.influencer_agent_id_third_part),
-                (voice_prompt ?? influencer.voice_prompt),
+                (bio_json ?? influencer.bio_json),
                 (voice_id ?? influencer.voice_id),
             );
             return {
@@ -99,7 +99,7 @@ export const InfluencerRepo = () => ({
                 daily_scripts: response.daily_scripts,
                 prompt_template: response.prompt_template,
                 influencer_agent_id_third_part: response.influencer_agent_id_third_part,
-                voice_prompt: response.voice_prompt,
+                bio_json: response.bio_json,
                 voice_id: response.voice_id,
                 created_at: response.created_at,
                 earnings: influencer.earnings,
@@ -117,7 +117,7 @@ export const InfluencerRepo = () => ({
                 influencer.name,
                 influencer.daily_scripts,
                 influencer.influencer_agent_id_third_part,
-                influencer.voice_prompt,
+                influencer.bio_json,
                 influencer.voice_id,
             );
             return {
@@ -129,7 +129,7 @@ export const InfluencerRepo = () => ({
                 daily_scripts: response.daily_scripts,
                 prompt_template: response.prompt_template,
                 influencer_agent_id_third_part: response.influencer_agent_id_third_part,
-                voice_prompt: response.voice_prompt,
+                bio_json: response.bio_json,
                 voice_id: response.voice_id,
                 created_at: response.created_at,
                 earnings: influencer.earnings,

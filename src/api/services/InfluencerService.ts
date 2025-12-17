@@ -56,7 +56,7 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
         display_name?: string,
         daily_scripts?: string[],
         influencer_agent_id_third_part?: string,
-        voice_prompt?: string,
+        bio_json?: string,
         voice_id?: string): Promise<InfluencerResponse> => {
         try {
             const response = await apiClient.post(
@@ -67,7 +67,7 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
                     "prompt_template": prompt_template,
                     ...(daily_scripts && { "daily_scripts": daily_scripts }),
                     ...(influencer_agent_id_third_part && { "influencer_agent_id_third_part": influencer_agent_id_third_part }),
-                    ...(voice_prompt && { "voice_prompt": voice_prompt }),
+                    ...(bio_json && { "bio_json": bio_json }),
                     ...(voice_id && { "voice_id": voice_id }),
                 }
             );

@@ -22,7 +22,7 @@ export interface InfluencerDataModel {
     prompt_template?: string;
     daily_scripts?: string[];
     influencer_agent_id_third_part?: string;
-    voice_prompt?: string;
+    bio_json?: string;
     social_connections?: {
         instagram: boolean;
         facebook: boolean;
