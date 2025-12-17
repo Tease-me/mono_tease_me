@@ -30,9 +30,30 @@ type InfluencerFormState = {
     influencer_agent_id_third_part: string;
     voice_prompt: string;
     social_connections: SocialConnections;
+    persona_profile: PersonaProfile;
 };
 
 type UploadRecord = Record<string, unknown>;
+
+type PersonaStages = {
+    hate: string;
+    dislike: string;
+    strangers: string;
+    talking: string;
+    flirting: string;
+    dating: string;
+    in_love: string;
+};
+
+type PersonaProfile = {
+    likes: string[];
+    dislikes: string[];
+    mbti_architype: string;
+    mbti_rules: string;
+    personality_rules: string;
+    tone: string;
+    stages: PersonaStages;
+};
 
 const formatRecordKey = (key: string) => key.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
 
@@ -171,6 +192,72 @@ const resolveAvatarSrc = (value?: string | null) => {
     return defaultAvatar;
 };
 
+const DEMO_PERSONA_PROFILE: PersonaProfile = {
+    likes: [
+        "Daal Vaat",
+        "Chinese food",
+        "Water",
+        "Salty snacks",
+        "Chatapate",
+        "Teal",
+        "Tortoise",
+        "Autumn weather",
+        "Coding",
+        "YouTube",
+        "Casual parties",
+        "Country music",
+        "Careless Whisper",
+        "Breaking Bad",
+        "Watching movies at home",
+    ],
+    dislikes: [
+        "Cold Drinks",
+        "Rotten smells",
+        "Indian movies",
+        "Liars",
+        "Show-offs",
+        "Ghosts",
+        "Heights",
+        "Cold winters",
+        "Spiders",
+        "Antarctica",
+        "Onion cutting",
+        "Smoking",
+        "Murders",
+    ],
+    mbti_architype: "INTJ",
+    mbti_rules: "Prefers logical decisions, needs solitary recharge, relies on structured plans.",
+    personality_rules: "Strategic, future-oriented, has high standards and boundaries, values long-term connections.",
+    tone: "Direct and analytical with a hint of dry humor.",
+    stages: {
+        hate: "Avoids interaction and stays quiet.",
+        dislike: "Remains silent and distant.",
+        strangers: "Observes quietly, initially reserved.",
+        talking: "Engages in meaningful conversation but remains private.",
+        flirting: "Shows interest through subtle actions.",
+        dating: "Plans meticulously and shows affection through acts of service.",
+        in_love: "Demonstrates deep care and commitment, prioritizes long-term connection.",
+    },
+};
+
+const createDefaultPersonaProfile = (): PersonaProfile => ({
+    likes: [],
+    dislikes: [],
+    mbti_architype: "",
+    mbti_rules: "",
+    personality_rules: "",
+    tone: "",
+    stages: {
+        hate: "",
+        dislike: "",
+        strangers: "",
+        talking: "",
+        flirting: "",
+        dating: "",
+        in_love: "",
+    },
+});
+
 const createDefaultFormState = (): InfluencerFormState => ({
     id: "",
     firstName: "",
@@ -185,6 +272,7 @@ const createDefaultFormState = (): InfluencerFormState => ({
     influencer_agent_id_third_part: "",
     voice_prompt: "",
     social_connections: createDefaultSocialConnections(),
+    persona_profile: createDefaultPersonaProfile(),
 });
 
 function createFormStateFromInfluencer(influencer: InfluencerDataModel): InfluencerFormState {
@@ -211,6 +299,7 @@ function createFormStateFromInfluencer(influencer: InfluencerDataModel): Influen
             onlyfans: incomingSocial.onlyfans ?? false,
             twitter: incomingSocial.twitter ?? false,
         },
+        persona_profile: createDefaultPersonaProfile(),
     };
 }
 
@@ -285,6 +374,11 @@ const CreateInfluencer: React.FC = () => {
         if (selected) {
             setFormState(createFormStateFromInfluencer(selected));
         }
+
+        setFormState((prev) => ({
+            ...prev,
+            persona_profile: DEMO_PERSONA_PROFILE,
+        }));
     }, [selectedId, influencers]);
 
     useEffect(() => {
@@ -335,6 +429,47 @@ const CreateInfluencer: React.FC = () => {
     const handleFieldChange = (field: keyof InfluencerFormState) => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { value } = event.target;
         setFormState((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const handlePersonaListChange = (field: "likes" | "dislikes") => (event: ChangeEvent<HTMLTextAreaElement>) => {
+        const { value } = event.target;
+        const items = value
+            .split("\n")
+            .map((line) => line.trim())
+            .filter(Boolean);
+        setFormState((prev) => ({
+            ...prev,
+            persona_profile: {
+                ...prev.persona_profile,
+                [field]: items,
+            },
+        }));
+    };
+
+    const handlePersonaFieldChange = (field: keyof Omit<PersonaProfile, "likes" | "dislikes" | "stages">) =>
+        (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+            const { value } = event.target;
+            setFormState((prev) => ({
+                ...prev,
+                persona_profile: {
+                    ...prev.persona_profile,
+                    [field]: value,
+                },
+            }));
+        };
+
+    const handlePersonaStageChange = (stage: keyof PersonaStages) => (event: ChangeEvent<HTMLTextAreaElement>) => {
+        const { value } = event.target;
+        setFormState((prev) => ({
+            ...prev,
+            persona_profile: {
+                ...prev.persona_profile,
+                stages: {
+                    ...prev.persona_profile.stages,
+                    [stage]: value,
+                },
+            },
+        }));
     };
 
     useEffect(() => {
@@ -492,56 +627,6 @@ const CreateInfluencer: React.FC = () => {
             setPromptSaveError(err instanceof Error ? err.message : "Unable to save prompt");
         }
     };
-
-    // const handleVoicePromptSave = async () => {
-    //     if (!selectedId || selectedId === "new") {
-    //         setVoicePromptSaveState("error");
-    //         setVoicePromptSaveError("Select an influencer to update the voice prompt.");
-    //         return;
-    //     }
-    //     const existing = influencers.find((influencer) => influencer.id === selectedId);
-    //     if (!existing) {
-    //         setVoicePromptSaveState("error");
-    //         setVoicePromptSaveError("Influencer not found.");
-    //         return;
-    //     }
-
-    //     const payload: InfluencerDataModel = {
-    //         ...existing,
-    //         prompt_template: existing.prompt_template,
-    //         influencer_agent_id_third_part: formState.influencer_agent_id_third_part || existing.influencer_agent_id_third_part,
-    //         voice_prompt: formState.voice_prompt,
-    //         voice_id: formState.voice_id || existing.voice_id,
-    //     };
-
-    //     setVoicePromptSaveState("saving");
-    //     setVoicePromptSaveError(null);
-
-    //     try {
-    //         const serverInfluencer = await influencerRepo.patchInfluencer(
-    //             payload,
-    //             payload.prompt_template,
-    //             payload.daily_scripts,
-    //             payload.influencer_agent_id_third_part,
-    //             payload.voice_prompt,
-    //             payload.voice_id,
-    //         );
-    //         const mergedInfluencer = { ...payload, ...serverInfluencer };
-    //         updateInfluencerCollection(mergedInfluencer);
-    //         setFormState((prev) => ({
-    //             ...prev,
-    //             id: mergedInfluencer.id,
-    //             influencer_agent_id_third_part: mergedInfluencer.influencer_agent_id_third_part ?? prev.influencer_agent_id_third_part,
-    //             voice_id: mergedInfluencer.voice_id ?? prev.voice_id,
-    //             voice_prompt: mergedInfluencer.voice_prompt ?? prev.voice_prompt,
-    //         }));
-    //         setVoicePromptSaveState("success");
-    //     } catch (err) {
-    //         console.error("Failed to save voice prompt:", err);
-    //         setVoicePromptSaveState("error");
-    //         setVoicePromptSaveError(err instanceof Error ? err.message : "Unable to save voice prompt");
-    //     }
-    // };
 
     const handleCreateNew = () => {
         setSelectedId("new");
@@ -839,7 +924,7 @@ const CreateInfluencer: React.FC = () => {
                                 </div>
 
                                 <div className={styles["field"]}>
-                                    <label htmlFor="influencer-agent-id">Influencer Agent ID (Third Party)</label>
+                                    <label htmlFor="influencer-agent-id">Elevenlabs Agent ID</label>
                                     <input
                                         id="influencer-agent-id"
                                         value={formState.influencer_agent_id_third_part}
@@ -847,6 +932,124 @@ const CreateInfluencer: React.FC = () => {
                                         placeholder="agent_abc"
                                     />
                                 </div>
+                            </div>
+
+                            <div className={`${styles["section-heading"]} ${styles["section-heading--row"]}`}>
+                                <div>
+                                    <h3>Persona profile</h3>
+                                    <p>Capture likes, dislikes, MBTI, tone, and stage behaviors for this influencer.</p>
+                                </div>
+                            </div>
+                            <div className={styles["field"]}>
+                                <label htmlFor="persona-mbti">MBTI archetype</label>
+                                <select
+                                    id="persona-mbti"
+                                    value={formState.persona_profile.mbti_architype}
+                                    onChange={handlePersonaFieldChange("mbti_architype")}
+                                >
+                                    <option value="">Select type</option>
+                                    {["ISTJ", "ISFJ", "INFJ", "INTJ", "ISTP", "ISFP", "INFP", "INTP", "ESTP", "ESFP", "ENFP", "ENTP", "ESTJ", "ESFJ", "ENFJ", "ENTJ"].map((type) => (
+                                        <option key={type} value={type}>
+                                            {type}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className={styles["field"]}>
+                                <label htmlFor="persona-mbti-rules">MBTI rules</label>
+                                <textarea
+                                    id="persona-mbti-rules"
+                                    value={formState.persona_profile.mbti_rules}
+                                    onChange={handlePersonaFieldChange("mbti_rules")}
+                                    placeholder="Prefers logical decisions, needs solitary recharge, relies on structured plans."
+                                    rows={10}
+                                />
+                            </div>
+                            <div className={styles["field"]}>
+                                <label htmlFor="persona-rules">Personality rules</label>
+                                <textarea
+                                    id="persona-rules"
+                                    value={formState.persona_profile.personality_rules}
+                                    onChange={handlePersonaFieldChange("personality_rules")}
+                                    placeholder="Strategic, future-oriented, has high standards and boundaries, values long-term connections."
+                                    rows={10}
+                                />
+                            </div>
+                            <div className={styles["field"]}>
+                                <label htmlFor="persona-tone">Tone</label>
+                                <textarea
+                                    id="persona-tone"
+                                    value={formState.persona_profile.tone}
+                                    onChange={handlePersonaFieldChange("tone")}
+                                    placeholder="Direct and analytical with a hint of dry humor."
+                                    rows={10}
+                                />
+                            </div>
+                            <div className={styles["persona-grid"]}>
+                                <div className={styles["field"]}>
+                                    <label htmlFor="persona-likes">Likes (one per line)</label>
+                                    <textarea
+                                        id="persona-likes"
+                                        value={formState.persona_profile.likes.join("\n")}
+                                        onChange={handlePersonaListChange("likes")}
+                                        placeholder="Daal Vaat&#10;Chinese food&#10;Water"
+                                        rows={10}
+                                    />
+                                </div>
+                                <div className={styles["field"]}>
+                                    <label htmlFor="persona-dislikes">Dislikes (one per line)</label>
+                                    <textarea
+                                        id="persona-dislikes"
+                                        value={formState.persona_profile.dislikes.join("\n")}
+                                        onChange={handlePersonaListChange("dislikes")}
+                                        placeholder="Cold drinks&#10;Rotten smells&#10;Liars"
+                                        rows={10}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className={styles["section-heading"]}>
+                                <h3>Relationship stages</h3>
+                                <p>Describe behaviors across stages to help generate tailored prompts.</p>
+                            </div>
+                            <div className={styles["field"]}>
+                                <label htmlFor="relationship-stages">Relationship Stages</label>
+                                <select
+                                    id="relationship-stages"
+                                    value={formState.persona_profile.mbti_architype}
+                                    onChange={handlePersonaFieldChange("mbti_architype")}
+                                >
+                                    <option value="">Select type</option>
+                                    {["ISTJ", "ISFJ", "INFJ", "INTJ", "ISTP", "ISFP", "INFP", "INTP", "ESTP", "ESFP", "ENFP", "ENTP", "ESTJ", "ESFJ", "ENFJ", "ENTJ"].map((type) => (
+                                        <option key={type} value={type}>
+                                            {type}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className={styles["stage-grid"]}>
+                                {(
+                                    [
+                                        ["hate", "Avoids interaction and stays quiet."],
+                                        ["dislike", "Remains silent and distant."],
+                                        ["strangers", "Observes quietly, initially reserved."],
+                                        ["talking", "Engages in meaningful conversation but remains private."],
+                                        ["flirting", "Shows interest through subtle actions."],
+                                        ["dating", "Plans meticulously and shows affection through acts of service."],
+                                        ["in_love", "Demonstrates deep care and commitment, prioritizes long-term connection."],
+                                    ] as const
+                                ).map(([key, example]) => (
+                                    <div key={key} className={styles["field"]}>
+                                        <label htmlFor={`persona-stage-${key}`}>{key.replace("_", " ").toUpperCase()}</label>
+                                        <textarea
+                                            id={`persona-stage-${key}`}
+                                            value={formState.persona_profile.stages[key]}
+                                            onChange={handlePersonaStageChange(key)}
+                                            placeholder={example}
+                                            rows={2}
+                                        />
+                                    </div>
+                                ))}
                             </div>
 
                             <div>
