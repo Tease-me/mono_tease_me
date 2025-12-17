@@ -44,24 +44,30 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
   const [audioData, setAudioData] = useState<InfluencerAudioResponse | null>(
     null
   );
-  const [localAudioUrl, setLocalAudioUrl] = useState<string | null>(null);
   const [lastAction, setLastAction] = useState<"record" | "upload" | null>(
     null
   );
+  const [hasRecorded, setHasRecorded] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const timerRef = useRef<number | null>(null);
   const isMediaRecorderSupported =
     typeof window !== "undefined" && "MediaRecorder" in window;
   const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024; // 20MB safety cap
+  const MIN_RECORDING_SECONDS = 15;
 
   useEffect(() => {
     return () => {
-      if (localAudioUrl && localAudioUrl.startsWith("blob:")) {
-        URL.revokeObjectURL(localAudioUrl);
-      }
       if (recorderRef.current && recorderRef.current.state !== "inactive") {
         recorderRef.current.stop();
       }
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      }
+      if (timerRef.current) {
+        window.clearInterval(timerRef.current);
+      }
     };
-  }, [localAudioUrl]);
+  }, []);
 
   useEffect(() => {
     if (!influencerId) {
@@ -83,6 +89,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
           `/influencer/influencer-audio/${influencerId}`,
           {
             params: token ? { token } : undefined,
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
           }
         );
 
@@ -90,8 +97,10 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
 
         const files = res.data.files ?? [];
         const count = res.data.count ?? files.length ?? 0;
+        const newHasRecorded = hasRecorded || count > 0;
+        setHasRecorded(newHasRecorded);
         setAudioData({ ...res.data, files, count });
-        onCountChange(count);
+        onCountChange(newHasRecorded ? count : 0);
         setAudioError(null);
       } catch (err: any) {
         if (canceled) return;
@@ -120,7 +129,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
     return () => {
       canceled = true;
     };
-  }, [influencerId, token, refreshKey]);
+  }, [influencerId, token, refreshKey, hasRecorded]);
 
   const handleUploadOwn = async (
     file: File,
@@ -142,17 +151,25 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
     setUploadingOwn(true);
     setAudioError(null);
     try {
+      const headers = {
+        "Content-Type": "multipart/form-data",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
       const formData = new FormData();
       formData.append("file", file);
       await apiClient.post(
         `/influencer/influencer-audio/${influencerId}`,
         formData,
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers,
           params: token ? { token } : undefined,
         }
       );
       setLastAction(origin);
+      if (origin === "record") {
+        setHasRecorded(true);
+        onCountChange(1);
+      }
       setRefreshKey((n) => n + 1);
     } catch (err) {
       console.error("Error uploading audio", err);
@@ -173,6 +190,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
       await apiClient.delete(`/pre-influencers/influencer-audio/${influencerId}`, {
         data: { key },
         params: token ? { token } : undefined,
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
       setAudioError(null);
       setRefreshKey((n) => n + 1);
@@ -183,7 +201,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
   };
 
   const hasUploadedAudio = (audioData?.files?.length ?? 0) > 0;
-  const hasAudio = Boolean(localAudioUrl) || hasUploadedAudio;
+  const hasAudio = hasUploadedAudio || hasRecorded;
   const files = audioData?.files ?? [];
 
   const startRecording = async () => {
@@ -196,6 +214,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
     setAudioError(null);
     setIsRecording(true);
     setLastAction(null);
+    setElapsedSeconds(0);
     // stop any stale recorder/stream
     if (recorderRef.current && recorderRef.current.state !== "inactive") {
       recorderRef.current.stop();
@@ -211,6 +230,13 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
       const recorder = new MediaRecorder(stream);
       chunksRef.current = [];
 
+      if (timerRef.current) {
+        window.clearInterval(timerRef.current);
+      }
+      timerRef.current = window.setInterval(() => {
+        setElapsedSeconds((s) => s + 1);
+      }, 1000);
+
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
           chunksRef.current.push(e.data);
@@ -220,14 +246,9 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
       recorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         const noData = blob.size === 0 || chunksRef.current.length === 0;
-        if (localAudioUrl && localAudioUrl.startsWith("blob:")) {
-          URL.revokeObjectURL(localAudioUrl);
-        }
         if (noData) {
           setAudioError("No audio captured. Please try recording again.");
         } else {
-          const url = URL.createObjectURL(blob);
-          setLocalAudioUrl(url);
           setAudioError(null);
           const file = new File([blob], "recording.webm", {
             type: "audio/webm",
@@ -237,6 +258,10 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
         stream.getTracks().forEach((t) => t.stop());
         mediaStreamRef.current = null;
         setIsRecording(false);
+        if (timerRef.current) {
+          window.clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
       };
 
       recorder.onerror = () => {
@@ -244,6 +269,10 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
         setIsRecording(false);
         stream.getTracks().forEach((t) => t.stop());
         mediaStreamRef.current = null;
+        if (timerRef.current) {
+          window.clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
       };
 
       recorder.start();
@@ -252,16 +281,28 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
       console.error("Recording failed", err);
       setAudioError("Unable to access microphone. Check permissions.");
       setIsRecording(false);
+      if (timerRef.current) {
+        window.clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
     }
   };
 
   const stopRecording = () => {
+    if (elapsedSeconds < MIN_RECORDING_SECONDS) {
+      setAudioError(`Please record at least ${MIN_RECORDING_SECONDS} seconds before stopping.`);
+      return;
+    }
     if (recorderRef.current && recorderRef.current.state !== "inactive") {
       recorderRef.current.stop();
     }
     if (mediaStreamRef.current) {
       mediaStreamRef.current.getTracks().forEach((t) => t.stop());
       mediaStreamRef.current = null;
+    }
+    if (timerRef.current) {
+      window.clearInterval(timerRef.current);
+      timerRef.current = null;
     }
   };
 
@@ -332,25 +373,31 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
             <p className={styles.subtitle}>Please read the script below.</p>
 
             <div className={styles.scriptBox}>
-              <p>Hey, babe, I just got home from work. I thought about you all day.</p>
-              <p>I miss you so much already. How was your morning?</p>
-              <p>Did you drink your favorite coffee today?</p>
-              <p>I keep thinking about your smile. It always makes my world feel bright.</p>
-              <p>Do you remember our walk in the park last weekend?</p>
-              <p>Holding your hand felt so perfect. I loved every second.</p>
-              <p>What are your plans tonight? Maybe we can video call later?</p>
-              <p>I love how your silly jokes always make me laugh.</p>
-              <p>You really are my everything, babe.</p>
-              <p>I can’t wait to hear your voice again.</p>
-              <p>Tell me, what are you doing right now?</p>
-            </div>
+              <ul className={styles.scriptList}>
+                <li>Hey, babe, I just got home from work. I thought about you all day.</li>
+                <li>I miss you so much already. How was your morning?</li>
+                <li>Did you drink your favorite coffee today?</li>
+                <li>I keep thinking about your smile. It always makes my world feel bright.</li>
+                <li>Do you remember our walk in the park last weekend?</li>
+                <li>Holding your hand felt so perfect. I loved every second.</li>
+                <li>What are your plans tonight? Maybe we can video call later?</li>
+                <li>I love how your silly jokes always make me laugh.</li>
+                <li>You really are my everything, babe.</li>
+                <li>I can’t wait to hear your voice again.</li>
+                <li>Tell me, what are you doing right now?</li>
+              </ul>
 
+            </div>
+            <div className={styles.subtitle}>
+              Minimum recording: {MIN_RECORDING_SECONDS}s (Recorded: {elapsedSeconds}s)
+            </div>
             <NormalButton
               color="black"
               className={surveyStyles.glassButton}
-              text="Stop Recording"
+              text={elapsedSeconds < MIN_RECORDING_SECONDS ? `Keep recording (${Math.max(0, MIN_RECORDING_SECONDS - elapsedSeconds)}s left)` : "Stop Recording"}
               leftIcon={<SvgPack.RecordingStop />}
               onClick={stopRecording}
+              aria-disabled={elapsedSeconds < MIN_RECORDING_SECONDS}
             />
           </>
         )}
@@ -367,18 +414,6 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
                   ? "Recording Complete"
                   : "Your Audio Samples"}
           </div>
-          {localAudioUrl && (
-            <audio
-              className={styles.audioPreview}
-              controls
-              src={localAudioUrl}
-              onError={() => {
-                setLastAction(null);
-                setAudioError("Audio failed to load. Please re-upload.");
-              }}
-            />
-          )}
-
           <NormalButton
             type="square"
             color="black"
@@ -475,11 +510,6 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
         onChange={(e) => {
           const file = e.target.files?.[0];
           if (!file) return;
-          if (localAudioUrl && localAudioUrl.startsWith("blob:")) {
-            URL.revokeObjectURL(localAudioUrl);
-          }
-          const objectUrl = URL.createObjectURL(file);
-          setLocalAudioUrl(objectUrl);
           setAudioError(null);
           handleUploadOwn(file, "upload");
         }}
