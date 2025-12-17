@@ -9,13 +9,6 @@ import defaultAvatar from "@/assets/image/avatar.png";
 import mbtiData from "@/data/mbti.json";
 import AdminLayout from "../AdminLayout";
 
-type SocialConnections = {
-    instagram: boolean;
-    facebook: boolean;
-    onlyfans: boolean;
-    twitter: boolean;
-};
-
 type InfluencerFormState = {
     id: string;
     firstName: string;
@@ -29,7 +22,6 @@ type InfluencerFormState = {
     prompt_template: string;
     influencer_agent_id_third_part: string;
     bio_json: PersonaProfile;
-    social_connections: SocialConnections;
 };
 
 type UploadRecord = Record<string, unknown>;
@@ -182,13 +174,6 @@ function toDateInputValue(value: string | undefined | null) {
     return new Date().toISOString().slice(0, 10);
 }
 
-const createDefaultSocialConnections = (): SocialConnections => ({
-    instagram: false,
-    facebook: false,
-    onlyfans: false,
-    twitter: false,
-});
-
 const resolveAvatarSrc = (value?: string | null) => {
     if (typeof value === "string") {
         const trimmed = value.trim();
@@ -313,12 +298,10 @@ const createDefaultFormState = (): InfluencerFormState => ({
     prompt_template: "",
     influencer_agent_id_third_part: "",
     bio_json: createDefaultPersonaProfile(),
-    social_connections: createDefaultSocialConnections(),
 });
 
 function createFormStateFromInfluencer(influencer: InfluencerDataModel): InfluencerFormState {
     const { firstName, lastName } = splitName(influencer.name);
-    const incomingSocial = influencer.social_connections ?? createDefaultSocialConnections();
     const normalizedAvatar = (influencer.img ?? "").trim();
     const avatarUrl = normalizedAvatar && normalizedAvatar !== defaultAvatar ? normalizedAvatar : "";
     return {
@@ -334,12 +317,6 @@ function createFormStateFromInfluencer(influencer: InfluencerDataModel): Influen
         prompt_template: influencer.prompt_template ?? "",
         influencer_agent_id_third_part: influencer.influencer_agent_id_third_part ?? "",
         bio_json: extractPersonaProfile(influencer.bio_json ?? ""),
-        social_connections: {
-            instagram: incomingSocial.instagram ?? false,
-            facebook: incomingSocial.facebook ?? false,
-            onlyfans: incomingSocial.onlyfans ?? false,
-            twitter: incomingSocial.twitter ?? false,
-        },
     };
 }
 
@@ -515,7 +492,6 @@ const CreateInfluencer: React.FC = () => {
             prompt_template: formState.prompt_template || existing?.prompt_template || "",
             influencer_agent_id_third_part: thirdPartyAgentId,
             bio_json: personaProfileToJson(formState.bio_json),
-            social_connections: { ...formState.social_connections },
             daily_scripts: existing?.daily_scripts ?? [],
         };
         const isNewInfluencer = selectedId === "new" || !existing;
