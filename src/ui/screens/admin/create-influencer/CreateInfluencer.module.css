@@ -434,6 +434,13 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.tag:hover {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.5);
+    color: #ffb3b3;
 }
 
 .tag-placeholder {

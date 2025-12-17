@@ -862,7 +862,7 @@ const CreateInfluencer: React.FC = () => {
                                     value={formState.bio_json.tone}
                                     onChange={handlePersonaFieldChange("tone")}
                                     placeholder="Direct and analytical with a hint of dry humor."
-                                    rows={10}
+                                    rows={5}
                                 />
                             </div>
                             <div className={styles["persona-grid"]}>
