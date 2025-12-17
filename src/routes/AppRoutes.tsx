@@ -44,10 +44,17 @@ const CreateInfluencer = lazy(
 const PromptEditorAdmin = lazy(
   () => import("@/ui/screens/admin/PromptEditorAdmin")
 );
+const HomePage = lazy(() => import("@/ui/screens/home-page/HomePage"));
+const InfluencerHome = lazy(
+  () => import("@/ui/screens/home-page/InfluencerHome")
+);
+const IntencionInfluencerHome = lazy(
+  () => import("@/ui/screens/home-page/IntencionInfluencerHome")
+);
 
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
-    { path: "*", element: <InfluencerProfileScreen /> },
+    { path: "*", element: <HomePage /> },
     { path: "/:username", element: <InfluencerProfileScreen /> },
     { path: "/test-buttons", element: <ButtonsTestPage /> },
     { path: "/update-profile", element: <UpdateProfile /> },
@@ -61,6 +68,11 @@ function AppRoutes() {
     },
     { path: "/thank-you", element: <ThankYouScreen /> },
     { path: "/profile-survey-form", element: <ProfileSurveyForm /> },
+    { path: "/influencer-home", element: <InfluencerHome /> },
+    {
+      path: "/intencion-influencer-home",
+      element: <IntencionInfluencerHome />,
+    },
   ];
 
   const guestRoutes: { path: string; element: JSX.Element }[] = [

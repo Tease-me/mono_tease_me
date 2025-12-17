@@ -42,8 +42,10 @@ const ProfileMedia: React.FC<ProfileMediaProps> = ({
 
     useEffect(() => {
         if (showVideo && videoRef.current) {
+            videoRef.current.load();
             videoRef.current.play().catch((err) => {
                 console.warn('Autoplay failed:', err);
+
             });
         }
     }, [showVideo]);
@@ -55,7 +57,7 @@ const ProfileMedia: React.FC<ProfileMediaProps> = ({
     return (<div {...restProps} className={clsx(styles["profile-container"], styles[size], active && styles["active"], showHearts && styles["hearts"], restProps.className)} >
         <div className={styles["profile-media-container"]}>
             {showVideo ? (
-                <video autoPlay loop muted playsInline ref={videoRef} className={styles["profile-media"]}>
+                <video key={videoSrc} autoPlay loop muted playsInline ref={videoRef} className={styles["profile-media"]}>
                     <source src={videoSrc} type="video/mp4" />
                     Your browser doesn't support video.{" "}
                     <img

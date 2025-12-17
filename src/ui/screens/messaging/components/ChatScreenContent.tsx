@@ -35,35 +35,35 @@ const isCallChannel = (message: Message) => {
 };
 
 const mergeCallMessages = (messageList: Message[]): DisplayMessage[] => {
-  const merged: DisplayMessage[] = [];
-  let currentCallGroup: CallMessageGroup | null = null;
+    const merged: DisplayMessage[] = [];
+    let currentCallGroup: CallMessageGroup | null = null;
 
-  messageList.forEach((message) => {
-    if (isCallChannel(message)) {
-      const id = message.callId || `call-${message.id}`;
-      const needsNew = !currentCallGroup || currentCallGroup.id !== id;
+    messageList.forEach((message) => {
+        if (isCallChannel(message)) {
+            const id = message.callId || `call-${message.id}`;
+            const needsNew = !currentCallGroup || currentCallGroup.id !== id;
 
-      if (needsNew) {
-        currentCallGroup = {
-          id,
-          sender: "sent",
-          time: message.time,
-          messages: [],
-          type: "call-group",
-        };
-        merged.push(currentCallGroup);
-      }
+            if (needsNew) {
+                currentCallGroup = {
+                    id,
+                    sender: "sent",
+                    time: message.time,
+                    messages: [],
+                    type: "call-group",
+                };
+                merged.push(currentCallGroup);
+            }
 
-      currentCallGroup!.messages.push(message);
-      currentCallGroup!.time = message.time;
-      return;
-    }
+            currentCallGroup!.messages.push(message);
+            currentCallGroup!.time = message.time;
+            return;
+        }
 
-    currentCallGroup = null;
-    merged.push(message);
-  });
+        currentCallGroup = null;
+        merged.push(message);
+    });
 
-  return merged;
+    return merged;
 };
 
 const MessagesList = React.memo(({ messages, typing, messagesEndRef, influencerName }: { messages: DisplayMessage[]; typing: boolean; messagesEndRef: React.RefObject<HTMLDivElement | null>; influencerName?: string; }) => {
@@ -186,6 +186,17 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
+
+    //Load call-log 5 seconds after disconnecting the call  
+    useEffect(() => {
+        if ((status === "disconnected" || status === "idle") && chatId) {
+            const t = setTimeout(() => {
+                fetchMessages(chatId, 1);
+            }, 10000);
+            return () => clearTimeout(t);
+        }
+    }, [status, chatId]);
+
 
     function connectChat(influencerId: string) {
         const access_token = storage.get(LocalStorageKeys.AccessToken);
@@ -322,7 +333,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
     const onCall = () => {
         startConversation();
-        
+
         setOpenWelcomeCallModal(true);
         // if (!id) {
         //     navigate("/voice", {

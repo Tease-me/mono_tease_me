@@ -5,9 +5,10 @@ import teaseMeLogoDark from "@/assets/logos/LogoTeaseMeDarkMode.svg";
 import teaseMeIcon from "@/assets/logos/3D-IconTeaseMe-Light.svg";
 import TeaseMeMonoLogo from "@/assets/logos/Flat-LogoTeaseMe-mono-currentColor.svg?react";
 import TeaseMeMonoLipsOnly from "@/assets/logos/Flat-IconTeaseMe-LipsOnly-mono-black.svg?react";
+import TeaseMeMonoLipsOnlyStraight from "@/assets/logos/Flat-IconTeaseMe-LipChat-mono-default.svg?react";
 
 import clsx from 'clsx';
-type VariantType = 'full' | 'icon-only' | 'mono-full' | 'mono-lips-only' | 'full-dark' | 'icon-only-dark';
+type VariantType = 'full' | 'icon-only' | 'mono-full' | 'mono-lips-only' | 'full-dark' | 'icon-only-dark' | 'mono-lips-straight';
 
 interface TeaseMeLogoProps extends React.HTMLAttributes<HTMLDivElement> {
     size?: 'xsmall' | 'small' | 'medium' | 'large' | 'xlarge';
@@ -21,7 +22,8 @@ const TeaseMeLogo: React.FC<TeaseMeLogoProps> = ({ size = "medium", variant = 'f
         'full-dark': teaseMeLogoDark,
         'icon-only-dark': teaseMeIcon,
         'mono-full': <TeaseMeMonoLogo />,
-        'mono-lips-only': <TeaseMeMonoLipsOnly />
+        'mono-lips-only': <TeaseMeMonoLipsOnly />,
+        'mono-lips-straight': <TeaseMeMonoLipsOnlyStraight />
     };
 
     if (React.isValidElement(variantIcon[variant])) {

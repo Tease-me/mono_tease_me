@@ -1,166 +1,308 @@
-import React from "react";
-import styles from "./../ProfileSurvey.module.css";
+import React, { useEffect, useMemo, useState } from "react";
+import { Modal } from "@/ui/components/modals/Modal";
+import SocialSelectorButton from "@/ui/components/inputs/buttons/SocialSelectorButton";
+import styles from "./SocialMediaStep.module.css"
+import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
+import ValidationPill from "@/ui/components/inputs/buttons/ValidationPill";
+
+import igWhite from "@/assets/svg/iconSocialInstagramWhite.svg";
+import igRed from "@/assets/svg/iconSocialInstagramRed.svg";
+import tiktokWhite from "@/assets/svg/iconSocialTiktTokWhite.svg";
+import tiktokRed from "@/assets/svg/iconSocialTiktTokRed.svg";
+import snapWhite from "@/assets/svg/iconSocialSnapChatWhite.svg";
+import snapRed from "@/assets/svg/iconSocialSnapChatRed.svg";
+import telegramWhite from "@/assets/svg/iconSocialTelegramWhite.svg";
+import telegramRed from "@/assets/svg/iconSocialTelegramRed.svg";
+import xWhite from "@/assets/svg/iconSocialXWhite.svg";
+import xRed from "@/assets/svg/iconSocialXRed.svg";
+import onlyfansWhite from "@/assets/svg/iconSocialOnlyFansWhite.svg";
+import onlyfansRed from "@/assets/svg/iconSocialOnlyFansRed.svg";
+import whatsappWhite from "@/assets/svg/iconSocialWhatsAppWhite.svg";
+import whatsappRed from "@/assets/svg/iconSocialWhatsAppRed.svg";
+import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
+
+
+
+
+type SocialId =
+  | "instagram"
+  | "tiktok"
+  | "snapchat"
+  | "telegram"
+  | "x"
+  | "onlyfans"
+  | "whatsapp";
+
+interface SocialPlatform {
+  id: SocialId;
+  label: string;
+  icon: string;
+  iconError: string;
+  placeholder: string;
+}
 
 interface SocialMediaStepProps {
   answers: Record<string, any>;
   updateAnswer: (key: string, value: any) => void;
   socialError: string | null;
-  onVerifyInstagram: () => void;
-  onVerifyTwitter: () => void;
-  instagramVerifying: boolean;
+  onVerifySocial?: (platform: SocialId, handle: string) => Promise<void> | void;
+  verifyingSocial?: Record<string, boolean>;
 }
+
+const platforms: SocialPlatform[] = [
+  { id: "instagram", label: "Instagram", icon: igWhite, iconError: igRed, placeholder: "username" },
+  { id: "tiktok", label: "TikTok", icon: tiktokWhite, iconError: tiktokRed, placeholder: "username" },
+  { id: "snapchat", label: "SnapChat", icon: snapWhite, iconError: snapRed, placeholder: "username" },
+  { id: "telegram", label: "Telegram", icon: telegramWhite, iconError: telegramRed, placeholder: "handle" },
+  { id: "x", label: "X", icon: xWhite, iconError: xRed, placeholder: "username" },
+  { id: "onlyfans", label: "Only Fans", icon: onlyfansWhite, iconError: onlyfansRed, placeholder: "username" },
+  { id: "whatsapp", label: "Whatsapp", icon: whatsappWhite, iconError: whatsappRed, placeholder: "phone or wa.me/number" },
+];
+
+
+const handleKey = (id: SocialId) => `social_${id}`;
+const followerKey = (id: SocialId) => `social_${id}_followers`;
+const verifiedKey = (id: SocialId) => `social_${id}_verified`;
+const errorKey = (id: SocialId) => `social_${id}_verify_error`;
+const connectable = new Set<SocialId>(["instagram", "x"]);
+const parseFollowers = (value: string) => {
+  const num = Number(value);
+  return Number.isFinite(num) && num >= 0 ? num : 0;
+};
+
 
 const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
   answers,
   updateAnswer,
   socialError,
-  onVerifyInstagram,
-  onVerifyTwitter,
-  instagramVerifying,
+  onVerifySocial,
+  verifyingSocial,
 }) => {
+  const [openId, setOpenId] = useState<SocialId | null>(null);
+  const [localHandle, setLocalHandle] = useState("");
+  const [localFollowers, setLocalFollowers] = useState("");
+
+  const selected = useMemo<string[]>(
+    () => (Array.isArray(answers["social_selected_platforms"]) ? answers["social_selected_platforms"] : []),
+    [answers]
+  );
+
+  const stateFor = (id: SocialId): "idle" | "selected" | "error" => {
+    if (answers[errorKey(id)]) return "error";
+    if (answers[verifiedKey(id)]) return "selected";
+    if (answers[handleKey(id)]) return "selected";
+    if (selected.includes(id)) return "selected";
+    return "idle";
+  };
+
+  const openModal = (platform: SocialPlatform) => {
+    setOpenId(platform.id);
+    setLocalHandle(answers[handleKey(platform.id)] || "");
+    const followersVal = answers[followerKey(platform.id)];
+    setLocalFollowers(
+      followersVal === 0 || followersVal ? String(followersVal) : ""
+    );
+  };
+
+  const saveSelection = (id: SocialId) => {
+    if (!selected.includes(id)) {
+      updateAnswer("social_selected_platforms", [...selected, id]);
+    }
+  };
+
+  const removeSelection = (id: SocialId) => {
+    if (selected.includes(id)) {
+      updateAnswer(
+        "social_selected_platforms",
+        selected.filter((item) => item !== id)
+      );
+    }
+  };
+
+  const saveManualAndClose = () => {
+    if (!openId) return;
+    const trimmedHandle = localHandle.trim();
+    const parsedFollowers = parseFollowers(localFollowers);
+
+    updateAnswer(handleKey(openId), trimmedHandle);
+    updateAnswer(followerKey(openId), parsedFollowers);
+    updateAnswer(verifiedKey(openId), false);
+
+    if (!trimmedHandle) {
+      removeSelection(openId);
+      updateAnswer(errorKey(openId), "Please enter your handle before continuing.");
+      return;
+    }
+
+    updateAnswer(errorKey(openId), null);
+    saveSelection(openId);
+    setOpenId(null);
+  };
+
+  const handleConnect = async () => {
+    if (!openId) return;
+    if (verifyingSocial?.[openId]) return;
+    const canConnect = connectable.has(openId);
+    const trimmedHandle = localHandle.trim();
+    const parsedFollowers = parseFollowers(localFollowers);
+
+    updateAnswer(followerKey(openId), parsedFollowers);
+    updateAnswer(handleKey(openId), trimmedHandle);
+
+    if (!canConnect) {
+      saveManualAndClose();
+      return;
+    }
+
+    if (!trimmedHandle) {
+      removeSelection(openId);
+      updateAnswer(errorKey(openId), "Please enter your handle before connecting.");
+      return;
+    }
+
+    saveSelection(openId);
+    updateAnswer(errorKey(openId), null);
+    updateAnswer(verifiedKey(openId), false);
+
+    try {
+      if (onVerifySocial) {
+        await onVerifySocial(openId, trimmedHandle);
+      } else {
+        saveManualAndClose();
+        return;
+      }
+      // parent sets verified/error state; keep modal open to reflect status
+    } catch (err) {
+      console.error("Error connecting social", err);
+      updateAnswer(
+        errorKey(openId),
+        "Connection failed."
+      );
+    }
+  };
+
+  const modalStatus = (): "idle" | "verifying" | "verified" | "error" => {
+    if (!openId) return "idle";
+    if (verifyingSocial?.[openId]) return "verifying";
+    if (answers[verifiedKey(openId)]) return "verified";
+    if (answers[errorKey(openId)]) return "error";
+    return "idle";
+  };
+
+  useEffect(() => {
+    if (!openId) return;
+    const val = answers[followerKey(openId)];
+    if (val === undefined || val === null || val === "") return;
+    setLocalFollowers(String(val));
+  }, [openId, answers]);
+
+  const modalPlatform = openId ? platforms.find((p) => p.id === openId) : null;
+  const canConnect = openId ? connectable.has(openId) : false;
+  const status = modalStatus();
+  const rawError = openId ? answers[errorKey(openId)] : null;
+  const errorMsg = typeof rawError === "string" ? rawError : "Connection failed.";
+  const showPrimary = status !== "verified";
+  const primaryLabel =
+    status === "verifying"
+      ? "Connecting..."
+      : canConnect && status !== "error"
+        ? "Connect"
+        : "Submit";
+
   return (
-    <div className={styles.field}>
-      <label className={styles.label}>
-        Social Media <span className={styles.required}>*</span>
-      </label>
-      <p className={styles.subtitle}>
-        Add all social media where your fans can find you. At least one is
-        required.
-      </p>
-
-      {/* INSTAGRAM + VERIFY */}
-      <div className={styles.field}>
-        <label className={styles.label}>Instagram</label>
-
-        <div className={styles.inlineGroup}>
-          <input
-            className={styles.input}
-            placeholder="@username"
-            value={answers["social_instagram"] || ""}
-            onChange={(e) => {
-              updateAnswer("social_instagram", e.target.value);
-              updateAnswer("social_instagram_verified", false);
-              updateAnswer("social_instagram_verify_error", null);
-              updateAnswer("social_instagram_followers", null);
-            }}
+    <div>
+      <div className={styles.socialGrid}>
+        {platforms.map((platform) => (
+          <SocialSelectorButton
+            key={platform.id}
+            label={platform.label}
+            icon={platform.icon}
+            iconError={platform.iconError}
+            state={stateFor(platform.id)}
+            onClick={() => openModal(platform)}
           />
-
-          <button
-            type="button"
-            className={styles.verifyButton}
-            onClick={onVerifyInstagram}
-            disabled={!answers["social_instagram"] || instagramVerifying}
-          >
-            {instagramVerifying ? "Verifying..." : "Verify"}
-          </button>
-        </div>
-
-        {answers["social_instagram_verified"] && (
-          <div className={styles.subtitleSuccess}>
-            {answers["social_instagram_followers"]?.toLocaleString() || "0"}{" "}
-            followers
-          </div>
-        )}
-
-        {answers["social_instagram_verify_error"] && (
-          <div className={styles.error}>
-            {answers["social_instagram_verify_error"]}
-          </div>
-        )}
-      </div>
-
-      {/* RESTO IGUAL */}
-      <div className={styles.field}>
-        <label className={styles.label}>TikTok</label>
-        <input
-          className={styles.input}
-          placeholder="@username"
-          value={answers["social_tiktok"] || ""}
-          onChange={(e) => updateAnswer("social_tiktok", e.target.value)}
-        />
-      </div>
-
-      <div className={styles.field}>
-        <label className={styles.label}>OnlyFans</label>
-        <input
-          className={styles.input}
-          placeholder="@username"
-          value={answers["social_onlyfans"] || ""}
-          onChange={(e) => updateAnswer("social_onlyfans", e.target.value)}
-        />
-      </div>
-
-      <div className={styles.field}>
-        <label className={styles.label}>Snapchat</label>
-        <input
-          className={styles.input}
-          placeholder="@username"
-          value={answers["social_snapchat"] || ""}
-          onChange={(e) => updateAnswer("social_snapchat", e.target.value)}
-        />
-      </div>
-
-      <div className={styles.field}>
-        <label className={styles.label}>X (Twitter)</label>
-
-        <div className={styles.inlineGroup}>
-          <input
-            className={styles.input}
-            placeholder="@username"
-            value={answers["social_x"] || ""}
-            onChange={(e) => {
-              updateAnswer("social_x", e.target.value);
-              updateAnswer("social_twitter_verified", false);
-              updateAnswer("social_twitter_verify_error", null);
-              updateAnswer("social_twitter_followers", null);
-            }}
-          />
-
-          <button
-            type="button"
-            className={styles.verifyButton}
-            onClick={onVerifyTwitter}
-            disabled={!answers["social_x"] || instagramVerifying}
-          >
-            {instagramVerifying ? "Verifying..." : "Verify"}
-          </button>
-        </div>
-
-        {answers["social_twitter_verified"] && (
-          <div className={styles.subtitleSuccess}>
-            {answers["social_twitter_followers"]?.toLocaleString() || "0"}{" "}
-            followers
-          </div>
-        )}
-
-        {answers["social_twitter_verify_error"] && (
-          <div className={styles.error}>
-            {answers["social_twitter_verify_error"]}
-          </div>
-        )}
-      </div>
-
-      <div className={styles.field}>
-        <label className={styles.label}>Telegram</label>
-        <input
-          className={styles.input}
-          placeholder="@username"
-          value={answers["social_telegram"] || ""}
-          onChange={(e) => updateAnswer("social_telegram", e.target.value)}
-        />
-      </div>
-
-      <div className={styles.field}>
-        <label className={styles.label}>WhatsApp</label>
-        <input
-          className={styles.input}
-          placeholder="Phone or link"
-          value={answers["social_whatsapp"] || ""}
-          onChange={(e) => updateAnswer("social_whatsapp", e.target.value)}
-        />
+        ))}
       </div>
 
       {socialError && <div className={styles.error}>{socialError}</div>}
+
+      <Modal
+        isOpen={Boolean(openId)}
+        onClose={() => setOpenId(null)}
+        size="sm"
+        ariaLabel="Add social"
+        className={styles.modal}
+      >
+        {modalPlatform && (
+          <div className={styles.modalCard}>
+            <div className={styles.modalHeader}>
+              {/*
+
+              <div className={styles.modalTitle}>
+                <img src={modalPlatform.icon} alt="" className={styles.modalIcon} />
+                <strong>{modalPlatform.label}</strong>
+              </div> 
+               */}
+              <button className={styles.closeButton} onClick={() => setOpenId(null)}>×</button>
+            </div>
+
+
+            <div className={styles.inputGroup}>
+              <label className={styles.inputLabel}>Handle</label>
+              <TextInput
+                value={localHandle}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setLocalHandle(e.target.value)
+                }
+                placeholder={modalPlatform.placeholder}
+                className={styles.textInput}
+              />
+            </div>
+
+            <div className={styles.inputGroup}>
+              <label className={styles.inputLabel}>Follower Count</label>
+              <TextInput
+                type="number"
+                value={localFollowers}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setLocalFollowers(e.target.value)
+                }
+                placeholder="Followers"
+                className={styles.textInput}
+              />
+            </div>
+
+            <div className={styles.modalActions}>
+              {showPrimary && (
+                <PrimaryButton
+                  className={`${styles.submitButton} ${status === "verifying" ? styles.disabled : ""}`}
+                  onClick={status === "error" || !canConnect ? saveManualAndClose : handleConnect}
+                  aria-disabled={status === "verifying"}
+                  text={primaryLabel}
+                />
+              )}
+
+              {status === "error" && errorMsg && (
+                <ValidationPill variant="error" className={styles.validationPill}>
+                  {errorMsg}
+                </ValidationPill>
+              )}
+
+              {status === "verified" && (
+                <ValidationPill variant="success" className={styles.validationPill}>
+                  Verified
+                </ValidationPill>
+              )}
+
+              {status === "error" && (
+                <ValidationPill variant="warning" className={styles.validationPill}>
+                  Please enter manually
+                </ValidationPill>
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
