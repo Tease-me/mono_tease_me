@@ -58,7 +58,7 @@ function AppRoutes() {
     { path: "/:username", element: <InfluencerProfileScreen /> },
     { path: "/test-buttons", element: <ButtonsTestPage /> },
     { path: "/update-profile", element: <UpdateProfile /> },
-    { path: "/landing-page", element: <LandingPage /> },
+    { path: "/join", element: <LandingPage /> },
     { path: "/welcome", element: <InfluencerWelcome /> },
     { path: "/income-dialog", element: <IncomeDialogStep01 /> },
     { path: "/profile-survey", element: <ProfileSurvey /> },
