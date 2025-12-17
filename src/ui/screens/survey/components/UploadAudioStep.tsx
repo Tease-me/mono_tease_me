@@ -342,6 +342,10 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
                 <img className={styles.tipIcon} src={iconCheckCircle} alt="" />
                 Speak naturally
               </li>
+              <li className={`${styles.tip} ${styles.tipGood}`}>
+                <img className={styles.tipIcon} src={iconCheckCircle} alt="" />
+                15 seconds minimum
+              </li>
               <li className={`${styles.tip} ${styles.tipBad}`}>
                 <img className={styles.tipIcon} src={iconCross} alt="" />
                 Background noise
@@ -440,17 +444,17 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
             }}
           />
 
-      {loadingList && <div>Loading audio files…</div>}
+          {loadingList && <div>Loading audio files…</div>}
 
-      {!loadingList && files.length === 0 && (
-        <div>No audio files uploaded yet.</div>
-      )}
+          {!loadingList && files.length === 0 && (
+            <div>No audio files uploaded yet.</div>
+          )}
 
-      {!loadingList && filesNewestFirst.length > 0 && (
-        <ul style={{ listStyle: "none", padding: 0, margin: "16px 0 0" }}>
-          {filesNewestFirst.map((file) => (
-            <li
-              key={file.key ?? file.download_url}
+          {!loadingList && filesNewestFirst.length > 0 && (
+            <ul style={{ listStyle: "none", padding: 0, margin: "16px 0 0" }}>
+              {filesNewestFirst.map((file) => (
+                <li
+                  key={file.key ?? file.download_url}
                   style={{
                     padding: "12px 0",
                     borderBottom: "1px solid rgba(255,255,255,0.12)",
