@@ -218,6 +218,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
     if (isRecording) return;
     if (!navigator.mediaDevices?.getUserMedia || !isMediaRecorderSupported) {
       setAudioError("Recording not supported in this browser.");
+      console.error("Recording not supported in this browser.");
       return;
     }
     // reset recorder state up front so UI flips immediately
@@ -259,6 +260,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
         const noData = blob.size === 0 || chunksRef.current.length === 0;
         if (noData) {
           setAudioError("No audio captured. Please try recording again.");
+          console.error("No audio captured. Please try recording again.");
         } else {
           setAudioError(null);
           const file = new File([blob], "recording.webm", {
@@ -269,6 +271,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
         stream.getTracks().forEach((t) => t.stop());
         mediaStreamRef.current = null;
         setIsRecording(false);
+        onRecordingChange?.(false);
         if (timerRef.current) {
           window.clearInterval(timerRef.current);
           timerRef.current = null;
@@ -277,6 +280,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
 
       recorder.onerror = () => {
         setAudioError("Recording failed. Please try again.");
+        console.error("No audio captured. Please try recording again.");
         setIsRecording(false);
         stream.getTracks().forEach((t) => t.stop());
         mediaStreamRef.current = null;
@@ -289,9 +293,14 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
 
       recorder.start();
       recorderRef.current = recorder;
-    } catch (err) {
-      console.error("Recording failed", err);
-      setAudioError("Unable to access microphone. Check permissions.");
+    } catch (err: any) {
+      console.error("Recording failed (getUserMedia/MediaRecorder)", err);
+      const name = err?.name || "";
+      if (name === "NotAllowedError" || name === "NotFoundError") {
+        setAudioError("Microphone is blocked or unavailable. Please allow mic access and try again.");
+      } else {
+        setAudioError("Unable to start recording. Please try again.");
+      }
       setIsRecording(false);
       onRecordingChange?.(false);
       if (timerRef.current) {

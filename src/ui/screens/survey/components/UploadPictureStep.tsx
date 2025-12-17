@@ -115,7 +115,7 @@ const UploadPictureStep: React.FC<Props> = ({
     */}
 
     {/* PREVIEW SECTION  :) */}
-        <label className={surveyStyles.label}>
+    <label className={surveyStyles.label}>
       Preview
     </label>
 
