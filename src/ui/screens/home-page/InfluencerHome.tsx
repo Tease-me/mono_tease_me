@@ -35,7 +35,6 @@ const InfluencerHome: React.FC = () => {
         <TeaseMeLogo variant="full-dark" size="medium" />
       </header>
 
-
       {/* Profile Card */}
       <section className="influencer-content-inner">
         {/* Main Content */}

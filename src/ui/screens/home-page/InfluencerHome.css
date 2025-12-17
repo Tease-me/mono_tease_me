@@ -28,13 +28,7 @@
 }
 
 /* Main Content */
-.influencer-content {
-  position: absolute;
-  left: 29px;
-  top: 176px;
-  width: 344px;
-  z-index: 5;
-}
+
 
 .influencer-title {
   font-family: "Abril Fatface", serif;
@@ -325,25 +319,3 @@
   z-index: 1;
 }
 
-/* Responsive */
-@media (min-width: 430px) {
-  .influencer-home {
-    display: flex;
-    justify-content: center;
-  }
-
-  .influencer-header,
-  .influencer-content,
-  .influencer-profile-card,
-  .influencer-features,
-  .influencer-talk-button-container,
-  .influencer-discover-section {
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
-  .influencer-home::after {
-    left: 50%;
-    transform: translateX(-50%);
-  }
-}
