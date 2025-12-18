@@ -377,8 +377,7 @@ export default function RelationshipDashboard() {
     if (!ok) setSelectedInfluencer(rels[0].influencer_id);
   }, [rels, selectedInfluencer]);
 
-  // Init editor when selection changes
-  useEffect(() => {
+  const hydrateEditFromSelection = () => {
     if (!selectedRel) {
       setEdit(null);
       return;
@@ -397,6 +396,11 @@ export default function RelationshipDashboard() {
       girlfriend_confirmed: selectedRel.girlfriend_confirmed,
     });
     setSaveError(null);
+  };
+
+  // Init editor when selection changes
+  useEffect(() => {
+    hydrateEditFromSelection();
   }, [selectedRel]);
 
   // Refresh helper
@@ -410,12 +414,33 @@ export default function RelationshipDashboard() {
     }
   };
 
+  const isDirty = useMemo(() => {
+    if (!selectedRel || !edit) return false;
+    const fields: Array<keyof RelPatch> = [
+      "state",
+      "stage_points",
+      "trust",
+      "closeness",
+      "attraction",
+      "safety",
+      "sentiment_score",
+      "exclusive_agreed",
+      "girlfriend_confirmed",
+    ];
+    return fields.some((key) => {
+      const currentVal = (selectedRel as any)[key];
+      const editVal = (edit as any)[key];
+      return currentVal !== editVal;
+    });
+  }, [edit, selectedRel]);
+
   // Live refresh
   useEffect(() => {
     if (!selectedUserId || !selectedInfluencer) return;
+    if (isDirty) return; // don't poll when there are unsaved changes
     const interval = setInterval(() => refreshSelected(), 5000);
     return () => clearInterval(interval);
-  }, [selectedUserId, selectedInfluencer]);
+  }, [selectedUserId, selectedInfluencer, isDirty]);
 
   // Save edits (AdminServices PATCH)
   const saveEdits = async () => {
@@ -430,6 +455,23 @@ export default function RelationshipDashboard() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const resetEdits = () => {
+    if (!selectedRel) return;
+    setEdit({
+      user_id: selectedRel.user_id,
+      influencer_id: selectedRel.influencer_id,
+      state: "STRANGERS",
+      stage_points: 0,
+      trust: 0,
+      closeness: 0,
+      attraction: 0,
+      safety: 0,
+      sentiment_score: 0,
+      exclusive_agreed: false,
+      girlfriend_confirmed: false,
+    });
   };
 
   const badge = stateBadge(selectedRel?.state);
@@ -770,23 +812,59 @@ export default function RelationshipDashboard() {
                   </span>
                 </label>
 
-                <button
-                  onClick={saveEdits}
+                {isDirty && (
+                  <Pill
+                    tone={{
+                      bg: "rgba(245,158,11,0.12)",
+                      fg: "#fcd34d",
+                      border: "rgba(245,158,11,0.4)",
+                    }}
+                  >
+                    Unsaved changes
+                  </Pill>
+                )}
+
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <button
+                  onClick={resetEdits}
                   disabled={saving}
                   style={{
                     padding: "10px 12px",
                     borderRadius: 12,
                     border: "1px solid rgba(255,255,255,0.12)",
-                    background: saving
-                      ? "rgba(255,255,255,0.05)"
-                      : "rgba(255,255,255,0.10)",
-                    color: "rgba(255,255,255,0.92)",
-                    fontWeight: 900,
+                    background: "rgba(255,255,255,0.08)",
+                    color: "rgba(255,255,255,0.82)",
+                    fontWeight: 800,
                     cursor: saving ? "default" : "pointer",
                   }}
                 >
-                  {saving ? "Saving…" : "Save"}
+                  Reset
                 </button>
+                  <button
+                    onClick={saveEdits}
+                    disabled={saving}
+                    style={{
+                      padding: "10px 12px",
+                      borderRadius: 12,
+                      border: isDirty
+                        ? "1px solid rgba(245,158,11,0.6)"
+                        : "1px solid rgba(255,255,255,0.12)",
+                      background: saving
+                        ? "rgba(255,255,255,0.05)"
+                        : isDirty
+                        ? "rgba(245,158,11,0.18)"
+                        : "rgba(255,255,255,0.10)",
+                      color: "rgba(255,255,255,0.92)",
+                      fontWeight: 900,
+                      cursor: saving ? "default" : "pointer",
+                      boxShadow: isDirty
+                        ? "0 0 0 1px rgba(245,158,11,0.3)"
+                        : "none",
+                    }}
+                  >
+                    {saving ? "Saving…" : isDirty ? "Save changes" : "Save"}
+                  </button>
+                </div>
 
                 {saveError && (
                   <Pill

@@ -45,7 +45,7 @@ export default function WelcomeScreen({ influencer }: WelcomeScreenProps) {
   const handleSignInClick = () => {
     navigate("/login");
   };
-
+  {/*}
   const handleTryClick = () => {
     audioRef.current.play();
     setOnTryClicked(true)
@@ -54,6 +54,7 @@ export default function WelcomeScreen({ influencer }: WelcomeScreenProps) {
       audioRef.current.currentTime = 0;
     }, 60000);
   };
+  */}
 
   const handlePickUpCall = () => {
     audioRef.current.pause();
@@ -101,7 +102,10 @@ export default function WelcomeScreen({ influencer }: WelcomeScreenProps) {
           <DividerWithLabel text="or" />
           <div className={styles["buttons-container"]}>
             {!isFirstTime ? <PrimaryButton text="Sign in with email" className={styles["sign-in-button"]} onClick={handleSignInClick} /> :
-              <PrimaryButton text="Talk to me Now" onClick={handleTryClick} />}
+              <PrimaryButton text="Talk to me Now" onClick={() => {
+                startConversation();
+                setOnTryClicked(true);
+              }} />}
             <p className={styles["signup-text"]}>
               Already have an account?{" "}
               <span
@@ -113,7 +117,7 @@ export default function WelcomeScreen({ influencer }: WelcomeScreenProps) {
             </p>
           </div>
         </div>}
-        <WelcomeCallModal isOpen={status === "connected"} onClose={() => { setOnTryClicked(false) }} influencer={influencer} status={status} stopConversation={stopConversation} />
+        <WelcomeCallModal isOpen={onTryClicked || status === "connected"} onClose={() => { setOnTryClicked(false) }} influencer={influencer} status={status} stopConversation={stopConversation} />
       </CenteredLayout>
     </BackgroundGradient>
   );
