@@ -425,12 +425,11 @@
 .te-content-inner {
 
   display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
+  grid-template-columns: 1fr;
+  gap: 1rem;
   position: absolute;
   max-width: 80rem;
   padding: 2rem;
-
   z-index: 1;
 }
 
@@ -480,9 +479,11 @@
 
 }
 
-.te-what-you-get-card-row02 {color: rgba(255, 255, 255, 0.70);
-font-family: "DM Sans";
-font-size: 1rem;}
+.te-what-you-get-card-row02 {
+  color: rgba(255, 255, 255, 0.70);
+  font-family: "DM Sans";
+  font-size: 1rem;
+}
 
 
 
@@ -1119,11 +1120,15 @@ font-size: 1rem;}
   .influencer-expired .influencer-col02 {
     justify-content: center;
   }
-.te-content-inner {
 
-  display: grid;
-    grid-template-columns: 1fr 1fr 1fr;}
-.te-what-you-get-section {
-  height: 20rem;}
+  .te-content-inner {
+
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .te-what-you-get-section {
+    height: 20rem;
+  }
 
 }
