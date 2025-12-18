@@ -27,7 +27,7 @@ const UploadPictureStep: React.FC<Props> = ({
   inputRef,
   name
 }) => (
-  <div className={styles.UploadPictureStep}>
+  <div className={styles.uploadPictureStep}>
     <p className={surveyStyles.surveySubtitle}>Upload your best clear profile photo. This will be used as TeaseMe profile photo.</p><br></br>
     <label className={surveyStyles.label}>
       Photo Tips
@@ -115,34 +115,35 @@ const UploadPictureStep: React.FC<Props> = ({
     */}
 
     {/* PREVIEW SECTION  :) */}
-    <label className={surveyStyles.label}>
-      Preview
-    </label>
 
-    <div className={styles.previewCard}>
-      <div className={styles.previewLeft}>
-        <ProfileMedia
-          className={styles.previewAvatar}
-          size="medium"
-          active
-          mediaType="image"
-          imageSrc={pictureUrl || defaultProfilePic}
-          altText="Preview photo"
-        />
-      </div>
 
-      <div className={styles.previewRight}>
-        <h2 className={styles.previewTitle}>{name}</h2>
-        <p className={surveyStyles.surveySubtitle}>00:15</p>
+    <div className={styles.previewSection}>
+      <label className={styles.label}>Preview</label>
+      <div className={styles.previewCard}>
 
-        <div className={styles.previewButtons}>
-          <IconButton leftIcon={<SvgPack.Speaker />} color='black' />
-          <IconButton leftIcon={<SvgPack.Voice />} color='black' />
-          <IconButton leftIcon={<SvgPack.Call />} color='red' />
+        <div className={styles.previewLeft}>
+          <ProfileMedia
+            className={styles.previewAvatar}
+            size="medium"
+            active
+            mediaType="image"
+            imageSrc={pictureUrl || defaultProfilePic}
+            altText="Preview photo"
+          />
+        </div>
+
+        <div className={styles.previewRight}>
+          <h2 className={styles.previewTitle}>{name}</h2>
+          <p className={surveyStyles.surveySubtitle}>00:15</p>
+
+          <div className={styles.previewButtons}>
+            <IconButton leftIcon={<SvgPack.Speaker />} color='black' />
+            <IconButton leftIcon={<SvgPack.Voice />} color='black' />
+            <IconButton leftIcon={<SvgPack.Call />} color='red' />
+          </div>
         </div>
       </div>
     </div>
-
 
     {/*}
     {uploading && <div className={surveyStyles.subtitle}>Uploading…</div>}
