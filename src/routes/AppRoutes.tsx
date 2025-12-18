@@ -48,6 +48,9 @@ const HomePage = lazy(() => import("@/ui/screens/home-page/HomePage"));
 const InfluencerHome = lazy(
   () => import("@/ui/screens/home-page/InfluencerHome")
 );
+const InfluencerHomeTrialExpired = lazy(
+  () => import("@/ui/screens/home-page/InfluencerHomeTrialExpired")
+);
 const IntencionInfluencerHome = lazy(
   () => import("@/ui/screens/home-page/IntencionInfluencerHome")
 );
@@ -69,6 +72,7 @@ function AppRoutes() {
     { path: "/thank-you", element: <ThankYouScreen /> },
     { path: "/profile-survey-form", element: <ProfileSurveyForm /> },
     { path: "/influencer-home", element: <InfluencerHome /> },
+    { path: "/influencer-home-expired", element: <InfluencerHomeTrialExpired /> },
     {
       path: "/intencion-influencer-home",
       element: <IntencionInfluencerHome />,
