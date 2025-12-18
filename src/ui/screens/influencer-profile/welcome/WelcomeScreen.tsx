@@ -45,7 +45,7 @@ export default function WelcomeScreen({ influencer }: WelcomeScreenProps) {
   const handleSignInClick = () => {
     navigate("/login");
   };
-
+  {/*}
   const handleTryClick = () => {
     audioRef.current.play();
     setOnTryClicked(true)
@@ -54,6 +54,7 @@ export default function WelcomeScreen({ influencer }: WelcomeScreenProps) {
       audioRef.current.currentTime = 0;
     }, 60000);
   };
+  */}
 
   const handlePickUpCall = () => {
     audioRef.current.pause();
