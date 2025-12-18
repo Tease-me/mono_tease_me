@@ -5,8 +5,8 @@ import { AuthContext } from '@/context/AuthContext';
 import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
 import { InfluencerRepo } from '@/data/repositories/InfluencerRepo';
 import WelcomeScreen from './welcome/WelcomeScreen';
-import InfluencerProfile from './profile/InfluencerProfile';
 import logger from '@/utils/logger';
+import BlockingLoader from '@/ui/components/loading/BlockingLoader';
 
 interface InfluencerProfileScreenProps { }
 
@@ -24,17 +24,28 @@ const InfluencerProfileScreen: React.FC<InfluencerProfileScreenProps> = ({ }) =>
             if (username) {
                 try {
                     const localInfluencer = await influencerRepo.getInfluencer(username)
+                    if (!localInfluencer) {
+                        navigate("/")
+                    }
                     setInfluencer(localInfluencer);
                 } catch (err) {
                     logger.error(err)
+                    navigate("/")
                 }
+            } else {
+                navigate("/")
             }
         })()
     }, [])
 
-    if (!influencer) navigate("/");
+    if(isSignedIn){
+        localStorage.setItem("selected_id", influencer?.id?.toString() || "");
+        navigate("/home")
+    }
 
-    return <>{!isSignedIn ? <WelcomeScreen influencer={influencer!} /> : <InfluencerProfile influencer={influencer!} />}</>;
+    if(!influencer) return <BlockingLoader/>
+
+    return <><WelcomeScreen influencer={influencer!} /></>;
 };
 
 export default InfluencerProfileScreen;
