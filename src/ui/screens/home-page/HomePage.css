@@ -381,7 +381,11 @@
 
 
 /* INFLUENCER TRIAL EXPIRED ***/
-.influencer-expired {overflow: scroll;}
+
+
+.influencer-expired {
+  overflow: scroll;
+}
 
 .influencer-expired .influencer-content-inner {
   display: grid;
@@ -404,12 +408,34 @@
   justify-content: flex-start;
 }
 
-.trial-expired {opacity: 0.4; filter: saturate(0.2);}
+.trial-expired {
+  opacity: 0.4;
+  filter: saturate(0.2);
+}
 
-.te-what-you-get-section {height: 20rem; position: relative;}
-.te-content-inner {position: absolute;width: 100%; padding: 2rem; outline: 1px solid orange; z-index: 1;}
+.te-what-you-get-section {
 
-.te-what-you-get {  position: relative;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 9rem;
+}
+
+.te-content-inner {
+
+  display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  position: absolute;
+  max-width: 80rem;
+  padding: 2rem;
+
+  z-index: 1;
+}
+
+.te-what-you-get {
+  position: relative;
   inset: 0;
   width: 100%;
   height: 100%;
@@ -421,9 +447,42 @@
   opacity: 0.9;
   pointer-events: none;
   mask-image: linear-gradient(0deg, transparent, black, transparent);
-  }
+}
 
 
+.te-what-you-get-card {
+  max-width: 24rem;
+  border-radius: 1rem;
+  background: linear-gradient(199deg, rgba(67, 11, 28, 0.70) 0.6%, rgba(29, 29, 29, 0.70) 23.33%, rgba(29, 29, 29, 0.70) 73.04%, rgba(54, 13, 26, 0.70) 99.08%);
+  box-shadow: -5px 11px 9px -3px rgba(255, 255, 255, 0.05) inset, -4px 5px 0 -4px rgba(255, 255, 255, 0.40) inset, 4px -4px 0 -3px rgba(255, 255, 255, 0.17) inset;
+  backdrop-filter: blur(20px);
+  padding: 1.3rem;
+}
+
+.te-what-you-get-card-row01 {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  align-items: center;
+}
+
+.te-icon img {
+  width: 3rem;
+}
+
+.te-what-you-get-card-row01 h2 {
+  color: #EF064E;
+  text-shadow: 1px 1px 0 #6E0022;
+  font-family: "DM Sans";
+  font-size: 1.1rem;
+  font-style: normal;
+  font-weight: 700;
+
+}
+
+.te-what-you-get-card-row02 {color: rgba(255, 255, 255, 0.70);
+font-family: "DM Sans";
+font-size: 1rem;}
 
 
 
@@ -1060,6 +1119,11 @@
   .influencer-expired .influencer-col02 {
     justify-content: center;
   }
+.te-content-inner {
 
+  display: grid;
+    grid-template-columns: 1fr 1fr 1fr;}
+.te-what-you-get-section {
+  height: 20rem;}
 
 }

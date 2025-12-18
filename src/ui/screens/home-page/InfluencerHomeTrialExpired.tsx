@@ -7,6 +7,12 @@ import imageProfile from "@/assets/image/imageProfile.jpg";
 import imageTeaseMeDark from "@/assets/image/iconTeaseMeDark.png";
 import bgWhatYouGet from "@/assets/image/bg-whatyouget.jpg";
 import bgWhatYouGet2x from "@/assets/image/bg-whatyouget@2x.jpg";
+import iconWhatYouGet01 from "@/assets/image/icon3dchat.png";
+import iconWhatYouGet012x from "@/assets/image/icon3dchat@2x.png";
+import iconWhatYouGet02 from "@/assets/image/icon3dLightning.png";
+import iconWhatYouGet022x from "@/assets/image/icon3dLightning@2x.png";
+import iconWhatYouGet03 from "@/assets/image/icon3dLocks.png";
+import iconWhatYouGet032x from "@/assets/image/icon3dLock@2x.png";
 import CallIcon from "@/assets/Call.svg?react";
 import "./HomePage.css";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
@@ -59,14 +65,13 @@ const InfluencerHome: React.FC = () => {
               </div>
             </div>
           </div>
-                </div>
+        </div>
         <div className="influencer-col02">
-            <h1 className="influencer-title">
+          <h1 className="influencer-title">
             Your trial has finished but {influencerName} is waiting for you.
           </h1>
           {/* Talk Now Button */}
           <div className="influencer-cta-button-row">
-
             <div className="influencer-talk-button-container">
               <PrimaryButton
                 text="Join her TeaseMe"
@@ -82,19 +87,59 @@ const InfluencerHome: React.FC = () => {
               <span>24/7</span>
               <span className="influencer-features-dot">•</span>
               <span>Personalised experience</span>
-            </p></div>
-
+            </p>
+          </div>
         </div>
-
-
       </section>
 
-<section className="te-what-you-get-section">
-  <div className="te-content-inner">www</div>
+      <section className="te-what-you-get-section">
+        <div className="te-content-inner">
+          {/* what you get card START*/}
+          <div className="te-what-you-get-card">
+            <div className="te-what-you-get-card-row01">
+              <div className="te-icon">
+                <img src="" alt="" srcSet={`${iconWhatYouGet01} 1x, ${iconWhatYouGet012x} 2x`} /></div>
+              <h2>Personalised Conversations</h2>
+            </div>
+            <div className="te-what-you-get-card-row02">
+              Ask anything — get a response that feels natural, fun, and
+              uniquely “them.”
+            </div>
+          </div>
+          {/* what you get card END*/}
+             {/* what you get card START*/}
+          <div className="te-what-you-get-card">
+            <div className="te-what-you-get-card-row01">
+              <div className="te-icon">
+                <img src="" alt="" srcSet={`${iconWhatYouGet02} 1x, ${iconWhatYouGet022x} 2x`} /></div>
+              <h2>Instant Replies, Anytime</h2>
+            </div>
+            <div className="te-what-you-get-card-row02">
+            No waiting. No messages lost. Always available when you want to chat.
+            </div>
+          </div>
+          {/* what you get card END*/}
+             {/* what you get card START*/}
+          <div className="te-what-you-get-card">
+            <div className="te-what-you-get-card-row01">
+              <div className="te-icon">
+                <img src="" alt="" srcSet={`${iconWhatYouGet03} 1x, ${iconWhatYouGet032x} 2x`} /></div>
+              <h2>Safe & Private Chats</h2>
+            </div>
+            <div className="te-what-you-get-card-row02">
+           The creator controls their AI persona — you control your experience.
+            </div>
+          </div>
+          {/* what you get card END*/}
+        </div>
 
-  <img src={bgWhatYouGet} srcSet={`${bgWhatYouGet} 1x, ${bgWhatYouGet2x} 2x`} alt="" className="te-what-you-get" />
-</section>
-
+        <img
+          src={bgWhatYouGet}
+          srcSet={`${bgWhatYouGet} 1x, ${bgWhatYouGet2x} 2x`}
+          alt=""
+          className="te-what-you-get"
+        />
+      </section>
 
       {/* Discover More Section */}
       <div className="influencer-discover-section">
@@ -110,7 +155,6 @@ const InfluencerHome: React.FC = () => {
         </h2>
 
         <div className="hp-footer-button-container">
-
           <PrimaryButton
             text="Search New Influencer"
             rightIcon={<SvgPack.ArrowRight />}
@@ -119,8 +163,6 @@ const InfluencerHome: React.FC = () => {
           />
         </div>
       </div>
-
-
     </div>
   );
 };
