@@ -103,7 +103,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     const login = async (email: string, password: string) => {
-        setLoadingAuth(true);
         try {
             const response = await authServices.login(email, password);
             if (response) {
@@ -122,9 +121,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 },
             });
             return false;
-        } finally {
-            setLoadingAuth(false);
-        }
+        }  
     };
 
     const logout = async (callback?: () => void) => {

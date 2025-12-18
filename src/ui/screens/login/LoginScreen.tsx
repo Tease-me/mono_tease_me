@@ -10,6 +10,7 @@ import OnBoardingTopNav from "@/ui/components/nav/OnBoardingTopNav";
 import FullWidthLayout from "@/ui/templates/FullWidthLayout";
 import SvgPack from "@/utils/SvgPack";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
+import ValidationPill from "@/ui/components/inputs/buttons/ValidationPill";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -33,14 +34,15 @@ export default function LoginScreen() {
       setErrors(newErrors);
       return;
     }
-
     try {
       const success = await login(email, password);
       if (success) {
         navigate("/home");
       }
-      setErrors({ general: "Registration Failed Plese Try Again Later" });
-    } catch (err) {
+      setErrors({ general: "Registration Failed. Please check your username or password." });
+    }
+    catch (err) {
+      setErrors({ general: "Registration Failed. Please check your username or password." });
       console.error(err);
     }
   };
@@ -84,7 +86,11 @@ export default function LoginScreen() {
           <CheckBox className={styles["check-box"]} checked={agree} onChange={handleOnAgreeChange}>
             Remember Me
           </CheckBox>
-          {errors.general && <span className={styles["error"]}>{errors.general}</span>}
+          {errors.general && (
+            <ValidationPill variant="error" className={styles["error-pill"]}>
+              {errors.general}
+            </ValidationPill>
+          )}
           <div className={styles["user-action-section"]}>
             <div className={styles["auth-buttons"]}>
               <PrimaryButton className={styles["btn-primary"]} text="Sign In" onClick={handleContinueClicked} />
