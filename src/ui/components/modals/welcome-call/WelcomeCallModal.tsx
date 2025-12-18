@@ -21,7 +21,7 @@ interface WelcomeCallModalProps {
     initalSecondsLeft?: number;
 }
 
-const WelcomeCallModal: React.FC<WelcomeCallModalProps> = ({ isOpen, onClose, influencer, status, stopConversation, initalSecondsLeft = 30 }) => {
+const WelcomeCallModal: React.FC<WelcomeCallModalProps> = ({ isOpen, onClose, influencer, status, stopConversation, initalSecondsLeft = 120 }) => {
     const [secondsLeft, setSecondsLeft] = useState<number>(initalSecondsLeft);
     const formatTime = (totalSeconds: number) => {
         const minutes = Math.floor(totalSeconds / 60);
