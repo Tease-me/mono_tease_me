@@ -39,6 +39,7 @@ export default function LoginScreen() {
       const success = await login(email, password);
       if (success) {
         navigate("/home");
+        return;
       }
       else{
       setErrors({ general: "Login Failed. Please check your username or password." });

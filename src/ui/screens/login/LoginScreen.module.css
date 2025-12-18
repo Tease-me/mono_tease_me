@@ -121,6 +121,12 @@
   }
 }
 
-.error-pill { 
-  align-self: flex-start; 
+.errorPill { 
+  align-self: center;
+}
+
+@media (min-width: 767px) {
+.errorPill { 
+  align-self: flex-end;
+}
 }
