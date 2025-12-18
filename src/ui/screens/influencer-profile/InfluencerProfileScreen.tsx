@@ -5,8 +5,8 @@ import { AuthContext } from '@/context/AuthContext';
 import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
 import { InfluencerRepo } from '@/data/repositories/InfluencerRepo';
 import WelcomeScreen from './welcome/WelcomeScreen';
-import InfluencerProfile from './profile/InfluencerProfile';
 import logger from '@/utils/logger';
+import HomeScreen from '../home/HomeScreen';
 
 interface InfluencerProfileScreenProps { }
 
@@ -38,7 +38,7 @@ const InfluencerProfileScreen: React.FC<InfluencerProfileScreenProps> = ({ }) =>
         })()
     }, [])
 
-    return <>{!isSignedIn ? <WelcomeScreen influencer={influencer!} /> : <InfluencerProfile influencer={influencer!} />}</>;
+    return <>{!isSignedIn ? <WelcomeScreen influencer={influencer!} /> : <HomeScreen chatInfluencerId={username} />}</>; 
 };
 
 export default InfluencerProfileScreen;

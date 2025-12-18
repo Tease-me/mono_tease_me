@@ -7,9 +7,9 @@ import ChatScreenContent from "../messaging/components/ChatScreenContent";
 // import WelcomeCallModal from "@/ui/components/modals/welcome-call/WelcomeCallModal";
 // import { AuthContext } from "@/context/AuthContext";
 
-export default function HomeScreen() {
+const  HomeScreen = ( {chatInfluencerId}: {chatInfluencerId?: string}) => {
   const storedId = localStorage.getItem("selected_id");
-  const initialId = storedId ? storedId : undefined
+  const initialId = chatInfluencerId? chatInfluencerId : (storedId ? storedId : undefined);
   const [id, setId] = useState<string | undefined>(initialId);
   const [showContent, setShowContent] = useState(true);
   const [showSidebar, setShowSidebar] = useState(true);
@@ -47,3 +47,5 @@ export default function HomeScreen() {
     </BackgroundGradient>
   );
 }
+
+export default HomeScreen;
