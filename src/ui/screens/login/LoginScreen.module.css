@@ -120,3 +120,7 @@
     width: calc(100% - 64px);
   }
 }
+
+.error-pill { 
+  align-self: flex-start; 
+}

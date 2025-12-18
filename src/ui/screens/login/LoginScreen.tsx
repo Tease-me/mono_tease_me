@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useEffect, useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BackgroundGradient from "../../templates/BackgroundGradient";
 import styles from "./LoginScreen.module.css";
@@ -22,7 +22,8 @@ export default function LoginScreen() {
 
   const navigate = useNavigate();
 
-  if (isSignedIn) navigate("/home");
+  useEffect(() => { if (isSignedIn) navigate("/home"); }, [isSignedIn, navigate]); 
+
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -39,10 +40,12 @@ export default function LoginScreen() {
       if (success) {
         navigate("/home");
       }
-      setErrors({ general: "Registration Failed. Please check your username or password." });
+      else{
+      setErrors({ general: "Login Failed. Please check your username or password." });
+      }
     }
     catch (err) {
-      setErrors({ general: "Registration Failed. Please check your username or password." });
+      setErrors({ general: "Login Failed. Please check your username or password." });
       console.error(err);
     }
   };
@@ -87,7 +90,7 @@ export default function LoginScreen() {
             Remember Me
           </CheckBox>
           {errors.general && (
-            <ValidationPill variant="error" className={styles["error-pill"]}>
+            <ValidationPill variant="error" className={styles["errorPill"]}>
               {errors.general}
             </ValidationPill>
           )}
