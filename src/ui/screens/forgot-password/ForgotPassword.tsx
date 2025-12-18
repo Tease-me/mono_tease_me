@@ -65,7 +65,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ }) => {
                         {status && <span className={styles["error"]}>{status}</span>}
                         <div className={styles["user-action-section"]}>
                             <ButtonRow>
-                                <NormalButton className={styles["btn-back"]} onClick={() => navigate("/")} text="Back to Login" color='black' />
+                                <NormalButton className={styles["btn-back"]} onClick={() => navigate("/login")} text="Back to Login" color='black' />
                                 <PrimaryButton className={styles["btn-primary"]} text="Send Reset Link" onClick={() => handleSubmit()} />
                             </ButtonRow>
                         </div>

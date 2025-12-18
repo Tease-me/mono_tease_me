@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useEffect, useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BackgroundGradient from "../../templates/BackgroundGradient";
 import styles from "./LoginScreen.module.css";
@@ -10,6 +10,7 @@ import OnBoardingTopNav from "@/ui/components/nav/OnBoardingTopNav";
 import FullWidthLayout from "@/ui/templates/FullWidthLayout";
 import SvgPack from "@/utils/SvgPack";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
+import ValidationPill from "@/ui/components/inputs/buttons/ValidationPill";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -21,7 +22,8 @@ export default function LoginScreen() {
 
   const navigate = useNavigate();
 
-  if (isSignedIn) navigate("/home");
+  useEffect(() => { if (isSignedIn) navigate("/home"); }, [isSignedIn, navigate]); 
+
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -33,14 +35,18 @@ export default function LoginScreen() {
       setErrors(newErrors);
       return;
     }
-
     try {
       const success = await login(email, password);
       if (success) {
         navigate("/home");
+        return;
       }
-      setErrors({ general: "Registration Failed Plese Try Again Later" });
-    } catch (err) {
+      else{
+      setErrors({ general: "Login Failed. Please check your username or password." });
+      }
+    }
+    catch (err) {
+      setErrors({ general: "Login Failed. Please check your username or password." });
       console.error(err);
     }
   };
@@ -84,7 +90,11 @@ export default function LoginScreen() {
           <CheckBox className={styles["check-box"]} checked={agree} onChange={handleOnAgreeChange}>
             Remember Me
           </CheckBox>
-          {errors.general && <span className={styles["error"]}>{errors.general}</span>}
+          {errors.general && (
+            <ValidationPill variant="error" className={styles["errorPill"]}>
+              {errors.general}
+            </ValidationPill>
+          )}
           <div className={styles["user-action-section"]}>
             <div className={styles["auth-buttons"]}>
               <PrimaryButton className={styles["btn-primary"]} text="Sign In" onClick={handleContinueClicked} />
