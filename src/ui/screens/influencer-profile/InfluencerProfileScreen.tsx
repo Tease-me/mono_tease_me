@@ -6,7 +6,7 @@ import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
 import { InfluencerRepo } from '@/data/repositories/InfluencerRepo';
 import WelcomeScreen from './welcome/WelcomeScreen';
 import logger from '@/utils/logger';
-import HomeScreen from '../home/HomeScreen';
+import BlockingLoader from '@/ui/components/loading/BlockingLoader';
 
 interface InfluencerProfileScreenProps { }
 
@@ -38,7 +38,14 @@ const InfluencerProfileScreen: React.FC<InfluencerProfileScreenProps> = ({ }) =>
         })()
     }, [])
 
-    return <>{!isSignedIn ? <WelcomeScreen influencer={influencer!} /> : <HomeScreen chatInfluencerId={username} />}</>; 
+    if(isSignedIn){
+        localStorage.setItem("selected_id", influencer?.id?.toString() || "");
+        navigate("/home")
+    }
+
+    if(!influencer) return <BlockingLoader/>
+
+    return <><WelcomeScreen influencer={influencer!} /></>;
 };
 
 export default InfluencerProfileScreen;

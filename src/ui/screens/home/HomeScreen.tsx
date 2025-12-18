@@ -7,9 +7,9 @@ import ChatScreenContent from "../messaging/components/ChatScreenContent";
 // import WelcomeCallModal from "@/ui/components/modals/welcome-call/WelcomeCallModal";
 // import { AuthContext } from "@/context/AuthContext";
 
-const  HomeScreen = ( {chatInfluencerId}: {chatInfluencerId?: string}) => {
+const  HomeScreen = () => {
   const storedId = localStorage.getItem("selected_id");
-  const initialId = chatInfluencerId? chatInfluencerId : (storedId ? storedId : undefined);
+  const initialId = storedId ? storedId : undefined;
   const [id, setId] = useState<string | undefined>(initialId);
   const [showContent, setShowContent] = useState(true);
   const [showSidebar, setShowSidebar] = useState(true);
