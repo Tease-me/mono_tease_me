@@ -256,15 +256,15 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        const blob = new Blob(chunksRef.current, { type: "audio/mp4" });
         const noData = blob.size === 0 || chunksRef.current.length === 0;
         if (noData) {
           setAudioError("No audio captured. Please try recording again.");
           console.error("No audio captured. Please try recording again.");
         } else {
           setAudioError(null);
-          const file = new File([blob], "recording.webm", {
-            type: "audio/webm",
+          const file = new File([blob], "recording.mp4", {
+            type: "audio/mp4",
           });
           handleUploadOwn(file, "record");
         }

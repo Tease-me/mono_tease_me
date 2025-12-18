@@ -36,7 +36,7 @@ export async function makeInfluencer(gender: "female" | "male" = "female"): Prom
         isSelected: false,
         prompt_template: "You are a charming conversational AI for TeaseMe.",
         influencer_agent_id_third_part: dummy.generateRandomId(),
-        voice_prompt: "Engage warmly, keep responses concise and playful.",
+        bio_json: "Engage warmly, keep responses concise and playful.",
         social_connections: {
             instagram: Math.random() > 0.5,
             facebook: Math.random() > 0.5,
