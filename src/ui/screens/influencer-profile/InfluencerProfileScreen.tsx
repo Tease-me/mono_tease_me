@@ -24,15 +24,19 @@ const InfluencerProfileScreen: React.FC<InfluencerProfileScreenProps> = ({ }) =>
             if (username) {
                 try {
                     const localInfluencer = await influencerRepo.getInfluencer(username)
+                    if (!localInfluencer) {
+                        navigate("/")
+                    }
                     setInfluencer(localInfluencer);
                 } catch (err) {
                     logger.error(err)
+                    navigate("/")
                 }
+            } else {
+                navigate("/")
             }
         })()
     }, [])
-
-    if (!influencer) navigate("/");
 
     return <>{!isSignedIn ? <WelcomeScreen influencer={influencer!} /> : <InfluencerProfile influencer={influencer!} />}</>;
 };
