@@ -9,6 +9,10 @@
 
 
 
+
+
+/*:::::::::::::: HOMEPAGE ::::::::::::::*/
+
 .home-page {
   height: 100dvh;
   background-color: #000;
@@ -17,7 +21,8 @@
 
 }
 
-/*:::::::::::::: HOMEPAGE ::::::::::::::*/
+
+
 /* Header */
 .home-page-header {
 
@@ -94,9 +99,13 @@
   line-height: 140%;
 }
 
+.home-ps-label {font-size: clamp(1.625rem, calc(1.625rem + (2.5rem - 1.625rem) * var(--fluid-t)), 2rem);}
+
 /* Search Section */
 .home-page-search-container {
-  background: linear-gradient(180deg, #EF064E 0%, #A70034 77.41%, #60001E 100%);
+  background: linear-gradient(180deg, hsl(341deg 95% 48% / 20%) 0%, hsl(341deg 100% 33% / 20%) 77.41%, hsl(341deg 100% 19% / 40%) 100%);
+
+    /* when laucnhed ====> background: linear-gradient(180deg, #EF064E 0%, #A70034 77.41%, #60001E 100%); */
   z-index: 1;
   position: relative;
   padding: 2rem 2rem 6rem;
@@ -106,6 +115,9 @@
   max-width: 14rem;
   height: 3.5rem;
   filter: drop-shadow(0px 6px 2px hsl(100, 0%, 0%, 0.15));
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.2;
 }
 
 .home-page-input-outer {
@@ -113,6 +125,9 @@
   padding: 0.4rem 0.3rem;
   border-radius: 0.9rem;
   background-color: hsla(0, 0%, 0%, 0.4);
+  opacity: 0.5;
+  pointer-events: none;
+  user-select: none;
 }
 
 /* Logo Decoration */
@@ -133,6 +148,7 @@
   bottom: -0.8rem;
   z-index: 1;
   pointer-events: none;
+  opacity: 0.2;
 }
 
 /*:::::::::::::: END HOMEPAGE ::::::::::::::*/
