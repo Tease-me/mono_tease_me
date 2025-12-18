@@ -5,6 +5,7 @@ import styles from "./AdminNav.module.css";
 const links = [
     { to: "/admin/prompts", label: "Prompts" },
     { to: "/admin/influencer", label: "Influencers" },
+    { to: "/admin/relationship", label: "Relationship Dashboard", external: true },
 ];
 
 const AdminNav: React.FC = () => {
@@ -15,13 +16,14 @@ const AdminNav: React.FC = () => {
             <div className={styles["brand"]}>Admin</div>
             <div className={styles["links"]}>
                 {links.map((link) => {
-                    const isActive = pathname.startsWith(link.to);
-                    return (
-                        <Link
-                            key={link.to}
-                            to={link.to}
-                            className={`${styles["link"]} ${isActive ? styles["link--active"] : ""}`}
-                        >
+                    const isActive = !link.external && pathname.startsWith(link.to);
+                    const className = `${styles["link"]} ${isActive ? styles["link--active"] : ""}`;
+                    return link.external ? (
+                        <a key={link.to} href={link.to} className={className} target="_blank" rel="noreferrer">
+                            {link.label}
+                        </a>
+                    ) : (
+                        <Link key={link.to} to={link.to} className={className}>
                             {link.label}
                         </Link>
                     );
