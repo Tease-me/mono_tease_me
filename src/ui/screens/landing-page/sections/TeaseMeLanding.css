@@ -413,7 +413,7 @@
     background: unset;
     box-shadow: unset;
     border-radius: unset;
-    filter: unset;
+    backdrop-filter: unset;
   }
 
 
