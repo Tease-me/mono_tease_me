@@ -197,6 +197,11 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         }
     }, [status, chatId]);
 
+    function calculateReplyTime(msg: string) {
+        const replyTime = (msg.length * 100);
+        console.error("Reply time: ", replyTime);
+        return (replyTime);
+    }
 
     function connectChat(influencerId: string) {
         const access_token = storage.get(LocalStorageKeys.AccessToken);
@@ -209,26 +214,31 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             console.warn("WebSocket message received:", event.data);
             const data = JSON.parse(event.data);
             if (data.reply) {
-                setMessages(prev => {
-                    if (!prev) return
-                    return [
-                        ...prev,
-                        {
-                            id: Date.now(),
-                            sender: "received",
-                            text: data.reply,
-                            channel: data.channel ?? "chat",
-                            time: new Date().toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            }),
-                            timestamp: Date.now(),
-                        },
-                    ]
-                });
-                scrollToBottom()
-                setError(undefined);
+                setTyping(true);
+                setTimeout(() => {
+                    setMessages(prev => {
+                        if (!prev) return
+                        return [
+                            ...prev,
+                            {
+                                id: Date.now(),
+                                sender: "received",
+                                text: data.reply,
+                                channel: data.channel ?? "chat",
+                                time: new Date().toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                }),
+                                timestamp: Date.now(),
+                            },
+                        ]
+                    });
+                    setTyping(false);
+                    scrollToBottom();
+                    setError(undefined);
+                }, calculateReplyTime(data.reply));
             } else if (data.error) {
+                setTyping(false);
                 logger.error("Error in WebSocket message:", data.message);
                 setError(data.message || "An error occurred while sending the message.");
             }
@@ -274,7 +284,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         const audioToSend = forcedAudio ?? inputAudio;
 
         if (inputText.trim()) {
-            setTyping(true);
+            setTyping(false);
             ws.current?.send(
                 JSON.stringify({
                     chat_id: chatId,
