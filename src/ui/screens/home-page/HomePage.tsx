@@ -99,8 +99,7 @@ const HomePage: React.FC = () => {
               Is your <span className="home-page-title-highlight"> favourite influencer </span> on TeaseMe?
             </h1>
             <p className="home-page-subtitle">
-              Search now to see if you can chat with them instantly — or invite
-              them to join and be the first to know when they're live.
+          Coming in 2026: <strong>Creator Discovery!</strong> <br></br>Search for creators and see if they have their own TeaseMe account.
             </p>
           </div>
         </div>
@@ -121,8 +120,8 @@ const HomePage: React.FC = () => {
           <div className="home-page-input-wrapper">
 
             <div className="ps-field">
-              <label className="ps-label">
-                Search <span className="ps-required"></span>
+              <label className="home-ps-label">
+                Search launching early 2026 <span className="ps-required"></span>
               </label>
               <div className="home-page-input-outer"><input
                 className="ps-input"

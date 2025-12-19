@@ -21,6 +21,8 @@ export const Endpoints = {
   billing: {
     balance: "/billing/balance",
     topUp: "/billing/topup",
+    paypalCreateOrder: "/billing/paypal/create-order",
+    paypalCapture: "/billing/paypal/capture",
   },
   chat: {
     start: "/chat",

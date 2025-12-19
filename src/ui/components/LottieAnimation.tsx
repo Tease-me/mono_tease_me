@@ -1,6 +1,12 @@
 import React, { useRef } from "react";
 import LottieLib from "react-lottie";
+
+
+
+
 const Lottie = (LottieLib as any).default || LottieLib;
+
+
 
 interface LottieAnimationProps {
   loop?: boolean;

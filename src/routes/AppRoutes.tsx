@@ -1,4 +1,6 @@
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
+import PayPalCancel from "@/ui/components/modals/payment-modal/PayPalCancel";
+import PayPalReturn from "@/ui/components/modals/payment-modal/PayPalReturn";
 import RelationshipDashboard from "@/ui/screens/admin/dashboard_relationship/RelationshipDashboard";
 import InfluencerAudioManagerRoute from "@/ui/screens/influencer-audio-manager/InfluencerAudioManagerRoute";
 import InfluencerWelcome from "@/ui/screens/landing-page/InfluencerWelcome";
@@ -8,6 +10,7 @@ import ProfileSurvey from "@/ui/screens/landing-page/subscreens/ProfileSurvey";
 import ThankYouScreen from "@/ui/screens/landing-page/subscreens/ThankYouScreen";
 import UpdateProfile from "@/ui/screens/register/UpdateProfile";
 import ProfileSurveyForm from "@/ui/screens/survey/ProfileSurveyForm";
+
 import { JSX, Suspense, lazy } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import GuestRoute from "./components/GuestRoute";
@@ -48,6 +51,13 @@ const HomePage = lazy(() => import("@/ui/screens/home-page/HomePage"));
 const InfluencerHome = lazy(
   () => import("@/ui/screens/home-page/InfluencerHome")
 );
+const InfluencerHomeTrialExpired = lazy(
+  () => import("@/ui/screens/home-page/InfluencerHomeTrialExpired")
+);
+
+const RecordTerms = lazy(
+  () => import("@/ui/screens/survey/components/TermsConditions")
+);
 const IntencionInfluencerHome = lazy(
   () => import("@/ui/screens/home-page/IntencionInfluencerHome")
 );
@@ -68,7 +78,9 @@ function AppRoutes() {
     },
     { path: "/thank-you", element: <ThankYouScreen /> },
     { path: "/profile-survey-form", element: <ProfileSurveyForm /> },
+     { path: "/voice-terms", element: <RecordTerms /> },
     { path: "/influencer-home", element: <InfluencerHome /> },
+    { path: "/influencer-home-expired", element: <InfluencerHomeTrialExpired /> },
     {
       path: "/intencion-influencer-home",
       element: <IntencionInfluencerHome />,
@@ -88,7 +100,7 @@ function AppRoutes() {
     { path: "/mj/dashboard", element: <MJDashboard /> },
     { path: "/admin/influencer", element: <CreateInfluencer /> },
     { path: "/admin/prompts", element: <PromptEditorAdmin /> },
-    { path: "/admin/relationship", element: <RelationshipDashboard /> }
+    { path: "/admin/relationship", element: <RelationshipDashboard /> },
   ];
 
   const privateRoutes: { path: string; element: JSX.Element }[] = [
@@ -97,6 +109,8 @@ function AppRoutes() {
     { path: "/chat/:user_id", element: <ChatScreen /> },
     { path: "/call/:conversation_id", element: <CallScreen /> },
     { path: "/profile", element: <UserProfile /> },
+    { path: "/paypal/return", element: <PayPalReturn /> },
+    { path: "/paypal/cancel", element: <PayPalCancel /> },
   ];
 
   return (
