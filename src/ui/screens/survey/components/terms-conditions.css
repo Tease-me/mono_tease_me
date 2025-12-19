@@ -126,6 +126,9 @@
   display: flex;
   gap: 8px;
 }
+.terms-modal__actions > * {
+  flex: 1;
+}
 
 .terms-modal__error {
   color: #ff5f5f;
@@ -162,3 +165,4 @@
     max-height: calc(85vh - 180px);
   }
 }
+
