@@ -63,9 +63,6 @@ const UploadPictureStep: React.FC<Props> = ({
         altText="Current photo"
       />
 
-      <div className={surveyStyles.subtitle}>
-        {pictureUrl ? "Replace photo" : "Upload a new photo"}
-      </div>
 
       <div className={styles.uploadStateArea}>
         {uploading &&
@@ -78,7 +75,8 @@ const UploadPictureStep: React.FC<Props> = ({
         type="square"
         color="black"
         leftIcon={<SvgPack.UploadPhoto />}
-        text="Upload Photo"
+        text={uploading ? "Uploading…" : "Upload Photo"}
+        disabled={uploading}
         onClick={() => inputRef.current?.click()}
       />
 
@@ -90,6 +88,7 @@ const UploadPictureStep: React.FC<Props> = ({
         type="file"
         accept="image/*"
         onChange={onSelect}
+        disabled={uploading}
       />
     </div>
 
@@ -123,6 +122,7 @@ const UploadPictureStep: React.FC<Props> = ({
 
         <div className={styles.previewLeft}>
           <ProfileMedia
+          key={pictureUrl || "default"} // force re-mount when URL changes
             className={styles.previewAvatar}
             size="medium"
             active
