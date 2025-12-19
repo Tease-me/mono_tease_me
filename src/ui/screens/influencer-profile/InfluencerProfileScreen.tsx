@@ -38,12 +38,12 @@ const InfluencerProfileScreen: React.FC<InfluencerProfileScreenProps> = ({ }) =>
         })()
     }, [])
 
-    if(isSignedIn){
+    if (isSignedIn) {
         localStorage.setItem("selected_id", influencer?.id?.toString() || "");
         navigate("/home")
     }
 
-    if(!influencer) return <BlockingLoader/>
+    if (!influencer) return <BlockingLoader />
 
     return <><WelcomeScreen influencer={influencer!} /></>;
 };
