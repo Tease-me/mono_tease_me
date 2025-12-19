@@ -10,6 +10,7 @@ import ProfileSurvey from "@/ui/screens/landing-page/subscreens/ProfileSurvey";
 import ThankYouScreen from "@/ui/screens/landing-page/subscreens/ThankYouScreen";
 import UpdateProfile from "@/ui/screens/register/UpdateProfile";
 import ProfileSurveyForm from "@/ui/screens/survey/ProfileSurveyForm";
+
 import { JSX, Suspense, lazy } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import GuestRoute from "./components/GuestRoute";
@@ -50,6 +51,13 @@ const HomePage = lazy(() => import("@/ui/screens/home-page/HomePage"));
 const InfluencerHome = lazy(
   () => import("@/ui/screens/home-page/InfluencerHome")
 );
+const InfluencerHomeTrialExpired = lazy(
+  () => import("@/ui/screens/home-page/InfluencerHomeTrialExpired")
+);
+
+const RecordTerms = lazy(
+  () => import("@/ui/screens/survey/components/TermsConditions")
+);
 const IntencionInfluencerHome = lazy(
   () => import("@/ui/screens/home-page/IntencionInfluencerHome")
 );
@@ -70,7 +78,9 @@ function AppRoutes() {
     },
     { path: "/thank-you", element: <ThankYouScreen /> },
     { path: "/profile-survey-form", element: <ProfileSurveyForm /> },
+     { path: "/voice-terms", element: <RecordTerms /> },
     { path: "/influencer-home", element: <InfluencerHome /> },
+    { path: "/influencer-home-expired", element: <InfluencerHomeTrialExpired /> },
     {
       path: "/intencion-influencer-home",
       element: <IntencionInfluencerHome />,
