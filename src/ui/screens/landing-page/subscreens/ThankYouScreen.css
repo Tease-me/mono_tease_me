@@ -1,6 +1,7 @@
 .dialog-screen {
   width: 100%;
   min-height: 100vh;
+     overflow-y: scroll;
   background: linear-gradient(0deg, rgb(247, 8, 72), rgb(247, 8, 72) 65%, black 65%, black);
   background-position: bottom;
   display: flex;
@@ -143,7 +144,7 @@
 
   .dialog-frame {
     width: 40rem;
-    height: 49dvh;
+   height: auto;
   }
 
   .thanks-pill {
