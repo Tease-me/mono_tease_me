@@ -502,6 +502,13 @@ const ProfileSurveyForm: React.FC = () => {
 
   return (
     <div className={styles.screen}>
+      <TermsModal
+        isOpen={showTerms}
+        onClose={() => setShowTerms(false)}
+        onAccept={handleAcceptTerms}
+        accepting={acceptingTerms}
+        error={termsError}
+      />
       <div className={styles.outerframe}>
         <div className={styles.frame}>
           <div className={`${styles.card} ${styles.formCard}`}>
@@ -660,13 +667,6 @@ const ProfileSurveyForm: React.FC = () => {
             </div>
 
             <div className={styles.spacerSurvey}></div>
-            <TermsModal
-              isOpen={showTerms}
-              onClose={() => setShowTerms(false)}
-              onAccept={handleAcceptTerms}
-              accepting={acceptingTerms}
-              error={termsError}
-            />
 
           </div>
         </div>
