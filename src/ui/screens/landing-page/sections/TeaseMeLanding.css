@@ -404,6 +404,7 @@
     height: 6.25rem;
   }
 
+
   .tm-bottom-cta {
     width: 20rem;
     right: 3vw;
@@ -412,7 +413,9 @@
     background: unset;
     box-shadow: unset;
     border-radius: unset;
+    backdrop-filter: unset;
   }
+
 
 
   .tm-device {

@@ -17,7 +17,7 @@ const ThankYouScreen: React.FC = () => {
           <div className="thanks-pill">We have received your submission</div>
 
           <p className="thanks-subtext">
-            Check your email to begin the process
+            We’re getting things ready. We’ll email you shortly.
           </p>
         </div>
       </div>

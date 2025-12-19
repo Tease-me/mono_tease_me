@@ -41,6 +41,7 @@ const ProfileSurveyForm: React.FC = () => {
   const [params] = useSearchParams();
 
   const token = params.get("token") || "";
+  const contentRef = useRef<HTMLDivElement | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -86,6 +87,13 @@ const ProfileSurveyForm: React.FC = () => {
   const wizardTotalSteps = surveyStepsCount + 3;
 
   const navigate = useNavigate();
+
+  const scrollToTop = () => {
+  const el = contentRef.current;
+  if (el) el.scrollTo({ top: 0, behavior: "smooth" });
+  else window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
 
   useEffect(() => {
     const load = async () => {
@@ -401,6 +409,7 @@ const ProfileSurveyForm: React.FC = () => {
 
     if (stepIndex < wizardTotalSteps - 1) {
       setStepIndex((i) => i + 1);
+      requestAnimationFrame(scrollToTop);
     } else {
       navigate("/thank-you");
     }
@@ -412,6 +421,7 @@ const ProfileSurveyForm: React.FC = () => {
     if (stepIndex === 0) return;
     await saveNow();
     setStepIndex((i) => Math.max(0, i - 1));
+    requestAnimationFrame(scrollToTop);
   };
 
   const handlePictureSelect = async (
@@ -524,7 +534,7 @@ const ProfileSurveyForm: React.FC = () => {
               </span>
             </div>
 
-            <div className={styles.content}>
+            <div className={styles.content} ref={contentRef}>
               {/* STEPS DO FORM PDF */}
               {isSurveyStep &&
                 currentSurveyStep &&
