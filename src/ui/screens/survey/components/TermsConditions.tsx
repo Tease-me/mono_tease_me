@@ -7,6 +7,7 @@ import CheckBox from "@/ui/components/inputs/check-boxes/CheckBox";
 
 const TermsContent: React.FC = () => (
   <section className="tm-terms" aria-labelledby="tm-section4-title">
+          <h2 className="tm-terms_heading">Terms and Conditions</h2>
     <header className="tm-terms__header">
       <h2 id="tm-section4-title" className="tm-terms__title">
         4. Content and Influencer Voice Models; Models
