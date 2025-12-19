@@ -22,8 +22,6 @@ export type AdminRelRow = {
   exclusive_agreed: boolean;
   girlfriend_confirmed: boolean;
   updated_at?: string | null;
-
-  // your GET endpoint also returns this
   sentiment?: string;
 };
 
@@ -43,14 +41,12 @@ export type AdminRelPatch = {
   exclusive_agreed?: boolean;
   girlfriend_confirmed?: boolean;
 
-  // optional fields if you enabled them in backend
   dtr_stage?: number;
   dtr_cooldown_until?: string; // ISO string
   last_interaction_at?: string; // ISO string
 };
 
 export const AdminServices = (apiClient: AxiosInstance) => ({
-  // ✅ GET /admin/users?q=...
   getUsers: async (q?: string): Promise<AdminUserRow[]> => {
     const response = await apiClient.get(Endpoints.admin.users(q));
     return response.data;
