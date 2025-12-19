@@ -1,4 +1,6 @@
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
+import PayPalCancel from "@/ui/components/modals/payment-modal/PayPalCancel";
+import PayPalReturn from "@/ui/components/modals/payment-modal/PayPalReturn";
 import RelationshipDashboard from "@/ui/screens/admin/dashboard_relationship/RelationshipDashboard";
 import InfluencerAudioManagerRoute from "@/ui/screens/influencer-audio-manager/InfluencerAudioManagerRoute";
 import InfluencerWelcome from "@/ui/screens/landing-page/InfluencerWelcome";
@@ -98,7 +100,7 @@ function AppRoutes() {
     { path: "/mj/dashboard", element: <MJDashboard /> },
     { path: "/admin/influencer", element: <CreateInfluencer /> },
     { path: "/admin/prompts", element: <PromptEditorAdmin /> },
-    { path: "/admin/relationship", element: <RelationshipDashboard /> }
+    { path: "/admin/relationship", element: <RelationshipDashboard /> },
   ];
 
   const privateRoutes: { path: string; element: JSX.Element }[] = [
@@ -107,6 +109,8 @@ function AppRoutes() {
     { path: "/chat/:user_id", element: <ChatScreen /> },
     { path: "/call/:conversation_id", element: <CallScreen /> },
     { path: "/profile", element: <UserProfile /> },
+    { path: "/paypal/return", element: <PayPalReturn /> },
+    { path: "/paypal/cancel", element: <PayPalCancel /> },
   ];
 
   return (
