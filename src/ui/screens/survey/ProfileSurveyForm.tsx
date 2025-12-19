@@ -3,11 +3,12 @@ import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import SvgPack from "@/utils/SvgPack";
 import React, { useEffect, useRef, useState } from "react";
-import {useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import SocialMediaStep from "./components/SocialMediaStep";
 import styles from "./ProfileSurvey.module.css";
 import UploadPictureStep from "./components/UploadPictureStep";
 import UploadAudioStep from "./components/UploadAudioStep";
+import { TermsModal } from "./components/TermsConditions";
 
 
 interface SurveyState {
@@ -57,6 +58,10 @@ const ProfileSurveyForm: React.FC = () => {
   const [audioHasRecorded, setAudioHasRecorded] = useState<boolean>(false);
   const [audioIsRecording, setAudioIsRecording] = useState<boolean>(false);
   const [audioError, setAudioError] = useState<string | null>(null);
+  const [showTerms, setShowTerms] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [acceptingTerms, setAcceptingTerms] = useState(false);
+  const [termsError, setTermsError] = useState<string | null>(null);
 
 
   const [answers, setAnswers] = useState<Record<string, any>>({});
@@ -120,6 +125,11 @@ const ProfileSurveyForm: React.FC = () => {
         setPreInfluencerId(data.pre_influencer_id);
         setPreInfluencerUsername(data.username);
         setAnswers(data.survey_answers || {});
+        setTermsAccepted(
+          Boolean(
+            data.survey_answers?.terms_agreement ?? data.survey_answers?.terms_accepted
+          )
+        );
         setStepIndex(safeStep);
       } catch (err) {
         console.error(err);
@@ -341,6 +351,31 @@ const ProfileSurveyForm: React.FC = () => {
     }
   };
 
+  const handleAcceptTerms = async () => {
+    if (!preInfluencerId) return;
+    try {
+      setAcceptingTerms(true);
+      setTermsError(null);
+      await apiClient.post(
+        `/pre-influencers/${preInfluencerId}/accept-terms`,
+        { terms_agreement: true },
+        {
+          params: token ? { token } : undefined,
+        }
+      );
+      setTermsAccepted(true);
+      updateAnswer("terms_agreement", true);
+      await saveNow();
+      setShowTerms(false);
+      navigate("/thank-you");
+    } catch (err) {
+      console.error("Error accepting terms", err);
+      setTermsError("Failed to record acceptance. Please try again.");
+    } finally {
+      setAcceptingTerms(false);
+    }
+  };
+
   const handleNext = async () => {
     let valid = true;
 
@@ -355,15 +390,22 @@ const ProfileSurveyForm: React.FC = () => {
     }
 
     if (!valid) return;
+    if (isLastStep && !termsAccepted) {
+      setTermsError(null);
+      setShowTerms(true);
+      return;
+    }
+
 
     await saveNow();
 
     if (stepIndex < wizardTotalSteps - 1) {
       setStepIndex((i) => i + 1);
-    }else {
-  navigate("/thank-you");}
+    } else {
+      navigate("/thank-you");
+    }
 
-    
+
   };
 
   const handleBack = async () => {
@@ -608,6 +650,14 @@ const ProfileSurveyForm: React.FC = () => {
             </div>
 
             <div className={styles.spacerSurvey}></div>
+            <TermsModal
+              isOpen={showTerms}
+              onClose={() => setShowTerms(false)}
+              onAccept={handleAcceptTerms}
+              accepting={acceptingTerms}
+              error={termsError}
+            />
+
           </div>
         </div>
       </div>
