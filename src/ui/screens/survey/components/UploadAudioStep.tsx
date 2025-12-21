@@ -59,6 +59,10 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
   const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024; // 20MB safety cap
   const MIN_RECORDING_SECONDS = 15;
 
+  const [preCountdown, setPreCountdown] = useState<number | null>(null);
+  const countdownRef = useRef<number | null>(null);
+
+
   useEffect(() => {
     return () => {
       if (recorderRef.current && recorderRef.current.state !== "inactive") {
@@ -69,6 +73,10 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
       }
       if (timerRef.current) {
         window.clearInterval(timerRef.current);
+      }
+      if (countdownRef.current) {
+        window.clearInterval(countdownRef.current);
+        countdownRef.current = null;
       }
     };
   }, []);
@@ -214,19 +222,14 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
   const files = audioData?.files ?? [];
   const filesNewestFirst = [...files].reverse();
 
-  const startRecording = async () => {
-    if (isRecording) return;
-    if (!navigator.mediaDevices?.getUserMedia || !isMediaRecorderSupported) {
-      setAudioError("Recording not supported in this browser.");
-      console.error("Recording not supported in this browser.");
-      return;
-    }
+  const startRecorder = async () => {
     // reset recorder state up front so UI flips immediately
     setAudioError(null);
     setIsRecording(true);
     onRecordingChange?.(true);
     setLastAction(null);
     setElapsedSeconds(0);
+    setPreCountdown(null);
     // stop any stale recorder/stream
     if (recorderRef.current && recorderRef.current.state !== "inactive") {
       recorderRef.current.stop();
@@ -307,7 +310,34 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
         window.clearInterval(timerRef.current);
         timerRef.current = null;
       }
+      setPreCountdown(null);
     }
+  };
+
+  const startRecording = () => {
+    if (isRecording || preCountdown) return;
+    if (!navigator.mediaDevices?.getUserMedia || !isMediaRecorderSupported) {
+      setAudioError("Recording not supported in this browser.");
+      console.error("Recording not supported in this browser.");
+      return;
+    }
+    setPreCountdown(3);
+    let count = 3;
+    if (countdownRef.current) {
+      window.clearInterval(countdownRef.current);
+    }
+    countdownRef.current = window.setInterval(() => {
+      count -= 1;
+      if (count <= 0) {
+        if (countdownRef.current) {
+          window.clearInterval(countdownRef.current);
+          countdownRef.current = null;
+        }
+        void startRecorder();
+      } else {
+        setPreCountdown(count);
+      }
+    }, 1000);
   };
 
   const stopRecording = () => {
@@ -376,6 +406,12 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
         {!isRecording && (
           <>
             {!hasAudio && <div className={styles.reviewTitle}>Get Started</div>}
+            {preCountdown !== null && (
+              <div className={styles.statusPill}>
+                <span className={styles.statusDot} />
+                Starting in {preCountdown}…
+              </div>
+            )}
             <div className={styles.actionButtons}>
               <NormalButton
                 type="square"
@@ -483,7 +519,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
                     style={{ width: "100%", marginBottom: 8 }}
                     onError={() =>
                       setAudioError(
-                        "Audio failed to load. Please try re-uploading."
+                        "Some audio files failed to load. Please try re-uploading."
                       )
                     }
                   />
@@ -529,7 +565,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
           )}
         </div>
       )}
-
+      {/**
       <input
         ref={fileInputRef}
         className={styles.hiddenInput}
@@ -542,6 +578,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
           handleUploadOwn(file, "upload");
         }}
       />
+       */}
 
       {audioError && <div className={surveyStyles.error}>{audioError}</div>}
     </div>
