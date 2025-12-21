@@ -27,9 +27,20 @@ export const AuthServicesPreInfluencer = (apiClient: AxiosInstance) => ({
     password: string;
   }): Promise<RegisterResponse> => {
     try {
+      const tid =
+        document.cookie
+          .split("; ")
+          .find((x) => x.startsWith("_fprom_tid="))
+          ?.split("=")[1] ?? null;
+
+      const body = {
+        ...payload,
+        fp_tid: tid,
+      };
+
       const response = await apiClient.post(
         Endpoints.pre_influencers.register,
-        payload
+        body
       );
       return response.data;
     } catch (error) {
