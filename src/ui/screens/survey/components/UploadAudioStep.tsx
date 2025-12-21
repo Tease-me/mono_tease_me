@@ -440,6 +440,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
                   ? "Recording Complete"
                   : "Your Audio Samples"}
           </div>
+          {/* Temporarily removing Upload your own button
           <NormalButton
             type="square"
             color="black"
@@ -452,6 +453,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
               fileInputRef.current?.click();
             }}
           />
+           */}
 
           {loadingList && <div>Loading audio files…</div>}
 
