@@ -87,7 +87,6 @@ const UploadPictureStep: React.FC<Props> = ({
         className={styles.hiddenInput}
         type="file"
         accept="image/*"
-        capture="user"
         onChange={onSelect}
         disabled={uploading}
       />

@@ -89,10 +89,10 @@ const ProfileSurveyForm: React.FC = () => {
   const navigate = useNavigate();
 
   const scrollToTop = () => {
-  const el = contentRef.current;
-  if (el) el.scrollTo({ top: 0, behavior: "smooth" });
-  else window.scrollTo({ top: 0, behavior: "smooth" });
-};
+    const el = contentRef.current;
+    if (el) el.scrollTo({ top: 0, behavior: "smooth" });
+    else window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
 
   useEffect(() => {
@@ -511,7 +511,7 @@ const ProfileSurveyForm: React.FC = () => {
       />
       <div className={styles.outerframe}>
         <div className={styles.frame}>
-          <div className={`${styles.card} ${styles.formCard}`}>
+          <div className={`${styles.card} ${styles.formCard}`} ref={contentRef}>
             <div className={styles.headerRow}>
               <div>
                 <h2 className={styles.title}>
@@ -534,7 +534,7 @@ const ProfileSurveyForm: React.FC = () => {
               </span>
             </div>
 
-            <div className={styles.content} ref={contentRef}>
+            <div className={styles.content}>
               {/* STEPS DO FORM PDF */}
               {isSurveyStep &&
                 currentSurveyStep &&

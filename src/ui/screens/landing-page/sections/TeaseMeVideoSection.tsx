@@ -28,7 +28,7 @@ const VideoCard: React.FC<VideoCardProps> = ({
     let timeoutId: number | undefined;
 
     if (isPlaying) {
-      v.play().catch(() => {});
+      v.play().catch(() => { });
       setOverlayMode("pause");
       setOverlayVisible(true);
 
@@ -131,7 +131,7 @@ const TeaseMeVideoSection: React.FC = () => {
                   />
                 </svg>
               </span>{" "}
-              My girlfriend Ai made me a 24-year-old millionaire{" "}
+              My Ai girlfriend made me a 24-year-old millionaire{" "}
               <span className="tm-video-quote-mark02">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
