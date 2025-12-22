@@ -22,16 +22,12 @@ export const AuthServices = (apiClient: AxiosInstance) => ({
     password: string,
     email: string
   ): Promise<RegisterResponse> => {
-    const tid =
-      document.cookie
-        .split("; ")
-        .find((x) => x.startsWith("_fprom_tid="))
-        ?.split("=")[1] ?? null;
+    const fpr = new URLSearchParams(window.location.search).get("fpr");
 
     const response = await apiClient.post(Endpoints.auth.register, {
       password,
       email,
-      fp_tid: tid,
+      fp_ref_id: fpr,
     });
 
     return response.data;
