@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import BackgroundGradient from "../../templates/BackgroundGradient";
 import styles from "./RegisterScreen.module.css";
@@ -27,11 +27,12 @@ export default function RegisterScreen() {
 
   const navigate = useNavigate();
   const location = useLocation();
+  const influencerReferral = useMemo(
+    () => new URLSearchParams(location.search).get("influencer_id") ?? undefined,
+    [location.search]
+  );
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const influencerReferral = searchParams.get("influencer_id");
-
     if (isSignedIn) {
       navigate("/home");
       return;
@@ -39,8 +40,10 @@ export default function RegisterScreen() {
 
     if (!influencerReferral) {
       navigate("/");
+      return;
     }
-  }, [isSignedIn, location.search, navigate]);
+    localStorage.setItem("influencer_referral_id", influencerReferral);
+  }, [isSignedIn, influencerReferral, navigate]);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -58,7 +61,7 @@ export default function RegisterScreen() {
     try {
       const response: RegisterResponse = await authServices.register(password, email.toLowerCase());
       if (response.ok) {
-        navigate("/register/verify", { state: { email, password } });
+        navigate("/register/verify", { state: { email, password, influencerId: influencerReferral } });
       }
       setErrors({ general: "Registration Failed Plese Try Again Later" });
     } catch (err) {
