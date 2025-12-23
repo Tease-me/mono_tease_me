@@ -13,6 +13,7 @@ import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
 import LinkCardModal from '@/ui/components/modals/payment-modal/LinkCardModal';
 import TopUpModal from '@/ui/components/modals/payment-modal/TopUpModal';
+import PayPalLogo from '@/assets/logos/pypal.svg'
 
 
 import { AuthContext } from '@/context/AuthContext';
@@ -79,12 +80,20 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
                     Your Details
                 </div>
                 <div className={styles["section-body"]}>
-                    <TextInput placeholder='Name' type='text' value={localUser?.name ? localUser?.name : ""} onChange={handleNameChange} />
-                    <TextInput placeholder='Nickname' type='text' value={localUser?.username ? localUser?.username : ""} onChange={handleNickNameChange} />
-                    <TextInput placeholder='Email' type='email' value={localUser?.email ? localUser?.email : ""} onChange={handleEmailChange} />
+                    <div className="profile-row01">
+                        <TextInput className='profile-nickname' placeholder='Nickname' type='text' value={localUser?.username ? localUser?.username : ""} onChange={handleNickNameChange} />
+                    </div>
+                    <div className="profile-row02">
+                        <TextInput placeholder='Name' type='text' value={localUser?.name ? localUser?.name : ""} onChange={handleNameChange} />
+                        <TextInput placeholder='Email' type='email' value={localUser?.email ? localUser?.email : ""} onChange={handleEmailChange} />
+                    </div>
                 </div>
                 <div className={styles["delete-account-section"]}>
-                    <a href='#'>Delete Account</a>
+                    <a className='profile-delete-account' href='#'>Delete Account</a>
+                </div>
+
+                <div className={styles["section-title"]}>
+                    Payment Details
                 </div>
                 <ButtonRow className={styles["button-row"]}>
 
@@ -94,10 +103,14 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
                     <NormalButton text='Top Up' onClick={() => {
                         setShowTopUpModal(true);
                     }} />
+                    <div className="paypal-container">
+                        <div className="button-paypal">Add funds</div>
+                        <div className="powered-by-paypal"><p>Powered by PayPal</p><img className='paypal-logo' src={PayPalLogo} alt="PayPal Logo" /></div>
+                    </div>
                 </ButtonRow>
                 <ButtonRow className={styles["button-row"]}>
-                    <NormalButton text='Discard' color='black' />
-                    <PrimaryButton text='Update' />
+                    <NormalButton text='Cancel' color='black' />
+                    <PrimaryButton text='Update Profile' />
                 </ButtonRow>
                 <LinkCardModal isOpen={showLinkCardModal} onClose={() => setShowLinkCardModal(false)} />
                 <TopUpModal isOpen={showTopUpModal} onClose={() => setShowTopUpModal(false)} />
