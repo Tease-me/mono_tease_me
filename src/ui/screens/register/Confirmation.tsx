@@ -21,7 +21,7 @@ const Confirmation: React.FC<ConfirmationProps> = () => {
     const [isLoading, setIsLoading] = useState(true);
     const { state } = useLocation();
     const [email, setEmail] = useState("");
-    const [influencerId, setInfluencerId] = useState<string | undefined>();
+    // const [influencerId, setInfluencerId] = useState<string | undefined>();
 
     const navigate = useNavigate();
     const followServices = useMemo(() => FollowServices(apiClient), []);
@@ -38,7 +38,6 @@ const Confirmation: React.FC<ConfirmationProps> = () => {
         }
         const { email, password, influencerId: referralId } = registrationState;
         const savedInfluencerId = referralId ?? localStorage.getItem("influencer_referral_id") ?? undefined;
-        setInfluencerId(savedInfluencerId);
         setEmail(email);
         const ws = new WebSocket(`${Endpoints.ws.notifications}?email=${encodeURIComponent(email)}`);
         ws.onmessage = async (event) => {
