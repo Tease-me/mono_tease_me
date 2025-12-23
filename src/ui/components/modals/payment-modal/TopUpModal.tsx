@@ -1,4 +1,3 @@
-import SvgPack from "@/utils/SvgPack";
 import clsx from "clsx";
 import { useState } from "react";
 import AnimatedButton from "../../inputs/buttons/AnimatedButton";
@@ -22,11 +21,13 @@ interface TopUpModalProps {
 }
 
 export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
-  type Step = "amount" | "card" | "low" | "success" | "error";
-  const tabs: Step[] = ["amount", "card", "low"];
+  //type Step = "amount" | "card" | "low" | "success" | "error";
+  //const tabs: Step[] = ["amount", "card", "low"];
+  type Step = "amount" | "low" | "success" | "error";
+  const tabs: Step[] = ["amount", "low"];
   const stepLabels: Record<Step, string> = {
     amount: "Amount Select",
-    card: "Card Details",
+    //card: "Card Details",
     low: "Low Credit",
     success: "Success",
     error: "Error",
@@ -160,7 +161,8 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
   };
 
   // Card Form (kept as UI only)
-  const renderCardForm = () => {
+  {
+    /* const renderCardForm = () => {
     return (
       <div>
         <form className={styles.form}>
@@ -197,7 +199,8 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
         </form>
       </div>
     );
-  };
+  }; */
+  }
 
   // Low auto-topup
   const lowCreditOptions = [5, 10, 15, 20];
@@ -286,8 +289,8 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
     switch (topUpState) {
       case "amount":
         return renderAmountForm();
-      case "card":
-        return renderCardForm();
+      //case "card":
+      //return renderCardForm();
       case "low":
         return renderLowForm();
       case "success":
@@ -308,8 +311,8 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
     onClose();
   };
 
-  const isFormPage =
-    topUpState === "amount" || topUpState === "card" || topUpState === "low";
+  const isFormPage = topUpState === "amount" || topUpState === "low";
+  //topUpState === "amount" || topUpState === "card" || topUpState === "low";
 
   return (
     <Modal
@@ -359,11 +362,12 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
                 onClick={() => {
                   if (isPaying) return;
                   switch (topUpState) {
-                    case "card":
-                      setTopUpState("amount");
-                      break;
+                    //case "card":
+                    //setTopUpState("amount");
+                    //break;
                     case "low":
-                      setTopUpState("card");
+                      //setTopUpState("card");
+                      setTopUpState("amount");
                       break;
                     default:
                       break;
@@ -384,11 +388,12 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
                   if (isPaying) return;
                   switch (topUpState) {
                     case "amount":
-                      setTopUpState("card");
-                      break;
-                    case "card":
+                      //setTopUpState("card");
                       setTopUpState("low");
                       break;
+                    //case "card":
+                    //setTopUpState("low");
+                    //break;
                     case "low":
                       startPayPalTopUp();
                       break;
