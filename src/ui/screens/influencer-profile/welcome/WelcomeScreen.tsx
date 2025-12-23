@@ -45,6 +45,12 @@ export default function WelcomeScreen({ influencer }: WelcomeScreenProps) {
   const handleSignInClick = () => {
     navigate("/login");
   };
+
+  const handleSignUpClick = () => {
+    if (!influencer?.id) return;
+    navigate(`/register?influencer_id=${encodeURIComponent(influencer.id)}`);
+  };
+
   {/*}
   const handleTryClick = () => {
     audioRef.current.play();
@@ -93,7 +99,7 @@ export default function WelcomeScreen({ influencer }: WelcomeScreenProps) {
             Don't have an account?{" "}
             <span
               className={styles["signup-link"]}
-              onClick={() => navigate("/register")}
+              onClick={handleSignUpClick}
               style={{ cursor: "pointer", color: "#ff4d6d" }}>
               Sign up
             </span>

@@ -1,5 +1,5 @@
-import React, { useContext, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useContext, useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import BackgroundGradient from "../../templates/BackgroundGradient";
 import styles from "./RegisterScreen.module.css";
 import { AuthServices } from "@/api/services/AuthServices";
@@ -26,8 +26,21 @@ export default function RegisterScreen() {
   const { isSignedIn } = useContext(AuthContext);
 
   const navigate = useNavigate();
+  const location = useLocation();
 
-  if (isSignedIn) navigate("/home");
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const influencerReferral = searchParams.get("influencer_id");
+
+    if (isSignedIn) {
+      navigate("/home");
+      return;
+    }
+
+    if (!influencerReferral) {
+      navigate("/");
+    }
+  }, [isSignedIn, location.search, navigate]);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
