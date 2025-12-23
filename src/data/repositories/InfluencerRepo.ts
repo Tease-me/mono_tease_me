@@ -6,8 +6,10 @@ import { InfluencerResponse } from "@/api/models/influencers";
 import { KnowledgeFile } from "@/api/models/knowledgeFiles";
 import { KnowledgeFileModel } from "../models/InfluencerDataModel";
 import defaultAvatar from "@/assets/empty-profile.png";
+import { FollowServices } from "@/api/services/FollowServices";
 
 const influencerServices = InfluencerServices(apiClient);
+const followServices = FollowServices(apiClient);
 
 const resolveAvatar = (requested?: string, influencerId?: string): string => {
     if (requested && requested.trim().length > 0) {
@@ -26,28 +28,45 @@ const resolveAvatar = (requested?: string, influencerId?: string): string => {
     return defaultAvatar;
 };
 
+const toInfluencerDataModel = (response: InfluencerResponse, existing?: InfluencerDataModel): InfluencerDataModel => ({
+    id: response.id,
+    name: response.display_name,
+    username: response.id,
+    img: resolveAvatar(existing?.img, response.id),
+    videoUrl: dummy.getVideo(response.id as "loli" | "bella" | "anna"),
+    daily_scripts: response.daily_scripts,
+    prompt_template: response.prompt_template,
+    influencer_agent_id_third_part: response.influencer_agent_id_third_part,
+    bio_json: response.bio_json,
+    voice_id: response.voice_id,
+    created_at: response.created_at,
+    earnings: existing?.earnings ?? 0,
+    isSelected: existing?.isSelected ?? false,
+});
+
 export const InfluencerRepo = () => ({
     getInfluencers: async (): Promise<InfluencerDataModel[]> => {
         try {
             const response: InfluencerResponse[] = await influencerServices.getInfluencers();
 
-            return response.map(item => {
-                return {
-                    id: item.id,
-                    name: item.display_name,
-                    username: item.id,
-                    img: resolveAvatar(undefined, item.id),
-                    videoUrl: dummy.getVideo(item.id as "loli" | "bella" | "anna"),
-                    daily_scripts: item.daily_scripts,
-                    prompt_template: item.prompt_template,
-                    influencer_agent_id_third_part: item.influencer_agent_id_third_part,
-                    bio_json: item.bio_json,
-                    voice_id: item.voice_id,
-                    created_at: item.created_at,
-                    earnings: 0,
-                    isSelected: false,
-                }
-            })
+            return response.map(item => toInfluencerDataModel(item));
+        } catch (e) {
+            throw e;
+        }
+    },
+    getFollowedInfluencers: async (): Promise<InfluencerDataModel[]> => {
+        try {
+            const { items } = await followServices.list();
+            if (!items.length) return [];
+
+            const influencers = await Promise.all(
+                items.map(async (follow) => {
+                    const response: InfluencerResponse = await influencerServices.getInfluencer(follow.influencer_id);
+                    return toInfluencerDataModel(response);
+                })
+            );
+
+            return influencers;
         } catch (e) {
             throw e;
         }
@@ -55,19 +74,7 @@ export const InfluencerRepo = () => ({
     getInfluencer: async (influencer_id: string): Promise<InfluencerDataModel> => {
         try {
             const response: InfluencerResponse = await influencerServices.getInfluencer(influencer_id);
-            return {
-                id: response.id,
-                name: response.display_name,
-                username: response.id,
-                img: resolveAvatar(undefined, response.id),
-                videoUrl: dummy.getVideo(response.id as "loli" | "bella" | "anna"),
-                daily_scripts: response.daily_scripts,
-                prompt_template: response.prompt_template,
-                influencer_agent_id_third_part: response.influencer_agent_id_third_part,
-                earnings: 0,
-                created_at: "",
-                isSelected: false,
-            }
+            return toInfluencerDataModel(response);
         } catch (e) {
             throw e;
         }

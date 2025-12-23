@@ -14,24 +14,26 @@ interface ContactTabContentProps {
 
 const ContactTabContent: React.FC<ContactTabContentProps> = ({ selectedContactId, onChatClicked }) => {
     const [search, setSearch] = useState("");
-    const [influencers, setInfluencers] = useState<InfluencerDataModel[]>();
-    const [filteredInfluencers, setFilteredInfluencers] = useState<InfluencerDataModel[]>();
+    const [influencers, setInfluencers] = useState<InfluencerDataModel[]>([]);
+    const [filteredInfluencers, setFilteredInfluencers] = useState<InfluencerDataModel[]>([]);
 
     useEffect(() => {
         const influencerRepo = InfluencerRepo();
-        influencerRepo.getInfluencers().then((influencers: InfluencerDataModel[]) => {
-            setInfluencers(influencers)
-        })
+        influencerRepo.getFollowedInfluencers()
+            .then((influencers: InfluencerDataModel[]) => {
+                setInfluencers(influencers);
+            })
+            .catch(() => {
+                setInfluencers([]);
+            })
     }, [])
 
     useEffect(() => {
-        if (influencers) {
-            const filteredContacts = influencers.filter((c) =>
-                c.name.toLowerCase().includes(search.toLowerCase())
-            );
-            setFilteredInfluencers(filteredContacts)
-        }
-    }, [influencers])
+        const filteredContacts = influencers.filter((c) =>
+            c.name.toLowerCase().includes(search.toLowerCase())
+        );
+        setFilteredInfluencers(filteredContacts)
+    }, [influencers, search])
 
 
     return (
