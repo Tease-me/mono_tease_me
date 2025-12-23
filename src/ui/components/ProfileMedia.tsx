@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import styles from "./ProfileMedia.module.css";
 import emptyProfile from "@/assets/empty-profile.png";
 
@@ -36,19 +36,25 @@ const ProfileMedia: React.FC<ProfileMediaProps> = ({
     const isVideoSupported =
         typeof document !== 'undefined' &&
         document.createElement('video').canPlayType('video/mp4') !== '';
-    const showVideo = mediaType === 'video' && isVideoSupported;
+    const [shouldShowVideo, setShouldShowVideo] = useState<boolean>(
+        mediaType === 'video' && isVideoSupported && !!videoSrc
+    );
 
     const videoRef = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {
-        if (showVideo && videoRef.current) {
+        setShouldShowVideo(mediaType === 'video' && isVideoSupported && !!videoSrc);
+    }, [mediaType, isVideoSupported, videoSrc]);
+
+    useEffect(() => {
+        if (shouldShowVideo && videoRef.current) {
             videoRef.current.load();
             videoRef.current.play().catch((err) => {
                 console.warn('Autoplay failed:', err);
 
             });
         }
-    }, [showVideo]);
+    }, [shouldShowVideo]);
 
     const handleEditButtonClick = () => {
         onEditClick?.()
@@ -56,12 +62,21 @@ const ProfileMedia: React.FC<ProfileMediaProps> = ({
 
     return (<div {...restProps} className={clsx(styles["profile-container"], styles[size], active && styles["active"], showHearts && styles["hearts"], restProps.className)} >
         <div className={styles["profile-media-container"]}>
-            {showVideo ? (
-                <video key={videoSrc} autoPlay loop muted playsInline ref={videoRef} className={styles["profile-media"]}>
+            {shouldShowVideo ? (
+                <video
+                    key={videoSrc}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    ref={videoRef}
+                    className={styles["profile-media"]}
+                    onError={() => setShouldShowVideo(false)}
+                >
                     <source src={videoSrc} type="video/mp4" />
                     Your browser doesn't support video.{" "}
                     <img
-                        src={imageSrc}
+                        src={imageSrc ?? emptyProfile}
                         alt={altText}
                         className={styles["profile-media"]}
                     />
