@@ -17,6 +17,9 @@ import GuestRoute from "./components/GuestRoute";
 import PrivateRoute from "./components/PrivateRoute";
 import SuperRoute from "./components/SuperRoute";
 
+const AdminPreInfluencers = lazy(
+  () => import("@/ui/screens/admin/pre-influencers/AdminPreInfluencers")
+);
 const InfluencerProfileScreen = lazy(
   () => import("@/ui/screens/influencer-profile/InfluencerProfileScreen")
 );
@@ -78,9 +81,12 @@ function AppRoutes() {
     },
     { path: "/thank-you", element: <ThankYouScreen /> },
     { path: "/profile-survey-form", element: <ProfileSurveyForm /> },
-     { path: "/voice-terms", element: <RecordTerms /> },
+    { path: "/voice-terms", element: <RecordTerms /> },
     { path: "/influencer-home", element: <InfluencerHome /> },
-    { path: "/influencer-home-expired", element: <InfluencerHomeTrialExpired /> },
+    {
+      path: "/influencer-home-expired",
+      element: <InfluencerHomeTrialExpired />,
+    },
     {
       path: "/intencion-influencer-home",
       element: <IntencionInfluencerHome />,
@@ -101,6 +107,7 @@ function AppRoutes() {
     { path: "/admin/influencer", element: <CreateInfluencer /> },
     { path: "/admin/prompts", element: <PromptEditorAdmin /> },
     { path: "/admin/relationship", element: <RelationshipDashboard /> },
+    { path: "/admin/pre-influencers", element: <AdminPreInfluencers /> },
   ];
 
   const privateRoutes: { path: string; element: JSX.Element }[] = [
