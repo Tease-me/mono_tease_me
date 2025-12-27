@@ -20,14 +20,13 @@ export const AuthServices = (apiClient: AxiosInstance) => ({
   },
   register: async (
     password: string,
-    email: string
+    email: string,
+    influencer_id: string
   ): Promise<RegisterResponse> => {
-    const fpr = new URLSearchParams(window.location.search).get("fpr");
-
     const response = await apiClient.post(Endpoints.auth.register, {
       password,
       email,
-      fp_ref_id: fpr,
+      influencer_id: influencer_id,
     });
 
     return response.data;
