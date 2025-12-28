@@ -14,6 +14,8 @@
 .profile-row02 {
     display: grid;
     grid-template-columns: 1fr;
+    gap: 2rem;
+
 }
 
 .section-title {
@@ -34,7 +36,7 @@
     display: flex;
     flex: 1;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
 }
 
 .profile-delete-account {
@@ -42,6 +44,17 @@
     text-decoration: underline;
     margin-top: 1rem;
     margin-bottom: 3rem;
+}
+
+.payment-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    margin-bottom: 3rem;
+    gap: 1rem;
+}
+
+.payment-row> :first-child {
+    max-height: 40.4px;
 }
 
 .paypal-container {
@@ -99,12 +112,29 @@
     margin-bottom: 56px;
 }
 
+.update-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 3rem;
+    align-items: center;
+    justify-items: center;
+}
+
+.profile-cancel {
+    color: lch(100% 0.01 296.81);
+    opacity: 0.5;
+}
+
 
 /*** media query Desktop ***/
 @media (min-width: 32rem) {
 
     .profile-row02 {
         display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .payment-row {
         grid-template-columns: 1fr 1fr;
     }
 }

@@ -48,7 +48,7 @@ const PayPalButton: React.FC<ButtonPayPalProps> = ({ type = "pill", leftIcon, ri
     }
 
     return (
-        <div className='paypal-container'><div
+        <div className={clsx(styles["paypal-container"])}><div
             {...rest}
             className={clsx(
                 outerStyle[type],
@@ -77,7 +77,8 @@ const PayPalButton: React.FC<ButtonPayPalProps> = ({ type = "pill", leftIcon, ri
                 </div>
             </div>
 
-        </div><div className="powered-by-paypal"><p>Powered by PayPal</p><img className='paypal-logo' src={PayPalLogo} alt="PayPal Logo" /></div><div></div></div>
+        </div>
+            <div className={clsx(styles["powered-by-paypal"])}><p>Powered by PayPal</p><img className={clsx(styles["paypal-logo"])} src={PayPalLogo} alt="PayPal Logo" /></div><div></div></div>
 
     );
 

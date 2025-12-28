@@ -5,7 +5,7 @@ import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 import OnBoardingTopNav from '@/ui/components/nav/OnBoardingTopNav';
 import TextInput from '@/ui/components/inputs/text-inputs/TextInput';
 import FullWidthLayout from '@/ui/templates/FullWidthLayout';
-import ButtonRow from '@/ui/templates/ButtonRow';
+
 import BalanceView from '@/ui/components/stats/BalanceView';
 import VerticalDivider from '@/ui/components/dividers/VerticalDivider';
 import logger from '@/utils/logger';
@@ -82,34 +82,34 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
                 </div>
                 <div className={styles["section-body"]}>
                     <div className="profile-row01">
-                        <TextInput className='profile-nickname' placeholder='Nickname' type='text' value={localUser?.username ? localUser?.username : ""} onChange={handleNickNameChange} />
+                        <TextInput className={styles["profile-nickname"]} placeholder='Nickname' type='text' value={localUser?.username ? localUser?.username : ""} onChange={handleNickNameChange} />
                     </div>
-                    <div className="profile-row02">
+                    <div className={styles["profile-row02"]}>
                         <TextInput placeholder='Name' type='text' value={localUser?.name ? localUser?.name : ""} onChange={handleNameChange} />
                         <TextInput placeholder='Email' type='email' value={localUser?.email ? localUser?.email : ""} onChange={handleEmailChange} />
                     </div>
                 </div>
                 <div className={styles["delete-account-section"]}>
-                    <a className='profile-delete-account' href='#'>Delete Account</a>
+                    <a className={styles["profile-delete-account"]} href='#'>Delete Account</a>
                 </div>
 
                 <div className={styles["section-title"]}>
                     Payment Details
                 </div>
-                <ButtonRow className={styles["button-row"]}>
+                <div className={styles["payment-row"]}>
 
                     <PrimaryButton text='Link Card' onClick={() => {
                         setShowLinkCardModal(true);
                     }} />
-                    <PayPalButton text='Add Funds' onClick={() => {
+                    <PayPalButton text='+ Add Funds' onClick={() => {
                         setShowTopUpModal(true);
                     }} />
 
-                </ButtonRow>
-                <ButtonRow className={styles["button-row"]}>
-                    <NormalButton text='Cancel' color='black' />
-                    <PrimaryButton text='Update Profile' />
-                </ButtonRow>
+                </div>
+                <div className={styles["update-row"]}>
+                    <a className={styles["profile-cancel"]} href='#'>Cancel</a>
+                    <NormalButton text='Update Profile' />
+                </div>
                 <LinkCardModal isOpen={showLinkCardModal} onClose={() => setShowLinkCardModal(false)} />
                 <TopUpModal isOpen={showTopUpModal} onClose={() => setShowTopUpModal(false)} />
             </FullWidthLayout>
