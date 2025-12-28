@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styles from "./PayPalButton.module.css"
+import PayPalLogo from '@/assets/logos/pypal.svg'
 import clsx from 'clsx';
 
 type PayPalButtonType = "pill" | "square" | "nobg";
@@ -47,7 +48,7 @@ const PayPalButton: React.FC<ButtonPayPalProps> = ({ type = "pill", leftIcon, ri
     }
 
     return (
-        <div
+        <div className='paypal-container'><div
             {...rest}
             className={clsx(
                 outerStyle[type],
@@ -75,8 +76,11 @@ const PayPalButton: React.FC<ButtonPayPalProps> = ({ type = "pill", leftIcon, ri
                     </div>}
                 </div>
             </div>
-        </div>
+
+        </div><div className="powered-by-paypal"><p>Powered by PayPal</p><img className='paypal-logo' src={PayPalLogo} alt="PayPal Logo" /></div><div></div></div>
+
     );
+
 };
 
 export default PayPalButton;

@@ -11,9 +11,10 @@ import VerticalDivider from '@/ui/components/dividers/VerticalDivider';
 import logger from '@/utils/logger';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
+import PayPalButton from '@/ui/components/inputs/buttons/PayPalButton';
 import LinkCardModal from '@/ui/components/modals/payment-modal/LinkCardModal';
 import TopUpModal from '@/ui/components/modals/payment-modal/TopUpModal';
-import PayPalLogo from '@/assets/logos/pypal.svg'
+
 
 
 import { AuthContext } from '@/context/AuthContext';
@@ -100,13 +101,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
                     <PrimaryButton text='Link Card' onClick={() => {
                         setShowLinkCardModal(true);
                     }} />
-                    <NormalButton text='Top Up' onClick={() => {
+                    <PayPalButton text='Add Funds' onClick={() => {
                         setShowTopUpModal(true);
                     }} />
-                    <div className="paypal-container">
-                        <div className="button-paypal">Add funds</div>
-                        <div className="powered-by-paypal"><p>Powered by PayPal</p><img className='paypal-logo' src={PayPalLogo} alt="PayPal Logo" /></div>
-                    </div>
+
                 </ButtonRow>
                 <ButtonRow className={styles["button-row"]}>
                     <NormalButton text='Cancel' color='black' />

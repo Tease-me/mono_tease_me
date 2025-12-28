@@ -36,6 +36,34 @@
         1px 3px 3px 0 hsla(var(--hue-neutral), 0%, 0%, 0.1);
 }
 
+
+.paypal-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.powered-by-paypal {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    align-items: center;
+
+}
+
+.powered-by-paypal p {
+    color: hsla(0, 0%, 100%, 0.5);
+    font-size: 0.7rem;
+    font-weight: 400;
+    font-family: Arial, Helvetica, sans-serif;
+
+}
+
+.paypal-logo {
+    height: 1.25rem;
+}
+
 .pill-button.button-paypal-outer {
     cursor: pointer;
     user-select: none;
