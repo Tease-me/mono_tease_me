@@ -76,6 +76,7 @@ function AppRoutes() {
       path: "/influencer/:id/audio-manager",
       element: <InfluencerAudioManagerRoute />,
     },
+    { path: "/profile", element: <UserProfile /> },
     { path: "/thank-you", element: <ThankYouScreen /> },
     { path: "/profile-survey-form", element: <ProfileSurveyForm /> },
      { path: "/voice-terms", element: <RecordTerms /> },
@@ -108,7 +109,6 @@ function AppRoutes() {
     { path: "/home", element: <HomeScreen /> },
     { path: "/chat/:user_id", element: <ChatScreen /> },
     { path: "/call/:conversation_id", element: <CallScreen /> },
-    { path: "/profile", element: <UserProfile /> },
     { path: "/paypal/return", element: <PayPalReturn /> },
     { path: "/paypal/cancel", element: <PayPalCancel /> },
   ];
