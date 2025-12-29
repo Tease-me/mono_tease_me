@@ -79,6 +79,7 @@ function AppRoutes() {
       path: "/influencer/:id/audio-manager",
       element: <InfluencerAudioManagerRoute />,
     },
+
     { path: "/thank-you", element: <ThankYouScreen /> },
     { path: "/profile-survey-form", element: <ProfileSurveyForm /> },
     { path: "/voice-terms", element: <RecordTerms /> },
@@ -113,9 +114,9 @@ function AppRoutes() {
   const privateRoutes: { path: string; element: JSX.Element }[] = [
     { path: "/voice", element: <VoiceCallEleven /> },
     { path: "/home", element: <HomeScreen /> },
+    { path: "/profile", element: <UserProfile /> },
     { path: "/chat/:user_id", element: <ChatScreen /> },
     { path: "/call/:conversation_id", element: <CallScreen /> },
-    { path: "/profile", element: <UserProfile /> },
     { path: "/paypal/return", element: <PayPalReturn /> },
     { path: "/paypal/cancel", element: <PayPalCancel /> },
   ];
