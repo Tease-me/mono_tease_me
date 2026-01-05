@@ -245,8 +245,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 }, calculateReplyTime(data.reply));
             } else if (data.error) {
                 setTyping(false);
-                logger.error("Error in WebSocket message:", data.message);
-                setError(data.message || "An error occurred while sending the message.");
+                logger.error("Error in WebSocket message:", data.error);
+                setError(data.error || "An error occurred while sending the message.");
             }
         };
     }
