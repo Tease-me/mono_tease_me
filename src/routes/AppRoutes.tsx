@@ -57,6 +57,9 @@ const InfluencerHome = lazy(
 const InfluencerHomeTrialExpired = lazy(
   () => import("@/ui/screens/home-page/InfluencerHomeTrialExpired")
 );
+const InfluencerSelector = lazy(
+  () => import("@/ui/screens/influencer/InfluencerSelector")
+);
 
 const RecordTerms = lazy(
   () => import("@/ui/screens/survey/components/TermsConditions")
@@ -70,6 +73,7 @@ function AppRoutes() {
     { path: "*", element: <HomePage /> },
     { path: "/:username", element: <InfluencerProfileScreen /> },
     { path: "/test-buttons", element: <ButtonsTestPage /> },
+    { path: "/influencer-selector", element: <InfluencerSelector /> },
     { path: "/update-profile", element: <UpdateProfile /> },
     { path: "/join", element: <LandingPage /> },
     { path: "/welcome", element: <InfluencerWelcome /> },

@@ -45,3 +45,17 @@ export async function makeInfluencer(gender: "female" | "male" = "female"): Prom
         },
     })
 };
+
+export async function makeInfluencerList(
+    count = 8,
+    gender: "female" | "male" | "mixed" = "mixed"
+): Promise<InfluencerDataModel[]> {
+    const genders: ("female" | "male")[] =
+        gender === "mixed"
+            ? Array.from({ length: count }, (_, idx) =>
+                idx % 2 === 0 ? "female" : "male"
+            )
+            : Array(count).fill(gender) as ("female" | "male")[];
+
+    return Promise.all(genders.map((g) => makeInfluencer(g)));
+}
