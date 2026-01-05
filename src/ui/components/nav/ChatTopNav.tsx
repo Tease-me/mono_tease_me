@@ -21,7 +21,7 @@ interface ChatTopNavProps extends React.HTMLAttributes<HTMLDivElement> {
     showMenuButton?: boolean;
 }
 
-const ChatTopNav: React.FC<ChatTopNavProps> = ({ title, onBack, onCallClick, onMenuClick, showBackButton = false, showMenuButton = false }) => {
+const ChatTopNav: React.FC<ChatTopNavProps> = ({ title, onBack, onCallClick, showBackButton = false, showMenuButton = false }) => {
     const { logout } = useContext(AuthContext);
     const navigate = useNavigate();
 
@@ -55,11 +55,8 @@ const ChatTopNav: React.FC<ChatTopNavProps> = ({ title, onBack, onCallClick, onM
                 <button className={clsx(styles["back-btn"], !showBackButton && styles["hidden"])} onClick={onBack || (() => navigate(-1))}>
                     <ArrowLeftIcon />
                 </button>
-                <button className={clsx(styles["menu-button"], !showMenuButton && styles["hidden"])} onClick={onMenuClick} >
+                <DropDownMenu menu={testDataDropDown} className={clsx(styles["menu-button"], !showMenuButton && styles["hidden"])}>
                     <MoreCircleIcon />
-                </button>
-                <DropDownMenu menu={testDataDropDown} className={styles["inbox-icon"]}>
-                    <SvgPack.MoreCircle />
                 </DropDownMenu>
             </div>
             <div className={styles["center-title"]}>{title}</div>
