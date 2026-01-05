@@ -340,24 +340,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         setInputText('');
         scrollToBottom();
     };
-
     const onCall = () => {
         startConversation();
-
         setOpenWelcomeCallModal(true);
-        // if (!id) {
-        //     navigate("/voice", {
-        //         state: {
-        //             influencer_id: user_id
-        //         }
-        //     })
-        //     return
-        // }
-        // navigate("/voice", {
-        //     state: {
-        //         influencer_id: id
-        //     }
-        // })
     }
 
     const handleOnBackClick = () => {
@@ -405,7 +390,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     return (
         <div className={styles["chat-screen-content"]}>
             <div className={styles["chat-header"]}>
-                <ChatTopNav onBack={handleOnBackClick} onCallClick={onCall} />
+                <ChatTopNav onBack={handleOnBackClick} onCallClick={onCall} showMenuButton />
                 <div className={styles["chat-header-info"]}>
                     <ProfileMedia imageSrc={influencer?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
                     <div className={styles["chat-user-name"]}>
