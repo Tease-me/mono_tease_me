@@ -54,7 +54,7 @@ export default function RegisterScreen() {
         username || ""
       );
       if (response.ok) {
-        navigate("/register/verify", { state: { email, password } });
+        navigate("/register/verify", { state: { email, password, influencerId: username } });
       }
       setErrors({ general: "Registration Failed Plese Try Again Later" });
     } catch (err) {

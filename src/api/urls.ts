@@ -39,6 +39,10 @@ export const Endpoints = {
   push: {
     subscribe: "/push/subscribe",
   },
+  follow: {
+    list: "/follow",
+    follow: (influencerId: string) => `/follow/${encodeURIComponent(influencerId)}`,
+  },
   elevenlabs: {
     signed_url: "/elevenlabs/signed-url",
     signed_url_free: "/elevenlabs/signed-url-free",

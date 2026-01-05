@@ -46,6 +46,12 @@ export default function WelcomeScreen({ influencer }: WelcomeScreenProps) {
   const handleSignInClick = () => {
     navigate(`/${influencer.id}/login`);
   };
+
+  const handleSignUpClick = () => {
+    if (!influencer?.id) return;
+    navigate(`/register?influencer_id=${encodeURIComponent(influencer.id)}`);
+  };
+
   {
     /*}
   const handleTryClick = () => {
@@ -96,69 +102,55 @@ export default function WelcomeScreen({ influencer }: WelcomeScreenProps) {
           </>
         )}
 
-        {incomingCall ? (
-          <>
-            <div className={styles["incoming-call-text"]}>Incoming Call</div>
-            <div className={styles["influencer-name"]}>{influencer.name}</div>
-            <div className={styles["call-buttons"]}>
-              <IconButton
-                leftIcon={<DropCallIcon color="red" />}
-                onClick={handleHangUpCall}
-                text="Reject"
-                color="black"
+        {incomingCall ? (<>
+          <div className={styles["incoming-call-text"]}>Incoming Call</div>
+          <div className={styles["influencer-name"]}>{influencer.name}</div>
+          <div className={styles["call-buttons"]}>
+            <IconButton leftIcon={<DropCallIcon color="red" />} onClick={handleHangUpCall} text="Reject" color="black" />
+            <AnimatedButton leftIcon={<CallIcon />} onClick={handlePickUpCall} text="Answer" color="green" />
+          </div>
+        </>) : <div className={styles["welcome-screen-container"]}>
+          <TeaseMeLogo size="xlarge" variant="full-dark" />
+          <p className={styles["signup-text"]}>
+            Don't have an account?{" "}
+            <span
+              className={styles["signup-link"]}
+              onClick={handleSignUpClick}
+              style={{ cursor: "pointer", color: "#ff4d6d" }}>
+              Sign up
+            </span>
+          </p>
+
+          <DividerWithLabel text="or" />
+          <div className={styles["buttons-container"]}>
+            {!isFirstTime ? (
+              <PrimaryButton
+                text="Sign in with email"
+                className={styles["sign-in-button"]}
+                onClick={handleSignInClick}
               />
-              <AnimatedButton
-                leftIcon={<CallIcon />}
-                onClick={handlePickUpCall}
-                text="Answer"
-                color="green"
+            ) : (
+              <PrimaryButton
+                text="Talk to me Now"
+                onClick={() => {
+                  startConversation();
+                  setOnTryClicked(true);
+                }}
               />
-            </div>
-          </>
-        ) : (
-          <div className={styles["welcome-screen-container"]}>
-            <TeaseMeLogo size="xlarge" variant="full-dark" />
+            )}
             <p className={styles["signup-text"]}>
-              Don't have an account?{" "}
+              Already have an account?{" "}
               <span
                 className={styles["signup-link"]}
-                onClick={() => navigate(`/${influencer.id}/register`)}
+                onClick={() => navigate(`/${influencer.id}/login`)}
                 style={{ cursor: "pointer", color: "#ff4d6d" }}
               >
-                Sign up
+                Login
               </span>
             </p>
-
-            <DividerWithLabel text="or" />
-            <div className={styles["buttons-container"]}>
-              {!isFirstTime ? (
-                <PrimaryButton
-                  text="Sign in with email"
-                  className={styles["sign-in-button"]}
-                  onClick={handleSignInClick}
-                />
-              ) : (
-                <PrimaryButton
-                  text="Talk to me Now"
-                  onClick={() => {
-                    startConversation();
-                    setOnTryClicked(true);
-                  }}
-                />
-              )}
-              <p className={styles["signup-text"]}>
-                Already have an account?{" "}
-                <span
-                  className={styles["signup-link"]}
-                  onClick={() => navigate(`/${influencer.id}/login`)}
-                  style={{ cursor: "pointer", color: "#ff4d6d" }}
-                >
-                  Login
-                </span>
-              </p>
-            </div>
           </div>
-        )}
+        </div>
+        }
         <WelcomeCallModal
           isOpen={onTryClicked || status === "connected"}
           onClose={() => {

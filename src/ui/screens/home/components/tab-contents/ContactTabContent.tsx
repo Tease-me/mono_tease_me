@@ -1,11 +1,10 @@
-import { apiClient } from "@/api/apis";
 import SearchIcon from "@/assets/svg/Search.svg?react";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 import clsx from "clsx";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./ContactTabContent.module.css";
 
 interface ContactTabContentProps {
@@ -13,54 +12,29 @@ interface ContactTabContentProps {
   onChatClicked?: (contact: InfluencerDataModel) => void;
 }
 
-const ContactTabContent: React.FC<ContactTabContentProps> = ({
-  selectedContactId,
-  onChatClicked,
-}) => {
+const ContactTabContent: React.FC<ContactTabContentProps> = ({ selectedContactId, onChatClicked }) => {
   const [search, setSearch] = useState("");
+  const [influencers, setInfluencers] = useState<InfluencerDataModel[]>([]);
+  const [filteredInfluencers, setFilteredInfluencers] = useState<InfluencerDataModel[]>([]);
 
-  const [influencers, setInfluencers] = useState<any[]>([]);
-  const [userFpRefId, setUserFpRefId] = useState<string | null | undefined>(
-    undefined
-  ); // undefined=loading, null=no ref, string=has ref
-
-  // 1) Load user fp_ref_id
-  useEffect(() => {
-    (async () => {
-      try {
-        const { data } = await apiClient.get("/auth/me");
-        setUserFpRefId(data?.fp_ref_id ?? null);
-      } catch {
-        setUserFpRefId(null);
-      }
-    })();
-  }, []);
-
-  // 2) Load influencers (raw)
   useEffect(() => {
     const influencerRepo = InfluencerRepo();
-    influencerRepo.getInfluencers().then((list: any[]) => {
-      setInfluencers(list || []);
-    });
-  }, []);
+    influencerRepo.getFollowedInfluencers()
+      .then((influencers: InfluencerDataModel[]) => {
+        setInfluencers(influencers);
+      })
+      .catch(() => {
+        setInfluencers([]);
+      })
+  }, [])
 
-  // 3) Filter by fp_ref_id + search
-  const filteredInfluencers = useMemo(() => {
-    if (userFpRefId === undefined) return [];
-
-    const allowed = userFpRefId
-      ? influencers.filter((inf) => inf.fp_ref_id === userFpRefId)
-      : [];
-
-    const q = search.trim().toLowerCase();
-    if (!q) return allowed;
-
-    return allowed.filter((c) =>
-      (c.name || c.display_name || c.username || c.id || "")
-        .toLowerCase()
-        .includes(q)
+  useEffect(() => {
+    const filteredContacts = influencers.filter((c) =>
+      c.name.toLowerCase().includes(search.toLowerCase())
     );
-  }, [influencers, userFpRefId, search]);
+    setFilteredInfluencers(filteredContacts)
+  }, [influencers, search])
+
 
   return (
     <div>
@@ -71,24 +45,6 @@ const ContactTabContent: React.FC<ContactTabContentProps> = ({
         placeholder="Search"
         onChange={(e) => setSearch((e.target as HTMLInputElement).value)}
       />
-
-      {/* DEBUG / STATUS MESSAGES */}
-      {userFpRefId === undefined && (
-        <div style={{ padding: 12, opacity: 0.7 }}>Loading user...</div>
-      )}
-
-      {userFpRefId === null && (
-        <div style={{ padding: 12, opacity: 0.7 }}>
-          Your account has no <b>fp_ref_id</b> yet. (Not linked to an
-          influencer)
-        </div>
-      )}
-
-      {userFpRefId && (
-        <div style={{ padding: "8px 12px", opacity: 0.7, fontSize: 12 }}>
-          Showing influencers for fp_ref_id: <b>{userFpRefId}</b>
-        </div>
-      )}
 
       <div className={styles["vertical-scroll"]}>
         {filteredInfluencers.map((contact) => (
@@ -103,7 +59,7 @@ const ContactTabContent: React.FC<ContactTabContentProps> = ({
             <img src={contact.img} alt={contact.name} />
             <div style={{ minWidth: 0 }}>
               <h4 style={{ margin: 0 }}>
-                {contact.name || contact.display_name}
+                {contact.name}
               </h4>
               <p style={{ margin: "4px 0", opacity: 0.8 }}>
                 {contact.username || contact.id}
@@ -115,17 +71,6 @@ const ContactTabContent: React.FC<ContactTabContentProps> = ({
             <PrimaryButton text="Trial 14:00s" />
           </div>
         ))}
-
-        {/* empty state */}
-        {userFpRefId && filteredInfluencers.length === 0 && (
-          <div style={{ padding: 12, opacity: 0.7 }}>
-            No influencers matched your fp_ref_id (<b>{userFpRefId}</b>).
-            <br />
-            That usually means your <code>/influencer</code> list is not
-            returning
-            <code> fp_ref_id</code> for each influencer.
-          </div>
-        )}
       </div>
     </div>
   );
