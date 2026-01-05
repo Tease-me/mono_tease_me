@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import styles from "./ChatTopNav.module.css"
 import { useNavigate } from 'react-router-dom';
 import ArrowLeftIcon from "@/assets/svg/ArrowLeft.svg?react";
@@ -8,46 +8,16 @@ import IconButton from '../inputs/buttons/IconButton';
 import DropDownMenu, { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownMenu';
 import SvgPack from '@/utils/SvgPack';
 
-import LogoutIcon from "@/assets/svg/Logout.svg?react";
-import ProfileIcon from "@/assets/svg/Profile.svg?react";
-import { AuthContext } from '@/context/AuthContext';
-
 interface ChatTopNavProps extends React.HTMLAttributes<HTMLDivElement> {
     title?: string;
     onBack?: () => void;
-    onMenuClick?: () => void;
+    menuItems?: DropDownMenuDataModel[];
     onCallClick?: () => void;
     showBackButton?: boolean;
-    showMenuButton?: boolean;
 }
 
-const ChatTopNav: React.FC<ChatTopNavProps> = ({ title, onBack, onCallClick, showBackButton = false, showMenuButton = false }) => {
-    const { logout } = useContext(AuthContext);
+const ChatTopNav: React.FC<ChatTopNavProps> = ({ title, onBack, onCallClick, menuItems, showBackButton = false }) => {
     const navigate = useNavigate();
-
-    const testDataDropDown: DropDownMenuDataModel[] = [
-        {
-            id: 1,
-            icon: <ProfileIcon />,
-            text: "My Profile",
-            onClick: () => {
-                navigate("/profile");
-            },
-        },
-        {
-            id: 4,
-            icon: <LogoutIcon />,
-            text: "Logout",
-            styles: {
-                style: { color: "var(--color-alert)" },
-                hoverStyle: { color: "var(--color-primary)" },
-                iconStyle: { color: "var(--color-primary)" },
-            },
-            onClick: () => {
-                logout();
-            },
-        },
-    ];
 
     return (
         <div className={styles["chat-header"]}>
@@ -55,9 +25,9 @@ const ChatTopNav: React.FC<ChatTopNavProps> = ({ title, onBack, onCallClick, sho
                 <button className={clsx(styles["back-btn"], !showBackButton && styles["hidden"])} onClick={onBack || (() => navigate(-1))}>
                     <ArrowLeftIcon />
                 </button>
-                <DropDownMenu menu={testDataDropDown} className={clsx(styles["menu-button"], !showMenuButton && styles["hidden"])}>
+                {menuItems && <DropDownMenu menu={menuItems} className={clsx(styles["menu-button"])}>
                     <MoreCircleIcon />
-                </DropDownMenu>
+                </DropDownMenu>}
             </div>
             <div className={styles["center-title"]}>{title}</div>
             <div className={styles["right-buttons"]}>

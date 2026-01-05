@@ -5,7 +5,7 @@ import ProfileMedia from "@/ui/components/ProfileMedia";
 import { truncateLastName } from "@/utils/StringUtils";
 import { AuthContext } from "@/context/AuthContext";
 import styles from "./ChatScreenContent.module.css"
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import MessageBubble, { CallMessageGroup } from './MessageBubble';
 import ChatInputArea from './ChatInputArea';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
@@ -22,6 +22,10 @@ import logger from '@/utils/logger';
 import CallModal from '@/ui/components/modals/call-modal/CallModal';
 import useCallWebRTC from '@/hooks/useCallWebRTC';
 import IconButton from '@/ui/components/inputs/buttons/IconButton';
+import { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownMenu';
+import LogoutIcon from "@/assets/svg/Logout.svg?react";
+import ProfileIcon from "@/assets/svg/Profile.svg?react";
+import SvgPack from '@/utils/SvgPack';
 
 type DisplayMessage = Message | CallMessageGroup;
 
@@ -89,9 +93,10 @@ const MessagesList = React.memo(({ messages, typing, messagesEndRef, influencerN
 interface ChatScreenContentProps {
     id?: string;
     onBackPressed?: () => void;
+    setNeedsSelection?: (needsSelection: boolean) => void;
 }
 
-const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed }) => {
+const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed, setNeedsSelection }) => {
     const [influencer, setInfluencer] = useState<InfluencerDataModel>();
     const [chatId, setChatId] = useState<string | undefined>();
 
@@ -113,7 +118,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const ws = useRef<WebSocket | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    const { user } = useContext(AuthContext);
+    const { user, logout } = useContext(AuthContext);
     const { user_id } = useParams();
     const isSuperUser = user?.id === 1;
 
@@ -123,6 +128,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const influencerRepo = InfluencerRepo();
     const { status, startConversation, stopConversation, setInfluencerId, timeRemaining, micMuted, toggleMute } = useCallWebRTC();
     const displayMessages = useMemo(() => messages ? mergeCallMessages(messages) : [], [messages]);
+    const navigate = useNavigate();
+
     useEffect(() => {
         (async () => {
             if (!id) {
@@ -142,7 +149,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     }, [id, user_id]);
 
     useEffect(() => {
-        setTyping(false); // Reset typing indicator when switching DMs
+        setTyping(false);
     }, [influencer]);
 
     const fetchMessages = async (chat_id: string, page: number) => {
@@ -187,7 +194,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
-    //Load call-log 5 seconds after disconnecting the call  
     useEffect(() => {
         if ((status === "disconnected" || status === "idle") && chatId) {
             const t = setTimeout(() => {
@@ -386,11 +392,43 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         }
     };
 
+    const testDataDropDown: DropDownMenuDataModel[] = [
+        {
+            id: 1,
+            icon: <ProfileIcon />,
+            text: "My Profile",
+            onClick: () => {
+                navigate("/profile");
+            },
+        },
+        {
+            id: 2,
+            icon: <SvgPack.Female />,
+            text: "Change Influencer",
+            onClick: () => {
+                setNeedsSelection?.(true);
+            }
+        },
+        {
+            id: 4,
+            icon: <LogoutIcon />,
+            text: "Logout",
+            styles: {
+                style: { color: "var(--color-alert)" },
+                hoverStyle: { color: "var(--color-primary)" },
+                iconStyle: { color: "var(--color-primary)" },
+            },
+            onClick: () => {
+                logout();
+            },
+        },
+    ];
+
     if (!influencer) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
     return (
         <div className={styles["chat-screen-content"]}>
             <div className={styles["chat-header"]}>
-                <ChatTopNav onBack={handleOnBackClick} onCallClick={onCall} showMenuButton />
+                <ChatTopNav onBack={handleOnBackClick} onCallClick={onCall} menuItems={testDataDropDown} />
                 <div className={styles["chat-header-info"]}>
                     <ProfileMedia imageSrc={influencer?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
                     <div className={styles["chat-user-name"]}>
