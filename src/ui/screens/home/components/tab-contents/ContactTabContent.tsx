@@ -1,11 +1,10 @@
-import { apiClient } from "@/api/apis";
 import SearchIcon from "@/assets/svg/Search.svg?react";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 import clsx from "clsx";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./ContactTabContent.module.css";
 
 interface ContactTabContentProps {
