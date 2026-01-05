@@ -17,6 +17,9 @@ import GuestRoute from "./components/GuestRoute";
 import PrivateRoute from "./components/PrivateRoute";
 import SuperRoute from "./components/SuperRoute";
 
+const AdminPreInfluencers = lazy(
+  () => import("@/ui/screens/admin/pre-influencers/AdminPreInfluencers")
+);
 const InfluencerProfileScreen = lazy(
   () => import("@/ui/screens/influencer-profile/InfluencerProfileScreen")
 );
@@ -76,11 +79,15 @@ function AppRoutes() {
       path: "/influencer/:id/audio-manager",
       element: <InfluencerAudioManagerRoute />,
     },
+
     { path: "/thank-you", element: <ThankYouScreen /> },
     { path: "/profile-survey-form", element: <ProfileSurveyForm /> },
-     { path: "/voice-terms", element: <RecordTerms /> },
+    { path: "/voice-terms", element: <RecordTerms /> },
     { path: "/influencer-home", element: <InfluencerHome /> },
-    { path: "/influencer-home-expired", element: <InfluencerHomeTrialExpired /> },
+    {
+      path: "/influencer-home-expired",
+      element: <InfluencerHomeTrialExpired />,
+    },
     {
       path: "/intencion-influencer-home",
       element: <IntencionInfluencerHome />,
@@ -88,8 +95,8 @@ function AppRoutes() {
   ];
 
   const guestRoutes: { path: string; element: JSX.Element }[] = [
-    { path: "/login", element: <LoginScreen /> },
-    { path: "/register", element: <RegisterScreen /> },
+    { path: "/:username/login", element: <LoginScreen /> },
+    { path: "/:username/register", element: <RegisterScreen /> },
     { path: "/register/verify", element: <Confirmation /> },
     { path: "/reset-password", element: <ResetPassword /> },
     { path: "/forgot-password", element: <ForgotPassword /> },
@@ -101,14 +108,15 @@ function AppRoutes() {
     { path: "/admin/influencer", element: <CreateInfluencer /> },
     { path: "/admin/prompts", element: <PromptEditorAdmin /> },
     { path: "/admin/relationship", element: <RelationshipDashboard /> },
+    { path: "/admin/pre-influencers", element: <AdminPreInfluencers /> },
   ];
 
   const privateRoutes: { path: string; element: JSX.Element }[] = [
     { path: "/voice", element: <VoiceCallEleven /> },
     { path: "/home", element: <HomeScreen /> },
+    { path: "/profile", element: <UserProfile /> },
     { path: "/chat/:user_id", element: <ChatScreen /> },
     { path: "/call/:conversation_id", element: <CallScreen /> },
-    { path: "/profile", element: <UserProfile /> },
     { path: "/paypal/return", element: <PayPalReturn /> },
     { path: "/paypal/cancel", element: <PayPalCancel /> },
   ];

@@ -22,7 +22,7 @@ export default function LoginScreen() {
 
   const navigate = useNavigate();
 
-  useEffect(() => { if (isSignedIn) navigate("/home"); }, [isSignedIn, navigate]); 
+  useEffect(() => { if (isSignedIn) navigate("/home"); }, [isSignedIn, navigate]);
 
 
   const handleSubmit = async (e?: React.FormEvent) => {
@@ -41,8 +41,8 @@ export default function LoginScreen() {
         navigate("/home");
         return;
       }
-      else{
-      setErrors({ general: "Login Failed. Please check your username or password." });
+      else {
+        setErrors({ general: "Login Failed. Please check your username or password." });
       }
     }
     catch (err) {
@@ -105,6 +105,6 @@ export default function LoginScreen() {
           </div>
         </form>
       </FullWidthLayout>
-    </BackgroundGradient >
+    </BackgroundGradient>
   );
 }
