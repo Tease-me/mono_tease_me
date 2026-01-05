@@ -69,6 +69,7 @@
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   padding-bottom: 8px;
+  overscroll-behavior: auto;
 
   scrollbar-width: none;
   /* Firefox */
@@ -111,7 +112,10 @@
 
 /*** SPACER **/
 
-.spacer {display: flex; min-width: 0.5rem;}
+.spacer {
+  display: flex;
+  min-width: 0.5rem;
+}
 
 /* BODY */
 .tm-process-body {
@@ -173,7 +177,10 @@
     mask-image: linear-gradient(90deg, black 90%, transparent);
   }
 
-  .spacer {display: flex; min-width: 8rem;}
+  .spacer {
+    display: flex;
+    min-width: 8rem;
+  }
 
   .tm-process-header {
     align-items: center;
