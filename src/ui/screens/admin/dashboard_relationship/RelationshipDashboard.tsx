@@ -11,6 +11,8 @@ import {
 
 import { apiClient } from "@/api/apis";
 import { AdminServices } from "@/api/services/AdminServices";
+import AdminLayout from "../AdminLayout";
+import styles from "./RelationshipDashboard.module.css";
 
 const admin = AdminServices(apiClient);
 
@@ -149,15 +151,11 @@ function Pill({
   };
   return (
     <span
+      className={styles["pill"]}
       style={{
-        padding: "6px 10px",
-        borderRadius: 999,
         background: t.bg,
         color: t.fg,
         border: `1px solid ${t.border}`,
-        fontWeight: 800,
-        fontSize: 12,
-        whiteSpace: "nowrap",
       }}
     >
       {children}
@@ -174,24 +172,9 @@ function Panel({
 }) {
   return (
     <section
-      style={{
-        borderRadius: 16,
-        border: "1px solid rgba(255,255,255,0.08)",
-        background: "rgba(0,0,0,0.18)",
-        padding: 12,
-        overflow: "hidden",
-      }}
+      className={styles["panel"]}
     >
-      <div
-        style={{
-          fontWeight: 900,
-          fontSize: 13,
-          marginBottom: 10,
-          opacity: 0.95,
-        }}
-      >
-        {title}
-      </div>
+      <div className={styles["panel__title"]}>{title}</div>
       {children}
     </section>
   );
@@ -209,50 +192,21 @@ function MetricCard({
   const v = clamp01to100(value);
   const pct = `${v.toFixed(0)}%`;
   return (
-    <div
-      style={{
-        border: "1px solid rgba(255,255,255,0.08)",
-        borderRadius: 16,
-        padding: 14,
-        background: "rgba(255,255,255,0.03)",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          gap: 12,
-          alignItems: "flex-start",
-        }}
-      >
+    <div className={styles["metric-card"]}>
+      <div className={styles["metric-card__header"]}>
         <div>
-          <div style={{ fontSize: 12, opacity: 0.82 }}>{title}</div>
-          <div style={{ fontSize: 22, fontWeight: 900, marginTop: 6 }}>
-            {pct}
-          </div>
-          <div style={{ fontSize: 12, opacity: 0.72, marginTop: 4 }}>
+          <div className={styles["metric-card__label"]}>{title}</div>
+          <div className={styles["metric-card__value"]}>{pct}</div>
+          <div className={styles["metric-card__hint"]}>
             {hint ?? scoreLabel(v)}
           </div>
         </div>
 
-        <div style={{ width: 90 }}>
+        <div className={styles["metric-card__bar-shell"]}>
           <div
-            style={{
-              height: 8,
-              borderRadius: 999,
-              background: "rgba(255,255,255,0.08)",
-              overflow: "hidden",
-              marginTop: 8,
-            }}
-          >
-            <div
-              style={{
-                width: `${v}%`,
-                height: "100%",
-                background: "rgba(255,255,255,0.78)",
-              }}
-            />
-          </div>
+            className={styles["metric-card__bar-fill"]}
+            style={{ width: `${v}%` }}
+          />
         </div>
       </div>
     </div>
@@ -498,51 +452,31 @@ export default function RelationshipDashboard() {
   }, [selectedRel]);
 
   const Sidebar = (
-    <aside
-      style={{
-        border: "1px solid rgba(255,255,255,0.08)",
-        borderRadius: 16,
-        background: "rgba(255,255,255,0.03)",
-        overflow: "hidden",
-      }}
-    >
-      <div
-        style={{
-          padding: 14,
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
-        }}
-      >
-        <div style={{ fontWeight: 900, fontSize: 14 }}>Relationship Admin</div>
+    <aside className={styles["sidebar"]}>
+      <div className={styles["sidebar-section"]}>
+        <div className={styles["sidebar-title"]}>Relationship Admin</div>
 
         <input
           value={userQuery}
           onChange={(e) => setUserQuery(e.target.value)}
           placeholder="Search user (email/username)…"
-          style={{
-            marginTop: 12,
-            width: "100%",
-            padding: "12px 12px",
-            borderRadius: 12,
-            border: "1px solid rgba(255,255,255,0.12)",
-            background: "rgba(0,0,0,0.25)",
-            color: "rgba(255,255,255,0.9)",
-            outline: "none",
-          }}
+          className={styles["search"]}
         />
 
         {loadingUsers && (
-          <div style={{ marginTop: 10, fontSize: 12, opacity: 0.8 }}>
-            Loading users…
-          </div>
+          <div className={styles["sidebar-hint"]}>Loading users…</div>
         )}
         {errorUsers && (
-          <div style={{ marginTop: 10, fontSize: 12, color: "#ffb4b4" }}>
+          <div className={styles["sidebar-error"]}>
             Users error: {errorUsers}
           </div>
         )}
       </div>
 
-      <div style={{ maxHeight: isMobile ? "40vh" : "45vh", overflow: "auto" }}>
+      <div
+        className={styles["list"]}
+        style={{ maxHeight: isMobile ? "40vh" : "45vh" }}
+      >
         {users.map((u) => {
           const active = u.id === selectedUserId;
           return (
@@ -552,54 +486,37 @@ export default function RelationshipDashboard() {
                 setSelectedUserId(u.id);
                 if (isMobile) setShowSidebarMobile(false);
               }}
-              style={{
-                width: "100%",
-                textAlign: "left",
-                padding: 12,
-                minHeight: 44,
-                border: "none",
-                borderBottom: "1px solid rgba(255,255,255,0.06)",
-                background: active ? "rgba(255,255,255,0.08)" : "transparent",
-                color: "rgba(255,255,255,0.92)",
-                cursor: "pointer",
-              }}
+              className={`${styles["list-item"]} ${
+                active ? styles["list-item--active"] : ""
+              }`}
             >
-              <div style={{ fontWeight: 800, fontSize: 13 }}>
+              <div className={styles["list-item__title"]}>
                 {u.username || u.full_name || `User #${u.id}`}
               </div>
-              <div style={{ opacity: 0.75, fontSize: 12 }}>{u.email || ""}</div>
+              <div className={styles["list-item__subtitle"]}>
+                {u.email || ""}
+              </div>
             </button>
           );
         })}
         {!loadingUsers && users.length === 0 && (
-          <div style={{ padding: 12, opacity: 0.8 }}>No users found.</div>
+          <div className={styles["sidebar-hint"]}>No users found.</div>
         )}
       </div>
 
-      <div
-        style={{ padding: 14, borderTop: "1px solid rgba(255,255,255,0.08)" }}
-      >
-        <div style={{ fontWeight: 900, fontSize: 13 }}>Influencers</div>
+      <div className={styles["sidebar-section"]}>
+        <div className={styles["sidebar-title"]}>Influencers</div>
 
         {loadingRels && (
-          <div style={{ marginTop: 10, fontSize: 12, opacity: 0.8 }}>
-            Loading relationships…
-          </div>
+          <div className={styles["sidebar-hint"]}>Loading relationships…</div>
         )}
         {errorRels && (
-          <div style={{ marginTop: 10, fontSize: 12, color: "#ffb4b4" }}>
+          <div className={styles["sidebar-error"]}>
             Relationships error: {errorRels}
           </div>
         )}
 
-        <div
-          style={{
-            marginTop: 10,
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-          }}
-        >
+        <div className={styles["influencer-list"]}>
           {rels.map((r) => {
             const active = r.influencer_id === selectedInfluencer;
             const b = stateBadge(r.state);
@@ -610,32 +527,19 @@ export default function RelationshipDashboard() {
                   setSelectedInfluencer(r.influencer_id);
                   if (isMobile) setShowSidebarMobile(false);
                 }}
-                style={{
-                  width: "100%",
-                  textAlign: "left",
-                  padding: 12,
-                  minHeight: 44,
-                  borderRadius: 12,
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  background: active ? "rgba(255,255,255,0.08)" : "transparent",
-                  color: "rgba(255,255,255,0.92)",
-                  cursor: "pointer",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 8,
-                }}
+                className={`${styles["influencer"]} ${
+                  active ? styles["influencer--active"] : ""
+                }`}
               >
-                <span style={{ fontWeight: 800 }}>{r.influencer_id}</span>
+                <span className={styles["influencer__name"]}>
+                  {r.influencer_id}
+                </span>
                 <span
+                  className={styles["state-chip"]}
                   style={{
-                    fontSize: 11,
-                    padding: "4px 8px",
-                    borderRadius: 999,
                     background: b.bg,
                     color: b.fg,
                     border: `1px solid ${b.border}`,
-                    whiteSpace: "nowrap",
                   }}
                 >
                   {r.state}
@@ -649,370 +553,286 @@ export default function RelationshipDashboard() {
   );
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: rootGridCols,
-        minHeight: "calc(100vh - 48px)",
-        gap: 16,
-        padding: 16,
-        color: "rgba(255,255,255,0.92)",
-      }}
-    >
-      {isMobile && (
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <button
-            onClick={() => setShowSidebarMobile((v) => !v)}
-            style={{
-              padding: "12px 14px",
-              borderRadius: 12,
-              border: "1px solid rgba(255,255,255,0.12)",
-              background: "rgba(255,255,255,0.05)",
-              color: "rgba(255,255,255,0.92)",
-              fontWeight: 800,
-              cursor: "pointer",
-              flex: 1,
-            }}
-          >
-            ☰ Select User / Influencer
-          </button>
-
-          <Pill tone={selectedRel ? badge : undefined}>
-            {selectedRel?.state || "—"}
-          </Pill>
-        </div>
-      )}
-
-      {!isMobile && Sidebar}
-      {isMobile && showSidebarMobile && Sidebar}
-
-      <main
-        style={{
-          border: "1px solid rgba(255,255,255,0.08)",
-          borderRadius: 16,
-          background: "rgba(255,255,255,0.03)",
-          padding: 16,
-        }}
-      >
-        {/* Header */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            gap: 12,
-            flexWrap: "wrap",
-          }}
+    <AdminLayout
+      title="Relationship Dashboard"
+      subtitle="Monitor and adjust user ↔ influencer relationships with live refresh every 5s."
+      headerRight={
+        <button
+          className={styles["refresh"]}
+          onClick={refreshSelected}
+          disabled={!selectedUserId || saving || loadingRels}
         >
-          <div>
-            <div style={{ opacity: 0.72, fontSize: 12 }}>
-              Relationship Dashboard
-            </div>
-            <div
-              style={{
-                fontSize: isMobile ? 18 : 22,
-                fontWeight: 950,
-                marginTop: 6,
-              }}
+          {loadingRels ? "Loading…" : "Refresh"}
+        </button>
+      }
+    >
+      <div
+        className={styles["layout"]}
+        style={{ gridTemplateColumns: rootGridCols }}
+      >
+        {isMobile && (
+          <div className={styles["mobile-bar"]}>
+            <button
+              onClick={() => setShowSidebarMobile((v) => !v)}
+              className={styles["toggle-sidebar"]}
             >
-              {selectedUser
-                ? `${
-                    selectedUser.username ||
-                    selectedUser.full_name ||
-                    `User #${selectedUser.id}`
-                  }`
-                : "Select a user"}
-              {selectedRel ? ` • ${selectedRel.influencer_id}` : ""}
-            </div>
-            <div style={{ opacity: 0.7, fontSize: 12, marginTop: 6 }}>
-              {selectedRel?.updated_at
-                ? `Updated: ${new Date(
-                    selectedRel.updated_at
-                  ).toLocaleString()}`
-                : ""}
-            </div>
-          </div>
+              ☰ Select User / Influencer
+            </button>
 
-          {/* Editable */}
-          <div
-            style={{
-              display: "flex",
-              gap: 10,
-              flexWrap: "wrap",
-              alignItems: "center",
-            }}
-          >
-            {selectedRel && edit ? (
-              <>
-                <Pill tone={badge}>Stage</Pill>
-
-                <select
-                  value={edit.state || "STRANGERS"}
-                  onChange={(e) =>
-                    setEdit((p) => (p ? { ...p, state: e.target.value } : p))
-                  }
-                  style={{
-                    padding: "8px 10px",
-                    borderRadius: 12,
-                    border: "1px solid rgba(255,255,255,0.12)",
-                    background: "rgba(0,0,0,0.25)",
-                    color: "rgba(255,255,255,0.92)",
-                    fontWeight: 800,
-                  }}
-                >
-                  {[
-                    "HATE",
-                    "DISLIKE",
-                    "STRANGERS",
-                    "TALKING",
-                    "FLIRTING",
-                    "DATING",
-                    "GIRLFRIEND",
-                  ].map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-
-                <Pill>
-                  Sentiment: {sentimentLabel(edit.sentiment_score ?? 0)}
-                </Pill>
-
-                <label
-                  style={{ display: "flex", gap: 8, alignItems: "center" }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={!!edit.exclusive_agreed}
-                    onChange={(e) =>
-                      setEdit((p) =>
-                        p ? { ...p, exclusive_agreed: e.target.checked } : p
-                      )
-                    }
-                  />
-                  <span style={{ fontSize: 12, fontWeight: 800 }}>
-                    Exclusive
-                  </span>
-                </label>
-
-                <label
-                  style={{ display: "flex", gap: 8, alignItems: "center" }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={!!edit.girlfriend_confirmed}
-                    onChange={(e) =>
-                      setEdit((p) =>
-                        p ? { ...p, girlfriend_confirmed: e.target.checked } : p
-                      )
-                    }
-                  />
-                  <span style={{ fontSize: 12, fontWeight: 800 }}>
-                    Girlfriend
-                  </span>
-                </label>
-
-                {isDirty && (
-                  <Pill
-                    tone={{
-                      bg: "rgba(245,158,11,0.12)",
-                      fg: "#fcd34d",
-                      border: "rgba(245,158,11,0.4)",
-                    }}
-                  >
-                    Unsaved changes
-                  </Pill>
-                )}
-
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                  <button
-                  onClick={resetEdits}
-                  disabled={saving}
-                  style={{
-                    padding: "10px 12px",
-                    borderRadius: 12,
-                    border: "1px solid rgba(255,255,255,0.12)",
-                    background: "rgba(255,255,255,0.08)",
-                    color: "rgba(255,255,255,0.82)",
-                    fontWeight: 800,
-                    cursor: saving ? "default" : "pointer",
-                  }}
-                >
-                  Reset
-                </button>
-                  <button
-                    onClick={saveEdits}
-                    disabled={saving}
-                    style={{
-                      padding: "10px 12px",
-                      borderRadius: 12,
-                      border: isDirty
-                        ? "1px solid rgba(245,158,11,0.6)"
-                        : "1px solid rgba(255,255,255,0.12)",
-                      background: saving
-                        ? "rgba(255,255,255,0.05)"
-                        : isDirty
-                        ? "rgba(245,158,11,0.18)"
-                        : "rgba(255,255,255,0.10)",
-                      color: "rgba(255,255,255,0.92)",
-                      fontWeight: 900,
-                      cursor: saving ? "default" : "pointer",
-                      boxShadow: isDirty
-                        ? "0 0 0 1px rgba(245,158,11,0.3)"
-                        : "none",
-                    }}
-                  >
-                    {saving ? "Saving…" : isDirty ? "Save changes" : "Save"}
-                  </button>
-                </div>
-
-                {saveError && (
-                  <Pill
-                    tone={{
-                      bg: "rgba(239,68,68,0.14)",
-                      fg: "#fecaca",
-                      border: "rgba(239,68,68,0.26)",
-                    }}
-                  >
-                    Save error
-                  </Pill>
-                )}
-              </>
-            ) : (
-              <Pill>Select a user + influencer</Pill>
-            )}
-          </div>
-        </div>
-
-        {/* Sliders */}
-        {selectedRel && edit && (
-          <div
-            style={{
-              marginTop: 12,
-              display: "grid",
-              gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-              gap: 12,
-            }}
-          >
-            {(
-              [
-                ["trust", "Trust", 0, 100],
-                ["closeness", "Closeness", 0, 100],
-                ["attraction", "Attraction", 0, 100],
-                ["safety", "Safety", 0, 100],
-                ["stage_points", "Stage Points", 0, 100],
-                ["sentiment_score", "Sentiment Score", -100, 100],
-              ] as const
-            ).map(([key, label, min, max]) => (
-              <div
-                key={key}
-                style={{
-                  padding: 12,
-                  borderRadius: 14,
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  background: "rgba(0,0,0,0.12)",
-                }}
-              >
-                <div style={{ fontSize: 12, opacity: 0.8, fontWeight: 800 }}>
-                  {label}
-                </div>
-                <input
-                  type="range"
-                  min={min}
-                  max={max}
-                  value={Number((edit as any)[key] ?? 0)}
-                  onChange={(e) =>
-                    setEdit((p) =>
-                      p ? { ...p, [key]: Number(e.target.value) } : p
-                    )
-                  }
-                  style={{ width: "100%", marginTop: 8 }}
-                />
-                <div style={{ marginTop: 6, fontWeight: 900 }}>
-                  {Number((edit as any)[key] ?? 0).toFixed(0)}
-                </div>
-              </div>
-            ))}
+            <Pill tone={selectedRel ? badge : undefined}>
+              {selectedRel?.state || "—"}
+            </Pill>
           </div>
         )}
 
-        {/* Metrics */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: cardsCols,
-            gap: 12,
-            marginTop: 16,
-          }}
-        >
-          <MetricCard title="Trust" value={selectedRel?.trust ?? 0} />
-          <MetricCard title="Closeness" value={selectedRel?.closeness ?? 0} />
-          <MetricCard title="Attraction" value={selectedRel?.attraction ?? 0} />
-          <MetricCard title="Safety" value={selectedRel?.safety ?? 0} />
-        </div>
+        {!isMobile && Sidebar}
+        {isMobile && showSidebarMobile && Sidebar}
 
-        {/* Panels */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: panelsCols,
-            gap: 16,
-            marginTop: 16,
-          }}
-        >
-          <Panel title="Selected influencer — radar">
-            {selectedRel ? (
-              <div style={{ height: radarHeight }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart data={radarData}>
-                    <PolarGrid />
-                    <PolarAngleAxis dataKey="metric" />
-                    <PolarRadiusAxis domain={[0, 100]} />
-                    <Radar dataKey="value" />
-                    <Tooltip />
-                  </RadarChart>
-                </ResponsiveContainer>
+        <main className={styles["main"]}>
+          <div className={styles["header"]}>
+            <div>
+              <div className={styles["eyebrow"]}>Relationship Dashboard</div>
+              <div className={styles["title"]}>
+                {selectedUser
+                  ? `${
+                      selectedUser.username ||
+                      selectedUser.full_name ||
+                      `User #${selectedUser.id}`
+                    }`
+                  : "Select a user"}
+                {selectedRel ? ` • ${selectedRel.influencer_id}` : ""}
               </div>
-            ) : (
-              <div style={{ padding: 10, opacity: 0.8, fontSize: 12 }}>
-                Select a user and influencer to see metrics.
+              <div className={styles["subline"]}>
+                {selectedRel?.updated_at
+                  ? `Updated: ${new Date(
+                      selectedRel.updated_at
+                    ).toLocaleString()}`
+                  : ""}
               </div>
-            )}
-          </Panel>
+            </div>
 
-          <Panel title="Relationships summary">
-            {rels.length ? (
-              <div
-                style={{ display: "flex", flexDirection: "column", gap: 10 }}
-              >
-                <div style={{ fontSize: 12, opacity: 0.8 }}>
-                  {rels.length} influencer relationship(s) for this user.
-                </div>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-                    gap: 10,
-                  }}
-                >
-                  <MetricCard
-                    title="Avg Trust"
-                    value={rels.reduce((a, r) => a + r.trust, 0) / rels.length}
+            <div className={styles["controls"]}>
+              {selectedRel && edit ? (
+                <>
+                  <Pill tone={badge}>Stage</Pill>
+
+                  <select
+                    value={edit.state || "STRANGERS"}
+                    onChange={(e) =>
+                      setEdit((p) =>
+                        p ? { ...p, state: e.target.value } : p
+                      )
+                    }
+                    className={styles["select"]}
+                  >
+                    {[
+                      "HATE",
+                      "DISLIKE",
+                      "STRANGERS",
+                      "TALKING",
+                      "FLIRTING",
+                      "DATING",
+                      "GIRLFRIEND",
+                    ].map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+
+                  <Pill>
+                    Sentiment: {sentimentLabel(edit.sentiment_score ?? 0)}
+                  </Pill>
+
+                  <label className={styles["checkbox"]}>
+                    <input
+                      type="checkbox"
+                      checked={!!edit.exclusive_agreed}
+                      onChange={(e) =>
+                        setEdit((p) =>
+                          p
+                            ? { ...p, exclusive_agreed: e.target.checked }
+                            : p
+                        )
+                      }
+                    />
+                    <span>Exclusive</span>
+                  </label>
+
+                  <label className={styles["checkbox"]}>
+                    <input
+                      type="checkbox"
+                      checked={!!edit.girlfriend_confirmed}
+                      onChange={(e) =>
+                        setEdit((p) =>
+                          p
+                            ? {
+                                ...p,
+                                girlfriend_confirmed: e.target.checked,
+                              }
+                            : p
+                        )
+                      }
+                    />
+                    <span>Girlfriend</span>
+                  </label>
+
+                  {isDirty && (
+                    <Pill
+                      tone={{
+                        bg: "rgba(245,158,11,0.12)",
+                        fg: "#fcd34d",
+                        border: "rgba(245,158,11,0.4)",
+                      }}
+                    >
+                      Unsaved changes
+                    </Pill>
+                  )}
+
+                  <div className={styles["button-row"]}>
+                    <button
+                      onClick={resetEdits}
+                      disabled={saving}
+                      className={styles["ghost"]}
+                    >
+                      Reset
+                    </button>
+                    <button
+                      onClick={saveEdits}
+                      disabled={saving}
+                      className={`${styles["primary"]} ${
+                        isDirty ? styles["primary--warning"] : ""
+                      }`}
+                    >
+                      {saving ? "Saving…" : isDirty ? "Save changes" : "Save"}
+                    </button>
+                  </div>
+
+                  {saveError && (
+                    <Pill
+                      tone={{
+                        bg: "rgba(239,68,68,0.14)",
+                        fg: "#fecaca",
+                        border: "rgba(239,68,68,0.26)",
+                      }}
+                    >
+                      Save error
+                    </Pill>
+                  )}
+                </>
+              ) : (
+                <Pill>Select a user + influencer</Pill>
+              )}
+            </div>
+          </div>
+
+          {selectedRel && edit && (
+            <div
+              className={styles["slider-grid"]}
+              style={{
+                gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+              }}
+            >
+              {(
+                [
+                  ["trust", "Trust", 0, 100],
+                  ["closeness", "Closeness", 0, 100],
+                  ["attraction", "Attraction", 0, 100],
+                  ["safety", "Safety", 0, 100],
+                  ["stage_points", "Stage Points", 0, 100],
+                  ["sentiment_score", "Sentiment Score", -100, 100],
+                ] as const
+              ).map(([key, label, min, max]) => (
+                <div key={key} className={styles["slider-card"]}>
+                  <div className={styles["slider-card__label"]}>{label}</div>
+                  <input
+                    type="range"
+                    min={min}
+                    max={max}
+                    value={Number((edit as any)[key] ?? 0)}
+                    onChange={(e) =>
+                      setEdit((p) =>
+                        p ? { ...p, [key]: Number(e.target.value) } : p
+                      )
+                    }
+                    className={styles["slider"]}
                   />
-                  <MetricCard
-                    title="Avg Safety"
-                    value={rels.reduce((a, r) => a + r.safety, 0) / rels.length}
-                  />
+                  <div className={styles["slider-card__value"]}>
+                    {Number((edit as any)[key] ?? 0).toFixed(0)}
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div style={{ padding: 10, opacity: 0.8, fontSize: 12 }}>
-                No relationships found for this user.
-              </div>
-            )}
-          </Panel>
-        </div>
-      </main>
-    </div>
+              ))}
+            </div>
+          )}
+
+          <div
+            className={styles["metrics"]}
+            style={{ gridTemplateColumns: cardsCols }}
+          >
+            <MetricCard title="Trust" value={selectedRel?.trust ?? 0} />
+            <MetricCard title="Closeness" value={selectedRel?.closeness ?? 0} />
+            <MetricCard
+              title="Attraction"
+              value={selectedRel?.attraction ?? 0}
+            />
+            <MetricCard title="Safety" value={selectedRel?.safety ?? 0} />
+          </div>
+
+          <div
+            className={styles["panels"]}
+            style={{ gridTemplateColumns: panelsCols }}
+          >
+            <Panel title="Selected influencer — radar">
+              {selectedRel ? (
+                <div className={styles["radar"]} style={{ height: radarHeight }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart data={radarData}>
+                      <PolarGrid />
+                      <PolarAngleAxis dataKey="metric" />
+                      <PolarRadiusAxis domain={[0, 100]} />
+                      <Radar dataKey="value" />
+                      <Tooltip />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className={styles["panel-empty"]}>
+                  Select a user and influencer to see metrics.
+                </div>
+              )}
+            </Panel>
+
+            <Panel title="Relationships summary">
+              {rels.length ? (
+                <div className={styles["summary"]}>
+                  <div className={styles["summary__hint"]}>
+                    {rels.length} influencer relationship(s) for this user.
+                  </div>
+                  <div
+                    className={styles["summary__grid"]}
+                    style={{ gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr" }}
+                  >
+                    <MetricCard
+                      title="Avg Trust"
+                      value={rels.reduce((a, r) => a + r.trust, 0) / rels.length}
+                    />
+                    <MetricCard
+                      title="Avg Safety"
+                      value={
+                        rels.reduce((a, r) => a + r.safety, 0) / rels.length
+                      }
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className={styles["panel-empty"]}>
+                  No relationships found for this user.
+                </div>
+              )}
+            </Panel>
+          </div>
+        </main>
+      </div>
+    </AdminLayout>
   );
 }

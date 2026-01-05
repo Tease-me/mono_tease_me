@@ -8,7 +8,7 @@ const links = [
   {
     to: "/admin/relationship",
     label: "Relationship Dashboard",
-    external: true,
+    external: false,
   },
   { to: "/admin/pre-influencers", label: "Pre-Influencers" },
 ];
@@ -22,9 +22,8 @@ const AdminNav: React.FC = () => {
       <div className={styles["links"]}>
         {links.map((link) => {
           const isActive = !link.external && pathname.startsWith(link.to);
-          const className = `${styles["link"]} ${
-            isActive ? styles["link--active"] : ""
-          }`;
+          const className = `${styles["link"]} ${isActive ? styles["link--active"] : ""
+            }`;
           return link.external ? (
             <a
               key={link.to}
