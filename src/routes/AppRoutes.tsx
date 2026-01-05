@@ -38,7 +38,7 @@ const VerifyEmail = lazy(() => import("@/ui/screens/verify-email/VerifyEmail"));
 const VoiceCallEleven = lazy(
   () => import("@/ui/screens/messaging/VoiceCallEleven")
 );
-const HomeScreen = lazy(() => import("@/ui/screens/home/HomeScreen"));
+const HomeScreenSingle = lazy(() => import("@/ui/screens/home/HomeScreenSingle"));
 const ChatScreen = lazy(() => import("@/ui/screens/messaging/ChatScreen"));
 const CallScreen = lazy(() => import("@/ui/screens/CallScreen"));
 const UserProfile = lazy(() => import("@/ui/screens/user-profile/UserProfile"));
@@ -113,7 +113,7 @@ function AppRoutes() {
 
   const privateRoutes: { path: string; element: JSX.Element }[] = [
     { path: "/voice", element: <VoiceCallEleven /> },
-    { path: "/home", element: <HomeScreen /> },
+    { path: "/home", element: <HomeScreenSingle /> },
     { path: "/profile", element: <UserProfile /> },
     { path: "/chat/:user_id", element: <ChatScreen /> },
     { path: "/call/:conversation_id", element: <CallScreen /> },

@@ -29,10 +29,16 @@ const DropDownMenu: React.FC<DropDownMenuProps> = ({ menu, children, className, 
             const menuWidth = menuRef.current.offsetWidth;
             const spaceBelow = window.innerHeight - buttonRect.bottom;
             const spaceRight = window.innerWidth - buttonRect.left;
+            const spaceLeft = buttonRect.right;
+
             setOpenUpward(spaceBelow < menuHeight);
-            setOpenLeft(spaceRight < menuWidth);
+            // Align menu to the left edge of the trigger (expanding right) when there is room on the right
+            // or when opening to the right would overflow more than opening to the left.
+            const alignLeft = spaceRight >= menuWidth || spaceRight >= spaceLeft;
+            setOpenLeft(alignLeft);
         }
     }, [menuOpen]);
+
     return (
         <>
             {menuOpen && <div className={styles["overlay"]} onClick={() => setMenuOpen(prev => !prev)} />}
