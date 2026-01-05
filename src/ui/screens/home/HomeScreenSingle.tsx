@@ -3,20 +3,39 @@ import BackgroundGradient from "@/ui/templates/BackgroundGradient";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import ChatScreenContent from "../messaging/components/ChatScreenContent";
+import InfluencerSelector from "../influencer/InfluencerSelector";
 
 export default function HomeScreenSingle() {
   const [id, setId] = useState<string | undefined>(undefined);
+  const [needsSelection, setNeedsSelection] = useState(false);
+  const [influencers, setInfluencers] = useState<InfluencerDataModel[]>([]);
+
   useEffect(() => {
     const influencerRepo = InfluencerRepo();
-    influencerRepo.getInfluencers().then((influencers: InfluencerDataModel[]) => {
-      influencers.length > 0 && setId(influencers[0].id)
-    })
-  }, [])
+    influencerRepo
+      .getFollowedInfluencers()
+      .then((influencers: InfluencerDataModel[]) => {
+        if (influencers.length > 1) {
+          setNeedsSelection(true);
+        } else if (influencers.length === 1) {
+          setId(influencers[0].id);
+        }
+        setInfluencers(influencers);
+      });
+  }, []);
 
+  const handleSelect = (selectedId: string) => {
+    setId(selectedId);
+    setNeedsSelection(false);
+  };
 
   return (
     <BackgroundGradient>
-      <ChatScreenContent id={id} />
+      {needsSelection && !id ? (
+        <InfluencerSelector onItemClick={handleSelect} influencers={influencers} />
+      ) : (
+        <ChatScreenContent id={id} />
+      )}
     </BackgroundGradient>
   );
 }
