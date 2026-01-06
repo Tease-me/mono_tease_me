@@ -118,6 +118,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const ws = useRef<WebSocket | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const reconnectTimer = useRef<number | null>(null);
 
     const { user, logout } = useContext(AuthContext);
     const { user_id } = useParams();
@@ -210,12 +211,40 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         return (replyTime);
     }
 
+    const clearReconnectTimer = () => {
+        if (reconnectTimer.current) {
+            window.clearTimeout(reconnectTimer.current);
+            reconnectTimer.current = null;
+        }
+    };
+
+    const scheduleReconnect = (influencerId: string) => {
+        if (reconnectTimer.current) return;
+        reconnectTimer.current = window.setTimeout(() => {
+            reconnectTimer.current = null;
+            connectChat(influencerId);
+        }, 5000);
+    };
+
     function connectChat(influencerId: string) {
+        ws.current?.close();
         const access_token = storage.get(LocalStorageKeys.AccessToken);
         ws.current = new window.WebSocket(`${WS_BASE_URL}${Endpoints.ws.chat}/${influencerId}?token=${access_token}`);
-        ws.current.onopen = () => setIsWsConnected(true);
-        ws.current.onclose = () => setIsWsConnected(false);
-        ws.current.onerror = () => setIsWsConnected(false);
+        ws.current.onopen = () => {
+            setIsWsConnected(true);
+            setError(undefined);
+            clearReconnectTimer();
+        };
+        ws.current.onclose = () => {
+            setIsWsConnected(false);
+            setError("Disconnected. Reconnecting...");
+            scheduleReconnect(influencerId);
+        };
+        ws.current.onerror = () => {
+            setIsWsConnected(false);
+            setError("Connection error. Reconnecting...");
+            scheduleReconnect(influencerId);
+        };
         ws.current.onmessage = (event) => {
             setTyping(false);
             console.warn("WebSocket message received:", event.data);
@@ -251,6 +280,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             }
         };
     }
+
+    useEffect(() => {
+        return () => {
+            clearReconnectTimer();
+            ws.current?.close();
+        };
+    }, []);
 
     async function sendAndPlay(audioBlob: Blob) {
         if (!influencer) return;
