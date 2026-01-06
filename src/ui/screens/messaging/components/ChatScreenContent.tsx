@@ -26,7 +26,7 @@ import { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownM
 import LogoutIcon from "@/assets/svg/Logout.svg?react";
 import ProfileIcon from "@/assets/svg/Profile.svg?react";
 import SvgPack from '@/utils/SvgPack';
-import { applyTheme } from '@/theme/themes';
+import { useTheme } from '@/theme/ThemeProvider';
 
 type DisplayMessage = Message | CallMessageGroup;
 
@@ -392,7 +392,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             setIsClearingHistory(false);
         }
     };
-
+    const { theme, setTheme } = useTheme();
     const testDataDropDown: DropDownMenuDataModel[] = [
         {
             id: 1,
@@ -415,7 +415,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             icon: <SvgPack.Heart />,
             text: "Change Theme",
             onClick: () => {
-                applyTheme("default");
+                setTheme(theme === "default" ? "adult" : "default");
             }
         },
         {
