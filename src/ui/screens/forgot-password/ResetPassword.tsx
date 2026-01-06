@@ -9,7 +9,7 @@ import TextInput from '@/ui/components/inputs/text-inputs/TextInput';
 import logger from '@/utils/logger';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
-import { PATHS } from '@/routes/path';
+import { Paths } from '@/routes/path';
 import { Endpoints } from '@/api/urls';
 
 interface ResetPasswordResponse {
@@ -32,7 +32,7 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ }) => {
     const navigate = useNavigate();
     useEffect(() => {
         if (!token) {
-            navigate(PATHS.login)
+            navigate(Paths.login)
             return;
         }
     }, [token])

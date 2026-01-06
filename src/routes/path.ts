@@ -1,5 +1,5 @@
-export const PATHS = {
-    catchAll: "*",
+export const Paths = {
+    all: "*",
     influencerProfile: (username = ":username") => `/${username}`,
     testButtons: "/test-buttons",
     updateProfile: "/update-profile",
@@ -36,4 +36,6 @@ export const PATHS = {
     paypalReturn: "/paypal/return",
     paypalCancel: "/paypal/cancel",
     profileSelector: "/profile-selector",
+
+    influencerAudioManager: (influencerId = ":influencer_id") => `/influencer/${influencerId}/audio-manager`,
 } as const;

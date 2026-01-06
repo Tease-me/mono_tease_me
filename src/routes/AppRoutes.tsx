@@ -13,7 +13,7 @@ import ProfileSurveyForm from "@/ui/screens/survey/ProfileSurveyForm";
 
 import { JSX, Suspense, lazy } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { PATHS } from "./path";
+import { Paths } from "./path";
 import GuestRoute from "./components/GuestRoute";
 import PrivateRoute from "./components/PrivateRoute";
 import SuperRoute from "./components/SuperRoute";
@@ -68,58 +68,58 @@ const IntencionInfluencerHome = lazy(
 
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
-    { path: PATHS.catchAll, element: <HomePage /> },
-    { path: PATHS.influencerProfile(), element: <InfluencerProfileScreen /> },
-    { path: PATHS.testButtons, element: <ButtonsTestPage /> },
-    { path: PATHS.updateProfile, element: <UpdateProfile /> },
-    { path: PATHS.join, element: <LandingPage /> },
-    { path: PATHS.welcome, element: <InfluencerWelcome /> },
-    { path: PATHS.incomeDialog, element: <IncomeDialogStep01 /> },
-    { path: PATHS.profileSurvey, element: <ProfileSurvey /> },
+    { path: Paths.all, element: <HomePage /> },
+    { path: Paths.influencerProfile(), element: <InfluencerProfileScreen /> },
+    { path: Paths.testButtons, element: <ButtonsTestPage /> },
+    { path: Paths.updateProfile, element: <UpdateProfile /> },
+    { path: Paths.join, element: <LandingPage /> },
+    { path: Paths.welcome, element: <InfluencerWelcome /> },
+    { path: Paths.incomeDialog, element: <IncomeDialogStep01 /> },
+    { path: Paths.profileSurvey, element: <ProfileSurvey /> },
     {
-      path: "/influencer/:id/audio-manager",
+      path: Paths.influencerAudioManager(),
       element: <InfluencerAudioManagerRoute />,
     },
 
-    { path: PATHS.thankYou, element: <ThankYouScreen /> },
-    { path: PATHS.profileSurveyForm, element: <ProfileSurveyForm /> },
-    { path: PATHS.voiceTerms, element: <RecordTerms /> },
-    { path: PATHS.influencerHome, element: <InfluencerHome /> },
+    { path: Paths.thankYou, element: <ThankYouScreen /> },
+    { path: Paths.profileSurveyForm, element: <ProfileSurveyForm /> },
+    { path: Paths.voiceTerms, element: <RecordTerms /> },
+    { path: Paths.influencerHome, element: <InfluencerHome /> },
     {
-      path: PATHS.influencerHomeExpired,
+      path: Paths.influencerHomeExpired,
       element: <InfluencerHomeTrialExpired />,
     },
     {
-      path: PATHS.intencionInfluencerHome,
+      path: Paths.intencionInfluencerHome,
       element: <IntencionInfluencerHome />,
     },
   ];
 
   const guestRoutes: { path: string; element: JSX.Element }[] = [
-    { path: PATHS.login, element: <LoginScreen /> },
-    { path: PATHS.register(), element: <RegisterScreen /> },
-    { path: PATHS.registerVerify, element: <Confirmation /> },
-    { path: PATHS.resetPassword, element: <ResetPassword /> },
-    { path: PATHS.forgotPassword, element: <ForgotPassword /> },
-    { path: PATHS.verifyEmail, element: <VerifyEmail /> },
+    { path: Paths.login, element: <LoginScreen /> },
+    { path: Paths.register(), element: <RegisterScreen /> },
+    { path: Paths.registerVerify, element: <Confirmation /> },
+    { path: Paths.resetPassword, element: <ResetPassword /> },
+    { path: Paths.forgotPassword, element: <ForgotPassword /> },
+    { path: Paths.verifyEmail, element: <VerifyEmail /> },
   ];
 
   const superRoutes: { path: string; element: JSX.Element }[] = [
-    { path: PATHS.mjDashboard, element: <MJDashboard /> },
-    { path: PATHS.admin.influencer, element: <CreateInfluencer /> },
-    { path: PATHS.admin.prompts, element: <PromptEditorAdmin /> },
-    { path: PATHS.admin.relationship, element: <RelationshipDashboard /> },
-    { path: PATHS.admin.preInfluencers, element: <AdminPreInfluencers /> },
+    { path: Paths.mjDashboard, element: <MJDashboard /> },
+    { path: Paths.admin.influencer, element: <CreateInfluencer /> },
+    { path: Paths.admin.prompts, element: <PromptEditorAdmin /> },
+    { path: Paths.admin.relationship, element: <RelationshipDashboard /> },
+    { path: Paths.admin.preInfluencers, element: <AdminPreInfluencers /> },
   ];
 
   const privateRoutes: { path: string; element: JSX.Element }[] = [
-    { path: PATHS.voice, element: <VoiceCallEleven /> },
-    { path: PATHS.home, element: <HomeScreenSingle /> },
-    { path: PATHS.profile, element: <UserProfile /> },
-    { path: PATHS.chat(), element: <ChatScreen /> },
-    { path: PATHS.call(), element: <CallScreen /> },
-    { path: PATHS.paypalReturn, element: <PayPalReturn /> },
-    { path: PATHS.paypalCancel, element: <PayPalCancel /> },
+    { path: Paths.voice, element: <VoiceCallEleven /> },
+    { path: Paths.home, element: <HomeScreenSingle /> },
+    { path: Paths.profile, element: <UserProfile /> },
+    { path: Paths.chat(), element: <ChatScreen /> },
+    { path: Paths.call(), element: <CallScreen /> },
+    { path: Paths.paypalReturn, element: <PayPalReturn /> },
+    { path: Paths.paypalCancel, element: <PayPalCancel /> },
   ];
 
   return (
