@@ -86,7 +86,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
                     <ProfileMedia imageSrc={user?.imgUrl} mediaType='image' onEditClick={handleEditProfileMediaClicked} />
                     <VerticalDivider />
                     <BalanceView label='Balance' value={formatCentsToDollars(balance)} />
-                    <input 
+                    <input
                         type="file"
                         accept="image/*"
                         style={{ display: 'none' }}
@@ -98,9 +98,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
                             }
                             const url = URL.createObjectURL(file);
                             e.target.value = '';
+                            setShowCropModal(true);
+                            setPendingImage(url);
                         }}
                     />
-                    <ImageCropModal isOpen = {showCropModal} imageSrc={pendingImage!} onClose={() => setShowCropModal(false)} />
                 </div>
 
                 <div className={styles["section-title"]}>
@@ -138,8 +139,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
                 </div>
                 <LinkCardModal isOpen={showLinkCardModal} onClose={() => setShowLinkCardModal(false)} />
                 <TopUpModal isOpen={showTopUpModal} onClose={() => setShowTopUpModal(false)} />
+                <ImageCropModal isOpen={showCropModal} imageSrc={pendingImage!} onClose={() => setShowCropModal(false)} />
             </FullWidthLayout>
         </BackgroundGradient>
+
     );
 };
 

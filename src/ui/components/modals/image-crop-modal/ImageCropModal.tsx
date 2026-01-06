@@ -1,7 +1,7 @@
 import { Modal } from "@/ui/components/modals/Modal";
 import React, { useEffect, useRef, useState } from "react";
 
-import styles from './ImageCrop.module.css';
+import styles from './ImageCropModal.module.css';
 
 
 export interface ImageCropProps {
@@ -16,7 +16,7 @@ const ImageCropModal: React.FC<ImageCropProps> = ({
     onClose
 }) => {
     return (
-        <Modal isOpen={isOpen} onClose={onClose} className={styles.modal} >
+        <Modal isOpen={isOpen} onClose={onClose} className={styles.modal} ariaLabel="Crop Image" >
             <div className={styles.container} >
                 <div className={styles.header}>
                     <h3>Crop Image</h3>
