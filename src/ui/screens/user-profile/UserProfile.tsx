@@ -9,7 +9,6 @@ import ImageCropModal from '@/ui/components/modals/image-crop-modal/ImageCropMod
 
 import BalanceView from '@/ui/components/stats/BalanceView';
 import VerticalDivider from '@/ui/components/dividers/VerticalDivider';
-import logger from '@/utils/logger';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
 import PayPalButton from '@/ui/components/inputs/buttons/PayPalButton';
@@ -34,6 +33,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
 
     const [showCropModal, setShowCropModal] = useState<boolean>(false);
     const [pendingImage, setPendingImage] = useState<string | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [photoBlob, setPhotoBlob] = useState<Blob | null>(null);
 
 
     const [balance, setBalance] = useState<number>(0);
@@ -77,13 +78,33 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
 
     }
 
+    const handleUpdateProfile = async () => {
+        {/* Upload profile pic*/ }
+        if (photoBlob && user?.id) {
+            try{
+            const form = new FormData();
+            form.append("file", photoBlob, "avatar.jpg");
+            await apiClient.post(`/user/${user.id}/photo`, form, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });}
+            catch(err){
+                console.error("Error uploading profile photo:", err);
+                return;
+            }
+                  setPhotoBlob(null);
+        
+        }
+
+    }
+
+
     return (
         <BackgroundGradient>
             <FullWidthLayout fullWidthNav={<OnBoardingTopNav onBackClicked={() => { navigate(-1) }} />}>
 
                 {/* Change Profile Picture Area */}
                 <div className={styles["profile-picture"]}>
-                    <ProfileMedia imageSrc={user?.imgUrl} mediaType='image' onEditClick={handleEditProfileMediaClicked} />
+                    <ProfileMedia imageSrc={previewUrl || user?.imgUrl} mediaType='image' onEditClick={handleEditProfileMediaClicked} />
                     <VerticalDivider />
                     <BalanceView label='Balance' value={formatCentsToDollars(balance)} />
                     <input
@@ -135,11 +156,24 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
                 </div>
                 <div className={styles["update-row"]}>
                     <a className={styles["profile-cancel"]} href='#'>Cancel</a>
-                    <NormalButton text='Update Profile' />
+                    <NormalButton text='Update Profile' onClick={handleUpdateProfile} />
                 </div>
                 <LinkCardModal isOpen={showLinkCardModal} onClose={() => setShowLinkCardModal(false)} />
                 <TopUpModal isOpen={showTopUpModal} onClose={() => setShowTopUpModal(false)} />
-                <ImageCropModal isOpen={showCropModal} imageSrc={pendingImage!} onClose={() => setShowCropModal(false)} />
+                <ImageCropModal
+                    isOpen={showCropModal}
+                    imageSrc={pendingImage!}
+                    onClose={() => setShowCropModal(false)}
+                    onCropComplete={(blob, dataUrl) => {
+                        setPreviewUrl(dataUrl);
+                        setShowCropModal(false);
+                        setPhotoBlob(blob);
+                        if (pendingImage) {
+                            URL.revokeObjectURL(pendingImage);
+                            setPendingImage(null);
+
+                        }
+                    }} />
             </FullWidthLayout>
         </BackgroundGradient>
 
