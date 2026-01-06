@@ -18,6 +18,7 @@ import GuestRoute from "./components/GuestRoute";
 import PrivateRoute from "./components/PrivateRoute";
 import SuperRoute from "./components/SuperRoute";
 import { ThemeProvider } from "@/theme/ThemeProvider";
+import TestProfilePage from "@/ui/screens/test/TestProfilePage";
 
 const AdminPreInfluencers = lazy(
   () => import("@/ui/screens/admin/pre-influencers/AdminPreInfluencers")
@@ -72,6 +73,7 @@ function AppRoutes() {
     { path: Paths.all, element: <HomePage /> },
     { path: Paths.influencerProfile(), element: <InfluencerProfileScreen /> },
     { path: Paths.testButtons, element: <ButtonsTestPage /> },
+    { path: Paths.testProfilePage, element: <TestProfilePage /> },
     { path: Paths.updateProfile, element: <UpdateProfile /> },
     { path: Paths.join, element: <LandingPage /> },
     { path: Paths.welcome, element: <InfluencerWelcome /> },
