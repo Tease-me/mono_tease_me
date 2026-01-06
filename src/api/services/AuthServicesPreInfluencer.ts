@@ -27,9 +27,19 @@ export const AuthServicesPreInfluencer = (apiClient: AxiosInstance) => ({
     password: string;
   }): Promise<RegisterResponse> => {
     try {
+      const parent_ref_id =
+        new URLSearchParams(window.location.search).get("fpr") ??
+        localStorage.getItem("parent_ref_id");
+
+      if (parent_ref_id) {
+        localStorage.setItem("parent_ref_id", parent_ref_id);
+      }
       const response = await apiClient.post(
         Endpoints.pre_influencers.register,
-        payload
+        {
+          ...payload,
+          parent_ref_id,
+        }
       );
       return response.data;
     } catch (error) {

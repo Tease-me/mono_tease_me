@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .profile-picture {
+            display: flex;
+            flex-direction: row;
+            justify-content: start;
+            align-items: center;
+            margin-bottom: 56px;
+
+        }
+
+        .profile-nickname {
+            max-width: 16rem;
+        }
+
+        .profile-row02 {
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+
+        .section-title {
+            font-weight: 700;
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .section-body {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .delete-account-section {
+            display: flex;
+            flex: 1;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .profile-delete-account {
+            color: hsl(0, 100%, 69%);
+            text-decoration: underline;
+            margin-top: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        /* .paypal-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        } */
+
+        .button-paypal {
+            display: inline-flex;
+            background: hsl(42, 100%, 61%);
+            border-radius: 6.25rem;
+            -webkit-box-shadow: inset 0 2px 0 0 hsla(42, 0%, 100%, .41), inset -9px -6px 0 -6px hsl(0deg 0% 100% / 52%);
+            box-shadow: inset 0 2px 0 0 hsla(42, 0%, 100%, .41), inset -9px -6px 0 -6px hsl(0deg 0% 100% / 52%);
+            border: 1px solid hsl(42, 69%, 52%);
+            color: hsl(0, 0%, 0%);
+            font-size: 1rem;
+            padding: 1 1.2rem;
+            margin-bottom: 0.25rem;
+            justify-content: center;
+            width: 100%;
+            height: 2rem;
+            align-items: center;
+            font-family: Arial, Helvetica, sans-serif;
+            font-weight: 600;
+        }
+
+
+        .powered-by-paypal {
+            display: flex;
+            flex-direction: row;
+            gap: 0.5rem;
+            align-items: center;
+
+        }
+
+
+        .powered-by-paypal p {
+            color: hsla(0, 0%, 100%, 0.5);
+            font-size: 0.7rem;
+            font-weight: 400;
+            font-family: Arial, Helvetica, sans-serif;
+
+        }
+
+        .paypal-logo {
+            height: 1.25rem;
+        }
+
+
+
+        .button-row {
+            margin-bottom: 56px;
+        }
+
+
+        /*** media query Desktop ***/
+        @media (min-width: 32rem) {
+
+            .profile-row02 {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body bgcolor="black">
+    <div class="paypal-container">
+        <div class="button-paypal">+ Add Funds</div>
+        <div class="powered-by-paypal">
+            <p>Powered by PayPal</p><img class='paypal-logo' src="src/assets/logos/pypal.svg" alt="PayPal Logo" />
+        </div>
+    </div>
+
+</body>
+
+</html>

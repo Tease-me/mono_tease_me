@@ -5,7 +5,7 @@ import ProfileMedia from "@/ui/components/ProfileMedia";
 import { truncateLastName } from "@/utils/StringUtils";
 import { AuthContext } from "@/context/AuthContext";
 import styles from "./ChatScreenContent.module.css"
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import MessageBubble, { CallMessageGroup } from './MessageBubble';
 import ChatInputArea from './ChatInputArea';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
@@ -22,6 +22,11 @@ import logger from '@/utils/logger';
 import CallModal from '@/ui/components/modals/call-modal/CallModal';
 import useCallWebRTC from '@/hooks/useCallWebRTC';
 import IconButton from '@/ui/components/inputs/buttons/IconButton';
+import { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownMenu';
+import LogoutIcon from "@/assets/svg/Logout.svg?react";
+import ProfileIcon from "@/assets/svg/Profile.svg?react";
+import SvgPack from '@/utils/SvgPack';
+import { useTheme } from '@/theme/ThemeProvider';
 
 type DisplayMessage = Message | CallMessageGroup;
 
@@ -66,7 +71,7 @@ const mergeCallMessages = (messageList: Message[]): DisplayMessage[] => {
     return merged;
 };
 
-const MessagesList = React.memo(({ messages, typing, messagesEndRef, influencerName }: { messages: DisplayMessage[]; typing: boolean; messagesEndRef: React.RefObject<HTMLDivElement | null>; influencerName?: string; }) => {
+const MessagesList = React.memo(({ messages, typing, messagesEndRef, influencerName, onAudioPlay }: { messages: DisplayMessage[]; typing: boolean; messagesEndRef: React.RefObject<HTMLDivElement | null>; influencerName?: string; onAudioPlay?: (src: string) => void; }) => {
     return (
         <>
             <div className={styles["messages"]}>
@@ -76,6 +81,7 @@ const MessagesList = React.memo(({ messages, typing, messagesEndRef, influencerN
                         msg={!isCallGroup(msg) ? msg : undefined}
                         callGroup={isCallGroup(msg) ? msg : undefined}
                         influencerName={influencerName}
+                        onAudioPlay={onAudioPlay}
                     />
                 ))}
                 {typing && <MessageBubble />}
@@ -89,9 +95,10 @@ const MessagesList = React.memo(({ messages, typing, messagesEndRef, influencerN
 interface ChatScreenContentProps {
     id?: string;
     onBackPressed?: () => void;
+    setNeedsSelection?: (needsSelection: boolean) => void;
 }
 
-const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed }) => {
+const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed, setNeedsSelection }) => {
     const [influencer, setInfluencer] = useState<InfluencerDataModel>();
     const [chatId, setChatId] = useState<string | undefined>();
 
@@ -112,8 +119,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const ws = useRef<WebSocket | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const reconnectTimer = useRef<number | null>(null);
+    const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
-    const { user } = useContext(AuthContext);
+    const { user, logout } = useContext(AuthContext);
     const { user_id } = useParams();
     const isSuperUser = user?.id === 1;
 
@@ -123,6 +132,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const influencerRepo = InfluencerRepo();
     const { status, startConversation, stopConversation, setInfluencerId, timeRemaining, micMuted, toggleMute } = useCallWebRTC();
     const displayMessages = useMemo(() => messages ? mergeCallMessages(messages) : [], [messages]);
+    const navigate = useNavigate();
+
     useEffect(() => {
         (async () => {
             if (!id) {
@@ -142,7 +153,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     }, [id, user_id]);
 
     useEffect(() => {
-        setTyping(false); // Reset typing indicator when switching DMs
+        setTyping(false);
     }, [influencer]);
 
     const fetchMessages = async (chat_id: string, page: number) => {
@@ -187,7 +198,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
-    //Load call-log 5 seconds after disconnecting the call  
     useEffect(() => {
         if ((status === "disconnected" || status === "idle") && chatId) {
             const t = setTimeout(() => {
@@ -203,12 +213,40 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         return (replyTime);
     }
 
+    const clearReconnectTimer = () => {
+        if (reconnectTimer.current) {
+            window.clearTimeout(reconnectTimer.current);
+            reconnectTimer.current = null;
+        }
+    };
+
+    const scheduleReconnect = (influencerId: string) => {
+        if (reconnectTimer.current) return;
+        reconnectTimer.current = window.setTimeout(() => {
+            reconnectTimer.current = null;
+            connectChat(influencerId);
+        }, 5000);
+    };
+
     function connectChat(influencerId: string) {
+        ws.current?.close();
         const access_token = storage.get(LocalStorageKeys.AccessToken);
         ws.current = new window.WebSocket(`${WS_BASE_URL}${Endpoints.ws.chat}/${influencerId}?token=${access_token}`);
-        ws.current.onopen = () => setIsWsConnected(true);
-        ws.current.onclose = () => setIsWsConnected(false);
-        ws.current.onerror = () => setIsWsConnected(false);
+        ws.current.onopen = () => {
+            setIsWsConnected(true);
+            setError(undefined);
+            clearReconnectTimer();
+        };
+        ws.current.onclose = () => {
+            setIsWsConnected(false);
+            setError("Disconnected. Reconnecting...");
+            scheduleReconnect(influencerId);
+        };
+        ws.current.onerror = () => {
+            setIsWsConnected(false);
+            setError("Connection error. Reconnecting...");
+            scheduleReconnect(influencerId);
+        };
         ws.current.onmessage = (event) => {
             setTyping(false);
             console.warn("WebSocket message received:", event.data);
@@ -239,11 +277,18 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 }, calculateReplyTime(data.reply));
             } else if (data.error) {
                 setTyping(false);
-                logger.error("Error in WebSocket message:", data.message);
-                setError(data.message || "An error occurred while sending the message.");
+                logger.error("Error in WebSocket message:", data.error);
+                setError(data.error || "An error occurred while sending the message.");
             }
         };
     }
+
+    useEffect(() => {
+        return () => {
+            clearReconnectTimer();
+            ws.current?.close();
+        };
+    }, []);
 
     async function sendAndPlay(audioBlob: Blob) {
         if (!influencer) return;
@@ -340,24 +385,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         setInputText('');
         scrollToBottom();
     };
-
     const onCall = () => {
         startConversation();
-
         setOpenWelcomeCallModal(true);
-        // if (!id) {
-        //     navigate("/voice", {
-        //         state: {
-        //             influencer_id: user_id
-        //         }
-        //     })
-        //     return
-        // }
-        // navigate("/voice", {
-        //     state: {
-        //         influencer_id: id
-        //     }
-        // })
     }
 
     const handleOnBackClick = () => {
@@ -400,12 +430,52 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             setIsClearingHistory(false);
         }
     };
+    const { theme, setTheme } = useTheme();
+    const testDataDropDown: DropDownMenuDataModel[] = [
+        {
+            id: 1,
+            icon: <ProfileIcon />,
+            text: "My Profile",
+            onClick: () => {
+                navigate("/profile");
+            },
+        },
+        {
+            id: 2,
+            icon: <SvgPack.Female />,
+            text: "Change Influencer",
+            onClick: () => {
+                setNeedsSelection?.(true);
+            }
+        },
+        {
+            id: 3,
+            icon: <SvgPack.Heart />,
+            text: "Change Theme",
+            onClick: () => {
+                setTheme(theme === "default" ? "adult" : "default");
+            }
+        },
+        {
+            id: 4,
+            icon: <LogoutIcon />,
+            text: "Logout",
+            styles: {
+                style: { color: "var(--color-alert)" },
+                hoverStyle: { color: "var(--color-primary)" },
+                iconStyle: { color: "var(--color-primary)" },
+            },
+            onClick: () => {
+                logout();
+            },
+        },
+    ];
 
     if (!influencer) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
     return (
         <div className={styles["chat-screen-content"]}>
             <div className={styles["chat-header"]}>
-                <ChatTopNav onBack={handleOnBackClick} onCallClick={onCall} />
+                <ChatTopNav onBack={handleOnBackClick} onCallClick={onCall} menuItems={testDataDropDown} />
                 <div className={styles["chat-header-info"]}>
                     <ProfileMedia imageSrc={influencer?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
                     <div className={styles["chat-user-name"]}>
@@ -433,7 +503,24 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             >
                 {(messages) ? <>
                     {isLoadingMore && <LoadingSpinner size='small' />}
-                    <MessagesList messages={displayMessages} typing={typing} messagesEndRef={messagesEndRef} influencerName={influencer?.name} />
+                    <MessagesList
+                        messages={displayMessages}
+                        typing={typing}
+                        messagesEndRef={messagesEndRef}
+                        influencerName={influencer?.name}
+                        onAudioPlay={(src) => {
+                            // Pause any currently playing audio
+                            if (currentAudioRef.current && currentAudioRef.current.src !== src) {
+                                currentAudioRef.current.pause();
+                                currentAudioRef.current.currentTime = 0;
+                            }
+                            // Track the newly started audio element
+                            const audioEl = document.querySelector<HTMLAudioElement>(`audio[src="${src}"]`);
+                            if (audioEl) {
+                                currentAudioRef.current = audioEl;
+                            }
+                        }}
+                    />
                 </> : <LoadingSpinner />}
             </div>
 

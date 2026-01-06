@@ -13,10 +13,15 @@ import ProfileSurveyForm from "@/ui/screens/survey/ProfileSurveyForm";
 
 import { JSX, Suspense, lazy } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Paths } from "./path";
 import GuestRoute from "./components/GuestRoute";
 import PrivateRoute from "./components/PrivateRoute";
 import SuperRoute from "./components/SuperRoute";
+import { ThemeProvider } from "@/theme/ThemeProvider";
 
+const AdminPreInfluencers = lazy(
+  () => import("@/ui/screens/admin/pre-influencers/AdminPreInfluencers")
+);
 const InfluencerProfileScreen = lazy(
   () => import("@/ui/screens/influencer-profile/InfluencerProfileScreen")
 );
@@ -35,7 +40,7 @@ const VerifyEmail = lazy(() => import("@/ui/screens/verify-email/VerifyEmail"));
 const VoiceCallEleven = lazy(
   () => import("@/ui/screens/messaging/VoiceCallEleven")
 );
-const HomeScreen = lazy(() => import("@/ui/screens/home/HomeScreen"));
+const HomeScreenSingle = lazy(() => import("@/ui/screens/home/HomeScreenSingle"));
 const ChatScreen = lazy(() => import("@/ui/screens/messaging/ChatScreen"));
 const CallScreen = lazy(() => import("@/ui/screens/CallScreen"));
 const UserProfile = lazy(() => import("@/ui/screens/user-profile/UserProfile"));
@@ -64,86 +69,92 @@ const IntencionInfluencerHome = lazy(
 
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
-    { path: "*", element: <HomePage /> },
-    { path: "/:username", element: <InfluencerProfileScreen /> },
-    { path: "/test-buttons", element: <ButtonsTestPage /> },
-    { path: "/update-profile", element: <UpdateProfile /> },
-    { path: "/join", element: <LandingPage /> },
-    { path: "/welcome", element: <InfluencerWelcome /> },
-    { path: "/income-dialog", element: <IncomeDialogStep01 /> },
-    { path: "/profile-survey", element: <ProfileSurvey /> },
+    { path: Paths.all, element: <HomePage /> },
+    { path: Paths.influencerProfile(), element: <InfluencerProfileScreen /> },
+    { path: Paths.testButtons, element: <ButtonsTestPage /> },
+    { path: Paths.updateProfile, element: <UpdateProfile /> },
+    { path: Paths.join, element: <LandingPage /> },
+    { path: Paths.welcome, element: <InfluencerWelcome /> },
+    { path: Paths.incomeDialog, element: <IncomeDialogStep01 /> },
+    { path: Paths.profileSurvey, element: <ProfileSurvey /> },
     {
-      path: "/influencer/:id/audio-manager",
+      path: Paths.influencerAudioManager(),
       element: <InfluencerAudioManagerRoute />,
     },
-    { path: "/thank-you", element: <ThankYouScreen /> },
-    { path: "/profile-survey-form", element: <ProfileSurveyForm /> },
-     { path: "/voice-terms", element: <RecordTerms /> },
-    { path: "/influencer-home", element: <InfluencerHome /> },
-    { path: "/influencer-home-expired", element: <InfluencerHomeTrialExpired /> },
+
+    { path: Paths.thankYou, element: <ThankYouScreen /> },
+    { path: Paths.profileSurveyForm, element: <ProfileSurveyForm /> },
+    { path: Paths.voiceTerms, element: <RecordTerms /> },
+    { path: Paths.influencerHome, element: <InfluencerHome /> },
     {
-      path: "/intencion-influencer-home",
+      path: Paths.influencerHomeExpired,
+      element: <InfluencerHomeTrialExpired />,
+    },
+    {
+      path: Paths.intencionInfluencerHome,
       element: <IntencionInfluencerHome />,
     },
   ];
-
   const guestRoutes: { path: string; element: JSX.Element }[] = [
-    { path: "/login", element: <LoginScreen /> },
-    { path: "/register", element: <RegisterScreen /> },
-    { path: "/register/verify", element: <Confirmation /> },
-    { path: "/reset-password", element: <ResetPassword /> },
-    { path: "/forgot-password", element: <ForgotPassword /> },
-    { path: "/verify-email", element: <VerifyEmail /> },
+    { path: Paths.login, element: <LoginScreen /> },
+    { path: Paths.register(), element: <RegisterScreen /> },
+    { path: Paths.registerVerify, element: <Confirmation /> },
+    { path: Paths.resetPassword, element: <ResetPassword /> },
+    { path: Paths.forgotPassword, element: <ForgotPassword /> },
+    { path: Paths.verifyEmail, element: <VerifyEmail /> },
   ];
 
   const superRoutes: { path: string; element: JSX.Element }[] = [
-    { path: "/mj/dashboard", element: <MJDashboard /> },
-    { path: "/admin/influencer", element: <CreateInfluencer /> },
-    { path: "/admin/prompts", element: <PromptEditorAdmin /> },
-    { path: "/admin/relationship", element: <RelationshipDashboard /> },
+    { path: Paths.mjDashboard, element: <MJDashboard /> },
+    { path: Paths.admin.influencer, element: <CreateInfluencer /> },
+    { path: Paths.admin.prompts, element: <PromptEditorAdmin /> },
+    { path: Paths.admin.relationship, element: <RelationshipDashboard /> },
+    { path: Paths.admin.preInfluencers, element: <AdminPreInfluencers /> },
   ];
 
   const privateRoutes: { path: string; element: JSX.Element }[] = [
-    { path: "/voice", element: <VoiceCallEleven /> },
-    { path: "/home", element: <HomeScreen /> },
-    { path: "/chat/:user_id", element: <ChatScreen /> },
-    { path: "/call/:conversation_id", element: <CallScreen /> },
-    { path: "/profile", element: <UserProfile /> },
-    { path: "/paypal/return", element: <PayPalReturn /> },
-    { path: "/paypal/cancel", element: <PayPalCancel /> },
+    { path: Paths.voice, element: <VoiceCallEleven /> },
+    { path: Paths.home, element: <HomeScreenSingle /> },
+    { path: Paths.profile, element: <UserProfile /> },
+    { path: Paths.chat(), element: <ChatScreen /> },
+    { path: Paths.call(), element: <CallScreen /> },
+    { path: Paths.paypalReturn, element: <PayPalReturn /> },
+    { path: Paths.paypalCancel, element: <PayPalCancel /> },
   ];
 
   return (
-    <BrowserRouter>
-      <Suspense fallback={<BlockingLoader />}>
-        <Routes>
-          {publicRoutes.map(({ path, element }) => (
-            <Route key={path} path={path} element={element} />
-          ))}
-          {guestRoutes.map(({ path, element }) => (
-            <Route
-              key={path}
-              path={path}
-              element={<GuestRoute>{element}</GuestRoute>}
-            />
-          ))}
-          {privateRoutes.map(({ path, element }) => (
-            <Route
-              key={path}
-              path={path}
-              element={<PrivateRoute>{element}</PrivateRoute>}
-            />
-          ))}
-          {superRoutes.map(({ path, element }) => (
-            <Route
-              key={path}
-              path={path}
-              element={<SuperRoute>{element}</SuperRoute>}
-            />
-          ))}
-        </Routes>
-      </Suspense>
-    </BrowserRouter>
+    <ThemeProvider initial="default">
+      <BrowserRouter>
+        <Suspense fallback={<BlockingLoader />}>
+          <Routes>
+            {publicRoutes.map(({ path, element }) => (
+              <Route key={path} path={path} element={element} />
+            ))}
+            {guestRoutes.map(({ path, element }) => (
+              <Route
+                key={path}
+                path={path}
+                element={<GuestRoute>{element}</GuestRoute>}
+              />
+            ))}
+            {privateRoutes.map(({ path, element }) => (
+              <Route
+                key={path}
+                path={path}
+                element={<PrivateRoute>{element}</PrivateRoute>}
+              />
+            ))}
+            {superRoutes.map(({ path, element }) => (
+              <Route
+                key={path}
+                path={path}
+                element={<SuperRoute>{element}</SuperRoute>}
+              />
+            ))}
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

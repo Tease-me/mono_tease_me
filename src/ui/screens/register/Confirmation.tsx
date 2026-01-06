@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import styles from "./Confirmation.module.css"
 import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 import CenteredLayout from '@/ui/templates/CenteredLayout';
@@ -10,6 +10,8 @@ import LoadingSpinner from '@/ui/components/loading/LoadingSpinner';
 import OnBoardingTopNav from '@/ui/components/nav/OnBoardingTopNav';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import SvgPack from '@/utils/SvgPack';
+import { FollowServices } from '@/api/services/FollowServices';
+import { apiClient } from '@/api/apis';
 
 interface ConfirmationProps {
 }
@@ -19,32 +21,43 @@ const Confirmation: React.FC<ConfirmationProps> = () => {
     const [isLoading, setIsLoading] = useState(true);
     const { state } = useLocation();
     const [email, setEmail] = useState("");
+    // const [influencerId, setInfluencerId] = useState<string | undefined>();
 
     const navigate = useNavigate();
+    const followServices = useMemo(() => FollowServices(apiClient), []);
 
     useEffect(() => {
         if (isSignedIn) {
             navigate("/home");
             return;
         }
-        if (!state) {
+        const registrationState = state as { email?: string, password?: string, influencerId?: string } | null;
+        if (!registrationState?.email || !registrationState?.password) {
             navigate("/register");
             return
         }
-        const { email, password } = state as { email: string, password: string };
+        const { email, password, influencerId: referralId } = registrationState;
+        const savedInfluencerId = referralId ?? localStorage.getItem("influencer_referral_id") ?? undefined;
         setEmail(email);
         const ws = new WebSocket(`${Endpoints.ws.notifications}?email=${encodeURIComponent(email)}`);
-        ws.onmessage = (event) => {
+        ws.onmessage = async (event) => {
             const data = JSON.parse(event.data);
             if (data.type === "email_verified") {
                 setIsLoading(false)
-                login(email, password);
+                const loggedIn = await login(email, password);
+                if (loggedIn && savedInfluencerId) {
+                    try {
+                        await followServices.follow(savedInfluencerId);
+                    } catch (err) {
+                        console.error("Failed to follow influencer after verification", err);
+                    }
+                }
                 navigate("/home");
                 ws.close()
             }
         };
         return () => ws.close();
-    }, [isSignedIn, state])
+    }, [isSignedIn, state, navigate, login, followServices])
 
     return (
         <BackgroundGradient>

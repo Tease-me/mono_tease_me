@@ -105,6 +105,25 @@
   margin-bottom: 0;
 }
 
+.tm-terms_heading {
+  margin: 0 0 12px;
+  font-size: clamp(18px, 2.3vw, 28px);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-align: center;
+}
+
+
+.tm-terms_heading {
+  margin: 0 0 12px;
+  font-size: clamp(18px, 2.3vw, 28px);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-align: center;
+}
+
 .terms-modal__footer {
   display: flex;
   flex-direction: column;
@@ -165,4 +184,3 @@
     max-height: calc(85vh - 180px);
   }
 }
-

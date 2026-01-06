@@ -9,7 +9,9 @@ export const Endpoints = {
     register: "/auth/register",
     refreshToken: "/auth/refresh",
     forgotPassword: "/auth/forgot-password",
+    confirmEmail: "/auth/confirm-email",
     me: "/auth/me",
+    resetPassword: "/auth/reset-password"
   },
   pre_influencers: {
     login: "/pre-influencers/login",
@@ -38,6 +40,10 @@ export const Endpoints = {
   },
   push: {
     subscribe: "/push/subscribe",
+  },
+  follow: {
+    list: "/follow",
+    follow: (influencerId: string) => `/follow/${encodeURIComponent(influencerId)}`,
   },
   elevenlabs: {
     signed_url: "/elevenlabs/signed-url",
