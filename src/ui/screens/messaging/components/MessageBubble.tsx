@@ -17,6 +17,7 @@ interface MessageBubbleProps {
     msg?: Message;
     callGroup?: CallMessageGroup;
     influencerName?: string;
+    onAudioPlay?: (src: string) => void;
 }
 
 const formatDuration = (ms: number) => {
@@ -44,7 +45,7 @@ const getCallDuration = (group?: CallMessageGroup) => {
     return formatDuration(end - start);
 };
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, callGroup, influencerName }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, callGroup, influencerName, onAudioPlay }) => {
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const [expanded, setExpanded] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -78,6 +79,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, callGroup, influence
                     height={dimensions.height}
                     width={dimensions.width}
                     progressColor={(message.sender ?? "received") === "received" ? '#FF8395' : "#FF981F"}
+                    onPlay={onAudioPlay}
                 />
             ) : null
         );

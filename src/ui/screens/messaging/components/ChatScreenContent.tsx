@@ -26,6 +26,7 @@ import { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownM
 import LogoutIcon from "@/assets/svg/Logout.svg?react";
 import ProfileIcon from "@/assets/svg/Profile.svg?react";
 import SvgPack from '@/utils/SvgPack';
+import { useTheme } from '@/theme/ThemeProvider';
 
 type DisplayMessage = Message | CallMessageGroup;
 
@@ -70,7 +71,7 @@ const mergeCallMessages = (messageList: Message[]): DisplayMessage[] => {
     return merged;
 };
 
-const MessagesList = React.memo(({ messages, typing, messagesEndRef, influencerName }: { messages: DisplayMessage[]; typing: boolean; messagesEndRef: React.RefObject<HTMLDivElement | null>; influencerName?: string; }) => {
+const MessagesList = React.memo(({ messages, typing, messagesEndRef, influencerName, onAudioPlay }: { messages: DisplayMessage[]; typing: boolean; messagesEndRef: React.RefObject<HTMLDivElement | null>; influencerName?: string; onAudioPlay?: (src: string) => void; }) => {
     return (
         <>
             <div className={styles["messages"]}>
@@ -80,6 +81,7 @@ const MessagesList = React.memo(({ messages, typing, messagesEndRef, influencerN
                         msg={!isCallGroup(msg) ? msg : undefined}
                         callGroup={isCallGroup(msg) ? msg : undefined}
                         influencerName={influencerName}
+                        onAudioPlay={onAudioPlay}
                     />
                 ))}
                 {typing && <MessageBubble />}
@@ -117,6 +119,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const ws = useRef<WebSocket | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const reconnectTimer = useRef<number | null>(null);
+    const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
     const { user, logout } = useContext(AuthContext);
     const { user_id } = useParams();
@@ -209,12 +213,40 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         return (replyTime);
     }
 
+    const clearReconnectTimer = () => {
+        if (reconnectTimer.current) {
+            window.clearTimeout(reconnectTimer.current);
+            reconnectTimer.current = null;
+        }
+    };
+
+    const scheduleReconnect = (influencerId: string) => {
+        if (reconnectTimer.current) return;
+        reconnectTimer.current = window.setTimeout(() => {
+            reconnectTimer.current = null;
+            connectChat(influencerId);
+        }, 5000);
+    };
+
     function connectChat(influencerId: string) {
+        ws.current?.close();
         const access_token = storage.get(LocalStorageKeys.AccessToken);
         ws.current = new window.WebSocket(`${WS_BASE_URL}${Endpoints.ws.chat}/${influencerId}?token=${access_token}`);
-        ws.current.onopen = () => setIsWsConnected(true);
-        ws.current.onclose = () => setIsWsConnected(false);
-        ws.current.onerror = () => setIsWsConnected(false);
+        ws.current.onopen = () => {
+            setIsWsConnected(true);
+            setError(undefined);
+            clearReconnectTimer();
+        };
+        ws.current.onclose = () => {
+            setIsWsConnected(false);
+            setError("Disconnected. Reconnecting...");
+            scheduleReconnect(influencerId);
+        };
+        ws.current.onerror = () => {
+            setIsWsConnected(false);
+            setError("Connection error. Reconnecting...");
+            scheduleReconnect(influencerId);
+        };
         ws.current.onmessage = (event) => {
             setTyping(false);
             console.warn("WebSocket message received:", event.data);
@@ -250,6 +282,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             }
         };
     }
+
+    useEffect(() => {
+        return () => {
+            clearReconnectTimer();
+            ws.current?.close();
+        };
+    }, []);
 
     async function sendAndPlay(audioBlob: Blob) {
         if (!influencer) return;
@@ -391,7 +430,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             setIsClearingHistory(false);
         }
     };
-
+    const { theme, setTheme } = useTheme();
     const testDataDropDown: DropDownMenuDataModel[] = [
         {
             id: 1,
@@ -407,6 +446,14 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             text: "Change Influencer",
             onClick: () => {
                 setNeedsSelection?.(true);
+            }
+        },
+        {
+            id: 3,
+            icon: <SvgPack.Heart />,
+            text: "Change Theme",
+            onClick: () => {
+                setTheme(theme === "default" ? "adult" : "default");
             }
         },
         {
@@ -456,7 +503,24 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             >
                 {(messages) ? <>
                     {isLoadingMore && <LoadingSpinner size='small' />}
-                    <MessagesList messages={displayMessages} typing={typing} messagesEndRef={messagesEndRef} influencerName={influencer?.name} />
+                    <MessagesList
+                        messages={displayMessages}
+                        typing={typing}
+                        messagesEndRef={messagesEndRef}
+                        influencerName={influencer?.name}
+                        onAudioPlay={(src) => {
+                            // Pause any currently playing audio
+                            if (currentAudioRef.current && currentAudioRef.current.src !== src) {
+                                currentAudioRef.current.pause();
+                                currentAudioRef.current.currentTime = 0;
+                            }
+                            // Track the newly started audio element
+                            const audioEl = document.querySelector<HTMLAudioElement>(`audio[src="${src}"]`);
+                            if (audioEl) {
+                                currentAudioRef.current = audioEl;
+                            }
+                        }}
+                    />
                 </> : <LoadingSpinner />}
             </div>
 

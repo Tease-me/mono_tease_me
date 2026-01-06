@@ -9,7 +9,9 @@ export const Endpoints = {
     register: "/auth/register",
     refreshToken: "/auth/refresh",
     forgotPassword: "/auth/forgot-password",
+    confirmEmail: "/auth/confirm-email",
     me: "/auth/me",
+    resetPassword: "/auth/reset-password"
   },
   pre_influencers: {
     login: "/pre-influencers/login",
