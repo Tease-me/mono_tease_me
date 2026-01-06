@@ -9,9 +9,10 @@ interface AudioPlayerProps {
     height?: number;
     width?: number;
     progressColor?: string;
+    onPlay?: (src: string) => void;
 }
 
-const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, height, width, progressColor = '#FF981F' }) => {
+const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, height, width, progressColor = '#FF981F', onPlay }) => {
     const audioRef = useRef<HTMLAudioElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [peaks, setPeaks] = useState<number[]>([]);
@@ -22,9 +23,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, height, width, progressC
         if (isPlaying) {
             audioRef.current.pause();
         } else {
+            onPlay?.(src);
             audioRef.current.play();
         }
-        setIsPlaying(!isPlaying);
     };
 
     useEffect(() => {
@@ -51,6 +52,22 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, height, width, progressC
                 setPeaks(data.map(n => n / max));
             })
             .catch(console.error);
+    }, [src]);
+
+    useEffect(() => {
+        const audio = audioRef.current;
+        if (!audio) return;
+        const handlePlay = () => setIsPlaying(true);
+        const handlePause = () => setIsPlaying(false);
+        const handleEnded = () => setIsPlaying(false);
+        audio.addEventListener("play", handlePlay);
+        audio.addEventListener("pause", handlePause);
+        audio.addEventListener("ended", handleEnded);
+        return () => {
+            audio.removeEventListener("play", handlePlay);
+            audio.removeEventListener("pause", handlePause);
+            audio.removeEventListener("ended", handleEnded);
+        };
     }, [src]);
 
 

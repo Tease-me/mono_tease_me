@@ -71,7 +71,7 @@ const mergeCallMessages = (messageList: Message[]): DisplayMessage[] => {
     return merged;
 };
 
-const MessagesList = React.memo(({ messages, typing, messagesEndRef, influencerName }: { messages: DisplayMessage[]; typing: boolean; messagesEndRef: React.RefObject<HTMLDivElement | null>; influencerName?: string; }) => {
+const MessagesList = React.memo(({ messages, typing, messagesEndRef, influencerName, onAudioPlay }: { messages: DisplayMessage[]; typing: boolean; messagesEndRef: React.RefObject<HTMLDivElement | null>; influencerName?: string; onAudioPlay?: (src: string) => void; }) => {
     return (
         <>
             <div className={styles["messages"]}>
@@ -81,6 +81,7 @@ const MessagesList = React.memo(({ messages, typing, messagesEndRef, influencerN
                         msg={!isCallGroup(msg) ? msg : undefined}
                         callGroup={isCallGroup(msg) ? msg : undefined}
                         influencerName={influencerName}
+                        onAudioPlay={onAudioPlay}
                     />
                 ))}
                 {typing && <MessageBubble />}
@@ -119,6 +120,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const ws = useRef<WebSocket | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const reconnectTimer = useRef<number | null>(null);
+    const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
     const { user, logout } = useContext(AuthContext);
     const { user_id } = useParams();
@@ -501,7 +503,24 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             >
                 {(messages) ? <>
                     {isLoadingMore && <LoadingSpinner size='small' />}
-                    <MessagesList messages={displayMessages} typing={typing} messagesEndRef={messagesEndRef} influencerName={influencer?.name} />
+                    <MessagesList
+                        messages={displayMessages}
+                        typing={typing}
+                        messagesEndRef={messagesEndRef}
+                        influencerName={influencer?.name}
+                        onAudioPlay={(src) => {
+                            // Pause any currently playing audio
+                            if (currentAudioRef.current && currentAudioRef.current.src !== src) {
+                                currentAudioRef.current.pause();
+                                currentAudioRef.current.currentTime = 0;
+                            }
+                            // Track the newly started audio element
+                            const audioEl = document.querySelector<HTMLAudioElement>(`audio[src="${src}"]`);
+                            if (audioEl) {
+                                currentAudioRef.current = audioEl;
+                            }
+                        }}
+                    />
                 </> : <LoadingSpinner />}
             </div>
 
