@@ -10,7 +10,7 @@ export interface ImageCropProps {
     onClose: () => void;
 }
 
-const ImageCrop: React.FC<ImageCropProps> = ({
+const ImageCropModal: React.FC<ImageCropProps> = ({
     isOpen,
     imageSrc,
     onClose
@@ -29,5 +29,5 @@ const ImageCrop: React.FC<ImageCropProps> = ({
     )
 }
 
-export default ImageCrop;
+export default ImageCropModal;
 

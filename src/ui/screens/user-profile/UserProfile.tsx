@@ -5,6 +5,7 @@ import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 import OnBoardingTopNav from '@/ui/components/nav/OnBoardingTopNav';
 import TextInput from '@/ui/components/inputs/text-inputs/TextInput';
 import FullWidthLayout from '@/ui/templates/FullWidthLayout';
+import ImageCropModal from '@/ui/components/modals/image-crop-modal/ImageCropModal';
 
 import BalanceView from '@/ui/components/stats/BalanceView';
 import VerticalDivider from '@/ui/components/dividers/VerticalDivider';
@@ -14,6 +15,7 @@ import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
 import PayPalButton from '@/ui/components/inputs/buttons/PayPalButton';
 import LinkCardModal from '@/ui/components/modals/payment-modal/LinkCardModal';
 import TopUpModal from '@/ui/components/modals/payment-modal/TopUpModal';
+
 
 
 
@@ -30,10 +32,15 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
     const { user } = useContext(AuthContext);
     const [localUser, setLocalUser] = useState(user);
 
+    const [showCropModal, setShowCropModal] = useState<boolean>(false);
+    const [pendingImage, setPendingImage] = useState<string | null>(null);
+
+
     const [balance, setBalance] = useState<number>(0);
     const balanceService = BalanceServices(apiClient);
     const [showTopUpModal, setShowTopUpModal] = useState<boolean>(false);
     const [showLinkCardModal, setShowLinkCardModal] = useState<boolean>(false);
+
 
     const navigate = useNavigate()
 
@@ -66,17 +73,36 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
     };
 
     const handleEditProfileMediaClicked = () => {
-        logger.debug("Edit Clicked")
+        document.getElementById('profile-image-input')?.click();
+
     }
 
     return (
         <BackgroundGradient>
             <FullWidthLayout fullWidthNav={<OnBoardingTopNav onBackClicked={() => { navigate(-1) }} />}>
+
+                {/* Change Profile Picture Area */}
                 <div className={styles["profile-picture"]}>
                     <ProfileMedia imageSrc={user?.imgUrl} mediaType='image' onEditClick={handleEditProfileMediaClicked} />
                     <VerticalDivider />
                     <BalanceView label='Balance' value={formatCentsToDollars(balance)} />
+                    <input 
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        id="profile-image-input"
+                        onChange={(e) => {
+                            const file = e.target.files ? e.target.files[0] : null;
+                            if (!file || !file.type.startsWith('image/')) {
+                                return;
+                            }
+                            const url = URL.createObjectURL(file);
+                            e.target.value = '';
+                        }}
+                    />
+                    <ImageCropModal isOpen = {showCropModal} imageSrc={pendingImage!} onClose={() => setShowCropModal(false)} />
                 </div>
+
                 <div className={styles["section-title"]}>
                     Your Details
                 </div>
