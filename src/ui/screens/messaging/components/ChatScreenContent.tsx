@@ -26,6 +26,7 @@ import { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownM
 import LogoutIcon from "@/assets/svg/Logout.svg?react";
 import ProfileIcon from "@/assets/svg/Profile.svg?react";
 import SvgPack from '@/utils/SvgPack';
+import { applyTheme } from '@/theme/themes';
 
 type DisplayMessage = Message | CallMessageGroup;
 
@@ -407,6 +408,14 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             text: "Change Influencer",
             onClick: () => {
                 setNeedsSelection?.(true);
+            }
+        },
+        {
+            id: 3,
+            icon: <SvgPack.Heart />,
+            text: "Change Theme",
+            onClick: () => {
+                applyTheme("default");
             }
         },
         {

@@ -17,6 +17,7 @@ import { Paths } from "./path";
 import GuestRoute from "./components/GuestRoute";
 import PrivateRoute from "./components/PrivateRoute";
 import SuperRoute from "./components/SuperRoute";
+import { applyTheme } from "@/theme/themes";
 
 const AdminPreInfluencers = lazy(
   () => import("@/ui/screens/admin/pre-influencers/AdminPreInfluencers")
@@ -94,7 +95,6 @@ function AppRoutes() {
       element: <IntencionInfluencerHome />,
     },
   ];
-
   const guestRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.login, element: <LoginScreen /> },
     { path: Paths.register(), element: <RegisterScreen /> },
@@ -121,7 +121,7 @@ function AppRoutes() {
     { path: Paths.paypalReturn, element: <PayPalReturn /> },
     { path: Paths.paypalCancel, element: <PayPalCancel /> },
   ];
-
+  applyTheme("adult")
   return (
     <BrowserRouter>
       <Suspense fallback={<BlockingLoader />}>
