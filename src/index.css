@@ -21,6 +21,7 @@ body,
 
 :root {
   --primary-font-family: "DM Sans", sans-serif;
+  /* Theme tokens (overridable via JS) */
   --color-text: #FFFFFF;
   --color-text-secondary: #9E9E9E;
   --color-black: rgba(0, 0, 0, 1);
@@ -44,6 +45,22 @@ body,
   --color-success: rgba(74, 222, 128, 1);
   --color-light-blue: rgba(0, 169, 241, 1);
   --color-warning: rgba(250, 204, 21, 1);
+}
+
+/* Light theme fallbacks (optional preview) */
+:root[data-theme="light"] {
+  --color-text: #0F172A;
+  --color-text-secondary: #475569;
+  --color-primary: #EA1E61;
+  --color-dark-1: #f7f8fc;
+  --color-dark-2: #ffffff;
+  --color-dark-3: #e2e8f0;
+  --color-alert: #e11d48;
+  --color-pink: #EA1E61;
+  --color-deep-orange: #FF5726;
+  --color-success: #16a34a;
+  --color-light-blue: #0284c7;
+  --color-warning: #eab308;
 }
 
 html,

@@ -17,6 +17,7 @@ import { Paths } from "./path";
 import GuestRoute from "./components/GuestRoute";
 import PrivateRoute from "./components/PrivateRoute";
 import SuperRoute from "./components/SuperRoute";
+import { ThemeProvider } from "@/theme/ThemeProvider";
 
 const AdminPreInfluencers = lazy(
   () => import("@/ui/screens/admin/pre-influencers/AdminPreInfluencers")
@@ -94,7 +95,6 @@ function AppRoutes() {
       element: <IntencionInfluencerHome />,
     },
   ];
-
   const guestRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.login, element: <LoginScreen /> },
     { path: Paths.register(), element: <RegisterScreen /> },
@@ -123,36 +123,38 @@ function AppRoutes() {
   ];
 
   return (
-    <BrowserRouter>
-      <Suspense fallback={<BlockingLoader />}>
-        <Routes>
-          {publicRoutes.map(({ path, element }) => (
-            <Route key={path} path={path} element={element} />
-          ))}
-          {guestRoutes.map(({ path, element }) => (
-            <Route
-              key={path}
-              path={path}
-              element={<GuestRoute>{element}</GuestRoute>}
-            />
-          ))}
-          {privateRoutes.map(({ path, element }) => (
-            <Route
-              key={path}
-              path={path}
-              element={<PrivateRoute>{element}</PrivateRoute>}
-            />
-          ))}
-          {superRoutes.map(({ path, element }) => (
-            <Route
-              key={path}
-              path={path}
-              element={<SuperRoute>{element}</SuperRoute>}
-            />
-          ))}
-        </Routes>
-      </Suspense>
-    </BrowserRouter>
+    <ThemeProvider initial="default">
+      <BrowserRouter>
+        <Suspense fallback={<BlockingLoader />}>
+          <Routes>
+            {publicRoutes.map(({ path, element }) => (
+              <Route key={path} path={path} element={element} />
+            ))}
+            {guestRoutes.map(({ path, element }) => (
+              <Route
+                key={path}
+                path={path}
+                element={<GuestRoute>{element}</GuestRoute>}
+              />
+            ))}
+            {privateRoutes.map(({ path, element }) => (
+              <Route
+                key={path}
+                path={path}
+                element={<PrivateRoute>{element}</PrivateRoute>}
+              />
+            ))}
+            {superRoutes.map(({ path, element }) => (
+              <Route
+                key={path}
+                path={path}
+                element={<SuperRoute>{element}</SuperRoute>}
+              />
+            ))}
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 
