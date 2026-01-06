@@ -1,3 +1,4 @@
+import { PATHS } from "@/routes/path";
 import { useNavigate } from "react-router-dom";
 
 export default function PayPalCancel() {
@@ -7,7 +8,7 @@ export default function PayPalCancel() {
       <h2>Payment cancelled</h2>
       <p style={{ opacity: 0.8 }}>No worries — your balance was not changed.</p>
       <button
-        onClick={() => navigate("/home")}
+        onClick={() => navigate(PATHS.home)}
         style={{
           marginTop: 16,
           padding: "10px 14px",

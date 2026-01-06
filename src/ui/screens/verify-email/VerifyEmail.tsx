@@ -6,6 +6,7 @@ import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 import CenteredLayout from '@/ui/templates/CenteredLayout';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
+import { Endpoints } from '@/api/urls';
 
 interface VerifyEmailProps {
 }
@@ -30,7 +31,7 @@ const VerifyEmail: React.FC<VerifyEmailProps> = () => {
         };
         const verifyEmail = async () => {
             try {
-                const { data } = await apiClient.get<VerifyEmailResponse>(`/auth/confirm-email/`, {
+                const { data } = await apiClient.get<VerifyEmailResponse>(Endpoints.auth.confirmEmail, {
                     params: { token }
                 });
                 if (!data.ok) {

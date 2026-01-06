@@ -1,5 +1,6 @@
 import { apiClient } from "@/api/apis";
 import { BillingServices } from "@/api/services/BillingServices";
+import { PATHS } from "@/routes/path";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -34,7 +35,7 @@ export default function PayPalReturn() {
         if (res?.ok) {
           localStorage.removeItem("paypal_topup_order_id");
           setMsg("Top up success! Redirecting...");
-          setTimeout(() => navigate("/home"), 1200);
+          setTimeout(() => navigate(PATHS.home), 1200);
         } else {
           setMsg(`Top up not completed. Status: ${res?.status || "UNKNOWN"}`);
         }
