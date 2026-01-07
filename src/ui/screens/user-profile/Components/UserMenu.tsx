@@ -3,6 +3,7 @@ import NavigationRow from '@/ui/components/inputs/buttons/NavigationRow';
 import styles from './UserMenu.module.css';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import FadingDivider from '@/ui/components/dividers/FadingDivider';
+import SvgPack from '@/utils/SvgPack';
 
 
 export default function UserMenu() {
@@ -15,7 +16,7 @@ export default function UserMenu() {
   }
 
   const handleManageInfluencersClick = () => {
-  } 
+  }
 
   return (
     <div>
@@ -24,14 +25,13 @@ export default function UserMenu() {
         {<TeaseMeLogo size='large' variant='icon-only-dark' />}
       </div>
       <div className={styles.menuArea}>
-      <NavigationRow title="User Profile" subtitle='Edit & Update User Details' onClick={handleUserProfileClick} />
-      <NavigationRow title="Payment Details" subtitle='Add & Edit Payment Sources' onClick={handlePaymentDetailsClick} />
-      <NavigationRow title="Manage Influencer" subtitle='Fund, Manage & View Your Influencers' onClick={handleManageInfluencersClick} />
+        <NavigationRow title="User Profile" subtitle='Edit & Update User Details' onClick={handleUserProfileClick} />
+        <NavigationRow title="Payment Details" subtitle='Add & Edit Payment Sources' onClick={handlePaymentDetailsClick} />
+        <NavigationRow title="Manage Influencer" subtitle='Fund, Manage & View Your Influencers' onClick={handleManageInfluencersClick} />
       </div>
       <div className={styles.footer}>
         <FadingDivider />
-
-      
+        <button className={styles.logoutButton}><SvgPack.Logout/>Logout</button>
       </div>
 
     </div>
