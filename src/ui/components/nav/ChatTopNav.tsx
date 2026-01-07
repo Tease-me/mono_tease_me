@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 import styles from "./ChatTopNav.module.css"
 import { useNavigate } from 'react-router-dom';
 import ArrowLeftIcon from "@/assets/svg/ArrowLeft.svg?react";
@@ -9,6 +9,7 @@ import DropDownMenu, { DropDownMenuDataModel } from '@/ui/components/inputs/drop
 import SvgPack from '@/utils/SvgPack';
 import AdultModeToggleContainer from '../adult-mode-toggle/AdultModeToggleContainer';
 import { useTheme } from '@/theme/ThemeProvider';
+import { AuthContext } from '@/context/AuthContext';
 
 interface ChatTopNavProps extends React.HTMLAttributes<HTMLDivElement> {
     title?: string;
@@ -21,13 +22,11 @@ interface ChatTopNavProps extends React.HTMLAttributes<HTMLDivElement> {
 const ChatTopNav: React.FC<ChatTopNavProps> = ({ title, onBack, onCallClick, menuItems, showBackButton = false }) => {
     const navigate = useNavigate();
     const { theme, setTheme } = useTheme();
+    const { adultMode, setAdultMode } = useContext(AuthContext);
 
     useEffect(() => {
-        const storedAdultMode = localStorage.getItem('adultMode');
-        if (storedAdultMode) {
-            setTheme(storedAdultMode === 'true' ? 'adult' : 'default');
-        }
-    }, []);
+        setTheme(adultMode ? 'adult' : 'default');
+    }, [adultMode, setTheme]);
 
     return (
         <div className={styles["chat-header"]}>
@@ -39,7 +38,16 @@ const ChatTopNav: React.FC<ChatTopNavProps> = ({ title, onBack, onCallClick, men
                     <MoreCircleIcon />
                 </DropDownMenu>}
             </div>
-            <div className={styles["center-title"]}>{title}<AdultModeToggleContainer checked={theme === 'adult'} onChange={(checked) => setTheme(checked ? 'adult' : 'default')} /></div>
+            <div className={styles["center-title"]}>
+                {title}
+                <AdultModeToggleContainer
+                    checked={theme === 'adult'}
+                    onChange={(checked) => {
+                        setAdultMode(checked);
+                        setTheme(checked ? 'adult' : 'default');
+                    }}
+                />
+            </div>
             <div className={styles["right-buttons"]}>
                 <div>
                     <IconButton leftIcon={<SvgPack.Call />} onClick={onCallClick} className={styles["call-button"]} color='green' text='Call' />
