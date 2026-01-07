@@ -1,13 +1,17 @@
 import FullWidthLayout from '@/ui/templates/FullWidthLayout';
-import AnimatedButton from '@/ui/components/inputs/buttons/AnimatedButton';
-import SvgPack from '@/utils/SvgPack';
+import { useState } from 'react';
+import AdultModeToggleContainer from '@/ui/components/adult-mode-toggle/AdultModeToggleContainer';
+
 
 const TestPage = ({ }) => {
+    const [toggleState, setToggleState] = useState(false);
+
     return (
         <FullWidthLayout>
-            <AnimatedButton leftIcon={<SvgPack.Calling />} text='Answer' color='green' />
+            <div style={{ padding: 10 }}>
+                <AdultModeToggleContainer checked={toggleState} onChange={() => setToggleState(!toggleState)} />
+            </div>
         </FullWidthLayout>
-
     );
 };
 
