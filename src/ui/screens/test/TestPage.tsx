@@ -8,7 +8,7 @@ const TestPage = ({ }) => {
 
     return (
         <FullWidthLayout>
-            <div style={{ padding: 10 }}>
+            <div style={{ padding: 10, width: 200 }}>
                 <AdultModeToggleContainer checked={toggleState} onChange={() => setToggleState(!toggleState)} />
             </div>
         </FullWidthLayout>
