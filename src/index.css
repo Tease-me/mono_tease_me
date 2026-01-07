@@ -21,6 +21,7 @@ body,
 
 :root {
   --primary-font-family: "DM Sans", sans-serif;
+  --secondary-font-family: "Urbanist", sans-serif;
   /* Theme tokens (overridable via JS) */
   --color-text: #FFFFFF;
   --color-text-secondary: #9E9E9E;

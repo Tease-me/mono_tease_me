@@ -1,11 +1,12 @@
 import FullWidthLayout from '@/ui/templates/FullWidthLayout';
-import AnimatedButton from '@/ui/components/inputs/buttons/AnimatedButton';
-import SvgPack from '@/utils/SvgPack';
+import TextInput from '@/ui/components/inputs/text-inputs/TextInput';
+import NavigationRow from '@/ui/components/inputs/buttons/NavigationRow';
 
 const TestProfilePage = ({ }) => {
     return (
         <FullWidthLayout>
-            <AnimatedButton leftIcon={<SvgPack.Calling />} text='Answer' color='green' />
+            <TextInput placeholder='Test Input' style={{margin: 10}}/>
+            <NavigationRow title="Test Navigation Row" subtitle="This is a test" onClick={() => {}} />
         </FullWidthLayout>
     );
 };

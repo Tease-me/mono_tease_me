@@ -17,7 +17,6 @@ import TopUpModal from '@/ui/components/modals/payment-modal/TopUpModal';
 
 
 
-
 import { AuthContext } from '@/context/AuthContext';
 import { BalanceServices } from '@/api/services/BalanceServices';
 import { formatCentsToDollars } from '@/utils/balance_utils';
@@ -81,18 +80,19 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
     const handleUpdateProfile = async () => {
         {/* Upload profile pic*/ }
         if (photoBlob && user?.id) {
-            try{
-            const form = new FormData();
-            form.append("file", photoBlob, "avatar.jpg");
-            await apiClient.post(`/user/${user.id}/photo`, form, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });}
-            catch(err){
+            try {
+                const form = new FormData();
+                form.append("file", photoBlob, "avatar.jpg");
+                await apiClient.post(`/user/${user.id}/photo`, form, {
+                    headers: { "Content-Type": "multipart/form-data" },
+                });
+            }
+            catch (err) {
                 console.error("Error uploading profile photo:", err);
                 return;
             }
-                  setPhotoBlob(null);
-        
+            setPhotoBlob(null);
+
         }
 
     }
@@ -141,6 +141,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
                     <a className={styles["profile-delete-account"]} href='#'>Delete Account</a>
                 </div>
 
+                <div className={styles["update-row"]}>
+                    <a className={styles["profile-cancel"]} href='#'>Cancel</a>
+                    <NormalButton text='Update Profile' onClick={handleUpdateProfile} />
+                </div>
+
                 <div className={styles["section-title"]}>
                     Payment Details
                 </div>
@@ -153,10 +158,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
                         setShowTopUpModal(true);
                     }} />
 
-                </div>
-                <div className={styles["update-row"]}>
-                    <a className={styles["profile-cancel"]} href='#'>Cancel</a>
-                    <NormalButton text='Update Profile' onClick={handleUpdateProfile} />
                 </div>
                 <LinkCardModal isOpen={showLinkCardModal} onClose={() => setShowLinkCardModal(false)} />
                 <TopUpModal isOpen={showTopUpModal} onClose={() => setShowTopUpModal(false)} />
