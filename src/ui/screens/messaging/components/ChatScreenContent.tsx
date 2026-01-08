@@ -5,7 +5,7 @@ import ProfileMedia from "@/ui/components/ProfileMedia";
 import { truncateLastName } from "@/utils/StringUtils";
 import { AuthContext } from "@/context/AuthContext";
 import styles from "./ChatScreenContent.module.css"
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import MessageBubble, { CallMessageGroup } from './MessageBubble';
 import ChatInputArea from './ChatInputArea';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
@@ -23,10 +23,7 @@ import CallModal from '@/ui/components/modals/call-modal/CallModal';
 import useCallWebRTC from '@/hooks/useCallWebRTC';
 import IconButton from '@/ui/components/inputs/buttons/IconButton';
 import { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownMenu';
-import LogoutIcon from "@/assets/svg/Logout.svg?react";
-import ProfileIcon from "@/assets/svg/Profile.svg?react";
-import SvgPack from '@/utils/SvgPack';
-import { useTheme } from '@/theme/ThemeProvider';
+import { AdultChatRepo } from '@/data/repositories/AdultChatRepo';
 
 type DisplayMessage = Message | CallMessageGroup;
 
@@ -95,10 +92,10 @@ const MessagesList = React.memo(({ messages, typing, messagesEndRef, influencerN
 interface ChatScreenContentProps {
     id?: string;
     onBackPressed?: () => void;
-    setNeedsSelection?: (needsSelection: boolean) => void;
+    menuItems?: DropDownMenuDataModel[];
 }
 
-const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed, setNeedsSelection }) => {
+const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed, menuItems }) => {
     const [influencer, setInfluencer] = useState<InfluencerDataModel>();
     const [chatId, setChatId] = useState<string | undefined>();
 
@@ -122,17 +119,19 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const reconnectTimer = useRef<number | null>(null);
     const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
-    const { user, logout } = useContext(AuthContext);
+    const { user, adultMode } = useContext(AuthContext);
     const { user_id } = useParams();
+
     const isSuperUser = user?.id === 1;
 
     const pageSize = 20;
 
     const chatRepository = ChatRepository();
     const influencerRepo = InfluencerRepo();
+    const adultChatRepo = AdultChatRepo();
+
     const { status, startConversation, stopConversation, setInfluencerId, timeRemaining, micMuted, toggleMute } = useCallWebRTC();
     const displayMessages = useMemo(() => messages ? mergeCallMessages(messages) : [], [messages]);
-    const navigate = useNavigate();
 
     useEffect(() => {
         (async () => {
@@ -158,7 +157,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
     const fetchMessages = async (chat_id: string, page: number) => {
         try {
-            const responseMessagesPagination: MessagePagination = await chatRepository.getChatHistory(chat_id, page, pageSize);
+            const responseMessagesPagination: MessagePagination = await (adultMode ? adultChatRepo.getChatHistory(chat_id, page, pageSize) : chatRepository.getChatHistory(chat_id, page, pageSize));
+
             const totalPages = responseMessagesPagination.total / pageSize;
             const localMessages = responseMessagesPagination.messages;
             if (page === 1) {
@@ -177,7 +177,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     useEffect(() => {
         (async () => {
             if (influencer && user) {
-                const chat_id = await chatRepository.getChatId(user.id, influencer.id)
+                const chat_id = await (adultMode ? adultChatRepo.getChatId(user.id, influencer.id) : chatRepository.getChatId(user.id, influencer.id));
                 setChatId(chat_id);
                 setPageNumber(1);
                 setHasMore(true);
@@ -186,7 +186,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 setInfluencerId(influencer.id);
             }
         })()
-    }, [influencer, user]);
+    }, [influencer, user, adultMode]);
 
     useEffect(() => {
         if (pageNumber === 1) {
@@ -231,7 +231,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     function connectChat(influencerId: string) {
         ws.current?.close();
         const access_token = storage.get(LocalStorageKeys.AccessToken);
-        ws.current = new window.WebSocket(`${WS_BASE_URL}${Endpoints.ws.chat}/${influencerId}?token=${access_token}`);
+        ws.current = new window.WebSocket(`${WS_BASE_URL}${adultMode ? Endpoints.ws.chat18 : Endpoints.ws.chat}/${influencerId}?token=${access_token}`);
+
         ws.current.onopen = () => {
             setIsWsConnected(true);
             setError(undefined);
@@ -294,7 +295,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         if (!influencer) return;
         if (!chatId) return;
 
-        const { audio_url } = await chatRepository.sendAudioMessage(audioBlob, influencer.id, chatId);
+        const { audio_url } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
         setTyping(false);
         setMessages((prev) => {
             if (!prev) return prev;
@@ -430,52 +431,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             setIsClearingHistory(false);
         }
     };
-    const { theme, setTheme } = useTheme();
-    const testDataDropDown: DropDownMenuDataModel[] = [
-        {
-            id: 1,
-            icon: <ProfileIcon />,
-            text: "My Profile",
-            onClick: () => {
-                navigate("/profile");
-            },
-        },
-        {
-            id: 2,
-            icon: <SvgPack.Female />,
-            text: "Change Influencer",
-            onClick: () => {
-                setNeedsSelection?.(true);
-            }
-        },
-        {
-            id: 3,
-            icon: <SvgPack.Heart />,
-            text: "Change Theme",
-            onClick: () => {
-                setTheme(theme === "default" ? "adult" : "default");
-            }
-        },
-        {
-            id: 4,
-            icon: <LogoutIcon />,
-            text: "Logout",
-            styles: {
-                style: { color: "var(--color-alert)" },
-                hoverStyle: { color: "var(--color-primary)" },
-                iconStyle: { color: "var(--color-primary)" },
-            },
-            onClick: () => {
-                logout();
-            },
-        },
-    ];
+
 
     if (!influencer) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
     return (
         <div className={styles["chat-screen-content"]}>
             <div className={styles["chat-header"]}>
-                <ChatTopNav onBack={handleOnBackClick} onCallClick={onCall} menuItems={testDataDropDown} />
+                <ChatTopNav onBack={handleOnBackClick} onCallClick={onCall} menuItems={menuItems} />
                 <div className={styles["chat-header-info"]}>
                     <ProfileMedia imageSrc={influencer?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
                     <div className={styles["chat-user-name"]}>
