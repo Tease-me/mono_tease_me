@@ -7,6 +7,8 @@ export interface InfluencerResponse {
   influencer_agent_id_third_part: string;
   bio_json: string;
   fp_ref_id: string;
+  profile_photo_key: string;
+  profile_video_key: string;
   created_at: string;
 }
 
