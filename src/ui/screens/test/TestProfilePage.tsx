@@ -1,14 +1,13 @@
 import FullWidthLayout from '@/ui/templates/FullWidthLayout';
-import TextInput from '@/ui/components/inputs/text-inputs/TextInput';
-import NavigationRow from '@/ui/components/inputs/buttons/NavigationRow';
-import UserMenu from '../user-profile/Components/UserMenu';
+//import UserMenu from '../user-profile/Components/UserMenu';
+//import PaymentDetails from '../user-profile/Components/PaymentDetails';
+import Influencers from '../user-profile/Components/Influencers';
+
 
 const TestProfilePage = ({ }) => {
     return (
         <FullWidthLayout>
-            <UserMenu />
-            <TextInput placeholder='Test Input' style={{margin: 10}}/>
-            <NavigationRow title="Test Navigation Row" subtitle="This is a test" onClick={() => {}} />
+            <Influencers />
         </FullWidthLayout>
     );
 };

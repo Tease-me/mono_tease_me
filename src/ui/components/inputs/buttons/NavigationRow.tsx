@@ -18,29 +18,29 @@ const NavigationRow: React.FC<NavigationRowProps> = ({
   disabled = false,
   rightIcon,
 }) => {
-return (
+  return (
     <button
       type="button"
       className={styles.row}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
     >
       <div className={styles.textBlock}>
         <div className={styles.title}>{title}</div>
         {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
       </div>
       <div className={styles.arrowArea}>
-      <IconButton
-        type="pill"
-        color="black"
-        onClick={disabled ? undefined : onClick}
-        aria-disabled={disabled}
-        leftIcon={rightIcon ? rightIcon : <SvgPack.LightArrowRight />}
-        className= {styles.arrow}
-        aria-label="Go"
-      />
+        <IconButton
+          type="pill"
+          color="black"
+          aria-disabled={disabled}
+          leftIcon={rightIcon ? rightIcon : <SvgPack.LightArrowRight />}
+          className={styles.arrow}
+          aria-label="Go"
+        />
       </div>
     </button>
   );
 };
 
 export default NavigationRow;
-        

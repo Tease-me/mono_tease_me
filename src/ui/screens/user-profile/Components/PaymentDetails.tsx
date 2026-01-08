@@ -1,9 +1,39 @@
 import React from 'react';
+import NavigationRow from '@/ui/components/inputs/buttons/NavigationRow';
+import styles from "./PaymentDetails.module.css"
+import IconButton from '@/ui/components/inputs/buttons/IconButton';
+import SvgPack from '@/utils/SvgPack';
+import CardMockup from '@/assets/image/card-mockup.png';
 
 const PaymentDetails: React.FC = () => {
+
+    const handleVisaBtn = () => {
+        // Handle Visa button click
+    };
+    
+    const handleMasterCardBtn = () => {
+        // Handle MasterCard button click
+    };
+
+
+    const handleAddNew = () => {
+        // Handle Add New Payment Method button click
+    };
+
+
     return (
         <div>
-            <h2>Payment Details Screen here</h2>
+            <div className={styles.cardPreview}>
+                <img src={CardMockup} alt="Card Mockup" className={styles.cardImage} />
+            </div>
+            <h3 className={styles.sectionTitle}>Saved Payment Method</h3>
+            <div className={styles.menu}>
+                <NavigationRow  title="Visa" subtitle="Default" onClick={handleVisaBtn} />
+                <NavigationRow  title="MasterCard" subtitle="Backup Method" onClick={handleMasterCardBtn} />
+            </div>
+            <div className={styles.addNew}>
+                <IconButton leftIcon={<SvgPack.PlusBox />} text="Add New Payment Method" onClick={handleAddNew} color='pink-glass'     className={styles.addButton} />
+            </div>
         </div>
     );
 };

@@ -6,7 +6,7 @@ import styles from './FadingDivider.module.css';
 export default function FadingDivider() {
 
   return (
-    <div className={clsx(styles.divider,)} aria-hidden>
+    <div className={clsx(styles.divider)} aria-hidden>
     </div>)
 
 

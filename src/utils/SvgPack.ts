@@ -33,6 +33,7 @@ export default {
     Call: lazy(() => import("@/assets/svg/Call.svg?react")),
     Heart: lazy(() => import("@/assets/svg/Heart.svg?react")),
     ChatRound: lazy(() => import("@/assets/svg/Chat.svg?react")),
+    PlusBox: lazy(() => import("@/assets/svg/PlusBox.svg?react")),
 
     // Social Media Icons
     OnlyFans: lazy(() => import("@/assets/svg/OnlyFans.svg?react")),
