@@ -178,7 +178,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         (async () => {
             if (influencer && user) {
                 const chat_id = await (adultMode ? adultChatRepo.getChatId(user.id, influencer.id) : chatRepository.getChatId(user.id, influencer.id));
-                console.log("GetChatId ", chat_id);
                 setChatId(chat_id);
                 setPageNumber(1);
                 setHasMore(true);
@@ -206,7 +205,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             }, 10000);
             return () => clearTimeout(t);
         }
-        console.log("Call status changed: ", chatId);
     }, [status, chatId]);
 
     function calculateReplyTime(msg: string) {
