@@ -9,7 +9,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import MessageBubble, { CallMessageGroup } from './MessageBubble';
 import ChatInputArea from './ChatInputArea';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
-import ChatTopNav from '@/ui/components/nav/ChatTopNav';
+//import ChatTopNav from '@/ui/components/nav/ChatTopNav';
+import UserNav from '@/ui/components/nav/UserNav';
 import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
 import { Message, MessagePagination } from '@/data/models/MessageDataModel';
 import { storage } from '@/utils/storage';
@@ -96,9 +97,10 @@ interface ChatScreenContentProps {
     id?: string;
     onBackPressed?: () => void;
     setNeedsSelection?: (needsSelection: boolean) => void;
+    onMenuClick?: () => void;
 }
 
-const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed, setNeedsSelection }) => {
+const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed, setNeedsSelection, onMenuClick }) => {
     const [influencer, setInfluencer] = useState<InfluencerDataModel>();
     const [chatId, setChatId] = useState<string | undefined>();
 
@@ -475,7 +477,12 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     return (
         <div className={styles["chat-screen-content"]}>
             <div className={styles["chat-header"]}>
-                <ChatTopNav onBack={handleOnBackClick} onCallClick={onCall} menuItems={testDataDropDown} />
+                {/*<ChatTopNav onBack={handleOnBackClick} onCallClick={onCall} menuItems={testDataDropDown} /> */}
+                <UserNav
+                    influencerName={influencer?.name}
+                    onMenuClick={onMenuClick}
+                    onCallClick={onCall}
+                />
                 <div className={styles["chat-header-info"]}>
                     <ProfileMedia imageSrc={influencer?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
                     <div className={styles["chat-user-name"]}>

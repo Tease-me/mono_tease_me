@@ -14,7 +14,7 @@ import styles from "./MyInfluencers.module.css"
 
 const relationshipService = RelationshipServices(apiClient);
 
-const Influencers: React.FC = () => {
+const MyInfluencers: React.FC = () => {
   const [items, setItems] = useState<
     Array<{
       name: string;
@@ -97,4 +97,4 @@ const Influencers: React.FC = () => {
   );
 };
 
-export default Influencers;
+export default MyInfluencers;

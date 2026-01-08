@@ -34,6 +34,8 @@ export default {
     Heart: lazy(() => import("@/assets/svg/Heart.svg?react")),
     ChatRound: lazy(() => import("@/assets/svg/Chat.svg?react")),
     PlusBox: lazy(() => import("@/assets/svg/PlusBox.svg?react")),
+    Menu: lazy(() => import("@/assets/svg/Menu.svg?react")),
+    Cross: lazy(() => import("@/assets/svg/Cross.svg?react")),
 
     // Social Media Icons
     OnlyFans: lazy(() => import("@/assets/svg/OnlyFans.svg?react")),
