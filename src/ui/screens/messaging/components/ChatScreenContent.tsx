@@ -23,6 +23,7 @@ import CallModal from '@/ui/components/modals/call-modal/CallModal';
 import useCallWebRTC from '@/hooks/useCallWebRTC';
 import IconButton from '@/ui/components/inputs/buttons/IconButton';
 import { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownMenu';
+import { AdultChatRepo } from '@/data/repositories/AdultChatRepo';
 
 type DisplayMessage = Message | CallMessageGroup;
 
@@ -127,7 +128,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
     const chatRepository = ChatRepository();
     const influencerRepo = InfluencerRepo();
-    const adultChatRepo = ChatRepository();
+    const adultChatRepo = AdultChatRepo();
 
     const { status, startConversation, stopConversation, setInfluencerId, timeRemaining, micMuted, toggleMute } = useCallWebRTC();
     const displayMessages = useMemo(() => messages ? mergeCallMessages(messages) : [], [messages]);
@@ -177,6 +178,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         (async () => {
             if (influencer && user) {
                 const chat_id = await (adultMode ? adultChatRepo.getChatId(user.id, influencer.id) : chatRepository.getChatId(user.id, influencer.id));
+                console.log("GetChatId ", chat_id);
                 setChatId(chat_id);
                 setPageNumber(1);
                 setHasMore(true);
@@ -204,6 +206,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             }, 10000);
             return () => clearTimeout(t);
         }
+        console.log("Call status changed: ", chatId);
     }, [status, chatId]);
 
     function calculateReplyTime(msg: string) {

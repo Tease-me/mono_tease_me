@@ -5,7 +5,7 @@ import { AdultChatServices } from "@/api/services/AdultChatServices";
 
 const chatServices = AdultChatServices();
 
-export const ChatRepository = () => ({
+export const AdultChatRepo = () => ({
     getChatHistory: async (chat_id: string, page: number, page_size: number): Promise<MessagePagination> => {
         var totalMessages = 0;
         try {
