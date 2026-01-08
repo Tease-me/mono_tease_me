@@ -1,4 +1,6 @@
 import { TEASE_ME_HOST, TEASE_ME_PROTOCOL, TEASE_ME_WS_PROTOCOL } from "@/env";
+import { start } from "repl";
+import { sub } from "three/tsl";
 
 export const API_BASE_URL = `${TEASE_ME_PROTOCOL}://${TEASE_ME_HOST}`;
 export const WS_BASE_URL = `${TEASE_ME_WS_PROTOCOL}://${TEASE_ME_HOST}`;
@@ -79,6 +81,12 @@ export const Endpoints = {
       `admin/relationships?user_id=${user_id}`,
 
     patchRelationship: `admin/relationships`,
+  },
+  subscription: {
+    start: "/subscription/start",
+    capture: "/subscription/paypal/capture",
+    list: "/subscription/me",
+    influencer: (influencerId: string) => `/subscription/me/${influencerId}`,
   },
   ws: {
     chat: "/chat/ws",
