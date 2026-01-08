@@ -118,17 +118,19 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const reconnectTimer = useRef<number | null>(null);
     const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
-    const { user } = useContext(AuthContext);
+    const { user, adultMode } = useContext(AuthContext);
     const { user_id } = useParams();
+
     const isSuperUser = user?.id === 1;
 
     const pageSize = 20;
 
     const chatRepository = ChatRepository();
     const influencerRepo = InfluencerRepo();
+    const adultChatRepo = ChatRepository();
+
     const { status, startConversation, stopConversation, setInfluencerId, timeRemaining, micMuted, toggleMute } = useCallWebRTC();
     const displayMessages = useMemo(() => messages ? mergeCallMessages(messages) : [], [messages]);
-
 
     useEffect(() => {
         (async () => {
@@ -154,7 +156,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
     const fetchMessages = async (chat_id: string, page: number) => {
         try {
-            const responseMessagesPagination: MessagePagination = await chatRepository.getChatHistory(chat_id, page, pageSize);
+            const responseMessagesPagination: MessagePagination = await (adultMode ? adultChatRepo.getChatHistory(chat_id, page, pageSize) : chatRepository.getChatHistory(chat_id, page, pageSize));
+
             const totalPages = responseMessagesPagination.total / pageSize;
             const localMessages = responseMessagesPagination.messages;
             if (page === 1) {
@@ -173,7 +176,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     useEffect(() => {
         (async () => {
             if (influencer && user) {
-                const chat_id = await chatRepository.getChatId(user.id, influencer.id)
+                const chat_id = await (adultMode ? adultChatRepo.getChatId(user.id, influencer.id) : chatRepository.getChatId(user.id, influencer.id));
                 setChatId(chat_id);
                 setPageNumber(1);
                 setHasMore(true);
@@ -182,7 +185,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 setInfluencerId(influencer.id);
             }
         })()
-    }, [influencer, user]);
+    }, [influencer, user, adultMode]);
 
     useEffect(() => {
         if (pageNumber === 1) {
@@ -227,7 +230,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     function connectChat(influencerId: string) {
         ws.current?.close();
         const access_token = storage.get(LocalStorageKeys.AccessToken);
-        ws.current = new window.WebSocket(`${WS_BASE_URL}${Endpoints.ws.chat}/${influencerId}?token=${access_token}`);
+        ws.current = new window.WebSocket(`${WS_BASE_URL}${adultMode ? Endpoints.ws.chat18 : Endpoints.ws.chat}/${influencerId}?token=${access_token}`);
+
         ws.current.onopen = () => {
             setIsWsConnected(true);
             setError(undefined);
@@ -290,7 +294,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         if (!influencer) return;
         if (!chatId) return;
 
-        const { audio_url } = await chatRepository.sendAudioMessage(audioBlob, influencer.id, chatId);
+        const { audio_url } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
         setTyping(false);
         setMessages((prev) => {
             if (!prev) return prev;

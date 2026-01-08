@@ -2,9 +2,8 @@ import { apiClient } from "@/api/apis";
 import { InfluencerResponse } from "@/api/models/influencers";
 import { KnowledgeFile } from "@/api/models/knowledgeFiles";
 import { InfluencerServices } from "@/api/services/InfluencerService";
-import defaultAvatar from "@/assets/empty-profile.png";
 import { FollowServices } from "@/api/services/FollowServices";
-import dummy from "@/dummy/dummy";
+
 import {
   InfluencerDataModel,
   KnowledgeFileModel,
@@ -13,31 +12,12 @@ import {
 const influencerServices = InfluencerServices(apiClient);
 const followServices = FollowServices(apiClient);
 
-const resolveAvatar = (requested?: string, influencerId?: string): string => {
-  if (requested && requested.trim().length > 0) {
-    return requested.trim();
-  }
-  if (influencerId) {
-    try {
-      const dummyImage = dummy.getImage(
-        influencerId as "loli" | "bella" | "anna"
-      ) as string | undefined;
-      if (dummyImage) {
-        return dummyImage;
-      }
-    } catch {
-      // ignore
-    }
-  }
-  return defaultAvatar;
-};
-
 const toInfluencerDataModel = (response: InfluencerResponse, existing?: InfluencerDataModel): InfluencerDataModel => ({
   id: response.id,
   name: response.display_name,
   username: response.id,
-  img: resolveAvatar(existing?.img, response.id),
-  videoUrl: dummy.getVideo(response.id as "loli" | "bella" | "anna"),
+  img: response.profile_photo_key,
+  videoUrl: response.profile_video_key,
   daily_scripts: response.daily_scripts,
   prompt_template: response.prompt_template,
   influencer_agent_id_third_part: response.influencer_agent_id_third_part,
@@ -106,8 +86,8 @@ export const InfluencerRepo = () => ({
         id: response.id,
         name: response.display_name,
         username: response.id,
-        img: resolveAvatar(influencer.img, response.id),
-        videoUrl: dummy.getVideo(response.id as "loli" | "bella" | "anna"),
+        img: response.profile_photo_key,
+        videoUrl: response.profile_video_key,
         daily_scripts: response.daily_scripts,
         prompt_template: response.prompt_template,
         influencer_agent_id_third_part: response.influencer_agent_id_third_part,
@@ -136,8 +116,8 @@ export const InfluencerRepo = () => ({
         id: response.id,
         name: response.display_name,
         username: response.id,
-        img: resolveAvatar(influencer.img, response.id),
-        videoUrl: dummy.getVideo(response.id as "loli" | "bella" | "anna"),
+        img: response.profile_photo_key,
+        videoUrl: response.profile_video_key,
         daily_scripts: response.daily_scripts,
         prompt_template: response.prompt_template,
         influencer_agent_id_third_part: response.influencer_agent_id_third_part,
