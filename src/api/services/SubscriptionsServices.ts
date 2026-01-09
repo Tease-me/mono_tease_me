@@ -15,7 +15,8 @@ export const SubscriptionsServices = (apiClient: AxiosInstance) => ({
     captureSubscription: async (orderId: string, subscriptionId: string, amountCents: number): Promise<any> => {
         const response = await apiClient.post(
             Endpoints.subscriptions.capture,
-            { order_id: orderId, subscription_id: subscriptionId, amount_cents: amountCents }
+            {},
+            { params: { order_id: orderId, subscription_id: subscriptionId, amount_cents: amountCents } }
         );
         return response.data;
     },

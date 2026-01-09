@@ -59,8 +59,6 @@ const InfluencerHome = lazy(
 const InfluencerHomeTrialExpired = lazy(
   () => import("@/ui/screens/home-page/InfluencerHomeTrialExpired")
 );
-const AdultModePage = lazy(() => import("@/ui/screens/adult-mode/AdultModePage"));
-
 const RecordTerms = lazy(
   () => import("@/ui/screens/survey/components/TermsConditions")
 );
@@ -91,7 +89,6 @@ function AppRoutes() {
       path: Paths.influencerHomeExpired,
       element: <InfluencerHomeTrialExpired />,
     },
-    { path: Paths.adultMode, element: <AdultModePage /> },
     {
       path: Paths.intencionInfluencerHome,
       element: <IntencionInfluencerHome />,

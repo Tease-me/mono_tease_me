@@ -86,7 +86,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const [isWsConnected, setIsWsConnected] = useState(false);
     const [error, setError] = useState<string | undefined>(undefined);
     const [openWelcomeCallModal, setOpenWelcomeCallModal] = useState(false);
-    const [subscriptionActive, setSubscriptionActive] = useState(false);
 
     const [pageNumber, setPageNumber] = useState<number>(1);
 
@@ -103,6 +102,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
     const { user } = useContext(AuthContext);
     const [adultMode, setAdultMode] = useState(false);
+    const [adultModeSwitch, setAdultModeSwitch] = useState(false);
+    const [showSubscriptionPage, setShowSubscriptionPage] = useState(false);
+
     const { user_id } = useParams();
 
     const isSuperUser = user?.id === 1;
@@ -143,15 +145,12 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 const isActive = subscription?.status === "active";
                 const isAdult = isActive && subscription?.is_18_selected === true;
                 if (isMounted) {
-                    setAdultMode((prev) => (prev !== isAdult ? isAdult : prev));
-                    setSubscriptionActive((prev) => (prev !== isActive ? isActive : prev));
-                }
-                if (isActive) {
-                    logger.info("User has active subscription for influencer:", influencer?.name);
-                } else {
-                    logger.info("No active subscription for influencer:", influencer?.name);
+                    setAdultModeSwitch(isAdult);
+                    setAdultMode(isAdult);
                 }
             } catch (err) {
+                setAdultModeSwitch(false);
+                setAdultMode(false);
                 logger.error("Error checking subscription for influencer:", err);
             } finally {
                 if (isMounted) {
@@ -167,51 +166,63 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         };
     }, [influencer]);
 
-    useEffect(() => {
-        if (!subscriptionActive) {
-            lastChatInitRef.current = null;
-        }
-    }, [subscriptionActive]);
-
     const handleAdultModeChange = async (checked: boolean) => {
         if (!influencer) {
-            setAdultMode(false);
+            setAdultModeSwitch(false);
             return;
         }
-        if (!checked) {
-            await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, false);
-            setAdultMode(false);
-            return;
-        }
-        try {
-            const subscription = await subscriptionsServices.getMySubscriptionForInfluencer(influencer.id);
-            if (subscription?.status === "active") {
+        setAdultModeSwitch(checked);
+    };
+
+    useEffect(() => {
+        (async () => {
+            if (adultModeSwitch && influencer) {
+                try {
+                    const subscription = await subscriptionsServices.getMySubscriptionForInfluencer(influencer.id);
+                    if (subscription?.status === "active") {
+                        await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, true);
+                        setShowSubscriptionPage(false);
+                        setAdultMode(true);
+                    } else {
+                        setShowSubscriptionPage(true);
+                        setAdultMode(false);
+                    }
+                } catch (err) {
+                    logger.error("Error enabling adult mode subscription:", err);
+                    setAdultModeSwitch(false);
+                    setShowSubscriptionPage(false);
+                }
+            } else {
+                setShowSubscriptionPage(false);
+            }
+        })();
+    }, [adultModeSwitch]);
+
+    const handleSubscribePressed = () => {
+        (async () => {
+            if (!influencer) return;
+            try {
+                const startResponse = await subscriptionsServices.startSubscription(influencer.id);
+                const orderId =
+                    typeof crypto !== "undefined" && "randomUUID" in crypto
+                        ? crypto.randomUUID()
+                        : `order_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+                const subscriptionId = startResponse?.subscription_id ?? startResponse?.subscriptionId;
+                const amountCents = 10000;
+
+                if (!orderId || !subscriptionId || !amountCents) {
+                    throw new Error("Missing subscription capture data");
+                }
+
+                await subscriptionsServices.captureSubscription(orderId, String(subscriptionId), amountCents);
                 await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, true);
                 setAdultMode(true);
-                setSubscriptionActive(true);
+                setShowSubscriptionPage(false);
+            } catch (err) {
+                logger.error("Error during subscription process:", err);
                 return;
             }
-
-            const startResponse = await subscriptionsServices.startSubscription(influencer.id);
-            const orderId =
-                typeof crypto !== "undefined" && "randomUUID" in crypto
-                    ? crypto.randomUUID()
-                    : `order_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-            const subscriptionId = startResponse?.subscription_id ?? startResponse?.subscriptionId;
-            const amountCents = 10000;
-
-            if (!orderId || !subscriptionId || !amountCents) {
-                throw new Error("Missing subscription capture data");
-            }
-
-            await subscriptionsServices.captureSubscription(orderId, String(subscriptionId), amountCents);
-            await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, true);
-            setAdultMode(true);
-            setSubscriptionActive(true);
-        } catch (err) {
-            logger.error("Error enabling adult mode subscription:", err);
-            setAdultMode(false);
-        }
+        })();
     };
 
     const fetchMessages = async (chat_id: string, page: number) => {
@@ -235,7 +246,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
     useEffect(() => {
         (async () => {
-            if (influencer && user && subscriptionActive) {
+            if (influencer && user) {
                 const initKey = `${user.id}-${influencer.id}-${adultMode}`;
                 if (lastChatInitRef.current === initKey) {
                     return;
@@ -250,7 +261,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 setInfluencerId(influencer.id);
             }
         })()
-    }, [influencer, user, adultMode, subscriptionActive]);
+    }, [influencer, user, adultMode]);
 
     useEffect(() => {
         if (pageNumber === 1) {
@@ -498,7 +509,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
 
     if (!influencer) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
-    if (!subscriptionActive) return <AdultModePage />;
+
     return (
         <div className={styles["chat-screen-content"]}>
             <div className={styles["chat-header"]}>
@@ -506,7 +517,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                     onBack={handleOnBackClick}
                     onCallClick={onCall}
                     menuItems={menuItems}
-                    adultMode={adultMode}
+                    adultMode={adultModeSwitch}
                     onAdultModeChange={handleAdultModeChange}
                 />
                 <div className={styles["chat-header-info"]}>
@@ -528,45 +539,47 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                     )}
                 </div>
             </div>
+            {!showSubscriptionPage ? <div>
+                <div
+                    className={clsx(styles["chat-messages-container"], !messages && styles["loading"])}
+                    ref={containerRef}
+                    onScroll={handleScroll}
+                >
+                    {(messages) ? <>
+                        {isLoadingMore && <LoadingSpinner size='small' />}
+                        <MessagesList
+                            messages={displayMessages}
+                            typing={typing}
+                            messagesEndRef={messagesEndRef}
+                            influencerName={influencer?.name}
+                            onAudioPlay={(src) => {
+                                // Pause any currently playing audio
+                                if (currentAudioRef.current && currentAudioRef.current.src !== src) {
+                                    currentAudioRef.current.pause();
+                                    currentAudioRef.current.currentTime = 0;
+                                }
+                                // Track the newly started audio element
+                                const audioEl = document.querySelector<HTMLAudioElement>(`audio[src="${src}"]`);
+                                if (audioEl) {
+                                    currentAudioRef.current = audioEl;
+                                }
+                            }}
+                        />
+                    </> : <LoadingSpinner />}
+                </div>
 
-            <div
-                className={clsx(styles["chat-messages-container"], !messages && styles["loading"])}
-                ref={containerRef}
-                onScroll={handleScroll}
-            >
-                {(messages) ? <>
-                    {isLoadingMore && <LoadingSpinner size='small' />}
-                    <MessagesList
-                        messages={displayMessages}
-                        typing={typing}
-                        messagesEndRef={messagesEndRef}
-                        influencerName={influencer?.name}
-                        onAudioPlay={(src) => {
-                            // Pause any currently playing audio
-                            if (currentAudioRef.current && currentAudioRef.current.src !== src) {
-                                currentAudioRef.current.pause();
-                                currentAudioRef.current.currentTime = 0;
-                            }
-                            // Track the newly started audio element
-                            const audioEl = document.querySelector<HTMLAudioElement>(`audio[src="${src}"]`);
-                            if (audioEl) {
-                                currentAudioRef.current = audioEl;
-                            }
-                        }}
-                    />
-                </> : <LoadingSpinner />}
-            </div>
+                <div className={styles["chat-input-area"]}>
+                    <ChatInputArea
+                        onSendMessage={sendMessage}
+                        inputText={inputText}
+                        setInputText={setInputText}
+                        setInputAudio={setInputAudio}
+                        disabled={error ? true : false}
+                        error={error}
+                        inputAudio={inputAudio} />
+                </div>
+            </div> : <AdultModePage onSubscribePressed={handleSubscribePressed} />}
 
-            <div className={styles["chat-input-area"]}>
-                <ChatInputArea
-                    onSendMessage={sendMessage}
-                    inputText={inputText}
-                    setInputText={setInputText}
-                    setInputAudio={setInputAudio}
-                    disabled={error ? true : false}
-                    error={error}
-                    inputAudio={inputAudio} />
-            </div>
             <CallModal
                 timeRemaining={timeRemaining}
                 status={status}

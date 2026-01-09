@@ -6,7 +6,7 @@ import avatarImage from "@/assets/image/avatar.png";
 
 const waveformBars = new Array(24).fill(0);
 
-const AdultModePage = () => {
+const AdultModePage = ({ onSubscribePressed }: { onSubscribePressed: () => void }) => {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -72,7 +72,7 @@ const AdultModePage = () => {
         <p className={styles.tagline}>Let&apos;s heat things up...</p>
 
         <div className={styles.subscribeButton}>
-          <PrimaryButton leftIcon={<MicrophoneIcon />} text="Subscribe" />
+          <PrimaryButton leftIcon={<MicrophoneIcon />} text="Subscribe" onClick={onSubscribePressed} />
         </div>
 
         <div className={styles.footer}>
