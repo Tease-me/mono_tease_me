@@ -45,7 +45,6 @@ const VoiceCallEleven = lazy(
 const HomeScreenSingle = lazy(() => import("@/ui/screens/home/HomeScreenSingle"));
 const ChatScreen = lazy(() => import("@/ui/screens/messaging/ChatScreen"));
 const CallScreen = lazy(() => import("@/ui/screens/CallScreen"));
-const UserProfile = lazy(() => import("@/ui/screens/user-profile/UserProfile"));
 const MJDashboard = lazy(() => import("@/mj-dashboard/ui/Dashboard"));
 const CreateInfluencer = lazy(
   () => import("@/ui/screens/admin/create-influencer/CreateInfluencer")
@@ -117,7 +116,6 @@ function AppRoutes() {
   const privateRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.voice, element: <VoiceCallEleven /> },
     { path: Paths.home, element: <HomeScreenSingle /> },
-    { path: Paths.profile, element: <UserProfile /> },
     { path: Paths.chat(), element: <ChatScreen /> },
     { path: Paths.call(), element: <CallScreen /> },
     { path: Paths.paypalReturn, element: <PayPalReturn /> },

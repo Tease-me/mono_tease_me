@@ -95,7 +95,7 @@ export default function HomeScreenSingle() {
       {needsSelection && !id ? (
         <InfluencerSelector onItemClick={handleSelect} influencers={influencers} />
       ) : (
-        <ChatScreenContent id={id} menuItems={testDataDropDown} />
+        <ChatScreenContent id={id}/>
       )}
     </BackgroundGradient>
   );
