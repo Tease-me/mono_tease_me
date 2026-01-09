@@ -27,6 +27,7 @@ import { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownM
 import { AdultChatRepo } from '@/data/repositories/AdultChatRepo';
 import { SubscriptionsServices } from '@/api/services/SubscriptionsServices';
 import { apiClient } from '@/api/apis';
+import AdultModePage from '../../adult-mode/AdultModePage';
 
 const isCallChannel = (message: Message) => {
     if (!message.channel) return false;
@@ -85,6 +86,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const [isWsConnected, setIsWsConnected] = useState(false);
     const [error, setError] = useState<string | undefined>(undefined);
     const [openWelcomeCallModal, setOpenWelcomeCallModal] = useState(false);
+    const [subscriptionActive, setSubscriptionActive] = useState(false);
 
     const [pageNumber, setPageNumber] = useState<number>(1);
 
@@ -97,6 +99,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const containerRef = useRef<HTMLDivElement>(null);
     const reconnectTimer = useRef<number | null>(null);
     const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+    const lastChatInitRef = useRef<string | null>(null);
 
     const { user } = useContext(AuthContext);
     const [adultMode, setAdultMode] = useState(false);
@@ -137,11 +140,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             }
             try {
                 const subscription = await subscriptionsServices.getMySubscriptionForInfluencer(influencer.id);
-                const isAdult = subscription?.status === "active" && subscription?.is_18_selected === true;
+                const isActive = subscription?.status === "active";
+                const isAdult = isActive && subscription?.is_18_selected === true;
                 if (isMounted) {
-                    setAdultMode(isAdult);
+                    setAdultMode((prev) => (prev !== isAdult ? isAdult : prev));
+                    setSubscriptionActive((prev) => (prev !== isActive ? isActive : prev));
                 }
-                if (subscription?.status === "active") {
+                if (isActive) {
                     logger.info("User has active subscription for influencer:", influencer?.name);
                 } else {
                     logger.info("No active subscription for influencer:", influencer?.name);
@@ -162,12 +167,19 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         };
     }, [influencer]);
 
+    useEffect(() => {
+        if (!subscriptionActive) {
+            lastChatInitRef.current = null;
+        }
+    }, [subscriptionActive]);
+
     const handleAdultModeChange = async (checked: boolean) => {
         if (!influencer) {
             setAdultMode(false);
             return;
         }
         if (!checked) {
+            await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, false);
             setAdultMode(false);
             return;
         }
@@ -176,6 +188,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             if (subscription?.status === "active") {
                 await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, true);
                 setAdultMode(true);
+                setSubscriptionActive(true);
                 return;
             }
 
@@ -194,6 +207,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             await subscriptionsServices.captureSubscription(orderId, String(subscriptionId), amountCents);
             await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, true);
             setAdultMode(true);
+            setSubscriptionActive(true);
         } catch (err) {
             logger.error("Error enabling adult mode subscription:", err);
             setAdultMode(false);
@@ -221,7 +235,12 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
     useEffect(() => {
         (async () => {
-            if (influencer && user) {
+            if (influencer && user && subscriptionActive) {
+                const initKey = `${user.id}-${influencer.id}-${adultMode}`;
+                if (lastChatInitRef.current === initKey) {
+                    return;
+                }
+                lastChatInitRef.current = initKey;
                 const chat_id = await (adultMode ? adultChatRepo.getChatId(user.id, influencer.id) : chatRepository.getChatId(user.id, influencer.id));
                 setChatId(chat_id);
                 setPageNumber(1);
@@ -231,7 +250,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                 setInfluencerId(influencer.id);
             }
         })()
-    }, [influencer, user, adultMode]);
+    }, [influencer, user, adultMode, subscriptionActive]);
 
     useEffect(() => {
         if (pageNumber === 1) {
@@ -479,6 +498,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
 
     if (!influencer) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
+    if (!subscriptionActive) return <AdultModePage />;
     return (
         <div className={styles["chat-screen-content"]}>
             <div className={styles["chat-header"]}>
