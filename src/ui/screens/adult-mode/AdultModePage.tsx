@@ -68,19 +68,21 @@ const AdultModePage = () => {
         </div>
       </section>
 
-      <p className={styles.tagline}>Let&apos;s heat things up...</p>
+      <div className={styles.bottomSection}>
+        <p className={styles.tagline}>Let&apos;s heat things up...</p>
 
-      <div className={styles.subscribeButton}>
-        <PrimaryButton leftIcon={<MicrophoneIcon />} text="Subscribe" />
-      </div>
+        <div className={styles.subscribeButton}>
+          <PrimaryButton leftIcon={<MicrophoneIcon />} text="Subscribe" />
+        </div>
 
-      <div className={styles.footer}>
-        <p>$99 a month (100mins per month) until cancelled.</p>
-        <p className={styles.bonus}>
-          Subscribe Today for Early Bird Bonus
-          <br />
-          Extra 15mins free every month!
-        </p>
+        <div className={styles.footer}>
+          <p>$99 a month (100mins per month) until cancelled.</p>
+          <p className={styles.bonus}>
+            Subscribe Today for Early Bird Bonus
+            <br />
+            Extra 15mins free every month!
+          </p>
+        </div>
       </div>
     </div>
   );
