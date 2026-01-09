@@ -69,6 +69,7 @@ const chatRepository = ChatRepository();
 const influencerRepo = InfluencerRepo();
 const adultChatRepo = AdultChatRepo();
 const subscriptionsServices = SubscriptionsServices(apiClient);
+
 interface ChatScreenContentProps {
     id?: string;
     onBackPressed?: () => void;
