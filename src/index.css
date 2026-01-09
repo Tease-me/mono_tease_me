@@ -21,11 +21,13 @@ body,
 
 :root {
   --primary-font-family: "DM Sans", sans-serif;
+  --secondary-font-family: "Urbanist", sans-serif;
   /* Theme tokens (overridable via JS) */
   --color-text: #FFFFFF;
   --color-text-secondary: #9E9E9E;
   --color-black: rgba(0, 0, 0, 1);
   --color-primary: hsl(341, 95%, 48%);
+  --color-primary-500: #FF4D67;
   --color-dark-1: hsla(225, 14%, 11%, 1);
   --color-dark-2: #1F222A;
   --color-dark-3: #35383F;

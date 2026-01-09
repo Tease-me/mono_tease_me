@@ -5,7 +5,7 @@
     align-items: center;
     background-color: var(--color-dark-2);
     border-radius: 12px;
-    outline: 1px solid transparent;
+    outline: 1px solid var(--Greyscale-800, #424242);;
     overflow: hidden;
     transition: outline-color 0.2s ease-in-out;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
