@@ -31,6 +31,11 @@ export const Endpoints = {
     history: (chat_id: string) => `/chat/history/${chat_id}`,
     audio: "/chat/chat_audio",
   },
+  chat18: {
+    start: "/chat18",
+    history: (chat_id: string) => `/chat18/history/${chat_id}`,
+    audio: "/chat18/chat_audio",
+  },
   knowledge: {
     list: (influencerId: string) => `/influencer/${influencerId}/knowledge`,
     upload: (influencerId: string) =>
@@ -77,6 +82,7 @@ export const Endpoints = {
   },
   ws: {
     chat: "/chat/ws",
+    chat18: "/chat18/ws",
     notifications: "/ws/notifications",
   },
 } as const;

@@ -19,6 +19,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import SuperRoute from "./components/SuperRoute";
 import { ThemeProvider } from "@/theme/ThemeProvider";
 import TestProfilePage from "@/ui/screens/test/TestProfilePage";
+import TestPage from "@/ui/screens/test/TestPage";
 
 const AdminPreInfluencers = lazy(
   () => import("@/ui/screens/admin/pre-influencers/AdminPreInfluencers")
@@ -46,7 +47,6 @@ const ChatScreen = lazy(() => import("@/ui/screens/messaging/ChatScreen"));
 const CallScreen = lazy(() => import("@/ui/screens/CallScreen"));
 const UserProfile = lazy(() => import("@/ui/screens/user-profile/UserProfile"));
 const MJDashboard = lazy(() => import("@/mj-dashboard/ui/Dashboard"));
-const ButtonsTestPage = lazy(() => import("@/ui/screens/test/ButtonsTestPage"));
 const CreateInfluencer = lazy(
   () => import("@/ui/screens/admin/create-influencer/CreateInfluencer")
 );
@@ -72,7 +72,7 @@ function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.all, element: <HomePage /> },
     { path: Paths.influencerProfile(), element: <InfluencerProfileScreen /> },
-    { path: Paths.testButtons, element: <ButtonsTestPage /> },
+    { path: Paths.testButtons, element: <TestPage /> },
     { path: Paths.testProfilePage, element: <TestProfilePage /> },
     { path: Paths.updateProfile, element: <UpdateProfile /> },
     { path: Paths.join, element: <LandingPage /> },
