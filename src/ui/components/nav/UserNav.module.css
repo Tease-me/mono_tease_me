@@ -9,7 +9,6 @@
 }
 
 .menuButton {
-  display: none;
   max-width: fit-content;
   padding: none;
 }
@@ -29,9 +28,6 @@
     padding: 12px 16px;
   }
 
-  .menuButton {
-    display: flex;
-  }
 
   .callButton {
     display: none !important;

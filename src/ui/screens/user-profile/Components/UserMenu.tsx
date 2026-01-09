@@ -4,6 +4,7 @@ import styles from './UserMenu.module.css';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import FadingDivider from '@/ui/components/dividers/FadingDivider';
 import SvgPack from '@/utils/SvgPack';
+import useIsDesktop from '@/utils/hooks/useIsDesktop';
 
 type UserMenuProps = {goTo: (id: string) => void};
 
@@ -23,12 +24,16 @@ export default function UserMenu({ goTo }: UserMenuProps) {
             goTo("influencers")
   }
 
+  const isDesktop = useIsDesktop();
+
   return (
     <div>
       <div className={styles.header}></div>
+      {!isDesktop && (
       <div className={styles.logoArea}>
         {<TeaseMeLogo size='large' variant='icon-only-dark' />}
       </div>
+      )}
       <div className={styles.menuArea}>
         <NavigationRow title="User Profile" subtitle='Edit & Update User Details' onClick={handleUserProfileClick} />
         <NavigationRow title="Payment Details" subtitle='Add & Edit Payment Sources' onClick={handlePaymentDetailsClick} />

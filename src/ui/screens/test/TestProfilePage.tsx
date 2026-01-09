@@ -70,7 +70,7 @@ const TestProfilePage = () => {
       title={active.label}
     >
       <ChatScreenContent
-        id="loli"
+        id="anna"
         onMenuClick={() => setShowSidebar((v) => !v)}
       />
     </SlideDrawerLayout>

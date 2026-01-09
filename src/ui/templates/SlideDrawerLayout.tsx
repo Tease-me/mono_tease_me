@@ -3,6 +3,8 @@ import styles from './SlideDrawerLayout.module.css';
 import clsx from "clsx"
 import IconButton from '../components/inputs/buttons/IconButton';
 import SvgPack from '@/utils/SvgPack';
+import useIsDesktop from '@/utils/hooks/useIsDesktop';
+import TeaseMeLogo from '../components/logos/TeaseMeLogo';
 
 interface SlideDrawerLayoutProps {
   sidebar: React.ReactNode;
@@ -24,7 +26,12 @@ const SlideDrawerLayout: React.FC<SlideDrawerLayoutProps> = ({
   showBack = true,
   showContent = true,
   children,
-}) => (
+}) => {
+
+    const isDesktop = useIsDesktop();
+  
+  
+  return (
   <div className={styles.container}>
     <div className={clsx(styles.sidebar, showSidebar ? styles.open : styles.closed)}>
       <div className={styles.sidebarHeader}>
@@ -38,6 +45,10 @@ const SlideDrawerLayout: React.FC<SlideDrawerLayoutProps> = ({
               <SvgPack.ArrowLeft />
             </button>
           )}
+            {showSidebar && !showBack && (
+    <TeaseMeLogo size="small" variant="full" className={styles.logo} />
+  )}
+
           {title && showSidebar && <div className={styles.title}>{title}</div>}
         </div>
         <IconButton
@@ -54,7 +65,7 @@ const SlideDrawerLayout: React.FC<SlideDrawerLayoutProps> = ({
 
     {showContent && <div className={styles.content}>{children}</div>}
   </div>
-);
+)};
 
 
 
