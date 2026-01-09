@@ -36,6 +36,7 @@ export const Paths = {
     paypalReturn: "/paypal/return",
     paypalCancel: "/paypal/cancel",
     profileSelector: "/profile-selector",
+    adultMode: "/adult-mode",
 
     influencerAudioManager: (influencerId = ":influencer_id") => `/influencer/${influencerId}/audio-manager`,
 } as const;
