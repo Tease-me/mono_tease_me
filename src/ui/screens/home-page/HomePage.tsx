@@ -1,6 +1,7 @@
 import { apiClient } from "@/api/apis";
 import { PreInfluencerServices } from "@/api/services/PreInfluencerServices";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
+import HomeFooter from "./HomeFooter";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
@@ -96,10 +97,17 @@ const HomePage: React.FC = () => {
         <div className="hp-inner-container">
           <div className="hp-hero-col01">
             <h1 className="home-page-title">
-              Is your <span className="home-page-title-highlight"> favourite influencer </span> on TeaseMe?
+              Is your{" "}
+              <span className="home-page-title-highlight">
+                {" "}
+                favourite influencer{" "}
+              </span>{" "}
+              on TeaseMe?
             </h1>
             <p className="home-page-subtitle">
-          Coming in 2026: <strong>Creator Discovery!</strong> <br></br>Search for creators and see if they have their own TeaseMe account.
+              Coming in 2026: <strong>Creator Discovery!</strong> <br></br>
+              Search for creators and see if they have their own TeaseMe
+              account.
             </p>
           </div>
         </div>
@@ -118,15 +126,17 @@ const HomePage: React.FC = () => {
           </div>
 
           <div className="home-page-input-wrapper">
-
             <div className="ps-field">
               <label className="home-ps-label">
-                Search launching early 2026 <span className="ps-required"></span>
+                Search launching early 2026{" "}
+                <span className="ps-required"></span>
               </label>
-              <div className="home-page-input-outer"><input
-                className="ps-input"
-                placeholder="Enter Instagram Account"
-              /></div>
+              <div className="home-page-input-outer">
+                <input
+                  className="ps-input"
+                  placeholder="Enter Instagram Account"
+                />
+              </div>
             </div>
           </div>
           <div className="hp-search-button-container">
@@ -139,8 +149,8 @@ const HomePage: React.FC = () => {
             />
           </div>
         </div>
-
       </div>
+      <HomeFooter></HomeFooter>
     </div>
   );
 };
