@@ -1,12 +1,12 @@
 import React from 'react'
-import {useContext} from 'react'
-import { AuthContext } from '@/context/AuthContext'
+// import { useContext } from 'react'
+// import { AuthContext } from '@/context/AuthContext'
 import styles from './UserNav.module.css'
 import TeaseMeLogo from '../logos/TeaseMeLogo'
 import SvgPack from '@/utils/SvgPack'
 import IconButton from '../inputs/buttons/IconButton'
 import useIsDesktop from '@/utils/hooks/useIsDesktop'
-import AdultModeToggle from "@/ui/components/adult-mode-toggle/AdultModeToggle";
+// import AdultModeToggle from "@/ui/components/adult-mode-toggle/AdultModeToggle";
 
 interface UserNavProps extends React.HTMLAttributes<HTMLDivElement> {
   onCallClick?: () => void;
@@ -18,12 +18,12 @@ interface UserNavProps extends React.HTMLAttributes<HTMLDivElement> {
 const UserNav: React.FC<UserNavProps> = ({ onCallClick, influencerName, onMenuClick }) => {
 
 
-  const isMobile = useIsDesktop()===false;
-  const {adultMode, setAdultMode} = useContext(AuthContext);
+  const isMobile = useIsDesktop() === false;
 
-const handleOnChangeAdultToggle = (value: boolean) => {
-  setAdultMode(value);
-};
+
+  // const handleOnChangeAdultToggle = (value: boolean) => {
+  //   setAdultMode(value);
+  // };
 
 
   return (
@@ -37,7 +37,7 @@ const handleOnChangeAdultToggle = (value: boolean) => {
         }
       />)}
 
-      <AdultModeToggle checked={adultMode} onChange={handleOnChangeAdultToggle}/>
+      {/* <AdultModeToggle checked={adultMode} onChange={handleOnChangeAdultToggle} /> */}
 
       <div className={styles.toggleArea}>
       </div>
