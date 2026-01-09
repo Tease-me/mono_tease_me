@@ -7,45 +7,33 @@ import UserMenu from "../user-profile/Components/UserMenu";
 import UserProfile from "../user-profile/UserProfile";
 import PaymentDetails from "../user-profile/Components/PaymentDetails";
 import MyInfluencers from "../user-profile/Components/MyInfluencers";
+import InfluencerRelation from "../user-profile/Components/InfluencerRelation";
 
 type SidebarPageId = string;
+type NavPayload = Record<string, any>;
 
 type SidebarPage = {
   id: SidebarPageId;
   label: string;
-  render: (goTo: (id: SidebarPageId) => void) => React.ReactNode;
+  render: (ctx: { goTo: (id: SidebarPageId, payload?: NavPayload) => void; navPayload: NavPayload; goBack: () => void }) => React.ReactNode;
 };
 
-
 const sidebarPages: SidebarPage[] = [
-  {
-    id: "home",
-    label: "User Menu",
-    render: (goTo) => <UserMenu goTo={goTo} />,
-  },
-    {
-    id: "profile",
-    label: "User Profile",
-    render: (goTo) => <UserProfile goTo={goTo} />,
-  },
-  {
-    id: "payment",
-    label: "Payment Details",
-    render: (goTo) => <PaymentDetails goTo={goTo} />,
-  },
-  {
-    id: "influencers",
-    label: "Influencers",
-    render: (goTo) => <MyInfluencers goTo={goTo} />,
-  },
+  { id: "home", label: "User Menu", render: ({ goTo }) => <UserMenu goTo={goTo} /> },
+  { id: "profile", label: "User Profile", render: ({ goTo }) => <UserProfile goTo={goTo} /> },
+  { id: "payment", label: "Payment Details", render: ({ goTo }) => <PaymentDetails goTo={goTo} /> },
+  { id: "influencers", label: "Influencers", render: ({ goTo, navPayload, goBack }) => <MyInfluencers goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
+  { id: "influencer_profile", label: "Influencer Profile", render: ({ goTo, navPayload, goBack }) => <InfluencerRelation goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
 ];
 
 const TestProfilePage = () => {
   const [showSidebar, setShowSidebar] = useState(false);
   const [currentPage, setCurrentPage] = useState<SidebarPageId>("home");
   const [history, setHistory] = useState<SidebarPageId[]>([]);
+  const [navPayload, setNavPayload] = useState<NavPayload>({});
 
-  const goTo = (id: SidebarPageId) => {
+  const goTo = (id: SidebarPageId, payload?: NavPayload) => {
+    if (payload) setNavPayload((p) => ({ ...p, ...payload }));
     setHistory((h) => [...h, currentPage]);
     setCurrentPage(id);
   };
@@ -63,16 +51,14 @@ const TestProfilePage = () => {
   return (
     <SlideDrawerLayout
       showSidebar={showSidebar}
-      sidebar={active.render(goTo)}
+      sidebar={active.render({ goTo, navPayload, goBack: prevPage })}
       onBack={prevPage}
       onToggle={() => setShowSidebar((v) => !v)}
-      showBack={currentPage !== 'home'}
+      showBack={currentPage !== "home"}
       title={active.label}
     >
-      <ChatScreenContent
-        id="anna"
-        onMenuClick={() => setShowSidebar((v) => !v)}
-      />
+      <ChatScreenContent id="anna"
+       onMenuClick={() => setShowSidebar((v) => !v)}  />
     </SlideDrawerLayout>
   );
 };

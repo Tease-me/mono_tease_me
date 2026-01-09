@@ -14,11 +14,16 @@ import styles from "./MyInfluencers.module.css"
 
 const relationshipService = RelationshipServices(apiClient);
 
-type MyInfleuncerProps = {goTo: (id: string) => void}
+type MyInfleuncerProps = {
+  goTo: (id: string, payload?: Record<string, any>) => void;
+  navPayload?: Record<string, any>;
+  goBack?: () => void;
+};
 
-const MyInfluencers: React.FC<MyInfleuncerProps> = ({goTo}) => {
+const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
   const [items, setItems] = useState<
     Array<{
+      id: string;
       name: string;
       image: string;
       video: string;
@@ -41,15 +46,16 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({goTo}) => {
     const load = async () => {
       try {
         const followed = await InfluencerRepo().getFollowedInfluencers();
-           const balanceSvc =  BalanceServices(apiClient);
+        const balanceSvc = BalanceServices(apiClient);
 
         const cards = await Promise.all(
           followed.map(async (inf) => {
 
             const rel = await relationshipService.getRelationship(inf.id);
-            const BalanceRes = await balanceSvc.getBalance(inf.id).catch(() => {});;
-            const balanceValue = BalanceRes? BalanceRes.balance_cents / 100 : 0;
+            const BalanceRes = await balanceSvc.getBalance(inf.id).catch(() => { });;
+            const balanceValue = BalanceRes ? BalanceRes.balance_cents / 100 : 0;
             return {
+              id: inf.id,
               name: inf.name,
               image: inf.img,
               video: (inf as any).videoUrl || inf.videoUrl,
@@ -73,9 +79,10 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({goTo}) => {
     load();
   }, []);
 
-  const handleViewProfile = () => {
+  const handleViewProfile = (influencerId: string) => {
+    goTo('influencer_profile', { influencerId });
+  };
 
-  }
 
   return (
     <div>
@@ -89,7 +96,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({goTo}) => {
           <SwiperSlide key={index} className={styles.slide}>
             <div>
               <InfluencerRelationCard {...inf} />
-              <NormalButton text="View Profile" onClick={handleViewProfile} className={styles.viewProfile} />
+              <NormalButton text="View Profile" onClick={() => handleViewProfile(inf.id)} className={styles.viewProfile} />
             </div>
           </SwiperSlide>
         ))}

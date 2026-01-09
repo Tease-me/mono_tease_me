@@ -28,8 +28,6 @@ const SlideDrawerLayout: React.FC<SlideDrawerLayoutProps> = ({
   children,
 }) => {
 
-    const isDesktop = useIsDesktop();
-  
   
   return (
   <div className={styles.container}>
