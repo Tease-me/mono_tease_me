@@ -10,6 +10,8 @@ import ProfileSurvey from "@/ui/screens/landing-page/subscreens/ProfileSurvey";
 import ThankYouScreen from "@/ui/screens/landing-page/subscreens/ThankYouScreen";
 import UpdateProfile from "@/ui/screens/register/UpdateProfile";
 import ProfileSurveyForm from "@/ui/screens/survey/ProfileSurveyForm";
+import TermsPage from "@/ui/screens/terms/TermsPage";
+import { terms } from "@/ui/screens/terms/termsContent";
 
 import { JSX, Suspense, lazy } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
@@ -94,6 +96,19 @@ function AppRoutes() {
       path: Paths.intencionInfluencerHome,
       element: <IntencionInfluencerHome />,
     },
+     // --- Public Legal & Compliance Pages ---
+    { path: "/terms", element: <TermsPage {...terms.terms} /> },
+    { path: "/privacy", element: <TermsPage {...terms.privacy} /> },
+    { path: "/refunds", element: <TermsPage {...terms.refunds} /> },
+    { path: "/subscriptions", element: <TermsPage {...terms.subscriptions} /> },
+    { path: "/acceptable-use", element: <TermsPage {...terms.acceptableUse} /> },
+    { path: "/adult-content", element: <TermsPage {...terms.adultContent} /> },
+    { path: "/ai-disclosure", element: <TermsPage {...terms.aiDisclosure} /> },
+    { path: "/content-moderation", element: <TermsPage {...terms.contentModeration} /> },
+    { path: "/data-retention", element: <TermsPage {...terms.dataRetention} /> },
+    { path: "/age-verification", element: <TermsPage {...terms.ageVerification} /> },
+    { path: "/cookies", element: <TermsPage {...terms.cookies} /> },
+    { path: "/prohibited-content", element: <TermsPage {...terms.prohibitedContent} /> },
   ];
   const guestRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.login, element: <LoginScreen /> },
