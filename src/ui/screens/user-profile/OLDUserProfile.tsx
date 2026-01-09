@@ -138,7 +138,7 @@ const UserProfile: React.FC<UserProfileProps> = ({goTo}) => {
                         <TextInput className={styles["profile-nickname"]} placeholder='Nickname' type='text' value={localUser?.username ? localUser?.username : ""} onChange={handleNickNameChange} />
                     </div>
                     <div className={styles["profile-row02"]}>
-                        <TextInput placeholder='Name' type='text' value={localUser?.name ? localUser?.name : ""} onChange={handleNameChange} />
+                        <TextInput placeholder='Name' type='text' value={localUser?.full_name ? localUser?.full_name : ""} onChange={handleNameChange} />
                         <TextInput placeholder='Email' type='email' value={localUser?.email ? localUser?.email : ""} onChange={handleEmailChange} />
                     </div>
                 </div>

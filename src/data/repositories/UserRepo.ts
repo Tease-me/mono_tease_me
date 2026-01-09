@@ -11,13 +11,13 @@ const userServices = UserServices(apiClient);
 
 export const UserRepo = () => ({
     getUserDerails: async (): Promise<UserDataModel> => {
-        const response: UserDetailResponse = await userServices.getUserDerails()
+        const response: UserDetailResponse = await userServices.getUserDetails()
         // TODO: Remove defaults when Profile is comming from backend
         const user: UserDataModel = {
             id: response.id,
             username: response.username,
             email: response.email,
-            name: response.name,
+            full_name: response.full_name,
             is_verified: response.is_varified,
             imgUrl: response.profile_photo_url,
             first_time_login: false,

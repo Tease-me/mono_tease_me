@@ -3,8 +3,8 @@ import { useState } from "react";
 import SlideDrawerLayout from "@/ui/templates/SlideDrawerLayout";
 import ChatScreenContent from "../messaging/components/ChatScreenContent";
 
-import UserMenu from "../user-profile/Components/UserMenu";
-import UserProfile from "../user-profile/UserProfile";
+import UserMenu from "../user-profile/UserMenu";
+import UserProfile from "../user-profile/Components/UserProfile";
 import PaymentDetails from "../user-profile/Components/PaymentDetails";
 import MyInfluencers from "../user-profile/Components/MyInfluencers";
 import InfluencerRelation from "../user-profile/Components/InfluencerRelation";
