@@ -55,7 +55,6 @@ const ChatTopNav: React.FC<ChatTopNavProps> = ({
                         checked={theme === 'adult'}
                         onChange={(checked) => {
                             onAdultModeChange(checked);
-                            setTheme(checked ? 'adult' : 'default');
                         }}
                     />
                 )}

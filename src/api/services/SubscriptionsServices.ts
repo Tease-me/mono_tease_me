@@ -5,7 +5,10 @@ export const SubscriptionsServices = (apiClient: AxiosInstance) => ({
     startSubscription: async (influencerId: string): Promise<any> => {
         const response = await apiClient.post(
             Endpoints.subscriptions.start,
-            { influencer_id: influencerId, price_cents: 1000 }
+            null,
+            {
+                params: { influencer_id: influencerId, price_cents: 1000 }
+            }
         );
         return response.data;
     },
@@ -28,9 +31,12 @@ export const SubscriptionsServices = (apiClient: AxiosInstance) => ({
         );
         return response.data;
     },
-    activateMySubscriptionForInfluencer: async (influencerId: string): Promise<any> => {
-        const response = await apiClient.get(
+    activateMySubscriptionForInfluencer: async (influencerId: string, is_18_selected: boolean): Promise<any> => {
+        const response = await apiClient.post(
             Endpoints.subscriptions.influencerActivate(influencerId),
+            {
+                "is_18_selected": is_18_selected
+            }
         );
         return response.data;
     },

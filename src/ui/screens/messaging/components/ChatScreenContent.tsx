@@ -162,6 +162,44 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         };
     }, [influencer]);
 
+    const handleAdultModeChange = async (checked: boolean) => {
+        if (!influencer) {
+            setAdultMode(false);
+            return;
+        }
+        if (!checked) {
+            setAdultMode(false);
+            return;
+        }
+        try {
+            const subscription = await subscriptionsServices.getMySubscriptionForInfluencer(influencer.id);
+            if (subscription?.status === "active") {
+                await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, true);
+                setAdultMode(true);
+                return;
+            }
+
+            const startResponse = await subscriptionsServices.startSubscription(influencer.id);
+            const orderId =
+                typeof crypto !== "undefined" && "randomUUID" in crypto
+                    ? crypto.randomUUID()
+                    : `order_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+            const subscriptionId = startResponse?.subscription_id ?? startResponse?.subscriptionId;
+            const amountCents = 10000;
+
+            if (!orderId || !subscriptionId || !amountCents) {
+                throw new Error("Missing subscription capture data");
+            }
+
+            await subscriptionsServices.captureSubscription(orderId, String(subscriptionId), amountCents);
+            await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, true);
+            setAdultMode(true);
+        } catch (err) {
+            logger.error("Error enabling adult mode subscription:", err);
+            setAdultMode(false);
+        }
+    };
+
     const fetchMessages = async (chat_id: string, page: number) => {
         try {
             const responseMessagesPagination: MessagePagination = await (adultMode ? adultChatRepo.getChatHistory(chat_id, page, pageSize) : chatRepository.getChatHistory(chat_id, page, pageSize));
@@ -449,7 +487,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                     onCallClick={onCall}
                     menuItems={menuItems}
                     adultMode={adultMode}
-                    onAdultModeChange={setAdultMode}
+                    onAdultModeChange={handleAdultModeChange}
                 />
                 <div className={styles["chat-header-info"]}>
                     <ProfileMedia imageSrc={influencer?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
