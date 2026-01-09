@@ -38,7 +38,7 @@ const SlideDrawerLayout: React.FC<SlideDrawerLayoutProps> = ({
               <SvgPack.ArrowLeft />
             </button>
           )}
-          {title && <div className={styles.title}>{title}</div>}
+          {title && showSidebar && <div className={styles.title}>{title}</div>}
         </div>
         <IconButton
           onClick={onToggle}

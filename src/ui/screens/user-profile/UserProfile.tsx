@@ -24,9 +24,10 @@ import { useNavigate } from 'react-router-dom';
 import { apiClient } from '@/api/apis';
 //import { BalanceResponse } from '@/api/models/balance';
 
-interface UserProfileProps { }
 
-const UserProfile: React.FC<UserProfileProps> = ({ }) => {
+type UserProfileProps = { goTo: (id: string) => void}
+
+const UserProfile: React.FC<UserProfileProps> = ({goTo}) => {
     const { user } = useContext(AuthContext);
     const [localUser, setLocalUser] = useState(user);
 

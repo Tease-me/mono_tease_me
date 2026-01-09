@@ -391,10 +391,11 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         startConversation();
         setOpenWelcomeCallModal(true);
     }
-
+    {/** 
     const handleOnBackClick = () => {
         onBackPressed?.();
     };
+    */}
 
     const handleScroll = async () => {
 

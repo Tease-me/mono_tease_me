@@ -14,7 +14,9 @@ import styles from "./MyInfluencers.module.css"
 
 const relationshipService = RelationshipServices(apiClient);
 
-const MyInfluencers: React.FC = () => {
+type MyInfleuncerProps = {goTo: (id: string) => void}
+
+const MyInfluencers: React.FC<MyInfleuncerProps> = ({goTo}) => {
   const [items, setItems] = useState<
     Array<{
       name: string;

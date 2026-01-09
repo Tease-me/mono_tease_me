@@ -47,9 +47,12 @@
 }
 
 .title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #f5f5f5;
+color: var(--Others-White, #FFF);
+font-family: "Abril Fatface";
+font-size: 24px;
+font-style: normal;
+font-weight: 400;
+line-height: 120%; /* 28.8px */
 }
 
 .headerDivider {
@@ -57,6 +60,7 @@
   background: rgba(255, 255, 255, 0.1);
   margin: 0 16px;
 }
+
 
 
 .menuButton {

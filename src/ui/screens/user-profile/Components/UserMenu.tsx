@@ -5,17 +5,22 @@ import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import FadingDivider from '@/ui/components/dividers/FadingDivider';
 import SvgPack from '@/utils/SvgPack';
 
+type UserMenuProps = {goTo: (id: string) => void};
 
-export default function UserMenu() {
+
+export default function UserMenu({ goTo }: UserMenuProps) {
 
   const handleUserProfileClick = () => {
+    goTo("profile")
 
   }
 
   const handlePaymentDetailsClick = () => {
+        goTo("payment")
   }
 
   const handleManageInfluencersClick = () => {
+            goTo("influencers")
   }
 
   return (

@@ -5,8 +5,9 @@ import IconButton from '@/ui/components/inputs/buttons/IconButton';
 import SvgPack from '@/utils/SvgPack';
 import CardMockup from '@/assets/image/card-mockup.png';
 
-const PaymentDetails: React.FC = () => {
+type PaymentDetailsProps = { goTo: (id: string) => void };
 
+const PaymentDetails = ({ goTo }: PaymentDetailsProps) => {
     const handleVisaBtn = () => {
         // Handle Visa button click
     };
