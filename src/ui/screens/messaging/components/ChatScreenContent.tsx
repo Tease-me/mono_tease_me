@@ -6,7 +6,8 @@ import { truncateLastName } from "@/utils/StringUtils";
 import { AuthContext } from "@/context/AuthContext";
 import styles from "./ChatScreenContent.module.css"
 import { useParams } from 'react-router-dom';
-import MessageBubble, { CallMessageGroup } from './MessageBubble';
+import { CallMessageGroup } from './MessageBubble';
+import MessagesList, { DisplayMessage } from './MessageList';
 import ChatInputArea from './ChatInputArea';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import ChatTopNav from '@/ui/components/nav/ChatTopNav';
@@ -24,12 +25,8 @@ import useCallWebRTC from '@/hooks/useCallWebRTC';
 import IconButton from '@/ui/components/inputs/buttons/IconButton';
 import { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownMenu';
 import { AdultChatRepo } from '@/data/repositories/AdultChatRepo';
-
-type DisplayMessage = Message | CallMessageGroup;
-
-const isCallGroup = (message: DisplayMessage): message is CallMessageGroup => {
-    return (message as CallMessageGroup).type === "call-group";
-};
+import { SubscriptionsServices } from '@/api/services/SubscriptionsServices';
+import { apiClient } from '@/api/apis';
 
 const isCallChannel = (message: Message) => {
     if (!message.channel) return false;
@@ -67,28 +64,10 @@ const mergeCallMessages = (messageList: Message[]): DisplayMessage[] => {
 
     return merged;
 };
-
-const MessagesList = React.memo(({ messages, typing, messagesEndRef, influencerName, onAudioPlay }: { messages: DisplayMessage[]; typing: boolean; messagesEndRef: React.RefObject<HTMLDivElement | null>; influencerName?: string; onAudioPlay?: (src: string) => void; }) => {
-    return (
-        <>
-            <div className={styles["messages"]}>
-                {messages.map((msg) => (
-                    <MessageBubble
-                        key={msg.id}
-                        msg={!isCallGroup(msg) ? msg : undefined}
-                        callGroup={isCallGroup(msg) ? msg : undefined}
-                        influencerName={influencerName}
-                        onAudioPlay={onAudioPlay}
-                    />
-                ))}
-                {typing && <MessageBubble />}
-            </div>
-            <div ref={messagesEndRef} style={{ height: "50px" }} />
-            {messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })}
-        </>
-    );
-});
-
+const chatRepository = ChatRepository();
+const influencerRepo = InfluencerRepo();
+const adultChatRepo = AdultChatRepo();
+const subscriptionsServices = SubscriptionsServices(apiClient);
 interface ChatScreenContentProps {
     id?: string;
     onBackPressed?: () => void;
@@ -126,10 +105,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
 
     const pageSize = 20;
 
-    const chatRepository = ChatRepository();
-    const influencerRepo = InfluencerRepo();
-    const adultChatRepo = AdultChatRepo();
-
     const { status, startConversation, stopConversation, setInfluencerId, timeRemaining, micMuted, toggleMute } = useCallWebRTC();
     const displayMessages = useMemo(() => messages ? mergeCallMessages(messages) : [], [messages]);
 
@@ -152,6 +127,15 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     }, [id, user_id]);
 
     useEffect(() => {
+        subscriptionsServices.getMySubscriptionForInfluencer(influencer?.id || "").then((subscription) => {
+            if (subscription && subscription.status === "active") {
+                logger.info("User has active subscription for influencer:", influencer?.name);
+            } else {
+                logger.info("No active subscription for influencer:", influencer?.name);
+            }
+        }).catch((err) => {
+            logger.error("Error checking subscription for influencer:", err);
+        });
         setTyping(false);
     }, [influencer]);
 
@@ -386,6 +370,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         setInputText('');
         scrollToBottom();
     };
+
     const onCall = () => {
         startConversation();
         setOpenWelcomeCallModal(true);
@@ -396,7 +381,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     };
 
     const handleScroll = async () => {
-
         const container = containerRef.current;
         if (container && container.scrollTop === 0 && hasMore && !isLoadingMore && chatId) {
             setIsLoadingMore(true);

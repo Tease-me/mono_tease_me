@@ -1,6 +1,6 @@
 import FullWidthLayout from '@/ui/templates/FullWidthLayout';
 import { useState } from 'react';
-import AdultModeToggleContainer from '@/ui/components/adult-mode-toggle/AdultModeToggleContainer';
+import AdultModeToggle from '@/ui/components/adult-mode-toggle/AdultModeToggle';
 
 
 const TestPage = ({ }) => {
@@ -9,7 +9,7 @@ const TestPage = ({ }) => {
     return (
         <FullWidthLayout>
             <div style={{ padding: 10, width: 200 }}>
-                <AdultModeToggleContainer checked={toggleState} onChange={() => setToggleState(!toggleState)} />
+                <AdultModeToggle checked={toggleState} onChange={() => setToggleState(!toggleState)} />
             </div>
         </FullWidthLayout>
     );
