@@ -111,7 +111,7 @@
   /* when laucnhed ====> background: linear-gradient(180deg, #EF064E 0%, #A70034 77.41%, #60001E 100%); */
   z-index: 1;
   position: relative;
-  padding: 2rem 2rem 6rem;
+  padding: 1rem 2rem 3rem;
 }
 
 .hp-search-button-container {
@@ -913,7 +913,7 @@
     font-size: 0.8rem;
     opacity: 0.4;
   }
-
+  .footer-title {grid-column: -1/1; font-size: 0.9rem; opacity: 0.6;}
 
 
 /*        ____________________________
@@ -951,6 +951,7 @@
   .home-page-search-container {
     max-width: 35rem;
     border-radius: 1rem;
+      padding: 2rem 2rem 6rem;
   }
 
   .hp-hero-col01 {
