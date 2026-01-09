@@ -172,6 +172,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
             return;
         }
         setAdultModeSwitch(checked);
+        if (!checked) {
+            await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, false);
+        }
     };
 
     useEffect(() => {
@@ -192,8 +195,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                     setAdultModeSwitch(false);
                     setShowSubscriptionPage(false);
                 }
+
             } else {
                 setShowSubscriptionPage(false);
+                setAdultMode(false);
             }
         })();
     }, [adultModeSwitch]);
