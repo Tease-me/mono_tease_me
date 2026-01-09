@@ -98,7 +98,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     const reconnectTimer = useRef<number | null>(null);
     const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
-    const { user, adultMode } = useContext(AuthContext);
+    const { user } = useContext(AuthContext);
+    const [adultMode, setAdultMode] = useState(false);
     const { user_id } = useParams();
 
     const isSuperUser = user?.id === 1;
@@ -127,16 +128,38 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     }, [id, user_id]);
 
     useEffect(() => {
-        subscriptionsServices.getMySubscriptionForInfluencer(influencer?.id || "").then((subscription) => {
-            if (subscription && subscription.status === "active") {
-                logger.info("User has active subscription for influencer:", influencer?.name);
-            } else {
-                logger.info("No active subscription for influencer:", influencer?.name);
+        let isMounted = true;
+
+        const checkSubscription = async () => {
+            if (!influencer) {
+                setTyping(false);
+                return;
             }
-        }).catch((err) => {
-            logger.error("Error checking subscription for influencer:", err);
-        });
-        setTyping(false);
+            try {
+                const subscription = await subscriptionsServices.getMySubscriptionForInfluencer(influencer.id);
+                const isAdult = subscription?.status === "active" && subscription?.is_18_selected === true;
+                if (isMounted) {
+                    setAdultMode(isAdult);
+                }
+                if (subscription?.status === "active") {
+                    logger.info("User has active subscription for influencer:", influencer?.name);
+                } else {
+                    logger.info("No active subscription for influencer:", influencer?.name);
+                }
+            } catch (err) {
+                logger.error("Error checking subscription for influencer:", err);
+            } finally {
+                if (isMounted) {
+                    setTyping(false);
+                }
+            }
+        };
+
+        checkSubscription();
+
+        return () => {
+            isMounted = false;
+        };
     }, [influencer]);
 
     const fetchMessages = async (chat_id: string, page: number) => {
@@ -421,7 +444,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     return (
         <div className={styles["chat-screen-content"]}>
             <div className={styles["chat-header"]}>
-                <ChatTopNav onBack={handleOnBackClick} onCallClick={onCall} menuItems={menuItems} />
+                <ChatTopNav
+                    onBack={handleOnBackClick}
+                    onCallClick={onCall}
+                    menuItems={menuItems}
+                    adultMode={adultMode}
+                    onAdultModeChange={setAdultMode}
+                />
                 <div className={styles["chat-header-info"]}>
                     <ProfileMedia imageSrc={influencer?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
                     <div className={styles["chat-user-name"]}>

@@ -80,11 +80,12 @@ export const Endpoints = {
 
     patchRelationship: `admin/relationships`,
   },
-  subscription: {
-    start: "/subscription/start",
-    capture: "/subscription/paypal/capture",
-    list: "/subscription/me",
-    influencer: (influencerId: string) => `/subscription/me/${influencerId}`,
+  subscriptions: {
+    start: "/subscriptions/start",
+    capture: "/subscriptions/paypal/capture",
+    list: "/subscriptions/me",
+    influencer: (influencerId: string) => `/subscriptions/${influencerId}`,
+    influencerActivate: (influencerId: string) => `/subscriptions/${influencerId}/18`,
   },
   ws: {
     chat: "/chat/ws",
