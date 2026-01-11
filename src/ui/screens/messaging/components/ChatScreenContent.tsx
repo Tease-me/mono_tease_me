@@ -545,7 +545,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                     )}
                 </div>
             </div>
-            {!showSubscriptionPage ? <div>
+            {!showSubscriptionPage ? <>
                 <div
                     className={clsx(styles["chat-messages-container"], !messages && styles["loading"])}
                     ref={containerRef}
@@ -584,7 +584,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                         error={error}
                         inputAudio={inputAudio} />
                 </div>
-            </div> : <AdultModePage onSubscribePressed={handleSubscribePressed} />}
+            </> : <AdultModePage onSubscribePressed={handleSubscribePressed} />}
 
             <CallModal
                 timeRemaining={timeRemaining}
