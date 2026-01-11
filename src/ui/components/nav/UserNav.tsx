@@ -1,4 +1,5 @@
 import React from 'react'
+import { useEffect } from 'react'
 // import { useContext } from 'react'
 // import { AuthContext } from '@/context/AuthContext'
 import styles from './UserNav.module.css'
@@ -6,19 +7,30 @@ import TeaseMeLogo from '../logos/TeaseMeLogo'
 import SvgPack from '@/utils/SvgPack'
 import IconButton from '../inputs/buttons/IconButton'
 import useIsDesktop from '@/utils/hooks/useIsDesktop'
-// import AdultModeToggle from "@/ui/components/adult-mode-toggle/AdultModeToggle";
+import { useTheme } from '@/theme/ThemeProvider'
+import AdultModeToggle from "@/ui/components/adult-mode-toggle/AdultModeToggle";
 
 interface UserNavProps extends React.HTMLAttributes<HTMLDivElement> {
   onCallClick?: () => void;
   onMenuClick?: () => void;
   influencerName: string;
+  adultMode?: boolean;
+  onAdultModeChange?: (checked: boolean) => void;
 }
 
 
-const UserNav: React.FC<UserNavProps> = ({ onCallClick, influencerName, onMenuClick }) => {
+const UserNav: React.FC<UserNavProps> = ({ onCallClick, influencerName, onMenuClick, adultMode, onAdultModeChange }) => {
 
 
   const isMobile = useIsDesktop() === false;
+
+  const { theme, setTheme } = useTheme();
+
+    useEffect(() => {
+        if (typeof adultMode === "boolean") {
+            setTheme(adultMode ? 'adult' : 'default');
+        }
+    }, [adultMode, setTheme]);
 
 
   // const handleOnChangeAdultToggle = (value: boolean) => {
@@ -38,6 +50,15 @@ const UserNav: React.FC<UserNavProps> = ({ onCallClick, influencerName, onMenuCl
       />)}
 
       {/* <AdultModeToggle checked={adultMode} onChange={handleOnChangeAdultToggle} /> */}
+      {onAdultModeChange && (
+        <AdultModeToggle
+          checked={theme === 'adult'}
+          onChange={(checked) => {
+            onAdultModeChange(checked);
+          }}
+        />
+      )}
+
 
       <div className={styles.toggleArea}>
       </div>

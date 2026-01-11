@@ -521,6 +521,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
     return (
         <div className={styles["chat-screen-content"]}>
             <div className={styles["chat-header"]}>
+                {/*
                 <ChatTopNav
                     onBack={handleOnBackClick}
                     onCallClick={onCall}
@@ -528,11 +529,14 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                     adultMode={adultModeSwitch}
                     onAdultModeChange={handleAdultModeChange}
                 />
+                */}
 
                 <UserNav
                     influencerName={influencer?.name}
                     onMenuClick={onMenuClick}
                     onCallClick={onCall}
+                    adultMode={adultModeSwitch}
+                    onAdultModeChange={handleAdultModeChange}
                 />
                 <div className={styles["chat-header-info"]}>
                     <ProfileMedia imageSrc={influencer?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
@@ -553,7 +557,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                     )}
                 </div>
             </div>
-            {!showSubscriptionPage ? <div>
+            {!showSubscriptionPage ? <>
                 <div
                     className={clsx(styles["chat-messages-container"], !messages && styles["loading"])}
                     ref={containerRef}
@@ -592,7 +596,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
                         error={error}
                         inputAudio={inputAudio} />
                 </div>
-            </div> : <AdultModePage onSubscribePressed={handleSubscribePressed} />}
+            </> : <AdultModePage onSubscribePressed={handleSubscribePressed} />}
 
             <CallModal
                 timeRemaining={timeRemaining}
