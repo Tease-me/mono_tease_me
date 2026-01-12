@@ -41,10 +41,10 @@ const ResendEmailModal: React.FC<ResendEmailModalProps> = ({
         <SvgPack.CloseSquare />
       </button>
       <h3 className="rem-title">Resend Link</h3>
-      <label className="rem-label">Email</label>
+      <label className="rem-label">Email or Username</label>
       <input
         className="rem-input"
-        placeholder="Your email"
+        placeholder="Email or username"
         value={email}
         onChange={(e) => onEmailChange(e.target.value)}
       />

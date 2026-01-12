@@ -1,4 +1,4 @@
-import { ForgotPasswordResponse, RegisterResponse } from "@/api/models/auth";
+import { RegisterResponse, ResendSurveyResponse } from "@/api/models/auth";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import React, { useState } from "react";
@@ -99,15 +99,15 @@ const ProfileSurvey: React.FC = () => {
   const handleResendEmail = async () => {
     setResendError("");
     setResendSuccess("");
-    const trimmedEmail = resendEmail.trim().toLowerCase();
-    if (!trimmedEmail) {
-      setResendError("Email is required to resend");
+    const identifier = resendEmail.trim();
+    if (!identifier) {
+      setResendError("Email or username is required to resend");
       return;
     }
 
     try {
-      const response: ForgotPasswordResponse =
-        await PreInfluencerAPI.forgotPassword(trimmedEmail);
+      const response: ResendSurveyResponse =
+        await PreInfluencerAPI.resendSurvey(identifier);
 
       if (response.ok) {
         setErrors((prev) => ({ ...prev, general: undefined }));
