@@ -21,6 +21,14 @@
     width: 100%;
 }
 
+.chat-header-info {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    gap: 15px;
+    justify-content: center;
+}
+
 .chat-messages-container {
     flex: 1;
     overflow-y: auto;
