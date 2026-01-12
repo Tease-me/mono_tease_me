@@ -6,6 +6,7 @@ export default {
     ArrowRight: lazy(() => import("@/assets/mj-dashboard/svg/ArrowRight.svg?react")),
     ArrowLeft: lazy(() => import("@/assets/svg/ArrowLeft.svg?react")),
     ArrowDown: lazy(() => import("@/assets/svg/ArrowDown.svg?react")),
+        LightArrowRight: lazy(() => import("@/assets/svg/LightArrowRight.svg?react")),
     Bill: lazy(() => import("@/assets/mj-dashboard/svg/Bill.svg?react")),
     Chat: lazy(() => import("@/assets/mj-dashboard/svg/Chat.svg?react")),
     Danger: lazy(() => import("@/assets/mj-dashboard/svg/DangerTriangle.svg?react")),
@@ -32,6 +33,10 @@ export default {
     Call: lazy(() => import("@/assets/svg/Call.svg?react")),
     Heart: lazy(() => import("@/assets/svg/Heart.svg?react")),
     ChatRound: lazy(() => import("@/assets/svg/Chat.svg?react")),
+    PlusBox: lazy(() => import("@/assets/svg/PlusBox.svg?react")),
+    Menu: lazy(() => import("@/assets/svg/Menu.svg?react")),
+    Cross: lazy(() => import("@/assets/svg/Cross.svg?react")),
+    
 
     // Social Media Icons
     OnlyFans: lazy(() => import("@/assets/svg/OnlyFans.svg?react")),

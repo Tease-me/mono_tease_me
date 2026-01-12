@@ -20,6 +20,7 @@ import GuestRoute from "./components/GuestRoute";
 import PrivateRoute from "./components/PrivateRoute";
 import SuperRoute from "./components/SuperRoute";
 import { ThemeProvider } from "@/theme/ThemeProvider";
+import TestProfilePage from "@/ui/screens/test/TestProfilePage";
 import TestPage from "@/ui/screens/test/TestPage";
 
 const AdminPreInfluencers = lazy(
@@ -46,7 +47,6 @@ const VoiceCallEleven = lazy(
 const HomeScreenSingle = lazy(() => import("@/ui/screens/home/HomeScreenSingle"));
 const ChatScreen = lazy(() => import("@/ui/screens/messaging/ChatScreen"));
 const CallScreen = lazy(() => import("@/ui/screens/CallScreen"));
-const UserProfile = lazy(() => import("@/ui/screens/user-profile/UserProfile"));
 const MJDashboard = lazy(() => import("@/mj-dashboard/ui/Dashboard"));
 const CreateInfluencer = lazy(
   () => import("@/ui/screens/admin/create-influencer/CreateInfluencer")
@@ -61,7 +61,6 @@ const InfluencerHome = lazy(
 const InfluencerHomeTrialExpired = lazy(
   () => import("@/ui/screens/home-page/InfluencerHomeTrialExpired")
 );
-
 const RecordTerms = lazy(
   () => import("@/ui/screens/survey/components/TermsConditions")
 );
@@ -74,6 +73,7 @@ function AppRoutes() {
     { path: Paths.all, element: <HomePage /> },
     { path: Paths.influencerProfile(), element: <InfluencerProfileScreen /> },
     { path: Paths.testButtons, element: <TestPage /> },
+    { path: Paths.testProfilePage, element: <TestProfilePage /> },
     { path: Paths.updateProfile, element: <UpdateProfile /> },
     { path: Paths.join, element: <LandingPage /> },
     { path: Paths.welcome, element: <InfluencerWelcome /> },
@@ -130,7 +130,6 @@ function AppRoutes() {
   const privateRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.voice, element: <VoiceCallEleven /> },
     { path: Paths.home, element: <HomeScreenSingle /> },
-    { path: Paths.profile, element: <UserProfile /> },
     { path: Paths.chat(), element: <ChatScreen /> },
     { path: Paths.call(), element: <CallScreen /> },
     { path: Paths.paypalReturn, element: <PayPalReturn /> },

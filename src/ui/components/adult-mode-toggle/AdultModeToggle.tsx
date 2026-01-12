@@ -1,16 +1,16 @@
 import clsx from "clsx";
-import styles from "./AdultModeToggleContainer.module.css";
+import styles from "./AdultModeToggle.module.css";
 import LipsIcon from "@/assets/svg/angel_lips.svg?react";
 import HorneyLips from "@/assets/svg/devil_lips.svg?react";
 
-interface AdultModeToggleContainerProps {
+interface AdultModeToggleProps {
   checked: boolean;
   onChange: (value: boolean) => void;
   disabled?: boolean;
   className?: string;
 }
 
-const AdultModeToggleContainer: React.FC<AdultModeToggleContainerProps> = ({ checked, onChange, disabled, className }) => {
+const AdultModeToggle: React.FC<AdultModeToggleProps> = ({ checked, onChange, disabled, className }) => {
   const handleToggle = () => {
     if (!disabled) {
       onChange(!checked);
@@ -42,4 +42,4 @@ const AdultModeToggleContainer: React.FC<AdultModeToggleContainerProps> = ({ che
   );
 };
 
-export default AdultModeToggleContainer;
+export default AdultModeToggle;
