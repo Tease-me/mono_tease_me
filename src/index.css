@@ -48,6 +48,7 @@ body,
   --color-success: rgba(74, 222, 128, 1);
   --color-light-blue: rgba(0, 169, 241, 1);
   --color-warning: rgba(250, 204, 21, 1);
+
 }
 
 /* Light theme fallbacks (optional preview) */
@@ -82,6 +83,9 @@ body {
   height: 100dvh;
   overflow: hidden;
   position: relative;
+
+  --max-sidebar-width: 472px;
+  --desktop-breakpoint: 1024px;
 }
 
 /*

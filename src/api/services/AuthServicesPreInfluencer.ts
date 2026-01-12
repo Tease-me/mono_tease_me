@@ -2,6 +2,7 @@ import { AxiosInstance } from "axios";
 import {
   ForgotPasswordResponse,
   RegisterResponse,
+  ResendSurveyResponse,
   TokenResponse,
 } from "../models/auth";
 import { Endpoints } from "../urls";
@@ -71,6 +72,24 @@ export const AuthServicesPreInfluencer = (apiClient: AxiosInstance) => ({
         {
           params: {
             email: email,
+          },
+        }
+      );
+
+      return data;
+    } catch (err: any) {
+      throw err;
+    }
+  },
+
+  resendSurvey: async (identifier: string) => {
+    try {
+      const { data } = await apiClient.post<ResendSurveyResponse>(
+        Endpoints.pre_influencers.resendSurvey,
+        null,
+        {
+          params: {
+            identifier,
           },
         }
       );

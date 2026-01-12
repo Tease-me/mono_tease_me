@@ -3,6 +3,7 @@ import styles from "./InfluencerRelationCard.module.css";
 import SvgPack from "@/utils/SvgPack";
 import ProfileMedia from "../ProfileMedia";
 import MetricRing from "../stats/MetricRing";
+import { formatDateTimeRelative } from "@/utils/DateTimeUtils";
 
 type InfleuncerRelationCardProps = {
   name: string;
@@ -33,11 +34,21 @@ const InfluencerRelationCard: React.FC<InfleuncerRelationCardProps> = ({
   closeness,
 }) => {
   const metrics = [
-    { key: "trust", label: "Trust", value: trust, icon: <SvgPack.Heart /> },
-    { key: "safety", label: "Safety", value: safety, icon: <SvgPack.Danger /> },
-    { key: "attraction", label: "Attraction", value: attraction, icon: <SvgPack.Link /> },
-    { key: "closeness", label: "Closeness", value: closeness, icon: <SvgPack.Link /> },
+    { key: "trust", label: "Trust", value: trust, icon: <SvgPack.Trust /> },
+    { key: "attraction", label: "Attraction", value: attraction, icon: <SvgPack.Angles /> },
+    { key: "closeness", label: "Closeness", value: closeness, icon: <SvgPack.KissGray /> },
+    { key: "safety", label: "Safety", value: safety, icon: <SvgPack.Shield /> },
   ];
+
+  const isActive = (() => {
+    if (!lastConnected) return false;
+    const diffMs = Date.now() - new Date(lastConnected).getTime();
+    const diffMinutes = diffMs / 1000 / 60;
+    return diffMinutes <= 5;
+  })();
+  const lastConnectedLabel = formatDateTimeRelative(lastConnected);
+  const spanClass = `${styles.lastConnected} ${isActive ? styles.lastConnectedActive : ''}`;
+
 
 
   return (
@@ -46,8 +57,10 @@ const InfluencerRelationCard: React.FC<InfleuncerRelationCardProps> = ({
         <div className={styles.balanceBadge}>
           ${balance}
         </div>
-        <h3>{name}</h3>
-        <p>Last Connected: <span className={styles.lastConnected} >{lastConnected} </span></p>
+        <div className={styles.nameArea}>
+          <h3>{name}</h3>
+          <p className={styles.lastConnectedArea}>Last Connected: <span className={spanClass} >{isActive ? "Active Now" : lastConnectedLabel} </span></p>
+        </div>
         <div className={styles.avatarContainer}>
           <ProfileMedia size={'xlarge'} imageSrc={image} videoSrc={video} active />
         </div>
@@ -70,7 +83,9 @@ const InfluencerRelationCard: React.FC<InfleuncerRelationCardProps> = ({
         <div className={styles.stat}>
           <span className={styles.label}>Status</span>
           <div className={styles.valueRow}>
-            <span className={styles.stage}>{status}</span>
+            <div className={styles.stageArea}>
+              <span className={styles.stage}>{status}</span>
+            </div>
           </div>
         </div>
       </div>
