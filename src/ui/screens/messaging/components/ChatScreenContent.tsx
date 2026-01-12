@@ -29,6 +29,8 @@ import { apiClient } from '@/api/apis';
 import AdultModePage from '../../adult-mode/AdultModePage';
 import UserNav from '@/ui/components/nav/UserNav';
 import BackgroundGradient from '@/ui/templates/BackgroundGradient';
+// import IconButton from '@/ui/components/inputs/buttons/IconButton';
+// import SvgPack from '@/utils/SvgPack';
 
 const isCallChannel = (message: Message) => {
     if (!message.channel) return false;
@@ -531,13 +533,24 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
                         onAdultModeChange={handleAdultModeChange}
                     />
                 </div>
-                <div className={styles["chat-header-info"]}>
-                    <ProfileMedia imageSrc={influencer?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
-                    <div className={styles["chat-user-name"]}>
-                        <h3><a href={`/${influencer.username}`}>{influencer && truncateLastName(influencer?.name)}</a></h3>
-                        <p>{isWsConnected ? "Connected" : "Not Connected"}</p>
-                    </div>
-                    {/* {isSuperUser && chatId && (
+
+                {!showSubscriptionPage ? <>
+                    <div className={styles["chat-header-info"]}>
+                        <div className={styles["profile-info"]}>
+                            <ProfileMedia imageSrc={influencer?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
+                            <div className={styles["chat-user-name"]}>
+                                <h3><a href={`/${influencer.username}`}>{influencer && truncateLastName(influencer?.name)}</a></h3>
+                                <p>{isWsConnected ? "Connected" : "Not Connected"}</p>
+                            </div>
+                        </div>
+                        {/* <div className={styles["chat-header-actions"]}>
+                            <IconButton
+                                color='red'
+                                leftIcon={<SvgPack.ArrowRight />}
+                                className={styles["clear-history-button"]}
+                            />
+                        </div> */}
+                        {/* {isSuperUser && chatId && (
                         <div className={styles["admin-actions"]}>
                             <IconButton
                                 onClick={handleClearHistory}
@@ -548,9 +561,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
                             />
                         </div>
                     )} */}
-                </div>
-                {!showSubscriptionPage ? <>
-
+                    </div>
                     <div
                         className={clsx(styles["chat-messages-container"], !messages && styles["loading"])}
                         ref={containerRef}
