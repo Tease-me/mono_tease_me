@@ -72,7 +72,7 @@ const AdultModePage = ({ onSubscribePressed }: { onSubscribePressed: () => void 
         <p className={styles.tagline}>Let&apos;s heat things up...</p>
 
         <div className={styles.subscribeButton}>
-          <PrimaryButton leftIcon={<MicrophoneIcon />} text="Subscribe" onClick={onSubscribePressed} />
+          <PrimaryButton leftIcon={<MicrophoneIcon />} text="Subscribe" onClick={onSubscribePressed} variant="purple" />
         </div>
 
         <div className={styles.footer}>
