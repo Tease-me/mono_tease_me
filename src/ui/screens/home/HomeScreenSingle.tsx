@@ -32,7 +32,7 @@ export default function HomeScreenSingle() {
   const [id, setId] = useState<string | undefined>(storedId ? storedId : undefined);
   const [needsSelection, setNeedsSelection] = useState(false);
   const [influencers, setInfluencers] = useState<InfluencerDataModel[]>([]);
-  // const [hasMultipleInfluencers, setHasMultipleInfluencers] = useState(false);
+  const [hasMultipleInfluencers, setHasMultipleInfluencers] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   const [currentPage, setCurrentPage] = useState<SidebarPageId>("home");
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -64,10 +64,10 @@ export default function HomeScreenSingle() {
       .then((influencers: InfluencerDataModel[]) => {
         if (influencers.length > 1) {
           setNeedsSelection(true);
-          // setHasMultipleInfluencers(true);
+          setHasMultipleInfluencers(true);
         } else if (influencers.length === 1) {
           setId(influencers[0].id);
-          // setHasMultipleInfluencers(false);
+          setHasMultipleInfluencers(false);
         }
         setInfluencers(influencers);
       });
@@ -78,6 +78,11 @@ export default function HomeScreenSingle() {
     setNeedsSelection(false);
   };
 
+  const handleNeedsSelection = () => {
+    setId(undefined);
+    setNeedsSelection(true);
+  }
+
   return (
     <SlideDrawerLayout
       showSidebar={showSidebar}
@@ -87,10 +92,10 @@ export default function HomeScreenSingle() {
       showBack={currentPage !== "home"}
       title={active.label}
     >
-      {needsSelection && !id ? (
-        <InfluencerSelector onItemClick={handleSelect} influencers={influencers} />
+      {needsSelection ? (
+        !id ? <InfluencerSelector onItemClick={handleSelect} influencers={influencers} /> : <ChatScreenContent id={id} onMenuClick={() => setShowSidebar((v) => !v)} setNeedsSelection={handleNeedsSelection} showChangeInfluencerButton={hasMultipleInfluencers} />
       ) : (
-        <ChatScreenContent id={id} onMenuClick={() => setShowSidebar((v) => !v)} />
+        <ChatScreenContent id={id} onMenuClick={() => setShowSidebar((v) => !v)} setNeedsSelection={setNeedsSelection} showChangeInfluencerButton={hasMultipleInfluencers} />
       )}
     </SlideDrawerLayout>
   );
