@@ -1,0 +1,109 @@
+.rem-modal {
+  position: relative;
+  border-radius: 18px;
+  padding: 2.25rem 1.5rem 1.75rem;
+  background: rgba(20, 20, 20, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  position: relative;
+}
+
+.rem-modal:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  background-image: url(/src/assets/image/noise-bg.jpg);
+  background-repeat: repeat;
+  background-size: 18rem;
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+.rem-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.5);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.rem-title {
+  font-family: "Abril Fatface", serif;
+  font-size: 1.5rem;
+  color: #ffffff;
+  margin: 0 0 1rem;
+  letter-spacing: 0.5px;
+}
+
+.rem-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.rem-input {
+  width: 100%;
+  min-height: 3.5rem;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.45);
+  color: #f9fafb;
+  font-size: 1rem;
+}
+
+.rem-input:focus,
+.rem-input:focus-visible {
+  outline: none;
+  border-color: hsla(340, 50%, 50%, 0.8);
+  padding-left: 1.2rem;
+  box-shadow: -9px 8px 4px -8px hsla(340, 100%, 73.06%, 0.34) inset,
+    10px -12px 14px -8px hsla(340, 89.82%, 80.49%, 0.25) inset,
+    8px -9px 0 -6px hsla(340, 83.22%, 44.25%, 0.23) inset;
+  background: hsla(339, 100%, 10.75%, 0.96);
+  transition: all 350ms ease;
+}
+
+.rem-error {
+  color: #ff5f5f;
+  font-size: 13px;
+  margin-top: 0.6rem;
+  background-color: #ff00002c;
+  min-height: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 1rem;
+  margin-bottom: 0.5rem;
+  box-shadow: -3px 4px 0px -3px #ff97973b inset;
+}
+
+.rem-success {
+  color: #e9fff1;
+  font-size: 13px;
+  margin-top: 0.6rem;
+  background-color: rgba(26, 160, 84, 0.25);
+  min-height: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 1rem;
+  margin-bottom: 0.5rem;
+  box-shadow: -3px 4px 0px -3px rgba(120, 230, 170, 0.35) inset;
+}
+
+.rem-action {
+  margin-top: 1.25rem;
+  height: 3.2rem;
+}

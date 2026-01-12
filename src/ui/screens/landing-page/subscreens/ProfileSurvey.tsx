@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 import { apiClient } from "@/api/apis";
 import { AuthServicesPreInfluencer } from "@/api/services/AuthServicesPreInfluencer";
+import ResendEmailModal from "@/ui/screens/landing-page/components/ResendEmailModal";
 import SvgPack from "@/utils/SvgPack";
 import "./ProfileSurvey.css";
 
@@ -18,7 +19,6 @@ const ProfileSurvey: React.FC = () => {
   const [location, setLocation] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [resendMessage, setResendMessage] = useState("");
   const [showResendDialog, setShowResendDialog] = useState(false);
   const [resendEmail, setResendEmail] = useState("");
   const [resendError, setResendError] = useState("");
@@ -47,7 +47,6 @@ const ProfileSurvey: React.FC = () => {
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    setResendMessage("");
 
     const newErrors: {
       name?: string;
@@ -98,7 +97,6 @@ const ProfileSurvey: React.FC = () => {
   };
 
   const handleResendEmail = async () => {
-    setResendMessage("");
     setResendError("");
     setResendSuccess("");
     const trimmedEmail = resendEmail.trim().toLowerCase();
@@ -146,7 +144,6 @@ const ProfileSurvey: React.FC = () => {
           {errors.general && (
             <div className="ps-error ps-error-general">{errors.general}</div>
           )}
-          {resendMessage && <div className="ps-success">{resendMessage}</div>}
 
           {/* Full Name */}
           <div className="ps-field">
@@ -233,37 +230,15 @@ const ProfileSurvey: React.FC = () => {
           <div className="spacer-profile"></div>
         </div>
       </div>
-      {showResendDialog && (
-        <div className="ps-dialog-backdrop">
-          <div className="ps-dialog-card">
-            <button
-              className="ps-dialog-close"
-              type="button"
-              onClick={() => setShowResendDialog(false)}
-              aria-label="Close"
-            >
-              <SvgPack.CloseSquare />
-            </button>
-            <h3 className="ps-dialog-title">Resend Link</h3>
-            <label className="ps-dialog-label">Email</label>
-            <input
-              className="ps-input ps-dialog-input"
-              placeholder="Your email"
-              value={resendEmail}
-              onChange={(e) => setResendEmail(e.target.value)}
-            />
-            {resendError && <div className="ps-error">{resendError}</div>}
-            {resendSuccess && <div className="ps-success">{resendSuccess}</div>}
-            <div className="ps-dialog-action">
-              <PrimaryButton
-                onClick={handleResendEmail}
-                text="Resend"
-                rightIcon={<SvgPack.ArrowRight />}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      <ResendEmailModal
+        isOpen={showResendDialog}
+        email={resendEmail}
+        error={resendError}
+        success={resendSuccess}
+        onEmailChange={setResendEmail}
+        onClose={() => setShowResendDialog(false)}
+        onSubmit={handleResendEmail}
+      />
     </div>
   );
 };
