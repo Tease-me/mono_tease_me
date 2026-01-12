@@ -18,6 +18,7 @@ export const Endpoints = {
     register: "/pre-influencers/register",
     refreshToken: "/pre-influencers/refresh",
     forgotPassword: "/pre-influencers/forgot-password",
+    resendSurvey: "/pre-influencers/resend-survey",
     me: "/pre-influencers/me",
   },
   billing: {
