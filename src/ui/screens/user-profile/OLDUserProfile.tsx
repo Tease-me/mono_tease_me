@@ -27,7 +27,7 @@ import { apiClient } from '@/api/apis';
 
 type UserProfileProps = { goTo: (id: string) => void }
 
-const UserProfile: React.FC<UserProfileProps> = ({ goTo }) => {
+const UserProfile: React.FC<UserProfileProps> = ({ }) => {
     const { user } = useContext(AuthContext);
     const [localUser, setLocalUser] = useState(user);
 
