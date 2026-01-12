@@ -1,26 +1,29 @@
 .list {
+  margin-top: 32px;
   display: flex;
   gap: 16px;
   overflow-x: auto;
+  scrollbar-width: none;
   padding-left: 32px;
   scroll-snap-type: x mandatory;
-}
-
-
-
-.list {
   margin-right: -24px;
 }
 
 .viewProfile {
-  display: block;
   width: 100%;
-  max-height: fit-content;
-  max-width: 300px;
+  max-width: 200px;
   margin: 12px auto 0;
   text-align: center;
+  height: 64px;
+  border-radius: 100px;
+}
+
+.buttonRow{
+  display: flex;
+  justify-content: center;
 }
 
 .error {
   color: white;
 }
+
