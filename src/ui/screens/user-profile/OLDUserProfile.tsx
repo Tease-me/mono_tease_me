@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import styles from "./UserProfile.module.css"
+import styles from "./OLDUserProfile.module.css"
 import ProfileMedia from '@/ui/components/ProfileMedia';
 import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 import OnBoardingTopNav from '@/ui/components/nav/OnBoardingTopNav';
@@ -25,9 +25,9 @@ import { apiClient } from '@/api/apis';
 //import { BalanceResponse } from '@/api/models/balance';
 
 
-type UserProfileProps = { goTo: (id: string) => void}
+type UserProfileProps = { goTo: (id: string) => void }
 
-const UserProfile: React.FC<UserProfileProps> = ({goTo}) => {
+const UserProfile: React.FC<UserProfileProps> = ({ goTo }) => {
     const { user } = useContext(AuthContext);
     const [localUser, setLocalUser] = useState(user);
 
