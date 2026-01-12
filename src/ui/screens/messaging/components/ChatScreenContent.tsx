@@ -29,8 +29,8 @@ import { apiClient } from '@/api/apis';
 import AdultModePage from '../../adult-mode/AdultModePage';
 import UserNav from '@/ui/components/nav/UserNav';
 import BackgroundGradient from '@/ui/templates/BackgroundGradient';
-// import IconButton from '@/ui/components/inputs/buttons/IconButton';
-// import SvgPack from '@/utils/SvgPack';
+import SvgPack from '@/utils/SvgPack';
+import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
 
 const isCallChannel = (message: Message) => {
     if (!message.channel) return false;
@@ -79,9 +79,10 @@ interface ChatScreenContentProps {
     menuItems?: DropDownMenuDataModel[];
     setNeedsSelection?: (needsSelection: boolean) => void;
     onMenuClick?: () => void;
+    showChangeInfluencerButton?: boolean;
 }
 
-const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }) => {
+const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, setNeedsSelection, showChangeInfluencerButton = false }) => {
     const [influencer, setInfluencer] = useState<InfluencerDataModel>();
     const [chatId, setChatId] = useState<string | undefined>();
 
@@ -499,7 +500,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
             setIsLoadingMore(false);
         }
     };
-
+    const handleChangeInfluencerClicked = async () => {
+        setNeedsSelection?.(true)
+    };
     // const handleClearHistory = async () => {
     //     if (!chatId || !isSuperUser) return;
     //     const confirmed = window.confirm("Delete this chat history? This cannot be undone.");
@@ -543,13 +546,17 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
                                 <p>{isWsConnected ? "Connected" : "Not Connected"}</p>
                             </div>
                         </div>
-                        {/* <div className={styles["chat-header-actions"]}>
-                            <IconButton
-                                color='red'
-                                leftIcon={<SvgPack.ArrowRight />}
-                                className={styles["clear-history-button"]}
-                            />
-                        </div> */}
+                        {showChangeInfluencerButton && <div className={styles["chat-header-actions"]}>
+                            <div>
+                                <PrimaryButton
+                                    color='red'
+                                    rightIcon={<SvgPack.ArrowRight />}
+                                    className={styles["clear-history-button"]}
+                                    text='Change Influencer'
+                                    onClick={handleChangeInfluencerClicked}
+                                />
+                            </div>
+                        </div>}
                         {/* {isSuperUser && chatId && (
                         <div className={styles["admin-actions"]}>
                             <IconButton

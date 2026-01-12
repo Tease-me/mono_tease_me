@@ -35,12 +35,13 @@
     display: flex;
 }
 
-.chat-header-info > .profile-info:only-child {
+.chat-header-info>.profile-info:only-child {
     margin: 0 auto;
 }
 
 .chat-header-actions {
     align-content: center;
+    justify-content: center;
 }
 
 .chat-messages-container {
