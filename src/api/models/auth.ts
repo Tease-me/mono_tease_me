@@ -8,6 +8,13 @@ export interface ForgotPasswordResponse {
     message: string;
 }
 
+export interface ResendSurveyResponse {
+    ok: boolean;
+    username?: string;
+    email?: string;
+    message: string;
+}
+
 export interface TokenResponse {
     access_token: string;
     refresh_token: string;

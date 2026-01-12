@@ -72,6 +72,7 @@
     gap: 0.5em;
     position: relative;
     overflow: hidden;
+    min-height: 3.25rem;
 }
 
 .button-cta-inner {
@@ -262,6 +263,229 @@
     transition: all 200ms ease-in-out;
     width: 100%;
     height: 100%;
+}
+
+.purple {
+    /* 🎨 Hue tokens */
+    --tm-color05: 286;
+    --tm-color04: 282;
+    --tm-color01: 276;
+    --tm-color03: 274;
+    --tm-color02: 270;
+    --tm-color06: 300;
+    --hue-neutral: 0;
+
+    /* 🎨 Color tokens */
+    --color-mainhue-1: hsl(var(--tm-color01), 100%, 62%);
+    --color-secondhue-1: hsl(var(--tm-color01), 100%, 36%);
+    --color-mainhue-2: hsl(var(--tm-color04), 100%, 58%);
+    --color-secondhue-2: hsl(var(--tm-color04), 100%, 54%);
+    --color-mainhue-3: hsl(var(--tm-color01), 100%, 62%);
+    --color-mainhue-4: hsl(var(--tm-color01), 100%, 62%);
+
+    --color-secondhue-3: hsl(var(--tm-color02), 100%, 45%);
+    --color-secondhue-4: hsl(var(--tm-color03), 100%, 44%);
+    --color-secondhue-5: hsl(var(--tm-color02), 100%, 42%);
+    --color-mainhue-5: hsl(var(--tm-color04), 100%, 60%);
+    --color-secondhue-6: hsl(var(--tm-color02), 100%, 40%);
+    --color-secondhue-7: hsl(var(--tm-color01), 100%, 38%);
+
+    --shadow-light: hsl(var(--tm-color06), 97%, 82%);
+    --shadow-mid: hsl(var(--tm-color05), 99%, 65%);
+
+    /* 🌈 Gradient tokens */
+    --gradient-outer-mainhue: linear-gradient(82deg,
+            var(--color-mainhue-1) 11.75%,
+            var(--color-secondhue-1) 25.54%,
+            var(--color-mainhue-2) 46.73%,
+            var(--color-secondhue-2) 65.34%,
+            var(--color-mainhue-3) 82.28%,
+            var(--color-mainhue-4) 90.95%);
+
+    --gradient-inner-mainhue: linear-gradient(250deg,
+            var(--color-secondhue-3) 8.83%,
+            var(--color-secondhue-4) 13.08%,
+            var(--color-secondhue-5) 23.52%,
+            var(--color-mainhue-5) 35.88%,
+            var(--color-secondhue-6) 61.39%,
+            var(--color-secondhue-7) 89.22%);
+
+    --gradient-outer-mainhue-pressed: linear-gradient(82deg,
+            hsla(var(--tm-color01), 100%, 20%, 0.1) 14.51%,
+            hsla(var(--tm-color01), 100%, 28%, 0.1) 23.18%,
+            hsla(var(--tm-color01), 100%, 30%, 0.1) 40.12%,
+            hsla(var(--tm-color01), 100%, 23%, 0.1) 58.73%,
+            hsla(var(--tm-color01), 100%, 34%, 0.1) 79.91%,
+            hsla(var(--tm-color01), 100%, 38%, 0.1) 93.7%);
+
+    --gradient-inner-mainhue-pressed: linear-gradient(266deg,
+            hsl(var(--tm-color01), 100%, 33%) 9.6%,
+            hsl(var(--tm-color01), 100%, 32%) 13.73%,
+            hsl(var(--tm-color01), 100%, 30%) 23.88%,
+            hsl(var(--tm-color01), 100%, 38%) 35.9%,
+            hsl(var(--tm-color01), 100%, 28%) 60.69%,
+            hsl(var(--tm-color01), 100%, 26%) 87.74%);
+
+    --gradient-outer-mainhue-hover: linear-gradient(82deg,
+            hsl(var(--tm-color01), 71%, 70%) 11.75%,
+            hsl(var(--tm-color01), 70%, 46%) 25.54%,
+            hsl(var(--tm-color01), 70%, 66%) 46.73%,
+            hsl(var(--tm-color01), 70%, 63%) 65.34%,
+            hsl(var(--tm-color01), 71%, 70%) 82.28%,
+            hsl(var(--tm-color01), 71%, 70%) 90.95%);
+
+    --gradient-outer-mainhue-selected: linear-gradient(82deg,
+            hsl(var(--tm-color01), 100%, 70%) 11.75%,
+            hsl(var(--tm-color01), 100%, 46%) 25.54%,
+            hsl(var(--tm-color01), 100%, 66%) 46.73%,
+            hsl(var(--tm-color01), 100%, 63%) 65.34%,
+            hsl(var(--tm-color02), 100%, 70%) 82.28%,
+            hsl(var(--tm-color01), 100%, 70%) 90.95%);
+    --gradient-inner-mainhue-selected: linear-gradient(250deg,
+            hsl(var(--tm-color01), 100%, 55%) 8.83%,
+            hsl(var(--tm-color01), 100%, 64%) 13.08%,
+            hsl(var(--tm-color01), 100%, 62%) 23.52%,
+            hsl(var(--tm-color01), 100%, 80%) 35.88%,
+            hsl(var(--tm-color01), 100%, 50%) 61.39%,
+            hsl(var(--tm-color01), 100%, 58%) 89.22%);
+}
+
+.button-cta-outer.purple {
+    background: var(--gradient-outer-mainhue);
+    transition: all 200ms ease-in-out;
+    width: 100%;
+    height: 100%;
+}
+
+.button-cta-outer.purple .button-cta-inner {
+    transition: all 200ms ease-in-out;
+    color: var(--white);
+    background: var(--gradient-inner-mainhue);
+    box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 97%, 71%, 0.55) inset,
+        5px 3px 3px -4px var(--shadow-light) inset,
+        -14px -7px 1px -15px var(--shadow-mid) inset,
+        -12px -9px 2px -10px hsla(var(--tm-color02), 100%, 72%, 0.5) inset,
+        13px 9px 1px -11px hsla(var(--hue-neutral), 0%, 100%, 0.15) inset,
+        9px 10px 1px -11px var(--shadow-mid) inset;
+}
+
+.button-cta-outer.purple .button-cta-inner .left-icon,
+.button-cta-outer.purple .button-cta-inner .right-icon {
+    transition: all 200ms ease-in-out;
+    filter: drop-shadow(1px 1px 0 hsla(var(--hue-neutral), 0%, 0%, 0.3)) drop-shadow(1px 3px 3px hsla(var(--hue-neutral), 0%, 0%, 0.3));
+}
+
+.button-cta-outer.purple .button-cta-inner .button-text {
+    transition: all 200ms ease-in-out;
+    color: var(--white);
+    text-shadow: 1px 1px 0 hsla(var(--hue-neutral), 0%, 0%, 0.2),
+        1px 3px 3px hsla(var(--hue-neutral), 0%, 0%, 0.45);
+}
+
+.button-cta-outer.purple.hover {
+    transition: all 200ms ease-in-out;
+    background: var(--gradient-outer-mainhue-hover);
+    box-shadow: 0 3px 11px -2px hsl(var(--tm-color01), 100%, 45%);
+}
+
+.button-cta-outer.purple.hover .button-cta-inner {
+    transition: all 200ms ease-in-out;
+    background: linear-gradient(250deg,
+            hsl(var(--tm-color01), 100%, 45%) 8.83%,
+            hsl(var(--tm-color01), 100%, 44%) 13.08%,
+            hsl(var(--tm-color01), 100%, 42%) 23.52%,
+            hsl(var(--tm-color01), 100%, 60%) 35.88%,
+            hsl(var(--tm-color01), 100%, 40%) 61.39%,
+            hsl(var(--tm-color01), 100%, 37%) 89.22%);
+    box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 100%, 70%, 0.55) inset,
+        -14px -7px 1px -15px hsl(var(--hue-neutral), 0%, 100%) inset,
+        -12px -9px 2px -10px hsla(var(--hue-neutral), 100%, 73%, 0.5) inset,
+        9px 9px 1px -11px hsla(var(--hue-neutral), 0%, 100%, 0.56) inset,
+        8px 8px 3px -6px hsla(var(--tm-color06), 97%, 75%, 0.7) inset;
+}
+
+.button-cta-outer.purple.hover .button-cta-inner .button-text {
+    transform: translateY(-0.025em);
+    opacity: 1;
+    text-shadow: -2px 1px 1px hsla(var(--hue-neutral), 0%, 0%, 0.1),
+        1px 4px 3px hsla(var(--hue-neutral), 0%, 0%, 0.45);
+}
+
+.button-cta-outer.purple.hover .button-cta-inner .left-icon {
+    transition: all 200ms ease-in-out;
+    opacity: 1;
+    transform: translateX(-1px);
+    filter: drop-shadow(-3px 2px 1px hsla(var(--hue-neutral), 0%, 0%, 0.1)) drop-shadow(-4px 1px 3px hsla(var(--hue-neutral), 0%, 0%, 0.1));
+}
+
+.button-cta-outer.purple.hover .button-cta-inner .right-icon {
+    transition: all 200ms ease-in-out;
+    opacity: 1;
+    transform: translateX(1px);
+    filter: drop-shadow(-3px 2px 1px hsla(var(--hue-neutral), 0%, 0%, 0.1)) drop-shadow(-4px 1px 3px hsla(var(--hue-neutral), 0%, 0%, 0.1));
+}
+
+.button-cta-outer.purple.pressed {
+    background: var(--gradient-outer-mainhue-pressed);
+}
+
+.button-cta-outer.purple.pressed .button-cta-inner {
+    background: var(--gradient-inner-mainhue-pressed);
+    box-shadow: 0 3px 0 0 hsla(var(--hue-neutral), 0%, 0%, 0.15) inset,
+        -4px -4px 1px -4px hsla(var(--tm-color06), 100%, 10%, 0.549) inset,
+        5px 3px 3px -4px hsla(var(--hue-neutral), 0%, 0%, 0.1) inset,
+        -14px -7px 1px -15px hsl(var(--hue-neutral), 0%, 0%) inset,
+        -12px -9px 2px -10px hsla(var(--hue-neutral), 100%, 12%, 0.5) inset,
+        13px 9px 1px -11px hsla(var(--hue-neutral), 0%, 0%, 0.15) inset,
+        9px 10px 1px -11px hsl(var(--tm-color05), 98%, 25%) inset;
+}
+
+.button-cta-outer.purple.pressed .button-cta-inner .button-text {
+    opacity: 0.4;
+    text-shadow: -2px 1px 1px hsla(var(--hue-neutral), 0%, 0%, 0.1),
+        1px 4px 3px hsla(var(--hue-neutral), 0%, 0%, 0.45);
+}
+
+.button-cta-outer.purple.pressed .button-cta-inner .left-icon {
+    opacity: 0.4;
+    filter: none;
+}
+
+.button-cta-outer.purple.pressed .button-cta-inner .right-icon {
+    opacity: 0.4;
+    filter: none;
+}
+
+.button-cta-outer.purple.selected {
+    background: var(--gradient-outer-mainhue-selected);
+    box-shadow: none;
+}
+
+.button-cta-outer.purple.selected .button-cta-inner {
+    background: var(--gradient-inner-mainhue-selected);
+    color: hsla(var(--tm-color01), 66%, 30%, 1);
+    box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 100%, 70%, 0.55) inset,
+        5px 3px 3px -4px hsl(var(--tm-color06), 97%, 75%) inset,
+        -14px -7px 1px -15px hsl(var(--tm-color05), 99%, 65%) inset,
+        -12px -9px 2px -10px hsla(var(--hue-neutral), 100%, 73%, 0.5) inset,
+        13px 9px 1px -11px hsla(var(--hue-neutral), 0%, 100%, 0.15) inset,
+        9px 10px 1px -11px hsl(var(--tm-color05), 99%, 65%) inset;
+}
+
+.button-cta-outer.purple.selected .button-cta-inner .button-text {
+    color: hsla(var(--tm-color01), 66%, 30%, 1);
+    opacity: 1;
+    text-shadow: 0 1px 0 hsla(var(--hue-neutral), 0%, 100%, 0.25);
+}
+
+.button-cta-outer.purple.selected .button-cta-inner .left-icon {
+    opacity: 1;
+    filter: drop-shadow(0 1px 0 hsla(var(--hue-neutral), 0%, 100%, 0.25));
+}
+
+.button-cta-outer.purple.selected .button-cta-outer .button-cta-inner .right-icon {
+    opacity: 1;
+    filter: drop-shadow(0 1px 0 hsla(var(--hue-neutral), 0%, 100%, 0.25));
 }
 
 .button-cta-outer.pink .button-cta-inner {

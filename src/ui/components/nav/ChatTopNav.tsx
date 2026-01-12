@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import styles from "./ChatTopNav.module.css"
 import { useNavigate } from 'react-router-dom';
 import ArrowLeftIcon from "@/assets/svg/ArrowLeft.svg?react";
@@ -7,9 +7,8 @@ import clsx from 'clsx';
 import IconButton from '../inputs/buttons/IconButton';
 import DropDownMenu, { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownMenu';
 import SvgPack from '@/utils/SvgPack';
-import AdultModeToggleContainer from '../adult-mode-toggle/AdultModeToggleContainer';
+import AdultModeToggle from '../adult-mode-toggle/AdultModeToggle';
 import { useTheme } from '@/theme/ThemeProvider';
-import { AuthContext } from '@/context/AuthContext';
 
 interface ChatTopNavProps extends React.HTMLAttributes<HTMLDivElement> {
     title?: string;
@@ -17,15 +16,26 @@ interface ChatTopNavProps extends React.HTMLAttributes<HTMLDivElement> {
     menuItems?: DropDownMenuDataModel[];
     onCallClick?: () => void;
     showBackButton?: boolean;
+    adultMode?: boolean;
+    onAdultModeChange?: (checked: boolean) => void;
 }
 
-const ChatTopNav: React.FC<ChatTopNavProps> = ({ title, onBack, onCallClick, menuItems, showBackButton = false }) => {
+const ChatTopNav: React.FC<ChatTopNavProps> = ({
+    title,
+    onBack,
+    onCallClick,
+    menuItems,
+    showBackButton = false,
+    adultMode,
+    onAdultModeChange
+}) => {
     const navigate = useNavigate();
     const { theme, setTheme } = useTheme();
-    const { adultMode, setAdultMode } = useContext(AuthContext);
 
     useEffect(() => {
-        setTheme(adultMode ? 'adult' : 'default');
+        if (typeof adultMode === "boolean") {
+            setTheme(adultMode ? 'adult' : 'default');
+        }
     }, [adultMode, setTheme]);
 
     return (
@@ -40,13 +50,14 @@ const ChatTopNav: React.FC<ChatTopNavProps> = ({ title, onBack, onCallClick, men
             </div>
             <div className={styles["center-title"]}>
                 {title}
-                <AdultModeToggleContainer
-                    checked={theme === 'adult'}
-                    onChange={(checked) => {
-                        setAdultMode(checked);
-                        setTheme(checked ? 'adult' : 'default');
-                    }}
-                />
+                {onAdultModeChange && (
+                    <AdultModeToggle
+                        checked={theme === 'adult'}
+                        onChange={(checked) => {
+                            onAdultModeChange(checked);
+                        }}
+                    />
+                )}
             </div>
             <div className={styles["right-buttons"]}>
                 <div>

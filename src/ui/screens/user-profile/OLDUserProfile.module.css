@@ -118,6 +118,7 @@
     grid-template-rows: 3rem;
     align-items: center;
     justify-items: center;
+    margin-bottom: 32px;
 }
 
 .profile-cancel {

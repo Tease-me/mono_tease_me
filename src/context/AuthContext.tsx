@@ -19,8 +19,6 @@ export interface AuthContextType {
     authErrors?: AuthErrors;
     isSignedIn: boolean;
     user?: UserDataModel;
-    adultMode: boolean;
-    setAdultMode: (mode: boolean) => void;
 }
 
 export interface AuthErrors {
@@ -40,9 +38,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [loadingAuth, setLoadingAuth] = useState(true);
     const [authErrors, setAuthErrors] = useState<AuthErrors>();
     const [user, setUser] = useState<UserDataModel | undefined>();
-    const [adultMode, setAdultModeState] = useState<boolean>(() =>
-        storage.getBoolean(LocalStorageKeys.AdultMode)
-    );
 
     const authServices = AuthServices(apiClient);
     const userRepo = UserRepo()
@@ -101,10 +96,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
     }, [isSignedIn]);
 
-    useEffect(() => {
-        storage.setBoolean(LocalStorageKeys.AdultMode, adultMode);
-    }, [adultMode]);
-
     const getUserDetails = async () => {
         const user: UserDataModel = await userRepo.getUserDerails()
         storage.setObject(LocalStorageKeys.AuthUser, user)
@@ -147,9 +138,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 logout: logout,
                 isSignedIn: isSignedIn,
                 authErrors: authErrors,
-                user: user,
-                adultMode: adultMode,
-                setAdultMode: setAdultModeState
+                user: user
             }}
         >
             {children}

@@ -1,0 +1,26 @@
+.list {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-left: 32px;
+  scroll-snap-type: x mandatory;
+}
+
+
+
+.list {
+  margin-right: -24px;
+}
+
+.viewProfile {
+  display: block;
+  width: 100%;
+  max-height: fit-content;
+  max-width: 300px;
+  margin: 12px auto 0;
+  text-align: center;
+}
+
+.error {
+  color: white;
+}

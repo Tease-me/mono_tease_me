@@ -169,6 +169,7 @@
     right: 0;
     bottom: 0;
     color: var(--color-primary);
+    cursor: pointer;
 }
 
 .edit-button.left {
