@@ -201,12 +201,123 @@ color: #ff5f5f;
     box-shadow: -3px 4px 0px -3px #ff97973b inset;
 }
 
+.ps-success {
+  color: #e9fff1;
+  font-size: 13px;
+  margin-top: 4px;
+  background-color: rgba(26, 160, 84, 0.25);
+  min-height: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 1rem;
+  margin-bottom: 0.5rem;
+  box-shadow: -3px 4px 0px -3px rgba(120, 230, 170, 0.35) inset;
+}
+
 /* next button */
 
 .tm-survey-button-container {
   height: 3.5rem;
   width: 100%;
   margin: 3rem auto 0 auto;
+}
+
+.ps-secondary-action {
+  margin-top: 0.75rem;
+  display: flex;
+  justify-content: center;
+}
+
+.ps-secondary-link {
+  background: transparent;
+  border: none;
+  color: #ffd3df;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.ps-secondary-link:hover {
+  color: #ffffff;
+}
+
+.ps-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  padding: 1.5rem;
+}
+
+.ps-dialog-card {
+  width: 100%;
+  max-width: 22rem;
+  border-radius: 18px;
+  padding: 2.25rem 1.5rem 1.75rem;
+  background: rgba(20, 20, 20, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  position: relative;
+}
+
+.ps-dialog-card:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  background-image: url(/src/assets/image/noise-bg.jpg);
+  background-repeat: repeat;
+  background-size: 18rem;
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+.ps-dialog-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.5);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.ps-dialog-title {
+  font-family: "Abril Fatface", serif;
+  font-size: 1.5rem;
+  color: #ffffff;
+  margin: 0 0 1rem;
+  letter-spacing: 0.5px;
+}
+
+.ps-dialog-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.ps-dialog-input {
+  margin-bottom: 0.8rem;
+}
+
+.ps-dialog-action {
+  margin-top: 1.25rem;
+  height: 3.2rem;
 }
 
 .spacer-profile {display: flex;

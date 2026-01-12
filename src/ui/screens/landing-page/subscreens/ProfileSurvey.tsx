@@ -1,4 +1,4 @@
-import { RegisterResponse } from "@/api/models/auth";
+import { ForgotPasswordResponse, RegisterResponse } from "@/api/models/auth";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import React, { useState } from "react";
@@ -18,6 +18,11 @@ const ProfileSurvey: React.FC = () => {
   const [location, setLocation] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
+  const [resendMessage, setResendMessage] = useState("");
+  const [showResendDialog, setShowResendDialog] = useState(false);
+  const [resendEmail, setResendEmail] = useState("");
+  const [resendError, setResendError] = useState("");
+  const [resendSuccess, setResendSuccess] = useState("");
 
   const [errors, setErrors] = useState<{
     name?: string;
@@ -42,6 +47,7 @@ const ProfileSurvey: React.FC = () => {
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    setResendMessage("");
 
     const newErrors: {
       name?: string;
@@ -91,6 +97,37 @@ const ProfileSurvey: React.FC = () => {
     }
   };
 
+  const handleResendEmail = async () => {
+    setResendMessage("");
+    setResendError("");
+    setResendSuccess("");
+    const trimmedEmail = resendEmail.trim().toLowerCase();
+    if (!trimmedEmail) {
+      setResendError("Email is required to resend");
+      return;
+    }
+
+    try {
+      const response: ForgotPasswordResponse =
+        await PreInfluencerAPI.forgotPassword(trimmedEmail);
+
+      if (response.ok) {
+        setErrors((prev) => ({ ...prev, general: undefined }));
+        setResendSuccess(
+          response.message || "We sent a new email. Please check your inbox."
+        );
+        return;
+      }
+
+      setResendError(
+        response.message || "Unable to resend email. Please try again later."
+      );
+    } catch (err) {
+      console.error(err);
+      setResendError("Unexpected error, please try again later");
+    }
+  };
+
   return (
     <div className="ps-screen">
       <div className="ps-frame">
@@ -109,6 +146,7 @@ const ProfileSurvey: React.FC = () => {
           {errors.general && (
             <div className="ps-error ps-error-general">{errors.general}</div>
           )}
+          {resendMessage && <div className="ps-success">{resendMessage}</div>}
 
           {/* Full Name */}
           <div className="ps-field">
@@ -178,9 +216,54 @@ const ProfileSurvey: React.FC = () => {
               rightIcon={<SvgPack.ArrowRight />}
             />
           </div>
+          <div className="ps-secondary-action">
+            <button
+              className="ps-secondary-link"
+              type="button"
+              onClick={() => {
+                setResendEmail(email);
+                setResendError("");
+                setResendSuccess("");
+                setShowResendDialog(true);
+              }}
+            >
+              Already started? Resend email
+            </button>
+          </div>
           <div className="spacer-profile"></div>
         </div>
       </div>
+      {showResendDialog && (
+        <div className="ps-dialog-backdrop">
+          <div className="ps-dialog-card">
+            <button
+              className="ps-dialog-close"
+              type="button"
+              onClick={() => setShowResendDialog(false)}
+              aria-label="Close"
+            >
+              <SvgPack.CloseSquare />
+            </button>
+            <h3 className="ps-dialog-title">Resend Link</h3>
+            <label className="ps-dialog-label">Email</label>
+            <input
+              className="ps-input ps-dialog-input"
+              placeholder="Your email"
+              value={resendEmail}
+              onChange={(e) => setResendEmail(e.target.value)}
+            />
+            {resendError && <div className="ps-error">{resendError}</div>}
+            {resendSuccess && <div className="ps-success">{resendSuccess}</div>}
+            <div className="ps-dialog-action">
+              <PrimaryButton
+                onClick={handleResendEmail}
+                text="Resend"
+                rightIcon={<SvgPack.ArrowRight />}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
