@@ -36,6 +36,7 @@
     position: relative;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 150px;
+    margin-bottom: 120px;
 }
 
 .chat-messages-container.loading {
@@ -118,12 +119,6 @@
         position: relative;
         display: flex;
         background-color: transparent;
-    }
-
-    .chat-input-area {
-        position: sticky;
-        width: 100%;
-        bottom: 0dvh;
     }
 
     .chat-content {
