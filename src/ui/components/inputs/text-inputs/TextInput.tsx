@@ -11,6 +11,7 @@ interface TextInputProps extends HTMLAttributes<HTMLInputElement> {
     rightIconStyles?: { style: React.CSSProperties, hoverStyle?: React.CSSProperties }
     size?: 'small' | 'xsmall' | 'medium';
     value?: string | number | readonly string[];
+    readOnly?: boolean;
 }
 
 const TextInput: React.FC<TextInputProps> = ({
@@ -23,6 +24,7 @@ const TextInput: React.FC<TextInputProps> = ({
     size = 'medium',
     className,
     value,
+    readOnly,
     onChange,
     ...rest
 }) => {
@@ -37,6 +39,7 @@ const TextInput: React.FC<TextInputProps> = ({
                 className={clsx(styles['auth-input'], styles[`input-${size}`], !leftIcon && styles["input-left-padding"], !rightIcon && styles["input-right-padding"])}
                 value={value}
                 onChange={onChange}
+                readOnly={readOnly}
                 {...rest}
             />
             {rightIcon && <div className={clsx(styles["icon"], styles["right"])} style={rightIconStyles?.style}>

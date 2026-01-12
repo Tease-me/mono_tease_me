@@ -3,10 +3,12 @@ import { Endpoints } from "../urls";
 import { AxiosInstance } from "axios";
 
 export const BalanceServices = (apiClient: AxiosInstance) => ({
-    getBalance: async (): Promise<BalanceResponse> => {
+    getBalance: async (influencerId: string): Promise<BalanceResponse> => {
         try {
             const response = await apiClient.get(
-                Endpoints.billing.balance,
+                Endpoints.billing.balance,{
+                    params: influencerId ? {influencer_id: influencerId} : undefined,
+                }
             );
             return response.data;
         } catch (error) {

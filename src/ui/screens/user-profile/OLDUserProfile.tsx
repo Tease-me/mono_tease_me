@@ -5,10 +5,10 @@ import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 import OnBoardingTopNav from '@/ui/components/nav/OnBoardingTopNav';
 import TextInput from '@/ui/components/inputs/text-inputs/TextInput';
 import FullWidthLayout from '@/ui/templates/FullWidthLayout';
+import ImageCropModal from '@/ui/components/modals/image-crop-modal/ImageCropModal';
 
-import BalanceView from '@/ui/components/stats/BalanceView';
+//import BalanceView from '@/ui/components/stats/BalanceView';
 import VerticalDivider from '@/ui/components/dividers/VerticalDivider';
-import logger from '@/utils/logger';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
 import PayPalButton from '@/ui/components/inputs/buttons/PayPalButton';
@@ -18,30 +18,40 @@ import TopUpModal from '@/ui/components/modals/payment-modal/TopUpModal';
 
 
 import { AuthContext } from '@/context/AuthContext';
-import { BalanceServices } from '@/api/services/BalanceServices';
-import { formatCentsToDollars } from '@/utils/balance_utils';
+//import { BalanceServices } from '@/api/services/BalanceServices';
+//import { formatCentsToDollars } from '@/utils/balance_utils';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '@/api/apis';
-import { BalanceResponse } from '@/api/models/balance';
+//import { BalanceResponse } from '@/api/models/balance';
 
-interface UserProfileProps { }
 
-const UserProfile: React.FC<UserProfileProps> = ({ }) => {
+type UserProfileProps = { goTo: (id: string) => void}
+
+const UserProfile: React.FC<UserProfileProps> = ({goTo}) => {
     const { user } = useContext(AuthContext);
     const [localUser, setLocalUser] = useState(user);
 
-    const [balance, setBalance] = useState<number>(0);
-    const balanceService = BalanceServices(apiClient);
+    const [showCropModal, setShowCropModal] = useState<boolean>(false);
+    const [pendingImage, setPendingImage] = useState<string | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [photoBlob, setPhotoBlob] = useState<Blob | null>(null);
+
+
+    //const [balance, setBalance] = useState<number>(0);
+    //const balanceService = BalanceServices(apiClient);
     const [showTopUpModal, setShowTopUpModal] = useState<boolean>(false);
     const [showLinkCardModal, setShowLinkCardModal] = useState<boolean>(false);
 
+
     const navigate = useNavigate()
 
+    {/*
     useEffect(() => {
         balanceService.getBalance().then((response: BalanceResponse) => {
             setBalance(response.balance_cents)
         })
     }, [])
+    */}
 
     useEffect(() => {
         if (user)
@@ -66,17 +76,60 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
     };
 
     const handleEditProfileMediaClicked = () => {
-        logger.debug("Edit Clicked")
+        document.getElementById('profile-image-input')?.click();
+
     }
+
+    const handleUpdateProfile = async () => {
+        {/* Upload profile pic*/ }
+        if (photoBlob && user?.id) {
+            try {
+                const form = new FormData();
+                form.append("file", photoBlob, "avatar.jpg");
+                await apiClient.post(`/user/${user.id}/photo`, form, {
+                    headers: { "Content-Type": "multipart/form-data" },
+                });
+            }
+            catch (err) {
+                console.error("Error uploading profile photo:", err);
+                return;
+            }
+            setPhotoBlob(null);
+
+        }
+
+    }
+
 
     return (
         <BackgroundGradient>
             <FullWidthLayout fullWidthNav={<OnBoardingTopNav onBackClicked={() => { navigate(-1) }} />}>
+
+                {/* Change Profile Picture Area */}
                 <div className={styles["profile-picture"]}>
-                    <ProfileMedia imageSrc={user?.imgUrl} mediaType='image' onEditClick={handleEditProfileMediaClicked} />
+                    <ProfileMedia imageSrc={previewUrl || user?.imgUrl} mediaType='image' onEditClick={handleEditProfileMediaClicked} />
                     <VerticalDivider />
+                    {/*
                     <BalanceView label='Balance' value={formatCentsToDollars(balance)} />
+                    */}
+                    <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        id="profile-image-input"
+                        onChange={(e) => {
+                            const file = e.target.files ? e.target.files[0] : null;
+                            if (!file || !file.type.startsWith('image/')) {
+                                return;
+                            }
+                            const url = URL.createObjectURL(file);
+                            e.target.value = '';
+                            setShowCropModal(true);
+                            setPendingImage(url);
+                        }}
+                    />
                 </div>
+
                 <div className={styles["section-title"]}>
                     Your Details
                 </div>
@@ -85,12 +138,17 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
                         <TextInput className={styles["profile-nickname"]} placeholder='Nickname' type='text' value={localUser?.username ? localUser?.username : ""} onChange={handleNickNameChange} />
                     </div>
                     <div className={styles["profile-row02"]}>
-                        <TextInput placeholder='Name' type='text' value={localUser?.name ? localUser?.name : ""} onChange={handleNameChange} />
+                        <TextInput placeholder='Name' type='text' value={localUser?.full_name ? localUser?.full_name : ""} onChange={handleNameChange} />
                         <TextInput placeholder='Email' type='email' value={localUser?.email ? localUser?.email : ""} onChange={handleEmailChange} />
                     </div>
                 </div>
                 <div className={styles["delete-account-section"]}>
                     <a className={styles["profile-delete-account"]} href='#'>Delete Account</a>
+                </div>
+
+                <div className={styles["update-row"]}>
+                    <a className={styles["profile-cancel"]} href='#'>Cancel</a>
+                    <NormalButton text='Update Profile' onClick={handleUpdateProfile} />
                 </div>
 
                 <div className={styles["section-title"]}>
@@ -106,14 +164,25 @@ const UserProfile: React.FC<UserProfileProps> = ({ }) => {
                     }} />
 
                 </div>
-                <div className={styles["update-row"]}>
-                    <a className={styles["profile-cancel"]} href='#'>Cancel</a>
-                    <NormalButton text='Update Profile' />
-                </div>
                 <LinkCardModal isOpen={showLinkCardModal} onClose={() => setShowLinkCardModal(false)} />
                 <TopUpModal isOpen={showTopUpModal} onClose={() => setShowTopUpModal(false)} />
+                <ImageCropModal
+                    isOpen={showCropModal}
+                    imageSrc={pendingImage!}
+                    onClose={() => setShowCropModal(false)}
+                    onCropComplete={(blob, dataUrl) => {
+                        setPreviewUrl(dataUrl);
+                        setShowCropModal(false);
+                        setPhotoBlob(blob);
+                        if (pendingImage) {
+                            URL.revokeObjectURL(pendingImage);
+                            setPendingImage(null);
+
+                        }
+                    }} />
             </FullWidthLayout>
         </BackgroundGradient>
+
     );
 };
 

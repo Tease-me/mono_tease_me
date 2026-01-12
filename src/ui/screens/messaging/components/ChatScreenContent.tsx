@@ -10,7 +10,6 @@ import { CallMessageGroup } from './MessageBubble';
 import MessagesList, { DisplayMessage } from './MessageList';
 import ChatInputArea from './ChatInputArea';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
-import ChatTopNav from '@/ui/components/nav/ChatTopNav';
 import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
 import { Message, MessagePagination } from '@/data/models/MessageDataModel';
 import { storage } from '@/utils/storage';
@@ -28,6 +27,7 @@ import { AdultChatRepo } from '@/data/repositories/AdultChatRepo';
 import { SubscriptionsServices } from '@/api/services/SubscriptionsServices';
 import { apiClient } from '@/api/apis';
 import AdultModePage from '../../adult-mode/AdultModePage';
+import UserNav from '@/ui/components/nav/UserNav';
 
 const isCallChannel = (message: Message) => {
     if (!message.channel) return false;
@@ -74,9 +74,11 @@ interface ChatScreenContentProps {
     id?: string;
     onBackPressed?: () => void;
     menuItems?: DropDownMenuDataModel[];
+    setNeedsSelection?: (needsSelection: boolean) => void;
+    onMenuClick?: () => void;
 }
 
-const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed, menuItems }) => {
+const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }) => {
     const [influencer, setInfluencer] = useState<InfluencerDataModel>();
     const [chatId, setChatId] = useState<string | undefined>();
 
@@ -472,10 +474,11 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         startConversation();
         setOpenWelcomeCallModal(true);
     }
-
+    {/*}
     const handleOnBackClick = () => {
         onBackPressed?.();
     };
+    */}
 
     const handleScroll = async () => {
         const container = containerRef.current;
@@ -513,16 +516,25 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         }
     };
 
-
     if (!influencer) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
 
     return (
         <div className={styles["chat-screen-content"]}>
             <div className={styles["chat-header"]}>
+                {/*
                 <ChatTopNav
                     onBack={handleOnBackClick}
                     onCallClick={onCall}
                     menuItems={menuItems}
+                    adultMode={adultModeSwitch}
+                    onAdultModeChange={handleAdultModeChange}
+                />
+                */}
+
+                <UserNav
+                    influencerName={influencer?.name}
+                    onMenuClick={onMenuClick}
+                    onCallClick={onCall}
                     adultMode={adultModeSwitch}
                     onAdultModeChange={handleAdultModeChange}
                 />
