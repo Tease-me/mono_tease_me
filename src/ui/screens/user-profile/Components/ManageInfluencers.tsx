@@ -35,9 +35,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
     }>
   >([]);
 
-
   const [error, setError] = useState<string | null>(null);
-
 
   useEffect(() => {
     const load = async () => {
@@ -86,7 +84,6 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
 
       {items.map((inf) => (
         <div>
-
           <div key={inf.id} className={styles.card}>
             <InfluencerRelationCard {...inf} />
           </div>

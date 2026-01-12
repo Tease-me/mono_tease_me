@@ -538,7 +538,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
                     adultMode={adultModeSwitch}
                     onAdultModeChange={handleAdultModeChange}
                 />
-                <div className={styles["chat-header-info"]}>
+                {/* <div className={styles["chat-header-info"]}>
                     <ProfileMedia imageSrc={influencer?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
                     <div className={styles["chat-user-name"]}>
                         <h3><a href={`/${influencer.username}`}>{influencer && truncateLastName(influencer?.name)}</a></h3>
@@ -555,7 +555,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
                             />
                         </div>
                     )}
-                </div>
+                </div> */}
             </div>
             {!showSubscriptionPage ? <>
                 <div
