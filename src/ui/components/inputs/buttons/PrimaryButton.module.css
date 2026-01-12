@@ -72,6 +72,7 @@
     gap: 0.5em;
     position: relative;
     overflow: hidden;
+    min-height: 3.25rem;
 }
 
 .button-cta-inner {
