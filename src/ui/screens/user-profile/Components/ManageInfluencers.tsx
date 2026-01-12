@@ -84,7 +84,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
   return (
     <div className={styles.list}>
 
-      {items.map((inf, index) => (
+      {items.map((inf) => (
         <div>
 
           <div key={inf.id} className={styles.card}>
