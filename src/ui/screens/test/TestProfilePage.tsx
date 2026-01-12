@@ -6,7 +6,7 @@ import ChatScreenContent from "../messaging/components/ChatScreenContent";
 import UserMenu from "../user-profile/UserMenu";
 import UserProfile from "../user-profile/Components/UserProfile";
 import PaymentDetails from "../user-profile/Components/PaymentDetails";
-import MyInfluencers from "../user-profile/Components/MyInfluencers";
+import ManageInfluencers from "../user-profile/Components/ManageInfluencers";
 import InfluencerRelation from "../user-profile/Components/InfluencerRelation";
 
 type SidebarPageId = string;
@@ -22,7 +22,7 @@ const sidebarPages: SidebarPage[] = [
   { id: "home", label: "User Menu", render: ({ goTo }) => <UserMenu goTo={goTo} /> },
   { id: "profile", label: "User Profile", render: ({ goTo }) => <UserProfile goTo={goTo} /> },
   { id: "payment", label: "Payment Details", render: ({ goTo }) => <PaymentDetails goTo={goTo} /> },
-  { id: "influencers", label: "Influencers", render: ({ goTo, navPayload, goBack }) => <MyInfluencers goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
+  { id: "influencers", label: "Influencers", render: ({ goTo, navPayload, goBack }) => <ManageInfluencers goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
   { id: "influencer_profile", label: "Influencer Profile", render: ({ goTo, navPayload, goBack }) => <InfluencerRelation goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
 ];
 

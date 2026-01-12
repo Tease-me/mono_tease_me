@@ -7,10 +7,7 @@ import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { BalanceServices } from "@/api/services/BalanceServices";
 import { apiClient } from "@/api/apis";
 
-import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/css";
-import "swiper/css/navigation"
-import styles from "./MyInfluencers.module.css"
+import styles from "./ManageInfluencers.module.css"
 
 const relationshipService = RelationshipServices(apiClient);
 
@@ -85,22 +82,18 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
 
 
   return (
-    <div>
-      <Swiper
-        spaceBetween={10}
-        slidesPerView={1}
-        centeredSlides
-        className={styles.swiper}
-      >
-        {items.map((inf, index) => (
-          <SwiperSlide key={index} className={styles.slide}>
-            <div>
-              <InfluencerRelationCard {...inf} />
-              <NormalButton text="View Profile" onClick={() => handleViewProfile(inf.id)} className={styles.viewProfile} />
-            </div>
-          </SwiperSlide>
-        ))}
-      </Swiper>
+    <div className={styles.list}>
+
+      {items.map((inf, index) => (
+        <div>
+
+          <div key={inf.id} className={styles.card}>
+            <InfluencerRelationCard {...inf} />
+          </div>
+          <NormalButton text="View Profile" onClick={() => handleViewProfile(inf.id)} className={styles.viewProfile} />
+        </div>
+      ))}
+
       <div className={styles.error}>{error}</div>
     </div>
   );

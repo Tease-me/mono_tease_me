@@ -8,7 +8,7 @@ import { BalanceServices } from "@/api/services/BalanceServices";
 import { apiClient } from "@/api/apis";
 
 
-import styles from "./MyInfluencers.module.css"
+import styles from "./ManageInfluencers.module.css"
 
 const relationshipService = RelationshipServices(apiClient);
 

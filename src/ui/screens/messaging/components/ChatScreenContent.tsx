@@ -10,7 +10,6 @@ import { CallMessageGroup } from './MessageBubble';
 import MessagesList, { DisplayMessage } from './MessageList';
 import ChatInputArea from './ChatInputArea';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
-import ChatTopNav from '@/ui/components/nav/ChatTopNav';
 import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
 import { Message, MessagePagination } from '@/data/models/MessageDataModel';
 import { storage } from '@/utils/storage';
@@ -79,7 +78,7 @@ interface ChatScreenContentProps {
     onMenuClick?: () => void;
 }
 
-const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed, menuItems, onMenuClick }) => {
+const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }) => {
     const [influencer, setInfluencer] = useState<InfluencerDataModel>();
     const [chatId, setChatId] = useState<string | undefined>();
 
@@ -475,10 +474,11 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onBackPressed
         startConversation();
         setOpenWelcomeCallModal(true);
     }
-
+    {/*}
     const handleOnBackClick = () => {
         onBackPressed?.();
     };
+    */}
 
     const handleScroll = async () => {
         const container = containerRef.current;

@@ -42,29 +42,40 @@ const InfluencerRelationCard: React.FC<InfleuncerRelationCardProps> = ({
 
   return (
     <div className={styles.card}>
-      <div className={styles.balanceBadge}>
-        ${balance}
+      <div className={styles.upper}>
+        <div className={styles.balanceBadge}>
+          ${balance}
+        </div>
+        <h3>{name}</h3>
+        <p>Last Connected: <span className={styles.lastConnected} >{lastConnected} </span></p>
+        <div className={styles.avatarContainer}>
+          <ProfileMedia size={'xlarge'} imageSrc={image} videoSrc={video} active />
+        </div>
+        <div className={styles.metricsBridge}>
+          <div className={styles.metricsArea}>
+            {metrics.map(({ key, label, value, icon }) => (
+              <MetricRing key={key} icon={icon} label={label} value={value} />
+            )
+            )}
+          </div>
+        </div>
       </div>
-      <h3>{name}</h3>
-      <p>Last Connected: <span className={styles.lastConnected} >{lastConnected} </span></p>
-      <div className={styles.avatarContainer}>
-        <ProfileMedia size={'xlarge'} imageSrc={image} videoSrc={video} active  />
+      <div className={styles.lower}>
+        <div className={styles.stat}>
+          <span className={styles.label}>Love</span>
+          <div className={styles.valueRow}>
+            <span className={styles.value}>{loveScore}</span>
+          </div>
+        </div>
+        <div className={styles.stat}>
+          <span className={styles.label}>Status</span>
+          <div className={styles.valueRow}>
+            <span className={styles.stage}>Talking</span>
+          </div>
+        </div>
       </div>
 
-      <div className={styles.metricsArea}>
-        {metrics.map(({ key, label, value, icon }) => (
-          <MetricRing key={key} icon={icon} label={label} value={value} />
-        )
-        )}
-      </div>
-      <div className={styles.loveScoreArea}>
-      <div className={styles.loveScoreLabel}>Love </div>
-      <div className={styles.loveScoreValue}>{loveScore}</div>
-      <div className={styles.statusArea}>
-        <span className={styles.statusLabel}>Status: </span>
-        <span className={`${styles.statusValue} ${styles[status]}`}>{status}</span>
-      </div>
-      </div>
+
     </div>
   );
 }
