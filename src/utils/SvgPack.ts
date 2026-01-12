@@ -36,6 +36,12 @@ export default {
     PlusBox: lazy(() => import("@/assets/svg/PlusBox.svg?react")),
     Menu: lazy(() => import("@/assets/svg/Menu.svg?react")),
     Cross: lazy(() => import("@/assets/svg/Cross.svg?react")),
+
+    //Influencer Relation Metric
+    Trust: lazy(() => import("@/assets/svg/Trust.svg?react")),
+    Shield: lazy(() => import("@/assets/svg/Shield.svg?react")),
+    KissGray: lazy(() => import("@/assets/svg/KissGray.svg?react")),
+    Angles: lazy(() => import("@/assets/svg/Angles.svg?react")),
     
 
     // Social Media Icons
