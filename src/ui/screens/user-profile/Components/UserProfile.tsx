@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import styles from "./UserProfile.module.css";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import TextInput from "@/ui/components/inputs/text-inputs/TextInput";

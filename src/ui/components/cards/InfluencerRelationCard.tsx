@@ -70,7 +70,7 @@ const InfluencerRelationCard: React.FC<InfleuncerRelationCardProps> = ({
         <div className={styles.stat}>
           <span className={styles.label}>Status</span>
           <div className={styles.valueRow}>
-            <span className={styles.stage}>Talking</span>
+            <span className={styles.stage}>{status}</span>
           </div>
         </div>
       </div>

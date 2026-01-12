@@ -6,7 +6,7 @@ import { Message } from "@/data/models/MessageDataModel";
 
 export type DisplayMessage = Message | CallMessageGroup;
 
-export const isCallGroup = (message: DisplayMessage): message is CallMessageGroup => {
+const isCallGroup = (message: DisplayMessage): message is CallMessageGroup => {
   return (message as CallMessageGroup).type === "call-group";
 };
 

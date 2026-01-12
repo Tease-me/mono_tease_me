@@ -29,6 +29,7 @@ const sidebarPages: SidebarPage[] = [
 const TestProfilePage = () => {
   const [showSidebar, setShowSidebar] = useState(false);
   const [currentPage, setCurrentPage] = useState<SidebarPageId>("home");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [history, setHistory] = useState<SidebarPageId[]>([]);
   const [navPayload, setNavPayload] = useState<NavPayload>({});
 
@@ -58,7 +59,7 @@ const TestProfilePage = () => {
       title={active.label}
     >
       <ChatScreenContent id="anna"
-       onMenuClick={() => setShowSidebar((v) => !v)}  />
+        onMenuClick={() => setShowSidebar((v) => !v)} />
     </SlideDrawerLayout>
   );
 };

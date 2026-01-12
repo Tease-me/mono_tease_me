@@ -10,8 +10,9 @@ type PaymentDetailsProps = { goTo: (id: string) => void };
 const PaymentDetails = ({ goTo }: PaymentDetailsProps) => {
     const handleVisaBtn = () => {
         // Handle Visa button click
+        goTo("visa-details");
     };
-    
+
     const handleMasterCardBtn = () => {
         // Handle MasterCard button click
     };
@@ -29,11 +30,11 @@ const PaymentDetails = ({ goTo }: PaymentDetailsProps) => {
             </div>
             <h3 className={styles.sectionTitle}>Saved Payment Method</h3>
             <div className={styles.menu}>
-                <NavigationRow  title="Visa" subtitle="Default" onClick={handleVisaBtn} />
-                <NavigationRow  title="MasterCard" subtitle="Backup Method" onClick={handleMasterCardBtn} />
+                <NavigationRow title="Visa" subtitle="Default" onClick={handleVisaBtn} />
+                <NavigationRow title="MasterCard" subtitle="Backup Method" onClick={handleMasterCardBtn} />
             </div>
             <div className={styles.addNew}>
-                <IconButton leftIcon={<SvgPack.PlusBox />} text="Add New Payment Method" onClick={handleAddNew} color='pink-glass'     className={styles.addButton} />
+                <IconButton leftIcon={<SvgPack.PlusBox />} text="Add New Payment Method" onClick={handleAddNew} color='pink-glass' className={styles.addButton} />
             </div>
         </div>
     );
