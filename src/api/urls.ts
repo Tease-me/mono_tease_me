@@ -18,6 +18,7 @@ export const Endpoints = {
     register: "/pre-influencers/register",
     refreshToken: "/pre-influencers/refresh",
     forgotPassword: "/pre-influencers/forgot-password",
+    resendSurvey: "/pre-influencers/resend-survey",
     me: "/pre-influencers/me",
   },
   billing: {
@@ -79,6 +80,13 @@ export const Endpoints = {
       `admin/relationships?user_id=${user_id}`,
 
     patchRelationship: `admin/relationships`,
+  },
+  subscriptions: {
+    start: "/subscriptions/start",
+    capture: "/subscriptions/paypal/capture",
+    list: "/subscriptions/me",
+    influencer: (influencerId: string) => `/subscriptions/${influencerId}`,
+    influencerActivate: (influencerId: string) => `/subscriptions/${influencerId}/18`,
   },
   ws: {
     chat: "/chat/ws",

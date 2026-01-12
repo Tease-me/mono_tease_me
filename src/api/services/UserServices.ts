@@ -3,7 +3,7 @@ import { UserDetailResponse } from "../models/user";
 import { AxiosInstance } from "axios";
 
 export const UserServices = (apiClient: AxiosInstance) => ({
-    getUserDerails: async (): Promise<UserDetailResponse> => {
+    getUserDetails: async (): Promise<UserDetailResponse> => {
         try {
             const response = await apiClient.get(
                 Endpoints.auth.me,

@@ -30,6 +30,26 @@ const ButtonsTestPage: React.FC<ButtonsTestPageProps> = ({ }) => {
                     text='Welcome to TeaseMe'
                 />
             </div>
+            <h2>CTA Purple</h2>
+            <div className={styles["grid-test"]}>
+                <PrimaryButton
+                    variant='purple'
+                    leftIcon={<SvgPack.Call />}
+                    text='Welcome to TeaseMe'
+                />
+                <PrimaryButton
+                    variant='purple'
+                    leftIcon={<SvgPack.Call />}
+                    disabled
+                    text='Welcome to TeaseMe'
+                />
+                <PrimaryButton
+                    variant='purple'
+                    leftIcon={<SvgPack.Call />}
+                    selected
+                    text='Welcome to TeaseMe'
+                />
+            </div>
             <h2>Normal</h2>
             <h3>Normal Pill</h3>
             <div className={styles["grid-test"]}>

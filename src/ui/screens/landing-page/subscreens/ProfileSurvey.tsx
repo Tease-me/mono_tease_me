@@ -1,4 +1,4 @@
-import { RegisterResponse } from "@/api/models/auth";
+import { RegisterResponse, ResendSurveyResponse } from "@/api/models/auth";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import React, { useState } from "react";
@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 import { apiClient } from "@/api/apis";
 import { AuthServicesPreInfluencer } from "@/api/services/AuthServicesPreInfluencer";
+import ResendEmailModal from "@/ui/screens/landing-page/components/ResendEmailModal";
 import SvgPack from "@/utils/SvgPack";
 import "./ProfileSurvey.css";
 
@@ -18,6 +19,10 @@ const ProfileSurvey: React.FC = () => {
   const [location, setLocation] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
+  const [showResendDialog, setShowResendDialog] = useState(false);
+  const [resendEmail, setResendEmail] = useState("");
+  const [resendError, setResendError] = useState("");
+  const [resendSuccess, setResendSuccess] = useState("");
 
   const [errors, setErrors] = useState<{
     name?: string;
@@ -88,6 +93,36 @@ const ProfileSurvey: React.FC = () => {
       setErrors({
         general: "Unexpected error, please try again later",
       });
+    }
+  };
+
+  const handleResendEmail = async () => {
+    setResendError("");
+    setResendSuccess("");
+    const identifier = resendEmail.trim();
+    if (!identifier) {
+      setResendError("Email or username is required to resend");
+      return;
+    }
+
+    try {
+      const response: ResendSurveyResponse =
+        await PreInfluencerAPI.resendSurvey(identifier);
+
+      if (response.ok) {
+        setErrors((prev) => ({ ...prev, general: undefined }));
+        setResendSuccess(
+          response.message || "We sent a new email. Please check your inbox."
+        );
+        return;
+      }
+
+      setResendError(
+        response.message || "Unable to resend email. Please try again later."
+      );
+    } catch (err) {
+      console.error(err);
+      setResendError("Unexpected error, please try again later");
     }
   };
 
@@ -178,9 +213,32 @@ const ProfileSurvey: React.FC = () => {
               rightIcon={<SvgPack.ArrowRight />}
             />
           </div>
+          <div className="ps-secondary-action">
+            <button
+              className="ps-secondary-link"
+              type="button"
+              onClick={() => {
+                setResendEmail(email);
+                setResendError("");
+                setResendSuccess("");
+                setShowResendDialog(true);
+              }}
+            >
+              Already started? Resend email
+            </button>
+          </div>
           <div className="spacer-profile"></div>
         </div>
       </div>
+      <ResendEmailModal
+        isOpen={showResendDialog}
+        email={resendEmail}
+        error={resendError}
+        success={resendSuccess}
+        onEmailChange={setResendEmail}
+        onClose={() => setShowResendDialog(false)}
+        onSubmit={handleResendEmail}
+      />
     </div>
   );
 };

@@ -1,6 +1,6 @@
 export interface UserDataModel {
     id: number;
-    name?: string;
+    full_name?: string;
     username?: string;
     email: string;
     imgUrl?: string;

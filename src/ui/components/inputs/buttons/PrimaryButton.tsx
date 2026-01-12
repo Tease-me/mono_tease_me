@@ -7,9 +7,18 @@ export interface PrimaryButtonProps extends React.HTMLAttributes<HTMLDivElement>
     text?: string;
     disabled?: boolean;
     selected?: boolean;
+    variant?: "pink" | "purple";
 }
 
-const PrimaryButton: React.FC<PrimaryButtonProps> = ({ leftIcon, rightIcon, text, disabled, selected, ...rest }) => {
+const PrimaryButton: React.FC<PrimaryButtonProps> = ({
+    leftIcon,
+    rightIcon,
+    text,
+    disabled,
+    selected,
+    variant = "pink",
+    ...rest
+}) => {
     const [hovered, setHovered] = useState(false);
     const [pressed, setPressed] = useState(false);
 
@@ -41,7 +50,7 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({ leftIcon, rightIcon, text
             className={clsx(
                 styles["pill-button"],
                 styles["button-cta-outer"],
-                !disabled && styles["pink"],
+                !disabled && styles[variant],
                 disabled && styles["disabled"],
                 (!disabled && hovered) && styles["hover"],
                 (!disabled && pressed) && styles["pressed"],

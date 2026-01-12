@@ -42,10 +42,10 @@ const DashboardContent: React.FC<DashboardContentProps> = ({ }) => {
 
             <div className={styles["list-section"]}>
                 <DashboardListCard title='Top Influencer Earners'>
-                    {users?.map((user) => <DashboardListCardItem key={user.id} title={user.name ?? ""} cost='$10' imgUrl={user.imgUrl} />)}
+                    {users?.map((user) => <DashboardListCardItem key={user.id} title={user.full_name ?? ""} cost='$10' imgUrl={user.imgUrl} />)}
                 </DashboardListCard>
                 <DashboardListCard title='Top Users Spend'>
-                    {users?.map((user) => <DashboardListCardItem key={user.id} title={user.name ?? ""} cost='$10' imgUrl={user.imgUrl} />)}
+                    {users?.map((user) => <DashboardListCardItem key={user.id} title={user.full_name ?? ""} cost='$10' imgUrl={user.imgUrl} />)}
                 </DashboardListCard>
             </div>
         </div>

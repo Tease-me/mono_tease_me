@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import BackgroundGradient from "@/ui/templates/BackgroundGradient";
 import HomeScreenContent from "./components/HomeScreenContent";
-import useMediaQuery from "@/hooks/useMediaQuery";
 import TwoPaneLayout from "@/ui/templates/TwoPaneLayout";
 import ChatScreenContent from "../messaging/components/ChatScreenContent";
+import useIsDesktop from "@/utils/hooks/useIsDesktop";
 // import WelcomeCallModal from "@/ui/components/modals/welcome-call/WelcomeCallModal";
 // import { AuthContext } from "@/context/AuthContext";
 
@@ -17,7 +17,7 @@ const  HomeScreen = () => {
 
   // const { user } = useContext(AuthContext);
 
-  const isDesktop = useMediaQuery('(min-width: 1024px)');
+  const isDesktop = useIsDesktop();
   // useEffect(() => {
   //   setIsOpen(user?.first_time_login ?? false)
   // }, [user])

@@ -3,8 +3,7 @@ export const LocalStorageKeys = {
     RefreshToken: 'refresh_token',
     AuthUser: 'auth_user',
     VisitedWelcome: 'visited_welcome',
-    ActiveSidebarItem: 'active_sidebar_item',
-    AdultMode: 'adult_mode'
+    ActiveSidebarItem: 'active_sidebar_item'
 } as const;
 
 export type LocalStorageKeys = typeof LocalStorageKeys[keyof typeof LocalStorageKeys];

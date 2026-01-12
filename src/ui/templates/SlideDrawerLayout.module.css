@@ -1,0 +1,114 @@
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar {
+  background-color: rgba(33, 33, 33, 1);
+  border-right: 1px solid rgba(66, 66, 66, 1);
+  padding-left: 24px;
+  padding-right: 24px;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  transition: width 520ms ease, transform 520ms ease;
+
+}
+
+.sidebar.closed {
+  width: 200px;
+}
+
+
+.backIconButton {
+  background: none;
+  border: none;
+  padding: 8px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title {
+color: var(--Others-White, #FFF);
+font-family: "Abril Fatface";
+font-size: 24px;
+font-style: normal;
+font-weight: 400;
+line-height: 120%; /* 28.8px */
+}
+
+.headerDivider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0 16px;
+}
+
+
+
+.menuButton {
+  position: static;
+  margin: 0;
+  flex: 0 0 auto;
+  display: inline-flex;
+  justify-content: center;
+}
+
+.content {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+@media (max-width: 1024px) {
+  .container {
+    height: 100%;
+    display: block;
+  }
+
+  .sidebar {
+    display: block;
+    border-right: none;
+  }
+}
+
+
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    transform: translateX(-100%);
+    z-index: 20;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+}
