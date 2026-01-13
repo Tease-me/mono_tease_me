@@ -3,6 +3,7 @@ export interface InfluencerResponse {
   voice_id: string;
   prompt_template: string;
   daily_scripts: string[];
+  custom_adult_prompt?: string;
   id: string;
   influencer_agent_id_third_part: string;
   bio_json: string;

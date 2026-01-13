@@ -21,7 +21,7 @@ import { InfluencerRepo } from '@/data/repositories/InfluencerRepo';
 import logger from '@/utils/logger';
 import CallModal from '@/ui/components/modals/call-modal/CallModal';
 import useCallWebRTC from '@/hooks/useCallWebRTC';
-// import IconButton from '@/ui/components/inputs/buttons/IconButton';
+import IconButton from '@/ui/components/inputs/buttons/IconButton';
 import { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownMenu';
 import { AdultChatRepo } from '@/data/repositories/AdultChatRepo';
 import { SubscriptionsServices } from '@/api/services/SubscriptionsServices';
@@ -98,7 +98,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
     const [hasMore, setHasMore] = useState<boolean>(true);
     const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
-    // const [isClearingHistory, setIsClearingHistory] = useState<boolean>(false);
+    const [isClearingHistory, setIsClearingHistory] = useState<boolean>(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const ws = useRef<WebSocket | null>(null);
@@ -114,7 +114,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
     const { user_id } = useParams();
 
-    // const isSuperUser = user?.id === 1;
+    const isSuperUser = user?.id === 1;
 
     const pageSize = 20;
 
@@ -503,24 +503,24 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const handleChangeInfluencerClicked = async () => {
         setNeedsSelection?.(true)
     };
-    // const handleClearHistory = async () => {
-    //     if (!chatId || !isSuperUser) return;
-    //     const confirmed = window.confirm("Delete this chat history? This cannot be undone.");
-    //     if (!confirmed) return;
+    const handleClearHistory = async () => {
+        if (!chatId || !isSuperUser) return;
+        const confirmed = window.confirm("Delete this chat history? This cannot be undone.");
+        if (!confirmed) return;
 
-    //     try {
-    //         setIsClearingHistory(true);
-    //         await chatRepository.clearChatHistory(chatId);
-    //         setMessages([]);
-    //         setHasMore(false);
-    //         setPageNumber(1);
-    //         setTyping(false);
-    //     } catch (err) {
-    //         logger.error("Error clearing chat history", err);
-    //     } finally {
-    //         setIsClearingHistory(false);
-    //     }
-    // };
+        try {
+            setIsClearingHistory(true);
+            await chatRepository.clearChatHistory(chatId);
+            setMessages([]);
+            setHasMore(false);
+            setPageNumber(1);
+            setTyping(false);
+        } catch (err) {
+            logger.error("Error clearing chat history", err);
+        } finally {
+            setIsClearingHistory(false);
+        }
+    };
 
     if (!influencer) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
 
@@ -547,7 +547,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                             </div>
                         </div>
                         {showChangeInfluencerButton && <div className={styles["chat-header-actions"]}>
-                            <div>
+                            <div className={styles["admin-actions"]}>
                                 <PrimaryButton
                                     color='red'
                                     rightIcon={<SvgPack.ArrowRight />}
@@ -556,18 +556,18 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                                     onClick={handleChangeInfluencerClicked}
                                 />
                             </div>
+                            {isSuperUser && chatId && (
+                                <div className={styles["admin-actions"]}>
+                                    <IconButton
+                                        onClick={handleClearHistory}
+                                        color='red'
+                                        text={isClearingHistory ? "Clearing..." : "Clear history"}
+                                        className={styles["clear-history-button"]}
+                                        disabled={isClearingHistory}
+                                    />
+                                </div>
+                            )}
                         </div>}
-                        {/* {isSuperUser && chatId && (
-                        <div className={styles["admin-actions"]}>
-                            <IconButton
-                                onClick={handleClearHistory}
-                                color='red'
-                                text={isClearingHistory ? "Clearing..." : "Clear history"}
-                                className={styles["clear-history-button"]}
-                                disabled={isClearingHistory}
-                            />
-                        </div>
-                    )} */}
                     </div>
                     <div
                         className={clsx(styles["chat-messages-container"], !messages && styles["loading"])}

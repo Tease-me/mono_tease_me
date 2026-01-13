@@ -40,6 +40,8 @@
 }
 
 .chat-header-actions {
+    flex-direction: row;
+    display: flex;
     align-content: center;
     justify-content: center;
 }
