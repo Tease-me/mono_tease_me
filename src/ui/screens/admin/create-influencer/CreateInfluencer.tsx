@@ -27,6 +27,7 @@ type InfluencerFormState = {
   notes: string;
   voice_id: string;
   prompt_template: string;
+  custom_adult_prompt: string;
   influencer_agent_id_third_part: string;
   bio_json: PersonaProfile;
   fp_ref_id?: string | null;
@@ -329,6 +330,7 @@ const createDefaultFormState = (): InfluencerFormState => ({
   notes: "",
   voice_id: "",
   prompt_template: "",
+  custom_adult_prompt: "",
   influencer_agent_id_third_part: "",
   bio_json: createDefaultPersonaProfile(),
 });
@@ -353,6 +355,7 @@ function createFormStateFromInfluencer(
     notes: "",
     voice_id: influencer.voice_id ?? "",
     prompt_template: influencer.prompt_template ?? "",
+    custom_adult_prompt: influencer.custom_adult_prompt ?? "",
     influencer_agent_id_third_part:
       influencer.influencer_agent_id_third_part ?? "",
     bio_json: extractPersonaProfile(influencer.bio_json ?? ""),
@@ -465,27 +468,27 @@ const CreateInfluencer: React.FC = () => {
 
   const handleFieldChange =
     (field: keyof InfluencerFormState) =>
-    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const { value } = event.target;
-      setFormState((prev) => ({ ...prev, [field]: value }));
-    };
+      (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { value } = event.target;
+        setFormState((prev) => ({ ...prev, [field]: value }));
+      };
 
   const handlePersonaListKeyDown =
     (field: "likes" | "dislikes") =>
-    (event: React.KeyboardEvent<HTMLInputElement>) => {
-      if (event.key !== "Enter") return;
-      event.preventDefault();
-      const value = personaListDrafts[field].trim();
-      if (!value) return;
-      setFormState((prev) => ({
-        ...prev,
-        bio_json: {
-          ...prev.bio_json,
-          [field]: [...prev.bio_json[field], value],
-        },
-      }));
-      setPersonaListDrafts((prev) => ({ ...prev, [field]: "" }));
-    };
+      (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        const value = personaListDrafts[field].trim();
+        if (!value) return;
+        setFormState((prev) => ({
+          ...prev,
+          bio_json: {
+            ...prev.bio_json,
+            [field]: [...prev.bio_json[field], value],
+          },
+        }));
+        setPersonaListDrafts((prev) => ({ ...prev, [field]: "" }));
+      };
 
   const handlePersonaListDraftChange =
     (field: "likes" | "dislikes") => (event: ChangeEvent<HTMLInputElement>) => {
@@ -510,47 +513,47 @@ const CreateInfluencer: React.FC = () => {
 
   const handlePersonaFieldChange =
     (field: keyof Omit<PersonaProfile, "likes" | "dislikes" | "stages">) =>
-    (
-      event: ChangeEvent<
-        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-      >
-    ) => {
-      const { value } = event.target;
-      setFormState((prev) => {
-        let nextRules = prev.bio_json.mbti_rules;
-        if (field === "mbti_architype") {
-          const personality = mbtiPersonalities.find((p) => p.code === value);
-          if (personality) {
-            nextRules = personality.rules.join("\n");
+      (
+        event: ChangeEvent<
+          HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+        >
+      ) => {
+        const { value } = event.target;
+        setFormState((prev) => {
+          let nextRules = prev.bio_json.mbti_rules;
+          if (field === "mbti_architype") {
+            const personality = mbtiPersonalities.find((p) => p.code === value);
+            if (personality) {
+              nextRules = personality.rules.join("\n");
+            }
           }
-        }
-        return {
-          ...prev,
-          bio_json: {
-            ...prev.bio_json,
-            [field]: value,
-            mbti_rules:
-              field === "mbti_architype" ? nextRules : prev.bio_json.mbti_rules,
-          },
-        };
-      });
-    };
+          return {
+            ...prev,
+            bio_json: {
+              ...prev.bio_json,
+              [field]: value,
+              mbti_rules:
+                field === "mbti_architype" ? nextRules : prev.bio_json.mbti_rules,
+            },
+          };
+        });
+      };
 
   const handlePersonaStageChange =
     (stage: keyof PersonaStages) =>
-    (event: ChangeEvent<HTMLTextAreaElement>) => {
-      const { value } = event.target;
-      setFormState((prev) => ({
-        ...prev,
-        bio_json: {
-          ...prev.bio_json,
-          stages: {
-            ...prev.bio_json.stages,
-            [stage]: value,
+      (event: ChangeEvent<HTMLTextAreaElement>) => {
+        const { value } = event.target;
+        setFormState((prev) => ({
+          ...prev,
+          bio_json: {
+            ...prev.bio_json,
+            stages: {
+              ...prev.bio_json.stages,
+              [stage]: value,
+            },
           },
-        },
-      }));
-    };
+        }));
+      };
 
   useEffect(() => {
     if (saveState === "success" || saveState === "error") {
@@ -594,6 +597,8 @@ const CreateInfluencer: React.FC = () => {
       earnings: existing?.earnings ?? 0,
       isSelected: false,
       voice_id: formState.voice_id || existing?.voice_id || "",
+      custom_adult_prompt:
+        formState.custom_adult_prompt || existing?.custom_adult_prompt || "",
       prompt_template:
         formState.prompt_template || existing?.prompt_template || "",
       influencer_agent_id_third_part: thirdPartyAgentId,
@@ -607,16 +612,19 @@ const CreateInfluencer: React.FC = () => {
       const serverInfluencer = isNewInfluencer
         ? await influencerRepo.createInfluencer(base)
         : await influencerRepo.patchInfluencer(
-            base,
-            base.prompt_template,
-            existing?.daily_scripts || [],
-            base.influencer_agent_id_third_part,
-            base.bio_json,
-            base.voice_id
-          );
+          base,
+          base.prompt_template,
+          existing?.daily_scripts || [],
+          base.influencer_agent_id_third_part,
+          base.bio_json,
+          base.voice_id,
+          base.custom_adult_prompt
+        );
       const mergedInfluencer = {
         ...base,
         ...serverInfluencer,
+        custom_adult_prompt:
+          serverInfluencer.custom_adult_prompt ?? base.custom_adult_prompt,
       };
       setInfluencers((prev) => {
         const index = prev.findIndex(
@@ -792,17 +800,15 @@ const CreateInfluencer: React.FC = () => {
                   const isActive = selectedId === influencer.id;
                   const { firstName, lastName } = splitName(influencer.name);
                   const initials =
-                    `${firstName?.charAt(0) ?? ""}${
-                      lastName?.charAt(0) ?? ""
-                    }`.trim() || influencer.username.charAt(0).toUpperCase();
+                    `${firstName?.charAt(0) ?? ""}${lastName?.charAt(0) ?? ""
+                      }`.trim() || influencer.username.charAt(0).toUpperCase();
                   const avatarSrc = resolveAvatarSrc(influencer.img);
                   return (
                     <button
                       type="button"
                       key={influencer.id}
-                      className={`${styles["influencer-item"]} ${
-                        isActive ? styles["influencer-item--active"] : ""
-                      }`}
+                      className={`${styles["influencer-item"]} ${isActive ? styles["influencer-item--active"] : ""
+                        }`}
                       onClick={() => setSelectedId(influencer.id)}
                     >
                       <div className={styles["influencer-item__avatar"]}>
@@ -947,6 +953,23 @@ const CreateInfluencer: React.FC = () => {
                     placeholder="agent_abc"
                   />
                 </div>
+              </div>
+
+              <div className={styles["section-heading"]}>
+                <h3>Prompt overrides</h3>
+                <p>Customize prompt text used for adult content workflows.</p>
+              </div>
+              <div className={styles["field"]}>
+                <label htmlFor="influencer-custom-adult-prompt">
+                  Custom adult prompt
+                </label>
+                <textarea
+                  id="influencer-custom-adult-prompt"
+                  value={formState.custom_adult_prompt}
+                  onChange={handleFieldChange("custom_adult_prompt")}
+                  placeholder="Provide a custom adult prompt override."
+                  rows={6}
+                />
               </div>
 
               <div
@@ -1116,7 +1139,7 @@ const CreateInfluencer: React.FC = () => {
                     id="persona-stage-copy"
                     value={
                       formState.bio_json.stages[
-                        formState.bio_json.stages_focus as keyof PersonaStages
+                      formState.bio_json.stages_focus as keyof PersonaStages
                       ] || ""
                     }
                     onChange={handlePersonaStageChange(
@@ -1124,7 +1147,7 @@ const CreateInfluencer: React.FC = () => {
                     )}
                     placeholder={
                       STAGE_PLACEHOLDERS[
-                        formState.bio_json.stages_focus as keyof PersonaStages
+                      formState.bio_json.stages_focus as keyof PersonaStages
                       ]
                     }
                     rows={3}
@@ -1141,13 +1164,11 @@ const CreateInfluencer: React.FC = () => {
               <div className={styles["form-footer"]}>
                 {saveState !== "idle" && (
                   <span
-                    className={`${styles["save-status"]} ${
-                      saveState === "success"
+                    className={`${styles["save-status"]} ${saveState === "success"
                         ? styles["save-status--success"]
                         : ""
-                    } ${
-                      saveState === "error" ? styles["save-status--error"] : ""
-                    }`}
+                      } ${saveState === "error" ? styles["save-status--error"] : ""
+                      }`}
                   >
                     {saveState === "success" && "Changes saved"}
                     {saveState === "error" &&
@@ -1215,11 +1236,10 @@ const CreateInfluencer: React.FC = () => {
                     >
                       <button
                         type="button"
-                        className={`${styles["upload-modal__toggle"]} ${
-                          isExpanded
+                        className={`${styles["upload-modal__toggle"]} ${isExpanded
                             ? styles["upload-modal__toggle--expanded"]
                             : ""
-                        }`}
+                          }`}
                         onClick={() => toggleRecordExpansion(index)}
                         aria-expanded={isExpanded}
                       >

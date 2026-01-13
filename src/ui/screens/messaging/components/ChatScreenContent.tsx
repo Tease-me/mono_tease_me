@@ -22,12 +22,13 @@ import logger from '@/utils/logger';
 import CallModal from '@/ui/components/modals/call-modal/CallModal';
 import useCallWebRTC from '@/hooks/useCallWebRTC';
 import IconButton from '@/ui/components/inputs/buttons/IconButton';
-import { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownMenu';
+import { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownMenu'
 import { AdultChatRepo } from '@/data/repositories/AdultChatRepo';
 import { SubscriptionsServices } from '@/api/services/SubscriptionsServices';
 import { apiClient } from '@/api/apis';
 import AdultModePage from '../../adult-mode/AdultModePage';
 import UserNav from '@/ui/components/nav/UserNav';
+import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 
 const isCallChannel = (message: Message) => {
     if (!message.channel) return false;
@@ -76,9 +77,10 @@ interface ChatScreenContentProps {
     menuItems?: DropDownMenuDataModel[];
     setNeedsSelection?: (needsSelection: boolean) => void;
     onMenuClick?: () => void;
+    showChangeInfluencerButton?: boolean;
 }
 
-const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }) => {
+const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, setNeedsSelection, showChangeInfluencerButton = false }) => {
     const [influencer, setInfluencer] = useState<InfluencerDataModel>();
     const [chatId, setChatId] = useState<string | undefined>();
 
@@ -374,16 +376,25 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
         };
     }, []);
 
-    async function sendAndPlay(audioBlob: Blob) {
+    async function sendAndPlay(audioBlob: Blob, sentMessageId?: number) {
         if (!influencer) return;
         if (!chatId) return;
 
-        const { audio_url } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
+        const { audio_url, transcript, ai_text } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
         setTyping(false);
         setMessages((prev) => {
             if (!prev) return prev;
+            const nextMessages = prev.map((message) => {
+                if (!sentMessageId || message.id !== sentMessageId) {
+                    return message;
+                }
+                return {
+                    ...message,
+                    transcript: isSuperUser ? (transcript ?? message.transcript) : message.transcript,
+                };
+            });
             return [
-                ...prev,
+                ...nextMessages,
                 {
                     id: Date.now(),
                     sender: "received",
@@ -401,6 +412,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
                             },
                         ]
                         : [],
+                    transcript: isSuperUser ? ai_text : undefined,
                 },
             ];
         });
@@ -441,13 +453,14 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
             setInputText("");
         } else if (audioToSend) {
             setTyping(true);
-            sendAndPlay(audioToSend);
+            const sentMessageId = Date.now();
+            sendAndPlay(audioToSend, sentMessageId);
             setMessages(prev => {
                 if (!prev) return
                 return [
                     ...prev,
                     {
-                        id: Date.now(),
+                        id: sentMessageId,
                         sender: 'sent',
                         channel: "chat",
                         time: new Date().toLocaleTimeString([], {
@@ -496,7 +509,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
             setIsLoadingMore(false);
         }
     };
-
+    const handleChangeInfluencerClicked = async () => {
+        setNeedsSelection?.(true)
+    };
     const handleClearHistory = async () => {
         if (!chatId || !isSuperUser) return;
         const confirmed = window.confirm("Delete this chat history? This cannot be undone.");
@@ -504,7 +519,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
 
         try {
             setIsClearingHistory(true);
-            await chatRepository.clearChatHistory(chatId);
+            await chatRepository.clearChatHistory(chatId, adultMode);
             setMessages([]);
             setHasMore(false);
             setPageNumber(1);
@@ -519,95 +534,100 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
     if (!influencer) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
 
     return (
-        <div className={styles["chat-screen-content"]}>
-            <div className={styles["chat-header"]}>
-                {/*
-                <ChatTopNav
-                    onBack={handleOnBackClick}
-                    onCallClick={onCall}
-                    menuItems={menuItems}
-                    adultMode={adultModeSwitch}
-                    onAdultModeChange={handleAdultModeChange}
-                />
-                */}
+        <BackgroundGradient>
+            <div className={styles["chat-screen-content"]}>
+                <div className={styles["chat-header"]}>
+                    <UserNav
+                        influencerName={influencer?.name}
+                        onMenuClick={onMenuClick}
+                        onCallClick={onCall}
+                        adultMode={adultModeSwitch}
+                        onAdultModeChange={handleAdultModeChange}
+                    />
+                </div>
 
-                <UserNav
-                    influencerName={influencer?.name}
-                    onMenuClick={onMenuClick}
-                    onCallClick={onCall}
-                    adultMode={adultModeSwitch}
-                    onAdultModeChange={handleAdultModeChange}
-                />
-                <div className={styles["chat-header-info"]}>
-                    <ProfileMedia imageSrc={influencer?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
-                    <div className={styles["chat-user-name"]}>
-                        <h3><a href={`/${influencer.username}`}>{influencer && truncateLastName(influencer?.name)}</a></h3>
-                        <p>{isWsConnected ? "Connected" : "Not Connected"}</p>
-                    </div>
-                    {isSuperUser && chatId && (
-                        <div className={styles["admin-actions"]}>
-                            <IconButton
-                                onClick={handleClearHistory}
-                                color='red'
-                                text={isClearingHistory ? "Clearing..." : "Clear history"}
-                                className={styles["clear-history-button"]}
-                                disabled={isClearingHistory}
-                            />
+                {!showSubscriptionPage ? <>
+                    <div className={styles["chat-header-info"]}>
+                        <div className={styles["profile-info"]}>
+                            <ProfileMedia imageSrc={influencer?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
+                            <div className={styles["chat-user-name"]}>
+                                <h3><a href={`/${influencer.username}`}>{influencer && truncateLastName(influencer?.name)}</a></h3>
+                                <p>{isWsConnected ? "Connected" : "Not Connected"}</p>
+                            </div>
                         </div>
-                    )}
-                </div>
+                        {showChangeInfluencerButton && <div className={styles["chat-header-actions"]}>
+                            <div className={styles["admin-actions"]}>
+                                <IconButton
+                                    className={styles["clear-history-button"]}
+                                    text='Change Influencer'
+                                    onClick={handleChangeInfluencerClicked}
+                                />
+                            </div>
+                            {isSuperUser && chatId && (
+                                <div className={styles["admin-actions"]}>
+                                    <IconButton
+                                        onClick={handleClearHistory}
+                                        color='red'
+                                        text={isClearingHistory ? "Clearing..." : "Clear history"}
+                                        className={styles["clear-history-button"]}
+                                        disabled={isClearingHistory}
+                                    />
+                                </div>
+                            )}
+                        </div>}
+                    </div>
+                    <div
+                        className={clsx(styles["chat-messages-container"], !messages && styles["loading"])}
+                        ref={containerRef}
+                        onScroll={handleScroll}
+                    >
+                        {(messages) ? <>
+                            {isLoadingMore && <LoadingSpinner size='small' />}
+                            <MessagesList
+                                messages={displayMessages}
+                                typing={typing}
+                                messagesEndRef={messagesEndRef}
+                                influencerName={influencer?.name}
+                                showAudioTranscript={isSuperUser}
+                                onAudioPlay={(src) => {
+                                    // Pause any currently playing audio
+                                    if (currentAudioRef.current && currentAudioRef.current.src !== src) {
+                                        currentAudioRef.current.pause();
+                                        currentAudioRef.current.currentTime = 0;
+                                    }
+                                    // Track the newly started audio element
+                                    const audioEl = document.querySelector<HTMLAudioElement>(`audio[src="${src}"]`);
+                                    if (audioEl) {
+                                        currentAudioRef.current = audioEl;
+                                    }
+                                }}
+                            />
+                        </> : <LoadingSpinner />}
+                    </div>
+
+                    <div className={styles["chat-input-area"]}>
+                        <ChatInputArea
+                            onSendMessage={sendMessage}
+                            inputText={inputText}
+                            setInputText={setInputText}
+                            setInputAudio={setInputAudio}
+                            disabled={error ? true : false}
+                            error={error}
+                            inputAudio={inputAudio} />
+                    </div>
+                </> : <AdultModePage onSubscribePressed={handleSubscribePressed} />}
+
+                <CallModal
+                    timeRemaining={timeRemaining}
+                    status={status}
+                    isOpen={openWelcomeCallModal}
+                    onClose={() => setOpenWelcomeCallModal(false)}
+                    stopConversation={stopConversation}
+                    influencer={influencer}
+                    micMuted={micMuted}
+                    toggleMute={toggleMute} />
             </div>
-            {!showSubscriptionPage ? <>
-                <div
-                    className={clsx(styles["chat-messages-container"], !messages && styles["loading"])}
-                    ref={containerRef}
-                    onScroll={handleScroll}
-                >
-                    {(messages) ? <>
-                        {isLoadingMore && <LoadingSpinner size='small' />}
-                        <MessagesList
-                            messages={displayMessages}
-                            typing={typing}
-                            messagesEndRef={messagesEndRef}
-                            influencerName={influencer?.name}
-                            onAudioPlay={(src) => {
-                                // Pause any currently playing audio
-                                if (currentAudioRef.current && currentAudioRef.current.src !== src) {
-                                    currentAudioRef.current.pause();
-                                    currentAudioRef.current.currentTime = 0;
-                                }
-                                // Track the newly started audio element
-                                const audioEl = document.querySelector<HTMLAudioElement>(`audio[src="${src}"]`);
-                                if (audioEl) {
-                                    currentAudioRef.current = audioEl;
-                                }
-                            }}
-                        />
-                    </> : <LoadingSpinner />}
-                </div>
-
-                <div className={styles["chat-input-area"]}>
-                    <ChatInputArea
-                        onSendMessage={sendMessage}
-                        inputText={inputText}
-                        setInputText={setInputText}
-                        setInputAudio={setInputAudio}
-                        disabled={error ? true : false}
-                        error={error}
-                        inputAudio={inputAudio} />
-                </div>
-            </> : <AdultModePage onSubscribePressed={handleSubscribePressed} />}
-
-            <CallModal
-                timeRemaining={timeRemaining}
-                status={status}
-                isOpen={openWelcomeCallModal}
-                onClose={() => setOpenWelcomeCallModal(false)}
-                stopConversation={stopConversation}
-                influencer={influencer}
-                micMuted={micMuted}
-                toggleMute={toggleMute} />
-        </div>
+        </BackgroundGradient>
     );
 };
 

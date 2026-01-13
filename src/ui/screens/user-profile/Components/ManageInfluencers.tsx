@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 import InfluencerRelationCard from "@/ui/components/cards/InfluencerRelationCard";
 
+import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import { RelationshipServices } from "@/api/services/RelationshipServices";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { BalanceServices } from "@/api/services/BalanceServices";
@@ -35,9 +35,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
     }>
   >([]);
 
-
   const [error, setError] = useState<string | null>(null);
-
 
   useEffect(() => {
     const load = async () => {
@@ -80,17 +78,17 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
     goTo('influencer_profile', { influencerId });
   };
 
-
   return (
     <div className={styles.list}>
 
       {items.map((inf) => (
         <div>
-
           <div key={inf.id} className={styles.card}>
             <InfluencerRelationCard {...inf} />
           </div>
-          <NormalButton text="View Profile" onClick={() => handleViewProfile(inf.id)} className={styles.viewProfile} />
+          <div className={styles.buttonRow}>
+            <IconButton text="View Profile" onClick={() => handleViewProfile(inf.id)} color="black" className={styles.viewProfile} />
+          </div>
         </div>
       ))}
 
