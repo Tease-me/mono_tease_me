@@ -23,6 +23,7 @@ export interface InfluencerDataModel {
   daily_scripts?: string[];
   influencer_agent_id_third_part?: string;
   bio_json?: any;
+  custom_adult_prompt?: string;
   fp_ref_id?: string | null;
   social_connections?: {
     instagram: boolean;

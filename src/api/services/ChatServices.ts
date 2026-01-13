@@ -21,9 +21,13 @@ export const ChatServices = () => ({
             throw error;
         }
     },
-    clearChatHistory: async (chat_id: string): Promise<void> => {
+    clearChatHistory: async (chat_id: string, is_adult: boolean): Promise<void> => {
         try {
-            await apiClient.delete(Endpoints.admin.history(chat_id));
+            await apiClient.delete(Endpoints.admin.history(chat_id), {
+                params: {
+                    is_18: is_adult
+                }
+            });
         } catch (error) {
             throw error;
         }
