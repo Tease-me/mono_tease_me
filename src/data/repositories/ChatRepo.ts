@@ -43,8 +43,8 @@ export const ChatRepository = () => ({
             throw e;
         }
     },
-    clearChatHistory: async (chat_id: string): Promise<void> => {
-        await chatServices.clearChatHistory(chat_id);
+    clearChatHistory: async (chat_id: string, is_adult: boolean): Promise<void> => {
+        await chatServices.clearChatHistory(chat_id, is_adult);
     },
     getChatId: async (user_id: number, persona_id: string): Promise<string> => {
         const response: ChatIdResponse = await chatServices.getChatId(user_id, persona_id)

@@ -521,7 +521,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
         try {
             setIsClearingHistory(true);
-            await chatRepository.clearChatHistory(chatId);
+            await chatRepository.clearChatHistory(chatId, adultMode);
             setMessages([]);
             setHasMore(false);
             setPageNumber(1);
