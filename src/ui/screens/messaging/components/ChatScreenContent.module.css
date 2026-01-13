@@ -47,7 +47,6 @@
 
 .chat-messages-container {
     flex: 1;
-    display: flex;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;

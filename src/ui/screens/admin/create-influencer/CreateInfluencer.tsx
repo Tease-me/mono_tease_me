@@ -961,7 +961,7 @@ const CreateInfluencer: React.FC = () => {
               </div>
               <div className={styles["field"]}>
                 <label htmlFor="influencer-custom-adult-prompt">
-                  Custom adult prompt
+                  Custom adult prompt (For Voice Message 18+ Only)
                 </label>
                 <textarea
                   id="influencer-custom-adult-prompt"
@@ -1165,8 +1165,8 @@ const CreateInfluencer: React.FC = () => {
                 {saveState !== "idle" && (
                   <span
                     className={`${styles["save-status"]} ${saveState === "success"
-                        ? styles["save-status--success"]
-                        : ""
+                      ? styles["save-status--success"]
+                      : ""
                       } ${saveState === "error" ? styles["save-status--error"] : ""
                       }`}
                   >
@@ -1237,8 +1237,8 @@ const CreateInfluencer: React.FC = () => {
                       <button
                         type="button"
                         className={`${styles["upload-modal__toggle"]} ${isExpanded
-                            ? styles["upload-modal__toggle--expanded"]
-                            : ""
+                          ? styles["upload-modal__toggle--expanded"]
+                          : ""
                           }`}
                         onClick={() => toggleRecordExpansion(index)}
                         aria-expanded={isExpanded}
