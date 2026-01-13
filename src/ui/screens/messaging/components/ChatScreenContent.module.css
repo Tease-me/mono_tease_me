@@ -25,7 +25,6 @@
     display: flex;
     padding: 10px 20px;
     width: 100%;
-    justify-content: center;
     max-width: var(--max-chat-content-width);
     border-bottom: 1px solid rgba(255, 255, 255, 0.20);
     justify-content: space-between;
@@ -48,12 +47,14 @@
 
 .chat-messages-container {
     flex: 1;
+    display: flex;
     overflow-y: auto;
     overflow-x: hidden;
-    position: relative;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 150px;
     margin-bottom: 120px;
+    max-width: var(--max-chat-content-width);
+    width: 100%;
 }
 
 .chat-messages-container.loading {
@@ -99,10 +100,10 @@
 .messages {
     flex: 1;
     display: flex;
-    flex-direction: column;
     justify-content: flex-end;
+    flex-direction: column;
+    position: relative;
     max-width: var(--max-chat-content-width);
-    margin-top: 32px;
 }
 
 .messages>*+* {
@@ -125,7 +126,7 @@
 @media (min-width: 1024px) {
     .chat-messages-container {
         padding-top: 0px;
-        padding-bottom: 0px;
+        padding-bottom: 34px;
     }
 
     .chat-container {
