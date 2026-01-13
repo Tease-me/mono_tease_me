@@ -49,6 +49,12 @@ body,
   --color-light-blue: rgba(0, 169, 241, 1);
   --color-warning: rgba(250, 204, 21, 1);
 
+  --color-purple: #AD4ADE;
+  --color-purple-background: rgba(136, 1, 203, 0.15);
+  --color-purple-light: #CC68FF;
+  --color-green-background: rgba(18, 255, 105, 0.10);
+
+
 }
 
 /* Light theme fallbacks (optional preview) */

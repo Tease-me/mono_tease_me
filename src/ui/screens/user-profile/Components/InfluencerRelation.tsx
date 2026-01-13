@@ -2,14 +2,24 @@ import { useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
 import styles from "./InfluencerRelation.module.css";
 import SvgPack from "@/utils/SvgPack";
-import { RelationshipServices } from "@/api/services/RelationshipServices";
-import { BalanceServices } from "@/api/services/BalanceServices";
 import { apiClient } from "@/api/apis";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import RelationshipRadar from "@/ui/components/visualizations/RelationshipRadart";
+import UsageView from "@/ui/components/stats/UsageView";
+import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
+import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
+import BalanceBadge from "@/ui/components/stats/BalanceBadge";
+import AdultModeToggle from "@/ui/components/adult-mode-toggle/AdultModeToggle";
+
+import { formatDateTimeRelative } from "@/utils/DateTimeUtils";
+
+import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
+import { RelationshipServices } from "@/api/services/RelationshipServices";
+import { BalanceServices } from "@/api/services/BalanceServices";
 
 const relationshipService = RelationshipServices(apiClient);
 const balanceService = BalanceServices(apiClient);
+const subscriptionService = SubscriptionsServices(apiClient);
 
 type NavPayload = Record<string, any>;
 type Props = {
@@ -22,10 +32,21 @@ type RelationData = {
   id?: string;
   name?: string;
   image?: string;
-  lastConnected?: string | null;
+  video?: string;
+  lastConnected?: string | Date | null;
   followingSince?: string | null;
   subscriptionStatus?: string | null;
+  hasSubscription?: boolean;
+  is18?: boolean;
+  expiresAt?: string | null;
+  voiceMinutes?: number;
+  textMessages?: number;
   balance?: number;
+  callTime?: string,
+  msgRemaining?: number,
+  adultBalance?: number;
+  adultCallTime?: string,
+  adultMsgRemaining?: number,
   trust?: number;
   safety?: number;
   attraction?: number;
@@ -34,15 +55,21 @@ type RelationData = {
 };
 
 
-export default function InfluencerRelation({ goBack, navPayload }: Props) {
+export default function InfluencerRelation({ navPayload }: Props) {
   const initial: RelationData = useMemo(
     () => ({
       id: navPayload.influencerId,
       name: navPayload.name,
       image: navPayload.image,
-      lastConnected: navPayload.lastConnected,
+      video: navPayload.video,
+      lastConnected: formatDateTimeRelative(navPayload.lastConnected),
       followingSince: navPayload.followingSince,
       subscriptionStatus: navPayload.subscriptionStatus,
+      hasSubscription: navPayload.hasSubscription,
+      is18: navPayload.is18,
+      expiresAt: navPayload.expiresAt,
+      voiceMinutes: navPayload.voiceMinutes,
+      textMessages: navPayload.textMessages,
       balance: navPayload.balance,
       trust: navPayload.trust,
       safety: navPayload.safety,
@@ -56,16 +83,20 @@ export default function InfluencerRelation({ goBack, navPayload }: Props) {
   const [data, setData] = useState<RelationData>(initial);
   const [loading, setLoading] = useState(false);
 
-  // Fetch only if something important is missing
+  const [showBalanceDetails, setShowBalanceDetails] = useState(false);
+  const [showAdultBalanceDetails, setShowAdultBalanceDetails] = useState(false);
+  const [adultModeChecked, setAdultModeChecked] = useState(data.is18 || false);
+
+
   useEffect(() => {
     if (!initial.id) return;
     const needsDetails =
-      data.balance === undefined ||
       data.trust === undefined ||
       data.safety === undefined ||
       data.attraction === undefined ||
       data.closeness === undefined ||
-      data.stageScore === undefined;
+      data.stageScore === undefined ||
+      data.is18 === undefined;
 
     if (!needsDetails) return;
 
@@ -73,9 +104,11 @@ export default function InfluencerRelation({ goBack, navPayload }: Props) {
     setLoading(true);
     (async () => {
       try {
-        const [rel, bal] = await Promise.all([
+        const [rel, bal, sub] = await Promise.all([
           relationshipService.getRelationship(initial.id!),
-          balanceService.getBalance(initial.id!).catch(() => null),
+          balanceService.getBalance(initial.id!, false).catch(() => null),
+          subscriptionService.getMySubscriptionForInfluencer(initial.id!)
+
         ]);
 
         if (!cancelled) {
@@ -88,9 +121,14 @@ export default function InfluencerRelation({ goBack, navPayload }: Props) {
             stageScore: rel.sentiment_score,
             lastConnected: rel.last_interaction_at,
             followingSince: rel.last_interaction_at,
-            subscriptionStatus: rel.state,
             balance: bal ? bal.balance_cents / 100 : d.balance,
+            hasSubscription: sub?.has_subscription,
+            is18: sub?.is_18_selected ?? d.is18,
+            expiresAt: sub?.expires_at ?? d.expiresAt,
+            voiceMinutes: sub?.voice_minutes ?? d.voiceMinutes,
+            textMessages: sub?.text_messages ?? d.textMessages,
           }));
+
         }
       } catch (e) {
         console.error("Failed to load relation details", e);
@@ -104,41 +142,96 @@ export default function InfluencerRelation({ goBack, navPayload }: Props) {
     };
   }, [initial.id]);
 
+  useEffect(() => {
+  setAdultModeChecked(!!data.is18);
+}, [data.is18]);
+
+  const handleAdultToggleChange = () => {
+
+    if (!data.is18){
+      alert(data.is18);
+      // Handle if adult mode is not available.. possibly send to subscribe page.. gotta confirm first
+      return ;
+    }
+    setAdultModeChecked(!adultModeChecked);
+  }
+
   return (
     <div className={styles.shell}>
-      {/* Hero row: avatar + subscription */}
+      {/* Hero */}
       <div className={styles.heroRow}>
-        <ProfileMedia imageSrc={data.image} mediaType="image" size="large" />
+        <ProfileMedia imageSrc={data.image} videoSrc={data.video} size="medium" active />
         <div className={styles.heroInfo}>
-          <div className={styles.badges}>
-            <span className={styles.modeBadge}>18+ Mode</span>
-            <span className={clsx(styles.statusBadge, styles.subscribed)}>
-              {data.subscriptionStatus ?? "Subscribed"}
+          <div className={!data.is18 ? styles.badges : styles.badgesHide}>
+            <span className={styles.modeText}>
+              <span
+                className={styles.eighteenPlus}
+              >18+</span> Mode
+            </span>
+            <span className={styles.statusBadge}>
+              Subscribed
             </span>
           </div>
           <div className={styles.meta}>
-            <span>Last Connected: <strong>{data.lastConnected ?? "--"}</strong></span>
-            <span>Following Since {data.followingSince ?? "--"}</span>
+            <span>Last Connected: <strong>{data.lastConnected ? formatDateTimeRelative(data.lastConnected): "--"}</strong></span>
+            <span>Following since {data.followingSince ? formatDateTimeRelative(data.followingSince) : "--"}</span>
           </div>
         </div>
       </div>
 
-      {/* Balance & actions (skeleton) */}
+      {/* Balance Card */}
       <div className={styles.balanceCard}>
-        <div className={styles.balanceTag}>
-          ${data.balance?.toFixed(2) ?? "0.00"}
+        <div className={styles.balanceArea}>
+          <div className={styles.balanceBadge}>
+            <BalanceBadge balance={data.balance ? data.balance : 0} />
+          </div>
+          <NormalButton type="pill"
+            text={!showBalanceDetails ? "View Details" : "Hide Details"}
+            onClick={() => setShowBalanceDetails((prev) => !prev)} />
+          {showBalanceDetails && (<div className={styles.balanceStats}>
+            <UsageView
+              label="Call Time"
+              tone="green"
+              value={data.callTime != null ? data.callTime.toString() : "--"}
+            />
+            <UsageView
+              label="Text Msgs"
+              tone="green"
+              value={data.msgRemaining != null ? data.msgRemaining.toString() : "--"}
+            />
+          </div>)}
+          <PrimaryButton
+            leftIcon={<SvgPack.PlusBox />}
+            text="Add Credit"
+          />
         </div>
-        <button className={styles.detailsPill}>View Details</button>
-        <button className={styles.addCredit}>+ Add Credit</button>
-        <button className={styles.detailsPill}>View Details</button>
-        <div className={styles.toggleRow}>
-          <button className={styles.toggleChip}>Lips</button>
-          <button className={clsx(styles.toggleChip, styles.active)}>18+</button>
-          <span className={styles.until}>Until --/--/--</span>
+        <div className={styles.adultBalanceArea}>
+          <div className={styles.adultToggleArea}>
+          <button type="button" className={styles.adultToggleBtn}>
+            <span className={styles.adultText}>{data.adultCallTime ?? "0"} mins</span>
+            <AdultModeToggle checked={adultModeChecked} onChange={handleAdultToggleChange} />
+          </button>
+          <p>Until {data.expiresAt}</p>
+          </div>
+          <NormalButton text={!showAdultBalanceDetails ? "View Details" : "Hide Details"} onClick={
+            () => {  setShowAdultBalanceDetails((prev) => !prev)}
+          }/>
+           {showAdultBalanceDetails && (<div className={styles.adultBalanceStats}>
+            <UsageView
+              label="Voice Minutes"
+              tone="purple"
+              value={data.callTime != null ? data.callTime.toString() : "--"}
+            />
+            <UsageView
+              label="Text Msg"
+              tone="purple"
+              value={data.msgRemaining != null ? data.msgRemaining.toString() : "--"}
+            />
+          </div>)}
         </div>
       </div>
 
-      {/* Relationship stats */}
+      {/* Relationship stats area */}
       <div className={styles.statsBlock}>
         <div className={styles.statsHeader}>
           <div>
@@ -158,37 +251,15 @@ export default function InfluencerRelation({ goBack, navPayload }: Props) {
           <span>Talking</span>
         </div>
 
-        <RelationshipRadar
-          trust={data.trust ?? 0}
-          closeness={data.closeness ?? 0}
-          attraction={data.attraction ?? 0}
-          safety={data.safety ?? 0}
-          height={280}
-        />
-
-        {/* TODO: radar chart */}
-        <div className={styles.radarPlaceholder}>Radar chart here</div>
-
-        <div className={styles.metricRow}>
-          <span>Trust</span>
-          <span>{data.trust ?? 0}</span>
-          <div className={styles.metricBar}>
-            <div style={{ width: `${Math.min(data.trust ?? 0, 100)}%` }} />
-          </div>
-        </div>
-        <div className={styles.metricRow}>
-          <span>Closeness</span>
-          <span>{data.closeness ?? 0}</span>
-          <div className={styles.metricBar}>
-            <div style={{ width: `${Math.min(data.closeness ?? 0, 100)}%` }} />
-          </div>
-        </div>
-        <div className={styles.metricRow}>
-          <span>Attraction</span>
-          <span>{data.attraction ?? 0}</span>
-          <div className={styles.metricBar}>
-            <div style={{ width: `${Math.min(data.attraction ?? 0, 100)}%` }} />
-          </div>
+        {/*  radar chart */}
+        <div className={styles.radarPlaceholder}>
+          <RelationshipRadar
+            trust={data.trust ?? 0}
+            closeness={data.closeness ?? 0}
+            attraction={data.attraction ?? 0}
+            safety={data.safety ?? 0}
+            height={280}
+          />
         </div>
       </div>
 

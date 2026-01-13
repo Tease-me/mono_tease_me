@@ -85,7 +85,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
       safety: inf.safety,
       attraction: inf.attraction,
       closeness: inf.closeness,
-      stageScore: inf.loveScore, // sentiment_score is already mapped to loveScore above
+      stageScore: inf.loveScore, 
     });
   };
 
