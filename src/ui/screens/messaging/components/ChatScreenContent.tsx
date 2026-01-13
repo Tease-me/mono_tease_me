@@ -22,15 +22,13 @@ import logger from '@/utils/logger';
 import CallModal from '@/ui/components/modals/call-modal/CallModal';
 import useCallWebRTC from '@/hooks/useCallWebRTC';
 import IconButton from '@/ui/components/inputs/buttons/IconButton';
-import { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownMenu';
+import { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownMenu'
 import { AdultChatRepo } from '@/data/repositories/AdultChatRepo';
 import { SubscriptionsServices } from '@/api/services/SubscriptionsServices';
 import { apiClient } from '@/api/apis';
 import AdultModePage from '../../adult-mode/AdultModePage';
 import UserNav from '@/ui/components/nav/UserNav';
 import BackgroundGradient from '@/ui/templates/BackgroundGradient';
-import SvgPack from '@/utils/SvgPack';
-import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
 
 const isCallChannel = (message: Message) => {
     if (!message.channel) return false;
@@ -559,9 +557,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                         </div>
                         {showChangeInfluencerButton && <div className={styles["chat-header-actions"]}>
                             <div className={styles["admin-actions"]}>
-                                <PrimaryButton
-                                    color='red'
-                                    rightIcon={<SvgPack.ArrowRight />}
+                                <IconButton
                                     className={styles["clear-history-button"]}
                                     text='Change Influencer'
                                     onClick={handleChangeInfluencerClicked}
