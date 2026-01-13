@@ -623,6 +623,8 @@ const CreateInfluencer: React.FC = () => {
       const mergedInfluencer = {
         ...base,
         ...serverInfluencer,
+        custom_adult_prompt:
+          serverInfluencer.custom_adult_prompt ?? base.custom_adult_prompt,
       };
       setInfluencers((prev) => {
         const index = prev.findIndex(
