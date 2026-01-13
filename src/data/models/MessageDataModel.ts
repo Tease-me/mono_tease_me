@@ -11,6 +11,7 @@ export interface Message {
     id: number;
     sender: 'sent' | 'received';
     text?: string;
+    transcript?: string;
     time: string;
     attachments?: MediaAttachment[];
     channel?: string;

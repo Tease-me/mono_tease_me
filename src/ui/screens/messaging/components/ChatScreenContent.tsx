@@ -378,16 +378,25 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         };
     }, []);
 
-    async function sendAndPlay(audioBlob: Blob) {
+    async function sendAndPlay(audioBlob: Blob, sentMessageId?: number) {
         if (!influencer) return;
         if (!chatId) return;
 
-        const { audio_url } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
+        const { audio_url, transcript, ai_text } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
         setTyping(false);
         setMessages((prev) => {
             if (!prev) return prev;
+            const nextMessages = prev.map((message) => {
+                if (!sentMessageId || message.id !== sentMessageId) {
+                    return message;
+                }
+                return {
+                    ...message,
+                    transcript: isSuperUser ? (transcript ?? message.transcript) : message.transcript,
+                };
+            });
             return [
-                ...prev,
+                ...nextMessages,
                 {
                     id: Date.now(),
                     sender: "received",
@@ -405,6 +414,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                             },
                         ]
                         : [],
+                    transcript: isSuperUser ? ai_text : undefined,
                 },
             ];
         });
@@ -445,13 +455,14 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             setInputText("");
         } else if (audioToSend) {
             setTyping(true);
-            sendAndPlay(audioToSend);
+            const sentMessageId = Date.now();
+            sendAndPlay(audioToSend, sentMessageId);
             setMessages(prev => {
                 if (!prev) return
                 return [
                     ...prev,
                     {
-                        id: Date.now(),
+                        id: sentMessageId,
                         sender: 'sent',
                         channel: "chat",
                         time: new Date().toLocaleTimeString([], {
@@ -581,6 +592,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                                 typing={typing}
                                 messagesEndRef={messagesEndRef}
                                 influencerName={influencer?.name}
+                                showAudioTranscript={isSuperUser}
                                 onAudioPlay={(src) => {
                                     // Pause any currently playing audio
                                     if (currentAudioRef.current && currentAudioRef.current.src !== src) {

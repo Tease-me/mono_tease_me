@@ -28,6 +28,7 @@ export const ChatRepository = () => ({
                     message.attachments = [
                         { audioUrl: item.audio_url, type: "audio" }
                     ]
+                    message.transcript = item.content || undefined;
                     message.text = undefined
                 }
                 return message;
@@ -71,7 +72,9 @@ export const ChatRepository = () => ({
     sendAudioMessage: async (audioBlob: Blob, influencer_id: string, chat_id: string) => {
         const response: ChatAudioResponse = await chatServices.postAudioMessage(audioBlob, influencer_id, chat_id);
         return {
-            audio_url: response.ai_audio_url
+            audio_url: response.ai_audio_url,
+            transcript: response.transcript,
+            ai_text: response.ai_text,
         }
     }
 })
