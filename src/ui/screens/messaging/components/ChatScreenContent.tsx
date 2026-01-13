@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { memo, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Endpoints, WS_BASE_URL } from "@/api/urls";
 import ProfileMedia from "@/ui/components/ProfileMedia";
@@ -631,4 +631,4 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     );
 };
 
-export default ChatScreenContent;
+export default memo(ChatScreenContent);
