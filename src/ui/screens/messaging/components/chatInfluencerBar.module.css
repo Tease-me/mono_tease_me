@@ -37,7 +37,7 @@
   font-family: "Urbanist", sans-serif;
   font-size: 1rem;
   font-style: normal;
-  font-weight: 400;
+  font-weight: 500;
   line-height: 140%;
   letter-spacing: 0.0125rem;
 }
@@ -53,7 +53,7 @@
 }
 
 .status {
-  /* no explicit styles in your original; kept as a hook */
+
 }
 
 .loveScore {
@@ -167,6 +167,7 @@
 
 .influencerBottom {
   z-index: 6;
+   backdrop-filter: blur(4px);
 }
 
 .profileContainer {
@@ -174,6 +175,8 @@
   grid-template-columns: 1fr 1fr 1fr;
   justify-items: center;
   align-items: center;
+
+   
 }
 
 .profileLeftCol {
