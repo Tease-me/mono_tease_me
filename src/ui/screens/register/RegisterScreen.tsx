@@ -11,10 +11,13 @@ import OnBoardingTopNav from "@/ui/components/nav/OnBoardingTopNav";
 import HeadingText from "@/ui/components/typography/HeadingText";
 import ButtonRow from "@/ui/templates/ButtonRow";
 import FullWidthLayout from "@/ui/templates/FullWidthLayout";
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import BackgroundGradient from "../../templates/BackgroundGradient";
 import styles from "./RegisterScreen.module.css";
+import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
+import { Paths } from "@/routes/path";
+import logger from "@/utils/logger";
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState("");
@@ -27,12 +30,28 @@ export default function RegisterScreen() {
     general?: string;
   }>({});
   const authServices = AuthServices(apiClient);
+  const influencerRepo = InfluencerRepo();
+
   const { isSignedIn } = useContext(AuthContext);
 
   const navigate = useNavigate();
   const { username } = useParams<{ username: string }>();
 
   if (isSignedIn) navigate("/home");
+
+  useEffect(() => {
+    (async () => {
+      if (username) {
+        try {
+          const res = await influencerRepo.getInfluencer(username)
+          localStorage.setItem("influencer_referral_id", res.id);
+        } catch (e) {
+          logger.debug(e)
+          navigate(Paths.root)
+        }
+      }
+    })();
+  }, [username])
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
