@@ -74,10 +74,12 @@ export default function HomeScreenSingle() {
   useEffect(() => {
     localStorage.setItem("selected_id", id?.toString() || "");
   }, [id]);
+
   useEffect(() => {
     influencerRepo
       .getFollowedInfluencers()
       .then((influencers: InfluencerDataModel[]) => {
+        localStorage.setItem("selected_id", "");
         if (influencers.length > 1) {
           setNeedsSelection(true);
           setHasMultipleInfluencers(true);

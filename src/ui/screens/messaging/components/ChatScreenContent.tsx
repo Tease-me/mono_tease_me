@@ -615,7 +615,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                             error={error}
                             inputAudio={inputAudio} />
                     </div>
-                </> : <AdultModePage onSubscribePressed={handleSubscribePressed} />}
+                </> : (
+                    <AdultModePage
+                        onSubscribePressed={handleSubscribePressed}
+                        influencerId={influencer?.id}
+                        influencerImageUrl={influencer?.img}
+                    />
+                )}
 
                 <CallModal
                     timeRemaining={timeRemaining}

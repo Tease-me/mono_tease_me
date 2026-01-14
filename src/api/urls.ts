@@ -44,6 +44,7 @@ export const Endpoints = {
     delete: (influencerId: string, fileId: number) =>
       `/influencer/${influencerId}/knowledge/${fileId}`,
   },
+  samples: (influencerId: string) => `/influencer/${influencerId}/samples`,
   push: {
     subscribe: "/push/subscribe",
   },
