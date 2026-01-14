@@ -430,6 +430,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                 JSON.stringify({
                     chat_id: chatId,
                     message: inputText.trim(),
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
                 }),
             );
             setMessages(prev => {
