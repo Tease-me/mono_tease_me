@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { memo } from 'react';
 import styles from './SlideDrawerLayout.module.css';
 import clsx from "clsx"
-import IconButton from '../components/inputs/buttons/IconButton';
 import SvgPack from '@/utils/SvgPack';
 import TeaseMeLogo from '../components/logos/TeaseMeLogo';
 
@@ -48,13 +47,15 @@ const SlideDrawerLayout: React.FC<SlideDrawerLayoutProps> = ({
 
             {title && showSidebar && <div className={styles.title}>{title}</div>}
           </div>
-          <IconButton
+          <div
             onClick={onToggle}
-            className={styles.menuButton}
-            type="square"
+            className={clsx(!showSidebar && styles.menuButton)}
             color="black"
-            leftIcon={showSidebar ? <SvgPack.Cross /> : <SvgPack.Menu />}
-          />
+          >
+            <div className={styles.menuButtonIcon}>
+              {showSidebar ? <SvgPack.Cross /> : <SvgPack.Menu />}
+            </div>
+          </div>
         </div>
         <div className={styles.headerDivider} />
         {showSidebar && <div className={styles.sidebarContent}>{sidebar}</div>}
@@ -65,6 +66,4 @@ const SlideDrawerLayout: React.FC<SlideDrawerLayoutProps> = ({
   )
 };
 
-
-
-export default SlideDrawerLayout;
+export default memo(SlideDrawerLayout);

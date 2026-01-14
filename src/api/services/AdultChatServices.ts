@@ -39,7 +39,9 @@ export const AdultChatServices = () => ({
     postAudioMessage: async (audioBlob: Blob, influencer_id: string, chat_id: string): Promise<ChatAudioResponse> => {
         const access_token = storage.get(LocalStorageKeys.AccessToken);
         const formData = new FormData();
-        formData.append("file", audioBlob, "audio.webm");
+        const mime = audioBlob.type || "audio/mp4";
+        const ext = mime.includes("mp4") ? "m4a" : mime.includes("aac") ? "aac" : "webm";
+        formData.append("file", audioBlob, `audio.${ext}`);
         formData.append("influencer_id", influencer_id);
         formData.append("chat_id", chat_id);
         formData.append("token", access_token ?? "");

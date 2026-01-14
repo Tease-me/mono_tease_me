@@ -28,6 +28,7 @@ export const ChatRepository = () => ({
                     message.attachments = [
                         { audioUrl: item.audio_url, type: "audio" }
                     ]
+                    message.transcript = item.content || undefined;
                     message.text = undefined
                 }
                 return message;
@@ -42,8 +43,8 @@ export const ChatRepository = () => ({
             throw e;
         }
     },
-    clearChatHistory: async (chat_id: string): Promise<void> => {
-        await chatServices.clearChatHistory(chat_id);
+    clearChatHistory: async (chat_id: string, is_adult: boolean): Promise<void> => {
+        await chatServices.clearChatHistory(chat_id, is_adult);
     },
     getChatId: async (user_id: number, persona_id: string): Promise<string> => {
         const response: ChatIdResponse = await chatServices.getChatId(user_id, persona_id)
@@ -71,7 +72,9 @@ export const ChatRepository = () => ({
     sendAudioMessage: async (audioBlob: Blob, influencer_id: string, chat_id: string) => {
         const response: ChatAudioResponse = await chatServices.postAudioMessage(audioBlob, influencer_id, chat_id);
         return {
-            audio_url: response.ai_audio_url
+            audio_url: response.ai_audio_url,
+            transcript: response.transcript,
+            ai_text: response.ai_text,
         }
     }
 })

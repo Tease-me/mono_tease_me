@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { memo, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Endpoints, WS_BASE_URL } from "@/api/urls";
 import ProfileMedia from "@/ui/components/ProfileMedia";
@@ -21,16 +21,14 @@ import { InfluencerRepo } from '@/data/repositories/InfluencerRepo';
 import logger from '@/utils/logger';
 import CallModal from '@/ui/components/modals/call-modal/CallModal';
 import useCallWebRTC from '@/hooks/useCallWebRTC';
-// import IconButton from '@/ui/components/inputs/buttons/IconButton';
-import { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownMenu';
+import IconButton from '@/ui/components/inputs/buttons/IconButton';
+import { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownMenu'
 import { AdultChatRepo } from '@/data/repositories/AdultChatRepo';
 import { SubscriptionsServices } from '@/api/services/SubscriptionsServices';
 import { apiClient } from '@/api/apis';
 import AdultModePage from '../../adult-mode/AdultModePage';
 import UserNav from '@/ui/components/nav/UserNav';
 import BackgroundGradient from '@/ui/templates/BackgroundGradient';
-import SvgPack from '@/utils/SvgPack';
-import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
 
 const isCallChannel = (message: Message) => {
     if (!message.channel) return false;
@@ -98,7 +96,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
     const [hasMore, setHasMore] = useState<boolean>(true);
     const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
-    // const [isClearingHistory, setIsClearingHistory] = useState<boolean>(false);
+    const [isClearingHistory, setIsClearingHistory] = useState<boolean>(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const ws = useRef<WebSocket | null>(null);
@@ -114,7 +112,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
     const { user_id } = useParams();
 
-    // const isSuperUser = user?.id === 1;
+    const isSuperUser = user?.id === 1;
 
     const pageSize = 20;
 
@@ -378,16 +376,25 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         };
     }, []);
 
-    async function sendAndPlay(audioBlob: Blob) {
+    async function sendAndPlay(audioBlob: Blob, sentMessageId?: number) {
         if (!influencer) return;
         if (!chatId) return;
 
-        const { audio_url } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
+        const { audio_url, transcript, ai_text } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
         setTyping(false);
         setMessages((prev) => {
             if (!prev) return prev;
+            const nextMessages = prev.map((message) => {
+                if (!sentMessageId || message.id !== sentMessageId) {
+                    return message;
+                }
+                return {
+                    ...message,
+                    transcript: isSuperUser ? (transcript ?? message.transcript) : message.transcript,
+                };
+            });
             return [
-                ...prev,
+                ...nextMessages,
                 {
                     id: Date.now(),
                     sender: "received",
@@ -405,6 +412,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                             },
                         ]
                         : [],
+                    transcript: isSuperUser ? ai_text : undefined,
                 },
             ];
         });
@@ -445,13 +453,14 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             setInputText("");
         } else if (audioToSend) {
             setTyping(true);
-            sendAndPlay(audioToSend);
+            const sentMessageId = Date.now();
+            sendAndPlay(audioToSend, sentMessageId);
             setMessages(prev => {
                 if (!prev) return
                 return [
                     ...prev,
                     {
-                        id: Date.now(),
+                        id: sentMessageId,
                         sender: 'sent',
                         channel: "chat",
                         time: new Date().toLocaleTimeString([], {
@@ -503,24 +512,24 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const handleChangeInfluencerClicked = async () => {
         setNeedsSelection?.(true)
     };
-    // const handleClearHistory = async () => {
-    //     if (!chatId || !isSuperUser) return;
-    //     const confirmed = window.confirm("Delete this chat history? This cannot be undone.");
-    //     if (!confirmed) return;
+    const handleClearHistory = async () => {
+        if (!chatId || !isSuperUser) return;
+        const confirmed = window.confirm("Delete this chat history? This cannot be undone.");
+        if (!confirmed) return;
 
-    //     try {
-    //         setIsClearingHistory(true);
-    //         await chatRepository.clearChatHistory(chatId);
-    //         setMessages([]);
-    //         setHasMore(false);
-    //         setPageNumber(1);
-    //         setTyping(false);
-    //     } catch (err) {
-    //         logger.error("Error clearing chat history", err);
-    //     } finally {
-    //         setIsClearingHistory(false);
-    //     }
-    // };
+        try {
+            setIsClearingHistory(true);
+            await chatRepository.clearChatHistory(chatId, adultMode);
+            setMessages([]);
+            setHasMore(false);
+            setPageNumber(1);
+            setTyping(false);
+        } catch (err) {
+            logger.error("Error clearing chat history", err);
+        } finally {
+            setIsClearingHistory(false);
+        }
+    };
 
     if (!influencer) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
 
@@ -547,27 +556,25 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                             </div>
                         </div>
                         {showChangeInfluencerButton && <div className={styles["chat-header-actions"]}>
-                            <div>
-                                <PrimaryButton
-                                    color='red'
-                                    rightIcon={<SvgPack.ArrowRight />}
+                            <div className={styles["admin-actions"]}>
+                                <IconButton
                                     className={styles["clear-history-button"]}
                                     text='Change Influencer'
                                     onClick={handleChangeInfluencerClicked}
                                 />
                             </div>
+                            {isSuperUser && chatId && (
+                                <div className={styles["admin-actions"]}>
+                                    <IconButton
+                                        onClick={handleClearHistory}
+                                        color='red'
+                                        text={isClearingHistory ? "Clearing..." : "Clear history"}
+                                        className={styles["clear-history-button"]}
+                                        disabled={isClearingHistory}
+                                    />
+                                </div>
+                            )}
                         </div>}
-                        {/* {isSuperUser && chatId && (
-                        <div className={styles["admin-actions"]}>
-                            <IconButton
-                                onClick={handleClearHistory}
-                                color='red'
-                                text={isClearingHistory ? "Clearing..." : "Clear history"}
-                                className={styles["clear-history-button"]}
-                                disabled={isClearingHistory}
-                            />
-                        </div>
-                    )} */}
                     </div>
                     <div
                         className={clsx(styles["chat-messages-container"], !messages && styles["loading"])}
@@ -581,6 +588,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                                 typing={typing}
                                 messagesEndRef={messagesEndRef}
                                 influencerName={influencer?.name}
+                                showAudioTranscript={isSuperUser}
                                 onAudioPlay={(src) => {
                                     // Pause any currently playing audio
                                     if (currentAudioRef.current && currentAudioRef.current.src !== src) {
@@ -623,4 +631,4 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     );
 };
 
-export default ChatScreenContent;
+export default memo(ChatScreenContent);
