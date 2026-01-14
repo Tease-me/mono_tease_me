@@ -37,7 +37,7 @@ export default function RegisterScreen() {
   const navigate = useNavigate();
   const { username } = useParams<{ username: string }>();
 
-  if (isSignedIn) navigate("/home");
+  if (isSignedIn) navigate(Paths.home);
 
   useEffect(() => {
     (async () => {
@@ -74,7 +74,7 @@ export default function RegisterScreen() {
         username || ""
       );
       if (response.ok) {
-        navigate("/register/verify", { state: { email, password, influencerId: username } });
+        navigate(Paths.registerVerify, { state: { email, password, influencerId: username } });
       }
       setErrors({ general: "Registration Failed Plese Try Again Later" });
     } catch (err) {
@@ -142,7 +142,7 @@ export default function RegisterScreen() {
               <ButtonRow>
                 <NormalButton
                   className={styles["btn-back"]}
-                  onClick={() => navigate("/")}
+                  onClick={() => navigate(Paths.root)}
                   text="Back"
                   color="black"
                 />
@@ -155,7 +155,7 @@ export default function RegisterScreen() {
             </div>
             <p className={styles["auth-footer"]}>
               Already have an account?{" "}
-              <span onClick={() => navigate("/login")}>Sign in</span>
+              <span onClick={() => navigate(Paths.login)}>Sign in</span>
             </p>
           </div>
         </form>
