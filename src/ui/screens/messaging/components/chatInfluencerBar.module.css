@@ -1,0 +1,176 @@
+.chatInfluencerBar {
+  background: rgb(248, 151, 6);
+  min-height: 109px;
+  display: grid;
+}
+
+.influencerTop {
+  background: linear-gradient(180deg, #000 0%, #000 50%, #292929 100%);
+  min-height: 4rem;
+  position: relative;
+  overflow: clip;
+  display: grid;
+  align-items: center;
+}
+
+.influencerStatsContainer {
+  z-index: 5;
+}
+
+.influencerStatsRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.leftCol {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.leftCol p {
+  color: white;
+  margin-block: unset;
+  font-family: "Urbanist", sans-serif;
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 140%;
+  letter-spacing: 0.0125rem;
+}
+
+.middleCol {
+  width: auto;
+}
+
+.rightCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  justify-items: center;
+}
+
+.status {
+  /* no explicit styles in your original; kept as a hook */
+}
+
+.loveScore {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 7vw;
+  gap: 0.25rem;
+}
+
+.loveScore p {
+  font-family: "Urbanist", sans-serif;
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 120%;
+  margin-block: unset;
+}
+
+/* rank integer states */
+.loveScoreRankUp p {
+  color: var(--alerts-status-success, #4ade80);
+}
+
+.loveScoreRankDown p {
+  color: var(--alerts-status-error, rgba(222, 74, 74, 0.8));
+}
+
+.rank {
+  display: inline-flex;
+  width: 1.5625rem;
+  height: 1.5625rem;
+  justify-content: center;
+  align-items: center;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 0.25rem;
+}
+
+/* rank lottie states */
+.rankUp {
+  border-color: #4ade80;
+  background: linear-gradient(
+    180deg,
+    rgba(74, 222, 128, 0.05) 0%,
+    rgba(74, 222, 128, 0.3) 100%
+  );
+}
+
+.rankDown {
+  border-color: rgba(222, 74, 74, 0.8);
+  background: linear-gradient(
+    180deg,
+    rgba(222, 74, 74, 0.05) 0%,
+    rgba(222, 74, 74, 0.2) 100%
+  );
+}
+
+.circleGlowContainer {
+  position: absolute;
+  bottom: -90%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.glowStatusWhite {
+  background-color: rgba(255, 255, 255, 0.5);
+  opacity: 0.8;
+  background-blend-mode: soft-light;
+  filter: blur(2px);
+  width: 94px;
+  height: 96px;
+  border-radius: 50%;
+  position: absolute;
+  z-index: 2;
+}
+
+.glowStatusCircle02 {
+  background: rgba(255, 187, 135, 0.7);
+  opacity: 0.8;
+  background-blend-mode: soft-light;
+  width: 102px;
+  height: 102px;
+  border-radius: 50%;
+  position: absolute;
+  filter: blur(10px);
+  z-index: 1;
+}
+
+.glowStatusCircle {
+  opacity: 0.8;
+  width: 144px;
+  height: 121px;
+  border-radius: 50%;
+  filter: blur(25px);
+  z-index: 0;
+  transition: all 200ms ease-in-out;
+}
+
+.glowStatusCircleDefault {
+  background-color: rgba(255, 7, 98, 0.9);
+  transition: all 200ms ease-in-out;
+}
+
+.glowStatusCircleAdult {
+  background-color: hsla(280, 100%, 48%, 0.9);
+  transition: all 200ms ease-in-out;
+}
+
+.influencerBottom {
+  /* empty in your HTML; kept as a hook */
+}
+
+/*** media query Desktop ***/
+@media (min-width: 32rem) {
+}

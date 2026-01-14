@@ -2,6 +2,7 @@ import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 import PayPalCancel from "@/ui/components/modals/payment-modal/PayPalCancel";
 import PayPalReturn from "@/ui/components/modals/payment-modal/PayPalReturn";
 import RelationshipDashboard from "@/ui/screens/admin/dashboard_relationship/RelationshipDashboard";
+import ChatInfluencerBarPreview from "@/ui/screens/messaging/components/ChatInfluencerBarPreview";
 import InfluencerAudioManagerRoute from "@/ui/screens/influencer-audio-manager/InfluencerAudioManagerRoute";
 import InfluencerWelcome from "@/ui/screens/landing-page/InfluencerWelcome";
 import LandingPage from "@/ui/screens/landing-page/LandingPage";
@@ -72,6 +73,7 @@ function AppRoutes() {
     { path: Paths.all, element: <HomePage /> },
     { path: Paths.influencerProfile(), element: <InfluencerProfileScreen /> },
     { path: Paths.testButtons, element: <TestPage /> },
+    { path: Paths.chatInfluencerBarPreview, element: <ChatInfluencerBarPreview /> },
     { path: Paths.updateProfile, element: <UpdateProfile /> },
     { path: Paths.join, element: <LandingPage /> },
     { path: Paths.welcome, element: <InfluencerWelcome /> },

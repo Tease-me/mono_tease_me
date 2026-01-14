@@ -41,4 +41,5 @@ export const Paths = {
 
     testButtons: "/test/buttons",
     testProfilePage: "/test/profile-page",
+    chatInfluencerBarPreview: "/test/chat-influencer-bar-preview",
 } as const;
