@@ -14,11 +14,6 @@
   font-family: var(--secondary-font-family);
 }
 
-.balanceBadge {
-  margin: 0 auto;
-  text-align: center;
-}
-
 .card h3 {
   font-size: 24px;
 }
@@ -30,24 +25,7 @@
 }
 
 .balanceBadge {
-  display: flex;
-  width: 75px;
-  padding: 8px 16px;
-  justify-content: center;
-
-  gap: 8px;
-  border-radius: 0 0 12px 12px;
-  border-right: 1px solid #4ADE80;
-  border-bottom: 1px solid #4ADE80;
-  border-left: 1px solid #4ADE80;
-  background: rgba(18, 255, 105, 0.10);
-  color: var(--alerts-status-success, #4ADE80);
-  text-align: center;
-  font-family: var(--secondary-font-family);
-  font-size: 16px;
-  font-style: normal;
-  font-weight: 700;
-  line-height: 20px;
+display: block;
 }
 
 .metricsArea {

@@ -4,7 +4,7 @@ import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import ChatScreenContent from "../messaging/components/ChatScreenContent";
 import InfluencerSelector from "../influencer/InfluencerSelector";
 import UserMenu from "../user-profile/UserMenu";
-import UserProfile from "../user-profile/OLDUserProfile";
+import UserProfile from "../user-profile/Components/UserProfile";
 import PaymentDetails from "../user-profile/Components/PaymentDetails";
 import ManageInfluencers from "../user-profile/Components/ManageInfluencers";
 import InfluencerRelation from "../user-profile/Components/InfluencerRelation";
@@ -120,7 +120,11 @@ export default function HomeScreenSingle() {
       onBack={prevPage}
       onToggle={toggleSidebar}
       showBack={currentPage !== "home"}
-      title={active.label}
+      title={
+  currentPage === "influencer_profile" && navPayload?.name
+    ? navPayload.name
+    : active.label
+}
     >
       {needsSelection ? (
         !id ? <InfluencerSelector onItemClick={handleSelect} influencers={influencers} /> : chatContent

@@ -4,6 +4,7 @@ import SvgPack from "@/utils/SvgPack";
 import ProfileMedia from "../ProfileMedia";
 import MetricRing from "../stats/MetricRing";
 import { formatDateTimeRelative } from "@/utils/DateTimeUtils";
+import BalanceBadge from "../stats/BalanceBadge";
 
 type InfleuncerRelationCardProps = {
   name: string;
@@ -55,7 +56,7 @@ const InfluencerRelationCard: React.FC<InfleuncerRelationCardProps> = ({
     <div className={styles.card}>
       <div className={styles.upper}>
         <div className={styles.balanceBadge}>
-          ${balance}
+         <BalanceBadge balance={balance} />
         </div>
         <div className={styles.nameArea}>
           <h3>{name}</h3>
@@ -77,7 +78,7 @@ const InfluencerRelationCard: React.FC<InfleuncerRelationCardProps> = ({
         <div className={styles.stat}>
           <span className={styles.label}>Love</span>
           <div className={styles.valueRow}>
-            <span className={styles.value}>{loveScore}</span>
+            <span className={styles.value}>{loveScore.toFixed(0)}</span>
           </div>
         </div>
         <div className={styles.stat}>
