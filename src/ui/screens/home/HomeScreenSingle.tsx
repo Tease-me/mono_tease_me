@@ -26,7 +26,7 @@ const sidebarPages: SidebarPage[] = [
   { id: "payment", label: "Payment Details", render: ({ goTo }) => <PaymentDetails goTo={goTo} /> },
   { id: "influencers", label: "Influencers", render: ({ goTo, navPayload, goBack }) => <ManageInfluencers goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
   { id: "influencer_profile", label: "Influencer Profile", render: ({ goTo, navPayload, goBack }) => <InfluencerRelation goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
-  { id: "add_credits", label: "Add Credits", render: ({ goTo, navPayload, goBack }) => <AddCredits goTo={goTo} navpayload={navPayload}  /> },
+  { id: "add_credits", label: "Add Credits", render: ({ goTo, navPayload}) => <AddCredits goTo={goTo} navpayload={navPayload}  /> },
 ];
 
 export default function HomeScreenSingle() {

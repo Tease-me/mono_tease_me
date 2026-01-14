@@ -23,6 +23,7 @@ import IconButton from "@/ui/components/inputs/buttons/IconButton";
 //TODO
 // UNFOLLOW BUTTON
 // 18+ TOGGLE ON = GO TO SUBSCRIBE PAGE
+//RELATIONSHIP RADAR CSS WARNING
 
 const relationshipService = RelationshipServices(apiClient);
 const balanceService = BalanceServices(apiClient);
@@ -62,7 +63,7 @@ type RelationData = {
 };
 
 
-export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) {
+export default function InfluencerRelation({ navPayload, goTo }: Props) {
   const initial: RelationData = useMemo(
     () => ({
       id: navPayload.influencerId,
