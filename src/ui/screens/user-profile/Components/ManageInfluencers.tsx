@@ -79,6 +79,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
       influencerId: inf.id,
       name: inf.name,
       image: inf.image,
+      video: inf.video,
       balance: inf.balance,
       lastConnected: inf.lastConnected,
       trust: inf.trust,

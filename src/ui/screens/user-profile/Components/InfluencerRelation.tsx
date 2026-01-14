@@ -30,9 +30,9 @@ const subscriptionService = SubscriptionsServices(apiClient);
 
 type NavPayload = Record<string, any>;
 type Props = {
-  goBack: () => void;
   navPayload: NavPayload;
-  goTo?: (id: string, payload?: NavPayload) => void;
+  goTo: (id: string, payload?: NavPayload) => void;
+  goBack: () => void;
 };
 
 type RelationData = {
@@ -62,7 +62,7 @@ type RelationData = {
 };
 
 
-export default function InfluencerRelation({ navPayload }: Props) {
+export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) {
   const initial: RelationData = useMemo(
     () => ({
       id: navPayload.influencerId,
@@ -98,9 +98,6 @@ export default function InfluencerRelation({ navPayload }: Props) {
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [cancelSuccess, setCancelSuccess] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
-
-
-
 
   useEffect(() => {
     if (!initial.id) return;
@@ -180,6 +177,10 @@ export default function InfluencerRelation({ navPayload }: Props) {
     }
   };
 
+  const handleAddCredits = () => {
+    goTo("add_credits", {id: data.id, image: data.image, video: data.video});
+  }
+
 
 
   return (
@@ -229,6 +230,7 @@ export default function InfluencerRelation({ navPayload }: Props) {
           <PrimaryButton
             leftIcon={<SvgPack.PlusBox />}
             text="Add Credit"
+            onClick={handleAddCredits}
           />
         </div>
         <div className={styles.adultBalanceArea}>
