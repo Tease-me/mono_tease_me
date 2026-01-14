@@ -5,24 +5,24 @@ const previewExamples: ChatInfluencerBarProps[] = [
   {
     name: "Olivia F.",
     statusIcon: "💬",
-    middleContent: <span style={{ color: 'white', fontSize: '1.2rem' }}>X</span>,
-    loveScore: -888,
+
+    loveScore: 100,
     rankState: "up",
     glowVariant: "default",
   },
   {
     name: "Sophia L.",
     statusIcon: "🎤",
-    middleContent: <span style={{ color: 'white', fontSize: '1.2rem' }}>Y</span>,
-    loveScore: 456,
+
+    loveScore: -50,
     rankState: "down",
     glowVariant: "default",
   },
   {
     name: "Emma W.",
     statusIcon: "💖",
-    middleContent: <span style={{ color: 'white', fontSize: '1.2rem' }}>Z</span>,
-    loveScore: 789,
+  
+    loveScore: 80,
     rankState: "up",
     glowVariant: "adult",
   },

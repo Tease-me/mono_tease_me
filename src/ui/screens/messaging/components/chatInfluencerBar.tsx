@@ -1,8 +1,14 @@
 import React from "react";
+import LottieAnimation from "@/ui/components/LottieAnimation";
+import rankUp from "@/assets/lottie/rankUp.json"
+import rankDown from "@/assets/lottie/rankDown.json"
+import bellaMockup from "@/assets/mock/profile-pics/0af48251-5061-4cf2-8c48-13d0ddd3c52c.png";
+import switchProfileImg from "@/assets/svg/switchProfile.svg";
 import styles from "./chatInfluencerBar.module.css";
 
 type RankState = "up" | "down";
 type GlowVariant = "default" | "adult";
+
 
 export type ChatInfluencerBarProps = {
   name?: string;
@@ -16,7 +22,7 @@ export type ChatInfluencerBarProps = {
 export default function ChatInfluencerBar({
   name = "Olivia F.",
   statusIcon = "💬",
-  middleContent = "X",
+
   loveScore = -888,
   rankState = "up",
   glowVariant = "default",
@@ -29,6 +35,9 @@ export default function ChatInfluencerBar({
   const glowClass =
     glowVariant === "adult" ? styles.glowStatusCircleAdult : styles.glowStatusCircleDefault;
 
+  const profileSwitch =
+    glowVariant === "adult" ? styles.profileSwitchAdult : styles.profileSwitch;
+
   return (
     <div className={styles.chatInfluencerBar}>
       <div className={styles.influencerTop}>
@@ -38,7 +47,7 @@ export default function ChatInfluencerBar({
               <p>{name}</p>
             </div>
 
-            <div className={styles.middleCol}>{middleContent}</div>
+            <div className={styles.middleCol}></div>
 
             <div className={styles.rightCol}>
               <div className={styles.status}>{statusIcon}</div>
@@ -46,7 +55,7 @@ export default function ChatInfluencerBar({
               <div className={`${styles.loveScore} ${loveScoreClass}`}>
                 <p>{loveScore}</p>
                 <div className={`${styles.rank} ${rankClass}`}>
-                  {rankState === "up" ? "↑" : "↓"}
+                  {rankState === "up" ? <LottieAnimation autoplay loop animationData={rankUp} /> : <LottieAnimation autoplay loop animationData={rankDown} />}
                 </div>
               </div>
             </div>
@@ -61,6 +70,16 @@ export default function ChatInfluencerBar({
       </div>
 
       <div className={styles.influencerBottom} />
+      <div className={styles.profileContainer}>
+<div className={styles.profileLeftCol}>left</div>
+<div className={styles.profileMidCol}>
+  <div className={styles.profileImage}>    <img src={bellaMockup} /></div>
+  <div className={`${styles.profileSwitch} ${profileSwitch}`}><img src={switchProfileImg} /></div>
+
+</div>
+<div className={styles.profileRightCol}>right</div>
+
+      </div>
     </div>
   );
 }
