@@ -6,7 +6,7 @@ export default {
     ArrowRight: lazy(() => import("@/assets/mj-dashboard/svg/ArrowRight.svg?react")),
     ArrowLeft: lazy(() => import("@/assets/svg/ArrowLeft.svg?react")),
     ArrowDown: lazy(() => import("@/assets/svg/ArrowDown.svg?react")),
-        LightArrowRight: lazy(() => import("@/assets/svg/LightArrowRight.svg?react")),
+    LightArrowRight: lazy(() => import("@/assets/svg/LightArrowRight.svg?react")),
     Bill: lazy(() => import("@/assets/mj-dashboard/svg/Bill.svg?react")),
     Chat: lazy(() => import("@/assets/mj-dashboard/svg/Chat.svg?react")),
     Danger: lazy(() => import("@/assets/mj-dashboard/svg/DangerTriangle.svg?react")),
@@ -36,13 +36,14 @@ export default {
     PlusBox: lazy(() => import("@/assets/svg/PlusBox.svg?react")),
     Menu: lazy(() => import("@/assets/svg/Menu.svg?react")),
     Cross: lazy(() => import("@/assets/svg/Cross.svg?react")),
+    Delete: lazy(() => import("@/assets/svg/Delete.svg?react")),
 
     //Influencer Relation Metric
     Trust: lazy(() => import("@/assets/svg/Trust.svg?react")),
     Shield: lazy(() => import("@/assets/svg/Shield.svg?react")),
     KissGray: lazy(() => import("@/assets/svg/KissGray.svg?react")),
     Angles: lazy(() => import("@/assets/svg/Angles.svg?react")),
-    
+
 
     // Social Media Icons
     OnlyFans: lazy(() => import("@/assets/svg/OnlyFans.svg?react")),
