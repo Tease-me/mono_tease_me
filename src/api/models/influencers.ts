@@ -13,6 +13,28 @@ export interface InfluencerResponse {
   created_at: string;
 }
 
+export interface InfluencerSampleResponse {
+  id: number;
+  s3_key: string;
+  original_filename?: string | null;
+  content_type?: string | null;
+  url?: string | null;
+  created_at?: string | null;
+}
+
+export interface InfluencerSampleListResponse {
+  influencer_id: string;
+  count: number;
+  samples: Array<{
+    id: string;
+    s3_key?: string | null;
+    original_filename?: string | null;
+    content_type?: string | null;
+    url?: string | null;
+    created_at?: string | null;
+  }>;
+}
+
 export interface PersonaImportResponse {
   total_rows: number;
   imported_count: number;

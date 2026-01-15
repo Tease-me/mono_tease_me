@@ -25,10 +25,30 @@ const sidebarPages: SidebarPage[] = [
   { id: "home", label: "User Menu", render: ({ goTo }) => <UserMenu goTo={goTo} /> },
   { id: "profile", label: "User Profile", render: ({ goTo }) => <UserProfile goTo={goTo} /> },
   { id: "payment", label: "Payment Details", render: ({ goTo }) => <PaymentDetails goTo={goTo} /> },
-  { id: "influencers", label: "Manage Influencers", render: ({ goTo, navPayload, goBack }) => <ManageInfluencers goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
+  {
+    id: "influencers",
+    label: "Manage Influencers",
+    render: ({ goTo, navPayload, goBack }) =>
+      <ManageInfluencers
+        goTo={goTo}
+        navPayload={navPayload}
+        goBack={goBack}
+      />
+  },
   { id: "influencer_profile", label: "Influencer Profile", render: ({ goTo, navPayload, goBack }) => <InfluencerRelation goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
-  { id: "add_credits", label: "Add Credits", render: ({ goTo, navPayload}) => <AddCredits goTo={goTo} navpayload={navPayload}  /> },
-    { id: "subscribe", label: "Subscribe", render: () => <AdultModePage nobg onSubscribePressed={() => {}} /> },
+  { id: "add_credits", label: "Add Credits", render: ({ goTo, navPayload }) => <AddCredits goTo={goTo} navpayload={navPayload} /> },
+  {
+    id: "subscribe", label: "Subscribe", render: ({ goTo, navPayload}) => (
+      <AdultModePage 
+        influencerId={navPayload.influencerId}
+        influencerImageUrl={navPayload.image}
+        onSubscribePressed={  () => {
+           navPayload.onSubscribe?.();
+        }}
+        nobg
+      />
+    )
+  },
 
 ];
 
@@ -79,10 +99,12 @@ export default function HomeScreenSingle() {
   useEffect(() => {
     localStorage.setItem("selected_id", id?.toString() || "");
   }, [id]);
+
   useEffect(() => {
     influencerRepo
       .getFollowedInfluencers()
       .then((influencers: InfluencerDataModel[]) => {
+        localStorage.setItem("selected_id", "");
         if (influencers.length > 1) {
           setNeedsSelection(true);
           setHasMultipleInfluencers(true);
@@ -126,10 +148,10 @@ export default function HomeScreenSingle() {
       onToggle={toggleSidebar}
       showBack={currentPage !== "home"}
       title={
-  currentPage === "influencer_profile" && navPayload?.name
-    ? navPayload.name
-    : active.label
-}
+        currentPage === "influencer_profile" && navPayload?.name
+          ? navPayload.name
+          : active.label
+      }
     >
       {needsSelection ? (
         !id ? <InfluencerSelector onItemClick={handleSelect} influencers={influencers} /> : chatContent

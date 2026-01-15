@@ -22,8 +22,8 @@ import IconButton from "@/ui/components/inputs/buttons/IconButton";
 
 //TODO
 // UNFOLLOW BUTTON
-// 18+ TOGGLE ON = GO TO SUBSCRIBE PAGE
 //RELATIONSHIP RADAR CSS WARNING
+//REMOVE ALERT ON SUBSCRIBE
 
 const relationshipService = RelationshipServices(apiClient);
 const balanceService = BalanceServices(apiClient);
@@ -93,7 +93,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
 
   const [showBalanceDetails, setShowBalanceDetails] = useState(false);
   const [showAdultBalanceDetails, setShowAdultBalanceDetails] = useState(false);
-  const [adultModeChecked, setAdultModeChecked] = useState(data.is18 || false);
+  const [adultModeChecked, setAdultModeChecked] = useState(data.hasSubscription || false);
 
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
@@ -111,7 +111,6 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
       data.is18 === undefined;
 
     if (!needsDetails) return;
-
     let cancelled = false;
     setLoading(true);
     (async () => {
@@ -132,7 +131,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
             closeness: rel.closeness,
             stageScore: rel.sentiment_score,
             lastConnected: rel.last_interaction_at,
-            followingSince: rel.last_interaction_at,
+            followingSince: d.followingSince,
             balance: bal ? bal.balance_cents / 100 : d.balance,
             hasSubscription: sub?.has_subscription,
             is18: sub?.is_18_selected ?? d.is18,
@@ -155,17 +154,49 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
   }, [initial.id]);
 
   useEffect(() => {
-    setAdultModeChecked(!!data.is18);
-  }, [data.is18]);
+    setAdultModeChecked(!!data.hasSubscription);
+  }, [data.hasSubscription]);
+
+  const onSubscribe = async () => {
+    if (!data.id) return;
+    setLoading(true);
+    try {
+      await subscriptionService.activateMySubscriptionForInfluencer(data.id, true);
+      const sub = await subscriptionService.getMySubscriptionForInfluencer(data.id);
+      setData((d) => ({
+        ...d,
+        hasSubscription: sub?.has_subscription ?? true,
+        is18: sub?.is_18_selected ?? true,
+        expiresAt: sub?.current_period_end ?? d.expiresAt,
+        voiceMinutes: sub?.voice_minutes ?? d.voiceMinutes,
+        textMessages: sub?.text_messages ?? d.textMessages,
+      }));
+      setAdultModeChecked(true);
+      alert('You are now subscribed tot 18+ mode');
+      // goTo("influencer_profile", { influencerId: data.id });
+    }
+    catch (e) {
+      alert(`Error ${e}`);
+    }
+    finally {
+      setLoading(false);
+    }
+  };
+
+
 
   const handleAdultToggleChange = async () => {
     // const a = adultModeChecked;
     // setAdultModeChecked(!a);
-    if (!adultModeChecked){
-    goTo('subscribe');
+    if (!adultModeChecked) {
+      goTo('subscribe', {
+        influencerId: data.id,
+        image: data.image,
+        onSubscribe: onSubscribe
+      });
     }
-    else{
-      handleCancelSubscription();
+    else {
+      setShowCancelModal(true);
     }
 
   }
@@ -176,11 +207,11 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
     try {
       await subscriptionService.activateMySubscriptionForInfluencer(data.id, false);
       setCancelSuccess(true);
-      setAdultModeChecked(false);
       setData((d) => ({ ...d, is18: false, hasSubscription: false }));
     } catch (e: any) {
       setCancelError(e?.message || "Could not cancel right now.");
     } finally {
+      setAdultModeChecked(false);
       setCancelLoading(false);
     }
   };
@@ -190,16 +221,13 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
   }
 
 
-
-
-
   return (
     <div className={styles.shell}>
       {/* Hero */}
       <div className={styles.heroRow}>
         <ProfileMedia imageSrc={data.image} videoSrc={data.video} size="medium" active />
         <div className={styles.heroInfo}>
-          <div className={data.is18 ? styles.badges : styles.badgesHide}>
+          <div className={data.hasSubscription ? styles.badges : styles.badgesHide}>
             <span className={styles.modeText}>
               <span
                 className={styles.eighteenPlus}
@@ -211,7 +239,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           </div>
           <div className={styles.meta}>
             <span>Last Connected: <strong>{data.lastConnected ? formatDateTimeRelative(data.lastConnected) : "--"}</strong></span>
-            <span>Following since {data.followingSince ? formatDateTimeRelative(data.followingSince) : "--"}</span>
+            <span>Following since: {data.followingSince ? new Date(data.followingSince).toLocaleDateString() : "--"}</span>
           </div>
         </div>
       </div>
@@ -244,7 +272,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           />
         </div>
         <div className={styles.adultBalanceArea}>
-          {data.is18 && <NormalButton type="nobg" className={styles.grayBtn} text={!showAdultBalanceDetails ? "View Details" : "Hide Details"} onClick={
+          {data.hasSubscription && <NormalButton type="nobg" className={styles.grayBtn} text={!showAdultBalanceDetails ? "View Details" : "Hide Details"} onClick={
             () => { setShowAdultBalanceDetails((prev) => !prev) }
           } />
           }
@@ -263,11 +291,11 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           {showAdultBalanceDetails && <button className={styles.cancelSub} type="button" onClick={() => { setShowCancelModal(true) }}> Cancel Subscription</button>}
           <div className={styles.adultToggleArea}>
             <button type="button" className={styles.adultToggleBtn}>
-              {showAdultBalanceDetails && <span className={styles.adultText}>{data.adultCallTime ?? "0"} mins</span>}
+              {data.hasSubscription && <span className={styles.adultText}>{data.adultCallTime ?? "0"} mins</span>}
               <AdultModeToggle checked={adultModeChecked} onChange={handleAdultToggleChange} />
             </button>
-            {showAdultBalanceDetails && <p>
-              Until {data.expiresAt ? new Date(data.expiresAt).toLocaleDateString() : "--"}
+            {data.hasSubscription && <p>
+              Until: {data.expiresAt ? new Date(data.expiresAt).toLocaleDateString() : "--"}
             </p>}
           </div>
         </div>
@@ -302,9 +330,9 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         <ProgressBar icon={<SvgPack.Shield />} compact label="Safety" value={data.safety ?? 0} max={100} />
       </div>
 
-      <div className={styles.unfollow}>
+      {/* <div className={styles.unfollow}>
         <IconButton color="black" type="pill" leftIcon={<SvgPack.Delete />} text={`Unfollow ${data.name}`} redText className={styles.unfollowBtn} />
-      </div>
+      </div> */}
 
       {loading && <div className={styles.loading}>Loading…</div>}
       {showCancelModal && (
@@ -349,6 +377,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         </Modal>
 
       )}
+
       {/* Temporary loading to avoid  warning */}
       {loading && <div> </div>}
 

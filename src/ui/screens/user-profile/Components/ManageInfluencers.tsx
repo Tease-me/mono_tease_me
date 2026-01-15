@@ -32,6 +32,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
       safety: number;
       attraction: number;
       closeness: number;
+      followingSince: string;
     }>
   >([]);
 
@@ -62,6 +63,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
               safety: rel.safety,
               attraction: rel.attraction,
               closeness: rel.closeness,
+              followingSince: inf.created_at || "--"
             };
           })
         );
@@ -87,6 +89,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
       attraction: inf.attraction,
       closeness: inf.closeness,
       stageScore: inf.loveScore, 
+      followingSince: inf.followingSince,
     });
   };
 
