@@ -1,5 +1,6 @@
 export const Paths = {
     all: "*",
+    root: "/",
     influencerProfile: (username = ":username") => `/${username}`,
     updateProfile: "/update-profile",
     join: "/join",

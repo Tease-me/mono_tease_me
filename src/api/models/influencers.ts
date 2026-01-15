@@ -3,6 +3,7 @@ export interface InfluencerResponse {
   voice_id: string;
   prompt_template: string;
   daily_scripts: string[];
+  custom_adult_prompt?: string;
   id: string;
   influencer_agent_id_third_part: string;
   bio_json: string;
@@ -10,6 +11,28 @@ export interface InfluencerResponse {
   photo_url: string;
   video_url: string;
   created_at: string;
+}
+
+export interface InfluencerSampleResponse {
+  id: number;
+  s3_key: string;
+  original_filename?: string | null;
+  content_type?: string | null;
+  url?: string | null;
+  created_at?: string | null;
+}
+
+export interface InfluencerSampleListResponse {
+  influencer_id: string;
+  count: number;
+  samples: Array<{
+    id: string;
+    s3_key?: string | null;
+    original_filename?: string | null;
+    content_type?: string | null;
+    url?: string | null;
+    created_at?: string | null;
+  }>;
 }
 
 export interface PersonaImportResponse {

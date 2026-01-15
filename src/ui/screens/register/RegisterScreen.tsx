@@ -11,10 +11,13 @@ import OnBoardingTopNav from "@/ui/components/nav/OnBoardingTopNav";
 import HeadingText from "@/ui/components/typography/HeadingText";
 import ButtonRow from "@/ui/templates/ButtonRow";
 import FullWidthLayout from "@/ui/templates/FullWidthLayout";
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import BackgroundGradient from "../../templates/BackgroundGradient";
 import styles from "./RegisterScreen.module.css";
+import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
+import { Paths } from "@/routes/path";
+import logger from "@/utils/logger";
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState("");
@@ -27,12 +30,28 @@ export default function RegisterScreen() {
     general?: string;
   }>({});
   const authServices = AuthServices(apiClient);
+  const influencerRepo = InfluencerRepo();
+
   const { isSignedIn } = useContext(AuthContext);
 
   const navigate = useNavigate();
   const { username } = useParams<{ username: string }>();
 
-  if (isSignedIn) navigate("/home");
+  if (isSignedIn) navigate(Paths.home);
+
+  useEffect(() => {
+    (async () => {
+      if (username) {
+        try {
+          const res = await influencerRepo.getInfluencer(username)
+          localStorage.setItem("influencer_referral_id", res.id);
+        } catch (e) {
+          logger.debug(e)
+          navigate(Paths.root)
+        }
+      }
+    })();
+  }, [username])
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -55,7 +74,7 @@ export default function RegisterScreen() {
         username || ""
       );
       if (response.ok) {
-        navigate("/register/verify", { state: { email, password, influencerId: username } });
+        navigate(Paths.registerVerify, { state: { email, password, influencerId: username } });
       }
       setErrors({ general: "Registration Failed Plese Try Again Later" });
     } catch (err) {
@@ -123,7 +142,7 @@ export default function RegisterScreen() {
               <ButtonRow>
                 <NormalButton
                   className={styles["btn-back"]}
-                  onClick={() => navigate("/")}
+                  onClick={() => navigate(Paths.root)}
                   text="Back"
                   color="black"
                 />
@@ -136,7 +155,7 @@ export default function RegisterScreen() {
             </div>
             <p className={styles["auth-footer"]}>
               Already have an account?{" "}
-              <span onClick={() => navigate("/login")}>Sign in</span>
+              <span onClick={() => navigate(Paths.login)}>Sign in</span>
             </p>
           </div>
         </form>

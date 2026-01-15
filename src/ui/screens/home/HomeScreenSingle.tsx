@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import ChatScreenContent from "../messaging/components/ChatScreenContent";
@@ -28,8 +28,10 @@ const sidebarPages: SidebarPage[] = [
 ];
 
 export default function HomeScreenSingle() {
-  const storedId = localStorage.getItem("selected_id");
-  const [id, setId] = useState<string | undefined>(storedId ? storedId : undefined);
+  const [id, setId] = useState<string | undefined>(() => {
+    const storedId = localStorage.getItem("selected_id");
+    return storedId ? storedId : undefined;
+  });
   const [needsSelection, setNeedsSelection] = useState(false);
   const [influencers, setInfluencers] = useState<InfluencerDataModel[]>([]);
   const [hasMultipleInfluencers, setHasMultipleInfluencers] = useState(false);
@@ -39,29 +41,45 @@ export default function HomeScreenSingle() {
   const [history, setHistory] = useState<SidebarPageId[]>([]);
   const [navPayload, setNavPayload] = useState<NavPayload>({});
 
-  const goTo = (id: SidebarPageId, payload?: NavPayload) => {
+  const influencerRepo = useMemo(() => InfluencerRepo(), []);
+
+  const goTo = useCallback((pageId: SidebarPageId, payload?: NavPayload) => {
     if (payload) setNavPayload((p) => ({ ...p, ...payload }));
     setHistory((h) => [...h, currentPage]);
-    setCurrentPage(id);
-  };
+    setCurrentPage(pageId);
+  }, [currentPage]);
 
-  const prevPage = () => {
+  const prevPage = useCallback(() => {
     setHistory((h) => {
       const prev = h[h.length - 1] ?? "home";
       setCurrentPage(prev);
       return h.slice(0, -1);
     });
-  };
+  }, []);
 
-  const active = sidebarPages.find((p) => p.id === currentPage)!;
+  const active = useMemo(
+    () => sidebarPages.find((p) => p.id === currentPage)!,
+    [currentPage]
+  );
+
+  const toggleSidebar = useCallback(() => {
+    setShowSidebar((v) => !v);
+  }, []);
+
+  const sidebar = useMemo(
+    () => active.render({ goTo, navPayload, goBack: prevPage }),
+    [active, goTo, navPayload, prevPage]
+  );
+
   useEffect(() => {
     localStorage.setItem("selected_id", id?.toString() || "");
   }, [id]);
+
   useEffect(() => {
-    const influencerRepo = InfluencerRepo();
     influencerRepo
       .getFollowedInfluencers()
       .then((influencers: InfluencerDataModel[]) => {
+        localStorage.setItem("selected_id", "");
         if (influencers.length > 1) {
           setNeedsSelection(true);
           setHasMultipleInfluencers(true);
@@ -71,24 +89,38 @@ export default function HomeScreenSingle() {
         }
         setInfluencers(influencers);
       });
-  }, []);
+  }, [influencerRepo]);
 
-  const handleSelect = (selectedId: string) => {
+  const handleSelect = useCallback((selectedId: string) => {
     setId(selectedId);
     setNeedsSelection(false);
-  };
+  }, []);
 
-  const handleNeedsSelection = () => {
-    setId(undefined);
-    setNeedsSelection(true);
-  }
+  const handleNeedsSelectionChange = useCallback((needs: boolean) => {
+    if (needs) {
+      setId(undefined);
+    }
+    setNeedsSelection(needs);
+  }, []);
+
+  const chatContent = useMemo(
+    () => (
+      <ChatScreenContent
+        id={id}
+        onMenuClick={toggleSidebar}
+        setNeedsSelection={handleNeedsSelectionChange}
+        showChangeInfluencerButton={hasMultipleInfluencers}
+      />
+    ),
+    [handleNeedsSelectionChange, hasMultipleInfluencers, id, toggleSidebar]
+  );
 
   return (
     <SlideDrawerLayout
       showSidebar={showSidebar}
-      sidebar={active.render({ goTo, navPayload, goBack: prevPage })}
+      sidebar={sidebar}
       onBack={prevPage}
-      onToggle={() => setShowSidebar((v) => !v)}
+      onToggle={toggleSidebar}
       showBack={currentPage !== "home"}
       title={
   currentPage === "influencer_profile" && navPayload?.name
@@ -97,9 +129,9 @@ export default function HomeScreenSingle() {
 }
     >
       {needsSelection ? (
-        !id ? <InfluencerSelector onItemClick={handleSelect} influencers={influencers} /> : <ChatScreenContent id={id} onMenuClick={() => setShowSidebar((v) => !v)} setNeedsSelection={handleNeedsSelection} showChangeInfluencerButton={hasMultipleInfluencers} />
+        !id ? <InfluencerSelector onItemClick={handleSelect} influencers={influencers} /> : chatContent
       ) : (
-        <ChatScreenContent id={id} onMenuClick={() => setShowSidebar((v) => !v)} setNeedsSelection={setNeedsSelection} showChangeInfluencerButton={hasMultipleInfluencers} />
+        chatContent
       )}
     </SlideDrawerLayout>
   );

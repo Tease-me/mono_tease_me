@@ -18,6 +18,7 @@ interface MessageBubbleProps {
     callGroup?: CallMessageGroup;
     influencerName?: string;
     onAudioPlay?: (src: string) => void;
+    showAudioTranscript?: boolean;
 }
 
 const formatDuration = (ms: number) => {
@@ -45,9 +46,16 @@ const getCallDuration = (group?: CallMessageGroup) => {
     return formatDuration(end - start);
 };
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, callGroup, influencerName, onAudioPlay }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({
+    msg,
+    callGroup,
+    influencerName,
+    onAudioPlay,
+    showAudioTranscript,
+}) => {
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const [expanded, setExpanded] = useState(false);
+    const [transcriptExpanded, setTranscriptExpanded] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
     useLayoutEffect(() => {
@@ -94,6 +102,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, callGroup, influence
     const sender = callGroup?.sender ?? msg?.sender ?? "received";
     const time = callGroup?.time ?? msg?.time ?? "";
     const callDuration = getCallDuration(callGroup);
+    const hasTranscript = Boolean(showAudioTranscript && msg?.transcript);
     const callSpeakerName = (messageSender: Message["sender"]) => {
         if (messageSender === "received") return influencerName || "Influencer";
         return "You";
@@ -135,9 +144,20 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, callGroup, influence
                     </>
                 ) : (
                     <>
-                    
                         {msg?.text}
                         {renderAttachments(msg)}
+                        {hasTranscript && (
+                            <button
+                                type="button"
+                                className={styles["audio-transcript-toggle"]}
+                                onClick={() => setTranscriptExpanded((prev) => !prev)}
+                            >
+                                {transcriptExpanded ? "Hide transcript" : "Show transcript"}
+                            </button>
+                        )}
+                        {hasTranscript && transcriptExpanded && (
+                            <div className={styles["audio-transcript"]}>{msg?.transcript}</div>
+                        )}
                     </>
                 )}
             </div>

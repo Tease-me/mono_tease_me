@@ -8,14 +8,22 @@ import RelationshipRadar from "@/ui/components/visualizations/RelationshipRadart
 import UsageView from "@/ui/components/stats/UsageView";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
+import ProgressBar from "@/ui/components/stats/ProgressBar";
 import BalanceBadge from "@/ui/components/stats/BalanceBadge";
 import AdultModeToggle from "@/ui/components/adult-mode-toggle/AdultModeToggle";
+import { Modal } from "@/ui/components/modals/Modal";
 
 import { formatDateTimeRelative } from "@/utils/DateTimeUtils";
+
 
 import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
 import { RelationshipServices } from "@/api/services/RelationshipServices";
 import { BalanceServices } from "@/api/services/BalanceServices";
+import IconButton from "@/ui/components/inputs/buttons/IconButton";
+
+//TODO
+// UNFOLLOW BUTTON
+// 18+ TOGGLE ON = GO TO SUBSCRIBE PAGE
 
 const relationshipService = RelationshipServices(apiClient);
 const balanceService = BalanceServices(apiClient);
@@ -87,6 +95,13 @@ export default function InfluencerRelation({ navPayload }: Props) {
   const [showAdultBalanceDetails, setShowAdultBalanceDetails] = useState(false);
   const [adultModeChecked, setAdultModeChecked] = useState(data.is18 || false);
 
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+  const [cancelSuccess, setCancelSuccess] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+
+
+
 
   useEffect(() => {
     if (!initial.id) return;
@@ -143,18 +158,30 @@ export default function InfluencerRelation({ navPayload }: Props) {
   }, [initial.id]);
 
   useEffect(() => {
-  setAdultModeChecked(!!data.is18);
-}, [data.is18]);
+    setAdultModeChecked(!!data.is18);
+  }, [data.is18]);
 
-  const handleAdultToggleChange = () => {
-
-    if (!data.is18){
-      alert(data.is18);
-      // Handle if adult mode is not available.. possibly send to subscribe page.. gotta confirm first
-      return ;
-    }
-    setAdultModeChecked(!adultModeChecked);
+  const handleAdultToggleChange = async () => {
+    const a = adultModeChecked;
+    setAdultModeChecked(!a);
   }
+  const handleCancelSubscription = async () => {
+    if (!data.id) return;
+    setCancelError(null);
+    setCancelLoading(true);
+    try {
+      await subscriptionService.activateMySubscriptionForInfluencer(data.id, false);
+      setCancelSuccess(true);
+      setAdultModeChecked(false);
+      setData((d) => ({ ...d, is18: false, hasSubscription: false }));
+    } catch (e: any) {
+      setCancelError(e?.message || "Could not cancel right now.");
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
+
 
   return (
     <div className={styles.shell}>
@@ -162,7 +189,7 @@ export default function InfluencerRelation({ navPayload }: Props) {
       <div className={styles.heroRow}>
         <ProfileMedia imageSrc={data.image} videoSrc={data.video} size="medium" active />
         <div className={styles.heroInfo}>
-          <div className={!data.is18 ? styles.badges : styles.badgesHide}>
+          <div className={data.is18 ? styles.badges : styles.badgesHide}>
             <span className={styles.modeText}>
               <span
                 className={styles.eighteenPlus}
@@ -173,7 +200,7 @@ export default function InfluencerRelation({ navPayload }: Props) {
             </span>
           </div>
           <div className={styles.meta}>
-            <span>Last Connected: <strong>{data.lastConnected ? formatDateTimeRelative(data.lastConnected): "--"}</strong></span>
+            <span>Last Connected: <strong>{data.lastConnected ? formatDateTimeRelative(data.lastConnected) : "--"}</strong></span>
             <span>Following since {data.followingSince ? formatDateTimeRelative(data.followingSince) : "--"}</span>
           </div>
         </div>
@@ -185,7 +212,7 @@ export default function InfluencerRelation({ navPayload }: Props) {
           <div className={styles.balanceBadge}>
             <BalanceBadge balance={data.balance ? data.balance : 0} />
           </div>
-          <NormalButton type="pill"
+          <NormalButton type="nobg" className={styles.grayBtn}
             text={!showBalanceDetails ? "View Details" : "Hide Details"}
             onClick={() => setShowBalanceDetails((prev) => !prev)} />
           {showBalanceDetails && (<div className={styles.balanceStats}>
@@ -206,17 +233,11 @@ export default function InfluencerRelation({ navPayload }: Props) {
           />
         </div>
         <div className={styles.adultBalanceArea}>
-          <div className={styles.adultToggleArea}>
-          <button type="button" className={styles.adultToggleBtn}>
-            <span className={styles.adultText}>{data.adultCallTime ?? "0"} mins</span>
-            <AdultModeToggle checked={adultModeChecked} onChange={handleAdultToggleChange} />
-          </button>
-          <p>Until {data.expiresAt}</p>
-          </div>
-          <NormalButton text={!showAdultBalanceDetails ? "View Details" : "Hide Details"} onClick={
-            () => {  setShowAdultBalanceDetails((prev) => !prev)}
-          }/>
-           {showAdultBalanceDetails && (<div className={styles.adultBalanceStats}>
+          {data.is18 && <NormalButton type="nobg" className={styles.grayBtn} text={!showAdultBalanceDetails ? "View Details" : "Hide Details"} onClick={
+            () => { setShowAdultBalanceDetails((prev) => !prev) }
+          } />
+          }
+          {showAdultBalanceDetails && (<div className={styles.adultBalanceStats}>
             <UsageView
               label="Voice Minutes"
               tone="purple"
@@ -228,27 +249,24 @@ export default function InfluencerRelation({ navPayload }: Props) {
               value={data.msgRemaining != null ? data.msgRemaining.toString() : "--"}
             />
           </div>)}
+          {showAdultBalanceDetails && <button className={styles.cancelSub} type="button" onClick={() => { setShowCancelModal(true) }}>Cancel Subscription</button>}
+          <div className={styles.adultToggleArea}>
+            <button type="button" className={styles.adultToggleBtn}>
+              <span className={styles.adultText}>{data.adultCallTime ?? "0"} mins</span>
+              <AdultModeToggle checked={adultModeChecked} onChange={handleAdultToggleChange} />
+            </button>
+            <p>Until {data.expiresAt}</p>
+          </div>
         </div>
       </div>
 
       {/* Relationship stats area */}
-      <div className={styles.statsBlock}>
-        <div className={styles.statsHeader}>
-          <div>
-            <div className={styles.statsTitle}>Relationship Statistics</div>
-            <div className={styles.statsSubtitle}>Relationship Stage Progress</div>
-          </div>
-          <div className={styles.statsScore}>{data.stageScore ?? 0}/100</div>
+      <div className={styles.relationshipArea}>
+        <div className={styles.relationshipHeader}>
+          <div className={styles.relationshipTitle}>Relationship Statistics</div>
         </div>
         <div className={styles.progressBar}>
-          <div
-            className={styles.progressFill}
-            style={{ width: `${Math.min(data.stageScore ?? 0, 100)}%` }}
-          />
-        </div>
-        <div className={styles.stageLabels}>
-          <span>Strangers</span>
-          <span>Talking</span>
+          <ProgressBar mutedLabel label="Relationship Stage Progress" value={data.stageScore ?? 0} max={100} />
         </div>
 
         {/*  radar chart */}
@@ -263,7 +281,64 @@ export default function InfluencerRelation({ navPayload }: Props) {
         </div>
       </div>
 
+      <div className={styles.relationshipStatsArea}>
+
+        <ProgressBar icon={<SvgPack.Trust />} compact label="Trust" value={data.trust ?? 0} max={100} />
+        <ProgressBar icon={<SvgPack.Angles />} compact label="Closeness" value={data.closeness ?? 0} max={100} />
+        <ProgressBar icon={<SvgPack.KissGray />} compact label="Attraction" value={data.attraction ?? 0} max={100} />
+        <ProgressBar icon={<SvgPack.Shield />} compact label="Safety" value={data.safety ?? 0} max={100} />
+      </div>
+
+      <div className={styles.unfollow}>
+        <IconButton color="black" type="pill" leftIcon={<SvgPack.Delete />} text={`Unfollow ${data.name}`} redText className={styles.unfollowBtn} />
+      </div>
+
       {loading && <div className={styles.loading}>Loading…</div>}
+      {showCancelModal && (
+        <Modal isOpen={showCancelModal} onClose={() => {
+          setShowCancelModal(false);
+          setCancelSuccess(false);
+          setCancelError(null);
+        }}
+          className={styles.cancelModal}>
+          <div className={styles.modalCard}>
+            {!cancelSuccess ? (
+              <>
+                <h3>Cancel 18+ subscription?</h3>
+                <p>Upon cancelling, you will no longer be able to have explicit conversation with {data.name}.</p>
+                {cancelError && <div className={styles.modalError}>{cancelError}</div>}
+                <div className={styles.modalActions}>
+                  <NormalButton type="nobg" onClick={() => setShowCancelModal(false)} text="Cancel" />
+                  <IconButton
+                    leftIcon={<SvgPack.Danger />}
+                    disabled={cancelLoading}
+                    onClick={handleCancelSubscription}
+                    text={cancelLoading ? "Working..." : "Confirm"}
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <h3>Subscription cancelled</h3>
+                <p>18+ mode is now off.</p>
+                <div className={styles.modalActions}>
+                  <PrimaryButton
+                    onClick={() => {
+                      setShowCancelModal(false);
+                      setCancelSuccess(false);
+                    }}
+                    text="OK"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        </Modal>
+
+      )}
+      {/* Temporary loading to avoid  warning */}
+      {loading && <div> </div>}
+
     </div>
   );
 }
