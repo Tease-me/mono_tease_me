@@ -10,6 +10,7 @@ import ManageInfluencers from "../user-profile/Components/ManageInfluencers";
 import InfluencerRelation from "../user-profile/Components/InfluencerRelation";
 import AddCredits from "../user-profile/Components/AddCredits";
 import SlideDrawerLayout from "@/ui/templates/SlideDrawerLayout";
+import AdultModePage from "../adult-mode/AdultModePage";
 
 type SidebarPageId = string;
 type NavPayload = Record<string, any>;
@@ -24,9 +25,11 @@ const sidebarPages: SidebarPage[] = [
   { id: "home", label: "User Menu", render: ({ goTo }) => <UserMenu goTo={goTo} /> },
   { id: "profile", label: "User Profile", render: ({ goTo }) => <UserProfile goTo={goTo} /> },
   { id: "payment", label: "Payment Details", render: ({ goTo }) => <PaymentDetails goTo={goTo} /> },
-  { id: "influencers", label: "Influencers", render: ({ goTo, navPayload, goBack }) => <ManageInfluencers goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
+  { id: "influencers", label: "Manage Influencers", render: ({ goTo, navPayload, goBack }) => <ManageInfluencers goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
   { id: "influencer_profile", label: "Influencer Profile", render: ({ goTo, navPayload, goBack }) => <InfluencerRelation goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
   { id: "add_credits", label: "Add Credits", render: ({ goTo, navPayload}) => <AddCredits goTo={goTo} navpayload={navPayload}  /> },
+    { id: "subscribe", label: "Subscribe", render: () => <AdultModePage nobg onSubscribePressed={() => {}} /> },
+
 ];
 
 export default function HomeScreenSingle() {

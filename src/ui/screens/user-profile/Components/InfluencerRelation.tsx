@@ -136,7 +136,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
             balance: bal ? bal.balance_cents / 100 : d.balance,
             hasSubscription: sub?.has_subscription,
             is18: sub?.is_18_selected ?? d.is18,
-            expiresAt: sub?.expires_at ?? d.expiresAt,
+            expiresAt: sub?.current_period_end ?? d.expiresAt,
             voiceMinutes: sub?.voice_minutes ?? d.voiceMinutes,
             textMessages: sub?.text_messages ?? d.textMessages,
           }));
@@ -159,8 +159,15 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
   }, [data.is18]);
 
   const handleAdultToggleChange = async () => {
-    const a = adultModeChecked;
-    setAdultModeChecked(!a);
+    // const a = adultModeChecked;
+    // setAdultModeChecked(!a);
+    if (!adultModeChecked){
+    goTo('subscribe');
+    }
+    else{
+      handleCancelSubscription();
+    }
+
   }
   const handleCancelSubscription = async () => {
     if (!data.id) return;
@@ -179,8 +186,10 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
   };
 
   const handleAddCredits = () => {
-    goTo("add_credits", {id: data.id, image: data.image, video: data.video});
+    goTo("add_credits", { id: data.id, image: data.image, video: data.video });
   }
+
+
 
 
 
@@ -251,13 +260,15 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
               value={data.msgRemaining != null ? data.msgRemaining.toString() : "--"}
             />
           </div>)}
-          {showAdultBalanceDetails && <button className={styles.cancelSub} type="button" onClick={() => { setShowCancelModal(true) }}>Cancel Subscription</button>}
+          {showAdultBalanceDetails && <button className={styles.cancelSub} type="button" onClick={() => { setShowCancelModal(true) }}> Cancel Subscription</button>}
           <div className={styles.adultToggleArea}>
             <button type="button" className={styles.adultToggleBtn}>
-              <span className={styles.adultText}>{data.adultCallTime ?? "0"} mins</span>
+              {showAdultBalanceDetails && <span className={styles.adultText}>{data.adultCallTime ?? "0"} mins</span>}
               <AdultModeToggle checked={adultModeChecked} onChange={handleAdultToggleChange} />
             </button>
-            <p>Until {data.expiresAt}</p>
+            {showAdultBalanceDetails && <p>
+              Until {data.expiresAt ? new Date(data.expiresAt).toLocaleDateString() : "--"}
+            </p>}
           </div>
         </div>
       </div>

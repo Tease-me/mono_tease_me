@@ -3,12 +3,18 @@ import PlayIcon from "@/assets/svg/Play.svg?react";
 import MicrophoneIcon from "@/assets/Microphone.svg?react";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import avatarImage from "@/assets/image/avatar.png";
+import clsx from "clsx";
 
 const waveformBars = new Array(24).fill(0);
 
-const AdultModePage = ({ onSubscribePressed }: { onSubscribePressed: () => void }) => {
+interface Props {
+  nobg?: boolean;
+  onSubscribePressed: () => void;
+}
+
+const AdultModePage = ({ onSubscribePressed, nobg} : Props) => {
   return (
-    <div className={styles.container}>
+    <div className={clsx(styles.container, nobg && styles.nobg)}>
       <div className={styles.innerContainer}>
         <header className={styles.header}>
           <span className={styles.headerAccent}>18+</span> Mode
