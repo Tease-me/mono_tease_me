@@ -1,4 +1,4 @@
-import { InfluencerResponse } from "../models/influencers";
+import { InfluencerResponse, InfluencerSampleListResponse, InfluencerSampleResponse } from "../models/influencers";
 import { Endpoints } from "../urls";
 import { AxiosInstance } from "axios";
 import { KnowledgeFile } from "../models/knowledgeFiles";
@@ -129,6 +129,31 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
     deleteKnowledgeFile: async (influencer_id: string, file_id: number): Promise<void> => {
         try {
             await apiClient.delete(Endpoints.knowledge.delete(influencer_id, file_id));
+        } catch (error) {
+            throw error;
+        }
+    },
+    uploadSample: async (influencer_id: string, file: File): Promise<InfluencerSampleResponse> => {
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const response = await apiClient.post(Endpoints.samples(influencer_id), formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+    listSamples: async (influencer_id: string): Promise<InfluencerSampleListResponse> => {
+        try {
+            const response = await apiClient.get<InfluencerSampleListResponse>(
+                Endpoints.samples(influencer_id)
+            );
+            return response.data;
         } catch (error) {
             throw error;
         }

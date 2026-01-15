@@ -6,6 +6,7 @@ import { FollowServices } from "@/api/services/FollowServices";
 
 import {
   InfluencerDataModel,
+  InfluencerSampleModel,
   KnowledgeFileModel,
 } from "../models/InfluencerDataModel";
 
@@ -177,6 +178,36 @@ export const InfluencerRepo = () => ({
         created_at: item.created_at ?? "",
         updated_at: item.updated_at ?? "",
       };
+    } catch (e) {
+      throw e;
+    }
+  },
+  uploadSample: async (influencer_id: string, file: File): Promise<InfluencerSampleModel> => {
+    try {
+      const item = await influencerServices.uploadSample(influencer_id, file);
+      return {
+        id: item.id ?? 0,
+        s3_key: item.s3_key,
+        original_filename: item.original_filename ?? null,
+        content_type: item.content_type ?? null,
+        url: item.url ?? null,
+        created_at: item.created_at ?? null,
+      };
+    } catch (e) {
+      throw e;
+    }
+  },
+  listSamples: async (influencer_id: string): Promise<InfluencerSampleModel[]> => {
+    try {
+      const response = await influencerServices.listSamples(influencer_id);
+      return response.samples.map((sample) => ({
+        id: Number(sample.id) || 0,
+        s3_key: sample.s3_key ?? "",
+        original_filename: sample.original_filename ?? null,
+        content_type: sample.content_type ?? null,
+        url: sample.url ?? null,
+        created_at: sample.created_at ?? null,
+      }));
     } catch (e) {
       throw e;
     }

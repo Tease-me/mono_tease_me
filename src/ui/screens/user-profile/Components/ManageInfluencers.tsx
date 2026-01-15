@@ -74,8 +74,19 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
     load();
   }, []);
 
-  const handleViewProfile = (influencerId: string) => {
-    goTo('influencer_profile', { influencerId });
+  const handleViewProfile = (inf: any) => {
+    goTo("influencer_profile", {
+      influencerId: inf.id,
+      name: inf.name,
+      image: inf.image,
+      balance: inf.balance,
+      lastConnected: inf.lastConnected,
+      trust: inf.trust,
+      safety: inf.safety,
+      attraction: inf.attraction,
+      closeness: inf.closeness,
+      stageScore: inf.loveScore, 
+    });
   };
 
   return (
@@ -87,7 +98,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
             <InfluencerRelationCard {...inf} />
           </div>
           <div className={styles.buttonRow}>
-            <IconButton text="View Profile" onClick={() => handleViewProfile(inf.id)} color="black" className={styles.viewProfile} />
+            <IconButton text="View Profile" onClick={() => handleViewProfile(inf)} color="black" className={styles.viewProfile} />
           </div>
         </div>
       ))}

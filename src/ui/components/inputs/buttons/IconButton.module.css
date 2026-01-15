@@ -1243,4 +1243,8 @@
         8px 8px 3px -6px hsla(var(--tm-color06), 97%, 18%, 0.7) inset;
 }
 
+.redText {
+  color: var(--color-alert) !important;
+}
+
 /*--------- End of red button Styling ---------*/

@@ -43,3 +43,12 @@ export interface KnowledgeFileModel {
   created_at: string;
   updated_at: string;
 }
+
+export interface InfluencerSampleModel {
+  id: number;
+  s3_key: string;
+  original_filename?: string | null;
+  content_type?: string | null;
+  url?: string | null;
+  created_at?: string | null;
+}

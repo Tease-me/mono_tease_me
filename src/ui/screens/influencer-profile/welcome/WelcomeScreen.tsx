@@ -44,26 +44,13 @@ export default function WelcomeScreen({ influencer }: WelcomeScreenProps) {
   }, [influencer]);
 
   const handleSignInClick = () => {
-    navigate(`/${influencer.id}/login`);
+    navigate(`/login`);
   };
 
   const handleSignUpClick = () => {
     if (!influencer?.id) return;
-    navigate(`/register?influencer_id=${encodeURIComponent(influencer.id)}`);
+    navigate(`/${influencer.id}/register`);
   };
-
-  {
-    /*}
-  const handleTryClick = () => {
-    audioRef.current.play();
-    setOnTryClicked(true)
-    setTimeout(() => {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }, 60000);
-  };
-  */
-  }
 
   const handlePickUpCall = () => {
     audioRef.current.pause();
