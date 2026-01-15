@@ -9,6 +9,7 @@ import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import clsx from 'clsx';
 import IconButton from '@/ui/components/inputs/buttons/IconButton';
 import SvgPack from '@/utils/SvgPack';
+import useIsDesktop from '@/utils/hooks/useIsDesktop';
 
 interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
     adultMode?: boolean;
@@ -36,6 +37,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     const [sendOnStop, setSendOnStop] = useState(false);
     const [isCancelling, setIsCancelling] = useState(false);
     const [showViz, setShowViz] = useState(false);
+    const isDesktop = useIsDesktop();
 
     useLayoutEffect(() => {
         function updateSize() {
@@ -164,9 +166,10 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                     onDragEnd={handleCancelRecording}
                     leftIcon={inputAudio ? <SvgPack.CloseSquare /> : <SvgPack.Voice />}
                     className={styles["voice-btn"]}
-                    color='yellow'
+                    color='black'
+                    text={isDesktop ? "Hold to talk" : ""}
                     disabled={disabled} />}
-                <IconButton leftIcon={<SendIcon />} className={styles["send-btn"]} onClick={handleOnSendMessage} disabled={disabled} />
+                <IconButton color='black' text={isDesktop ? "Send" : ""} leftIcon={<SendIcon />} className={styles["send-btn"]} onClick={handleOnSendMessage} disabled={disabled} />
             </div>
         </div>
     );

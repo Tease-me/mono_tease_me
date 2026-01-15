@@ -103,6 +103,7 @@
     flex-direction: column;
     position: relative;
     max-width: var(--max-chat-content-width);
+    padding: 28px;
 }
 
 .messages>*+* {
