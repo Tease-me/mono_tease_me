@@ -2,6 +2,7 @@ window.global ||= window;
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { AuthProvider } from "./context/AuthContext";
+import ErrorModalProvider from "./ui/components/modals/ErrorModalProvider";
 import "./index.css";
 import AppRoutes from "./routes/AppRoutes.jsx";
 import logger from "./utils/logger";
@@ -29,6 +30,7 @@ if (rootElement) {
   createRoot(rootElement).render(
     <StrictMode>
       <AuthProvider>
+        <ErrorModalProvider />
         <AppRoutes />
       </AuthProvider>
     </StrictMode>

@@ -29,6 +29,9 @@ import { apiClient } from '@/api/apis';
 import AdultModePage from '../../adult-mode/AdultModePage';
 import UserNav from '@/ui/components/nav/UserNav';
 import BackgroundGradient from '@/ui/templates/BackgroundGradient';
+import { Modal } from '@/ui/components/modals/Modal';
+import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
+import SvgPack from '@/utils/SvgPack';
 
 const isCallChannel = (message: Message) => {
     if (!message.channel) return false;
@@ -109,6 +112,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const [adultMode, setAdultMode] = useState(false);
     const [adultModeSwitch, setAdultModeSwitch] = useState(false);
     const [showSubscriptionPage, setShowSubscriptionPage] = useState(false);
+    const [showErrorAlert, setShowErrorAlert] = useState<string | undefined>();
 
     const { user_id } = useParams();
 
@@ -634,6 +638,25 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                     micMuted={micMuted}
                     toggleMute={toggleMute} />
             </div>
+            <Modal isOpen={!(!showErrorAlert)} onClose={() => {
+                setShowErrorAlert(undefined);
+            }}
+                className={styles.cancelModal}>
+                <div className={styles.modalCard}>
+                    <>
+                        <h3>Alert</h3>
+                        <p>{showErrorAlert}</p>
+                        <div className={styles.modalActions}>
+                            <NormalButton type="nobg" onClick={() => setShowErrorAlert(undefined)} text="Cancel" />
+                            <IconButton
+                                leftIcon={<SvgPack.Danger />}
+                                text={"Confirm"}
+                            />
+                        </div>
+                    </>
+                </div>
+            </Modal>
+
         </BackgroundGradient>
     );
 };
