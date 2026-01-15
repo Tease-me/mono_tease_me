@@ -107,6 +107,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const reconnectTimer = useRef<number | null>(null);
     const currentAudioRef = useRef<HTMLAudioElement | null>(null);
     const lastChatInitRef = useRef<string | null>(null);
+    const callModalTimeoutRef = useRef<number | null>(null);
 
     const { user } = useContext(AuthContext);
     const [adultMode, setAdultMode] = useState(false);
@@ -288,6 +289,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     };
 
     useEffect(() => {
+        if (status === "connecting")
+            setOpenWelcomeCallModal(true)
+
         if ((status === "disconnected" || status === "idle") && chatId) {
             const t = setTimeout(() => {
                 fetchMessages(chatId, 1);
@@ -377,14 +381,49 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         return () => {
             clearReconnectTimer();
             ws.current?.close();
+            if (callModalTimeoutRef.current) {
+                window.clearTimeout(callModalTimeoutRef.current);
+                callModalTimeoutRef.current = null;
+            }
         };
     }, []);
+
+    useEffect(() => {
+        if (!openWelcomeCallModal) {
+            if (callModalTimeoutRef.current) {
+                window.clearTimeout(callModalTimeoutRef.current);
+                callModalTimeoutRef.current = null;
+            }
+            return;
+        }
+
+        if (status === "connected" || status === "connecting") {
+            if (callModalTimeoutRef.current) {
+                window.clearTimeout(callModalTimeoutRef.current);
+                callModalTimeoutRef.current = null;
+            }
+            return;
+        }
+
+        callModalTimeoutRef.current = window.setTimeout(() => {
+            setOpenWelcomeCallModal(false);
+            callModalTimeoutRef.current = null;
+        }, 2500);
+
+        return () => {
+            if (callModalTimeoutRef.current) {
+                window.clearTimeout(callModalTimeoutRef.current);
+                callModalTimeoutRef.current = null;
+            }
+        };
+    }, [openWelcomeCallModal, status]);
 
     async function sendAndPlay(audioBlob: Blob, sentMessageId?: number) {
         if (!influencer) return;
         if (!chatId) return;
 
         const { audio_url, transcript, ai_text } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
+
         setTyping(false);
         setMessages((prev) => {
             if (!prev) return prev;
@@ -490,7 +529,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
     const onCall = () => {
         startConversation();
-        setOpenWelcomeCallModal(true);
     }
     {/*}
     const handleOnBackClick = () => {

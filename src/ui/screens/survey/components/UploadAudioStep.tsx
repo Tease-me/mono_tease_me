@@ -222,6 +222,24 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
   const files = audioData?.files ?? [];
   const filesNewestFirst = [...files].reverse();
 
+  const getSupportedAudioFormat = () => {
+    const candidates: Array<{ mimeType: string; extension: string }> = [
+      { mimeType: "audio/webm;codecs=opus", extension: "webm" },
+      { mimeType: "audio/webm", extension: "webm" },
+      { mimeType: "audio/mp4;codecs=mp4a.40.2", extension: "m4a" },
+      { mimeType: "audio/mp4", extension: "m4a" },
+      { mimeType: "audio/ogg;codecs=opus", extension: "ogg" },
+      { mimeType: "audio/ogg", extension: "ogg" },
+    ];
+
+    for (const candidate of candidates) {
+      if (MediaRecorder.isTypeSupported(candidate.mimeType)) {
+        return candidate;
+      }
+    }
+    return { mimeType: "", extension: "webm" };
+  };
+
   const startRecorder = async () => {
     // reset recorder state up front so UI flips immediately
     setAudioError(null);
@@ -242,7 +260,10 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
 
-      const recorder = new MediaRecorder(stream);
+      const format = getSupportedAudioFormat();
+      const recorder = format.mimeType
+        ? new MediaRecorder(stream, { mimeType: format.mimeType })
+        : new MediaRecorder(stream);
       chunksRef.current = [];
 
       if (timerRef.current) {
@@ -259,15 +280,16 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: "audio/mp4" });
+        const mimeType = format.mimeType || recorder.mimeType || "audio/webm";
+        const blob = new Blob(chunksRef.current, { type: mimeType });
         const noData = blob.size === 0 || chunksRef.current.length === 0;
         if (noData) {
           setAudioError("No audio captured. Please try recording again.");
           console.error("No audio captured. Please try recording again.");
         } else {
           setAudioError(null);
-          const file = new File([blob], "recording.mp4", {
-            type: "audio/mp4",
+          const file = new File([blob], `recording.${format.extension}`, {
+            type: mimeType,
           });
           handleUploadOwn(file, "record");
         }
