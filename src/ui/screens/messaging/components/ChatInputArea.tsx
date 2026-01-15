@@ -11,6 +11,7 @@ import IconButton from '@/ui/components/inputs/buttons/IconButton';
 import SvgPack from '@/utils/SvgPack';
 
 interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
+    adultMode?: boolean;
     onSendMessage?: (forcedAudio?: Blob) => void;
     inputText?: string;
     setInputText?: (text: string) => void;
@@ -21,6 +22,7 @@ interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const ChatInputArea: React.FC<ChatInputAreaProps> = ({
+    adultMode = false,
     onSendMessage,
     inputText,
     setInputText,
@@ -153,7 +155,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
             </div>
 
             <div className={styles["buttons"]}>
-                <LongPressButton
+                {adultMode && <LongPressButton
                     onShortPress={handleOnShortPress}
                     onLongPressStart={handleOnLongPressStart}
                     onLongPressEnd={handleOnLongPressEnd}
@@ -163,7 +165,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                     leftIcon={inputAudio ? <SvgPack.CloseSquare /> : <SvgPack.Voice />}
                     className={styles["voice-btn"]}
                     color='yellow'
-                    disabled={disabled} />
+                    disabled={disabled} />}
                 <IconButton leftIcon={<SendIcon />} className={styles["send-btn"]} onClick={handleOnSendMessage} disabled={disabled} />
             </div>
         </div>

@@ -650,6 +650,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
                     <div className={styles["chat-input-area"]}>
                         <ChatInputArea
+                            adultMode={adultMode}
                             onSendMessage={sendMessage}
                             inputText={inputText}
                             setInputText={setInputText}
