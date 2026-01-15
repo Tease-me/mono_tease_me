@@ -29,6 +29,7 @@ import { apiClient } from '@/api/apis';
 import AdultModePage from '../../adult-mode/AdultModePage';
 import UserNav from '@/ui/components/nav/UserNav';
 import BackgroundGradient from '@/ui/templates/BackgroundGradient';
+import ChatInfluencerBar from './chatInfluencerBar';
 
 const isCallChannel = (message: Message) => {
     if (!message.channel) return false;
@@ -546,8 +547,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                         onAdultModeChange={handleAdultModeChange}
                     />
                 </div>
-
+                <ChatInfluencerBar />
                 {!showSubscriptionPage ? <>
+
                     <div className={styles["chat-header-info"]}>
                         <div className={styles["profile-info"]}>
                             <ProfileMedia imageSrc={influencer?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
@@ -576,6 +578,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                                 </div>
                             )}
                         </div>}
+
                     </div>
                     <div
                         className={clsx(styles["chat-messages-container"], !messages && styles["loading"])}
