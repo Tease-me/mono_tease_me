@@ -28,23 +28,23 @@ const sidebarPages: SidebarPage[] = [
   {
     id: "influencers",
     label: "Manage Influencers",
-    render: ({ goTo, navPayload, goBack }) =>
+    render: ({ goTo, navPayload }) =>
       <ManageInfluencers
         goTo={goTo}
         navPayload={navPayload}
-        goBack={goBack}
       />
   },
   { id: "influencer_profile", label: "Influencer Profile", render: ({ goTo, navPayload, goBack }) => <InfluencerRelation goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
   { id: "add_credits", label: "Add Credits", render: ({ goTo, navPayload }) => <AddCredits goTo={goTo} navpayload={navPayload} /> },
   {
-    id: "subscribe", label: "Subscribe", render: ({ goTo, navPayload}) => (
+    id: "subscribe", label: "Subscribe", render: ({  navPayload}) => (
       <AdultModePage 
         influencerId={navPayload.influencerId}
         influencerImageUrl={navPayload.image}
-        onSubscribePressed={  () => {
-           navPayload.onSubscribe?.();
-        }}
+        onSubscribePressed={ () => {
+         navPayload.onSubscribe();
+        }
+        }
         nobg
       />
     )

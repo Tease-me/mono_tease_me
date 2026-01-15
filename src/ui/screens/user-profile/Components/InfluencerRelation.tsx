@@ -63,7 +63,7 @@ type RelationData = {
 };
 
 
-export default function InfluencerRelation({ navPayload, goTo }: Props) {
+export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) {
   const initial: RelationData = useMemo(
     () => ({
       id: navPayload.influencerId,
@@ -174,6 +174,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
       setAdultModeChecked(true);
       alert('You are now subscribed tot 18+ mode');
       // goTo("influencer_profile", { influencerId: data.id });
+      goBack();
     }
     catch (e) {
       alert(`Error ${e}`);

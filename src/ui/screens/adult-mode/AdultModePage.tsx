@@ -15,18 +15,13 @@ type AdultModePageProps = {
   onSubscribePressed: () => void;
   influencerId?: string;
   influencerImageUrl?: string | null;
-  goTo: (id: string) => void;
-  sideBarMode?: boolean;
 };
-
 
 const AdultModePage = ({
   nobg,
   onSubscribePressed,
   influencerId,
   influencerImageUrl,
-  sideBarMode = false,
-  goTo
 }: AdultModePageProps) => {
   const influencerRepo = useMemo(() => InfluencerRepo(), []);
   const [samples, setSamples] = useState<InfluencerSampleModel[]>([]);
@@ -78,14 +73,6 @@ const AdultModePage = ({
   };
 
   const resolvedAvatar = influencerImageUrl?.trim() || avatarImage;
-
-  const onSubscribeSidebar = () => {
-    if (sideBarMode === true) {
-      onSubscribePressed();
-      goTo('influencer_profile'), {influencerId: influencerId};
-    }
-}
-
 
   return (
     <div className={clsx(styles.container, nobg && styles.nobg)}>
@@ -155,7 +142,7 @@ const AdultModePage = ({
           <p className={styles.tagline}>Let&apos;s heat things up...</p>
 
           <div className={styles.subscribeButton}>
-            <PrimaryButton leftIcon={<MicrophoneIcon />} text="Subscribe" onClick={sideBarMode? onSubscribeSidebar : onSubscribePressed} variant="purple" />
+            <PrimaryButton leftIcon={<MicrophoneIcon />} text="Subscribe" onClick={onSubscribePressed} variant="purple" />
           </div>
 
           <div className={styles.footer}>
