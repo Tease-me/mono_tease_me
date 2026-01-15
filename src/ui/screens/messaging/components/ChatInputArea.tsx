@@ -169,7 +169,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                     color='black'
                     text={isDesktop ? "Hold to talk" : ""}
                     disabled={disabled} />}
-                <IconButton color='purple' text={isDesktop ? "Send" : ""} leftIcon={<SendIcon />} className={styles["send-btn"]} onClick={handleOnSendMessage} disabled={disabled} />
+                <IconButton text={isDesktop ? "Send" : ""} leftIcon={<SendIcon />} className={styles["send-btn"]} onClick={handleOnSendMessage} disabled={disabled} />
             </div>
         </div>
     );

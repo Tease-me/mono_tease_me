@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
-import IconButton, { IconButtonColor, IconButtonOrientation, IconButtonProps, IconButtonType } from './IconButton';
+import { IconButtonColor, IconButtonOrientation, IconButtonProps, IconButtonType } from './IconButton';
+import PrimaryButton from './PrimaryButton';
 
 interface LongPressButtonProps extends IconButtonProps {
     type?: IconButtonType;
@@ -137,8 +138,9 @@ const LongPressButton: React.FC<LongPressButtonProps> = ({
         isDragging.current = false;
     };
     return (
-        <IconButton draggable={false}
+        <PrimaryButton draggable={false}
             {...props}
+            variant='purple'
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
             onMouseMove={handleMouseMove}
