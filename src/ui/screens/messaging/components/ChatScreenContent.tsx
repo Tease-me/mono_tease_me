@@ -32,6 +32,7 @@ import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 import { Modal } from '@/ui/components/modals/Modal';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import SvgPack from '@/utils/SvgPack';
+import ChatInfluencerBar from './chatInfluencerBar';
 
 const isCallChannel = (message: Message) => {
     if (!message.channel) return false;
@@ -588,8 +589,11 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                         onAdultModeChange={handleAdultModeChange}
                     />
                 </div>
-
+                <ChatInfluencerBar
+                    onChangeInfluencer={handleChangeInfluencerClicked}
+                />
                 {!showSubscriptionPage ? <>
+
                     <div className={styles["chat-header-info"]}>
                         <div className={styles["profile-info"]}>
                             <ProfileMedia imageSrc={influencer?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
@@ -618,6 +622,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                                 </div>
                             )}
                         </div>}
+
                     </div>
                     <div
                         className={clsx(styles["chat-messages-container"], !messages && styles["loading"])}

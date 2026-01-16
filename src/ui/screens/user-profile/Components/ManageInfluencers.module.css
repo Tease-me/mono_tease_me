@@ -1,3 +1,8 @@
+.container {
+  height: 100vh;
+  display: flex;
+}
+
 .list {
   margin-top: 32px;
   display: flex;
@@ -27,3 +32,9 @@
   color: white;
 }
 
+.loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

@@ -8,7 +8,9 @@ import UserProfile from "../user-profile/Components/UserProfile";
 import PaymentDetails from "../user-profile/Components/PaymentDetails";
 import ManageInfluencers from "../user-profile/Components/ManageInfluencers";
 import InfluencerRelation from "../user-profile/Components/InfluencerRelation";
+import AddCredits from "../user-profile/Components/AddCredits";
 import SlideDrawerLayout from "@/ui/templates/SlideDrawerLayout";
+import AdultModePage from "../adult-mode/AdultModePage";
 
 type SidebarPageId = string;
 type NavPayload = Record<string, any>;
@@ -23,8 +25,31 @@ const sidebarPages: SidebarPage[] = [
   { id: "home", label: "User Menu", render: ({ goTo }) => <UserMenu goTo={goTo} /> },
   { id: "profile", label: "User Profile", render: ({ goTo }) => <UserProfile goTo={goTo} /> },
   { id: "payment", label: "Payment Details", render: ({ goTo }) => <PaymentDetails goTo={goTo} /> },
-  { id: "influencers", label: "Influencers", render: ({ goTo, navPayload, goBack }) => <ManageInfluencers goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
+  {
+    id: "influencers",
+    label: "Manage Influencers",
+    render: ({ goTo, navPayload }) =>
+      <ManageInfluencers
+        goTo={goTo}
+        navPayload={navPayload}
+      />
+  },
   { id: "influencer_profile", label: "Influencer Profile", render: ({ goTo, navPayload, goBack }) => <InfluencerRelation goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
+  { id: "add_credits", label: "Add Credits", render: ({ goTo, navPayload }) => <AddCredits goTo={goTo} navpayload={navPayload} /> },
+  {
+    id: "subscribe", label: "Subscribe", render: ({  navPayload}) => (
+      <AdultModePage 
+        influencerId={navPayload.influencerId}
+        influencerImageUrl={navPayload.image}
+        onSubscribePressed={ () => {
+         navPayload.onSubscribe();
+        }
+        }
+        nobg
+      />
+    )
+  },
+
 ];
 
 export default function HomeScreenSingle() {
@@ -57,13 +82,22 @@ export default function HomeScreenSingle() {
     });
   }, []);
 
+
   const active = useMemo(
     () => sidebarPages.find((p) => p.id === currentPage)!,
     [currentPage]
   );
 
   const toggleSidebar = useCallback(() => {
-    setShowSidebar((v) => !v);
+    setShowSidebar((prev) => {
+    const next = !prev;
+    if (!next) {
+      setCurrentPage("home");
+      setHistory([]);
+      setNavPayload({});
+    }
+    return next;
+  });
   }, []);
 
   const sidebar = useMemo(
@@ -123,10 +157,10 @@ export default function HomeScreenSingle() {
       onToggle={toggleSidebar}
       showBack={currentPage !== "home"}
       title={
-  currentPage === "influencer_profile" && navPayload?.name
-    ? navPayload.name
-    : active.label
-}
+        currentPage === "influencer_profile" && navPayload?.name
+          ? navPayload.name
+          : active.label
+      }
     >
       {needsSelection ? (
         !id ? <InfluencerSelector onItemClick={handleSelect} influencers={influencers} /> : chatContent
