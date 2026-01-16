@@ -1,8 +1,6 @@
 import React, { memo, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Endpoints, WS_BASE_URL } from "@/api/urls";
-import ProfileMedia from "@/ui/components/ProfileMedia";
-import { truncateLastName } from "@/utils/StringUtils";
 import { AuthContext } from "@/context/AuthContext";
 import styles from "./ChatScreenContent.module.css"
 import { useParams } from 'react-router-dom';
@@ -32,7 +30,8 @@ import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 import { Modal } from '@/ui/components/modals/Modal';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import SvgPack from '@/utils/SvgPack';
-import ChatInfluencerBar from './chatInfluencerBar';
+import ChatInfluencerBar from './ChatInfluencerBar';
+import ChatHeaderInfo from './ChatHeaderInfo';
 
 const isCallChannel = (message: Message) => {
     if (!message.channel) return false;
@@ -589,41 +588,22 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                         onAdultModeChange={handleAdultModeChange}
                     />
                 </div>
-                <ChatInfluencerBar
-                    onChangeInfluencer={handleChangeInfluencerClicked}
-                />
                 {!showSubscriptionPage ? <>
-
-                    <div className={styles["chat-header-info"]}>
-                        <div className={styles["profile-info"]}>
-                            <ProfileMedia imageSrc={influencer?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
-                            <div className={styles["chat-user-name"]}>
-                                <h3><a href={`/${influencer.username}`}>{influencer && truncateLastName(influencer?.name)}</a></h3>
-                                <p>{isWsConnected ? "Connected" : "Not Connected"}</p>
-                            </div>
-                        </div>
-                        {showChangeInfluencerButton && <div className={styles["chat-header-actions"]}>
-                            <div className={styles["admin-actions"]}>
-                                <IconButton
-                                    className={styles["clear-history-button"]}
-                                    text='Change Influencer'
-                                    onClick={handleChangeInfluencerClicked}
-                                />
-                            </div>
-                            {isSuperUser && chatId && (
-                                <div className={styles["admin-actions"]}>
-                                    <IconButton
-                                        onClick={handleClearHistory}
-                                        color='red'
-                                        text={isClearingHistory ? "Clearing..." : "Clear history"}
-                                        className={styles["clear-history-button"]}
-                                        disabled={isClearingHistory}
-                                    />
-                                </div>
-                            )}
-                        </div>}
-
-                    </div>
+                    {isSuperUser && <ChatHeaderInfo
+                        isWsConnected={isWsConnected}
+                        isSuperUser={isSuperUser}
+                        chatId={chatId}
+                        isClearingHistory={isClearingHistory}
+                        onChangeInfluencer={handleChangeInfluencerClicked}
+                        onClearHistory={handleClearHistory}
+                    />}
+                    <ChatInfluencerBar
+                        influencer={influencer}
+                        status={isWsConnected ? "Connected" : "Not Connected"}
+                        adultMode={adultMode}
+                        showChangeInfluencerButton={showChangeInfluencerButton}
+                        onChangeInfluencer={handleChangeInfluencerClicked}
+                    />
                     <div
                         className={clsx(styles["chat-messages-container"], !messages && styles["loading"])}
                         ref={containerRef}

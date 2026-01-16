@@ -4,33 +4,37 @@ import rankUp from "@/assets/lottie/rankUp.json"
 import rankDown from "@/assets/lottie/rankDown.json"
 import bellaVideo from "@/assets/mock/profile-video/0af48251-5061-4cf2-8c48-13d0ddd3c52c.mp4";
 import switchProfileImg from "@/assets/svg/switchProfile.svg";
-import styles from "./chatInfluencerBar.module.css";
+import styles from "./ChatInfluencerBar.module.css";
 import metricPlacholder01 from "@/assets/image/ph01.png";
 import metricPlacholder02 from "@/assets/image/ph02.png";
 import metricPlacholder03 from "@/assets/image/ph03.png";
 import metricPlacholder04 from "@/assets/image/ph04.png";
-
+import clsx from "clsx";
+import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
+import ProfileMedia from "@/ui/components/ProfileMedia";
 
 type RankState = "up" | "down";
-type GlowVariant = "default" | "adult";
-
 
 export type ChatInfluencerBarProps = {
-  name?: string;
+  influencer?: InfluencerDataModel;
   statusIcon?: React.ReactNode;
   middleContent?: React.ReactNode;
+  showChangeInfluencerButton?: boolean;
   loveScore?: number | string;
   rankState?: RankState;
-  glowVariant?: GlowVariant;
+  adultMode?: boolean;
+  status?: string;
   onChangeInfluencer?: () => void;
 };
 
 export default function ChatInfluencerBar({
-  name = "Olivia F.",
+  influencer,
   statusIcon = "💬",
   loveScore = -888,
   rankState = "up",
-  glowVariant = "default",
+  status = "Network Error",
+  adultMode = true,
+  showChangeInfluencerButton = false,
   onChangeInfluencer,
 }: ChatInfluencerBarProps) {
   const loveScoreClass =
@@ -39,10 +43,9 @@ export default function ChatInfluencerBar({
   const rankClass = rankState === "up" ? styles.rankUp : styles.rankDown;
 
   const glowClass =
-    glowVariant === "adult" ? styles.glowStatusCircleAdult : styles.glowStatusCircleDefault;
+    adultMode ? styles.glowStatusCircleAdult : styles.glowStatusCircleDefault;
 
-  const profileSwitch =
-    glowVariant === "adult" ? styles.profileSwitchAdult : "";
+  const profileSwitch = adultMode ? styles.profileSwitchAdult : "";
 
   return (
     <div className={styles.chatInfluencerBar}>
@@ -50,14 +53,11 @@ export default function ChatInfluencerBar({
         <div className={styles.influencerStatsContainer}>
           <div className={styles.influencerStatsRow}>
             <div className={styles.leftCol}>
-              <p>{name}</p>
+              <p>{influencer?.name}</p> | <p>{status}</p>
             </div>
-
             <div className={styles.middleCol}></div>
-
-            <div className={styles.rightCol}>
+            <div className={clsx(styles.rightCol, adultMode && styles.hidden)}>
               <div className={styles.relationshipStatus}>{statusIcon} <div className={styles.relationshipStatusLabel}>Talking</div> </div>
-
               <div className={`${styles.loveScore} ${loveScoreClass}`}>
                 <p>{loveScore}</p>
                 <div className={`${styles.rank} ${rankClass}`}>
@@ -77,7 +77,7 @@ export default function ChatInfluencerBar({
 
       <div className={styles.influencerBottom} />
       <div className={styles.profileContainer}>
-        <div className={styles.profileLeftCol}>
+        <div className={clsx(styles.profileLeftCol, adultMode && styles.hidden)}>
           <div className={styles.profileMetricContainer}> <img src={metricPlacholder01} />
             <div className={styles.metricLabel}>Trust</div>
           </div>
@@ -87,19 +87,10 @@ export default function ChatInfluencerBar({
           </div>
         </div>
         <div className={styles.profileMidCol}>
-          <div className={styles.profileImage}>
-            <video
-              className={styles.profileVideo}
-              src={bellaVideo}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="auto"
-            /></div>
+          <ProfileMedia active size="medium" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} />
           <button
             type="button"
-            className={`${styles.profileSwitch} ${profileSwitch}`}
+            className={clsx(styles.profileSwitch, profileSwitch, !showChangeInfluencerButton && styles.hidden)}
             onClick={onChangeInfluencer}
             aria-label="Change influencer"
           >
@@ -107,7 +98,7 @@ export default function ChatInfluencerBar({
           </button>
 
         </div>
-        <div className={styles.profileRightCol}>
+        <div className={clsx(styles.profileRightCol, adultMode && styles.hidden)}>
           <div className={styles.profileMetricContainer}>
             <img src={metricPlacholder03} />
             <div className={styles.metricLabel}>Attraction</div>

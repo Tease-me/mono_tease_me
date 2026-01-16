@@ -1,7 +1,5 @@
 import React from 'react'
 import { useEffect } from 'react'
-// import { useContext } from 'react'
-// import { AuthContext } from '@/context/AuthContext'
 import styles from './UserNav.module.css'
 import TeaseMeLogo from '../logos/TeaseMeLogo'
 import SvgPack from '@/utils/SvgPack'
@@ -49,8 +47,8 @@ const UserNav: React.FC<UserNavProps> = ({ onCallClick, influencerName, onMenuCl
             }}
           />
         )}
-        <div className={styles.toggleArea}>
-        </div>
+        {/* <div className={styles.toggleArea}>
+        </div> */}
         <div className={styles.logoArea}>
           <TeaseMeLogo variant="full" />
         </div>

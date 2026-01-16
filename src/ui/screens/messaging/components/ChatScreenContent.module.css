@@ -21,35 +21,12 @@
     width: 100%;
 }
 
-.chat-header-info {
-    display: flex;
-    padding: 10px 20px;
-    width: 100%;
-    max-width: var(--max-chat-content-width);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.20);
-    justify-content: space-between;
-}
-
-.profile-info {
-    display: flex;
-}
-
-.chat-header-info>.profile-info:only-child {
-    margin: 0 auto;
-}
-
-.chat-header-actions {
-    flex-direction: row;
-    display: flex;
-    align-content: center;
-    justify-content: center;
-}
-
 .chat-messages-container {
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
+    margin-top: -60px;
     padding-bottom: 150px;
     margin-bottom: 120px;
     max-width: var(--max-chat-content-width);
@@ -64,36 +41,6 @@
     position: fixed;
     width: 100%;
     bottom: 0dvh;
-}
-
-.admin-actions {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-}
-
-.clear-history-button {
-    cursor: pointer;
-}
-
-.chat-avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    align-self: center;
-    margin-top: 10px;
-}
-
-.chat-user-name {
-    margin: 10px 0;
-}
-
-.chat-user-name h3 {
-    text-align: start;
-}
-
-.chat-user-name p {
-    font-size: small;
 }
 
 .messages {
@@ -142,16 +89,6 @@
     .chat-content {
         max-width: 100%;
         padding: 25px;
-    }
-
-    .chat-avatar {
-        width: 70px;
-        height: 70px;
-    }
-
-    .chat-user-name {
-        font-size: 22px;
-        margin: 15px 0;
     }
 
     .message {
