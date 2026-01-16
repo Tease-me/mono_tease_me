@@ -73,7 +73,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
       name: navPayload.name,
       image: navPayload.image,
       video: navPayload.video,
-      lastConnected:  navPayload.lastConnected,
+      lastConnected: navPayload.lastConnected,
       followingSince: navPayload.followingSince,
       subscriptionStatus: navPayload.subscriptionStatus,
       hasSubscription: navPayload.hasSubscription,
@@ -103,59 +103,44 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
 
   useEffect(() => {
     if (!initial.id) return;
-    const needsDetails =
-      data.trust === undefined ||
-      data.safety === undefined ||
-      data.attraction === undefined ||
-      data.closeness === undefined ||
-      data.stageScore === undefined ||
-      data.is18 === undefined;
-
-    if (!needsDetails) return;
     let cancelled = false;
     setLoading(true);
+
     (async () => {
       try {
         const [rel, bal, sub, u] = await Promise.all([
           relationshipService.getRelationship(initial.id!),
           balanceService.getBalance(initial.id!, false).catch(() => null),
           subscriptionService.getMySubscriptionForInfluencer(initial.id!),
-          userServices.getUserUsage(data.id)
+          userServices.getUserUsage(initial.id),
         ]);
 
-
-        if (!cancelled) {
-          setData((d) => ({
-            ...d,
-            trust: rel.trust,
-            safety: rel.safety,
-            attraction: rel.attraction,
-            closeness: rel.closeness,
-            stageScore: rel.sentiment_score,
-            lastConnected: rel.last_interaction_at,
-            followingSince: d.followingSince,
-            balance: bal ? bal.balance_cents / 100 : d.balance,
-            hasSubscription: sub?.has_subscription,
-            is18: sub?.is_18_selected ?? d.is18,
-            expiresAt: sub?.current_period_end ?? d.expiresAt,
-            voiceMinutes: u?.normal?.live_chat?.remaining_minutes ?? d.voiceMinutes,
-            msgRemaining: u?.normal?.messages?.remaining ?? d.msgRemaining,
-            adultVoiceMinutes: u?.adult?.voice?.remaining_minutes ?? d.adultVoiceMinutes,
-            adultMsgRemaining: u?.adult?.messages?.remaining ?? d.adultMsgRemaining,
-
-          }));
-        }
-      } catch (e) {
-        console.error("Failed to load relation details", e);
+        if (cancelled) return;
+        setData((d) => ({
+          ...d,
+          trust: rel?.trust ?? d.trust,
+          safety: rel?.safety ?? d.safety,
+          attraction: rel?.attraction ?? d.attraction,
+          closeness: rel?.closeness ?? d.closeness,
+          stageScore: rel?.sentiment_score ?? d.stageScore,
+          lastConnected: rel?.last_interaction_at ?? d.lastConnected,
+          balance: bal ? bal.balance_cents / 100 : d.balance,
+          hasSubscription: sub?.has_subscription ?? d.hasSubscription,
+          is18: sub?.is_18_selected ?? d.is18,
+          expiresAt: sub?.current_period_end ?? d.expiresAt,
+          voiceMinutes: u?.normal?.live_chat?.remaining_minutes ?? d.voiceMinutes,
+          msgRemaining: u?.normal?.messages?.remaining ?? d.msgRemaining,
+          adultVoiceMinutes: u?.adult?.voice?.remaining_minutes ?? d.adultVoiceMinutes,
+          adultMsgRemaining: u?.adult?.messages?.remaining ?? d.adultMsgRemaining,
+        }));
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [initial.id]);
+
 
   useEffect(() => {
     setAdultModeChecked(!!data.hasSubscription);
@@ -213,7 +198,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
     try {
       await subscriptionService.activateMySubscriptionForInfluencer(data.id, false);
       setCancelSuccess(true);
-      setData((d) => ({ ...d,  hasSubscription: false }));
+      setData((d) => ({ ...d, hasSubscription: false }));
     } catch (e: any) {
       setCancelError(e?.message || "Could not cancel right now.");
       console.error(e)
@@ -226,6 +211,10 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
   const handleAddCredits = () => {
     goTo("add_credits", { id: data.id, image: data.image, video: data.video });
   }
+
+  const followingDate = data.followingSince && !Number.isNaN(Date.parse(data.followingSince))
+    ? new Date(data.followingSince).toLocaleDateString()
+    : "--";
 
 
   return (
@@ -245,8 +234,8 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
             </span>
           </div>
           <div className={styles.meta}>
-            <span>Last Connected: <strong>{data.lastConnected!=null ? formatDateTimeRelative(data.lastConnected) : "--"}</strong></span>
-            <span>Following since: {data.followingSince ? new Date(data.followingSince).toLocaleDateString() : "--"}</span>
+            <span>Last Connected: <strong>{data.lastConnected != null ? formatDateTimeRelative(data.lastConnected) : "--"}</strong></span>
+            <span>Following since: {followingDate}</span>
           </div>
         </div>
       </div>

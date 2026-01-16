@@ -61,7 +61,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
             safety: 0,
             attraction: 0,
             closeness: 0,
-            followingSince: inf.created_at || "--",
+            followingSince: inf.created_at,
           }))
         );
         setLoading(false)

@@ -11,7 +11,6 @@ interface SlideDrawerLayoutProps {
   onBack: () => void;
   title: string;
   showBack: boolean;
-  showContent?: boolean;
   children: React.ReactNode;
 }
 
@@ -22,7 +21,6 @@ const SlideDrawerLayout: React.FC<SlideDrawerLayoutProps> = ({
   onBack,
   title,
   showBack = true,
-  showContent = true,
   children,
 }) => {
 

@@ -170,3 +170,6 @@
   justify-content: center;
 }
 
+.sidebar.closed .sidebarContent {
+  display: none;
+}
