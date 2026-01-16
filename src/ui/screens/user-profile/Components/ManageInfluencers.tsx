@@ -6,6 +6,7 @@ import { RelationshipServices } from "@/api/services/RelationshipServices";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { BalanceServices } from "@/api/services/BalanceServices";
 import { apiClient } from "@/api/apis";
+import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 
 import styles from "./ManageInfluencers.module.css"
 
@@ -37,19 +38,44 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
   >([]);
 
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
       try {
+        setLoading(true);
         const followed = await InfluencerRepo().getFollowedInfluencers();
         const balanceSvc = BalanceServices(apiClient);
 
+        setItems(
+          followed.map((inf) => ({
+            id: inf.id,
+            name: inf.name,
+            image: inf.img,
+            video: (inf as any).videoUrl || inf.videoUrl,
+            balance: 0,
+            lastConnected: "",
+            loveScore: 0,
+            status: "",
+            trust: 0,
+            safety: 0,
+            attraction: 0,
+            closeness: 0,
+            followingSince: inf.created_at || "--",
+          }))
+        );
+        setLoading(false)
+
+
         const cards = await Promise.all(
           followed.map(async (inf) => {
+            const [rel, balanceRes] = await Promise.all([
+              relationshipService.getRelationship(inf.id),
+              balanceSvc.getBalance(inf.id).catch(() => null),
+            ]);
 
-            const rel = await relationshipService.getRelationship(inf.id);
-            const BalanceRes = await balanceSvc.getBalance(inf.id).catch(() => { });;
-            const balanceValue = BalanceRes ? BalanceRes.balance_cents / 100 : 0;
+            const balanceValue = balanceRes ? balanceRes.balance_cents / 100 : 0;
+
             return {
               id: inf.id,
               name: inf.name,
@@ -76,6 +102,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
     load();
   }, []);
 
+
   const handleViewProfile = (inf: any) => {
     goTo("influencer_profile", {
       influencerId: inf.id,
@@ -88,26 +115,30 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
       safety: inf.safety,
       attraction: inf.attraction,
       closeness: inf.closeness,
-      stageScore: inf.loveScore, 
+      stageScore: inf.loveScore,
       followingSince: inf.followingSince,
     });
   };
 
   return (
-    <div className={styles.list}>
+    <div className={styles.container}>
+      {loading ? <div className={styles.loading} >{<LoadingSpinner />} </div> :
+        <div className={styles.list}>
+          {items.map((inf) => (
+            <div>
+              <div key={inf.id} className={styles.card}>
+                <InfluencerRelationCard {...inf} />
+              </div>
+              <div className={styles.buttonRow}>
+                <IconButton text="View Profile" onClick={() => handleViewProfile(inf)} color="black" className={styles.viewProfile} />
+              </div>
+            </div>
 
-      {items.map((inf) => (
-        <div>
-          <div key={inf.id} className={styles.card}>
-            <InfluencerRelationCard {...inf} />
-          </div>
-          <div className={styles.buttonRow}>
-            <IconButton text="View Profile" onClick={() => handleViewProfile(inf)} color="black" className={styles.viewProfile} />
-          </div>
+          ))}
+
+          <div className={styles.error}>{error}</div>
         </div>
-      ))}
-
-      <div className={styles.error}>{error}</div>
+                    }
     </div>
   );
 };

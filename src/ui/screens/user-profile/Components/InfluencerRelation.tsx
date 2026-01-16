@@ -72,14 +72,12 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
       name: navPayload.name,
       image: navPayload.image,
       video: navPayload.video,
-      lastConnected: formatDateTimeRelative(navPayload.lastConnected),
+      lastConnected:  navPayload.lastConnected,
       followingSince: navPayload.followingSince,
       subscriptionStatus: navPayload.subscriptionStatus,
       hasSubscription: navPayload.hasSubscription,
       is18: navPayload.is18,
       expiresAt: navPayload.expiresAt,
-      voiceMinutes: navPayload.voiceMinutes,
-      textMessages: navPayload.textMessages,
       balance: navPayload.balance,
       trust: navPayload.trust,
       safety: navPayload.safety,
@@ -171,13 +169,14 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
       setData((d) => ({
         ...d,
         hasSubscription: sub?.has_subscription ?? true,
-        is18: sub?.is_18_selected ?? true,
+        // is18: sub?.is_18_selected ?? true,
         expiresAt: sub?.current_period_end ?? d.expiresAt,
         voiceMinutes: sub?.voice_minutes ?? d.voiceMinutes,
         msgRemaining: sub?.text_messages ?? d.msgRemaining,
         adultVoiceMinutes: sub?.voice_minutes ?? d.adultVoiceMinutes,
         adultMsgRemaining: sub?.text_messages ?? d.adultMsgRemaining,
       }));
+
       setAdultModeChecked(true);
       alert('You are now subscribed tot 18+ mode');
       // goTo("influencer_profile", { influencerId: data.id });
@@ -191,12 +190,10 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
     }
   };
 
-
-
   const handleAdultToggleChange = async () => {
     // const a = adultModeChecked;
     // setAdultModeChecked(!a);
-    if (!adultModeChecked) {
+    if (!data.hasSubscription) {
       goTo('subscribe', {
         influencerId: data.id,
         image: data.image,
@@ -215,9 +212,10 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
     try {
       await subscriptionService.activateMySubscriptionForInfluencer(data.id, false);
       setCancelSuccess(true);
-      setData((d) => ({ ...d, is18: false, hasSubscription: false }));
+      setData((d) => ({ ...d,  hasSubscription: false }));
     } catch (e: any) {
       setCancelError(e?.message || "Could not cancel right now.");
+      console.error(e)
     } finally {
       setAdultModeChecked(false);
       setCancelLoading(false);
@@ -246,7 +244,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
             </span>
           </div>
           <div className={styles.meta}>
-            <span>Last Connected: <strong>{data.lastConnected ? formatDateTimeRelative(data.lastConnected) : "--"}</strong></span>
+            <span>Last Connected: <strong>{data.lastConnected!=null ? formatDateTimeRelative(data.lastConnected) : "--"}</strong></span>
             <span>Following since: {data.followingSince ? new Date(data.followingSince).toLocaleDateString() : "--"}</span>
           </div>
         </div>
@@ -263,7 +261,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
             onClick={() => setShowBalanceDetails((prev) => !prev)} />
           {showBalanceDetails && (<div className={styles.balanceStats}>
             <UsageView
-              label="Call Time"
+              label="Voice Minutes"
               tone="green"
               value={data.voiceMinutes != null ? data.voiceMinutes.toString() : "--"}
             />

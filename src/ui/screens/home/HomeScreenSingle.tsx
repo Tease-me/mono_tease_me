@@ -82,13 +82,22 @@ export default function HomeScreenSingle() {
     });
   }, []);
 
+
   const active = useMemo(
     () => sidebarPages.find((p) => p.id === currentPage)!,
     [currentPage]
   );
 
   const toggleSidebar = useCallback(() => {
-    setShowSidebar((v) => !v);
+    setShowSidebar((prev) => {
+    const next = !prev;
+    if (!next) {
+      setCurrentPage("home");
+      setHistory([]);
+      setNavPayload({});
+    }
+    return next;
+  });
   }, []);
 
   const sidebar = useMemo(
