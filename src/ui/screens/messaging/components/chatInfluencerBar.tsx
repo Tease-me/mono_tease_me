@@ -77,29 +77,46 @@ export default function ChatInfluencerBar({
 
       <div className={styles.influencerBottom} />
       <div className={styles.profileContainer}>
-<div className={styles.profileLeftCol}><div className={styles.profileMetricContainer}> <img src={metricPlacholder01} /> <div className={styles.metricLabel}>Trust</div> </div><div className={styles.profileMetricContainer}><img src={metricPlacholder02} /><div className={styles.metricLabel}>Closeness</div></div> </div>
-<div className={styles.profileMidCol}>
-  <div className={styles.profileImage}>    <video
-    className={styles.profileVideo}
-    src={bellaVideo}
-    autoPlay
-    muted
-    loop
-    playsInline
-    preload="auto"
-  /></div>
-  <button
-  type="button"
-  className={`${styles.profileSwitch} ${profileSwitch}`}
-  onClick={onChangeInfluencer}
-  aria-label="Change influencer"
->
-  <img src={switchProfileImg} /> <div className={styles.switchProfileLabel}>Switch Influencer</div>
-</button>
+        <div className={styles.profileLeftCol}>
+          <div className={styles.profileMetricContainer}> <img src={metricPlacholder01} />
+            <div className={styles.metricLabel}>Trust</div>
+          </div>
+          <div className={styles.profileMetricContainer}>
+            <img src={metricPlacholder02} />
+            <div className={styles.metricLabel}>Closeness</div>
+          </div>
+        </div>
+        <div className={styles.profileMidCol}>
+          <div className={styles.profileImage}>
+            <video
+              className={styles.profileVideo}
+              src={bellaVideo}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+            /></div>
+          <button
+            type="button"
+            className={`${styles.profileSwitch} ${profileSwitch}`}
+            onClick={onChangeInfluencer}
+            aria-label="Change influencer"
+          >
+            <img src={switchProfileImg} /> <div className={styles.switchProfileLabel}>Switch Influencer</div>
+          </button>
 
-</div>
-<div className={styles.profileRightCol}> <div className={styles.profileMetricContainer}> <img src={metricPlacholder03} /> <div className={styles.metricLabel}>Attraction</div></div> <div className={styles.profileMetricContainer}><img src={metricPlacholder04} /><div className={styles.metricLabel}>Safety</div></div>  </div>
-
+        </div>
+        <div className={styles.profileRightCol}>
+          <div className={styles.profileMetricContainer}>
+            <img src={metricPlacholder03} />
+            <div className={styles.metricLabel}>Attraction</div>
+          </div>
+          <div className={styles.profileMetricContainer}>
+            <img src={metricPlacholder04} />
+            <div className={styles.metricLabel}>Safety</div>
+          </div>
+        </div>
       </div>
     </div>
   );
