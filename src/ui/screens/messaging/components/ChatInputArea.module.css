@@ -1,5 +1,6 @@
 .chat-input-area {
     display: flex;
+    flex-direction: row;
     gap: 14px;
     align-items: center;
     border: 1px solid rgba(33, 33, 33, 1);
@@ -8,14 +9,14 @@
     justify-content: center;
     margin: 0 auto;
     max-width: calc(var(--max-chat-content-width) + 22px);
-    margin-bottom: 33px;
     border-radius: 12px;
-
     border-radius: 12px;
     border-top: 1px solid rgba(255, 255, 255, 0.10);
     background: linear-gradient(180deg, rgba(0, 0, 0, 0.40) 0%, rgba(0, 0, 0, 0.90) 100%);
     box-shadow: 0 -5px 10px 0 rgba(0, 0, 0, 0.20);
     backdrop-filter: blur(17.5px);
+    margin-bottom: 33px;
+    position: relative;
 }
 
 .input-container {
@@ -70,6 +71,8 @@
 
 .buttons {
     display: flex;
+    flex: 1;
+    flex-direction: row;
     gap: 4px;
 }
 
@@ -88,5 +91,6 @@
     .chat-input-area {
         border: 1px solid rgba(33, 33, 33, 1);
         padding: 20px 28px 20px 28px;
+        margin-bottom: 0px;
     }
 }

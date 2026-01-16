@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_BASE_URL } from './urls';
+import { showErrorModal } from '@/utils/errorModal';
 
 export const apiClient = axios.create({
     baseURL: API_BASE_URL,
@@ -18,8 +19,21 @@ apiClient.interceptors.request.use(config => {
 apiClient.interceptors.response.use(
     r => r,
     async err => {
-        if (err.response?.status === 401) {
+        const status = err.response?.status;
+        if (status === 401) {
             // try token refresh, or redirect to login
+        }
+        if (!status || status >= 500) {
+            const message =
+                err.response?.data?.message ||
+                err.response?.data?.detail ||
+                err.message ||
+                "Server error. Please try again.";
+            showErrorModal({
+                title: "Server error",
+                message,
+                status,
+            });
         }
         return Promise.reject(err);
     }

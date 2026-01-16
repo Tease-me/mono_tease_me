@@ -29,6 +29,9 @@ import { apiClient } from '@/api/apis';
 import AdultModePage from '../../adult-mode/AdultModePage';
 import UserNav from '@/ui/components/nav/UserNav';
 import BackgroundGradient from '@/ui/templates/BackgroundGradient';
+import { Modal } from '@/ui/components/modals/Modal';
+import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
+import SvgPack from '@/utils/SvgPack';
 import ChatInfluencerBar from './chatInfluencerBar';
 
 const isCallChannel = (message: Message) => {
@@ -105,11 +108,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const reconnectTimer = useRef<number | null>(null);
     const currentAudioRef = useRef<HTMLAudioElement | null>(null);
     const lastChatInitRef = useRef<string | null>(null);
+    const callModalTimeoutRef = useRef<number | null>(null);
 
     const { user } = useContext(AuthContext);
     const [adultMode, setAdultMode] = useState(false);
     const [adultModeSwitch, setAdultModeSwitch] = useState(false);
     const [showSubscriptionPage, setShowSubscriptionPage] = useState(false);
+    const [showErrorAlert, setShowErrorAlert] = useState<string | undefined>();
 
     const { user_id } = useParams();
 
@@ -285,6 +290,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     };
 
     useEffect(() => {
+        if (status === "connecting")
+            setOpenWelcomeCallModal(true)
+
         if ((status === "disconnected" || status === "idle") && chatId) {
             const t = setTimeout(() => {
                 fetchMessages(chatId, 1);
@@ -374,14 +382,49 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         return () => {
             clearReconnectTimer();
             ws.current?.close();
+            if (callModalTimeoutRef.current) {
+                window.clearTimeout(callModalTimeoutRef.current);
+                callModalTimeoutRef.current = null;
+            }
         };
     }, []);
+
+    useEffect(() => {
+        if (!openWelcomeCallModal) {
+            if (callModalTimeoutRef.current) {
+                window.clearTimeout(callModalTimeoutRef.current);
+                callModalTimeoutRef.current = null;
+            }
+            return;
+        }
+
+        if (status === "connected" || status === "connecting") {
+            if (callModalTimeoutRef.current) {
+                window.clearTimeout(callModalTimeoutRef.current);
+                callModalTimeoutRef.current = null;
+            }
+            return;
+        }
+
+        callModalTimeoutRef.current = window.setTimeout(() => {
+            setOpenWelcomeCallModal(false);
+            callModalTimeoutRef.current = null;
+        }, 2500);
+
+        return () => {
+            if (callModalTimeoutRef.current) {
+                window.clearTimeout(callModalTimeoutRef.current);
+                callModalTimeoutRef.current = null;
+            }
+        };
+    }, [openWelcomeCallModal, status]);
 
     async function sendAndPlay(audioBlob: Blob, sentMessageId?: number) {
         if (!influencer) return;
         if (!chatId) return;
 
         const { audio_url, transcript, ai_text } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
+
         setTyping(false);
         setMessages((prev) => {
             if (!prev) return prev;
@@ -487,7 +530,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
     const onCall = () => {
         startConversation();
-        setOpenWelcomeCallModal(true);
     }
     {/*}
     const handleOnBackClick = () => {
@@ -547,9 +589,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                         onAdultModeChange={handleAdultModeChange}
                     />
                 </div>
-               <ChatInfluencerBar
-  onChangeInfluencer={handleChangeInfluencerClicked}
-/>
+                <ChatInfluencerBar
+                    onChangeInfluencer={handleChangeInfluencerClicked}
+                />
                 {!showSubscriptionPage ? <>
 
                     <div className={styles["chat-header-info"]}>
@@ -613,6 +655,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
                     <div className={styles["chat-input-area"]}>
                         <ChatInputArea
+                            adultMode={adultMode}
                             onSendMessage={sendMessage}
                             inputText={inputText}
                             setInputText={setInputText}
@@ -639,6 +682,25 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                     micMuted={micMuted}
                     toggleMute={toggleMute} />
             </div>
+            <Modal isOpen={!(!showErrorAlert)} onClose={() => {
+                setShowErrorAlert(undefined);
+            }}
+                className={styles.cancelModal}>
+                <div className={styles.modalCard}>
+                    <>
+                        <h3>Alert</h3>
+                        <p>{showErrorAlert}</p>
+                        <div className={styles.modalActions}>
+                            <NormalButton type="nobg" onClick={() => setShowErrorAlert(undefined)} text="Cancel" />
+                            <IconButton
+                                leftIcon={<SvgPack.Danger />}
+                                text={"Confirm"}
+                            />
+                        </div>
+                    </>
+                </div>
+            </Modal>
+
         </BackgroundGradient>
     );
 };

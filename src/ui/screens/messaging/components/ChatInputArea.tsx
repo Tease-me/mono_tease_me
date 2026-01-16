@@ -9,8 +9,10 @@ import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import clsx from 'clsx';
 import IconButton from '@/ui/components/inputs/buttons/IconButton';
 import SvgPack from '@/utils/SvgPack';
+import useIsDesktop from '@/utils/hooks/useIsDesktop';
 
 interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
+    adultMode?: boolean;
     onSendMessage?: (forcedAudio?: Blob) => void;
     inputText?: string;
     setInputText?: (text: string) => void;
@@ -21,6 +23,7 @@ interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const ChatInputArea: React.FC<ChatInputAreaProps> = ({
+    adultMode = false,
     onSendMessage,
     inputText,
     setInputText,
@@ -34,6 +37,8 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     const [sendOnStop, setSendOnStop] = useState(false);
     const [isCancelling, setIsCancelling] = useState(false);
     const [showViz, setShowViz] = useState(false);
+    const isDesktop = useIsDesktop();
+    const [voiceMode, setVoiceMode] = useState(true);
 
     useLayoutEffect(() => {
         function updateSize() {
@@ -123,9 +128,13 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
         setInputAudio?.(undefined);
     };
 
+    const handleOnMessageModeClicked = () => {
+        setVoiceMode(prev => !prev);
+    }
+
     return (
-        <div className={styles["chat-input-area"]} >
-            <div className={clsx(styles["input-container"], recordingStatus === "recording" && styles["recording"], error && styles["error"])} ref={containerRef}>
+        <div className={clsx(styles["chat-input-area"], voiceMode && styles["voice"])} >
+            {!(adultMode && voiceMode) && <div className={clsx(styles["input-container"], recordingStatus === "recording" && styles["recording"], error && styles["error"])} ref={containerRef}>
                 {error && <div className={styles["error-message"]}>{error}</div>}
                 {!error && (recordingStatus === "inactive" && !audio) &&
                     <input
@@ -150,10 +159,10 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                         height={dimensions.height}
                     />
                 )}
-            </div>
+            </div>}
 
             <div className={styles["buttons"]}>
-                <LongPressButton
+                {(adultMode && voiceMode) && <LongPressButton
                     onShortPress={handleOnShortPress}
                     onLongPressStart={handleOnLongPressStart}
                     onLongPressEnd={handleOnLongPressEnd}
@@ -162,9 +171,17 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                     onDragEnd={handleCancelRecording}
                     leftIcon={inputAudio ? <SvgPack.CloseSquare /> : <SvgPack.Voice />}
                     className={styles["voice-btn"]}
-                    color='yellow'
-                    disabled={disabled} />
-                <IconButton leftIcon={<SendIcon />} className={styles["send-btn"]} onClick={handleOnSendMessage} disabled={disabled} />
+                    color='black'
+                    text={(isDesktop) ? "Hold to talk" : ""}
+                    disabled={disabled} />}
+                {(adultMode && !voiceMode) && <IconButton
+                    leftIcon={inputAudio ? <SvgPack.CloseSquare /> : <SvgPack.Voice />}
+                    className={styles["voice-btn"]}
+                    onClick={handleOnMessageModeClicked}
+                    color='black'
+                    disabled={disabled} />}
+                {!(adultMode && voiceMode) && <IconButton color='black' text={isDesktop ? "Send" : ""} leftIcon={<SendIcon />} className={styles["send-btn"]} onClick={handleOnSendMessage} disabled={disabled} />}
+                {(adultMode && voiceMode) && <IconButton color='black' leftIcon={<SvgPack.Chat />} className={styles["send-btn"]} onClick={handleOnMessageModeClicked} disabled={disabled} />}
             </div>
         </div>
     );

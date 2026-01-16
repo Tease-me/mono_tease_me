@@ -86,12 +86,9 @@ export default function useCallWebRTC() {
   });
 
   useEffect(() => {
-    logger.debug("Agent first message updated:", agentFirstMessage);
-  }, [agentFirstMessage]);
-
-  useEffect(() => {
-    logger.debug("Agent Prompt Updated:", agentPrompt);
-  }, [agentPrompt]);
+    if (status === "connecting") ring()
+    else stopRing();
+  }, [status])
 
   const startConversation = useCallback(async () => {
     if (!influencerId || startInFlightRef.current) {
@@ -104,7 +101,7 @@ export default function useCallWebRTC() {
     startAbortControllerRef.current = abortController;
     startInFlightRef.current = true;
     setStatus("connecting");
-    ring();
+
     try {
       const hasPermission = await requestMicrophonePermission();
       if (!hasPermission) {

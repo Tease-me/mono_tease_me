@@ -41,6 +41,12 @@ body,
   --gradient-angle: 270deg;
   --gradient-start-red-start: #FF4D67;
   --gradient-end-red-end: #FF8395;
+
+  --chat-bubble-gradient-angle: 180deg;
+  --chat-bubble-gradient-start: rgba(255, 77, 116, 0.70);
+  --chat-bubble-gradient-mid: rgba(255, 77, 116, 0.70);
+  --chat-bubble-gradient-end: #FF8395;
+
   --gradient-orange-start: #FB9400;
   --gradient-orange-end: #FFAB38;
   --max-chat-content-width: 960px;
@@ -53,8 +59,6 @@ body,
   --color-purple-background: rgba(136, 1, 203, 0.15);
   --color-purple-light: #CC68FF;
   --color-green-background: rgba(18, 255, 105, 0.10);
-
-
 }
 
 /* Light theme fallbacks (optional preview) */
