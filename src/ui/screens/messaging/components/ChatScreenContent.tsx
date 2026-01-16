@@ -31,6 +31,8 @@ import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import SvgPack from '@/utils/SvgPack';
 import ChatInfluencerBar from './ChatInfluencerBar';
 import ChatHeaderInfo from './ChatHeaderInfo';
+import { RelationshipServices } from '@/api/services/RelationshipServices';
+import { RelationshipResponse } from '@/api/models/relationship';
 
 const isCallChannel = (message: Message) => {
     if (!message.channel) return false;
@@ -72,6 +74,7 @@ const chatRepository = ChatRepository();
 const influencerRepo = InfluencerRepo();
 const adultChatRepo = AdultChatRepo();
 const subscriptionsServices = SubscriptionsServices(apiClient);
+const relationshipServices = RelationshipServices(apiClient);
 
 interface ChatScreenContentProps {
     id?: string;
@@ -113,6 +116,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const [adultModeSwitch, setAdultModeSwitch] = useState(false);
     const [showSubscriptionPage, setShowSubscriptionPage] = useState(false);
     const [showErrorAlert, setShowErrorAlert] = useState<string | undefined>();
+    const [relationship, setRelationship] = useState<RelationshipResponse | undefined>();
 
     const { user_id } = useParams();
 
@@ -273,6 +277,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                 fetchMessages(chat_id, 1);
                 connectChat(influencer.id);
                 setInfluencerId(influencer.id);
+                relationshipServices.getRelationship(influencer.id).then((relationship) => {
+                    setRelationship(relationship)
+                })
             }
         })()
     }, [influencer, user, adultMode]);
@@ -592,6 +599,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                         onClearHistory={handleClearHistory}
                     />}
                     <ChatInfluencerBar
+                        relationship={relationship}
                         influencer={influencer}
                         status={isWsConnected ? "Connected" : "Not Connected"}
                         adultMode={adultMode}

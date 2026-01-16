@@ -11,10 +11,14 @@ import metricPlacholder04 from "@/assets/image/ph04.png";
 import clsx from "clsx";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import ProfileMedia from "@/ui/components/ProfileMedia";
+import { RelationshipResponse } from "@/api/models/relationship";
+import MetricRing from "@/ui/components/stats/MetricRing";
+import SvgPack from "@/utils/SvgPack";
 
 type RankState = "up" | "down";
 
 export type ChatInfluencerBarProps = {
+  relationship?: RelationshipResponse
   influencer?: InfluencerDataModel;
   statusIcon?: React.ReactNode;
   middleContent?: React.ReactNode;
@@ -27,6 +31,7 @@ export type ChatInfluencerBarProps = {
 };
 
 export default function ChatInfluencerBar({
+  relationship,
   influencer,
   statusIcon = "💬",
   loveScore = -888,
@@ -77,11 +82,12 @@ export default function ChatInfluencerBar({
       <div className={styles.influencerBottom} />
       <div className={styles.profileContainer}>
         <div className={clsx(styles.profileLeftCol, adultMode && styles.hidden)}>
-          <div className={styles.profileMetricContainer}> <img src={metricPlacholder01} />
+          <div className={styles.profileMetricContainer}>
+            <MetricRing icon={<SvgPack.Trust />} size="small" value={relationship?.trust} />
             <div className={styles.metricLabel}>Trust</div>
           </div>
           <div className={styles.profileMetricContainer}>
-            <img src={metricPlacholder02} />
+            <MetricRing icon={<SvgPack.Angles />} size="small" value={relationship?.closeness} />
             <div className={styles.metricLabel}>Closeness</div>
           </div>
         </div>
@@ -99,11 +105,11 @@ export default function ChatInfluencerBar({
         </div>
         <div className={clsx(styles.profileRightCol, adultMode && styles.hidden)}>
           <div className={styles.profileMetricContainer}>
-            <img src={metricPlacholder03} />
+            <MetricRing icon={<SvgPack.KissGray />} size="small" value={relationship?.attraction} />
             <div className={styles.metricLabel}>Attraction</div>
           </div>
           <div className={styles.profileMetricContainer}>
-            <img src={metricPlacholder04} />
+            <MetricRing icon={<SvgPack.Shield />} size="small" value={relationship?.safety} />
             <div className={styles.metricLabel}>Safety</div>
           </div>
         </div>

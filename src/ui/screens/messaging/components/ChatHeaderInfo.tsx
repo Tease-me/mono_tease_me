@@ -23,7 +23,7 @@ const ChatHeaderInfo: React.FC<ChatHeaderInfoProps> = ({
   isClearingHistory,
   onClearHistory,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <div className={styles["chat-header-info"]}>
