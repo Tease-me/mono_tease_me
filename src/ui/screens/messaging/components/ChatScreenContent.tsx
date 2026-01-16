@@ -26,7 +26,6 @@ import { SubscriptionsServices } from '@/api/services/SubscriptionsServices';
 import { apiClient } from '@/api/apis';
 import AdultModePage from '../../adult-mode/AdultModePage';
 import UserNav from '@/ui/components/nav/UserNav';
-import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 import { Modal } from '@/ui/components/modals/Modal';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import SvgPack from '@/utils/SvgPack';
@@ -530,11 +529,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const onCall = () => {
         startConversation();
     }
-    {/*}
-    const handleOnBackClick = () => {
-        onBackPressed?.();
-    };
-    */}
 
     const handleScroll = async () => {
         const container = containerRef.current;
@@ -577,7 +571,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     if (!influencer) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
 
     return (
-        <BackgroundGradient>
+        <div className={styles["container"]}>
             <div className={styles["chat-screen-content"]}>
                 <div className={styles["chat-header"]}>
                     <UserNav
@@ -681,7 +675,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                 </div>
             </Modal>
 
-        </BackgroundGradient>
+        </div>
     );
 };
 

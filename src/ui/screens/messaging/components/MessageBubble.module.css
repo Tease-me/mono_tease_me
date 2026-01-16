@@ -9,6 +9,11 @@
     gap: 8px;
 }
 
+.message.audio-only {
+    max-width: min(75%, 360px);
+    min-width: 0;
+}
+
 .message-content {
     display: flex;
     flex: 1;

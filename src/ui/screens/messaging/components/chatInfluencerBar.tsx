@@ -2,7 +2,6 @@ import React from "react";
 import LottieAnimation from "@/ui/components/LottieAnimation";
 import rankUp from "@/assets/lottie/rankUp.json"
 import rankDown from "@/assets/lottie/rankDown.json"
-import bellaVideo from "@/assets/mock/profile-video/0af48251-5061-4cf2-8c48-13d0ddd3c52c.mp4";
 import switchProfileImg from "@/assets/svg/switchProfile.svg";
 import styles from "./ChatInfluencerBar.module.css";
 import metricPlacholder01 from "@/assets/image/ph01.png";
