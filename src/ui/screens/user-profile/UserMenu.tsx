@@ -27,7 +27,6 @@ export default function UserMenu({ goTo }: UserMenuProps) {
   }
 
   const isDesktop = useIsDesktop();
-
   return (
     <div>
       <div className={styles.header}></div>

@@ -49,8 +49,8 @@ const UserNav: React.FC<UserNavProps> = ({ onCallClick, influencerName, onMenuCl
             }}
           />
         )}
-        <div className={styles.toggleArea}>
-        </div>
+        {/* <div className={styles.toggleArea}>
+        </div> */}
         <div className={styles.logoArea}>
           <TeaseMeLogo variant="full" />
         </div>

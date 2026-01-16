@@ -1,0 +1,21 @@
+.sidebarPages {
+  position: relative;
+  height: 100vh;
+}
+
+.sidebarPage {
+  position: absolute;
+  inset: 0;
+}
+
+.sidebarPageHidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.sidebarPageActive {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
