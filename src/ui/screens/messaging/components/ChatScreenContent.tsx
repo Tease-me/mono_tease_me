@@ -547,7 +547,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                         onAdultModeChange={handleAdultModeChange}
                     />
                 </div>
-                <ChatInfluencerBar />
+               <ChatInfluencerBar
+  onChangeInfluencer={handleChangeInfluencerClicked}
+/>
                 {!showSubscriptionPage ? <>
 
                     <div className={styles["chat-header-info"]}>

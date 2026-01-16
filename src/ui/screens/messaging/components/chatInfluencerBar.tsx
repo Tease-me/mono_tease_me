@@ -22,6 +22,7 @@ export type ChatInfluencerBarProps = {
   loveScore?: number | string;
   rankState?: RankState;
   glowVariant?: GlowVariant;
+  onChangeInfluencer?: () => void;
 };
 
 export default function ChatInfluencerBar({
@@ -30,6 +31,7 @@ export default function ChatInfluencerBar({
   loveScore = -888,
   rankState = "up",
   glowVariant = "default",
+  onChangeInfluencer,
 }: ChatInfluencerBarProps) {
   const loveScoreClass =
     rankState === "up" ? styles.loveScoreRankUp : styles.loveScoreRankDown;
@@ -54,7 +56,7 @@ export default function ChatInfluencerBar({
             <div className={styles.middleCol}></div>
 
             <div className={styles.rightCol}>
-              <div className={styles.status}>{statusIcon}</div>
+              <div className={styles.relationshipStatus}>{statusIcon} <div className={styles.relationshipStatusLabel}>Talking</div> </div>
 
               <div className={`${styles.loveScore} ${loveScoreClass}`}>
                 <p>{loveScore}</p>
@@ -75,7 +77,7 @@ export default function ChatInfluencerBar({
 
       <div className={styles.influencerBottom} />
       <div className={styles.profileContainer}>
-<div className={styles.profileLeftCol}><div className={styles.profileMetricContainer}> <img src={metricPlacholder01} />  <img src={metricPlacholder02} /></div> </div>
+<div className={styles.profileLeftCol}><div className={styles.profileMetricContainer}> <img src={metricPlacholder01} /> <div className={styles.metricLabel}>Trust</div> </div><div className={styles.profileMetricContainer}><img src={metricPlacholder02} /><div className={styles.metricLabel}>Closeness</div></div> </div>
 <div className={styles.profileMidCol}>
   <div className={styles.profileImage}>    <video
     className={styles.profileVideo}
@@ -86,10 +88,17 @@ export default function ChatInfluencerBar({
     playsInline
     preload="auto"
   /></div>
-  <div className={`${styles.profileSwitch} ${profileSwitch}`}><img src={switchProfileImg} /></div>
+  <button
+  type="button"
+  className={`${styles.profileSwitch} ${profileSwitch}`}
+  onClick={onChangeInfluencer}
+  aria-label="Change influencer"
+>
+  <img src={switchProfileImg} /> <div className={styles.switchProfileLabel}>Switch Influencer</div>
+</button>
 
 </div>
-<div className={styles.profileRightCol}> <div className={styles.profileMetricContainer}> <img src={metricPlacholder03} />  <img src={metricPlacholder04} /></div>  </div>
+<div className={styles.profileRightCol}> <div className={styles.profileMetricContainer}> <img src={metricPlacholder03} /> <div className={styles.metricLabel}>Attraction</div></div> <div className={styles.profileMetricContainer}><img src={metricPlacholder04} /><div className={styles.metricLabel}>Safety</div></div>  </div>
 
       </div>
     </div>
