@@ -11,6 +11,10 @@
   background: var(--Dark-Dark-1, #181A20);
 }
 
+.nobg{
+  background: transparent;
+}
+
 .innerContainer {
   display: flex;
   flex-direction: column;

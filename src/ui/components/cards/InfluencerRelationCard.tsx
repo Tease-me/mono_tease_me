@@ -60,7 +60,7 @@ const InfluencerRelationCard: React.FC<InfleuncerRelationCardProps> = ({
         </div>
         <div className={styles.nameArea}>
           <h3>{name}</h3>
-          <p className={styles.lastConnectedArea}>Last Connected: <span className={spanClass} >{isActive ? "Active Now" : lastConnectedLabel} </span></p>
+          <p className={styles.lastConnectedArea}>Last Connected: <span className={spanClass} >{lastConnected ? (isActive ? "Just Now" : lastConnectedLabel) : "--"} </span></p>
         </div>
         <div className={styles.avatarContainer}>
           <ProfileMedia size={'xlarge'} imageSrc={image} videoSrc={video} active />
