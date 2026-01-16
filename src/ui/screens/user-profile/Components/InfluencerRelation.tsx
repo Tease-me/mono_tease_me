@@ -8,26 +8,27 @@ import UsageView from "@/ui/components/stats/UsageView";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 import ProgressBar from "@/ui/components/stats/ProgressBar";
+import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import BalanceBadge from "@/ui/components/stats/BalanceBadge";
 import AdultModeToggle from "@/ui/components/adult-mode-toggle/AdultModeToggle";
 import { Modal } from "@/ui/components/modals/Modal";
-
 import { formatDateTimeRelative } from "@/utils/DateTimeUtils";
-
 
 import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
 import { RelationshipServices } from "@/api/services/RelationshipServices";
 import { BalanceServices } from "@/api/services/BalanceServices";
-import IconButton from "@/ui/components/inputs/buttons/IconButton";
+import { UserServices } from "@/api/services/UserServices";
+
 
 //TODO
-// UNFOLLOW BUTTON
+// UNFOLLOW BUTTON IS HIDDEN
 //RELATIONSHIP RADAR CSS WARNING
 //REMOVE ALERT ON SUBSCRIBE
 
 const relationshipService = RelationshipServices(apiClient);
 const balanceService = BalanceServices(apiClient);
 const subscriptionService = SubscriptionsServices(apiClient);
+const userServices = UserServices(apiClient);
 
 type NavPayload = Record<string, any>;
 type Props = {
@@ -47,14 +48,15 @@ type RelationData = {
   hasSubscription?: boolean;
   is18?: boolean;
   expiresAt?: string | null;
-  voiceMinutes?: number;
-  textMessages?: number;
+  //Normal Balance
   balance?: number;
-  callTime?: string,
+  voiceMinutes?: number;
   msgRemaining?: number,
+  //18+ Data
   adultBalance?: number;
-  adultCallTime?: string,
+  adultVoiceMinutes?: number,
   adultMsgRemaining?: number,
+  //Love stats 
   trust?: number;
   safety?: number;
   attraction?: number;
@@ -115,12 +117,13 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
     setLoading(true);
     (async () => {
       try {
-        const [rel, bal, sub] = await Promise.all([
+        const [rel, bal, sub, u] = await Promise.all([
           relationshipService.getRelationship(initial.id!),
           balanceService.getBalance(initial.id!, false).catch(() => null),
-          subscriptionService.getMySubscriptionForInfluencer(initial.id!)
-
+          subscriptionService.getMySubscriptionForInfluencer(initial.id!),
+          userServices.getUserUsage(data.id)
         ]);
+
 
         if (!cancelled) {
           setData((d) => ({
@@ -136,10 +139,12 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
             hasSubscription: sub?.has_subscription,
             is18: sub?.is_18_selected ?? d.is18,
             expiresAt: sub?.current_period_end ?? d.expiresAt,
-            voiceMinutes: sub?.voice_minutes ?? d.voiceMinutes,
-            textMessages: sub?.text_messages ?? d.textMessages,
-          }));
+            voiceMinutes: u?.normal?.live_chat?.remaining_minutes ?? d.voiceMinutes,
+            msgRemaining: u?.normal?.messages?.remaining ?? d.msgRemaining,
+            adultVoiceMinutes: u?.adult?.voice?.remaining_minutes ?? d.adultVoiceMinutes,
+            adultMsgRemaining: u?.adult?.messages?.remaining ?? d.adultMsgRemaining,
 
+          }));
         }
       } catch (e) {
         console.error("Failed to load relation details", e);
@@ -169,7 +174,9 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
         is18: sub?.is_18_selected ?? true,
         expiresAt: sub?.current_period_end ?? d.expiresAt,
         voiceMinutes: sub?.voice_minutes ?? d.voiceMinutes,
-        textMessages: sub?.text_messages ?? d.textMessages,
+        msgRemaining: sub?.text_messages ?? d.msgRemaining,
+        adultVoiceMinutes: sub?.voice_minutes ?? d.adultVoiceMinutes,
+        adultMsgRemaining: sub?.text_messages ?? d.adultMsgRemaining,
       }));
       setAdultModeChecked(true);
       alert('You are now subscribed tot 18+ mode');
@@ -258,7 +265,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
             <UsageView
               label="Call Time"
               tone="green"
-              value={data.callTime != null ? data.callTime.toString() : "--"}
+              value={data.voiceMinutes != null ? data.voiceMinutes.toString() : "--"}
             />
             <UsageView
               label="Text Msgs"
@@ -281,18 +288,18 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
             <UsageView
               label="Voice Minutes"
               tone="purple"
-              value={data.callTime != null ? data.callTime.toString() : "--"}
+              value={data.adultVoiceMinutes != null ? data.adultVoiceMinutes.toString() : "--"}
             />
             <UsageView
               label="Text Msg"
               tone="purple"
-              value={data.msgRemaining != null ? data.msgRemaining.toString() : "--"}
+              value={data.adultMsgRemaining != null ? data.adultMsgRemaining.toString() : "--"}
             />
           </div>)}
           {showAdultBalanceDetails && <button className={styles.cancelSub} type="button" onClick={() => { setShowCancelModal(true) }}> Cancel Subscription</button>}
           <div className={styles.adultToggleArea}>
             <button type="button" className={styles.adultToggleBtn}>
-              {data.hasSubscription && <span className={styles.adultText}>{data.adultCallTime ?? "0"} mins</span>}
+              {data.hasSubscription && <span className={styles.adultText}>{data.adultVoiceMinutes ?? "0"} mins</span>}
               <AdultModeToggle checked={adultModeChecked} onChange={handleAdultToggleChange} />
             </button>
             {data.hasSubscription && <p>
