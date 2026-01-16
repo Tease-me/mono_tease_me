@@ -50,8 +50,8 @@
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: 150px;
-    margin-bottom: 120px;
+  padding-bottom: 20dvh;
+  
     max-width: var(--max-chat-content-width);
     width: 100%;
 }
@@ -126,7 +126,9 @@
 @media (min-width: 1024px) {
     .chat-messages-container {
         padding-top: 0px;
-        padding-bottom: 34px;
+ padding-bottom: 20dvh;
+                mask-image: linear-gradient(180deg, black 80%, transparent 88%, transparent);
+    
     }
 
     .chat-container {

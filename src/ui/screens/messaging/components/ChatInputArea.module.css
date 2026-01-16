@@ -9,13 +9,14 @@
     justify-content: center;
     margin: 0 auto;
     max-width: calc(var(--max-chat-content-width) + 22px);
-    border-radius: 12px;
+
     border-radius: 12px;
     border-top: 1px solid rgba(255, 255, 255, 0.10);
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.40) 0%, rgba(0, 0, 0, 0.90) 100%);
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.6) 100%);
     box-shadow: 0 -5px 10px 0 rgba(0, 0, 0, 0.20);
-    backdrop-filter: blur(17.5px);
-    margin-bottom: 33px;
+    
+    backdrop-filter: blur(8px) brightness(4);
+    margin-bottom: 3dvh;
     position: relative;
 }
 
