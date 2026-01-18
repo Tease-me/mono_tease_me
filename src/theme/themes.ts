@@ -56,7 +56,7 @@ export const THEMES: Record<ThemeName, ThemeTokens> = {
     "--color-text": "#f5f4ff",
     "--color-text-secondary": "#c9c7f5",
     "--color-primary": "#9f4bff",
-    "--color-dark-1": "#0d0c14",
+    "--color-dark-1": "hsla(225, 14%, 11%, 1)",
     "--color-dark-2": "#14131f",
     "--color-dark-3": "#1e1d29",
     "--color-alert": "#ff4f7d",
