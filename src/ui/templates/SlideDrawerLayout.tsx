@@ -27,40 +27,39 @@ const SlideDrawerLayout: React.FC<SlideDrawerLayoutProps> = ({
 
   return (
     <div className={styles.container}>
-<div
-  className={clsx(styles.sidebar, showSidebar ? styles.open : styles.closed)}
-  data-open={showSidebar ? "true" : "false"}
-  data-show-back={showBack ? "true" : "false"}
->
-  <div className={styles.sidebarHeader}>
-    <div className={styles.headerLeft}>
-      <button
-        type="button"
-        className={styles.backIconButton}
-        onClick={onBack ?? onToggle}
+      <div
+        className={clsx(styles.sidebar, showSidebar ? styles.open : styles.closed)}
+        data-open={showSidebar ? "true" : "false"}
+        data-show-back={showBack ? "true" : "false"}
       >
-        <SvgPack.ArrowLeft />
-      </button>
-
-      <TeaseMeLogo size="small" variant="full" className={styles.logo} />
-
-      <div className={styles.title}>{title}</div>
-    </div>
-
-    <div
-      onClick={onToggle}
-      className={clsx(!showSidebar && styles.menuButton)}
-    >
-      <div className={styles.menuButtonIcon}>
-        {showSidebar ? <SvgPack.Cross /> : <SvgPack.Menu />}
+        <div className={styles.sidebarHeader}>
+          <div className={styles.headerLeft}>
+            <div>
+            <button
+              type="button"
+              className={styles.backIconButton}
+              onClick={onBack ?? onToggle}
+            >
+              <SvgPack.ArrowLeft />
+            </button>
+            < TeaseMeLogo size="small" variant="full" className={styles.logo} />
+            </div>
+            <div className={styles.title}>{title}</div>
+          </div>
+          <div className={styles.headerRight}>
+            <div
+              onClick={onToggle}
+              className={clsx(!showSidebar && styles.menuButton)}
+            >
+              <div className={styles.menuButtonIcon}>
+                {showSidebar ? <SvgPack.Cross /> : <SvgPack.Menu />}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className={styles.headerDivider} />
+        <div className={styles.sidebarContent}>{sidebar}</div>
       </div>
-    </div>
-  </div>
-
-  <div className={styles.headerDivider} />
-  <div className={styles.sidebarContent}>{sidebar}</div>
-</div>
-
       {<div className={styles.content}>{children}</div>}
     </div>
   )
