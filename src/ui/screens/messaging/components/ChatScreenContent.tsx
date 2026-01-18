@@ -374,6 +374,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                     setTyping(false);
                     scrollToBottom();
                     setError(undefined);
+                    if (data.relationship) {
+                        setRelationship(data.relationship)
+                        logger.debug("Relationship Updated:", data.relationship)
+                    }
                 }, calculateReplyTime(data.reply));
             } else if (data.error) {
                 setTyping(false);

@@ -4,18 +4,12 @@ import rankUp from "@/assets/lottie/rankUp.json"
 import rankDown from "@/assets/lottie/rankDown.json"
 import switchProfileImg from "@/assets/svg/switchProfile.svg";
 import styles from "./ChatInfluencerBar.module.css";
-import metricPlacholder01 from "@/assets/image/ph01.png";
-import metricPlacholder02 from "@/assets/image/ph02.png";
-import metricPlacholder03 from "@/assets/image/ph03.png";
-import metricPlacholder04 from "@/assets/image/ph04.png";
 import clsx from "clsx";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import { RelationshipResponse } from "@/api/models/relationship";
 import MetricRing from "@/ui/components/stats/MetricRing";
 import SvgPack from "@/utils/SvgPack";
-
-type RankState = "up" | "down";
 
 export type ChatInfluencerBarProps = {
   relationship?: RelationshipResponse
@@ -24,7 +18,6 @@ export type ChatInfluencerBarProps = {
   middleContent?: React.ReactNode;
   showChangeInfluencerButton?: boolean;
   loveScore?: number | string;
-  rankState?: RankState;
   adultMode?: boolean;
   status?: string;
   onChangeInfluencer?: () => void;
@@ -34,17 +27,15 @@ export default function ChatInfluencerBar({
   relationship,
   influencer,
   statusIcon = "💬",
-  loveScore = -888,
-  rankState = "up",
   status = "Network Error",
   adultMode = true,
   showChangeInfluencerButton = false,
   onChangeInfluencer,
 }: ChatInfluencerBarProps) {
   const loveScoreClass =
-    rankState === "up" ? styles.loveScoreRankUp : styles.loveScoreRankDown;
+    (relationship?.sentiment_score || 0) > 0 ? styles.loveScoreRankUp : styles.loveScoreRankDown;
 
-  const rankClass = rankState === "up" ? styles.rankUp : styles.rankDown;
+  const rankClass = (relationship?.sentiment_score || 0) > 0 ? styles.rankUp : styles.rankDown;
 
   const glowClass =
     adultMode ? styles.glowStatusCircleAdult : styles.glowStatusCircleDefault;
@@ -61,24 +52,22 @@ export default function ChatInfluencerBar({
             </div>
             <div className={styles.middleCol}></div>
             <div className={clsx(styles.rightCol, adultMode && styles.hidden)}>
-              <div className={styles.relationshipStatus}>{statusIcon} <div className={styles.relationshipStatusLabel}>Talking</div> </div>
+              <div className={styles.relationshipStatus}>{statusIcon} <div className={styles.relationshipStatusLabel}>{relationship?.state}</div></div>
               <div className={`${styles.loveScore} ${loveScoreClass}`}>
-                <p>{loveScore}</p>
+                <p>{relationship?.sentiment_score}</p>
                 <div className={`${styles.rank} ${rankClass}`}>
-                  {rankState === "up" ? <LottieAnimation autoplay loop animationData={rankUp} /> : <LottieAnimation autoplay loop animationData={rankDown} />}
+                  {(relationship?.sentiment_score || 0) > 0 ? <LottieAnimation autoplay loop animationData={rankUp} /> : <LottieAnimation autoplay loop animationData={rankDown} />}
                 </div>
               </div>
             </div>
           </div>
         </div>
-
         <div className={styles.circleGlowContainer}>
           <div className={styles.glowStatusWhite} />
           <div className={styles.glowStatusCircle02} />
           <div className={`${styles.glowStatusCircle} ${glowClass}`} />
         </div>
       </div>
-
       <div className={styles.influencerBottom} />
       <div className={styles.profileContainer}>
         <div className={clsx(styles.profileLeftCol, adultMode && styles.hidden)}>
