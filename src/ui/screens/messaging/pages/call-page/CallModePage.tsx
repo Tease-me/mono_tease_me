@@ -43,7 +43,7 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                     <div className={styles.statCard}>
                         <div className={styles.statLabel}>Love</div>
                         <div className={styles.statValue}>
-                            <LoveScore sentimentScore={relationship?.sentiment_score || 0} size="large" />
+                            <LoveScore rankPosition="left" sentimentScore={relationship?.sentiment_score || 0} size="large" />
                         </div>
                     </div>
                     <div className={styles.statCard}>

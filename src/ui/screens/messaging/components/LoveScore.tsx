@@ -9,9 +9,15 @@ export type LoveScoreProps = {
   sentimentScore?: number | string | null;
   className?: string;
   size?: "small" | "medium" | "large";
+  rankPosition?: "left" | "right";
 };
 
-export default function LoveScore({ sentimentScore, className, size = "medium" }: LoveScoreProps) {
+export default function LoveScore({
+  sentimentScore,
+  className,
+  size = "medium",
+  rankPosition = "right",
+}: LoveScoreProps) {
   const numericScore = Number(sentimentScore) || 0;
   const isPositive = numericScore > 0;
 
@@ -24,14 +30,25 @@ export default function LoveScore({ sentimentScore, className, size = "medium" }
 
   return (
     <div className={clsx(styles.loveScore, loveScoreClass, sizeClass, className)}>
+      {rankPosition === "left" && (
+        <div className={clsx(styles.rank, rankClass, rankSizeClass)}>
+          {isPositive ? (
+            <LottieAnimation autoplay loop animationData={rankUp} />
+          ) : (
+            <LottieAnimation autoplay loop animationData={rankDown} />
+          )}
+        </div>
+      )}
       <p className={styles.loveScoreValue}>{sentimentScore ?? ""}</p>
-      <div className={clsx(styles.rank, rankClass, rankSizeClass)}>
-        {isPositive ? (
-          <LottieAnimation autoplay loop animationData={rankUp} />
-        ) : (
-          <LottieAnimation autoplay loop animationData={rankDown} />
-        )}
-      </div>
+      {rankPosition === "right" && (
+        <div className={clsx(styles.rank, rankClass, rankSizeClass)}>
+          {isPositive ? (
+            <LottieAnimation autoplay loop animationData={rankUp} />
+          ) : (
+            <LottieAnimation autoplay loop animationData={rankDown} />
+          )}
+        </div>
+      )}
     </div>
   );
 }
