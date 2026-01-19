@@ -1,6 +1,6 @@
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
-import ChatIcon from "@/assets/svg/Chat.svg?react";
+// import ChatIcon from "@/assets/svg/Chat.svg?react";
 import InfluencerMetrics from "@/ui/components/stats/InfluencerMetrics";
 import { RelationshipDataModel } from "@/data/models/RelationshipDataModel";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
@@ -11,6 +11,9 @@ import LoveScore from "../../components/LoveScore";
 import { CallStatus } from "@/hooks/useCallWebRTC";
 import SvgPack from "@/utils/SvgPack";
 import { formatTime } from "@/utils/time";
+import clsx from "clsx";
+import React from "react";
+import { getRelationshipStatusIcon, RelationshipStatus } from "@/utils/relationshipStatusIcons";
 
 type CallModePageProps = {
     startConversation?: () => void;
@@ -24,6 +27,7 @@ type CallModePageProps = {
 };
 
 const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, timeRemaining }: CallModePageProps) => {
+
     const handleCallButtonClicked = () => {
         if (status === "idle" || status === "disconnected") {
             startConversation?.();
@@ -43,14 +47,14 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                     <div className={styles.statCard}>
                         <div className={styles.statLabel}>Love</div>
                         <div className={styles.statValue}>
-                            <LoveScore sentimentScore={relationship?.sentiment_score || 0} size="large" />
+                            <LoveScore rankPosition="left" sentimentScore={relationship?.sentiment_score || 0} size="large" />
                         </div>
                     </div>
                     <div className={styles.statCard}>
                         <div className={styles.statLabel}>Status</div>
                         <div className={styles.statValue}>
                             <span className={styles.statIcon}>
-                                <ChatIcon />
+                                {getRelationshipStatusIcon(relationship?.state as RelationshipStatus)}
                             </span>
                             {relationship?.state || 'N/A'}
                         </div>
@@ -60,15 +64,15 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                     <InfluencerMetrics relationship={relationship} className={styles.metrics} />
 
                     {status === "connected" ? (
-                        <div className={styles.timeRemaining}>
-                            Time Remaining: <span>{timeRemaining && formatTime(timeRemaining)}</span>
+                        <div className={clsx(styles.connectionStatus, styles.connected)}>
+                            Connected <span>{timeRemaining && formatTime(timeRemaining)}</span>
                         </div>
                     ) : status === "connecting" ? (
-                        <div className={styles.lastConnected}>
+                        <div className={clsx(styles.connectionStatus, styles.connecting)}>
                             <span>Ringing...</span>
                         </div>
                     ) : (
-                        <div className={styles.lastConnected}>
+                        <div className={clsx(styles.connectionStatus, styles.lastConnected)}>
                             Last Connected: <span>14 Hours Ago</span>
                         </div>
                     )}

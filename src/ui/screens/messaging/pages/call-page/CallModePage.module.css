@@ -98,15 +98,28 @@
     flex: 1;
 }
 
-.lastConnected {
+.connectionStatus {
     padding: 10px;
-    font-size: 12px;
+    font-size: 14px;
     color: rgba(255, 255, 255, 0.6);
 }
 
-.lastConnected span {
+.connectionStatus span {
     color: #ff6b6b;
     font-weight: 600;
+}
+
+.connectionStatus.connected {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border-radius: 8px;
+}
+
+.connectionStatus.connected span {
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
 }
 
 .formatTime {
