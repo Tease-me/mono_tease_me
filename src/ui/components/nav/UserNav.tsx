@@ -51,10 +51,8 @@ const UserNav: React.FC<UserNavProps> = ({ onCallClick, onMenuClick, adultMode, 
           <TeaseMeLogo variant="full" />
         </div>
         <div className={styles["right-buttons"]}>
-          <div>
-            {!adultMode && <IconButton leftIcon={callMode ? <SvgPack.Call /> : <SvgPack.Message />} onClick={onCallClick} className={styles.callButton} color='black' text="Mode" />}
-            <IconButton leftIcon={<SvgPack.Call />} onClick={onCallClick} className={styles.callButtonSmall} color='green' />
-          </div>
+          {!adultMode && <IconButton leftIcon={callMode ? <SvgPack.Call /> : <SvgPack.Message />} onClick={onCallClick} className={styles.callButton} color='black' text="Mode" />}
+          <IconButton leftIcon={<SvgPack.Call />} onClick={onCallClick} className={styles.callButtonSmall} color='green' />
         </div>
       </div>
     </div>

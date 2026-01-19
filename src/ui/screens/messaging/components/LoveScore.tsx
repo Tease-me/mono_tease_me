@@ -1,0 +1,37 @@
+import React from "react";
+import clsx from "clsx";
+import LottieAnimation from "@/ui/components/LottieAnimation";
+import rankUp from "@/assets/lottie/rankUp.json";
+import rankDown from "@/assets/lottie/rankDown.json";
+import styles from "./LoveScore.module.css";
+
+export type LoveScoreProps = {
+  sentimentScore?: number | string | null;
+  className?: string;
+  size?: "small" | "medium" | "large";
+};
+
+export default function LoveScore({ sentimentScore, className, size = "medium" }: LoveScoreProps) {
+  const numericScore = Number(sentimentScore) || 0;
+  const isPositive = numericScore > 0;
+
+  const loveScoreClass = isPositive ? styles.loveScoreRankUp : styles.loveScoreRankDown;
+  const rankClass = isPositive ? styles.rankUp : styles.rankDown;
+  const sizeClass =
+    size === "small" ? styles.loveScoreSmall : size === "large" ? styles.loveScoreLarge : styles.loveScoreMedium;
+  const rankSizeClass =
+    size === "small" ? styles.rankSmall : size === "large" ? styles.rankLarge : styles.rankMedium;
+
+  return (
+    <div className={clsx(styles.loveScore, loveScoreClass, sizeClass, className)}>
+      <p className={styles.loveScoreValue}>{sentimentScore ?? ""}</p>
+      <div className={clsx(styles.rank, rankClass, rankSizeClass)}>
+        {isPositive ? (
+          <LottieAnimation autoplay loop animationData={rankUp} />
+        ) : (
+          <LottieAnimation autoplay loop animationData={rankDown} />
+        )}
+      </div>
+    </div>
+  );
+}

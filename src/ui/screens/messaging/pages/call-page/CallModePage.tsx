@@ -1,6 +1,5 @@
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
-import HeartIcon from "@/assets/svg/Heart.svg?react";
 import ChatIcon from "@/assets/svg/Chat.svg?react";
 import CallIcon from "@/assets/svg/Call.svg?react";
 import InfluencerMetrics from "@/ui/components/stats/InfluencerMetrics";
@@ -8,6 +7,8 @@ import { RelationshipDataModel } from "@/data/models/RelationshipDataModel";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 
 import styles from "./CallModePage.module.css";
+import BalanceBadge from "@/ui/components/stats/BalanceBadge";
+import LoveScore from "../../components/LoveScore";
 
 type CallModePageProps = {
     influencer?: InfluencerDataModel;
@@ -18,20 +19,15 @@ const CallModePage = ({ influencer, relationship }: CallModePageProps) => {
     return (
         <div className={styles.page}>
             <div className={styles.card}>
-                <div className={styles.pricePill}>$50.45</div>
-
+                <BalanceBadge balance={123.45} />
                 <ProfileMedia active size="xlarge" mediaType="image" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} glow />
-
                 <div className={styles.name}>{influencer?.name}</div>
 
                 <div className={styles.statsRow}>
                     <div className={styles.statCard}>
                         <div className={styles.statLabel}>Love</div>
                         <div className={styles.statValue}>
-                            <span className={styles.statIcon}>
-                                <HeartIcon />
-                            </span>
-                            {relationship?.sentiment_score || 0}
+                            <LoveScore sentimentScore={relationship?.sentiment_score || 0} size="large" />
                         </div>
                     </div>
                     <div className={styles.statCard}>
