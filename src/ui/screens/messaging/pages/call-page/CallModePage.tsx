@@ -24,38 +24,6 @@ type CallModePageProps = {
 };
 
 const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, timeRemaining }: CallModePageProps) => {
-
-    const statusDisplay = (() => {
-        if (status === "connecting") {
-            return (
-                <>
-                    <span className={styles.statIcon}>
-                        <SvgPack.Call />
-                    </span>
-                    Ringing...
-                </>
-            );
-        }
-        if (status === "connected") {
-            return (
-                <>
-                    <span className={styles.statIcon}>
-                        <SvgPack.Call />
-                    </span>
-                    {timeRemaining && formatTime(timeRemaining)}
-                </>
-            );
-        }
-        return (
-            <>
-                <span className={styles.statIcon}>
-                    <ChatIcon />
-                </span>
-                Last Connected: 14 Hours Ago
-            </>
-        );
-    })();
-
     const handleCallButtonClicked = () => {
         if (status === "idle" || status === "disconnected") {
             startConversation?.();
@@ -63,8 +31,6 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
             stopConversation?.();
         }
     }
-
-
 
     return (
         <div className={styles.page}>
@@ -83,7 +49,10 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                     <div className={styles.statCard}>
                         <div className={styles.statLabel}>Status</div>
                         <div className={styles.statValue}>
-                            {statusDisplay}
+                            <span className={styles.statIcon}>
+                                <ChatIcon />
+                            </span>
+                            {relationship?.state || 'N/A'}
                         </div>
                     </div>
                 </div>
@@ -96,7 +65,7 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                         </div>
                     ) : status === "connecting" ? (
                         <div className={styles.lastConnected}>
-                            Status: <span>Ringing...</span>
+                            <span>Ringing...</span>
                         </div>
                     ) : (
                         <div className={styles.lastConnected}>

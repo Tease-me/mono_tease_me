@@ -109,6 +109,12 @@
     font-weight: 600;
 }
 
+.formatTime {
+    font-weight: 700;
+    font-size: 24px;
+    color: #ff6b6b;
+}
+
 .callButton {
     width: 40%;
     justify-content: center;
