@@ -18,7 +18,9 @@ export default function LoveScore({
   size = "medium",
   rankPosition = "right",
 }: LoveScoreProps) {
-  const numericScore = Number(sentimentScore) || 0;
+  const parsedScore = Number(sentimentScore);
+  const numericScore = Number.isFinite(parsedScore) ? parsedScore : 0;
+  const displayScore = Number.isFinite(parsedScore) ? parsedScore.toFixed(2) : "";
   const isPositive = numericScore > 0;
 
   const loveScoreClass = isPositive ? styles.loveScoreRankUp : styles.loveScoreRankDown;
@@ -39,7 +41,7 @@ export default function LoveScore({
           )}
         </div>
       )}
-      <p className={styles.loveScoreValue}>{sentimentScore ?? ""}</p>
+      <p className={styles.loveScoreValue}>{displayScore}</p>
       {rankPosition === "right" && (
         <div className={clsx(styles.rank, rankClass, rankSizeClass)}>
           {isPositive ? (

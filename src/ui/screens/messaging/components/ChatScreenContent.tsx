@@ -109,6 +109,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const currentAudioRef = useRef<HTMLAudioElement | null>(null);
     const lastChatInitRef = useRef<string | null>(null);
     const callModalTimeoutRef = useRef<number | null>(null);
+    const relationshipPollRef = useRef<number | null>(null);
 
     const { user } = useContext(AuthContext);
     const [adultMode, setAdultMode] = useState(false);
@@ -532,6 +533,30 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const handleChangeInfluencerClicked = async () => {
         setNeedsSelection?.(true)
     };
+    useEffect(() => {
+        if (relationshipPollRef.current) {
+            window.clearInterval(relationshipPollRef.current);
+            relationshipPollRef.current = null;
+        }
+
+        if (status === "connected" && influencer?.id) {
+            const fetchRelationship = () => {
+                relationshipServices.getRelationship(influencer.id).then((relationship) => {
+                    setRelationship(relationship);
+                }).catch((err) => logger.error("Error refreshing relationship", err));
+            };
+
+            fetchRelationship();
+            relationshipPollRef.current = window.setInterval(fetchRelationship, 5000);
+        }
+
+        return () => {
+            if (relationshipPollRef.current) {
+                window.clearInterval(relationshipPollRef.current);
+                relationshipPollRef.current = null;
+            }
+        };
+    }, [status, influencer?.id]);
     const handleClearHistory = async () => {
         if (!chatId || !isSuperUser) return;
         const confirmed = window.confirm("Delete this chat history? This cannot be undone.");

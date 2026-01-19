@@ -1,6 +1,6 @@
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
-import ChatIcon from "@/assets/svg/Chat.svg?react";
+// import ChatIcon from "@/assets/svg/Chat.svg?react";
 import InfluencerMetrics from "@/ui/components/stats/InfluencerMetrics";
 import { RelationshipDataModel } from "@/data/models/RelationshipDataModel";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
@@ -12,6 +12,8 @@ import { CallStatus } from "@/hooks/useCallWebRTC";
 import SvgPack from "@/utils/SvgPack";
 import { formatTime } from "@/utils/time";
 import clsx from "clsx";
+import React from "react";
+import { getRelationshipStatusIcon, RelationshipStatus } from "@/utils/relationshipStatusIcons";
 
 type CallModePageProps = {
     startConversation?: () => void;
@@ -52,7 +54,7 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                         <div className={styles.statLabel}>Status</div>
                         <div className={styles.statValue}>
                             <span className={styles.statIcon}>
-                                <ChatIcon />
+                                {getRelationshipStatusIcon(relationship?.state as RelationshipStatus)}
                             </span>
                             {relationship?.state || 'N/A'}
                         </div>
