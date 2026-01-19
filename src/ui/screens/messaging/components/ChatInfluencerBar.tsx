@@ -1,6 +1,5 @@
 import React from "react";
 import switchProfileImg from "@/assets/svg/switchProfile.svg";
-import styles from "./ChatInfluencerBar.module.css";
 import clsx from "clsx";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import ProfileMedia from "@/ui/components/ProfileMedia";
@@ -8,11 +7,12 @@ import { RelationshipResponse } from "@/api/models/relationship";
 import MetricRing from "@/ui/components/stats/MetricRing";
 import SvgPack from "@/utils/SvgPack";
 import LoveScore from "./LoveScore";
+import styles from "./ChatInfluencerBar.module.css";
+import { getRelationshipStatusIcon, RelationshipStatus } from "@/utils/relationshipStatusIcons";
 
 export type ChatInfluencerBarProps = {
   relationship?: RelationshipResponse
   influencer?: InfluencerDataModel;
-  statusIcon?: React.ReactNode;
   middleContent?: React.ReactNode;
   showChangeInfluencerButton?: boolean;
   loveScore?: number | string;
@@ -24,7 +24,6 @@ export type ChatInfluencerBarProps = {
 export default function ChatInfluencerBar({
   relationship,
   influencer,
-  statusIcon = "💬",
   status = "Network Error",
   adultMode = false,
   showChangeInfluencerButton = false,
@@ -45,7 +44,7 @@ export default function ChatInfluencerBar({
             </div>
             <div className={styles.middleCol}></div>
             <div className={clsx(styles.rightCol, adultMode && styles.hidden)}>
-              <div className={styles.relationshipStatus}>{statusIcon} <div className={styles.relationshipStatusLabel}>{relationship?.state}</div></div>
+              <div className={styles.relationshipStatus}>{getRelationshipStatusIcon(relationship?.state as RelationshipStatus)} <div className={styles.relationshipStatusLabel}>{relationship?.state}</div></div>
               <LoveScore sentimentScore={relationship?.sentiment_score} />
             </div>
           </div>

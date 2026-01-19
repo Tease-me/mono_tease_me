@@ -1,3 +1,9 @@
+.hidden {
+  opacity: 0;
+  user-select: none;
+  pointer-events: none;
+}
+
 .chatInfluencerBar {
   background: rgba(0, 0, 0, 0);
   min-height: 109px;
@@ -280,6 +286,12 @@
     gap: 0.25rem;
     border: 1px solid rgba(66, 66, 66, 0.5);
     border-radius: 2rem;
+    padding: 0.25rem 1rem;
+  }
+
+  .relationshipStatus svg {
+    width: 1.5rem;
+    height: 1.5rem;
   }
 
   .relationshipStatusLabel {
