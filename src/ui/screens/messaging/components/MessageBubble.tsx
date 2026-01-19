@@ -103,13 +103,18 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     const time = callGroup?.time ?? msg?.time ?? "";
     const callDuration = getCallDuration(callGroup);
     const hasTranscript = Boolean(showAudioTranscript && msg?.transcript);
+    const hasAudio = !callGroup && msg?.attachments?.some((attachment) => attachment.type === "audio");
+    const isAudioOnly = Boolean(hasAudio && !msg?.text?.trim());
     const callSpeakerName = (messageSender: Message["sender"]) => {
         if (messageSender === "received") return influencerName || "Influencer";
         return "You";
     };
 
     return (
-        <div ref={containerRef} className={clsx(styles["message"], styles[sender])}>
+        <div
+            ref={containerRef}
+            className={clsx(styles["message"], styles[sender], isAudioOnly && styles["audio-only"])}
+        >
             <div className={clsx(styles["message-content"], callGroup && styles["call-transcript"])}>
                 {callGroup ? (
                     <>

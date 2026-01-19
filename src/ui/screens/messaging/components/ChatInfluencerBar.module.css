@@ -5,12 +5,10 @@
 }
 
 .influencerTop {
-  background: linear-gradient(
-    180deg,
-    oklch(0% 0 0) 0%,
-    oklch(0% 0 0) 50%,
-    oklch(28.094% 0.00003 271.152) 100%
-  );
+  background: linear-gradient(180deg,
+      oklch(0% 0 0) 0%,
+      oklch(0% 0 0) 50%,
+      oklch(28.094% 0.00003 271.152) 100%);
   min-height: 4rem;
   position: relative;
   overflow: clip;
@@ -102,20 +100,16 @@
 /* rank lottie states */
 .rankUp {
   border-color: oklch(80.036% 0.18204 151.736 / 0.583);
-  background: linear-gradient(
-    180deg,
-    rgba(74, 222, 128, 0.05) 0%,
-    rgba(74, 222, 128, 0.3) 100%
-  );
+  background: linear-gradient(180deg,
+      rgba(74, 222, 128, 0.05) 0%,
+      rgba(74, 222, 128, 0.3) 100%);
 }
 
 .rankDown {
   border-color: oklch(61.58% 0.18455 24.314 / 0.8);
-  background: linear-gradient(
-    180deg,
-    rgba(222, 74, 74, 0.05) 0%,
-    rgba(222, 74, 74, 0.2) 100%
-  );
+  background: linear-gradient(180deg,
+      rgba(222, 74, 74, 0.05) 0%,
+      rgba(222, 74, 74, 0.2) 100%);
 }
 
 .circleGlowContainer {
@@ -255,7 +249,6 @@
   width: 2rem;
   height: 2rem;
   border-radius: 50%;
-
   display: flex;
   justify-content: center;
   margin-top: -0.75rem;
@@ -264,6 +257,7 @@
   background-repeat: no-repeat;
   box-shadow: 1px -4px 4px hsla(0, 0%, 0%, 0.5);
   align-items: center;
+  z-index: 1;
 }
 
 .switchProfileLabel {
@@ -306,7 +300,7 @@
   .circleGlowContainer {
     left: 49.83%;
     transform: translateX(-49.83%);
-    bottom: -76%;
+    bottom: -80%;
   }
 
   .influencerTop {
@@ -367,8 +361,8 @@
     align-items: center;
     gap: 0.45rem;
     transform: scale(1.1) translateY(0.2rem);
-      background: linear-gradient(hsla(0, 0%, 26%, 0.2), hsla(0, 0%, 11%, 0.2));
-      backdrop-filter: blur(6px);
+    background: linear-gradient(hsla(0, 0%, 26%, 0.2), hsla(0, 0%, 11%, 0.2));
+    backdrop-filter: blur(6px);
   }
 
   .profileSwitch:hover .switchProfileLabel {
