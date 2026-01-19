@@ -37,7 +37,6 @@
 
 .chat-header {
     display: flex;
-    position: fixed;
     background-color: var(--color-dark-1);
     z-index: 1;
     top: 0;
@@ -53,7 +52,6 @@
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     margin-top: -60px;
-    padding-bottom: 20dvh;
     max-width: var(--max-chat-content-width);
     width: 100%;
 }
@@ -99,9 +97,7 @@
 @media (min-width: 1024px) {
     .chat-messages-container {
         padding-top: 0px;
-        padding-bottom: 20dvh;
-        mask-image: linear-gradient(180deg, black 80%, transparent 88%, transparent);
-
+        mask-image: linear-gradient(180deg, transparent, black 5%, black 90%, transparent);
     }
 
     .chat-container {
@@ -125,9 +121,9 @@
 }
 
 @media (min-width: 768px) {
-  .chat-input-area {
-    position: relative;
-    bottom: auto;
-    width: 100%;
-  }
+    .chat-input-area {
+        position: relative;
+        bottom: auto;
+        width: 100%;
+    }
 }
