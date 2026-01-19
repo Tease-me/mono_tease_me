@@ -594,6 +594,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                     <UserNav
                         onMenuClick={onMenuClick}
                         onCallClick={onCall}
+                        callMode={mode === "call"}
                         adultMode={adultModeSwitch}
                         onAdultModeChange={handleAdultModeChange}
                     />
