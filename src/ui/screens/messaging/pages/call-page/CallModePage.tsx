@@ -15,6 +15,7 @@ import React, { useEffect } from "react";
 import { getRelationshipStatusIcon, RelationshipStatus } from "@/utils/relationshipStatusIcons";
 import { BalanceServices } from "@/api/services/BalanceServices";
 import { apiClient } from "@/api/apis";
+import { formatDateTimeRelative } from "@/utils/DateTimeUtils";
 
 const balanceSvc = BalanceServices(apiClient);
 
@@ -84,7 +85,7 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                         </div>
                     ) : (
                         <div className={clsx(styles.connectionStatus, styles.lastConnected)}>
-                            Last Connected: <span>14 Hours Ago</span>
+                            Last Connected: <span>{relationship?.last_interaction_at ? formatDateTimeRelative(relationship?.last_interaction_at) : "Never"}</span>
                         </div>
                     )}
                     <IconButton className={styles.callButton} color={status === "connected" ? "red" : "green"} type="pill" leftIcon={status === "connected" ? <SvgPack.HangupCallIcon /> : <SvgPack.Call />} onClick={handleCallButtonClicked} />
