@@ -6,7 +6,7 @@ import styles from './UserNav.module.css'
 import TeaseMeLogo from '../logos/TeaseMeLogo'
 import SvgPack from '@/utils/SvgPack'
 import IconButton from '../inputs/buttons/IconButton'
-import { useIsDesktopOnly, useIsMobile } from '@/utils/hooks/useIsDesktop'
+import useIsDesktop from '@/utils/hooks/useIsDesktop'
 import { useTheme } from '@/theme/ThemeProvider'
 import AdultModeToggle from "@/ui/components/adult-mode-toggle/AdultModeToggle";
 
@@ -20,7 +20,7 @@ interface UserNavProps extends React.HTMLAttributes<HTMLDivElement> {
 
 
 const UserNav: React.FC<UserNavProps> = ({ onCallClick, influencerName, onMenuClick, adultMode, onAdultModeChange }) => {
-  const isMobile = useIsMobile();
+  const isMobile = useIsDesktop() === false;
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
@@ -32,7 +32,7 @@ const UserNav: React.FC<UserNavProps> = ({ onCallClick, influencerName, onMenuCl
   return (
     <div className={styles.bar}>
       <div className={styles.maxWidthSpacer}>
-        {!isMobile && (<IconButton
+        {isMobile && (<IconButton
           onClick={onMenuClick}
           className={styles.menuButton}
           type="square"
@@ -49,8 +49,8 @@ const UserNav: React.FC<UserNavProps> = ({ onCallClick, influencerName, onMenuCl
             }}
           />
         )}
-        {/* <div className={styles.toggleArea}>
-        </div> */}
+        <div className={styles.toggleArea}>
+        </div>
         <div className={styles.logoArea}>
           <TeaseMeLogo variant="full" />
         </div>
