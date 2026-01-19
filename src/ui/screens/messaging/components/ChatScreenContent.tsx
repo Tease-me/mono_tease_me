@@ -17,14 +17,13 @@ import clsx from 'clsx';
 import { ChatRepository } from '@/data/repositories/ChatRepo';
 import { InfluencerRepo } from '@/data/repositories/InfluencerRepo';
 import logger from '@/utils/logger';
-import CallModal from '@/ui/components/modals/call-modal/CallModal';
 import useCallWebRTC from '@/hooks/useCallWebRTC';
 import IconButton from '@/ui/components/inputs/buttons/IconButton';
 import { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownMenu'
 import { AdultChatRepo } from '@/data/repositories/AdultChatRepo';
 import { SubscriptionsServices } from '@/api/services/SubscriptionsServices';
 import { apiClient } from '@/api/apis';
-import AdultModePage from '../../adult-mode/AdultModePage';
+import AdultModePage from '../pages/adult-mode/AdultModePage';
 import UserNav from '@/ui/components/nav/UserNav';
 import { Modal } from '@/ui/components/modals/Modal';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
@@ -32,7 +31,8 @@ import SvgPack from '@/utils/SvgPack';
 import ChatInfluencerBar from './ChatInfluencerBar';
 import ChatHeaderInfo from './ChatHeaderInfo';
 import { RelationshipServices } from '@/api/services/RelationshipServices';
-import { RelationshipResponse } from '@/api/models/relationship';
+import CallModePage from '../pages/call-page/CallModePage';
+import { RelationshipDataModel } from '@/data/models/RelationshipDataModel';
 
 const isCallChannel = (message: Message) => {
     if (!message.channel) return false;
@@ -95,7 +95,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const [typing, setTyping] = useState(false);
     const [isWsConnected, setIsWsConnected] = useState(false);
     const [error, setError] = useState<string | undefined>(undefined);
-    const [openWelcomeCallModal, setOpenWelcomeCallModal] = useState(false);
+    // const [openWelcomeCallModal, setOpenWelcomeCallModal] = useState(false);
 
     const [pageNumber, setPageNumber] = useState<number>(1);
 
@@ -114,9 +114,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const { user } = useContext(AuthContext);
     const [adultMode, setAdultMode] = useState(false);
     const [adultModeSwitch, setAdultModeSwitch] = useState(false);
+    const [mode, setMode] = useState<"chat" | "call">("chat");
     const [showSubscriptionPage, setShowSubscriptionPage] = useState(false);
     const [showErrorAlert, setShowErrorAlert] = useState<string | undefined>();
-    const [relationship, setRelationship] = useState<RelationshipResponse | undefined>();
+    const [relationship, setRelationship] = useState<RelationshipDataModel | undefined>();
 
     const { user_id } = useParams();
 
@@ -126,7 +127,14 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
     const { status, startConversation, stopConversation, setInfluencerId, timeRemaining, micMuted, toggleMute } = useCallWebRTC();
     const displayMessages = useMemo(() => messages ? mergeCallMessages(messages) : [], [messages]);
-
+    useEffect(() => {
+        setMode(prev => {
+            if (prev === "call" && adultMode) {
+                return "chat"
+            }
+            return prev;
+        });
+    }, [adultMode]);
     useEffect(() => {
         (async () => {
             if (!id) {
@@ -294,18 +302,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
-    useEffect(() => {
-        if (status === "connecting")
-            setOpenWelcomeCallModal(true)
-
-        if ((status === "disconnected" || status === "idle") && chatId) {
-            const t = setTimeout(() => {
-                fetchMessages(chatId, 1);
-            }, 10000);
-            return () => clearTimeout(t);
-        }
-    }, [status, chatId]);
-
     function calculateReplyTime(msg: string) {
         const replyTime = (msg.length * 100);
         console.error("Reply time: ", replyTime);
@@ -397,36 +393,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             }
         };
     }, []);
-
-    useEffect(() => {
-        if (!openWelcomeCallModal) {
-            if (callModalTimeoutRef.current) {
-                window.clearTimeout(callModalTimeoutRef.current);
-                callModalTimeoutRef.current = null;
-            }
-            return;
-        }
-
-        if (status === "connected" || status === "connecting") {
-            if (callModalTimeoutRef.current) {
-                window.clearTimeout(callModalTimeoutRef.current);
-                callModalTimeoutRef.current = null;
-            }
-            return;
-        }
-
-        callModalTimeoutRef.current = window.setTimeout(() => {
-            setOpenWelcomeCallModal(false);
-            callModalTimeoutRef.current = null;
-        }, 2500);
-
-        return () => {
-            if (callModalTimeoutRef.current) {
-                window.clearTimeout(callModalTimeoutRef.current);
-                callModalTimeoutRef.current = null;
-            }
-        };
-    }, [openWelcomeCallModal, status]);
 
     async function sendAndPlay(audioBlob: Blob, sentMessageId?: number) {
         if (!influencer) return;
@@ -537,10 +503,12 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         scrollToBottom();
     };
 
-    const onCall = () => {
-        startConversation();
+    const handleCallModeChange = () => {
+        setMode(prev => {
+            if (prev === "call") return "chat";
+            return "call";
+        })
     }
-
     const handleScroll = async () => {
         const container = containerRef.current;
         if (container && container.scrollTop === 0 && hasMore && !isLoadingMore && chatId) {
@@ -586,70 +554,81 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             <div className={styles["chat-screen-content"]}>
                 <div className={styles["chat-header"]}>
                     <UserNav
-                        influencerName={influencer?.name}
                         onMenuClick={onMenuClick}
-                        onCallClick={onCall}
+                        onCallClick={handleCallModeChange}
+                        callMode={mode === "call"}
                         adultMode={adultModeSwitch}
                         onAdultModeChange={handleAdultModeChange}
                     />
                 </div>
                 {!showSubscriptionPage ? <>
-                    {isSuperUser && <ChatHeaderInfo
-                        isWsConnected={isWsConnected}
-                        isSuperUser={isSuperUser}
-                        chatId={chatId}
-                        isClearingHistory={isClearingHistory}
-                        onChangeInfluencer={handleChangeInfluencerClicked}
-                        onClearHistory={handleClearHistory}
-                    />}
-                    <ChatInfluencerBar
-                        relationship={relationship}
-                        influencer={influencer}
-                        status={isWsConnected ? "Connected" : "Not Connected"}
-                        adultMode={adultMode}
-                        showChangeInfluencerButton={showChangeInfluencerButton}
-                        onChangeInfluencer={handleChangeInfluencerClicked}
-                    />
-                    <div
-                        className={clsx(styles["chat-messages-container"], !messages && styles["loading"])}
-                        ref={containerRef}
-                        onScroll={handleScroll}
-                    >
-                        {(messages) ? <>
-                            {isLoadingMore && <LoadingSpinner size='small' />}
-                            <MessagesList
-                                messages={displayMessages}
-                                typing={typing}
-                                messagesEndRef={messagesEndRef}
-                                influencerName={influencer?.name}
-                                showAudioTranscript={isSuperUser}
-                                onAudioPlay={(src) => {
-                                    // Pause any currently playing audio
-                                    if (currentAudioRef.current && currentAudioRef.current.src !== src) {
-                                        currentAudioRef.current.pause();
-                                        currentAudioRef.current.currentTime = 0;
-                                    }
-                                    // Track the newly started audio element
-                                    const audioEl = document.querySelector<HTMLAudioElement>(`audio[src="${src}"]`);
-                                    if (audioEl) {
-                                        currentAudioRef.current = audioEl;
-                                    }
-                                }}
-                            />
-                        </> : <LoadingSpinner />}
-                    </div>
-
-                    <div className={styles["chat-input-area"]}>
-                        <ChatInputArea
+                    {mode !== "call" ? <>
+                        {isSuperUser && <ChatHeaderInfo
+                            isWsConnected={isWsConnected}
+                            isSuperUser={isSuperUser}
+                            chatId={chatId}
+                            isClearingHistory={isClearingHistory}
+                            onChangeInfluencer={handleChangeInfluencerClicked}
+                            onClearHistory={handleClearHistory}
+                        />}
+                        <ChatInfluencerBar
+                            relationship={relationship}
+                            influencer={influencer}
+                            status={isWsConnected ? "Connected" : "Not Connected"}
                             adultMode={adultMode}
-                            onSendMessage={sendMessage}
-                            inputText={inputText}
-                            setInputText={setInputText}
-                            setInputAudio={setInputAudio}
-                            disabled={error ? true : false}
-                            error={error}
-                            inputAudio={inputAudio} />
-                    </div>
+                            showChangeInfluencerButton={showChangeInfluencerButton}
+                            onChangeInfluencer={handleChangeInfluencerClicked}
+                        />
+                        <div
+                            className={clsx(styles["chat-messages-container"], !messages && styles["loading"])}
+                            ref={containerRef}
+                            onScroll={handleScroll}
+                        >
+                            {(messages) ? <>
+                                {isLoadingMore && <LoadingSpinner size='small' />}
+                                <MessagesList
+                                    messages={displayMessages}
+                                    typing={typing}
+                                    messagesEndRef={messagesEndRef}
+                                    influencerName={influencer?.name}
+                                    showAudioTranscript={isSuperUser}
+                                    onAudioPlay={(src) => {
+                                        // Pause any currently playing audio
+                                        if (currentAudioRef.current && currentAudioRef.current.src !== src) {
+                                            currentAudioRef.current.pause();
+                                            currentAudioRef.current.currentTime = 0;
+                                        }
+                                        // Track the newly started audio element
+                                        const audioEl = document.querySelector<HTMLAudioElement>(`audio[src="${src}"]`);
+                                        if (audioEl) {
+                                            currentAudioRef.current = audioEl;
+                                        }
+                                    }}
+                                />
+                            </> : <LoadingSpinner />}
+                        </div>
+
+                        <div className={styles["chat-input-area"]}>
+                            <ChatInputArea
+                                adultMode={adultMode}
+                                onSendMessage={sendMessage}
+                                inputText={inputText}
+                                setInputText={setInputText}
+                                setInputAudio={setInputAudio}
+                                disabled={error ? true : false}
+                                error={error}
+                                inputAudio={inputAudio} />
+                        </div>
+                    </> : <CallModePage
+                        toggleMute={toggleMute}
+                        status={status}
+                        timeRemaining={timeRemaining}
+                        micMute={micMuted}
+                        startConversation={startConversation}
+                        stopConversation={stopConversation}
+                        relationship={relationship}
+                        influencer={influencer} />
+                    }
                 </> : (
                     <AdultModePage
                         onSubscribePressed={handleSubscribePressed}
@@ -657,16 +636,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                         influencerImageUrl={influencer?.img}
                     />
                 )}
-
-                <CallModal
-                    timeRemaining={timeRemaining}
-                    status={status}
-                    isOpen={openWelcomeCallModal}
-                    onClose={() => setOpenWelcomeCallModal(false)}
-                    stopConversation={stopConversation}
-                    influencer={influencer}
-                    micMuted={micMuted}
-                    toggleMute={toggleMute} />
             </div>
             <Modal isOpen={!(!showErrorAlert)} onClose={() => {
                 setShowErrorAlert(undefined);

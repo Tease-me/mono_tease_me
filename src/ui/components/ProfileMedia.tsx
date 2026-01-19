@@ -19,6 +19,7 @@ interface ProfileMediaProps extends React.HTMLAttributes<HTMLDivElement> {
     altText?: string;
     onEditClick?: () => void;
     editButtonAlignment?: 'left' | 'right';
+    glow?: boolean;
 }
 
 const ProfileMedia: React.FC<ProfileMediaProps> = ({
@@ -31,6 +32,7 @@ const ProfileMedia: React.FC<ProfileMediaProps> = ({
     altText = "Profile Image",
     onEditClick,
     editButtonAlignment = "right",
+    glow = false,
     ...restProps
 }) => {
     const isVideoSupported =
@@ -60,7 +62,7 @@ const ProfileMedia: React.FC<ProfileMediaProps> = ({
         onEditClick?.()
     }
 
-    return (<div {...restProps} className={clsx(styles["profile-container"], styles[size], active && styles["active"], showHearts && styles["hearts"], restProps.className)} >
+    return (<div {...restProps} className={clsx(styles["profile-container"], styles[size], active && styles["active"], showHearts && styles["hearts"], glow && styles["glow"], restProps.className)} >
         <div className={styles["profile-media-container"]}>
             {shouldShowVideo ? (
                 <video

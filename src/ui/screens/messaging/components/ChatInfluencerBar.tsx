@@ -1,7 +1,4 @@
 import React from "react";
-import LottieAnimation from "@/ui/components/LottieAnimation";
-import rankUp from "@/assets/lottie/rankUp.json"
-import rankDown from "@/assets/lottie/rankDown.json"
 import switchProfileImg from "@/assets/svg/switchProfile.svg";
 import styles from "./ChatInfluencerBar.module.css";
 import clsx from "clsx";
@@ -10,6 +7,7 @@ import ProfileMedia from "@/ui/components/ProfileMedia";
 import { RelationshipResponse } from "@/api/models/relationship";
 import MetricRing from "@/ui/components/stats/MetricRing";
 import SvgPack from "@/utils/SvgPack";
+import LoveScore from "./LoveScore";
 
 export type ChatInfluencerBarProps = {
   relationship?: RelationshipResponse
@@ -28,15 +26,10 @@ export default function ChatInfluencerBar({
   influencer,
   statusIcon = "💬",
   status = "Network Error",
-  adultMode = true,
+  adultMode = false,
   showChangeInfluencerButton = false,
   onChangeInfluencer,
 }: ChatInfluencerBarProps) {
-  const loveScoreClass =
-    (relationship?.sentiment_score || 0) > 0 ? styles.loveScoreRankUp : styles.loveScoreRankDown;
-
-  const rankClass = (relationship?.sentiment_score || 0) > 0 ? styles.rankUp : styles.rankDown;
-
   const glowClass =
     adultMode ? styles.glowStatusCircleAdult : styles.glowStatusCircleDefault;
 
@@ -53,12 +46,7 @@ export default function ChatInfluencerBar({
             <div className={styles.middleCol}></div>
             <div className={clsx(styles.rightCol, adultMode && styles.hidden)}>
               <div className={styles.relationshipStatus}>{statusIcon} <div className={styles.relationshipStatusLabel}>{relationship?.state}</div></div>
-              <div className={`${styles.loveScore} ${loveScoreClass}`}>
-                <p>{relationship?.sentiment_score}</p>
-                <div className={`${styles.rank} ${rankClass}`}>
-                  {(relationship?.sentiment_score || 0) > 0 ? <LottieAnimation autoplay loop animationData={rankUp} /> : <LottieAnimation autoplay loop animationData={rankDown} />}
-                </div>
-              </div>
+              <LoveScore sentimentScore={relationship?.sentiment_score} />
             </div>
           </div>
         </div>
