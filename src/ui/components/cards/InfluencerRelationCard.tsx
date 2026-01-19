@@ -83,11 +83,15 @@ const InfluencerRelationCard: React.FC<InfleuncerRelationCardProps> = ({
           <div>
             {(loveScore || 0) > 0 ?
               <div className={styles.valueRow}>
+                <span className={styles.lottieIcon}>
                 <LottieAnimation autoplay loop animationData={rankUp} />
+                </span>
                 <span className={styles.valueGreen}>{loveScore.toFixed(0)}</span>
               </div> :
               <div className={styles.valueRow}>
+                                <span className={styles.lottieIcon}>
                 <LottieAnimation autoplay loop animationData={rankDown} />
+                </span>
                 <span className={styles.valueRed}>{loveScore.toFixed(0)}</span>
               </div>}
           </div>
@@ -96,7 +100,7 @@ const InfluencerRelationCard: React.FC<InfleuncerRelationCardProps> = ({
           <span className={styles.label}>Status</span>
           <div className={styles.valueRow}>
             <div className={styles.stageArea}>
-              <span className={styles.stage}>{status}</span>
+              <span className={styles.stage}>💬 {status}</span>
             </div>
           </div>
         </div>
