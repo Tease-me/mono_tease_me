@@ -30,14 +30,13 @@ const UserNav: React.FC<UserNavProps> = ({ onCallClick, influencerName, onMenuCl
   return (
     <div className={styles.bar}>
       <div className={styles.maxWidthSpacer}>
-        {isMobile && (<IconButton
+        {isMobile && (<div
           onClick={onMenuClick}
           className={styles.menuButton}
-          type="square"
-          color="black"
-          leftIcon={<SvgPack.Menu />
-          }
-        />)}
+        >
+          <SvgPack.Menu className={styles.menuButtonIcon}/>
+        </div>)}
+
 
         {onAdultModeChange && (
           <AdultModeToggle
