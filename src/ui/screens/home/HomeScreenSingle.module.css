@@ -1,0 +1,19 @@
+.sidebarPages {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.sidebarPage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.sidebarPageHidden {
+  display: none;
+  pointer-events: none;
+}

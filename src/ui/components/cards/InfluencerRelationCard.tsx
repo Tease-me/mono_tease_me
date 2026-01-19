@@ -5,6 +5,9 @@ import ProfileMedia from "../ProfileMedia";
 import MetricRing from "../stats/MetricRing";
 import { formatDateTimeRelative } from "@/utils/DateTimeUtils";
 import BalanceBadge from "../stats/BalanceBadge";
+import LottieAnimation from "../LottieAnimation";
+import rankUp from "@/assets/lottie/rankUp.json"
+import rankDown from "@/assets/lottie/rankDown.json"
 
 type InfleuncerRelationCardProps = {
   name: string;
@@ -56,7 +59,7 @@ const InfluencerRelationCard: React.FC<InfleuncerRelationCardProps> = ({
     <div className={styles.card}>
       <div className={styles.upper}>
         <div className={styles.balanceBadge}>
-         <BalanceBadge balance={balance} />
+          <BalanceBadge balance={balance} />
         </div>
         <div className={styles.nameArea}>
           <h3>{name}</h3>
@@ -77,15 +80,27 @@ const InfluencerRelationCard: React.FC<InfleuncerRelationCardProps> = ({
       <div className={styles.lower}>
         <div className={styles.stat}>
           <span className={styles.label}>Love</span>
-          <div className={styles.valueRow}>
-            <span className={styles.value}>{loveScore.toFixed(0)}</span>
+          <div>
+            {(loveScore || 0) > 0 ?
+              <div className={styles.valueRow}>
+                <span className={styles.lottieIcon}>
+                <LottieAnimation autoplay loop animationData={rankUp} />
+                </span>
+                <span className={styles.valueGreen}>{loveScore.toFixed(0)}</span>
+              </div> :
+              <div className={styles.valueRow}>
+                                <span className={styles.lottieIcon}>
+                <LottieAnimation autoplay loop animationData={rankDown} />
+                </span>
+                <span className={styles.valueRed}>{loveScore.toFixed(0)}</span>
+              </div>}
           </div>
         </div>
         <div className={styles.stat}>
           <span className={styles.label}>Status</span>
           <div className={styles.valueRow}>
             <div className={styles.stageArea}>
-              <span className={styles.stage}>{status}</span>
+              <span className={styles.stage}>💬 {status}</span>
             </div>
           </div>
         </div>

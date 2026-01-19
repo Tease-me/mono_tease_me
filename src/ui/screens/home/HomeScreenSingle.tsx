@@ -11,6 +11,8 @@ import InfluencerRelation from "../user-profile/Components/InfluencerRelation";
 import AddCredits from "../user-profile/Components/AddCredits";
 import SlideDrawerLayout from "@/ui/templates/SlideDrawerLayout";
 import AdultModePage from "../messaging/pages/adult-mode/AdultModePage";
+import clsx from "clsx";
+import styles from "./HomeScreenSingle.module.css"
 
 type SidebarPageId = string;
 type NavPayload = Record<string, any>;
@@ -100,10 +102,22 @@ export default function HomeScreenSingle() {
     });
   }, []);
 
-  const sidebar = useMemo(
-    () => active.render({ goTo, navPayload, goBack: prevPage }),
-    [active, goTo, navPayload, prevPage]
-  );
+const sidebar = (
+  <div className={styles.sidebarPages}>
+    {sidebarPages.map((page) => (
+      <div
+        key={page.id}
+        className={clsx(
+          styles.sidebarPage,
+          page.id === currentPage ? styles.sidebarPageActive : styles.sidebarPageHidden
+        )}
+      >
+        {page.render({ goTo, navPayload, goBack: prevPage })}
+      </div>
+    ))}
+  </div>
+);
+
 
   useEffect(() => {
     localStorage.setItem("selected_id", id?.toString() || "");

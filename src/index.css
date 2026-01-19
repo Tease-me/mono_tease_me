@@ -150,3 +150,14 @@ button {
 *::-webkit-scrollbar-corner {
   background: transparent;
 }
+
+.u-sidebar-page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.u-sidebar-footer {
+    margin-top: auto;
+    padding-bottom: 16px;
+}

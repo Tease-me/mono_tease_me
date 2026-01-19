@@ -5,6 +5,7 @@ import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import { RelationshipServices } from "@/api/services/RelationshipServices";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { BalanceServices } from "@/api/services/BalanceServices";
+
 import { apiClient } from "@/api/apis";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 
@@ -61,7 +62,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
             safety: 0,
             attraction: 0,
             closeness: 0,
-            followingSince: inf.created_at || "--",
+            followingSince: inf.created_at,
           }))
         );
         setLoading(false)
@@ -89,7 +90,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
               safety: rel.safety,
               attraction: rel.attraction,
               closeness: rel.closeness,
-              followingSince: inf.created_at || "--"
+              followingSince: inf.created_at 
             };
           })
         );

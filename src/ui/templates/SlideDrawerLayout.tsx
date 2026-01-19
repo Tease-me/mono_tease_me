@@ -11,7 +11,6 @@ interface SlideDrawerLayoutProps {
   onBack: () => void;
   title: string;
   showBack: boolean;
-  showContent?: boolean;
   children: React.ReactNode;
 }
 
@@ -22,46 +21,46 @@ const SlideDrawerLayout: React.FC<SlideDrawerLayoutProps> = ({
   onBack,
   title,
   showBack = true,
-  showContent = true,
   children,
 }) => {
 
 
   return (
     <div className={styles.container}>
-      <div className={clsx(styles.sidebar, showSidebar ? styles.open : styles.closed)}>
+      <div
+        className={clsx(styles.sidebar, showSidebar ? styles.open : styles.closed)}
+        data-open={showSidebar ? "true" : "false"}
+        data-show-back={showBack ? "true" : "false"}
+      >
         <div className={styles.sidebarHeader}>
           <div className={styles.headerLeft}>
-            {showSidebar && showBack && (
-              <button
-                type="button"
-                className={styles.backIconButton}
-                onClick={onBack ?? onToggle}
-              >
-                <SvgPack.ArrowLeft />
-              </button>
-            )}
-            {showSidebar && !showBack && (
-              <TeaseMeLogo size="small" variant="full" className={styles.logo} />
-            )}
-
-            {title && showSidebar && <div className={styles.title}>{title}</div>}
+            <div>
+            <button
+              type="button"
+              className={styles.backIconButton}
+              onClick={onBack ?? onToggle}
+            >
+              <SvgPack.ArrowLeft />
+            </button>
+            < TeaseMeLogo size="small" variant="full" className={styles.logo} />
+            </div>
+            <div className={styles.title}>{title}</div>
           </div>
-          <div
-            onClick={onToggle}
-            className={clsx(!showSidebar && styles.menuButton)}
-            color="black"
-          >
-            <div className={styles.menuButtonIcon}>
-              {showSidebar ? <SvgPack.Cross /> : <SvgPack.Menu />}
+          <div className={styles.headerRight}>
+            <div
+              onClick={onToggle}
+              className={clsx(!showSidebar && styles.menuButton)}
+            >
+              <div className={styles.menuButtonIcon}>
+                {showSidebar ? <SvgPack.Cross /> : <SvgPack.Menu />}
+              </div>
             </div>
           </div>
         </div>
         <div className={styles.headerDivider} />
-        {showSidebar && <div className={styles.sidebarContent}>{sidebar}</div>}
+        <div className={styles.sidebarContent}>{sidebar}</div>
       </div>
-
-      {showContent && <div className={styles.content}>{children}</div>}
+      {<div className={styles.content}>{children}</div>}
     </div>
   )
 };

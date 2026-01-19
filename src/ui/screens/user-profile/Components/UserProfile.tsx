@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import styles from "./UserProfile.module.css";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
@@ -8,6 +8,7 @@ import { AuthContext } from "@/context/AuthContext";
 import { apiClient } from "@/api/apis";
 import { UserDataModel } from "@/data/models/UserDataModel";
 import ImageCropModal from "@/ui/components/modals/image-crop-modal/ImageCropModal";
+import clsx from "clsx";
 
 type UserProfileProps = { goTo: (id: string) => void; };
 type LocalUser = Partial<UserDataModel>;
@@ -38,7 +39,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ goTo }) => {
       }
 
       if (user?.id && localUser?.full_name) {
-        await apiClient.patch(`/user/${user.id}`, { full_name: localUser.full_name });
+        await apiClient.patch(`/user/${user.id}/profile`, { full_name: localUser.full_name });
         setLocalUser((u) => (u ? { ...u, name: localUser.full_name } : u));
       }
       setIsErrorPositive(true);
@@ -57,9 +58,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ goTo }) => {
     goTo('home');
   }
 
-  return (
-    <div className={styles.shell}>
+  useEffect(() => {
 
+  }, [user?.imgUrl])
+
+
+  return (
+    <div className={clsx(styles.container, "u-sidebar-page")}>
       <div className={styles.avatarBlock}>
         <ProfileMedia
           imageSrc={previewUrl || user?.imgUrl}
@@ -120,9 +125,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ goTo }) => {
           </span>
         )}
 
-        <button className={styles.delete}>Delete Account</button>
+        {/* <button className={styles.delete}>Delete Account</button> */}
       </div>
-
+      <div className='u-sidebar-footer'>
       <div className={styles.footer}>
         <button className={styles.cancel} onClick={handleCancel}>Cancel</button>
         <NormalButton text="Update Profile" onClick={handleUpdateProfile} className={styles.update} />
@@ -142,6 +147,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ goTo }) => {
 
           }
         }} />
+        </div>
     </div>
   );
 };

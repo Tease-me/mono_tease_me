@@ -1,13 +1,19 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
 .menuArea {
     display: flex;
     width: 100%;
     flex-direction: column;
     gap: 12px;
-    
+
 }
 
-.menuArea > * {
-  width: 100%;
+.menuArea>* {
+    width: 100%;
 }
 
 .logoArea {
@@ -15,11 +21,6 @@
     justify-content: center;
     align-items: center;
     padding: 16px 0;
-}
-
-.footer {
-
-    margin-top: 300px;
 }
 
 .logoutButton {
