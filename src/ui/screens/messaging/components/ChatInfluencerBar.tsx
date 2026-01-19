@@ -28,7 +28,7 @@ export default function ChatInfluencerBar({
   influencer,
   statusIcon = "💬",
   status = "Network Error",
-  adultMode = true,
+  adultMode = false,
   showChangeInfluencerButton = false,
   onChangeInfluencer,
 }: ChatInfluencerBarProps) {

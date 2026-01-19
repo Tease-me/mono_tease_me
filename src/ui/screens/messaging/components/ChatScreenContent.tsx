@@ -128,7 +128,14 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
     const { status, stopConversation, setInfluencerId, timeRemaining, micMuted, toggleMute } = useCallWebRTC();
     const displayMessages = useMemo(() => messages ? mergeCallMessages(messages) : [], [messages]);
-
+    useEffect(() => {
+        setMode(prev => {
+            if (prev === "call" && adultMode) {
+                return "chat"
+            }
+            return prev;
+        });
+    }, [adultMode]);
     useEffect(() => {
         (async () => {
             if (!id) {
@@ -539,12 +546,11 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         scrollToBottom();
     };
 
-    const onCall = () => {
+    const handleCallModeChange = () => {
         setMode(prev => {
             if (prev === "call") return "chat";
             return "call";
         })
-        // startConversation();
     }
 
     const handleScroll = async () => {
@@ -593,14 +599,14 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                 <div className={styles["chat-header"]}>
                     <UserNav
                         onMenuClick={onMenuClick}
-                        onCallClick={onCall}
+                        onCallClick={handleCallModeChange}
                         callMode={mode === "call"}
                         adultMode={adultModeSwitch}
                         onAdultModeChange={handleAdultModeChange}
                     />
                 </div>
                 {!showSubscriptionPage ? <>
-                    {mode === "call" ? <>
+                    {mode !== "call" ? <>
                         {isSuperUser && <ChatHeaderInfo
                             isWsConnected={isWsConnected}
                             isSuperUser={isSuperUser}
