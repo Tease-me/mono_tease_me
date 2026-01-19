@@ -1,6 +1,5 @@
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
-// import ChatIcon from "@/assets/svg/Chat.svg?react";
 import InfluencerMetrics from "@/ui/components/stats/InfluencerMetrics";
 import { RelationshipDataModel } from "@/data/models/RelationshipDataModel";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
@@ -12,8 +11,12 @@ import { CallStatus } from "@/hooks/useCallWebRTC";
 import SvgPack from "@/utils/SvgPack";
 import { formatTime } from "@/utils/time";
 import clsx from "clsx";
-import React from "react";
+import React, { useEffect } from "react";
 import { getRelationshipStatusIcon, RelationshipStatus } from "@/utils/relationshipStatusIcons";
+import { BalanceServices } from "@/api/services/BalanceServices";
+import { apiClient } from "@/api/apis";
+
+const balanceSvc = BalanceServices(apiClient);
 
 type CallModePageProps = {
     startConversation?: () => void;
@@ -27,6 +30,7 @@ type CallModePageProps = {
 };
 
 const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, timeRemaining }: CallModePageProps) => {
+    const [balance, setBalance] = React.useState<number>(0);
 
     const handleCallButtonClicked = () => {
         if (status === "idle" || status === "disconnected") {
@@ -35,11 +39,18 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
             stopConversation?.();
         }
     }
+    useEffect(() => {
+        if (influencer?.id) {
+            balanceSvc.getBalance(influencer?.id).then((balance) => {
+                setBalance(balance.balance_cents / 100);
+            });
+        }
+    }, [influencer]);
 
     return (
         <div className={styles.page}>
             <div className={styles.card}>
-                <BalanceBadge balance={123.45} />
+                <BalanceBadge balance={balance} />
                 <ProfileMedia active size="xlarge" mediaType="image" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} glow />
                 <div className={styles.name}>{influencer?.name}</div>
 
