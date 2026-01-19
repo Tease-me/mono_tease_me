@@ -10,6 +10,7 @@ import BalanceBadge from "@/ui/components/stats/BalanceBadge";
 import LoveScore from "../../components/LoveScore";
 import { CallStatus } from "@/hooks/useCallWebRTC";
 import SvgPack from "@/utils/SvgPack";
+import { formatTime } from "@/utils/time";
 
 type CallModePageProps = {
     startConversation?: () => void;
@@ -23,6 +24,38 @@ type CallModePageProps = {
 };
 
 const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, timeRemaining }: CallModePageProps) => {
+
+    const statusDisplay = (() => {
+        if (status === "connecting") {
+            return (
+                <>
+                    <span className={styles.statIcon}>
+                        <SvgPack.Call />
+                    </span>
+                    Ringing...
+                </>
+            );
+        }
+        if (status === "connected") {
+            return (
+                <>
+                    <span className={styles.statIcon}>
+                        <SvgPack.Call />
+                    </span>
+                    {timeRemaining && formatTime(timeRemaining)}
+                </>
+            );
+        }
+        return (
+            <>
+                <span className={styles.statIcon}>
+                    <ChatIcon />
+                </span>
+                Last Connected: 14 Hours Ago
+            </>
+        );
+    })();
+
     const handleCallButtonClicked = () => {
         if (status === "idle" || status === "disconnected") {
             startConversation?.();
@@ -50,21 +83,26 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                     <div className={styles.statCard}>
                         <div className={styles.statLabel}>Status</div>
                         <div className={styles.statValue}>
-                            <span className={styles.statIcon}>
-                                <ChatIcon />
-                            </span>
-                            {relationship?.state || 'N/A'}
+                            {statusDisplay}
                         </div>
                     </div>
                 </div>
                 <div className={styles.cardButtom}>
                     <InfluencerMetrics relationship={relationship} className={styles.metrics} />
 
-                    {status === "idle" || status === "disconnected" ? <div className={styles.lastConnected}>
-                        Last Connected: <span>14 Hours Ago</span>
-                    </div> : <div className={styles.timeRemaining}>
-                        Time Remaining: <span>{timeRemaining} mins</span>
-                    </div>}
+                    {status === "connected" ? (
+                        <div className={styles.timeRemaining}>
+                            Time Remaining: <span>{timeRemaining && formatTime(timeRemaining)}</span>
+                        </div>
+                    ) : status === "connecting" ? (
+                        <div className={styles.lastConnected}>
+                            Status: <span>Ringing...</span>
+                        </div>
+                    ) : (
+                        <div className={styles.lastConnected}>
+                            Last Connected: <span>14 Hours Ago</span>
+                        </div>
+                    )}
                     <IconButton className={styles.callButton} color={status === "connected" ? "red" : "green"} type="pill" leftIcon={status === "connected" ? <SvgPack.HangupCallIcon /> : <SvgPack.Call />} onClick={handleCallButtonClicked} />
                 </div>
             </div>

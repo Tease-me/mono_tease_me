@@ -11,6 +11,7 @@ import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import styles from "./WelcomeCallModal.module.css";
 import IconButton from "../../inputs/buttons/IconButton";
 import LoadingSpinner from "../../loading/LoadingSpinner";
+import { formatTime } from "@/utils/time";
 
 interface WelcomeCallModalProps {
     isOpen: boolean;
@@ -23,11 +24,6 @@ interface WelcomeCallModalProps {
 
 const WelcomeCallModal: React.FC<WelcomeCallModalProps> = ({ isOpen, onClose, influencer, status, stopConversation, initalSecondsLeft = 120 }) => {
     const [secondsLeft, setSecondsLeft] = useState<number>(initalSecondsLeft);
-    const formatTime = (totalSeconds: number) => {
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
-        return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-    };
 
     useEffect(() => {
         if (status === "connected") {
