@@ -1,13 +1,19 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
 .menuArea {
     display: flex;
     width: 100%;
     flex-direction: column;
     gap: 12px;
-    
+
 }
 
-.menuArea > * {
-  width: 100%;
+.menuArea>* {
+    width: 100%;
 }
 
 .logoArea {
@@ -38,4 +44,9 @@
 
 .logoutButton:hover {
     opacity: 0.85;
+}
+
+
+.footer {
+    margin-top: auto;
 }
