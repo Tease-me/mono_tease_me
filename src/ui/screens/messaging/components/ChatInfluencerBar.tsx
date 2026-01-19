@@ -1,6 +1,5 @@
 import React from "react";
 import switchProfileImg from "@/assets/svg/switchProfile.svg";
-import styles from "./ChatInfluencerBar.module.css";
 import clsx from "clsx";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import ProfileMedia from "@/ui/components/ProfileMedia";
@@ -8,6 +7,7 @@ import { RelationshipResponse } from "@/api/models/relationship";
 import MetricRing from "@/ui/components/stats/MetricRing";
 import SvgPack from "@/utils/SvgPack";
 import LoveScore from "./LoveScore";
+import styles from "./ChatInfluencerBar.module.css";
 
 export type ChatInfluencerBarProps = {
   relationship?: RelationshipResponse

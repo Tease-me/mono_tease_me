@@ -1,3 +1,9 @@
+.hidden {
+  opacity: 0;
+  user-select: none;
+  pointer-events: none;
+}
+
 .chatInfluencerBar {
   background: rgba(0, 0, 0, 0);
   min-height: 109px;
