@@ -23,11 +23,6 @@
     padding: 16px 0;
 }
 
-.footer {
-
-    margin-top: 300px;
-}
-
 .logoutButton {
     color: var(--color-primary-500);
     align-items: center;
@@ -44,9 +39,4 @@
 
 .logoutButton:hover {
     opacity: 0.85;
-}
-
-
-.footer {
-    margin-top: auto;
 }

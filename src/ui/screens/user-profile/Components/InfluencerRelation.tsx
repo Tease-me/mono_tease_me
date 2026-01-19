@@ -146,6 +146,18 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
     setAdultModeChecked(!!data.hasSubscription);
   }, [data.hasSubscription]);
 
+  //Navpayload 
+  useEffect(() => {
+    setData((d) => ({
+      ...d,
+      image: navPayload.image ?? d.image,
+      video: navPayload.video ?? d.video,
+      name: navPayload.name ?? d.name,
+      followingSince: navPayload.followingSince ?? d.followingSince,
+    }));
+  }, [navPayload.image, navPayload.video, navPayload.name, navPayload.followingSince]);
+
+
   const onSubscribe = async () => {
     if (!data.id) return;
     setLoading(true);
