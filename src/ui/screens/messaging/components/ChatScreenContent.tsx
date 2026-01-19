@@ -95,7 +95,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const [typing, setTyping] = useState(false);
     const [isWsConnected, setIsWsConnected] = useState(false);
     const [error, setError] = useState<string | undefined>(undefined);
-    // const [openWelcomeCallModal, setOpenWelcomeCallModal] = useState(false);
 
     const [pageNumber, setPageNumber] = useState<number>(1);
 
@@ -114,7 +113,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const { user } = useContext(AuthContext);
     const [adultMode, setAdultMode] = useState(false);
     const [adultModeSwitch, setAdultModeSwitch] = useState(false);
-    const [mode, setMode] = useState<"chat" | "call">("chat");
+    const [mode, setMode] = useState<"chat" | "call">(storage.get(LocalStorageKeys.PreferredChatMode) === "call" ? "call" : "chat");
     const [showSubscriptionPage, setShowSubscriptionPage] = useState(false);
     const [showErrorAlert, setShowErrorAlert] = useState<string | undefined>();
     const [relationship, setRelationship] = useState<RelationshipDataModel | undefined>();
@@ -135,6 +134,11 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             return prev;
         });
     }, [adultMode]);
+
+    useEffect(() => {
+        storage.set(LocalStorageKeys.PreferredChatMode, mode);
+    }, [mode]);
+
     useEffect(() => {
         (async () => {
             if (!id) {

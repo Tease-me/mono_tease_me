@@ -11,6 +11,7 @@ import LoveScore from "../../components/LoveScore";
 import { CallStatus } from "@/hooks/useCallWebRTC";
 import SvgPack from "@/utils/SvgPack";
 import { formatTime } from "@/utils/time";
+import clsx from "clsx";
 
 type CallModePageProps = {
     startConversation?: () => void;
@@ -24,6 +25,7 @@ type CallModePageProps = {
 };
 
 const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, timeRemaining }: CallModePageProps) => {
+
     const handleCallButtonClicked = () => {
         if (status === "idle" || status === "disconnected") {
             startConversation?.();
@@ -60,15 +62,15 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                     <InfluencerMetrics relationship={relationship} className={styles.metrics} />
 
                     {status === "connected" ? (
-                        <div className={styles.timeRemaining}>
-                            Time Remaining: <span>{timeRemaining && formatTime(timeRemaining)}</span>
+                        <div className={clsx(styles.connectionStatus, styles.connected)}>
+                            Connected <span>{timeRemaining && formatTime(timeRemaining)}</span>
                         </div>
                     ) : status === "connecting" ? (
-                        <div className={styles.lastConnected}>
+                        <div className={clsx(styles.connectionStatus, styles.connecting)}>
                             <span>Ringing...</span>
                         </div>
                     ) : (
-                        <div className={styles.lastConnected}>
+                        <div className={clsx(styles.connectionStatus, styles.lastConnected)}>
                             Last Connected: <span>14 Hours Ago</span>
                         </div>
                     )}
