@@ -111,10 +111,16 @@ display: block;
   gap: 6px;
 }
 
-.value {
+.valueGreen {
   font-size: 34px;
   font-weight: 700;
   color: #00c36f;
+}
+
+.valueRed {
+  font-size: 34px;
+  font-weight: 700;
+  color: #f75555;
 }
 
 .avatarContainer {
