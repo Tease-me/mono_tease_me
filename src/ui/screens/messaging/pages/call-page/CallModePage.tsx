@@ -1,7 +1,6 @@
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import ChatIcon from "@/assets/svg/Chat.svg?react";
-import CallIcon from "@/assets/svg/Call.svg?react";
 import InfluencerMetrics from "@/ui/components/stats/InfluencerMetrics";
 import { RelationshipDataModel } from "@/data/models/RelationshipDataModel";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
@@ -9,13 +8,31 @@ import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import styles from "./CallModePage.module.css";
 import BalanceBadge from "@/ui/components/stats/BalanceBadge";
 import LoveScore from "../../components/LoveScore";
+import { CallStatus } from "@/hooks/useCallWebRTC";
+import SvgPack from "@/utils/SvgPack";
 
 type CallModePageProps = {
+    startConversation?: () => void;
+    stopConversation?: () => void;
+    status?: CallStatus;
+    timeRemaining?: number | null;
+    micMute?: boolean;
     influencer?: InfluencerDataModel;
     relationship?: RelationshipDataModel;
+    toggleMute?: () => void;
 };
 
-const CallModePage = ({ influencer, relationship }: CallModePageProps) => {
+const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, timeRemaining }: CallModePageProps) => {
+    const handleCallButtonClicked = () => {
+        if (status === "idle" || status === "disconnected") {
+            startConversation?.();
+        } else if (status === "connected") {
+            stopConversation?.();
+        }
+    }
+
+
+
     return (
         <div className={styles.page}>
             <div className={styles.card}>
@@ -43,11 +60,12 @@ const CallModePage = ({ influencer, relationship }: CallModePageProps) => {
                 <div className={styles.cardButtom}>
                     <InfluencerMetrics relationship={relationship} className={styles.metrics} />
 
-                    <div className={styles.lastConnected}>
+                    {status === "idle" || status === "disconnected" ? <div className={styles.lastConnected}>
                         Last Connected: <span>14 Hours Ago</span>
-                    </div>
-
-                    <IconButton className={styles.callButton} color="green" type="pill" leftIcon={<CallIcon />} />
+                    </div> : <div className={styles.timeRemaining}>
+                        Time Remaining: <span>{timeRemaining} mins</span>
+                    </div>}
+                    <IconButton className={styles.callButton} color={status === "connected" ? "red" : "green"} type="pill" leftIcon={status === "connected" ? <SvgPack.HangupCallIcon /> : <SvgPack.Call />} onClick={handleCallButtonClicked} />
                 </div>
             </div>
         </div>

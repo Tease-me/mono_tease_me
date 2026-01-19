@@ -17,7 +17,6 @@ import clsx from 'clsx';
 import { ChatRepository } from '@/data/repositories/ChatRepo';
 import { InfluencerRepo } from '@/data/repositories/InfluencerRepo';
 import logger from '@/utils/logger';
-import CallModal from '@/ui/components/modals/call-modal/CallModal';
 import useCallWebRTC from '@/hooks/useCallWebRTC';
 import IconButton from '@/ui/components/inputs/buttons/IconButton';
 import { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownMenu'
@@ -96,7 +95,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const [typing, setTyping] = useState(false);
     const [isWsConnected, setIsWsConnected] = useState(false);
     const [error, setError] = useState<string | undefined>(undefined);
-    const [openWelcomeCallModal, setOpenWelcomeCallModal] = useState(false);
+    // const [openWelcomeCallModal, setOpenWelcomeCallModal] = useState(false);
 
     const [pageNumber, setPageNumber] = useState<number>(1);
 
@@ -126,7 +125,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
     const pageSize = 20;
 
-    const { status, stopConversation, setInfluencerId, timeRemaining, micMuted, toggleMute } = useCallWebRTC();
+    const { status, startConversation, stopConversation, setInfluencerId, timeRemaining, micMuted, toggleMute } = useCallWebRTC();
     const displayMessages = useMemo(() => messages ? mergeCallMessages(messages) : [], [messages]);
     useEffect(() => {
         setMode(prev => {
@@ -303,18 +302,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
-    useEffect(() => {
-        if (status === "connecting")
-            setOpenWelcomeCallModal(true)
-
-        if ((status === "disconnected" || status === "idle") && chatId) {
-            const t = setTimeout(() => {
-                fetchMessages(chatId, 1);
-            }, 10000);
-            return () => clearTimeout(t);
-        }
-    }, [status, chatId]);
-
     function calculateReplyTime(msg: string) {
         const replyTime = (msg.length * 100);
         console.error("Reply time: ", replyTime);
@@ -406,36 +393,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             }
         };
     }, []);
-
-    useEffect(() => {
-        if (!openWelcomeCallModal) {
-            if (callModalTimeoutRef.current) {
-                window.clearTimeout(callModalTimeoutRef.current);
-                callModalTimeoutRef.current = null;
-            }
-            return;
-        }
-
-        if (status === "connected" || status === "connecting") {
-            if (callModalTimeoutRef.current) {
-                window.clearTimeout(callModalTimeoutRef.current);
-                callModalTimeoutRef.current = null;
-            }
-            return;
-        }
-
-        callModalTimeoutRef.current = window.setTimeout(() => {
-            setOpenWelcomeCallModal(false);
-            callModalTimeoutRef.current = null;
-        }, 2500);
-
-        return () => {
-            if (callModalTimeoutRef.current) {
-                window.clearTimeout(callModalTimeoutRef.current);
-                callModalTimeoutRef.current = null;
-            }
-        };
-    }, [openWelcomeCallModal, status]);
 
     async function sendAndPlay(audioBlob: Blob, sentMessageId?: number) {
         if (!influencer) return;
@@ -552,7 +509,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             return "call";
         })
     }
-
     const handleScroll = async () => {
         const container = containerRef.current;
         if (container && container.scrollTop === 0 && hasMore && !isLoadingMore && chatId) {
@@ -662,7 +618,17 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                                 disabled={error ? true : false}
                                 error={error}
                                 inputAudio={inputAudio} />
-                        </div></> : <CallModePage relationship={relationship} influencer={influencer} />}
+                        </div>
+                    </> : <CallModePage
+                        toggleMute={toggleMute}
+                        status={status}
+                        timeRemaining={timeRemaining}
+                        micMute={micMuted}
+                        startConversation={startConversation}
+                        stopConversation={stopConversation}
+                        relationship={relationship}
+                        influencer={influencer} />
+                    }
                 </> : (
                     <AdultModePage
                         onSubscribePressed={handleSubscribePressed}
@@ -670,16 +636,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                         influencerImageUrl={influencer?.img}
                     />
                 )}
-
-                <CallModal
-                    timeRemaining={timeRemaining}
-                    status={status}
-                    isOpen={openWelcomeCallModal}
-                    onClose={() => setOpenWelcomeCallModal(false)}
-                    stopConversation={stopConversation}
-                    influencer={influencer}
-                    micMuted={micMuted}
-                    toggleMute={toggleMute} />
             </div>
             <Modal isOpen={!(!showErrorAlert)} onClose={() => {
                 setShowErrorAlert(undefined);

@@ -110,16 +110,8 @@
 }
 
 .callButton {
-    width: 70%;
+    width: 40%;
     justify-content: center;
-}
-
-.callButton :global(.button-cta-inner) {
-    padding: 10px 20px;
-}
-
-.callButton :global(.button-cta-content-container) {
-    gap: 10px;
 }
 
 .cardButtom {
