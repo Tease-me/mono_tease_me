@@ -11,13 +11,12 @@ import AdultModeToggle from "@/ui/components/adult-mode-toggle/AdultModeToggle";
 interface UserNavProps extends React.HTMLAttributes<HTMLDivElement> {
   onCallClick?: () => void;
   onMenuClick?: () => void;
-  influencerName: string;
   adultMode?: boolean;
   onAdultModeChange?: (checked: boolean) => void;
 }
 
 
-const UserNav: React.FC<UserNavProps> = ({ onCallClick, influencerName, onMenuClick, adultMode, onAdultModeChange }) => {
+const UserNav: React.FC<UserNavProps> = ({ onCallClick, onMenuClick, adultMode, onAdultModeChange }) => {
   const isMobile = useIsDesktop() === false;
   const { theme, setTheme } = useTheme();
 
@@ -47,14 +46,12 @@ const UserNav: React.FC<UserNavProps> = ({ onCallClick, influencerName, onMenuCl
             }}
           />
         )}
-        {/* <div className={styles.toggleArea}>
-        </div> */}
         <div className={styles.logoArea}>
           <TeaseMeLogo variant="full" />
         </div>
         <div className={styles["right-buttons"]}>
           <div>
-            <IconButton leftIcon={<SvgPack.Call />} onClick={onCallClick} className={styles.callButton} color='green' text={`Call ${influencerName}`} />
+            <IconButton leftIcon={<SvgPack.Call />} onClick={onCallClick} className={styles.callButton} color='black' text="Mode" />
             <IconButton leftIcon={<SvgPack.Call />} onClick={onCallClick} className={styles.callButtonSmall} color='green' />
           </div>
         </div>

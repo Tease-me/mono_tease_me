@@ -1,0 +1,12 @@
+.metricsBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin: 0 auto;
+    padding: 7px 12px;
+    border-radius: 80px;
+    border: 1px solid rgba(66, 66, 66, 0.50);
+    background: rgba(33, 33, 33, 0.80);
+    backdrop-filter: blur(1px);
+}

@@ -1,0 +1,153 @@
+.page {
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.card {
+    width: min(360px, 92vw);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    text-align: center;
+}
+
+.pricePill {
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #7ff0a0;
+    border: 1px solid rgba(127, 240, 160, 0.4);
+    background: rgba(39, 195, 115, 0.15);
+}
+
+.profileWrap {
+    position: relative;
+    display: grid;
+    place-items: center;
+    margin-top: 4px;
+}
+
+.profileGlow {
+    position: absolute;
+    inset: -12px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 82, 105, 0.4) 0%, rgba(255, 82, 105, 0.15) 45%, rgba(255, 82, 105, 0) 70%);
+    box-shadow: 0 0 28px rgba(255, 82, 105, 0.65), 0 0 70px rgba(255, 82, 105, 0.35);
+}
+
+.name {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.statsRow {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.statCard {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1 0 0;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.statLabel {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.statValue {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.statIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ff5b7a;
+}
+
+.statIcon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.metrics {
+    margin-top: -40px;
+}
+
+.actionButton {
+    flex: 1;
+}
+
+.lastConnected {
+    padding: 10px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.lastConnected span {
+    color: #ff6b6b;
+    font-weight: 600;
+}
+
+.callButton {
+    width: 70%;
+    justify-content: center;
+}
+
+.callButton :global(.button-cta-inner) {
+    padding: 10px 20px;
+}
+
+.callButton :global(.button-cta-content-container) {
+    gap: 10px;
+}
+
+.cardButtom {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 9px 8px 40px 8px;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    border-radius: 0 0 16px 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.10);
+    background: rgba(124, 124, 124, 0.10);
+}
+
+@media (max-width: 480px) {
+    .centered {
+        padding: 32px 12px;
+    }
+
+    .card {
+        width: min(320px, 94vw);
+        padding: 24px 16px;
+        gap: 14px;
+    }
+
+    .callButton {
+        width: 80%;
+    }
+}

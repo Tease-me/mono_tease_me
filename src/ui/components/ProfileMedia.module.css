@@ -179,6 +179,12 @@
     color: var(--color-primary);
 }
 
+.glow {
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 82, 105, 0.4) 0%, rgba(255, 82, 105, 0.15) 45%, rgba(255, 82, 105, 0) 70%);
+    box-shadow: 0 0 28px rgba(255, 82, 105, 0.65), 0 0 70px rgba(255, 82, 105, 0.35);
+}
+
 @media (min-width: 1024px) {
     .profile-container {
         width: 200px;
