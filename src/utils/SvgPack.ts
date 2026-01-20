@@ -37,6 +37,10 @@ export default {
     Cross: lazy(() => import("@/assets/svg/Cross.svg?react")),
     Delete: lazy(() => import("@/assets/svg/Delete.svg?react")),
     HangupCallIcon: lazy(() => import("@/assets/svg/HangupCall.svg?react")),
+    CircleTick: lazy(() => import("@/assets/svg/circle_tick.svg?react")),
+    CircleCross: lazy(() => import("@/assets/svg/circle_cross.svg?react")),
+
+
 
     //Influencer Relation Metric
     Trust: lazy(() => import("@/assets/svg/Trust.svg?react")),
