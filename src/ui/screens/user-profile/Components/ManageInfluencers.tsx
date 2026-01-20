@@ -90,7 +90,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
               safety: rel.safety,
               attraction: rel.attraction,
               closeness: rel.closeness,
-              followingSince: inf.created_at 
+              followingSince: inf.created_at
             };
           })
         );
@@ -139,7 +139,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
 
           <div className={styles.error}>{error}</div>
         </div>
-                    }
+      }
     </div>
   );
 };

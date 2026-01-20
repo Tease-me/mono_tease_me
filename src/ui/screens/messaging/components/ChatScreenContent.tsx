@@ -290,8 +290,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                 fetchMessages(chat_id, 1);
                 connectChat(influencer.id);
                 setInfluencerId(influencer.id);
-                relationshipServices.getRelationship(influencer.id).then((relationship) => {
-                    setRelationship(relationship)
+                relationshipServices.getRelationship(influencer.id).then((relationshipResponse) => {
+                    setRelationship(relationshipResponse)
                 })
             }
         })()
