@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styles from "./IconButton.module.css"
 import clsx from 'clsx';
 export type IconButtonType = "pill" | "square";
-export type IconButtonColor = "black" | "green" | "pink" | "red" | "yellow" | "pink-glass";
+export type IconButtonColor = "black" | "green" | "pink" | "red" | "yellow" | "pink-glass" | "purple";
 export type IconButtonOrientation = "horizontal" | "vertical";
 
 export interface IconButtonProps extends React.HTMLAttributes<HTMLDivElement> {

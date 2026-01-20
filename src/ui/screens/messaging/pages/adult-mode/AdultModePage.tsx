@@ -3,6 +3,7 @@ import PlayIcon from "@/assets/svg/Play.svg?react";
 import MicrophoneIcon from "@/assets/Microphone.svg?react";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import avatarImage from "@/assets/image/avatar.png";
+import clsx from "clsx";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { InfluencerSampleModel } from "@/data/models/InfluencerDataModel";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -10,12 +11,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 const waveformBars = new Array(24).fill(0);
 
 type AdultModePageProps = {
+  nobg?: boolean;
   onSubscribePressed: () => void;
   influencerId?: string;
   influencerImageUrl?: string | null;
 };
 
 const AdultModePage = ({
+  nobg,
   onSubscribePressed,
   influencerId,
   influencerImageUrl,
@@ -72,12 +75,11 @@ const AdultModePage = ({
   const resolvedAvatar = influencerImageUrl?.trim() || avatarImage;
 
   return (
-    <div className={styles.container}>
+    <div className={clsx(styles.container, nobg && styles.nobg)}>
       <div className={styles.innerContainer}>
         <header className={styles.header}>
           <span className={styles.headerAccent}>18+</span> Mode
         </header>
-
         <section className={styles.card}>
           <div className={styles.avatar}>
             <img src={resolvedAvatar} alt="Influencer avatar" />

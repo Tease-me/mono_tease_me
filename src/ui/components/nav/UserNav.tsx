@@ -1,7 +1,5 @@
 import React from 'react'
 import { useEffect } from 'react'
-// import { useContext } from 'react'
-// import { AuthContext } from '@/context/AuthContext'
 import styles from './UserNav.module.css'
 import TeaseMeLogo from '../logos/TeaseMeLogo'
 import SvgPack from '@/utils/SvgPack'
@@ -13,13 +11,13 @@ import AdultModeToggle from "@/ui/components/adult-mode-toggle/AdultModeToggle";
 interface UserNavProps extends React.HTMLAttributes<HTMLDivElement> {
   onCallClick?: () => void;
   onMenuClick?: () => void;
-  influencerName: string;
   adultMode?: boolean;
+  callMode?: boolean;
   onAdultModeChange?: (checked: boolean) => void;
 }
 
 
-const UserNav: React.FC<UserNavProps> = ({ onCallClick, influencerName, onMenuClick, adultMode, onAdultModeChange }) => {
+const UserNav: React.FC<UserNavProps> = ({ onCallClick, onMenuClick, adultMode, callMode, onAdultModeChange }) => {
   const isMobile = useIsDesktop() === false;
   const { theme, setTheme } = useTheme();
 
@@ -32,14 +30,13 @@ const UserNav: React.FC<UserNavProps> = ({ onCallClick, influencerName, onMenuCl
   return (
     <div className={styles.bar}>
       <div className={styles.maxWidthSpacer}>
-        {isMobile && (<IconButton
+        {isMobile && (<div
           onClick={onMenuClick}
           className={styles.menuButton}
-          type="square"
-          color="black"
-          leftIcon={<SvgPack.Menu />
-          }
-        />)}
+        >
+          <SvgPack.Menu className={styles.menuButtonIcon}/>
+        </div>)}
+
 
         {onAdultModeChange && (
           <AdultModeToggle
@@ -49,16 +46,12 @@ const UserNav: React.FC<UserNavProps> = ({ onCallClick, influencerName, onMenuCl
             }}
           />
         )}
-        <div className={styles.toggleArea}>
-        </div>
         <div className={styles.logoArea}>
           <TeaseMeLogo variant="full" />
         </div>
         <div className={styles["right-buttons"]}>
-          <div>
-            <IconButton leftIcon={<SvgPack.Call />} onClick={onCallClick} className={styles.callButton} color='green' text={`Call ${influencerName}`} />
-            <IconButton leftIcon={<SvgPack.Call />} onClick={onCallClick} className={styles.callButtonSmall} color='green' />
-          </div>
+          {!adultMode && <IconButton leftIcon={callMode ? <SvgPack.Call /> : <SvgPack.Message />} onClick={onCallClick} className={styles.callButton} color='black' text="Mode" />}
+          <IconButton leftIcon={<SvgPack.Call />} onClick={onCallClick} className={styles.callButtonSmall} color='green' />
         </div>
       </div>
     </div>

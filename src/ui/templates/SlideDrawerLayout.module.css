@@ -9,7 +9,7 @@
   padding-left: 24px;
   padding-right: 24px;
   width: 100%;
-  height: 100%;
+  height: 100dvh;
   max-width: var(--max-sidebar-width);
   overflow-y: auto;
   position: relative;
@@ -20,11 +20,24 @@
 
 .sidebar.closed {
   width: 100px;
-
 }
+
 
 .sidebar.closed .sidebarHeader {
   justify-content: center;
+}
+
+.sidebarContent {
+  transition: opacity 200ms ease;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.sidebar.closed .sidebarContent {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .backIconButton {
@@ -40,9 +53,12 @@
 
 .sidebarHeader {
   display: flex;
+  flex-direction: row;
+  height: 64px; 
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
+  border-bottom: 1px solid var(--Greyscale-800, #424242);
 }
 
 .headerLeft {
@@ -61,9 +77,7 @@
 }
 
 .headerDivider {
-  height: 1px;
-  background: rgba(255, 255, 255, 0.1);
-  margin: 0 16px;
+  height: 32px;
 }
 
 .menuButton {
@@ -91,21 +105,59 @@
   overflow-x: hidden;
 }
 
-@media (max-width: 1024px) {
-  .container {
-    height: 100%;
-    display: block;
-  }
+.main {
+  flex: 1;
+  min-width: 0;
+}
 
-  .sidebar {
-    display: block;
-    border-right: none;
-  }
+.sidebar[data-open="false"] .backIconButton,
+.sidebar[data-open="false"] .title {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.sidebar[data-show-back="true"] .logo{
+  display: none;
 }
 
 
+.sidebar[data-show-back="true"] .logo {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.sidebar[data-show-back="false"] .backIconButton {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.sidebar[data-open="false"] .headerLeft {
+  width: 0;
+  min-width: 0;
+  flex: 0 0 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.sidebar[data-open="false"] .sidebarHeader {
+  justify-content: center;
+  border: none;
+}
+
+.sidebar.closed .sidebarContent {
+  display: none;
+}
 
 @media (max-width: 768px) {
+    .container {
+    height: 100%;
+    display: block;
+  }
+  
   .sidebar {
     position: fixed;
     top: 0;
@@ -118,9 +170,4 @@
   .sidebar.open {
     transform: translateX(0);
   }
-}
-
-.main {
-  flex: 1;
-  min-width: 0;
 }

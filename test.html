@@ -6,126 +6,201 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
-        .profile-picture {
-            display: flex;
-            flex-direction: row;
-            justify-content: start;
-            align-items: center;
-            margin-bottom: 56px;
-
-        }
-
-        .profile-nickname {
-            max-width: 16rem;
-        }
-
-        .profile-row02 {
+        .chat-influencer-bar {
+            background: rgb(248, 151, 6);
+            min-height: 109px;
             display: grid;
-            grid-template-columns: 1fr;
         }
 
-        .section-title {
-            font-weight: 700;
-            font-size: 20px;
-            margin-bottom: 12px;
-        }
-
-        .section-body {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-            justify-content: center;
-            margin-bottom: 12px;
-        }
-
-        .delete-account-section {
-            display: flex;
-            flex: 1;
+        .influencer-top {
+            background: linear-gradient(180deg, #000 0%, #000 50%, #292929 100%);
+            min-height: 4rem;
+            position: relative;
+            overflow: clip;
+            display: grid;
             align-items: center;
-            justify-content: center;
         }
 
-        .profile-delete-account {
-            color: hsl(0, 100%, 69%);
-            text-decoration: underline;
-            margin-top: 1rem;
-            margin-bottom: 3rem;
+        .influencer-stats-container {
+            z-index: 5;
         }
 
-        /* .paypal-container {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        } */
-
-        .button-paypal {
-            display: inline-flex;
-            background: hsl(42, 100%, 61%);
-            border-radius: 6.25rem;
-            -webkit-box-shadow: inset 0 2px 0 0 hsla(42, 0%, 100%, .41), inset -9px -6px 0 -6px hsl(0deg 0% 100% / 52%);
-            box-shadow: inset 0 2px 0 0 hsla(42, 0%, 100%, .41), inset -9px -6px 0 -6px hsl(0deg 0% 100% / 52%);
-            border: 1px solid hsl(42, 69%, 52%);
-            color: hsl(0, 0%, 0%);
-            font-size: 1rem;
-            padding: 1 1.2rem;
-            margin-bottom: 0.25rem;
-            justify-content: center;
+        .influencer-stats-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            flex-direction: row;
             width: 100%;
-            height: 2rem;
-            align-items: center;
-            font-family: Arial, Helvetica, sans-serif;
-            font-weight: 600;
+            justify-content: space-between;
         }
 
 
-        .powered-by-paypal {
+        .left-col {
             display: flex;
             flex-direction: row;
-            gap: 0.5rem;
-            align-items: center;
-
+            justify-content: center;
         }
 
-
-        .powered-by-paypal p {
-            color: hsla(0, 0%, 100%, 0.5);
-            font-size: 0.7rem;
+        .left-col p {
+            color: white;
+            margin-block: unset;
+            font-family: 'Urbanist', sans-serif;
+            font-size: 1rem;
+            font-style: normal;
             font-weight: 400;
-            font-family: Arial, Helvetica, sans-serif;
-
-        }
-
-        .paypal-logo {
-            height: 1.25rem;
+            line-height: 140%;
+            letter-spacing: 0.0125rem;
         }
 
 
 
-        .button-row {
-            margin-bottom: 56px;
+        .middle-col {width: auto;}
+
+        .right-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+                justify-items: center;
         }
 
+        .love-score {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+                max-width: 7vw;
+    gap: 0.25rem;
+        }
+
+        .love-score p {
+
+            font-family: 'Urbanist', sans-serif;
+            font-size: 1rem;
+            font-style: normal;
+            font-weight: 600;
+            line-height: 120%;
+            margin-block: unset;
+            
+        }
+
+        /* rank integer  states */
+        .love-score.rank-up p {
+            color: var(--alerts-status-success, #4ADE80);
+        }
+
+        .love-score.rank-down p {
+            color: var(--alerts-status-error, rgba(222, 74, 74, 0.8));
+        }
+
+        .rank {
+            display: inline-flex;
+            width: 1.5625rem;
+            height: 1.5625rem;
+            justify-content: center;
+            align-items: center;
+            border-width: 1px;
+            border-style: solid;
+            border-radius: 0.25rem;
+
+        }
+
+        /* rank lottie  states */
+        .rank.rank-up {
+            border-color: #4ADE80;
+            background: linear-gradient(180deg, rgba(74, 222, 128, 0.05) 0%, rgba(74, 222, 128, 0.3) 100%);
+        }
+
+        .rank.rank-down {
+            border-color: rgba(222, 74, 74, 0.8);
+            background: linear-gradient(180deg, rgba(222, 74, 74, 0.05) 0%, rgba(222, 74, 74, 0.20) 100%);
+        }
+
+
+        .circle-glow-container {
+            position: absolute;
+            bottom: -90%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .glow-status-white {
+            background-color: rgba(255, 255, 255, 0.50);
+            opacity: 0.8;
+            background-blend-mode: soft-light;
+            filter: blur(2px);
+            width: 94px;
+            height: 96px;
+            border-radius: 50%;
+            position: absolute;
+            z-index: 2;
+
+        }
+
+        .glow-status-circle02 {
+            background: rgba(255, 187, 135, 0.70);
+            opacity: 0.8;
+            background-blend-mode: soft-light;
+            filter: blur(7.5px);
+            width: 102px;
+            height: 102px;
+            border-radius: 50%;
+            position: absolute;
+            filter: blur(10px);
+            z-index: 1;
+        }
+
+        .glow-status-circle {
+            opacity: 0.8;
+            width: 144px;
+            height: 121px;
+            border-radius: 50%;
+            filter: blur(25px);
+            z-index: 0;
+            transition: all 200ms ease-in-out;
+        }
+
+        .glow-status-circle.default {background-color: rgba(255, 7, 98, 0.90); transition: all 200ms ease-in-out;}
+        .glow-status-circle.adult {background-color: hsla(280, 100%, 48%, 0.9); transition: all 200ms ease-in-out;}
 
         /*** media query Desktop ***/
-        @media (min-width: 32rem) {
-
-            .profile-row02 {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-            }
-        }
+        @media (min-width: 32rem) {}
     </style>
 </head>
 
-<body bgcolor="black">
-    <div class="paypal-container">
-        <div class="button-paypal">+ Add Funds</div>
-        <div class="powered-by-paypal">
-            <p>Powered by PayPal</p><img class='paypal-logo' src="src/assets/logos/pypal.svg" alt="PayPal Logo" />
-        </div>
-    </div>
+<body bgcolor="#181A20">
 
+    <div class="chat-influencer-bar">
+        <div class="influencer-top">
+            <div class="influencer-stats-container">
+                <div class="influencer-stats-row">
+                    <div class="left-col">
+                        <p>Olivia F.</p>
+                    </div>
+                    <div class="middle-col">X</div>
+                    <div class="right-col">
+                        <div class="status">💬</div>
+                        <div class="love-score rank-up">
+                            <p>-888</p>
+                            <div class="rank rank-up">↑</div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="circle-glow-container">
+                <div class="glow-status-white"></div>
+                <div class="glow-status-circle02"></div>
+                <div class="glow-status-circle default"></div>
+            </div>
+        </div>
+        <div class="influencer-bottom"></div>
+
+
+
+
+    </div>
 </body>
 
 </html>

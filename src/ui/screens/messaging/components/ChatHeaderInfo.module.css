@@ -1,0 +1,103 @@
+.chat-header-info {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 20px;
+  width: 100%;
+  justify-content: center;
+  background: oklch(0% 0 0);
+}
+
+.chat-header-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: var(--max-chat-content-width);
+  width: 100%;
+  margin: 0 auto;
+}
+
+.chat-header-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+}
+
+.chat-header-toggle-button {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.chat-header-toggle-button:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.profile-info {
+  display: flex;
+}
+
+.chat-header-info>.profile-info:only-child {
+  margin: 0 auto;
+}
+
+.chat-header-inner {
+  display: flex;
+  grid-area: 16px;
+  max-width: var(--max-chat-content-width);
+}
+
+.chat-header-actions {
+  flex-direction: row;
+  display: flex;
+  align-content: center;
+  justify-content: center;
+}
+
+.admin-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+.clear-history-button {
+  cursor: pointer;
+}
+
+.chat-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  align-self: center;
+  margin-top: 10px;
+}
+
+.chat-user-name {
+  margin: 10px 0;
+}
+
+.chat-user-name h3 {
+  text-align: start;
+}
+
+.chat-user-name p {
+  font-size: small;
+}
+
+@media (min-width: 1024px) {
+  .chat-avatar {
+    width: 70px;
+    height: 70px;
+  }
+
+  .chat-user-name {
+    font-size: 22px;
+    margin: 15px 0;
+  }
+}

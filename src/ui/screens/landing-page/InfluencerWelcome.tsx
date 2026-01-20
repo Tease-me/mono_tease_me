@@ -24,8 +24,9 @@ import { storage } from "@/utils/storage";
 
 import InfluencerProfile from "../influencer-profile/profile/InfluencerProfile";
 import styles from "./InfluencerWelcome.module.css";
+import { formatTime } from "@/utils/time";
 
-interface InfluencerWelcomeProps {}
+interface InfluencerWelcomeProps { }
 
 const InfluencerWelcome: React.FC<InfluencerWelcomeProps> = () => {
   const { username } = useParams<{ username: string }>();
@@ -85,7 +86,7 @@ const InfluencerWelcome: React.FC<InfluencerWelcomeProps> = () => {
 
   useEffect(() => {
     audioRef.current.currentTime = 0;
-    audioRef.current.play().catch(() => {});
+    audioRef.current.play().catch(() => { });
 
     const timeoutId = window.setTimeout(() => {
       audioRef.current.pause();
@@ -117,14 +118,6 @@ const InfluencerWelcome: React.FC<InfluencerWelcomeProps> = () => {
       if (timer) window.clearInterval(timer);
     };
   }, [status]);
-
-  const formatTime = (totalSeconds: number) => {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes.toString().padStart(2, "0")}:${seconds
-      .toString()
-      .padStart(2, "0")}`;
-  };
 
   const handlePickUpCall = () => {
     audioRef.current.pause();

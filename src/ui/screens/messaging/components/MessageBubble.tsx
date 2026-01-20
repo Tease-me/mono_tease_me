@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import TypingIndicator from './TypingIndicator';
 import { MediaAttachment, Message } from '@/data/models/MessageDataModel';
 import AudioPlayer from '@/ui/components/audio-player/AudioPlayer';
+import callIcon from "@/assets/svg/Call.svg";
 
 export interface CallMessageGroup {
     type: 'call-group';
@@ -103,29 +104,60 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     const time = callGroup?.time ?? msg?.time ?? "";
     const callDuration = getCallDuration(callGroup);
     const hasTranscript = Boolean(showAudioTranscript && msg?.transcript);
+    const hasAudio = !callGroup && msg?.attachments?.some((attachment) => attachment.type === "audio");
+    const isAudioOnly = Boolean(hasAudio && !msg?.text?.trim());
     const callSpeakerName = (messageSender: Message["sender"]) => {
         if (messageSender === "received") return influencerName || "Influencer";
         return "You";
     };
 
     return (
-        <div ref={containerRef} className={clsx(styles["message"], styles[sender])}>
+        <div
+            ref={containerRef}
+            className={clsx(
+                styles["message"],
+                styles[sender],
+                isAudioOnly && styles["audio-only"],
+                callGroup && styles["call-message"]
+            )}
+        >
             <div className={clsx(styles["message-content"], callGroup && styles["call-transcript"])}>
                 {callGroup ? (
                     <>
-                        <div className={styles["call-transcript-header"]}>
-                            <div className={styles["call-title"]}>Call log</div>
-                            <button
-                                type="button"
-                                className={styles["call-toggle"]}
-                                onClick={() => setExpanded((prev) => !prev)}
-                            >
-                                {expanded ? "Hide" : "Show"}
-                            </button>
+                        <div
+                            className={styles["call-bubble"]}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setExpanded((prev) => !prev)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    setExpanded((prev) => !prev);
+                                }
+                            }}
+                        >
+                            <div className={styles["call-icon-wrap"]}>
+                                <img src={callIcon} className={styles["call-icon"]} alt="Call" />
+                            </div>
+                            <div className={styles["call-copy"]}>
+                                <div className={styles["call-title"]}>Phone Call</div>
+                                <div className={styles["call-subtitle"]}>Tap to call back</div>
+                                {(callDuration || time) && (
+                                    <div className={styles["call-meta"]}>
+                                        {callDuration ? `Duration ${callDuration}` : null}
+                                        {callDuration && time ? " • " : ""}
+                                        {time || null}
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                        {callDuration && (
-                            <div className={styles["call-duration"]}>Total call time: {callDuration}</div>
-                        )}
+                        <button
+                            type="button"
+                            className={styles["call-transcript-link"]}
+                            onClick={() => setExpanded((prev) => !prev)}
+                        >
+                            {expanded ? "Hide transcription" : "Or view transcription"}
+                        </button>
                         {expanded && (
                             <div className={styles["call-lines"]}>
                                 {callGroup.messages.map((message) => (

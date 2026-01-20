@@ -18,13 +18,21 @@
 }
 
 .menuButton {
-  max-width: fit-content;
-  padding: none;
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  border-radius: 8px;
+  padding: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: linear-gradient(180deg, rgba(66, 66, 66, 0.10) 0%, rgba(66, 66, 66, 0.30) 100%);
 }
 
-.menuButton svg {
-  width: 30PX;
-  height: 30px;
+.menuButtonIcon {
+  height: 28px;
+  width: 28px;
+  display: flex;
+  justify-content: center;
+  align-content: center;
 }
 
 .callButtonSmall {

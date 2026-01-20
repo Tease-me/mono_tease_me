@@ -94,4 +94,7 @@ export const Endpoints = {
     chat18: "/chat18/ws",
     notifications: "/ws/notifications",
   },
+  user: {
+    usage: (id: string) => `/user/${id}/usage`,
+  }
 } as const;
