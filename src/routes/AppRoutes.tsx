@@ -25,6 +25,10 @@ import TestPage from "@/ui/screens/test/TestPage";
 const AdminPreInfluencers = lazy(
   () => import("@/ui/screens/admin/pre-influencers/AdminPreInfluencers")
 );
+const AdminPreInfluencerDetail = lazy(
+  () =>
+    import("@/ui/screens/admin/pre-influencers/AdminPreInfluencerDetail")
+);
 const InfluencerProfileScreen = lazy(
   () => import("@/ui/screens/influencer-profile/InfluencerProfileScreen")
 );
@@ -122,6 +126,10 @@ function AppRoutes() {
     { path: Paths.admin.influencer, element: <CreateInfluencer /> },
     { path: Paths.admin.prompts, element: <PromptEditorAdmin /> },
     { path: Paths.admin.relationship, element: <RelationshipDashboard /> },
+    {
+      path: Paths.admin.preInfluencerDetail(),
+      element: <AdminPreInfluencerDetail />,
+    },
     { path: Paths.admin.preInfluencers, element: <AdminPreInfluencers /> },
   ];
 
