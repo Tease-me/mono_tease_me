@@ -40,7 +40,7 @@ export default function ChatInfluencerBar({
         <div className={styles.influencerStatsContainer}>
           <div className={styles.influencerStatsRow}>
             <div className={styles.leftCol}>
-              <p>{influencer?.name}</p> | <p>{status}</p>
+              <p>{influencer?.name}</p><p className={styles.statusText}>{status}</p>
             </div>
             <div className={styles.middleCol}></div>
             <div className={clsx(styles.rightCol, adultMode && styles.hidden)}>

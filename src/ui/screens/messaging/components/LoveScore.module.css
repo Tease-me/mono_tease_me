@@ -31,8 +31,7 @@
 }
 
 .loveScoreMedium {
-  /* retains base sizing */
-  display: block;
+  display: flex;
 }
 
 .loveScoreLarge {
