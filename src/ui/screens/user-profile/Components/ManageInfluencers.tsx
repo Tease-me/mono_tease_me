@@ -114,6 +114,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
       lastConnected: inf.lastConnected,
       trust: inf.trust,
       safety: inf.safety,
+      status: inf.status,
       attraction: inf.attraction,
       closeness: inf.closeness,
       stageScore: inf.loveScore,

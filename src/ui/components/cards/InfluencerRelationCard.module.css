@@ -90,6 +90,7 @@ display: block;
   align-items: center;
   text-align: center;
   gap: 6px;
+  width: auto;
 }
 
 .metricsBridge {
@@ -105,23 +106,6 @@ display: block;
   letter-spacing: 0.5px;
 }
 
-.valueRow {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.valueGreen {
-  font-size: 34px;
-  font-weight: 700;
-  color: #00c36f;
-}
-
-.valueRed {
-  font-size: 34px;
-  font-weight: 700;
-  color: #f75555;
-}
 
 .avatarContainer {
   display: flex;
@@ -132,10 +116,20 @@ display: block;
 .stageArea {
   border-radius: 4px;
   background: rgba(33, 33, 33, 0.35);
-  padding: 12px;
+  padding: 8px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-items: center;
+  gap: 8px;
+}
+
+.stageArea svg{
+  max-width: 24px;
 }
 
 .stage {
+  color: #9E9E9E;
   font-size: 12px;
 }
 

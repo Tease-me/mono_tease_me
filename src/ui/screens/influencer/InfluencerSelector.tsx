@@ -8,6 +8,7 @@ import { apiClient } from "@/api/apis";
 import { RelationshipServices } from "@/api/services/RelationshipServices";
 import { BalanceServices } from "@/api/services/BalanceServices";
 import BackgroundGradient from "@/ui/templates/BackgroundGradient";
+import clsx from "clsx"
 
 // IMPORTANT - TODO
 // THERE IS A SMALL ERROR DIV AT THE END REMOVE IT AND HANDLE PROPERLY
@@ -105,23 +106,10 @@ export default function InfluencerSelector({
             <LoadingSpinner />
           </div>
         ) : (
-          <div className={styles.list}>
+<div className={clsx(styles.list, items.length > 1 && styles.edgeFade)}>
             {items.map((inf) => (
               <>
               <div key={inf.id}>
-                <div className={styles.card}>
-                  <InfluencerRelationCard {...inf} />
-                </div>
-                <div className={styles.buttonRow}>
-                  <IconButton
-                    text="Chat"
-                    onClick={() => onItemClick?.(inf.id)}
-                    color="black"
-                    className={styles.chatButton}
-                  />
-                </div>
-              </div>
-              <div key={`${inf.id}_1`}>
                 <div className={styles.card}>
                   <InfluencerRelationCard {...inf} />
                 </div>
