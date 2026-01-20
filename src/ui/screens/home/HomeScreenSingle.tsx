@@ -11,6 +11,7 @@ import InfluencerRelation from "../user-profile/Components/InfluencerRelation";
 import AddCredits from "../user-profile/Components/AddCredits";
 import SlideDrawerLayout from "@/ui/templates/SlideDrawerLayout";
 import AdultModePage from "../messaging/pages/adult-mode/AdultModePage";
+import PaymentCheck from "../user-profile/Components/PaymentCheck";
 import clsx from "clsx";
 import styles from "./HomeScreenSingle.module.css"
 
@@ -27,6 +28,7 @@ const sidebarPages: SidebarPage[] = [
   { id: "home", label: "User Menu", render: ({ goTo }) => <UserMenu goTo={goTo} /> },
   { id: "profile", label: "User Profile", render: ({ goTo }) => <UserProfile goTo={goTo} /> },
   { id: "payment", label: "Payment Details", render: ({ goTo }) => <PaymentDetails goTo={goTo} /> },
+  { id: "payment-check", label: "Payment", render: () => <PaymentCheck /> },
   {
     id: "influencers",
     label: "Manage Influencers",
@@ -102,21 +104,21 @@ export default function HomeScreenSingle() {
     });
   }, []);
 
-const sidebar = (
-  <div className={styles.sidebarPages}>
-    {sidebarPages.map((page) => (
-      <div
-        key={page.id}
-        className={clsx(
-          styles.sidebarPage,
-          page.id === currentPage ? styles.sidebarPageActive : styles.sidebarPageHidden
-        )}
-      >
-        {page.render({ goTo, navPayload, goBack: prevPage })}
-      </div>
-    ))}
-  </div>
-);
+  const sidebar = (
+    <div className={styles.sidebarPages}>
+      {sidebarPages.map((page) => (
+        <div
+          key={page.id}
+          className={clsx(
+            styles.sidebarPage,
+            page.id === currentPage ? styles.sidebarPageActive : styles.sidebarPageHidden
+          )}
+        >
+          {page.render({ goTo, navPayload, goBack: prevPage })}
+        </div>
+      ))}
+    </div>
+  );
 
 
   useEffect(() => {

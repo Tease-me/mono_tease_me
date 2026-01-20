@@ -18,7 +18,8 @@ const PaymentDetails = ({ goTo }: PaymentDetailsProps) => {
     };
 
     const handleMasterCardBtn = () => {
-        // Handle MasterCard button click
+        //temporary
+       goTo('payment-check');
     };
 
 
