@@ -33,6 +33,7 @@ import ChatHeaderInfo from './ChatHeaderInfo';
 import { RelationshipServices } from '@/api/services/RelationshipServices';
 import CallModePage from '../pages/call-page/CallModePage';
 import { RelationshipDataModel } from '@/data/models/RelationshipDataModel';
+import AdultConvoStarterCard from '@/ui/components/cards/AdultConvoStarterCard';
 
 const isCallChannel = (message: Message) => {
     if (!message.channel) return false;
@@ -615,6 +616,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                         >
                             {(messages) ? <>
                                 {isLoadingMore && <LoadingSpinner size='small' />}
+                                <div className={styles.adultConvoCardArea}>
+                                    {adultMode && <AdultConvoStarterCard influencerName={influencer?.name} />}
+                                </div>
                                 <MessagesList
                                     messages={displayMessages}
                                     typing={typing}
