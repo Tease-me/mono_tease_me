@@ -16,6 +16,9 @@
   padding-left: 32px;
   scroll-snap-type: x mandatory;
   margin-right: -24px;
+}
+
+.edgeFade{
   mask-image: linear-gradient(90deg, black 90%, transparent);
 }
 
