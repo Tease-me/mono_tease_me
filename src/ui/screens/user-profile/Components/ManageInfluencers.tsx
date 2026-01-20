@@ -126,17 +126,15 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
       {loading ? <div className={styles.loading} >{<LoadingSpinner />} </div> :
         <div className={styles.list}>
           {items.map((inf) => (
-            <div>
-              <div key={inf.id} className={styles.card}>
+            <div key={inf.id}>
+              <div className={styles.card}>
                 <InfluencerRelationCard {...inf} />
               </div>
               <div className={styles.buttonRow}>
                 <IconButton text="View Profile" onClick={() => handleViewProfile(inf)} color="black" className={styles.viewProfile} />
               </div>
             </div>
-
           ))}
-
           <div className={styles.error}>{error}</div>
         </div>
       }
