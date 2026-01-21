@@ -63,6 +63,7 @@ type RelationData = {
   attraction?: number;
   closeness?: number;
   stageScore?: number;
+  state?: string;
 };
 
 
@@ -85,6 +86,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
       attraction: navPayload.attraction,
       closeness: navPayload.closeness,
       stageScore: navPayload.stageScore,
+      state: navPayload.status
     }),
     [navPayload]
   );
@@ -121,6 +123,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
           trust: rel?.trust ?? d.trust,
           safety: rel?.safety ?? d.safety,
           attraction: rel?.attraction ?? d.attraction,
+          state: rel?.state ?? d.state,
           closeness: rel?.closeness ?? d.closeness,
           stageScore: rel?.sentiment_score ?? d.stageScore,
           lastConnected: rel?.last_interaction_at ?? d.lastConnected,
@@ -277,6 +280,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
             leftIcon={<SvgPack.PlusBox />}
             text="Add Credit"
             onClick={handleAddCredits}
+            className={styles.btn}
           />
         </div>
         <div className={styles.adultBalanceArea}>
@@ -315,7 +319,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
           <div className={styles.relationshipTitle}>Relationship Statistics</div>
         </div>
         <div className={styles.progressBar}>
-          <ProgressBar mutedLabel label="Relationship Stage Progress" value={data.stageScore ?? 0} max={100} />
+          <ProgressBar mutedLabel label="Relationship Stage Progress" value={data.stageScore ?? 0} max={100} /><p>{data.state}</p>
         </div>
 
         {/*  radar chart */}

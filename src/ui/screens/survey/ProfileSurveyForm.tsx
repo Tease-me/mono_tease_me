@@ -41,6 +41,7 @@ const ProfileSurveyForm: React.FC = () => {
   const [params] = useSearchParams();
 
   const token = params.get("token") || "";
+  const temp_password = params.get("temp_password") || "";
   const contentRef = useRef<HTMLDivElement | null>(null);
 
   const [loading, setLoading] = useState(true);
@@ -107,9 +108,11 @@ const ProfileSurveyForm: React.FC = () => {
       try {
         const [{ data }, questionsResponse] = await Promise.all([
           apiClient.get<SurveyState>("/pre-influencers/survey", {
-            params: { token },
+            params: { token, temp_password },
           }),
-          apiClient.get("/pre-influencers/survey/questions"),
+          apiClient.get("/pre-influencers/survey/questions", {
+            params: { token, temp_password },
+          }),
         ]);
 
         const questionsData = questionsResponse.data;
@@ -169,7 +172,7 @@ const ProfileSurveyForm: React.FC = () => {
         await apiClient.put(`/pre-influencers/${preInfluencerId}/survey`, {
           survey_answers: answers,
           survey_step: stepIndex,
-        });
+        }, { params: { token, temp_password } });
       } catch (err) {
         console.error("Error saving survey:", err);
       } finally {
@@ -193,7 +196,7 @@ const ProfileSurveyForm: React.FC = () => {
       try {
         const { data } = await apiClient.get<{ url: string }>(
           `/pre-influencers/${preInfluencerId}/picture-url`
-        );
+          , { params: { token, temp_password } });
         setPictureUrl(data.url);
         if (objectUrlRef.current) {
           URL.revokeObjectURL(objectUrlRef.current);
@@ -351,6 +354,8 @@ const ProfileSurveyForm: React.FC = () => {
       await apiClient.put(`/pre-influencers/${preInfluencerId}/survey`, {
         survey_answers: answers,
         survey_step: stepIndex,
+        token: token,
+        temp_password: temp_password,
       });
     } catch (err) {
       console.error("Error saving survey (manual):", err);
@@ -447,6 +452,7 @@ const ProfileSurveyForm: React.FC = () => {
         "/pre-influencers/upload-picture",
         formData,
         {
+          params: { token, temp_password },
           headers: { "Content-Type": "multipart/form-data" },
         }
       );
@@ -535,7 +541,6 @@ const ProfileSurveyForm: React.FC = () => {
             </div>
 
             <div className={styles.content}>
-              {/* STEPS DO FORM PDF */}
               {isSurveyStep &&
                 currentSurveyStep &&
                 currentSurveyStep.questions.map((q: SurveyQuestion) => {
@@ -623,6 +628,7 @@ const ProfileSurveyForm: React.FC = () => {
                 <UploadAudioStep
                   influencerId={preInfluencerId}
                   token={token}
+                  temp_password={temp_password}
                   onCountChange={(count) => {
                     setAudioCount(count);
                     setAudioError(null);

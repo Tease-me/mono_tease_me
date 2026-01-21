@@ -34,7 +34,6 @@ const SlideDrawerLayout: React.FC<SlideDrawerLayoutProps> = ({
       >
         <div className={styles.sidebarHeader}>
           <div className={styles.headerLeft}>
-            <div>
             <button
               type="button"
               className={styles.backIconButton}
@@ -42,8 +41,7 @@ const SlideDrawerLayout: React.FC<SlideDrawerLayoutProps> = ({
             >
               <SvgPack.ArrowLeft />
             </button>
-            < TeaseMeLogo size="small" variant="full" className={styles.logo} />
-            </div>
+            <TeaseMeLogo size="small" variant="full" className={styles.logo} />
             <div className={styles.title}>{title}</div>
           </div>
           <div className={styles.headerRight}>
