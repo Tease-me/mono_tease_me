@@ -47,8 +47,7 @@ const sidebarPages: SidebarPage[] = [
         influencerImageUrl={navPayload.image}
         onSubscribePressed={() => {
           navPayload.onSubscribe();
-        }
-        }
+        }}
         nobg
       />
     )
