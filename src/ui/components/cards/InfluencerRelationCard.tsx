@@ -55,7 +55,7 @@ const InfluencerRelationCard: React.FC<InfleuncerRelationCardProps> = ({
 
 
   return (
-    <div className={styles.card}>
+    <div className={styles.influencerRelationCard}>
       <div className={styles.upper}>
         <div className={styles.balanceBadge}>
           <BalanceBadge balance={balance} />
@@ -79,13 +79,13 @@ const InfluencerRelationCard: React.FC<InfleuncerRelationCardProps> = ({
       <div className={styles.lower}>
         <div className={styles.stat}>
           <span className={styles.label}>Love</span>
-            <LoveScore size="large" sentimentScore={loveScore} rankPosition="left" />
+          <LoveScore size="large" sentimentScore={loveScore} rankPosition="left" />
         </div>
         <div className={styles.stat}>
           <span className={styles.label}>Status</span>
-            <div className={styles.stageArea}>
-              {getRelationshipStatusIcon(status)} <span className={styles.stage}>{status}</span>
-            </div>
+          <div className={styles.stageArea}>
+            {getRelationshipStatusIcon(status)} <span className={styles.stage}>{status}</span>
+          </div>
         </div>
       </div>
 
