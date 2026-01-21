@@ -8,6 +8,7 @@ import defaultProfilePic from "@/assets/image/avatar.png";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import SvgPack from '@/utils/SvgPack';
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
+import ImageCropModal from "@/ui/components/modals/image-crop-modal/ImageCropModal";
 
 
 type Props = {
@@ -17,7 +18,12 @@ type Props = {
   onSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
   name: string;
+  isCropOpen: boolean;
+  cropImageSrc: string | null;
+  onCropClose: () => void;
+  onCropComplete: (blob: Blob, dataUrl: string) => void;
 };
+
 
 const UploadPictureStep: React.FC<Props> = ({
   uploading,
@@ -25,8 +31,13 @@ const UploadPictureStep: React.FC<Props> = ({
   pictureError,
   onSelect,
   inputRef,
-  name
+  name,
+  isCropOpen,
+  cropImageSrc,
+  onCropClose,
+  onCropComplete
 }) => (
+
   <div className={styles.uploadPictureStep}>
     <p className={surveyStyles.surveySubtitle}>Upload your best clear profile photo. This will be used as TeaseMe profile photo.</p><br></br>
     <label className={surveyStyles.label}>
@@ -76,10 +87,9 @@ const UploadPictureStep: React.FC<Props> = ({
         color="black"
         leftIcon={<SvgPack.UploadPhoto />}
         text={uploading ? "Uploading…" : "Upload Photo"}
-        disabled={uploading}
+        aria-disabled={uploading}
         onClick={() => inputRef.current?.click()}
       />
-
 
       <input
         id="profile-picture-upload"
@@ -122,7 +132,7 @@ const UploadPictureStep: React.FC<Props> = ({
 
         <div className={styles.previewLeft}>
           <ProfileMedia
-          key={pictureUrl || "default"} // force re-mount when URL changes
+            key={pictureUrl || "default"} // force re-mount when URL changes
             className={styles.previewAvatar}
             size="medium"
             active
@@ -144,6 +154,15 @@ const UploadPictureStep: React.FC<Props> = ({
         </div>
       </div>
     </div>
+
+    {cropImageSrc && (
+      <ImageCropModal
+        isOpen={isCropOpen}
+        imageSrc={cropImageSrc}
+        onClose={onCropClose}
+        onCropComplete={onCropComplete}
+      />
+    )}
 
     {/*}
     {uploading && <div className={surveyStyles.subtitle}>Uploading…</div>}
