@@ -4,8 +4,7 @@ import { Endpoints, WS_BASE_URL } from "@/api/urls";
 import { AuthContext } from "@/context/AuthContext";
 import styles from "./ChatScreenContent.module.css"
 import { useParams } from 'react-router-dom';
-import { CallMessageGroup } from './MessageBubble';
-import MessagesList, { DisplayMessage } from './MessageList';
+import MessagesList from './MessageList';
 import ChatInputArea from './ChatInputArea';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
@@ -18,6 +17,7 @@ import { ChatRepository } from '@/data/repositories/ChatRepo';
 import { InfluencerRepo } from '@/data/repositories/InfluencerRepo';
 import logger from '@/utils/logger';
 import useCallWebRTC from '@/hooks/useCallWebRTC';
+import { useChatScroll } from '@/hooks/useChatScroll';
 import IconButton from '@/ui/components/inputs/buttons/IconButton';
 import { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownMenu'
 import { AdultChatRepo } from '@/data/repositories/AdultChatRepo';
@@ -34,43 +34,8 @@ import { RelationshipServices } from '@/api/services/RelationshipServices';
 import CallModePage from '../pages/call-page/CallModePage';
 import { RelationshipDataModel } from '@/data/models/RelationshipDataModel';
 import AdultConvoStarterCard from '@/ui/components/cards/AdultConvoStarterCard';
+import { mergeCallMessages } from './messageUtils';
 
-const isCallChannel = (message: Message) => {
-    if (!message.channel) return false;
-    return message.channel.toLowerCase().startsWith("call");
-};
-
-const mergeCallMessages = (messageList: Message[]): DisplayMessage[] => {
-    const merged: DisplayMessage[] = [];
-    let currentCallGroup: CallMessageGroup | null = null;
-
-    messageList.forEach((message) => {
-        if (isCallChannel(message)) {
-            const id = message.callId || `call-${message.id}`;
-            const needsNew = !currentCallGroup || currentCallGroup.id !== id;
-
-            if (needsNew) {
-                currentCallGroup = {
-                    id,
-                    sender: "sent",
-                    time: message.time,
-                    messages: [],
-                    type: "call-group",
-                };
-                merged.push(currentCallGroup);
-            }
-
-            currentCallGroup!.messages.push(message);
-            currentCallGroup!.time = message.time;
-            return;
-        }
-
-        currentCallGroup = null;
-        merged.push(message);
-    });
-
-    return merged;
-};
 const chatRepository = ChatRepository();
 const influencerRepo = InfluencerRepo();
 const adultChatRepo = AdultChatRepo();
@@ -298,19 +263,33 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         })()
     }, [influencer, user, adultMode]);
 
+    const { scrollToBottom, handleScroll } = useChatScroll({
+        messagesEndRef: messagesEndRef,
+        loadMore: async (container) => {
+            if (container && container.scrollTop === 0 && hasMore && !isLoadingMore && chatId) {
+                setIsLoadingMore(true);
+                const previousScrollHeight = container.scrollHeight;
+                await fetchMessages(chatId, pageNumber + 1);
+                setPageNumber(prev => prev + 1);
+                requestAnimationFrame(() => {
+                    if (containerRef.current) {
+                        const newScrollHeight = containerRef.current.scrollHeight;
+                        containerRef.current.scrollTop = newScrollHeight - previousScrollHeight;
+                    }
+                });
+                setIsLoadingMore(false);
+            }
+        },
+    });
+
     useEffect(() => {
         if (pageNumber === 1) {
             scrollToBottom();
         }
-    }, [messages])
-
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
+    }, [messages, pageNumber, scrollToBottom])
 
     function calculateReplyTime(msg: string) {
         const replyTime = (msg.length * 100);
-        console.error("Reply time: ", replyTime);
         return (replyTime);
     }
 
@@ -516,21 +495,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         })
     }
 
-    const handleScroll = async () => {
-        const container = containerRef.current;
-        if (container && container.scrollTop === 0 && hasMore && !isLoadingMore && chatId) {
-            setIsLoadingMore(true);
-            const previousScrollHeight = container.scrollHeight;
-            await fetchMessages(chatId, pageNumber + 1);
-            setPageNumber(prev => prev + 1);
-            requestAnimationFrame(() => {
-                if (containerRef.current) {
-                    const newScrollHeight = containerRef.current.scrollHeight;
-                    containerRef.current.scrollTop = newScrollHeight - previousScrollHeight;
-                }
-            });
-            setIsLoadingMore(false);
-        }
+    const handleScrollEvent = () => {
+        handleScroll(containerRef.current);
     };
 
     const handleChangeInfluencerClicked = async () => {
@@ -616,7 +582,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                         <div
                             className={clsx(styles["chat-messages-container"], !messages && styles["loading"])}
                             ref={containerRef}
-                            onScroll={handleScroll}
+                            onScroll={handleScrollEvent}
                         >
                             {(messages) ? <>
                                 {isLoadingMore && <LoadingSpinner size='small' />}

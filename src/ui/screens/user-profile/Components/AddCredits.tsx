@@ -37,7 +37,7 @@ const presets: Presets[] = [
 export default function AddCredits({ navpayload, goTo }: Props) {
 
   const data = {
-    id: navpayload.id,
+    id: navpayload.influencerId,
     image: navpayload.image,
     video: navpayload.video
   }
@@ -79,6 +79,7 @@ export default function AddCredits({ navpayload, goTo }: Props) {
 
       // store for return page fallback
       localStorage.setItem("paypal_topup_order_id", order_id);
+      localStorage.setItem("paypal_topup_influencer_id", data.id);
 
       // redirect user to PayPal approval page
       window.location.href = approve_url;
