@@ -26,9 +26,12 @@ const InfluencerProfileScreen: React.FC<
   const navigate = useNavigate();
 
   const followServices = useMemo(() => (FollowServices(apiClient)), []);
-  const [isFollowing, setIsFollowing] = useState<boolean | null>(null);
 
-  //Intial Check
+
+  type ScreenState = "loading" | "welcome" | "redirecting";
+  const [screenState, setScreenState] = useState<ScreenState>("loading");
+
+  //Check Influencer.
   useEffect(() => {
     (async () => {
       if (username) {
@@ -36,11 +39,13 @@ const InfluencerProfileScreen: React.FC<
           const localInfluencer = await influencerRepo.getInfluencer(username);
           if (!localInfluencer) {
             navigate("/");
+            return;
           }
           setInfluencer(localInfluencer);
         } catch (err: any) {
           showErrorModal(err);
           navigate("/");
+          return;
         }
       } else {
         navigate("/");
@@ -48,33 +53,52 @@ const InfluencerProfileScreen: React.FC<
     })();
   }, [username, influencerRepo, navigate]);
 
-  //Check if following
+  // Check following
   useEffect(() => {
-    if (!isSignedIn || !influencer?.id) {
-      setIsFollowing(false);
+    if (!influencer?.id) return;
+
+    if (!isSignedIn) {
+      setScreenState("welcome");
       return;
     }
-    followServices.list()
+
+    followServices
+      .list()
       .then(({ items }) => {
-        setIsFollowing(items.some(f => f.influencer_id === influencer.id && f.following !== false));
+        const following = items.some(
+          f => f.influencer_id === influencer.id && f.following !== false
+        );
+
+
+        if (following) {
+          setScreenState("redirecting");
+        } else {
+          setScreenState("welcome");
+        }
       })
-      .catch(() => setIsFollowing(false));
+      .catch(() => {
+        setScreenState("welcome");
+      });
   }, [isSignedIn, influencer?.id, followServices]);
 
   //Redirect if signed in and following 
   useEffect(() => {
-    if (isSignedIn && isFollowing && influencer?.id) {
-      localStorage.setItem("selected_id", influencer?.id?.toString() || "");
+    if (screenState === "redirecting" && influencer?.id) {
+      localStorage.setItem("selected_id", influencer.id.toString());
       navigate("/home");
     }
-  }, [isSignedIn, isFollowing, influencer?.id, navigate]);
+  }, [screenState, influencer?.id, navigate]);
 
-
-  if (!influencer || (isSignedIn && isFollowing===null)) return <BlockingLoader />;
+  if (screenState !== "welcome") {
+    return <BlockingLoader />;
+  }
 
   return (
     <>
-     <WelcomeScreen influencer={influencer!} showFollowBtn={(isSignedIn && isFollowing === false)} />
+      <WelcomeScreen
+        influencer={influencer!}
+        showFollowBtn={isSignedIn}
+      />
     </>
   );
 };
