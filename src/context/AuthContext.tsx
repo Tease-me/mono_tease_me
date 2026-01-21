@@ -114,9 +114,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             }
             return false;
         } catch (error: any) {
+            console.error("Login error:", error);
             setAuthErrors({
                 data: {
-                    error: error?.message || error.data.error || "An error occurred during login",
+                    error: error?.detail || "An error occurred during login",
                     status: error?.status || 500,
                 },
             });
