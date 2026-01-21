@@ -66,6 +66,8 @@ export default function HomeScreenSingle() {
   const [hasMultipleInfluencers, setHasMultipleInfluencers] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   const [currentPage, setCurrentPage] = useState<SidebarPageId>("home");
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [history, setHistory] = useState<NavStackEntry[]>([]);
   const [navPayload, setNavPayload] = useState<NavPayload>({});
 
