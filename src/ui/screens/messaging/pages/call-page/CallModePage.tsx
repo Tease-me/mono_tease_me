@@ -28,16 +28,17 @@ type CallModePageProps = {
     influencer?: InfluencerDataModel;
     relationship?: RelationshipDataModel;
     toggleMute?: () => void;
+    errorMessage?: string;
 };
 
-const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, timeRemaining }: CallModePageProps) => {
+const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, timeRemaining, errorMessage }: CallModePageProps) => {
     const [balance, setBalance] = React.useState<number>(0);
 
     const handleCallButtonClicked = () => {
-        if (status === "idle" || status === "disconnected") {
-            startConversation?.();
-        } else if (status === "connected") {
+        if (status === "connected") {
             stopConversation?.();
+        } else {
+            startConversation?.();
         }
     }
     useEffect(() => {
@@ -82,6 +83,10 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                     ) : status === "connecting" ? (
                         <div className={clsx(styles.connectionStatus, styles.connecting)}>
                             <span>Ringing...</span>
+                        </div>
+                    ) : status === "error" ? (
+                        <div className={clsx(styles.connectionStatus, styles.error)}>
+                            <span>{errorMessage}</span>
                         </div>
                     ) : (
                         <div className={clsx(styles.connectionStatus, styles.lastConnected)}>

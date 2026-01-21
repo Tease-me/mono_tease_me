@@ -405,12 +405,14 @@ textarea.input {
     width: 100%;
     align-items: flex-end;
   }
+
   .buttonRow {
     width: 100%;
     justify-content: stretch;
     gap: 10px;
   }
-  .buttonRow > div {
+
+  .buttonRow>div {
     flex: 1;
   }
 }
@@ -491,7 +493,7 @@ textarea.input {
 }
 
 .modalCard {
-  
+
   background: linear-gradient(180deg, rgba(20, 20, 24, 0.98), rgba(12, 6, 10, 0.9));
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
