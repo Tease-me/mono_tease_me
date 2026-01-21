@@ -18,12 +18,16 @@ export default function LoginScreen() {
   const [agree, setAgree] = useState(false);
 
   const [errors, setErrors] = useState<{ email?: string; password?: string, general?: string }>({});
-  const { login, isSignedIn } = useContext(AuthContext);
+  const { login, isSignedIn, authErrors } = useContext(AuthContext);
 
   const navigate = useNavigate();
 
   useEffect(() => { if (isSignedIn) navigate("/home"); }, [isSignedIn, navigate]);
-
+  useEffect(() => {
+    if (authErrors) {
+      setErrors(prev => ({ ...prev, general: authErrors.data.error }));
+    }
+  }, [authErrors]);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -35,21 +39,9 @@ export default function LoginScreen() {
       setErrors(newErrors);
       return;
     }
-    try {
-      const success = await login(email, password);
-      if (success) {
-        navigate("/home");
-        return;
-      }
-      else {
-        setErrors({ general: "Login Failed. Please check your username or password." });
-      }
-    }
-    catch (err) {
-      setErrors({ general: "Login Failed. Please check your username or password." });
-      console.error(err);
-    }
+    await login(email, password);
   };
+
   const handleContinueClicked = () => {
     handleSubmit();
   }

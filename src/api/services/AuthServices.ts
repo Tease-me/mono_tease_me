@@ -14,8 +14,8 @@ export const AuthServices = (apiClient: AxiosInstance) => ({
         password,
       });
       return response.data;
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      throw error.response?.data || error;
     }
   },
   register: async (

@@ -12,6 +12,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: #282727;
   font-family: var(--secondary-font-family);
+  overflow: hidden;
 }
 
 .card h3 {
@@ -25,7 +26,7 @@
 }
 
 .balanceBadge {
-display: block;
+  display: block;
 }
 
 .metricsArea {
@@ -124,7 +125,7 @@ display: block;
   gap: 8px;
 }
 
-.stageArea svg{
+.stageArea svg {
   max-width: 24px;
 }
 
@@ -138,8 +139,9 @@ display: block;
   height: 40px;
   display: inline-flex;
 }
-.lottieIcon > div,
-.lottieIcon > div > div,
+
+.lottieIcon>div,
+.lottieIcon>div>div,
 .lottieIcon svg {
   width: 100%;
   height: 100%;
