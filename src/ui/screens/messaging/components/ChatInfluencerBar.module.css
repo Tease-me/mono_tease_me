@@ -37,8 +37,10 @@
 
 .leftCol {
   display: flex;
+  gap: 0.5rem;
   flex-direction: row;
   justify-content: center;
+  align-items: center;
 }
 
 .leftCol p {
@@ -54,6 +56,8 @@
 
 .leftCol p.statusText {
   opacity: 0.7;
+  font-size: 14px;
+  align-items: center;
 }
 
 .middleCol {
@@ -62,6 +66,7 @@
 
 .rightCol {
   display: grid;
+  gap: 0.5rem;
   grid-template-columns: 1fr 1fr;
   justify-items: center;
 }
@@ -284,7 +289,7 @@
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.5rem;
     border: 1px solid rgba(66, 66, 66, 0.5);
     border-radius: 2rem;
     padding: 0.25rem 1rem;

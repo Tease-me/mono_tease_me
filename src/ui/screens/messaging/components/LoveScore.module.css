@@ -7,6 +7,10 @@
   gap: 0.25rem;
 }
 
+.loveScore > * {
+  flex-shrink: 0;
+}
+
 .loveScoreValue {
   font-family: "Urbanist", sans-serif;
   font-size: 1rem;
@@ -27,8 +31,7 @@
 }
 
 .loveScoreMedium {
-  /* retains base sizing */
-  display: block;
+  display: flex;
 }
 
 .loveScoreLarge {

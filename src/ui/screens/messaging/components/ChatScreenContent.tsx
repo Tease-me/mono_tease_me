@@ -515,6 +515,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             return "call";
         })
     }
+
     const handleScroll = async () => {
         const container = containerRef.current;
         if (container && container.scrollTop === 0 && hasMore && !isLoadingMore && chatId) {
@@ -531,9 +532,11 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             setIsLoadingMore(false);
         }
     };
+
     const handleChangeInfluencerClicked = async () => {
         setNeedsSelection?.(true)
     };
+
     useEffect(() => {
         if (relationshipPollRef.current) {
             window.clearInterval(relationshipPollRef.current);
@@ -558,6 +561,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             }
         };
     }, [status, influencer?.id]);
+
     const handleClearHistory = async () => {
         if (!chatId || !isSuperUser) return;
         const confirmed = window.confirm("Delete this chat history? This cannot be undone.");

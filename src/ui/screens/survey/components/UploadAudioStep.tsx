@@ -15,6 +15,7 @@ interface UploadAudioStepProps {
   onRecorded?: (hasRecorded: boolean) => void;
   audioError: string | null;
   setAudioError: (msg: string | null) => void;
+  temp_password?: string;
 }
 
 interface InfluencerAudioFile {
@@ -36,6 +37,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
   onRecorded,
   audioError,
   setAudioError,
+  temp_password
 }) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -100,7 +102,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
         const res = await apiClient.get<InfluencerAudioResponse>(
           `/influencer/influencer-audio/${influencerId}`,
           {
-            params: token ? { token } : undefined,
+            params: token ? { token, temp_password } : undefined,
             headers: token ? { Authorization: `Bearer ${token}` } : undefined,
           }
         );
@@ -178,7 +180,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
         formData,
         {
           headers,
-          params: token ? { token } : undefined,
+          params: token ? { token, temp_password } : undefined,
         }
       );
       setLastAction(origin);
@@ -206,7 +208,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
     try {
       await apiClient.delete(`/pre-influencers/influencer-audio/${influencerId}`, {
         data: { key },
-        params: token ? { token } : undefined,
+        params: token ? { token, temp_password } : undefined,
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
       setAudioError(null);

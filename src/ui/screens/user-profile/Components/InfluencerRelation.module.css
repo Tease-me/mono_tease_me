@@ -204,6 +204,22 @@ line-height: 120%;
   margin-bottom: 32px;
 }
 
+.progressBar{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.progressBar p{
+color: var(--Primary-500, #FF4D67);
+text-align: left;
+font-size: 14px;
+font-style: normal;
+font-weight: 700;
+line-height: normal;
+letter-spacing: 0.2px;
+}
+
 .unfollow{
   display: flex;
   align-items: center;
@@ -243,4 +259,8 @@ line-height: 120%;
 .modalError {
   color: #ff4d67;
   font-size: 13px;
+}
+
+.btn{
+  max-width: 294px;
 }
