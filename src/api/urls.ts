@@ -65,7 +65,6 @@ export const Endpoints = {
   influencers: "/influencer",
   influencer: (id: string) => `/influencer/${id}`,
   uploadCsv: "persona/import-csv",
-  mcpToolsCall: "/mcp/tools/call",
   admin: {
     systemPrompts: {
       list: "admin/system-prompts",
