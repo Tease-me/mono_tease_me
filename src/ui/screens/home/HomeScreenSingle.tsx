@@ -105,17 +105,9 @@ export default function HomeScreenSingle() {
 
   const sidebar = (
     <div className={styles.sidebarPages}>
-      {sidebarPages.map((page) => (
-        <div
-          key={page.id}
-          className={clsx(
-            styles.sidebarPage,
-            page.id === currentPage ? styles.sidebarPageActive : styles.sidebarPageHidden
-          )}
-        >
-          {page.render({ goTo, navPayload, goBack: prevPage })}
-        </div>
-      ))}
+      <div className={clsx(styles.sidebarPage, styles.sidebarPageActive)}>
+        {active.render({ goTo, navPayload, goBack: prevPage })}
+      </div>
     </div>
   );
 
@@ -177,11 +169,16 @@ export default function HomeScreenSingle() {
           : active.label
       }
     >
-      {needsSelection ? (
+      {/* {needsSelection ? (
         !id ? <InfluencerSelector onItemClick={handleSelect} influencers={influencers} /> : chatContent
       ) : (
         chatContent
-      )}
+      )} */}
+      <ChatScreenContent
+        id={id}
+        onMenuClick={toggleSidebar}
+        setNeedsSelection={handleNeedsSelectionChange}
+        showChangeInfluencerButton={hasMultipleInfluencers} />
     </SlideDrawerLayout>
   );
 }
