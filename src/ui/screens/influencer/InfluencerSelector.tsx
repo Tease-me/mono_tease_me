@@ -121,19 +121,6 @@ export default function InfluencerSelector({
                   />
                 </div>
               </div>
-              <div key={`${inf.id}_1`}>
-                <div className={styles.card}>
-                  <InfluencerRelationCard {...inf} />
-                </div>
-                <div className={styles.buttonRow}>
-                  <IconButton
-                    text="Chat"
-                    onClick={() => onItemClick?.(inf.id)}
-                    color="black"
-                    className={styles.chatButton}
-                  />
-                </div>
-              </div>
               </>
             ))}
             {error && <div className={styles.error}>{error}</div>}
