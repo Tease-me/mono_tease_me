@@ -459,6 +459,55 @@ textarea.input {
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
 }
 
+.debugPanel {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px dashed rgba(148, 163, 184, 0.6);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.25);
+  font-size: 12px;
+  color: #e2e8f0;
+}
+
+.debugTitle {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.debugGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 6px 12px;
+}
+
+.debugRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.debugKey {
+  color: #94a3b8;
+}
+
+.debugValue {
+  text-align: right;
+}
+
+.debugSection {
+  margin-top: 8px;
+}
+
+.debugList {
+  margin: 6px 0 0;
+  padding-left: 16px;
+}
+
+.debugActive {
+  color: #fda4af;
+  font-weight: 600;
+}
+
 .glassButton {
   background: rgba(18, 18, 18, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.16);

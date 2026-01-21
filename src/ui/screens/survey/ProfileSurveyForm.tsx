@@ -64,8 +64,6 @@ const ProfileSurveyForm: React.FC = () => {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [acceptingTerms, setAcceptingTerms] = useState(false);
   const [termsError, setTermsError] = useState<string | null>(null);
-
-
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [stepIndex, setStepIndex] = useState<number>(0);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | null>>(
@@ -73,12 +71,15 @@ const ProfileSurveyForm: React.FC = () => {
   );
   const [uploadingPicture, setUploadingPicture] = useState(false);
   const [pictureError, setPictureError] = useState<string | null>(null);
-  const [socialError, setSocialError] = useState<string | null>(null);
-  const [pictureUrl, setPictureUrl] = useState<string | null>(null);
+  const [isCropOpen, setIsCropOpen] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const pendingFileRef = useRef<File | null>(null);
   const [pendingPictureKey, setPendingPictureKey] = useState<string | null>(null);
+  const [pictureUrl, setPictureUrl] = useState<string | null>(null);
+  const [socialError, setSocialError] = useState<string | null>(null);
   const [verifyingSocial, setVerifyingSocial] = useState<Record<string, boolean>>({});
-  const objectUrlRef = useRef<string | null>(null);
 
+  const objectUrlRef = useRef<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const surveyStepsCount = surveySteps.length;
@@ -209,7 +210,11 @@ const ProfileSurveyForm: React.FC = () => {
     };
 
     // If we just uploaded and are showing a local blob for this key, delay
-    if (pendingPictureKey && pendingPictureKey === key && pictureUrl?.startsWith("blob:")) {
+    if (
+      pendingPictureKey &&
+      pendingPictureKey === key &&
+      (pictureUrl?.startsWith("blob:") || pictureUrl?.startsWith("data:"))
+    ) {
       return;
     }
 
@@ -394,7 +399,8 @@ const ProfileSurveyForm: React.FC = () => {
 
     if (stepIndex < surveyStepsCount) {
       valid = validateSurveyStep();
-    } else if (stepIndex === pictureStepIndex) {
+    }
+    else if (stepIndex === pictureStepIndex) {
       valid = validatePictureStep();
     } else if (stepIndex === socialsStepIndex) {
       valid = validateSocialsStep();
@@ -439,13 +445,42 @@ const ProfileSurveyForm: React.FC = () => {
     }
     const localUrl = URL.createObjectURL(file);
     objectUrlRef.current = localUrl;
-    setPictureUrl(localUrl);
+
+    pendingFileRef.current = file;
+    setCropImageSrc(localUrl);
+    setIsCropOpen(true);
+    setPictureError(null);
+  };
+
+  const handleCloseCrop = () => {
+    setIsCropOpen(false);
+    setCropImageSrc(null);
+    pendingFileRef.current = null;
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleCropComplete = async (blob: Blob, dataUrl: string) => {
+    if (!preInfluencerId) return;
+    setIsCropOpen(false);
+    setCropImageSrc(null);
+    setPictureUrl(dataUrl);
     setUploadingPicture(true);
     setPictureError(null);
 
     try {
+      const originalFile = pendingFileRef.current;
+      const fileName = originalFile?.name || "profile.jpg";
+      const fileType = blob.type || originalFile?.type || "image/jpeg";
+      const croppedFile = new File([blob], fileName, { type: fileType });
+
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", croppedFile);
       formData.append("pre_influencer_id", String(preInfluencerId));
 
       const { data } = await apiClient.post(
@@ -464,7 +499,11 @@ const ProfileSurveyForm: React.FC = () => {
       setPictureError("Error uploading picture. Please try again.");
     } finally {
       setUploadingPicture(false);
-
+      pendingFileRef.current = null;
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
+      }
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -505,7 +544,6 @@ const ProfileSurveyForm: React.FC = () => {
 
   const currentSurveyStep =
     isSurveyStep && surveySteps[stepIndex] ? surveySteps[stepIndex] : null;
-
   return (
     <div className={styles.screen}>
       <TermsModal
@@ -609,7 +647,18 @@ const ProfileSurveyForm: React.FC = () => {
 
               {/* STEP: PICTURE */}
               {isPictureStep && (
-                <UploadPictureStep uploading={uploadingPicture} pictureUrl={pictureUrl} pictureError={pictureError} onSelect={handlePictureSelect} inputRef={fileInputRef} name={preInfluencerUsername || ""} />
+                <UploadPictureStep
+                  uploading={uploadingPicture}
+                  pictureUrl={pictureUrl}
+                  pictureError={pictureError}
+                  onSelect={handlePictureSelect}
+                  inputRef={fileInputRef}
+                  name={preInfluencerUsername || ""}
+                  isCropOpen={isCropOpen}
+                  cropImageSrc={cropImageSrc}
+                  onCropClose={handleCloseCrop}
+                  onCropComplete={handleCropComplete}
+                />
               )}
 
               {/* STEP: SOCIAL MEDIA */}
