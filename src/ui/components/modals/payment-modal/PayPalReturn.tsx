@@ -17,6 +17,8 @@ export default function PayPalReturn() {
       const tokenOrderId = params.get("token");
       const order_id =
         tokenOrderId || localStorage.getItem("paypal_topup_order_id");
+      const influencer_id =
+        localStorage.getItem("paypal_topup_influencer_id") || "";
 
       setDetail(`token=${tokenOrderId || ""}`);
 
@@ -28,12 +30,13 @@ export default function PayPalReturn() {
       try {
         setMsg(`Capturing order ${order_id}...`);
 
-        const res = await billing.paypalCapture({ order_id });
+        const res = await billing.paypalCapture({ order_id, influencer_id });
 
         setDetail(JSON.stringify(res, null, 2));
 
         if (res?.ok) {
           localStorage.removeItem("paypal_topup_order_id");
+          localStorage.removeItem("paypal_topup_influencer_id");
           setMsg("Top up success! Redirecting...");
           setTimeout(() => navigate(Paths.home), 1200);
         } else {

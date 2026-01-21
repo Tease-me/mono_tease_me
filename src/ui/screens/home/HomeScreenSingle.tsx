@@ -17,6 +17,7 @@ import styles from "./HomeScreenSingle.module.css"
 
 type SidebarPageId = string;
 type NavPayload = Record<string, any>;
+type NavStackEntry = { id: SidebarPageId; payload?: NavPayload };
 
 type SidebarPage = {
   id: SidebarPageId;
@@ -47,8 +48,7 @@ const sidebarPages: SidebarPage[] = [
         influencerImageUrl={navPayload.image}
         onSubscribePressed={() => {
           navPayload.onSubscribe();
-        }
-        }
+        }}
         nobg
       />
     )
@@ -66,22 +66,29 @@ export default function HomeScreenSingle() {
   const [hasMultipleInfluencers, setHasMultipleInfluencers] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   const [currentPage, setCurrentPage] = useState<SidebarPageId>("home");
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [history, setHistory] = useState<SidebarPageId[]>([]);
+  const [history, setHistory] = useState<NavStackEntry[]>([]);
   const [navPayload, setNavPayload] = useState<NavPayload>({});
 
   const influencerRepo = useMemo(() => InfluencerRepo(), []);
 
   const goTo = useCallback((pageId: SidebarPageId, payload?: NavPayload) => {
     if (payload) setNavPayload((p) => ({ ...p, ...payload }));
-    setHistory((h) => [...h, currentPage]);
+    setHistory((h) => [...h, { id: currentPage, payload: navPayload }]);
     setCurrentPage(pageId);
-  }, [currentPage]);
+  }, [currentPage, navPayload]);
 
   const prevPage = useCallback(() => {
     setHistory((h) => {
-      const prev = h[h.length - 1] ?? "home";
-      setCurrentPage(prev);
+      const prev = h[h.length - 1];
+      if (prev) {
+        setCurrentPage(prev.id);
+        setNavPayload(prev.payload ?? {});
+      } else {
+        setCurrentPage("home");
+        setNavPayload({});
+      }
       return h.slice(0, -1);
     });
   }, []);
@@ -106,17 +113,9 @@ export default function HomeScreenSingle() {
 
   const sidebar = (
     <div className={styles.sidebarPages}>
-      {sidebarPages.map((page) => (
-        <div
-          key={page.id}
-          className={clsx(
-            styles.sidebarPage,
-            page.id === currentPage ? styles.sidebarPageActive : styles.sidebarPageHidden
-          )}
-        >
-          {page.render({ goTo, navPayload, goBack: prevPage })}
-        </div>
-      ))}
+      <div className={clsx(styles.sidebarPage, styles.sidebarPageActive)}>
+        {active.render({ goTo, navPayload, goBack: prevPage })}
+      </div>
     </div>
   );
 
