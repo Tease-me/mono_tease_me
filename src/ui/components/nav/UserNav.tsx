@@ -34,7 +34,7 @@ const UserNav: React.FC<UserNavProps> = ({ onCallClick, onMenuClick, adultMode, 
           onClick={onMenuClick}
           className={styles.menuButton}
         >
-          <SvgPack.Menu className={styles.menuButtonIcon}/>
+          <SvgPack.Menu className={styles.menuButtonIcon} />
         </div>)}
 
 
@@ -50,7 +50,7 @@ const UserNav: React.FC<UserNavProps> = ({ onCallClick, onMenuClick, adultMode, 
           <TeaseMeLogo variant="full" />
         </div>
         <div className={styles["right-buttons"]}>
-          {!adultMode && <IconButton leftIcon={callMode ? <SvgPack.Call /> : <SvgPack.Message />} onClick={onCallClick} className={styles.callButton} color='black' text="Mode" />}
+          {!adultMode && <IconButton leftIcon={callMode ? <SvgPack.Call /> : <SvgPack.Chat />} onClick={onCallClick} className={styles.callButton} color='black' text="Mode" />}
           <IconButton leftIcon={<SvgPack.Call />} onClick={onCallClick} className={styles.callButtonSmall} color='green' />
         </div>
       </div>
