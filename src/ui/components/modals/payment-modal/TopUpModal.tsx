@@ -332,7 +332,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
           <TabsLayout
             tabs={tabItems}
             activeTab={activeTab}
-            setActiveTab={() => {}}
+            setActiveTab={() => { }}
           />
         </div>
       )}
