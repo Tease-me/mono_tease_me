@@ -48,33 +48,33 @@
   letter-spacing: 0.2px;
 }
 
-.icon {
+/* .icon {
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-}
+} */
 
-.imgBg{
+/* .imgBg {
   width: 100%;
   height: auto;
-}
+} */
 
-.imageArea{
+.imageArea {
   position: relative;
 }
 
-.btn{
+.btn {
   width: 220px;
   margin-bottom: 12px;
 }
 
-.footer{
+.footer {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.footerBtnArea{
+.footerBtnArea {
   max-width: 220px;
 }
