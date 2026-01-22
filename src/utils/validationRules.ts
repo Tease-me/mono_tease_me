@@ -3,15 +3,15 @@ import {
   emailFormat,
   hasLowercase,
   hasNumber,
-  hasSpecialChar,
-  hasUppercase,
+  // hasSpecialChar,
+  // hasUppercase,
   maxLength,
   minLength,
   phoneFormat,
   required,
   urlFormat,
   Validator,
-} from "./validation";
+} from "./validations";
 
 export type ValidationRuleSet = Record<string, Validator<string>>;
 
@@ -21,10 +21,10 @@ export const validationRules = {
     required("Password"),
     minLength("Password", 8),
     maxLength("Password", 64),
-    hasUppercase("Password"),
+    // hasUppercase("Password"),
     hasLowercase("Password"),
     hasNumber("Password"),
-    hasSpecialChar("Password")
+    // hasSpecialChar("Password")
   ),
   username: composeValidators(required("Username"), minLength("Username", 3), maxLength("Username", 30)),
   phone: composeValidators(required("Phone"), phoneFormat),
