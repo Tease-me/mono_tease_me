@@ -38,8 +38,8 @@ const InfluencerRelationCard: React.FC<InfleuncerRelationCardProps> = ({
 }) => {
   const metrics = [
     { key: "trust", label: "Trust", value: trust, icon: <SvgPack.Trust /> },
-    { key: "attraction", label: "Attraction", value: attraction, icon: <SvgPack.Angles /> },
-    { key: "closeness", label: "Closeness", value: closeness, icon: <SvgPack.KissGray /> },
+    { key: "closeness", label: "Closeness", value: closeness, icon: <SvgPack.Angles /> },
+    { key: "attraction", label: "Attraction", value: attraction, icon: <SvgPack.KissGray /> },
     { key: "safety", label: "Safety", value: safety, icon: <SvgPack.Shield /> },
   ];
 
@@ -65,14 +65,17 @@ const InfluencerRelationCard: React.FC<InfleuncerRelationCardProps> = ({
           <p className={styles.lastConnectedArea}>Last Connected: <span className={spanClass} >{lastConnected ? (isActive ? "Just Now" : lastConnectedLabel) : "--"} </span></p>
         </div>
         <div className={styles.avatarContainer}>
-          <ProfileMedia size={'xlarge'} imageSrc={image} videoSrc={video} active />
+          <ProfileMedia size={'xlarge'} imageSrc={image} videoSrc={video} active glow />
         </div>
-        <div className={styles.metricsBridge}>
-          <div className={styles.metricsArea}>
-            {metrics.map(({ key, label, value, icon }) => (
-              <MetricRing key={key} icon={icon} label={label} value={value} />
-            )
-            )}
+        <div className={styles.metricsContainer}>
+          <div className={styles.metricsBridge}>
+
+            <div className={styles.metricsArea}>
+              {metrics.map(({ key, label, value, icon }) => (
+                <MetricRing key={key} icon={icon} label={label} value={value} size="medium" />
+              )
+              )}
+            </div>
           </div>
         </div>
       </div>

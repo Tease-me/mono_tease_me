@@ -1,4 +1,4 @@
-import React, { useEffect, useContext, useState } from "react";
+import React, { useEffect, useContext, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import BackgroundGradient from "../../templates/BackgroundGradient";
 import styles from "./LoginScreen.module.css";
@@ -11,36 +11,94 @@ import FullWidthLayout from "@/ui/templates/FullWidthLayout";
 import SvgPack from "@/utils/SvgPack";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import ValidationPill from "@/ui/components/inputs/buttons/ValidationPill";
+import { validationRules } from "@/utils/validationRules";
+import { validateFields } from "@/utils/validations";
+
+type LoginErrors = {
+  email?: string;
+  password?: string;
+  general?: string;
+};
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [agree, setAgree] = useState(false);
 
-  const [errors, setErrors] = useState<{ email?: string; password?: string, general?: string }>({});
+  const [errors, setErrors] = useState<LoginErrors>({});
+
   const { login, isSignedIn, authErrors } = useContext(AuthContext);
 
   const navigate = useNavigate();
 
   useEffect(() => { if (isSignedIn) navigate("/home"); }, [isSignedIn, navigate]);
+
   useEffect(() => {
     if (authErrors) {
       setErrors(prev => ({ ...prev, general: authErrors.data.error }));
     }
   }, [authErrors]);
 
+  const validate = useCallback((): LoginErrors => {
+    return validateFields(
+      { email, password },
+      {
+        email: validationRules.email,
+        password: validationRules.password,
+      }
+    );
+  }, [email, password]);
+
+  const validateEmail = useCallback((value: string): string | undefined => {
+    return validationRules.email(value);
+  }, []);
+
+  const validatePassword = useCallback((value: string): string | undefined => {
+    return validationRules.password(value);
+  }, []);
+
+  const [touched, setTouched] = useState({ email: false, password: false });
+
+  const handleEmailChange = useCallback((value: string) => {
+    setEmail(value);
+    setErrors((prev) => {
+      if (!touched.email) {
+        return { ...prev, general: undefined };
+      }
+      return { ...prev, email: validateEmail(value), general: undefined };
+    });
+  }, [touched.email, validateEmail]);
+
+  const handlePasswordChange = useCallback((value: string) => {
+    setPassword(value);
+    setErrors((prev) => {
+      if (!touched.password) {
+        return { ...prev, general: undefined };
+      }
+      return { ...prev, password: validatePassword(value), general: undefined };
+    });
+  }, [touched.password, validatePassword]);
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    const newErrors: { email?: string; password?: string, general?: string } = {};
-    if (!email.trim()) newErrors.email = "Email is required";
-    if (!password) newErrors.password = "Password is required";
 
-    if (Object.keys(newErrors).length) {
-      setErrors(newErrors);
-      return;
+    const nextErrors = validate();
+    if (Object.keys(nextErrors).length) {
+      setErrors(nextErrors);
+      setTouched({ email: true, password: true });
+      return false;
     }
     await login(email, password);
   };
+
+  const handleEmailBlur = useCallback(() => {
+    setTouched((prev) => ({ ...prev, email: true }));
+    setErrors((prev) => ({ ...prev, email: validateEmail(email), general: undefined }));
+  }, [email, validateEmail]);
+
+  const handlePasswordBlur = useCallback(() => {
+    setTouched((prev) => ({ ...prev, password: true }));
+    setErrors((prev) => ({ ...prev, password: validatePassword(password), general: undefined }));
+  }, [password, validatePassword]);
 
   const handleContinueClicked = () => {
     handleSubmit();
@@ -62,21 +120,23 @@ export default function LoginScreen() {
             <div className={styles["input-field"]}>
               <TextInput
                 leftIcon={<SvgPack.Message />}
+                onBlur={handleEmailBlur}
                 type="email"
                 placeholder="Email"
                 value={email}
-                onChange={e => setEmail((e.target as HTMLInputElement).value)} />
-              {errors.email && <span className={styles["error"]}>{errors.email}</span>}
+                onChange={e => handleEmailChange((e.target as HTMLInputElement).value)} />
+              <span className={styles["error"]}>{errors.email}</span>
             </div>
             <div className={styles["input-field"]}>
               <TextInput
                 leftIcon={<SvgPack.Lock />}
                 type="password"
                 placeholder="Password"
+                onBlur={handlePasswordBlur}
                 value={password}
-                onChange={e => setPassword((e.target as HTMLInputElement).value)}
+                onChange={e => handlePasswordChange((e.target as HTMLInputElement).value)}
               />
-              {errors.password && <span className={styles["error"]}>{errors.password}</span>}
+              <span className={styles["error"]}>{errors.password}</span>
             </div>
           </div>
           <CheckBox className={styles["check-box"]} checked={agree} onChange={handleOnAgreeChange}>

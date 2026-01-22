@@ -1,5 +1,4 @@
-import PaymentSuccessBg from "@/assets/image/payment_success_background.png"
-import PaymentFailureBg from "@/assets/image/payment_failure_background.png"
+
 import SvgPack from "@/utils/SvgPack"
 import styles from "./PaymentResult.module.css"
 import IconButton from "../inputs/buttons/IconButton"
@@ -22,11 +21,11 @@ export default function PaymentResult({ isSuccessful, onBack, onContactSupport, 
   return (
     <div className={clsx('u-sidebar-page', styles.container)}>
       <div className={styles.imageArea}>
-        <div className={styles.imgBg}>
+        {/* <div className={styles.imgBg}>
           <img src={isSuccessful ? PaymentSuccessBg : PaymentFailureBg} />
-        </div>
+        </div> */}
         <div className={styles.icon}>
-          {isSuccessful ? <SvgPack.CircleTick /> : <SvgPack.CircleCross />}
+          {isSuccessful ? <SvgPack.PaymentTick /> : <SvgPack.PaymentCross />}
         </div>
       </div>
       <div className={clsx(styles.title, isSuccessful ? styles.success : styles.error)}>
@@ -46,7 +45,7 @@ export default function PaymentResult({ isSuccessful, onBack, onContactSupport, 
         </div>
         <div className={styles.footerBtnArea}>
           {!isSuccessful && <IconButton className={styles.btn} color="pink-glass" text="Contact Support" onClick={onContactSupport} />}
-          <IconButton className={styles.btn} color="black" text="Back to Profile" onClick={onBack}/>
+          <IconButton className={styles.btn} color="black" text="Back to Profile" onClick={onBack} />
         </div>
       </div>
 
