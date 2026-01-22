@@ -89,11 +89,17 @@ const TeaseMeIncomeCalculator: React.FC = () => {
               type="number"
               className="ic-input"
               placeholder="Enter number"
+              min={0}
               value={followers}
-              onChange={(e) =>
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val.toString().length > 10) {
+                  return;
+                }
                 setFollowers(
                   e.target.value === "" ? "" : Number(e.target.value)
                 )
+              }
               }
             />
           </>
@@ -108,10 +114,10 @@ const TeaseMeIncomeCalculator: React.FC = () => {
         <div className="ic-slider">
           <div className="ic-slider-track" />
           <div className="ic-slider-fill" style={{ width: `${converted}%` }} />
-       <div
-  className={`ic-slider-thumb ${isHolding ? "ic-slider-thumb-hold" : ""}`}
-  style={{ left: `${converted}%` }}
-/>
+          <div
+            className={`ic-slider-thumb ${isHolding ? "ic-slider-thumb-hold" : ""}`}
+            style={{ left: `${converted}%` }}
+          />
           <input
             type="range"
             min={0}

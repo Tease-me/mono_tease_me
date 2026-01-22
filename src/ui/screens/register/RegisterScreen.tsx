@@ -76,7 +76,7 @@ export default function RegisterScreen() {
       if (response.ok) {
         navigate(Paths.registerVerify, { state: { email, password, influencerId: username } });
       }
-      setErrors({ general: "Registration Failed Plese Try Again Later" });
+      setErrors({ general: "Registration Failed. Please Try Again Later" });
     } catch (err) {
       console.error(err);
     }
