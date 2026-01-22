@@ -16,6 +16,7 @@ interface MessagesListProps {
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
   influencerName?: string;
   onAudioPlay?: (src: string) => void;
+  showAudioTranscript?: boolean;
 }
 
 const MessagesList = React.memo(
@@ -25,6 +26,7 @@ const MessagesList = React.memo(
     messagesEndRef,
     influencerName,
     onAudioPlay,
+    showAudioTranscript,
   }: MessagesListProps) => {
     return (
       <>
@@ -36,6 +38,7 @@ const MessagesList = React.memo(
               callGroup={isCallGroup(msg) ? msg : undefined}
               influencerName={influencerName}
               onAudioPlay={onAudioPlay}
+              showAudioTranscript={showAudioTranscript}
             />
           ))}
           {typing && <MessageBubble />}

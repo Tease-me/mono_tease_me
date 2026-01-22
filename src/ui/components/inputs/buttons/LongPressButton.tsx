@@ -139,6 +139,7 @@ const LongPressButton: React.FC<LongPressButtonProps> = ({
     return (
         <IconButton draggable={false}
             {...props}
+            color='yellow'
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
             onMouseMove={handleMouseMove}

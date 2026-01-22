@@ -17,6 +17,7 @@ export type TopUpRes = {
 export type PayPalCreateOrderReq = {
   cents: number;
   currency?: string;
+  influencer_id: string;
 };
 
 export type PayPalCreateOrderRes = {
@@ -26,6 +27,7 @@ export type PayPalCreateOrderRes = {
 
 export type PayPalCaptureReq = {
   order_id: string;
+  influencer_id?: string;
 };
 
 export type PayPalCaptureRes = {

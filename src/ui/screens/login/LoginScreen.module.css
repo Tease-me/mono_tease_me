@@ -18,7 +18,6 @@
   display: flex;
   flex: 1;
   gap: 15px;
-  margin-bottom: 35px;
 }
 
 .input-field {
@@ -28,10 +27,12 @@
 }
 
 .input-field span {
-  margin-top: 20px;
+  margin-top: 14px;
+  margin-left: 10px;
+  min-height: 20px;
   font-size: 14px;
   color: #ff4d6d;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
 }
 
 .check-box {
@@ -121,12 +122,12 @@
   }
 }
 
-.errorPill { 
+.errorPill {
   align-self: center;
 }
 
 @media (min-width: 767px) {
-.errorPill { 
-  align-self: flex-end;
-}
+  .errorPill {
+    align-self: flex-end;
+  }
 }

@@ -1,34 +1,61 @@
 .chat-input-area {
     display: flex;
-    padding: 10px;
+    flex-direction: row;
     gap: 14px;
-    background-color: transparent;
     align-items: center;
     border: 1px solid rgba(33, 33, 33, 1);
-    padding: 44px 51px 77px 51px;
+    padding: 16px 23px;
     background-color: var(--color-dark-1);
-    border-radius: 8px 8px 0px 0px;
+    justify-content: center;
+    margin: 0 auto;
+    max-width: calc(var(--max-chat-content-width) + 22px);
+
+    border-radius: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.10);
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.6) 100%);
+    box-shadow: 0 -5px 10px 0 rgba(0, 0, 0, 0.20);
+
+    backdrop-filter: blur(8px) brightness(4);
+    margin-bottom: 3dvh;
+    position: relative;
+}
+
+.input-with-badge {
+    display: flex;
+    position: relative;
+    flex: 1;
 }
 
 .input-container {
     display: flex;
+    position: relative;
     flex: 1;
-    border-radius: 12px;
-    border: none;
     flex-direction: row;
     background-color: var(--color-dark-2);
     color: var(--color-text-secondary);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: var(--Dark-Dark-2, #1F222A);
+    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25) inset;
     outline: none;
 }
 
 .input-container input {
+    display: flex;
     padding: 18px 20px;
-    display: block;
+    padding-right: 100px;
     border: none;
     outline: none;
-    flex: 1 0 auto;
-    min-width: 100px;
     width: 100%;
+}
+
+.credit-badge {
+    display: flex;
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    align-self: center;
 }
 
 .input-container.recording {
@@ -60,7 +87,18 @@
 
 .buttons {
     display: flex;
+    flex-direction: row;
     gap: 4px;
+}
+
+.buttons.voice-mode {
+    display: flex;
+    flex: 1;
+}
+
+.buttons.voice-mode .send-btn {
+    flex: 0;
+    min-width: 60px;
 }
 
 .call-btn {
@@ -78,5 +116,6 @@
     .chat-input-area {
         border: 1px solid rgba(33, 33, 33, 1);
         padding: 20px 28px 20px 28px;
+        margin-bottom: 0px;
     }
 }

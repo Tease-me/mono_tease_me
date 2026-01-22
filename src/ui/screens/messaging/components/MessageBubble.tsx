@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import TypingIndicator from './TypingIndicator';
 import { MediaAttachment, Message } from '@/data/models/MessageDataModel';
 import AudioPlayer from '@/ui/components/audio-player/AudioPlayer';
+import callIcon from "@/assets/svg/Call.svg";
 
 export interface CallMessageGroup {
     type: 'call-group';
@@ -18,6 +19,7 @@ interface MessageBubbleProps {
     callGroup?: CallMessageGroup;
     influencerName?: string;
     onAudioPlay?: (src: string) => void;
+    showAudioTranscript?: boolean;
 }
 
 const formatDuration = (ms: number) => {
@@ -45,9 +47,16 @@ const getCallDuration = (group?: CallMessageGroup) => {
     return formatDuration(end - start);
 };
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, callGroup, influencerName, onAudioPlay }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({
+    msg,
+    callGroup,
+    influencerName,
+    onAudioPlay,
+    showAudioTranscript,
+}) => {
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const [expanded, setExpanded] = useState(false);
+    const [transcriptExpanded, setTranscriptExpanded] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
     useLayoutEffect(() => {
@@ -94,29 +103,61 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, callGroup, influence
     const sender = callGroup?.sender ?? msg?.sender ?? "received";
     const time = callGroup?.time ?? msg?.time ?? "";
     const callDuration = getCallDuration(callGroup);
+    const hasTranscript = Boolean(showAudioTranscript && msg?.transcript);
+    const hasAudio = !callGroup && msg?.attachments?.some((attachment) => attachment.type === "audio");
+    const isAudioOnly = Boolean(hasAudio && !msg?.text?.trim());
     const callSpeakerName = (messageSender: Message["sender"]) => {
         if (messageSender === "received") return influencerName || "Influencer";
         return "You";
     };
 
     return (
-        <div ref={containerRef} className={clsx(styles["message"], styles[sender])}>
+        <div
+            ref={containerRef}
+            className={clsx(
+                styles["message"],
+                styles[sender],
+                isAudioOnly && styles["audio-only"],
+                callGroup && styles["call-message"]
+            )}
+        >
             <div className={clsx(styles["message-content"], callGroup && styles["call-transcript"])}>
                 {callGroup ? (
                     <>
-                        <div className={styles["call-transcript-header"]}>
-                            <div className={styles["call-title"]}>Call log</div>
-                            <button
-                                type="button"
-                                className={styles["call-toggle"]}
-                                onClick={() => setExpanded((prev) => !prev)}
-                            >
-                                {expanded ? "Hide" : "Show"}
-                            </button>
+                        <div
+                            className={styles["call-bubble"]}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setExpanded((prev) => !prev)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    setExpanded((prev) => !prev);
+                                }
+                            }}
+                        >
+                            <div className={styles["call-icon-wrap"]}>
+                                <img src={callIcon} className={styles["call-icon"]} alt="Call" />
+                            </div>
+                            <div className={styles["call-copy"]}>
+                                <div className={styles["call-title"]}>Phone Call</div>
+                                <div className={styles["call-subtitle"]}>Tap to call back</div>
+                                {(callDuration || time) && (
+                                    <div className={styles["call-meta"]}>
+                                        {callDuration ? `Duration ${callDuration}` : null}
+                                        {callDuration && time ? " • " : ""}
+                                        {time || null}
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                        {callDuration && (
-                            <div className={styles["call-duration"]}>Total call time: {callDuration}</div>
-                        )}
+                        <button
+                            type="button"
+                            className={styles["call-transcript-link"]}
+                            onClick={() => setExpanded((prev) => !prev)}
+                        >
+                            {expanded ? "Hide transcription" : "Or view transcription"}
+                        </button>
                         {expanded && (
                             <div className={styles["call-lines"]}>
                                 {callGroup.messages.map((message) => (
@@ -135,9 +176,20 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, callGroup, influence
                     </>
                 ) : (
                     <>
-                    
                         {msg?.text}
                         {renderAttachments(msg)}
+                        {hasTranscript && (
+                            <button
+                                type="button"
+                                className={styles["audio-transcript-toggle"]}
+                                onClick={() => setTranscriptExpanded((prev) => !prev)}
+                            >
+                                {transcriptExpanded ? "Hide transcript" : "Show transcript"}
+                            </button>
+                        )}
+                        {hasTranscript && transcriptExpanded && (
+                            <div className={styles["audio-transcript"]}>{msg?.transcript}</div>
+                        )}
                     </>
                 )}
             </div>

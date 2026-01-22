@@ -10,11 +10,16 @@ type PaymentDetailsProps = { goTo: (id: string) => void };
 const PaymentDetails = ({ goTo }: PaymentDetailsProps) => {
     const handleVisaBtn = () => {
         // Handle Visa button click
-        goTo("visa-details");
+        //temporarily disable
+        const a=false;
+        if (a) {
+        goTo("");
+        }
     };
 
     const handleMasterCardBtn = () => {
-        // Handle MasterCard button click
+        //temporary
+       goTo('payment-check');
     };
 
 
@@ -24,7 +29,7 @@ const PaymentDetails = ({ goTo }: PaymentDetailsProps) => {
 
 
     return (
-        <div>
+        <div className="u-sidebar-page">
             <div className={styles.cardPreview}>
                 <img src={CardMockup} alt="Card Mockup" className={styles.cardImage} />
             </div>
@@ -33,8 +38,10 @@ const PaymentDetails = ({ goTo }: PaymentDetailsProps) => {
                 <NavigationRow title="Visa" subtitle="Default" onClick={handleVisaBtn} />
                 <NavigationRow title="MasterCard" subtitle="Backup Method" onClick={handleMasterCardBtn} />
             </div>
-            <div className={styles.addNew}>
-                <IconButton leftIcon={<SvgPack.PlusBox />} text="Add New Payment Method" onClick={handleAddNew} color='pink-glass' className={styles.addButton} />
+            <div className="u-sidebar-footer">
+                <div className={styles.addNew}>
+                    <IconButton leftIcon={<SvgPack.PlusBox />} text="Add New Payment Method" onClick={handleAddNew} color='pink-glass' className={styles.addButton} />
+                </div>
             </div>
         </div>
     );

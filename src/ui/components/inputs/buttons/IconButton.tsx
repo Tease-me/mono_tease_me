@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styles from "./IconButton.module.css"
 import clsx from 'clsx';
 export type IconButtonType = "pill" | "square";
-export type IconButtonColor = "black" | "green" | "pink" | "red" | "yellow" | "pink-glass";
+export type IconButtonColor = "black" | "green" | "pink" | "red" | "yellow" | "pink-glass" | "purple";
 export type IconButtonOrientation = "horizontal" | "vertical";
 
 export interface IconButtonProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -13,9 +13,10 @@ export interface IconButtonProps extends React.HTMLAttributes<HTMLDivElement> {
     text?: string;
     disabled?: boolean;
     selected?: boolean;
+    redText?: boolean;
 }
 
-const IconButton: React.FC<IconButtonProps> = ({ type = "pill", color = "pink", leftIcon, orientation = "horizontal", text, disabled, selected, ...rest }) => {
+const IconButton: React.FC<IconButtonProps> = ({ type = "pill", color = "pink", leftIcon, redText = false, orientation = "horizontal", text, disabled, selected, ...rest }) => {
     const [hovered, setHovered] = useState(false);
     const [pressed, setPressed] = useState(false);
     const outerStyle: Record<IconButtonType, string> = {
@@ -84,7 +85,12 @@ const IconButton: React.FC<IconButtonProps> = ({ type = "pill", color = "pink", 
                     {leftIcon && <div className={styles["left-icon"]}>
                         {leftIcon}
                     </div>}
-                    {text && <div className={clsx(styles["button-text"], styles[color])}>{text}</div>}
+                    {text && (
+                        <div className={clsx(styles["button-text"], styles[color], redText && styles.redText)}>
+                            {text}
+                        </div>
+                    )}
+
                 </div>
             </div>
             {(!disabled && color === "pink-glass") && (

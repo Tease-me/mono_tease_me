@@ -23,6 +23,7 @@ export interface InfluencerDataModel {
   daily_scripts?: string[];
   influencer_agent_id_third_part?: string;
   bio_json?: any;
+  custom_adult_prompt?: string;
   fp_ref_id?: string | null;
   social_connections?: {
     instagram: boolean;
@@ -41,4 +42,13 @@ export interface KnowledgeFileModel {
   error_message: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface InfluencerSampleModel {
+  id: number;
+  s3_key: string;
+  original_filename?: string | null;
+  content_type?: string | null;
+  url?: string | null;
+  created_at?: string | null;
 }

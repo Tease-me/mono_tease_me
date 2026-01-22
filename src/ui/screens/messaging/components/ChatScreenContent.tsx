@@ -1,13 +1,10 @@
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { memo, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Endpoints, WS_BASE_URL } from "@/api/urls";
-import ProfileMedia from "@/ui/components/ProfileMedia";
-import { truncateLastName } from "@/utils/StringUtils";
 import { AuthContext } from "@/context/AuthContext";
 import styles from "./ChatScreenContent.module.css"
 import { useParams } from 'react-router-dom';
-import { CallMessageGroup } from './MessageBubble';
-import MessagesList, { DisplayMessage } from './MessageList';
+import MessagesList from './MessageList';
 import ChatInputArea from './ChatInputArea';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import { InfluencerDataModel } from '@/data/models/InfluencerDataModel';
@@ -19,56 +16,32 @@ import clsx from 'clsx';
 import { ChatRepository } from '@/data/repositories/ChatRepo';
 import { InfluencerRepo } from '@/data/repositories/InfluencerRepo';
 import logger from '@/utils/logger';
-import CallModal from '@/ui/components/modals/call-modal/CallModal';
 import useCallWebRTC from '@/hooks/useCallWebRTC';
+import { useChatScroll } from '@/hooks/useChatScroll';
 import IconButton from '@/ui/components/inputs/buttons/IconButton';
-import { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownMenu';
+import { DropDownMenuDataModel } from '@/ui/components/inputs/dropdown/DropDownMenu'
 import { AdultChatRepo } from '@/data/repositories/AdultChatRepo';
 import { SubscriptionsServices } from '@/api/services/SubscriptionsServices';
 import { apiClient } from '@/api/apis';
-import AdultModePage from '../../adult-mode/AdultModePage';
+import AdultModePage from '../pages/adult-mode/AdultModePage';
 import UserNav from '@/ui/components/nav/UserNav';
+import { Modal } from '@/ui/components/modals/Modal';
+import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
+import SvgPack from '@/utils/SvgPack';
+import ChatInfluencerBar from './ChatInfluencerBar';
+import ChatHeaderInfo from './ChatHeaderInfo';
+import { RelationshipServices } from '@/api/services/RelationshipServices';
+import CallModePage from '../pages/call-page/CallModePage';
+import { RelationshipDataModel } from '@/data/models/RelationshipDataModel';
+import AdultConvoStarterCard from '@/ui/components/cards/AdultConvoStarterCard';
+import { mergeCallMessages } from './messageUtils';
+import { UserServices } from '@/api/services/UserServices';
 
-const isCallChannel = (message: Message) => {
-    if (!message.channel) return false;
-    return message.channel.toLowerCase().startsWith("call");
-};
-
-const mergeCallMessages = (messageList: Message[]): DisplayMessage[] => {
-    const merged: DisplayMessage[] = [];
-    let currentCallGroup: CallMessageGroup | null = null;
-
-    messageList.forEach((message) => {
-        if (isCallChannel(message)) {
-            const id = message.callId || `call-${message.id}`;
-            const needsNew = !currentCallGroup || currentCallGroup.id !== id;
-
-            if (needsNew) {
-                currentCallGroup = {
-                    id,
-                    sender: "sent",
-                    time: message.time,
-                    messages: [],
-                    type: "call-group",
-                };
-                merged.push(currentCallGroup);
-            }
-
-            currentCallGroup!.messages.push(message);
-            currentCallGroup!.time = message.time;
-            return;
-        }
-
-        currentCallGroup = null;
-        merged.push(message);
-    });
-
-    return merged;
-};
 const chatRepository = ChatRepository();
 const influencerRepo = InfluencerRepo();
 const adultChatRepo = AdultChatRepo();
 const subscriptionsServices = SubscriptionsServices(apiClient);
+const relationshipServices = RelationshipServices(apiClient);
 
 interface ChatScreenContentProps {
     id?: string;
@@ -76,9 +49,10 @@ interface ChatScreenContentProps {
     menuItems?: DropDownMenuDataModel[];
     setNeedsSelection?: (needsSelection: boolean) => void;
     onMenuClick?: () => void;
+    showChangeInfluencerButton?: boolean;
 }
 
-const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }) => {
+const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, setNeedsSelection, showChangeInfluencerButton = false }) => {
     const [influencer, setInfluencer] = useState<InfluencerDataModel>();
     const [chatId, setChatId] = useState<string | undefined>();
 
@@ -88,7 +62,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
     const [typing, setTyping] = useState(false);
     const [isWsConnected, setIsWsConnected] = useState(false);
     const [error, setError] = useState<string | undefined>(undefined);
-    const [openWelcomeCallModal, setOpenWelcomeCallModal] = useState(false);
 
     const [pageNumber, setPageNumber] = useState<number>(1);
 
@@ -102,11 +75,17 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
     const reconnectTimer = useRef<number | null>(null);
     const currentAudioRef = useRef<HTMLAudioElement | null>(null);
     const lastChatInitRef = useRef<string | null>(null);
+    const callModalTimeoutRef = useRef<number | null>(null);
+    const relationshipPollRef = useRef<number | null>(null);
 
     const { user } = useContext(AuthContext);
     const [adultMode, setAdultMode] = useState(false);
     const [adultModeSwitch, setAdultModeSwitch] = useState(false);
+    const [mode, setMode] = useState<"chat" | "call">(storage.get(LocalStorageKeys.PreferredChatMode) === "call" ? "call" : "chat");
     const [showSubscriptionPage, setShowSubscriptionPage] = useState(false);
+    const [showErrorAlert, setShowErrorAlert] = useState<string | undefined>();
+    const [relationship, setRelationship] = useState<RelationshipDataModel | undefined>();
+    const [creditsRemaining, setCreditsRemaining] = useState<number | undefined>(undefined);
 
     const { user_id } = useParams();
 
@@ -114,8 +93,20 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
 
     const pageSize = 20;
 
-    const { status, startConversation, stopConversation, setInfluencerId, timeRemaining, micMuted, toggleMute } = useCallWebRTC();
+    const { status, startConversation, stopConversation, setInfluencerId, timeRemaining, micMuted, toggleMute, errorMessage } = useCallWebRTC();
     const displayMessages = useMemo(() => messages ? mergeCallMessages(messages) : [], [messages]);
+    useEffect(() => {
+        setMode(prev => {
+            if (prev === "call" && adultMode) {
+                return "chat"
+            }
+            return prev;
+        });
+    }, [adultMode]);
+
+    useEffect(() => {
+        storage.set(LocalStorageKeys.PreferredChatMode, mode);
+    }, [mode]);
 
     useEffect(() => {
         (async () => {
@@ -137,7 +128,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
 
     useEffect(() => {
         let isMounted = true;
-
+        UserServices(apiClient).getUserUsage(influencer?.id).then((usage) => {
+            if (isMounted) {
+                setCreditsRemaining(usage.normal.messages.remaining);
+            }
+        }).catch((err) => {
+            logger.error("Error fetching user usage:", err);
+        });
         const checkSubscription = async () => {
             if (!influencer) {
                 setTyping(false);
@@ -237,16 +234,14 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
         try {
             const responseMessagesPagination: MessagePagination = await (adultMode ? adultChatRepo.getChatHistory(chat_id, page, pageSize) : chatRepository.getChatHistory(chat_id, page, pageSize));
 
-            const totalPages = responseMessagesPagination.total / pageSize;
+            const totalPages = Math.ceil(responseMessagesPagination.total / pageSize);
             const localMessages = responseMessagesPagination.messages;
             if (page === 1) {
                 setMessages(responseMessagesPagination.messages);
             } else {
                 setMessages(prev => prev ? [...localMessages, ...prev] : localMessages);
             }
-            if (pageSize < totalPages) {
-                setHasMore(false);
-            }
+            setHasMore(page < totalPages);
         } catch (err) {
             console.error('Error loading messages', err);
         }
@@ -267,32 +262,40 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
                 fetchMessages(chat_id, 1);
                 connectChat(influencer.id);
                 setInfluencerId(influencer.id);
+                relationshipServices.getRelationship(influencer.id).then((relationshipResponse) => {
+                    setRelationship(relationshipResponse)
+                })
             }
         })()
     }, [influencer, user, adultMode]);
+
+    const { scrollToBottom, handleScroll } = useChatScroll({
+        messagesEndRef: messagesEndRef,
+        loadMore: async (container) => {
+            if (container && container.scrollTop === 0 && hasMore && !isLoadingMore && chatId) {
+                setIsLoadingMore(true);
+                const previousScrollHeight = container.scrollHeight;
+                await fetchMessages(chatId, pageNumber + 1);
+                setPageNumber(prev => prev + 1);
+                requestAnimationFrame(() => {
+                    if (containerRef.current) {
+                        const newScrollHeight = containerRef.current.scrollHeight;
+                        containerRef.current.scrollTop = newScrollHeight - previousScrollHeight;
+                    }
+                });
+                setIsLoadingMore(false);
+            }
+        },
+    });
 
     useEffect(() => {
         if (pageNumber === 1) {
             scrollToBottom();
         }
-    }, [messages])
-
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
-
-    useEffect(() => {
-        if ((status === "disconnected" || status === "idle") && chatId) {
-            const t = setTimeout(() => {
-                fetchMessages(chatId, 1);
-            }, 10000);
-            return () => clearTimeout(t);
-        }
-    }, [status, chatId]);
+    }, [messages, pageNumber, scrollToBottom])
 
     function calculateReplyTime(msg: string) {
         const replyTime = (msg.length * 100);
-        console.error("Reply time: ", replyTime);
         return (replyTime);
     }
 
@@ -337,6 +340,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
             const data = JSON.parse(event.data);
             if (data.reply) {
                 setTyping(true);
+                if (data.usage) {
+                    setCreditsRemaining(data.usage.normal.messages.remaining);
+                }
                 setTimeout(() => {
                     setMessages(prev => {
                         if (!prev) return
@@ -358,6 +364,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
                     setTyping(false);
                     scrollToBottom();
                     setError(undefined);
+                    if (data.relationship) {
+                        setRelationship(data.relationship)
+                        logger.debug("Relationship Updated:", data.relationship)
+                    }
                 }, calculateReplyTime(data.reply));
             } else if (data.error) {
                 setTyping(false);
@@ -371,19 +381,33 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
         return () => {
             clearReconnectTimer();
             ws.current?.close();
+            if (callModalTimeoutRef.current) {
+                window.clearTimeout(callModalTimeoutRef.current);
+                callModalTimeoutRef.current = null;
+            }
         };
     }, []);
 
-    async function sendAndPlay(audioBlob: Blob) {
+    async function sendAndPlay(audioBlob: Blob, sentMessageId?: number) {
         if (!influencer) return;
         if (!chatId) return;
 
-        const { audio_url } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
+        const { audio_url, transcript, ai_text } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
+
         setTyping(false);
         setMessages((prev) => {
             if (!prev) return prev;
+            const nextMessages = prev.map((message) => {
+                if (!sentMessageId || message.id !== sentMessageId) {
+                    return message;
+                }
+                return {
+                    ...message,
+                    transcript: isSuperUser ? (transcript ?? message.transcript) : message.transcript,
+                };
+            });
             return [
-                ...prev,
+                ...nextMessages,
                 {
                     id: Date.now(),
                     sender: "received",
@@ -401,25 +425,44 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
                             },
                         ]
                         : [],
+                    transcript: isSuperUser ? ai_text : undefined,
                 },
             ];
         });
         scrollToBottom();
     }
 
-    const sendMessage = (forcedAudio?: Blob) => {
-        if (!influencer) return;
+    const sendMessage = (forcedAudio?: Blob): boolean => {
+        if (!influencer) return false;
 
         const audioToSend = forcedAudio ?? inputAudio;
 
         if (inputText.trim()) {
+            if (!chatId) {
+                setError("Chat is still loading. Please wait.");
+                setTyping(false);
+                return false;
+            }
+            const socket = ws.current;
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                setError("Not connected. Reconnecting...");
+                setTyping(false);
+                return false;
+            }
             setTyping(false);
-            ws.current?.send(
-                JSON.stringify({
-                    chat_id: chatId,
-                    message: inputText.trim(),
-                }),
-            );
+            try {
+                socket.send(
+                    JSON.stringify({
+                        chat_id: chatId,
+                        message: inputText.trim(),
+                        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                    }),
+                );
+            } catch (err) {
+                logger.error("Error sending message:", err);
+                setError("Failed to send message. Please retry.");
+                return false;
+            }
             setMessages(prev => {
                 if (!prev) return;
                 return [
@@ -437,17 +480,21 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
                     },
                 ]
             });
-
-            setInputText("");
         } else if (audioToSend) {
+            if (!chatId) {
+                setError("Chat is still loading. Please wait.");
+                setTyping(false);
+                return false;
+            }
             setTyping(true);
-            sendAndPlay(audioToSend);
+            const sentMessageId = Date.now();
+            sendAndPlay(audioToSend, sentMessageId);
             setMessages(prev => {
                 if (!prev) return
                 return [
                     ...prev,
                     {
-                        id: Date.now(),
+                        id: sentMessageId,
                         sender: 'sent',
                         channel: "chat",
                         time: new Date().toLocaleTimeString([], {
@@ -464,38 +511,54 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
                     },
                 ]
             });
+        } else {
+            return false;
         }
         setInputAudio(undefined);
         setInputText('');
         scrollToBottom();
+        return true;
     };
 
-    const onCall = () => {
-        startConversation();
-        setOpenWelcomeCallModal(true);
+    const handleCallModeChange = () => {
+        setMode(prev => {
+            if (prev === "call") return "chat";
+            return "call";
+        })
     }
-    {/*}
-    const handleOnBackClick = () => {
-        onBackPressed?.();
-    };
-    */}
 
-    const handleScroll = async () => {
-        const container = containerRef.current;
-        if (container && container.scrollTop === 0 && hasMore && !isLoadingMore && chatId) {
-            setIsLoadingMore(true);
-            const previousScrollHeight = container.scrollHeight;
-            await fetchMessages(chatId, pageNumber + 1);
-            setPageNumber(prev => prev + 1);
-            requestAnimationFrame(() => {
-                if (containerRef.current) {
-                    const newScrollHeight = containerRef.current.scrollHeight;
-                    containerRef.current.scrollTop = newScrollHeight - previousScrollHeight;
-                }
-            });
-            setIsLoadingMore(false);
-        }
+    const handleScrollEvent = () => {
+        handleScroll(containerRef.current);
     };
+
+    const handleChangeInfluencerClicked = async () => {
+        setNeedsSelection?.(true)
+    };
+
+    useEffect(() => {
+        if (relationshipPollRef.current) {
+            window.clearInterval(relationshipPollRef.current);
+            relationshipPollRef.current = null;
+        }
+
+        if (status === "connected" && influencer?.id) {
+            const fetchRelationship = () => {
+                relationshipServices.getRelationship(influencer.id).then((relationship) => {
+                    setRelationship(relationship);
+                }).catch((err) => logger.error("Error refreshing relationship", err));
+            };
+
+            fetchRelationship();
+            relationshipPollRef.current = window.setInterval(fetchRelationship, 5000);
+        }
+
+        return () => {
+            if (relationshipPollRef.current) {
+                window.clearInterval(relationshipPollRef.current);
+                relationshipPollRef.current = null;
+            }
+        };
+    }, [status, influencer?.id]);
 
     const handleClearHistory = async () => {
         if (!chatId || !isSuperUser) return;
@@ -504,7 +567,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
 
         try {
             setIsClearingHistory(true);
-            await chatRepository.clearChatHistory(chatId);
+            await chatRepository.clearChatHistory(chatId, adultMode);
             setMessages([]);
             setHasMore(false);
             setPageNumber(1);
@@ -519,96 +582,119 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick }
     if (!influencer) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
 
     return (
-        <div className={styles["chat-screen-content"]}>
-            <div className={styles["chat-header"]}>
-                {/*
-                <ChatTopNav
-                    onBack={handleOnBackClick}
-                    onCallClick={onCall}
-                    menuItems={menuItems}
-                    adultMode={adultModeSwitch}
-                    onAdultModeChange={handleAdultModeChange}
-                />
-                */}
+        <div className={styles["container"]}>
+            <div className={styles["chat-screen-content"]}>
+                <div className={styles["chat-header"]}>
+                    <UserNav
+                        onMenuClick={onMenuClick}
+                        onCallClick={handleCallModeChange}
+                        callMode={mode === "call"}
+                        adultMode={adultModeSwitch}
+                        onAdultModeChange={handleAdultModeChange}
+                    />
+                </div>
+                {!showSubscriptionPage ? <>
+                    {mode !== "call" ? <>
+                        {isSuperUser && <ChatHeaderInfo
+                            isWsConnected={isWsConnected}
+                            isSuperUser={isSuperUser}
+                            chatId={chatId}
+                            isClearingHistory={isClearingHistory}
+                            onChangeInfluencer={handleChangeInfluencerClicked}
+                            onClearHistory={handleClearHistory}
+                        />}
+                        <ChatInfluencerBar
+                            relationship={relationship}
+                            influencer={influencer}
+                            status={isWsConnected ? "Connected" : "Not Connected"}
+                            adultMode={adultMode}
+                            showChangeInfluencerButton={showChangeInfluencerButton}
+                            onChangeInfluencer={handleChangeInfluencerClicked}
+                        />
+                        <div
+                            className={clsx(styles["chat-messages-container"], !messages && styles["loading"])}
+                            ref={containerRef}
+                            onScroll={handleScrollEvent}
+                        >
+                            {(messages) ? <>
+                                {isLoadingMore && <LoadingSpinner size='small' />}
+                                <div className={styles.adultConvoCardArea}>
+                                    {adultMode && <AdultConvoStarterCard influencerName={influencer?.name} />}
+                                </div>
+                                <MessagesList
+                                    messages={displayMessages}
+                                    typing={typing}
+                                    messagesEndRef={messagesEndRef}
+                                    influencerName={influencer?.name}
+                                    showAudioTranscript={isSuperUser}
+                                    onAudioPlay={(src) => {
+                                        // Pause any currently playing audio
+                                        if (currentAudioRef.current && currentAudioRef.current.src !== src) {
+                                            currentAudioRef.current.pause();
+                                            currentAudioRef.current.currentTime = 0;
+                                        }
+                                        // Track the newly started audio element
+                                        const audioEl = document.querySelector<HTMLAudioElement>(`audio[src="${src}"]`);
+                                        if (audioEl) {
+                                            currentAudioRef.current = audioEl;
+                                        }
+                                    }}
+                                />
+                            </> : <LoadingSpinner />}
+                        </div>
 
-                <UserNav
-                    influencerName={influencer?.name}
-                    onMenuClick={onMenuClick}
-                    onCallClick={onCall}
-                    adultMode={adultModeSwitch}
-                    onAdultModeChange={handleAdultModeChange}
-                />
-                <div className={styles["chat-header-info"]}>
-                    <ProfileMedia imageSrc={influencer?.img} mediaType="image" size="xsmall" active className={styles["chat-avatar"]} />
-                    <div className={styles["chat-user-name"]}>
-                        <h3><a href={`/${influencer.username}`}>{influencer && truncateLastName(influencer?.name)}</a></h3>
-                        <p>{isWsConnected ? "Connected" : "Not Connected"}</p>
-                    </div>
-                    {isSuperUser && chatId && (
-                        <div className={styles["admin-actions"]}>
+                        <div className={styles["chat-input-area"]}>
+                            <ChatInputArea
+                                adultMode={adultMode}
+                                onSendMessage={sendMessage}
+                                inputText={inputText}
+                                setInputText={setInputText}
+                                setInputAudio={setInputAudio}
+                                disabled={error ? true : false}
+                                error={error}
+                                creditsRemaining={creditsRemaining}
+                                inputAudio={inputAudio} />
+                        </div>
+                    </> : <CallModePage
+                        toggleMute={toggleMute}
+                        status={status}
+                        timeRemaining={timeRemaining}
+                        micMute={micMuted}
+                        startConversation={startConversation}
+                        stopConversation={stopConversation}
+                        relationship={relationship}
+                        influencer={influencer}
+                        errorMessage={errorMessage || "Something went wrong!"} />
+                    }
+                </> : (
+                    <AdultModePage
+                        onSubscribePressed={handleSubscribePressed}
+                        influencerId={influencer?.id}
+                        influencerImageUrl={influencer?.img}
+                    />
+                )}
+            </div>
+            <Modal isOpen={!(!showErrorAlert)} onClose={() => {
+                setShowErrorAlert(undefined);
+            }}
+                className={styles.cancelModal}>
+                <div className={styles.modalCard}>
+                    <>
+                        <h3>Alert</h3>
+                        <p>{showErrorAlert}</p>
+                        <div className={styles.modalActions}>
+                            <NormalButton type="nobg" onClick={() => setShowErrorAlert(undefined)} text="Cancel" />
                             <IconButton
-                                onClick={handleClearHistory}
-                                color='red'
-                                text={isClearingHistory ? "Clearing..." : "Clear history"}
-                                className={styles["clear-history-button"]}
-                                disabled={isClearingHistory}
+                                leftIcon={<SvgPack.Danger />}
+                                text={"Confirm"}
                             />
                         </div>
-                    )}
+                    </>
                 </div>
-            </div>
-            {!showSubscriptionPage ? <>
-                <div
-                    className={clsx(styles["chat-messages-container"], !messages && styles["loading"])}
-                    ref={containerRef}
-                    onScroll={handleScroll}
-                >
-                    {(messages) ? <>
-                        {isLoadingMore && <LoadingSpinner size='small' />}
-                        <MessagesList
-                            messages={displayMessages}
-                            typing={typing}
-                            messagesEndRef={messagesEndRef}
-                            influencerName={influencer?.name}
-                            onAudioPlay={(src) => {
-                                // Pause any currently playing audio
-                                if (currentAudioRef.current && currentAudioRef.current.src !== src) {
-                                    currentAudioRef.current.pause();
-                                    currentAudioRef.current.currentTime = 0;
-                                }
-                                // Track the newly started audio element
-                                const audioEl = document.querySelector<HTMLAudioElement>(`audio[src="${src}"]`);
-                                if (audioEl) {
-                                    currentAudioRef.current = audioEl;
-                                }
-                            }}
-                        />
-                    </> : <LoadingSpinner />}
-                </div>
+            </Modal>
 
-                <div className={styles["chat-input-area"]}>
-                    <ChatInputArea
-                        onSendMessage={sendMessage}
-                        inputText={inputText}
-                        setInputText={setInputText}
-                        setInputAudio={setInputAudio}
-                        disabled={error ? true : false}
-                        error={error}
-                        inputAudio={inputAudio} />
-                </div>
-            </> : <AdultModePage onSubscribePressed={handleSubscribePressed} />}
-
-            <CallModal
-                timeRemaining={timeRemaining}
-                status={status}
-                isOpen={openWelcomeCallModal}
-                onClose={() => setOpenWelcomeCallModal(false)}
-                stopConversation={stopConversation}
-                influencer={influencer}
-                micMuted={micMuted}
-                toggleMute={toggleMute} />
         </div>
     );
 };
 
-export default ChatScreenContent;
+export default memo(ChatScreenContent);

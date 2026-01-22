@@ -1,72 +1,43 @@
-.shell {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 28px;
+.container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  max-width: var(--max-chat-content-width);
+  height: 100vh;
+  padding: 32px;
 }
 
-.avatar-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 24px;
-    width: 100%;
-    max-width: 520px;
-    justify-items: center;
+.list {
+  margin-top: 32px;
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-left: 32px;
+  scroll-snap-type: x mandatory;
+  margin-right: -24px;
 }
 
-.avatar {
-    background: none;
-    border: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    color: rgba(255, 255, 255, 0.8);
-    transition: transform 0.16s ease;
+.edgeFade {
+  mask-image: linear-gradient(90deg, black 90%, transparent);
 }
 
-.avatar:hover {
-    transform: translateY(-2px);
+.chatButton {
+  width: 100%;
+  max-width: 200px;
+  margin: 12px auto 0;
+  text-align: center;
+  height: 64px;
+  border-radius: 100px;
 }
 
-.avatar--active {
-    filter: drop-shadow(0 0 12px rgba(255, 77, 103, 0.35));
+.buttonRow {
+  display: flex;
+  justify-content: center;
 }
 
-.name {
-    font-size: 14px;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.75);
-}
-
-.name--active {
-    color: #fff;
-}
-
-.cta-row {
-    margin-top: 32px;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-}
-
-.cta {
-    width: 240px;
-}
-
-.cta-disabled {
-    width: 240px;
-}
-
-@media (max-width: 640px) {
-    .card {
-        min-height: 480px;
-        padding: 18px 12px;
-    }
-
-    .heading {
-        font-size: 20px;
-    }
+.error {
+  color: red;
 }

@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import avatar from "@/assets/image/avatar.png";
 import BackgroundGradient from "../templates/BackgroundGradient";
 import styles from "./CallScreen.module.css";
+import { formatTime } from "@/utils/time";
 
 const ELEVENLABS_API_KEY =
   "sk_a883dc5b73fefbdf423b935034b9b114274230c25c190c7e";
@@ -50,14 +51,6 @@ export default function CallScreen() {
     }
     return () => clearInterval(interval);
   }, [callStatus]);
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-      .toString()
-      .padStart(2, "0");
-    const secs = (seconds % 60).toString().padStart(2, "0");
-    return `${mins}:${secs}`;
-  };
 
   const playAudio = async (text: string) => {
     try {

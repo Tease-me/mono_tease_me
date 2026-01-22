@@ -41,4 +41,14 @@ export const SubscriptionsServices = (apiClient: AxiosInstance) => ({
         );
         return response.data;
     },
+    cancelSubscription: async (influencerId: string, reason?: string) => {
+        const payload = {
+            influencer_id: influencerId,
+            reason: reason
+        }
+        const response = await apiClient.post(
+            Endpoints.subscriptions.cancel, payload
+        );
+        return response.data;
+    }
 })

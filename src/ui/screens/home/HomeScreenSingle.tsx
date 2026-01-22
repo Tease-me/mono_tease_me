@@ -1,17 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import ChatScreenContent from "../messaging/components/ChatScreenContent";
 import InfluencerSelector from "../influencer/InfluencerSelector";
 import UserMenu from "../user-profile/UserMenu";
-import UserProfile from "../user-profile/OLDUserProfile";
+import UserProfile from "../user-profile/Components/UserProfile";
 import PaymentDetails from "../user-profile/Components/PaymentDetails";
 import ManageInfluencers from "../user-profile/Components/ManageInfluencers";
 import InfluencerRelation from "../user-profile/Components/InfluencerRelation";
+import AddCredits from "../user-profile/Components/AddCredits";
 import SlideDrawerLayout from "@/ui/templates/SlideDrawerLayout";
+import AdultModePage from "../messaging/pages/adult-mode/AdultModePage";
+import PaymentCheck from "../user-profile/Components/PaymentCheck";
+import clsx from "clsx";
+import styles from "./HomeScreenSingle.module.css"
 
 type SidebarPageId = string;
 type NavPayload = Record<string, any>;
+type NavStackEntry = { id: SidebarPageId; payload?: NavPayload };
 
 type SidebarPage = {
   id: SidebarPageId;
@@ -23,74 +29,158 @@ const sidebarPages: SidebarPage[] = [
   { id: "home", label: "User Menu", render: ({ goTo }) => <UserMenu goTo={goTo} /> },
   { id: "profile", label: "User Profile", render: ({ goTo }) => <UserProfile goTo={goTo} /> },
   { id: "payment", label: "Payment Details", render: ({ goTo }) => <PaymentDetails goTo={goTo} /> },
-  { id: "influencers", label: "Influencers", render: ({ goTo, navPayload, goBack }) => <ManageInfluencers goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
+  { id: "payment-check", label: "Payment", render: () => <PaymentCheck /> },
+  {
+    id: "influencers",
+    label: "Manage Influencers",
+    render: ({ goTo, navPayload }) =>
+      <ManageInfluencers
+        goTo={goTo}
+        navPayload={navPayload}
+      />
+  },
   { id: "influencer_profile", label: "Influencer Profile", render: ({ goTo, navPayload, goBack }) => <InfluencerRelation goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
+  { id: "add_credits", label: "Add Credits", render: ({ goTo, navPayload }) => <AddCredits goTo={goTo} navpayload={navPayload} /> },
+  {
+    id: "subscribe", label: "Subscribe", render: ({ navPayload }) => (
+      <AdultModePage
+        influencerId={navPayload.influencerId}
+        influencerImageUrl={navPayload.image}
+        onSubscribePressed={() => {
+          navPayload.onSubscribe();
+        }}
+        nobg
+      />
+    )
+  },
+
 ];
 
 export default function HomeScreenSingle() {
-  const storedId = localStorage.getItem("selected_id");
-  const [id, setId] = useState<string | undefined>(storedId ? storedId : undefined);
+  const [id, setId] = useState<string | undefined>(() => {
+    const storedId = localStorage.getItem("selected_id");
+    return storedId ? storedId : undefined;
+  });
   const [needsSelection, setNeedsSelection] = useState(false);
   const [influencers, setInfluencers] = useState<InfluencerDataModel[]>([]);
-  // const [hasMultipleInfluencers, setHasMultipleInfluencers] = useState(false);
+  const [hasMultipleInfluencers, setHasMultipleInfluencers] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   const [currentPage, setCurrentPage] = useState<SidebarPageId>("home");
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [history, setHistory] = useState<SidebarPageId[]>([]);
+  const [history, setHistory] = useState<NavStackEntry[]>([]);
   const [navPayload, setNavPayload] = useState<NavPayload>({});
 
-  const goTo = (id: SidebarPageId, payload?: NavPayload) => {
-    if (payload) setNavPayload((p) => ({ ...p, ...payload }));
-    setHistory((h) => [...h, currentPage]);
-    setCurrentPage(id);
-  };
+  const influencerRepo = useMemo(() => InfluencerRepo(), []);
 
-  const prevPage = () => {
+  const goTo = useCallback((pageId: SidebarPageId, payload?: NavPayload) => {
+    if (payload) setNavPayload((p) => ({ ...p, ...payload }));
+    setHistory((h) => [...h, { id: currentPage, payload: navPayload }]);
+    setCurrentPage(pageId);
+  }, [currentPage, navPayload]);
+
+  const prevPage = useCallback(() => {
     setHistory((h) => {
-      const prev = h[h.length - 1] ?? "home";
-      setCurrentPage(prev);
+      const prev = h[h.length - 1];
+      if (prev) {
+        setCurrentPage(prev.id);
+        setNavPayload(prev.payload ?? {});
+      } else {
+        setCurrentPage("home");
+        setNavPayload({});
+      }
       return h.slice(0, -1);
     });
-  };
+  }, []);
 
-  const active = sidebarPages.find((p) => p.id === currentPage)!;
+
+  const active = useMemo(
+    () => sidebarPages.find((p) => p.id === currentPage)!,
+    [currentPage]
+  );
+
+  const toggleSidebar = useCallback(() => {
+    setShowSidebar((prev) => {
+      const next = !prev;
+      if (!next) {
+        setCurrentPage("home");
+        setHistory([]);
+        setNavPayload({});
+      }
+      return next;
+    });
+  }, []);
+
+  const sidebar = (
+    <div className={styles.sidebarPages}>
+      <div className={clsx(styles.sidebarPage, styles.sidebarPageActive)}>
+        {active.render({ goTo, navPayload, goBack: prevPage })}
+      </div>
+    </div>
+  );
+
+
   useEffect(() => {
     localStorage.setItem("selected_id", id?.toString() || "");
   }, [id]);
+
   useEffect(() => {
-    const influencerRepo = InfluencerRepo();
     influencerRepo
       .getFollowedInfluencers()
       .then((influencers: InfluencerDataModel[]) => {
+        localStorage.setItem("selected_id", "");
         if (influencers.length > 1) {
           setNeedsSelection(true);
-          // setHasMultipleInfluencers(true);
+          setHasMultipleInfluencers(true);
         } else if (influencers.length === 1) {
           setId(influencers[0].id);
-          // setHasMultipleInfluencers(false);
+          setHasMultipleInfluencers(false);
         }
         setInfluencers(influencers);
       });
-  }, []);
+  }, [influencerRepo]);
 
-  const handleSelect = (selectedId: string) => {
+  const handleSelect = useCallback((selectedId: string) => {
     setId(selectedId);
     setNeedsSelection(false);
-  };
+  }, []);
+
+  const handleNeedsSelectionChange = useCallback((needs: boolean) => {
+    if (needs) {
+      setId(undefined);
+    }
+    setNeedsSelection(needs);
+  }, []);
+
+  const chatContent = useMemo(
+    () => (
+      <ChatScreenContent
+        id={id}
+        onMenuClick={toggleSidebar}
+        setNeedsSelection={handleNeedsSelectionChange}
+        showChangeInfluencerButton={hasMultipleInfluencers}
+      />
+    ),
+    [handleNeedsSelectionChange, hasMultipleInfluencers, id, toggleSidebar]
+  );
 
   return (
     <SlideDrawerLayout
       showSidebar={showSidebar}
-      sidebar={active.render({ goTo, navPayload, goBack: prevPage })}
+      sidebar={sidebar}
       onBack={prevPage}
-      onToggle={() => setShowSidebar((v) => !v)}
+      onToggle={toggleSidebar}
       showBack={currentPage !== "home"}
-      title={active.label}
+      title={
+        currentPage === "influencer_profile" && navPayload?.name
+          ? navPayload.name
+          : active.label
+      }
     >
-      {needsSelection && !id ? (
-        <InfluencerSelector onItemClick={handleSelect} influencers={influencers} />
+      {needsSelection ? (
+        !id ? <InfluencerSelector onItemClick={handleSelect} influencers={influencers} /> : chatContent
       ) : (
-        <ChatScreenContent id={id} onMenuClick={() => setShowSidebar((v) => !v)} />
+        chatContent
       )}
     </SlideDrawerLayout>
   );

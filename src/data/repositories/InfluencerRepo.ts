@@ -6,6 +6,7 @@ import { FollowServices } from "@/api/services/FollowServices";
 
 import {
   InfluencerDataModel,
+  InfluencerSampleModel,
   KnowledgeFileModel,
 } from "../models/InfluencerDataModel";
 
@@ -20,6 +21,7 @@ const toInfluencerDataModel = (response: InfluencerResponse, existing?: Influenc
   videoUrl: response.video_url,
   daily_scripts: response.daily_scripts,
   prompt_template: response.prompt_template,
+  custom_adult_prompt: response.custom_adult_prompt,
   influencer_agent_id_third_part: response.influencer_agent_id_third_part,
   bio_json: response.bio_json,
   voice_id: response.voice_id,
@@ -71,6 +73,7 @@ export const InfluencerRepo = () => ({
     influencer_agent_id_third_part?: string,
     bio_json?: unknown,
     voice_id?: string,
+    custom_adult_prompt?: string,
   ) => {
     try {
       const response: InfluencerResponse = await influencerServices.patchInfluencer(
@@ -81,6 +84,7 @@ export const InfluencerRepo = () => ({
         (influencer_agent_id_third_part ?? influencer.influencer_agent_id_third_part),
         (bio_json ?? influencer.bio_json),
         (voice_id ?? influencer.voice_id),
+        (custom_adult_prompt ?? influencer.custom_adult_prompt),
       );
       return {
         id: response.id,
@@ -90,6 +94,7 @@ export const InfluencerRepo = () => ({
         videoUrl: response.video_url,
         daily_scripts: response.daily_scripts,
         prompt_template: response.prompt_template,
+        custom_adult_prompt: response.custom_adult_prompt,
         influencer_agent_id_third_part: response.influencer_agent_id_third_part,
         bio_json: response.bio_json,
         voice_id: response.voice_id,
@@ -111,6 +116,7 @@ export const InfluencerRepo = () => ({
         influencer.influencer_agent_id_third_part,
         influencer.bio_json,
         influencer.voice_id,
+        influencer.custom_adult_prompt,
       );
       return {
         id: response.id,
@@ -120,6 +126,7 @@ export const InfluencerRepo = () => ({
         videoUrl: response.video_url,
         daily_scripts: response.daily_scripts,
         prompt_template: response.prompt_template,
+        custom_adult_prompt: response.custom_adult_prompt,
         influencer_agent_id_third_part: response.influencer_agent_id_third_part,
         bio_json: response.bio_json,
         voice_id: response.voice_id,
@@ -171,6 +178,36 @@ export const InfluencerRepo = () => ({
         created_at: item.created_at ?? "",
         updated_at: item.updated_at ?? "",
       };
+    } catch (e) {
+      throw e;
+    }
+  },
+  uploadSample: async (influencer_id: string, file: File): Promise<InfluencerSampleModel> => {
+    try {
+      const item = await influencerServices.uploadSample(influencer_id, file);
+      return {
+        id: item.id ?? 0,
+        s3_key: item.s3_key,
+        original_filename: item.original_filename ?? null,
+        content_type: item.content_type ?? null,
+        url: item.url ?? null,
+        created_at: item.created_at ?? null,
+      };
+    } catch (e) {
+      throw e;
+    }
+  },
+  listSamples: async (influencer_id: string): Promise<InfluencerSampleModel[]> => {
+    try {
+      const response = await influencerServices.listSamples(influencer_id);
+      return response.samples.map((sample) => ({
+        id: Number(sample.id) || 0,
+        s3_key: sample.s3_key ?? "",
+        original_filename: sample.original_filename ?? null,
+        content_type: sample.content_type ?? null,
+        url: sample.url ?? null,
+        created_at: sample.created_at ?? null,
+      }));
     } catch (e) {
       throw e;
     }

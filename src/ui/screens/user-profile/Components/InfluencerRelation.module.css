@@ -1,0 +1,266 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-family: var(--secondary-font-family);
+}
+
+.heroRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.heroInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.badges {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+
+.modeText {
+  color: #f5f5f5;
+  font-weight: 700;
+}
+
+.eighteenPlus {
+  color: var(--color-purple-light);
+  font-size: 18px;
+}
+
+.badgesHide {
+  display: none;
+}
+
+.statusBadge {
+  border-radius: 100px;
+  border: 1px solid var(--color-purple);
+  background: var(--color-purple-dark);
+  color: var(--color-purple);
+  padding: 8px 16px;
+  border-radius: 18px;
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--color-grey-500);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.meta strong {
+  color: #e4584f;
+  font-weight: 500;
+}
+
+.balanceCard {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: rgba(97, 97, 97, 0.20);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.balanceBadge {
+  margin-bottom: 12px;
+  ;
+}
+
+.balanceStats {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+}
+
+.balanceArea {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: center;
+}
+
+.adultBalanceArea {
+  background: rgba(20, 20, 20, 0.2);
+  padding: 24px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.adultToggleArea {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  gap: 12px;
+  width: auto;
+}
+
+.adultToggleArea .p {
+  color: white;
+  text-align: center;
+  font-family: var(--secondary-font-family);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+  letter-spacing: 0.2px;
+}
+
+.adultText {
+  color: #CC68FF;
+  text-align: center;
+  font-family: Urbanist;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0.2px;
+}
+
+.adultToggleBtn {
+  border-radius: 74px;
+  border: 1px solid rgba(66, 66, 66, 0.50);
+  background: var(--Greyscale-900, #212121);
+  display: flex;
+  height: 42px;
+  padding: 0 4px 0 11px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 9px;
+  flex-shrink: 0;
+
+}
+
+.adultBalanceStats {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+}
+
+.grayBtn {
+  font-family: var(--secondary-font-family);
+  background: rgba(66, 66, 66, 0.40);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 
+  700;
+}
+
+.radarPlaceholder{
+  width: 100%;
+  height: 280;
+  min-width: 0;
+  min-height: 0;
+}
+
+.relationshipArea{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: var(--secondary-font-family);
+}
+
+.relationshipHeader {
+margin-top: 12px;
+margin-bottom: 12px;
+}
+
+.relationshipTitle{
+  color: white; 
+font-family: Urbanist;
+font-size: 24px;
+font-style: normal;
+font-weight: 700;
+line-height: 120%; 
+}
+
+.relationshipStatsArea{
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.progressBar{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.progressBar p{
+color: var(--Primary-500, #FF4D67);
+text-align: left;
+font-size: 14px;
+font-style: normal;
+font-weight: 700;
+line-height: normal;
+letter-spacing: 0.2px;
+}
+
+.unfollow{
+  display: flex;
+  align-items: center;
+}
+
+.cancelModal{
+  background-color: var(--color-dark-1);
+}
+
+.cancelSub{
+  cursor: pointer;
+  color: var(--color-purple);
+  font-weight: 800;
+  font-family: var(--secondary-font-family);
+}
+
+.unfollowBtn :global(.button-text) {
+  color: var(--color-)
+}
+
+.modalCard {
+  border-radius: 12px;
+  padding: 16px;
+  color: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.modalError {
+  color: #ff4d67;
+  font-size: 13px;
+}
+
+.btn{
+  max-width: 294px;
+}

@@ -17,7 +17,7 @@ const ValidationPill: React.FC<ValidationPillProps> = ({
 }) => {
   return (
     <div
-      className={clsx(styles.pill, styles[variant], className)}
+      className={clsx(styles.validationPill, styles[variant], className)}
       role="status"
       aria-live="polite"
     >

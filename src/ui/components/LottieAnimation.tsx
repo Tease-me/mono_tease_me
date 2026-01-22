@@ -1,10 +1,5 @@
-import React, { useRef } from "react";
-import LottieLib from "react-lottie";
-
-
-
-
-const Lottie = (LottieLib as any).default || LottieLib;
+import React, { useEffect, useMemo, useRef } from "react";
+import lottie from "lottie-web";
 
 
 
@@ -21,37 +16,66 @@ const LottieAnimation: React.FC<LottieAnimationProps> = ({
   loop = true,
   autoplay = true,
   animationData,
-  rendererSettings = { preserveAspectRatio: "xMidYMid meet" },
+  rendererSettings,
   playOnClick = false,
   onComplete,
 }) => {
-  const lottieRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const animationRef = useRef<ReturnType<typeof lottie.loadAnimation> | null>(null);
 
-  const options = {
-    loop,
-    autoplay: autoplay && !playOnClick, // disable autoplay if click mode
+  const resolvedRendererSettings = useMemo(
+    () => rendererSettings ?? { preserveAspectRatio: "xMidYMid meet" },
+    [rendererSettings],
+  );
+
+  useEffect(() => {
+    if (!containerRef.current || !animationData) {
+      return;
+    }
+
+    const anim = lottie.loadAnimation({
+      container: containerRef.current,
+      renderer: "svg",
+      loop,
+      autoplay: autoplay && !playOnClick,
+      animationData,
+      rendererSettings: resolvedRendererSettings,
+    });
+    animationRef.current = anim;
+
+    if (onComplete) {
+      anim.addEventListener("complete", onComplete);
+    }
+
+    if (playOnClick) {
+      anim.stop();
+    }
+
+    return () => {
+      if (onComplete) {
+        anim.removeEventListener("complete", onComplete);
+      }
+      anim.destroy();
+      animationRef.current = null;
+    };
+  }, [
     animationData,
-    rendererSettings,
-  };
-
-  const eventListeners = onComplete
-    ? [{ eventName: "complete", callback: onComplete }]
-    : undefined;
+    autoplay,
+    loop,
+    playOnClick,
+    onComplete,
+    resolvedRendererSettings,
+  ]);
 
   const handleClick = () => {
-    if (playOnClick && lottieRef.current) {
-      lottieRef.current.playAnimation();
+    if (playOnClick && animationRef.current) {
+      animationRef.current.play();
     }
   };
 
   return (
     <div onClick={handleClick}>
-      <Lottie
-        ref={lottieRef}
-        options={options}
-        eventListeners={eventListeners}
-        isStopped={playOnClick}
-      />
+      <div ref={containerRef} />
     </div>
   );
 };

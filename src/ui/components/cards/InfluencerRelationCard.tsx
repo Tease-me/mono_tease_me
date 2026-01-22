@@ -3,6 +3,10 @@ import styles from "./InfluencerRelationCard.module.css";
 import SvgPack from "@/utils/SvgPack";
 import ProfileMedia from "../ProfileMedia";
 import MetricRing from "../stats/MetricRing";
+import { formatDateTimeRelative } from "@/utils/DateTimeUtils";
+import BalanceBadge from "../stats/BalanceBadge";
+import LoveScore from "@/ui/screens/messaging/components/LoveScore";
+import { getRelationshipStatusIcon } from "@/utils/relationshipStatusIcons";
 
 type InfleuncerRelationCardProps = {
   name: string;
@@ -33,44 +37,57 @@ const InfluencerRelationCard: React.FC<InfleuncerRelationCardProps> = ({
   closeness,
 }) => {
   const metrics = [
-    { key: "trust", label: "Trust", value: trust, icon: <SvgPack.Heart /> },
-    { key: "safety", label: "Safety", value: safety, icon: <SvgPack.Danger /> },
-    { key: "attraction", label: "Attraction", value: attraction, icon: <SvgPack.Link /> },
-    { key: "closeness", label: "Closeness", value: closeness, icon: <SvgPack.Link /> },
+    { key: "trust", label: "Trust", value: trust, icon: <SvgPack.Trust /> },
+    { key: "closeness", label: "Closeness", value: closeness, icon: <SvgPack.Angles /> },
+    { key: "attraction", label: "Attraction", value: attraction, icon: <SvgPack.KissGray /> },
+    { key: "safety", label: "Safety", value: safety, icon: <SvgPack.Shield /> },
   ];
+
+  const isActive = (() => {
+    if (!lastConnected) return false;
+    const diffMs = Date.now() - new Date(lastConnected).getTime();
+    const diffMinutes = diffMs / 1000 / 60;
+    return diffMinutes <= 5;
+  })();
+  const lastConnectedLabel = formatDateTimeRelative(lastConnected);
+  const spanClass = `${styles.lastConnected} ${isActive ? styles.lastConnectedActive : ''}`;
+
 
 
   return (
-    <div className={styles.card}>
+    <div className={styles.influencerRelationCard}>
       <div className={styles.upper}>
         <div className={styles.balanceBadge}>
-          ${balance}
+          <BalanceBadge balance={balance} />
         </div>
-        <h3>{name}</h3>
-        <p>Last Connected: <span className={styles.lastConnected} >{lastConnected} </span></p>
+        <div className={styles.nameArea}>
+          <h3>{name}</h3>
+          <p className={styles.lastConnectedArea}>Last Connected: <span className={spanClass} >{lastConnected ? (isActive ? "Just Now" : lastConnectedLabel) : "--"} </span></p>
+        </div>
         <div className={styles.avatarContainer}>
-          <ProfileMedia size={'xlarge'} imageSrc={image} videoSrc={video} active />
+          <ProfileMedia size={'xlarge'} imageSrc={image} videoSrc={video} active glow />
         </div>
-        <div className={styles.metricsBridge}>
-          <div className={styles.metricsArea}>
-            {metrics.map(({ key, label, value, icon }) => (
-              <MetricRing key={key} icon={icon} label={label} value={value} />
-            )
-            )}
+        <div className={styles.metricsContainer}>
+          <div className={styles.metricsBridge}>
+
+            <div className={styles.metricsArea}>
+              {metrics.map(({ key, label, value, icon }) => (
+                <MetricRing key={key} icon={icon} label={label} value={value} size="medium" />
+              )
+              )}
+            </div>
           </div>
         </div>
       </div>
       <div className={styles.lower}>
         <div className={styles.stat}>
           <span className={styles.label}>Love</span>
-          <div className={styles.valueRow}>
-            <span className={styles.value}>{loveScore}</span>
-          </div>
+          <LoveScore size="large" sentimentScore={loveScore} rankPosition="left" />
         </div>
         <div className={styles.stat}>
           <span className={styles.label}>Status</span>
-          <div className={styles.valueRow}>
-            <span className={styles.stage}>{status}</span>
+          <div className={styles.stageArea}>
+            {getRelationshipStatusIcon(status)} <span className={styles.stage}>{status}</span>
           </div>
         </div>
       </div>

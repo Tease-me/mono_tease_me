@@ -13,6 +13,10 @@ import styles from "./TopUpModal.module.css";
 import { apiClient } from "@/api/apis";
 import { BillingServices } from "@/api/services/BillingServices";
 
+
+//MAKE SURE TO PASS INFLUENCER
+const influencerTEMPORARY = "";
+
 const billing = BillingServices(apiClient);
 
 interface TopUpModalProps {
@@ -74,6 +78,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
       const { approve_url, order_id } = await billing.paypalCreateOrder({
         cents,
         currency: "AUD",
+        influencer_id: influencerTEMPORARY
       });
 
       // store for return page fallback
@@ -327,7 +332,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
           <TabsLayout
             tabs={tabItems}
             activeTab={activeTab}
-            setActiveTab={() => {}}
+            setActiveTab={() => { }}
           />
         </div>
       )}

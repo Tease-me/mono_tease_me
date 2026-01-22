@@ -1,5 +1,6 @@
 export const Paths = {
     all: "*",
+    root: "/",
     influencerProfile: (username = ":username") => `/${username}`,
     updateProfile: "/update-profile",
     join: "/join",
@@ -24,6 +25,7 @@ export const Paths = {
         prompts: "/admin/prompts",
         relationship: "/admin/relationship",
         preInfluencers: "/admin/pre-influencers",
+        preInfluencerDetail: (id = ":pre_influencer_id") => `/admin/pre-influencers/${id}`,
     },
     mjDashboard: "/mj/dashboard",
 
@@ -41,4 +43,5 @@ export const Paths = {
 
     testButtons: "/test/buttons",
     testProfilePage: "/test/profile-page",
+    chatInfluencerBarPreview: "/test/chat-influencer-bar-preview",
 } as const;

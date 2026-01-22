@@ -44,6 +44,7 @@ export const Endpoints = {
     delete: (influencerId: string, fileId: number) =>
       `/influencer/${influencerId}/knowledge/${fileId}`,
   },
+  samples: (influencerId: string) => `/influencer/${influencerId}/samples`,
   push: {
     subscribe: "/push/subscribe",
   },
@@ -64,7 +65,6 @@ export const Endpoints = {
   influencers: "/influencer",
   influencer: (id: string) => `/influencer/${id}`,
   uploadCsv: "persona/import-csv",
-  mcpToolsCall: "/mcp/tools/call",
   admin: {
     systemPrompts: {
       list: "admin/system-prompts",
@@ -83,6 +83,7 @@ export const Endpoints = {
   },
   subscriptions: {
     start: "/subscriptions/start",
+    cancel: "/subscriptions/cancel",
     capture: "/subscriptions/paypal/capture",
     list: "/subscriptions/me",
     influencer: (influencerId: string) => `/subscriptions/${influencerId}`,
@@ -93,4 +94,7 @@ export const Endpoints = {
     chat18: "/chat18/ws",
     notifications: "/ws/notifications",
   },
+  user: {
+    usage: (id: string) => `/user/${id}/usage`,
+  }
 } as const;

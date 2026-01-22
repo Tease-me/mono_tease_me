@@ -1,16 +1,34 @@
-.page {
-  background: radial-gradient(circle at top, #1b1c22 0%, #111217 55%, #0b0b10 100%);
-  color: #f5f4ff;
+.container {
   padding: 28px 22px 40px;
   display: flex;
-  flex: 1;
   flex-direction: column;
-  gap: 18px;
-  font-family: var(--primary-font-family);
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  background: var(--Dark-Dark-1, #181A20);
+}
+
+.nobg{
+  background: transparent;
+}
+
+.innerContainer {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+  justify-content: center;
+  max-width: 686px;
 }
 
 .header {
-  font-size: 26px;
+  font-size: 40px;
   font-weight: 700;
   margin-bottom: 44px;
   color: #f5f4ff;
@@ -22,6 +40,9 @@
 
 .card {
   display: flex;
+  flex-direction: row;
+  justify-content: start;
+  align-items: start;
   gap: 14px;
   margin-bottom: 44px;
 }
@@ -41,10 +62,15 @@
   object-fit: cover;
 }
 
-.cardText h2 {
+.cardText {
+  align-items: start;
+}
+
+.cardText .title {
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 6px;
+  text-align: start;
 }
 
 .cardText p {
@@ -65,9 +91,9 @@
   align-items: flex-start;
 }
 
-.audioCard h3 {
-  font-size: 16px;
+.audioCard .title {
   margin-bottom: 8px;
+  font-size: 18px;
 }
 
 .audioPill {

@@ -1,5 +1,7 @@
 import { apiClient } from "@/api/apis";
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Paths } from "@/routes/path";
 import AdminLayout from "../AdminLayout";
 import styles from "./AdminPreInfluencers.module.css";
 
@@ -29,8 +31,9 @@ export default function AdminPreInfluencers() {
   const [msg, setMsg] = useState<string>("");
   const [isMobile, setIsMobile] = useState(
     typeof window !== "undefined" &&
-      window.matchMedia("(max-width: 900px)").matches
+    window.matchMedia("(max-width: 900px)").matches
   );
+  const navigate = useNavigate();
 
   const load = async () => {
     setLoading(true);
@@ -82,8 +85,7 @@ export default function AdminPreInfluencers() {
       if (data?.ok) {
         setItems((prev) => prev.filter((x) => x.id !== preId));
         setMsg(
-          `✅ Approved. Influencer created/linked: ${
-            data.influencer_id
+          `✅ Approved. Influencer created/linked: ${data.influencer_id
           } (fp_ref_id=${data.fp_ref_id || "-"})`
         );
       } else {
@@ -100,7 +102,7 @@ export default function AdminPreInfluencers() {
 
   const rows = useMemo(() => items, [items]);
   const columns =
-    "80px 220px 200px minmax(200px, 1fr) 130px minmax(240px, 1fr) 140px";
+    "80px 220px 200px minmax(200px, 1fr) 130px minmax(240px, 1fr) 220px";
 
   return (
     <AdminLayout
@@ -138,13 +140,25 @@ export default function AdminPreInfluencers() {
                       {p.email}
                     </div>
                   </div>
-                  <button
-                    onClick={() => approve(p.id)}
-                    disabled={actingId !== null}
-                    className={styles["approve"]}
-                  >
-                    {actingId === p.id ? "Approving..." : "Approve"}
-                  </button>
+                  <div className={styles["card__actions"]}>
+                    <button
+                      onClick={() =>
+                        navigate(Paths.admin.preInfluencerDetail(`${p.id}`), {
+                          state: { preInfluencer: p },
+                        })
+                      }
+                      className={styles["view"]}
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={() => approve(p.id)}
+                      disabled={actingId !== null}
+                      className={styles["approve"]}
+                    >
+                      {actingId === p.id ? "Approving..." : "Approve"}
+                    </button>
+                  </div>
                 </div>
 
                 <div className={styles["meta-grid"]}>
@@ -187,7 +201,7 @@ export default function AdminPreInfluencers() {
                 <div>Email</div>
                 <div>Status</div>
                 <div>FP</div>
-                <div />
+                <div>Actions</div>
               </div>
 
               {rows.map((p) => (
@@ -218,6 +232,16 @@ export default function AdminPreInfluencers() {
                     </div>
                   </div>
                   <div className={styles["actions"]}>
+                    <button
+                      onClick={() =>
+                        navigate(Paths.admin.preInfluencerDetail(`${p.id}`), {
+                          state: { preInfluencer: p },
+                        })
+                      }
+                      className={styles["view"]}
+                    >
+                      View
+                    </button>
                     <button
                       onClick={() => approve(p.id)}
                       disabled={actingId !== null}

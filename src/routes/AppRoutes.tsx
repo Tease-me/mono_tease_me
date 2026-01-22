@@ -20,11 +20,14 @@ import GuestRoute from "./components/GuestRoute";
 import PrivateRoute from "./components/PrivateRoute";
 import SuperRoute from "./components/SuperRoute";
 import { ThemeProvider } from "@/theme/ThemeProvider";
-import TestProfilePage from "@/ui/screens/test/TestProfilePage";
 import TestPage from "@/ui/screens/test/TestPage";
 
 const AdminPreInfluencers = lazy(
   () => import("@/ui/screens/admin/pre-influencers/AdminPreInfluencers")
+);
+const AdminPreInfluencerDetail = lazy(
+  () =>
+    import("@/ui/screens/admin/pre-influencers/AdminPreInfluencerDetail")
 );
 const InfluencerProfileScreen = lazy(
   () => import("@/ui/screens/influencer-profile/InfluencerProfileScreen")
@@ -73,7 +76,6 @@ function AppRoutes() {
     { path: Paths.all, element: <HomePage /> },
     { path: Paths.influencerProfile(), element: <InfluencerProfileScreen /> },
     { path: Paths.testButtons, element: <TestPage /> },
-    { path: Paths.testProfilePage, element: <TestProfilePage /> },
     { path: Paths.updateProfile, element: <UpdateProfile /> },
     { path: Paths.join, element: <LandingPage /> },
     { path: Paths.welcome, element: <InfluencerWelcome /> },
@@ -96,7 +98,7 @@ function AppRoutes() {
       path: Paths.intencionInfluencerHome,
       element: <IntencionInfluencerHome />,
     },
-     // --- Public Legal & Compliance Pages ---
+    // --- Public Legal & Compliance Pages ---
     { path: "/terms", element: <TermsPage {...terms.terms} /> },
     { path: "/privacy", element: <TermsPage {...terms.privacy} /> },
     { path: "/refunds", element: <TermsPage {...terms.refunds} /> },
@@ -124,6 +126,10 @@ function AppRoutes() {
     { path: Paths.admin.influencer, element: <CreateInfluencer /> },
     { path: Paths.admin.prompts, element: <PromptEditorAdmin /> },
     { path: Paths.admin.relationship, element: <RelationshipDashboard /> },
+    {
+      path: Paths.admin.preInfluencerDetail(),
+      element: <AdminPreInfluencerDetail />,
+    },
     { path: Paths.admin.preInfluencers, element: <AdminPreInfluencers /> },
   ];
 
