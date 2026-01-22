@@ -32,11 +32,13 @@ export default function LoginScreen() {
   const navigate = useNavigate();
 
   useEffect(() => { if (isSignedIn) navigate("/home"); }, [isSignedIn, navigate]);
+
   useEffect(() => {
     if (authErrors) {
       setErrors(prev => ({ ...prev, general: authErrors.data.error }));
     }
   }, [authErrors]);
+
   const validate = useCallback((): LoginErrors => {
     return validateFields(
       { email, password },
@@ -56,6 +58,7 @@ export default function LoginScreen() {
   }, []);
 
   const [touched, setTouched] = useState({ email: false, password: false });
+
   const handleEmailChange = useCallback((value: string) => {
     setEmail(value);
     setErrors((prev) => {
@@ -65,6 +68,7 @@ export default function LoginScreen() {
       return { ...prev, email: validateEmail(value), general: undefined };
     });
   }, [touched.email, validateEmail]);
+
   const handlePasswordChange = useCallback((value: string) => {
     setPassword(value);
     setErrors((prev) => {
