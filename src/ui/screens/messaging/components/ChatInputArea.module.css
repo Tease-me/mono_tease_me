@@ -12,16 +12,23 @@
 
     border-radius: 12px;
     border-top: 1px solid rgba(255, 255, 255, 0.10);
-        background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.6) 100%);
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.6) 100%);
     box-shadow: 0 -5px 10px 0 rgba(0, 0, 0, 0.20);
-    
+
     backdrop-filter: blur(8px) brightness(4);
     margin-bottom: 3dvh;
     position: relative;
 }
 
+.input-with-badge {
+    display: flex;
+    position: relative;
+    flex: 1;
+}
+
 .input-container {
     display: flex;
+    position: relative;
     flex: 1;
     flex-direction: row;
     background-color: var(--color-dark-2);
@@ -34,13 +41,21 @@
 }
 
 .input-container input {
+    display: flex;
     padding: 18px 20px;
-    display: block;
+    padding-right: 100px;
     border: none;
     outline: none;
-    flex: 1 0 auto;
-    min-width: 100px;
     width: 100%;
+}
+
+.credit-badge {
+    display: flex;
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    align-self: center;
 }
 
 .input-container.recording {

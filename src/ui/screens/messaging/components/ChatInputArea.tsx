@@ -10,6 +10,7 @@ import clsx from 'clsx';
 import IconButton from '@/ui/components/inputs/buttons/IconButton';
 import SvgPack from '@/utils/SvgPack';
 import useIsDesktop from '@/utils/hooks/useIsDesktop';
+import RemainingCreditBadge from '@/ui/components/badges/RemainingCreditBadge';
 
 interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
     adultMode?: boolean;
@@ -20,6 +21,7 @@ interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
     setInputAudio?: (blob?: Blob) => void;
     error?: string;
     disabled?: boolean;
+    creditsRemaining?: number;
 }
 
 const ChatInputArea: React.FC<ChatInputAreaProps> = ({
@@ -30,7 +32,8 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     inputAudio,
     setInputAudio,
     error,
-    disabled = false }) => {
+    disabled = false,
+    creditsRemaining }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const { startRecording, stopRecording, recordingStatus, audio, streamRef, clearAudio } = useAudioRecorder();
@@ -137,14 +140,18 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
             {!(adultMode && voiceMode) && <div className={clsx(styles["input-container"], recordingStatus === "recording" && styles["recording"], error && styles["error"])} ref={containerRef}>
                 {error && <div className={styles["error-message"]}>{error}</div>}
                 {!error && (recordingStatus === "inactive" && !audio) &&
-                    <input
-                        type="text"
-                        placeholder="Message..."
-                        value={inputText}
-                        onChange={handleOnChange}
-                        onKeyDown={handleKeyDown}
-                        disabled={disabled}
-                    />}
+                    <div className={styles["input-with-badge"]}>
+                        <input
+                            name='message-input-box'
+                            type="text"
+                            placeholder="Message..."
+                            value={inputText}
+                            onChange={handleOnChange}
+                            onKeyDown={handleKeyDown}
+                            disabled={disabled}
+                        />
+                        <RemainingCreditBadge className={styles["credit-badge"]} value={creditsRemaining || 0} />
+                    </div>}
                 {audio && !sendOnStop && !isCancelling && (
                     <AudioWaveform audioBlob={audio}
                         width={dimensions.width}
