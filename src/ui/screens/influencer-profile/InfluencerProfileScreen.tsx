@@ -6,7 +6,7 @@ import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 import { useNavigate, useParams } from "react-router-dom";
 import WelcomeScreen from "./welcome/WelcomeScreen";
-import { showErrorModal } from "@/utils/errorModal";
+import logger from "@/utils/logger";
 
 
 import { FollowServices } from "@/api/services/FollowServices";
@@ -43,7 +43,7 @@ const InfluencerProfileScreen: React.FC<
           }
           setInfluencer(localInfluencer);
         } catch (err: any) {
-          showErrorModal(err);
+          logger.error(err);
           navigate("/");
           return;
         }
