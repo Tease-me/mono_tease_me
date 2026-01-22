@@ -432,20 +432,37 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         scrollToBottom();
     }
 
-    const sendMessage = (forcedAudio?: Blob) => {
-        if (!influencer) return;
+    const sendMessage = (forcedAudio?: Blob): boolean => {
+        if (!influencer) return false;
 
         const audioToSend = forcedAudio ?? inputAudio;
 
         if (inputText.trim()) {
+            if (!chatId) {
+                setError("Chat is still loading. Please wait.");
+                setTyping(false);
+                return false;
+            }
+            const socket = ws.current;
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                setError("Not connected. Reconnecting...");
+                setTyping(false);
+                return false;
+            }
             setTyping(false);
-            ws.current?.send(
-                JSON.stringify({
-                    chat_id: chatId,
-                    message: inputText.trim(),
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-                }),
-            );
+            try {
+                socket.send(
+                    JSON.stringify({
+                        chat_id: chatId,
+                        message: inputText.trim(),
+                        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                    }),
+                );
+            } catch (err) {
+                logger.error("Error sending message:", err);
+                setError("Failed to send message. Please retry.");
+                return false;
+            }
             setMessages(prev => {
                 if (!prev) return;
                 return [
@@ -463,9 +480,12 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                     },
                 ]
             });
-
-            setInputText("");
         } else if (audioToSend) {
+            if (!chatId) {
+                setError("Chat is still loading. Please wait.");
+                setTyping(false);
+                return false;
+            }
             setTyping(true);
             const sentMessageId = Date.now();
             sendAndPlay(audioToSend, sentMessageId);
@@ -491,10 +511,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                     },
                 ]
             });
+        } else {
+            return false;
         }
         setInputAudio(undefined);
         setInputText('');
         scrollToBottom();
+        return true;
     };
 
     const handleCallModeChange = () => {
