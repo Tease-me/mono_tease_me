@@ -22,7 +22,7 @@ type MyInfleuncerProps = {
 const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
   const [items, setItems] = useState<
     Array<{
-      id: string;
+      influencerId: string;
       name: string;
       image: string;
       video: string;
@@ -50,7 +50,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
 
         setItems(
           followed.map((inf) => ({
-            id: inf.id,
+            influencerId: inf.id,
             name: inf.name,
             image: inf.img,
             video: (inf as any).videoUrl || inf.videoUrl,
@@ -78,7 +78,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
             const balanceValue = balanceRes ? balanceRes.balance_cents / 100 : 0;
 
             return {
-              id: inf.id,
+              influencerId: inf.id,
               name: inf.name,
               image: inf.img,
               video: (inf as any).videoUrl || inf.videoUrl,
@@ -106,7 +106,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
 
   const handleViewProfile = (inf: any) => {
     goTo("influencer_profile", {
-      influencerId: inf.id,
+      influencerId: inf.influencerId,
       name: inf.name,
       image: inf.image,
       video: inf.video,
@@ -127,7 +127,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
       {loading ? <div className={styles.loading} >{<LoadingSpinner />} </div> :
         <div className={styles.list}>
           {items.map((inf) => (
-            <div key={inf.id}>
+            <div key={inf.influencerId}>
               <div className={styles.card}>
                 <InfluencerRelationCard {...inf} />
               </div>

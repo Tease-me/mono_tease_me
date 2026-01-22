@@ -19,12 +19,15 @@ import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
 import { RelationshipServices } from "@/api/services/RelationshipServices";
 import { BalanceServices } from "@/api/services/BalanceServices";
 import { UserServices } from "@/api/services/UserServices";
+import logger from "@/utils/logger";
+import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 
 
 //TODO
 // UNFOLLOW BUTTON IS HIDDEN
 //RELATIONSHIP RADAR CSS WARNING
 //REMOVE ALERT ON SUBSCRIBE
+//CHECK STATUS OF SUBSCRIPTION IF CANCELLED OR REACTIVATED ETC
 
 const relationshipService = RelationshipServices(apiClient);
 const balanceService = BalanceServices(apiClient);
@@ -39,7 +42,7 @@ type Props = {
 };
 
 type RelationData = {
-  id?: string;
+  id: string;
   name?: string;
   image?: string;
   video?: string;
@@ -103,6 +106,8 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
   const [cancelSuccess, setCancelSuccess] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
 
+  const [cancelReason, setCancelReason] = useState("");
+
   useEffect(() => {
     if (!initial.id) return;
     let cancelled = false;
@@ -153,6 +158,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
   useEffect(() => {
     setData((d) => ({
       ...d,
+      id: navPayload.influencerId ?? d.id,
       image: navPayload.image ?? d.image,
       video: navPayload.video ?? d.video,
       name: navPayload.name ?? d.name,
@@ -162,7 +168,9 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
 
 
   const onSubscribe = async () => {
-    if (!data.id) return;
+    if (!data.id) {
+      return;
+    }
     setLoading(true);
     try {
       await subscriptionService.activateMySubscriptionForInfluencer(data.id, true);
@@ -207,19 +215,25 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
 
   }
   const handleCancelSubscription = async () => {
-    if (!data.id) return;
+    if (!data.id) {
+      setCancelError(`Cannot find influencer ID : ${data.id}`);
+      logger.error("Cannot find influencer");
+      return;
+    }
     setCancelError(null);
     setCancelLoading(true);
     try {
-      await subscriptionService.activateMySubscriptionForInfluencer(data.id, false);
+      await subscriptionService.cancelSubscription(data.id, cancelReason);
       setCancelSuccess(true);
       setData((d) => ({ ...d, hasSubscription: false }));
     } catch (e: any) {
-      setCancelError(e?.message || "Could not cancel right now.");
-      console.error(e)
+      setCancelError("Could not cancel right now.");
+      logger.error(e);
     } finally {
       setAdultModeChecked(false);
       setCancelLoading(false);
+      setCancelReason("");
+      data.hasSubscription = false;
     }
   };
 
@@ -349,6 +363,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
       {loading && <div className={styles.loading}>Loading…</div>}
       {showCancelModal && (
         <Modal isOpen={showCancelModal} onClose={() => {
+          setCancelError("");
           setShowCancelModal(false);
           setCancelSuccess(false);
           setCancelError(null);
@@ -359,9 +374,16 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
               <>
                 <h3>Cancel 18+ subscription?</h3>
                 <p>Upon cancelling, you will no longer be able to have explicit conversation with {data.name}.</p>
+                <TextInput type="text" placeholder="Reason for canceling" value={cancelReason} onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setCancelReason(e.target.value)} />
                 {cancelError && <div className={styles.modalError}>{cancelError}</div>}
                 <div className={styles.modalActions}>
-                  <NormalButton type="nobg" onClick={() => setShowCancelModal(false)} text="Cancel" />
+                  <NormalButton type="nobg" onClick={() => {
+                    setCancelError("");
+                    setShowCancelModal(false);
+                    setCancelSuccess(false);
+                    setCancelError(null);
+                  }} text="Cancel" />
                   <IconButton
                     leftIcon={<SvgPack.Danger />}
                     disabled={cancelLoading}
