@@ -13,16 +13,16 @@ export const UserServices = (apiClient: AxiosInstance) => ({
             throw error;
         }
     },
-getUserUsage: async (influencerId?: string) => {
-  const me = await apiClient.get(Endpoints.auth.me);
-  const userId = me.data.id;
+    getUserUsage: async (influencerId?: string) => {
+        const me = await apiClient.get(Endpoints.auth.me);
+        const userId = me.data.id;
 
-  const response = await apiClient.get(Endpoints.user.usage(String(userId)), {
-    params: influencerId ? { influencer_id: influencerId } : undefined,
-  });
+        const response = await apiClient.get(Endpoints.user.usage(String(userId)), {
+            params: influencerId ? { influencer_id: influencerId } : undefined,
+        });
 
-  return response.data;
-},
+        return response.data;
+    },
 })
 
 

@@ -35,6 +35,7 @@ import CallModePage from '../pages/call-page/CallModePage';
 import { RelationshipDataModel } from '@/data/models/RelationshipDataModel';
 import AdultConvoStarterCard from '@/ui/components/cards/AdultConvoStarterCard';
 import { mergeCallMessages } from './messageUtils';
+import { UserServices } from '@/api/services/UserServices';
 
 const chatRepository = ChatRepository();
 const influencerRepo = InfluencerRepo();
@@ -84,6 +85,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const [showSubscriptionPage, setShowSubscriptionPage] = useState(false);
     const [showErrorAlert, setShowErrorAlert] = useState<string | undefined>();
     const [relationship, setRelationship] = useState<RelationshipDataModel | undefined>();
+    const [creditsRemaining, setCreditsRemaining] = useState<number | undefined>(undefined);
 
     const { user_id } = useParams();
 
@@ -126,7 +128,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
     useEffect(() => {
         let isMounted = true;
-
+        UserServices(apiClient).getUserUsage(influencer?.id).then((usage) => {
+            if (isMounted) {
+                setCreditsRemaining(usage.normal.messages.remaining);
+            }
+        }).catch((err) => {
+            logger.error("Error fetching user usage:", err);
+        });
         const checkSubscription = async () => {
             if (!influencer) {
                 setTyping(false);
@@ -334,6 +342,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             const data = JSON.parse(event.data);
             if (data.reply) {
                 setTyping(true);
+                if (data.usage) {
+                    setCreditsRemaining(data.usage.normal.messages.remaining);
+                }
                 setTimeout(() => {
                     setMessages(prev => {
                         if (!prev) return
@@ -620,6 +631,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                                 setInputAudio={setInputAudio}
                                 disabled={error ? true : false}
                                 error={error}
+                                creditsRemaining={creditsRemaining}
                                 inputAudio={inputAudio} />
                         </div>
                     </> : <CallModePage
