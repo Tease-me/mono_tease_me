@@ -3,10 +3,10 @@ import styles from "./PaymentCheck.module.css"
 
 export default function PaymentCheck() {
 
-  return(
+  return (
     <div className={styles.container}>
 
-    <PaymentResult isSuccessful={true} />
+      <PaymentResult isSuccessful={false} />
     </div>
   )
 }
