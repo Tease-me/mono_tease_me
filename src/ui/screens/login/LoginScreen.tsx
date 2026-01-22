@@ -26,6 +26,7 @@ export default function LoginScreen() {
   const [agree, setAgree] = useState(false);
 
   const [errors, setErrors] = useState<LoginErrors>({});
+
   const { login, isSignedIn, authErrors } = useContext(AuthContext);
 
   const navigate = useNavigate();
@@ -120,7 +121,7 @@ export default function LoginScreen() {
                 placeholder="Email"
                 value={email}
                 onChange={e => handleEmailChange((e.target as HTMLInputElement).value)} />
-              {errors.email && <span className={styles["error"]}>{errors.email}</span>}
+              <span className={styles["error"]}>{errors.email}</span>
             </div>
             <div className={styles["input-field"]}>
               <TextInput
@@ -131,7 +132,7 @@ export default function LoginScreen() {
                 value={password}
                 onChange={e => handlePasswordChange((e.target as HTMLInputElement).value)}
               />
-              {errors.password && <span className={styles["error"]}>{errors.password}</span>}
+              <span className={styles["error"]}>{errors.password}</span>
             </div>
           </div>
           <CheckBox className={styles["check-box"]} checked={agree} onChange={handleOnAgreeChange}>
