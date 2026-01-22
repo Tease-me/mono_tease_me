@@ -234,16 +234,14 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         try {
             const responseMessagesPagination: MessagePagination = await (adultMode ? adultChatRepo.getChatHistory(chat_id, page, pageSize) : chatRepository.getChatHistory(chat_id, page, pageSize));
 
-            const totalPages = responseMessagesPagination.total / pageSize;
+            const totalPages = Math.ceil(responseMessagesPagination.total / pageSize);
             const localMessages = responseMessagesPagination.messages;
             if (page === 1) {
                 setMessages(responseMessagesPagination.messages);
             } else {
                 setMessages(prev => prev ? [...localMessages, ...prev] : localMessages);
             }
-            if (pageSize < totalPages) {
-                setHasMore(false);
-            }
+            setHasMore(page < totalPages);
         } catch (err) {
             console.error('Error loading messages', err);
         }
