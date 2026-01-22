@@ -54,6 +54,7 @@
     margin-top: -60px;
     max-width: var(--max-chat-content-width);
     width: 100%;
+    margin-bottom: 60px;
 }
 
 .chat-messages-container.loading {
@@ -93,7 +94,7 @@
     height: 100%;
 }
 
-.adultConvoCardArea{
+.adultConvoCardArea {
     display: flex;
     flex-direction: row;
     align-items: center;

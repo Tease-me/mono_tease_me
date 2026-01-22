@@ -29,16 +29,38 @@
   display: block;
 }
 
-.metricsArea {
+.metricsBridge {
+  position: relative;
+  height: 0;
+}
+
+
+.metricsContainer {
   position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+}
+
+
+.metricsArea {
+  position: static;
   bottom: -60px;
+  height: 55px;
   display: flex;
-  width: 100%;
+  min-width: 205px;
   gap: 12px;
   justify-content: center;
   align-items: center;
   text-align: center;
+  border-radius: 80px;
+  border: 1px solid rgba(66, 66, 66, 0.50);
+  background: rgba(33, 33, 33, 0.80);
+  backdrop-filter: blur(1px);
+  padding: 32px 8px 32px 8px;
 }
+
+
 
 .nameArea {
   display: flex;
@@ -94,12 +116,6 @@
   width: auto;
 }
 
-.metricsBridge {
-  width: 100%;
-  position: relative;
-  height: 0;
-}
-
 .label {
   color: #9e9e9e;
   font-size: 12px;
@@ -112,6 +128,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: 16px;
+  margin-top: 16px;
 }
 
 .stageArea {
