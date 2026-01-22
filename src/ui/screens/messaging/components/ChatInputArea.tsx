@@ -179,7 +179,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                     leftIcon={inputAudio ? <SvgPack.CloseSquare /> : <SvgPack.Voice />}
                     className={styles["voice-btn"]}
                     color='black'
-                    text={"Hold to Talk"}
+                    text={recordingStatus === "recording" ? "Release to Send" : "Hold to Talk"}
                     disabled={disabled} />}
                 {(adultMode && !voiceMode) && <IconButton
                     leftIcon={inputAudio ? <SvgPack.CloseSquare /> : <SvgPack.Voice />}
