@@ -168,7 +168,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                 )}
             </div>}
 
-            <div className={styles["buttons"]}>
+            <div className={clsx(styles["buttons"], (adultMode && voiceMode) && styles["voice-mode"])}>
                 {(adultMode && voiceMode) && <LongPressButton
                     onShortPress={handleOnShortPress}
                     onLongPressStart={handleOnLongPressStart}
@@ -179,7 +179,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                     leftIcon={inputAudio ? <SvgPack.CloseSquare /> : <SvgPack.Voice />}
                     className={styles["voice-btn"]}
                     color='black'
-                    text={(isDesktop) ? "Hold to talk" : ""}
+                    text={"Hold to Talk"}
                     disabled={disabled} />}
                 {(adultMode && !voiceMode) && <IconButton
                     leftIcon={inputAudio ? <SvgPack.CloseSquare /> : <SvgPack.Voice />}

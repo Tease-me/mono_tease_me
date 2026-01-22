@@ -87,9 +87,18 @@
 
 .buttons {
     display: flex;
-    flex: 1;
     flex-direction: row;
     gap: 4px;
+}
+
+.buttons.voice-mode {
+    display: flex;
+    flex: 1;
+}
+
+.buttons.voice-mode .send-btn {
+    flex: 0;
+    min-width: 60px;
 }
 
 .call-btn {
