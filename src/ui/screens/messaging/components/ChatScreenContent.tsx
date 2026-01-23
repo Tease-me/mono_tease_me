@@ -600,7 +600,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                 {!showSubscriptionPage ? <>
                     {mode !== "call" ? <>
                         {isSuperUser && <ChatHeaderInfo
-                            isWsConnected={isWsConnected}
                             isSuperUser={isSuperUser}
                             chatId={chatId}
                             isClearingHistory={isClearingHistory}
