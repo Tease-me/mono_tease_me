@@ -13,7 +13,7 @@ import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import BalanceBadge from "@/ui/components/stats/BalanceBadge";
 import AdultModeToggle from "@/ui/components/adult-mode-toggle/AdultModeToggle";
 import { Modal } from "@/ui/components/modals/Modal";
-import { formatDateTimeRelative } from "@/utils/DateTimeUtils";
+import { formatDateTimeRelative, minutesToTime } from "@/utils/DateTimeUtils";
 
 import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
 import { RelationshipServices } from "@/api/services/RelationshipServices";
@@ -282,7 +282,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
             <UsageView
               label="Voice Minutes"
               tone="green"
-              value={data.voiceMinutes != null ? data.voiceMinutes.toString() : "--"}
+              value={data.voiceMinutes != null ? minutesToTime(data.voiceMinutes) : "--"}
             />
             <UsageView
               label="Text Msgs"
@@ -306,7 +306,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
             <UsageView
               label="Voice Minutes"
               tone="purple"
-              value={data.adultVoiceMinutes != null ? data.adultVoiceMinutes.toString() : "--"}
+              value={data.adultVoiceMinutes != null ? minutesToTime(data.adultVoiceMinutes) : "--"}
             />
             <UsageView
               label="Text Msg"
@@ -317,8 +317,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
           {showAdultBalanceDetails && <button className={styles.cancelSub} type="button" onClick={() => { setShowCancelModal(true) }}> Cancel Subscription</button>}
           <div className={styles.adultToggleArea}>
             <button type="button" className={styles.adultToggleBtn}>
-              {data.hasSubscription && <span className={styles.adultText}>{data.adultVoiceMinutes ?? "0"} mins</span>}
-              <AdultModeToggle checked={adultModeChecked} onChange={handleAdultToggleChange} />
+              <AdultModeToggle checked={adultModeChecked} onChange={handleAdultToggleChange} minutesLeft={data.adultVoiceMinutes} />
             </button>
             {data.hasSubscription && <p>
               Until: {data.expiresAt ? new Date(data.expiresAt).toLocaleDateString() : "--"}

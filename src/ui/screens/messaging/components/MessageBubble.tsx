@@ -54,25 +54,40 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     onAudioPlay,
     showAudioTranscript,
 }) => {
-    const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+    // const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const [expanded, setExpanded] = useState(false);
     const [transcriptExpanded, setTranscriptExpanded] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+    const objectUrlMapRef = useRef<Map<Blob, string>>(new Map());
+
+    // useLayoutEffect(() => {
+    //     function updateSize() {
+    //         if (!containerRef.current) return;
+    //         const { width, height } = containerRef.current.getBoundingClientRect();
+    //         // setDimensions({ width: width, height: height });
+    //     }
+    //     updateSize();
+    //     window.addEventListener('resize', updateSize);
+    //     return () => window.removeEventListener('resize', updateSize);
+    // }, [containerRef]);
 
     useLayoutEffect(() => {
-        function updateSize() {
-            if (!containerRef.current) return;
-            const { width, height } = containerRef.current.getBoundingClientRect();
-            setDimensions({ width: width, height: height });
-        }
-        updateSize();
-        window.addEventListener('resize', updateSize);
-        return () => window.removeEventListener('resize', updateSize);
-    }, [containerRef]);
+        return () => {
+            objectUrlMapRef.current.forEach((url) => {
+                URL.revokeObjectURL(url);
+            });
+            objectUrlMapRef.current.clear();
+        };
+    }, []);
 
     const getAudioUrl = (attachment: MediaAttachment): string => {
-        if (attachment.blob)
-            return URL.createObjectURL(attachment.blob);
+        if (attachment.blob) {
+            const cachedUrl = objectUrlMapRef.current.get(attachment.blob);
+            if (cachedUrl) return cachedUrl;
+            const url = URL.createObjectURL(attachment.blob);
+            objectUrlMapRef.current.set(attachment.blob, url);
+            return url;
+        }
         if (attachment.audioUrl)
             return attachment.audioUrl;
         return "";
@@ -85,8 +100,6 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                 <AudioPlayer
                     key={idx}
                     src={getAudioUrl(attachment)}
-                    height={dimensions.height}
-                    width={dimensions.width}
                     progressColor={(message.sender ?? "received") === "received" ? '#FF8395' : "#FF981F"}
                     onPlay={onAudioPlay}
                 />
@@ -178,22 +191,24 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                     <>
                         {msg?.text}
                         {renderAttachments(msg)}
-                        {hasTranscript && (
-                            <button
-                                type="button"
-                                className={styles["audio-transcript-toggle"]}
-                                onClick={() => setTranscriptExpanded((prev) => !prev)}
-                            >
-                                {transcriptExpanded ? "Hide transcript" : "Show transcript"}
-                            </button>
-                        )}
-                        {hasTranscript && transcriptExpanded && (
-                            <div className={styles["audio-transcript"]}>{msg?.transcript}</div>
-                        )}
                     </>
                 )}
             </div>
-            {!callGroup && <span className={styles["time"]}>{time}</span>}
+            <div className={styles["message-meta"]}>
+                {hasTranscript && (
+                    <button
+                        type="button"
+                        className={styles["audio-transcript-toggle"]}
+                        onClick={() => setTranscriptExpanded((prev) => !prev)}
+                    >
+                        {transcriptExpanded ? "Hide transcript" : "Show transcript"}
+                    </button>
+                )}
+                {!callGroup && <span className={styles["time"]}>{time}</span>}
+            </div>
+            {hasTranscript && transcriptExpanded && (
+                <div className={styles["audio-transcript"]}>{msg?.transcript}</div>
+            )}
         </div>
     );
 };
