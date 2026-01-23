@@ -86,6 +86,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const [showErrorAlert, setShowErrorAlert] = useState<string | undefined>();
     const [relationship, setRelationship] = useState<RelationshipDataModel | undefined>();
     const [creditsRemaining, setCreditsRemaining] = useState<number | undefined>(undefined);
+    const [adultMinutesRemaining, setAdultMinutesRemaining] = useState<number | undefined>(undefined);
 
     const { user_id } = useParams();
 
@@ -131,6 +132,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         UserServices(apiClient).getUserUsage(influencer?.id).then((usage) => {
             if (isMounted) {
                 setCreditsRemaining(usage.normal.messages.remaining);
+                setAdultMinutesRemaining(usage.adult.livechat.remaining_minutes)
             }
         }).catch((err) => {
             logger.error("Error fetching user usage:", err);
@@ -297,7 +299,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     }, [messages, pageNumber, scrollToBottom])
 
     function calculateReplyTime(msg: string) {
-        const replyTime = (msg.length * 100);
+        const replyTime = (msg.length * 50);
         return (replyTime);
     }
 
@@ -344,6 +346,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                 setTyping(true);
                 if (data.usage) {
                     setCreditsRemaining(data.usage.normal.messages.remaining);
+                    setAdultMinutesRemaining(data.usage.adult.livechat.remaining_minutes)
                 }
                 setTimeout(() => {
                     setMessages(prev => {
@@ -570,6 +573,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                         callMode={mode === "call"}
                         adultMode={adultModeSwitch}
                         onAdultModeChange={handleAdultModeChange}
+                        minutesRemaining={adultMinutesRemaining}
                     />
                 </div>
                 {!showSubscriptionPage ? <>
