@@ -131,8 +131,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         let isMounted = true;
         UserServices(apiClient).getUserUsage(influencer?.id).then((usage) => {
             if (isMounted) {
-                setCreditsRemaining(usage.normal.messages.remaining);
-                setAdultMinutesRemaining(usage.adult.livechat.remaining_minutes)
+                adultMode ? setCreditsRemaining(usage.adult?.messages?.remaining) : setCreditsRemaining(usage.normal?.messages?.remaining);
+                setAdultMinutesRemaining(usage.adult?.livechat?.remaining_minutes)
             }
         }).catch((err) => {
             logger.error("Error fetching user usage:", err);
@@ -343,8 +343,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             if (data.reply) {
                 setTyping(true);
                 if (data.usage) {
-                    setCreditsRemaining(data.usage.normal.messages.remaining);
-                    setAdultMinutesRemaining(data.usage.adult.livechat.remaining_minutes)
+                    adultMode ? setCreditsRemaining(data.usage.adult?.messages?.remaining) : setCreditsRemaining(data.usage.normal?.messages?.remaining);
+                    setAdultMinutesRemaining(data.usage.adult?.livechat?.remaining_minutes)
                 }
                 setTimeout(() => {
                     setMessages(prev => {
