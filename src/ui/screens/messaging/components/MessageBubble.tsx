@@ -100,8 +100,6 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                 <AudioPlayer
                     key={idx}
                     src={getAudioUrl(attachment)}
-                    height={dimensions.height}
-                    width={dimensions.width}
                     progressColor={(message.sender ?? "received") === "received" ? '#FF8395' : "#FF981F"}
                     onPlay={onAudioPlay}
                 />
@@ -193,22 +191,24 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                     <>
                         {msg?.text}
                         {renderAttachments(msg)}
-                        {hasTranscript && (
-                            <button
-                                type="button"
-                                className={styles["audio-transcript-toggle"]}
-                                onClick={() => setTranscriptExpanded((prev) => !prev)}
-                            >
-                                {transcriptExpanded ? "Hide transcript" : "Show transcript"}
-                            </button>
-                        )}
-                        {hasTranscript && transcriptExpanded && (
-                            <div className={styles["audio-transcript"]}>{msg?.transcript}</div>
-                        )}
                     </>
                 )}
             </div>
-            {!callGroup && <span className={styles["time"]}>{time}</span>}
+            <div className={styles["message-meta"]}>
+                {hasTranscript && (
+                    <button
+                        type="button"
+                        className={styles["audio-transcript-toggle"]}
+                        onClick={() => setTranscriptExpanded((prev) => !prev)}
+                    >
+                        {transcriptExpanded ? "Hide transcript" : "Show transcript"}
+                    </button>
+                )}
+                {!callGroup && <span className={styles["time"]}>{time}</span>}
+            </div>
+            {hasTranscript && transcriptExpanded && (
+                <div className={styles["audio-transcript"]}>{msg?.transcript}</div>
+            )}
         </div>
     );
 };

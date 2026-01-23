@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 
-import styles from "./ChatScreenContent.module.css";
+import styles from "./MessageList.module.css";
 import MessageBubble, { CallMessageGroup } from "./MessageBubble";
 import { Message } from "@/data/models/MessageDataModel";
 
@@ -28,6 +28,11 @@ const MessagesList = React.memo(
     onAudioPlay,
     showAudioTranscript,
   }: MessagesListProps) => {
+
+    useEffect(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages.length, messagesEndRef]);
+
     return (
       <>
         <div className={styles["messages"]}>
@@ -44,7 +49,6 @@ const MessagesList = React.memo(
           {typing && <MessageBubble />}
         </div>
         <div ref={messagesEndRef} style={{ height: "50px" }} />
-        {messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })}
       </>
     );
   }
