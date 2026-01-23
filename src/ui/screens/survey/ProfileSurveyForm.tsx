@@ -359,8 +359,12 @@ const ProfileSurveyForm: React.FC = () => {
       await apiClient.put(`/pre-influencers/${preInfluencerId}/survey`, {
         survey_answers: answers,
         survey_step: stepIndex,
-        token: token,
-        temp_password: temp_password,
+      }, {
+        params: {
+          pre_id: preInfluencerId,
+          token: token,
+          temp_password: temp_password,
+        }
       });
     } catch (err) {
       console.error("Error saving survey (manual):", err);
