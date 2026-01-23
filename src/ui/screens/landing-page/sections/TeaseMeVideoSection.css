@@ -57,6 +57,7 @@
   /* Firefox */
   -ms-overflow-style: none;
   /* IE + Edge */
+  overscroll-behavior: auto;
 }
 
 .tm-video-scroll::-webkit-scrollbar {
@@ -172,7 +173,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: none; /* video click still works */
+  pointer-events: none;
+  /* video click still works */
   animation: fadeIn 0.2s ease-out;
 }
 

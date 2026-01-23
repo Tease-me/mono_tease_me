@@ -3,11 +3,10 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  max-width: 7vw;
   gap: 0.25rem;
 }
 
-.loveScore > * {
+.loveScore>* {
   flex-shrink: 0;
 }
 

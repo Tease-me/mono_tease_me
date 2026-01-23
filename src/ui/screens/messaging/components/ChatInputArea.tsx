@@ -14,7 +14,7 @@ import RemainingCreditBadge from '@/ui/components/badges/RemainingCreditBadge';
 
 interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
     adultMode?: boolean;
-    onSendMessage?: (forcedAudio?: Blob) => void;
+    onSendMessage?: (forcedAudio?: Blob) => boolean | void;
     inputText?: string;
     setInputText?: (text: string) => void;
     inputAudio?: Blob;
@@ -70,7 +70,10 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 
     const handleOnSendMessage = () => {
         if ((inputText && inputText.trim() !== '') || inputAudio) {
-            onSendMessage?.();
+            const didSend = onSendMessage?.();
+            if (didSend === false) {
+                return;
+            }
         }
         setInputText?.("");
         setInputAudio?.(undefined);
@@ -92,8 +95,11 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
             return;
         }
         if (audio && sendOnStop) {
-            onSendMessage?.(audio);
+            const didSend = onSendMessage?.(audio);
             setSendOnStop(false);
+            if (didSend === false) {
+                return;
+            }
             clearAudio();
         }
     }, [audio, sendOnStop, isCancelling, onSendMessage, clearAudio]);
@@ -179,7 +185,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                     leftIcon={inputAudio ? <SvgPack.CloseSquare /> : <SvgPack.Voice />}
                     className={styles["voice-btn"]}
                     color='black'
-                    text={"Hold to Talk"}
+                    text={recordingStatus === "recording" ? "Release to Send" : "Hold to Talk"}
                     disabled={disabled} />}
                 {(adultMode && !voiceMode) && <IconButton
                     leftIcon={inputAudio ? <SvgPack.CloseSquare /> : <SvgPack.Voice />}

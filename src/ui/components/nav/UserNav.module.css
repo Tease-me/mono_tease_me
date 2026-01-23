@@ -35,23 +35,9 @@
   align-content: center;
 }
 
-.callButtonSmall {
-  display: none;
-}
-
-
 @media (max-width: 768px) {
   .bar {
     padding: 12px 16px;
-  }
-
-
-  .callButton {
-    display: none !important;
-  }
-
-  .callButtonSmall {
-    display: flex;
   }
 
   .logoArea {

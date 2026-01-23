@@ -21,7 +21,6 @@ interface UserNavProps extends React.HTMLAttributes<HTMLDivElement> {
 const UserNav: React.FC<UserNavProps> = ({ onCallClick, onMenuClick, adultMode, callMode, onAdultModeChange, minutesRemaining }) => {
   const isMobile = useIsDesktop() === false;
   const { theme, setTheme } = useTheme();
-
   useEffect(() => {
     if (typeof adultMode === "boolean") {
       setTheme(adultMode ? 'adult' : 'default');
@@ -52,8 +51,7 @@ const UserNav: React.FC<UserNavProps> = ({ onCallClick, onMenuClick, adultMode, 
           <TeaseMeLogo variant="full" />
         </div>
         <div className={styles["right-buttons"]}>
-          {!adultMode && <IconButton leftIcon={callMode ? <SvgPack.Call /> : <SvgPack.Message />} onClick={onCallClick} className={styles.callButton} color='black' text="Mode" />}
-          <IconButton leftIcon={<SvgPack.Call />} onClick={onCallClick} className={styles.callButtonSmall} color='green' />
+          {!adultMode && <IconButton leftIcon={callMode ? <SvgPack.Call /> : <SvgPack.Chat />} onClick={onCallClick} className={styles.callButton} color='black' text={isMobile ? "" : "Mode"} />}
         </div>
       </div>
     </div>
