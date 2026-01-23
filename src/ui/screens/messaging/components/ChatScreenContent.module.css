@@ -67,25 +67,6 @@
     bottom: 0dvh;
 }
 
-.messages {
-    flex: 1;
-    display: flex;
-    justify-content: flex-end;
-    flex-direction: column;
-    position: relative;
-    max-width: var(--max-chat-content-width);
-    padding: 28px;
-}
-
-.messages>*+* {
-    margin-top: 24px;
-}
-
-.messages> :global(.message.sent)+ :global(.message.sent),
-.messages> :global(.message.received)+ :global(.message.received) {
-    margin-bottom: 10px;
-}
-
 .empty-chat-screen {
     display: flex;
     flex: 1;
