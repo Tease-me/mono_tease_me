@@ -35,3 +35,16 @@ export function formatDateTimeRelative(input: string | Date): string {
     const isCurrentYear = year === now.getFullYear();
     return `${day} ${month}${isCurrentYear ? '' : ` ${year}`}`;
 }
+
+export function minutesToTime(minutes: number) {
+    if (!Number.isFinite(minutes)) return "0:00";
+
+    const mins = Math.floor(minutes);
+    const secs = Math.round((minutes - mins) * 60);
+
+    if (secs === 60) {
+        return `${mins + 1}:00`;
+    }
+
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+}

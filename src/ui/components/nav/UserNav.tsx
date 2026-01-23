@@ -14,10 +14,11 @@ interface UserNavProps extends React.HTMLAttributes<HTMLDivElement> {
   adultMode?: boolean;
   callMode?: boolean;
   onAdultModeChange?: (checked: boolean) => void;
+  minutesRemaining?: number;
 }
 
 
-const UserNav: React.FC<UserNavProps> = ({ onCallClick, onMenuClick, adultMode, callMode, onAdultModeChange }) => {
+const UserNav: React.FC<UserNavProps> = ({ onCallClick, onMenuClick, adultMode, callMode, onAdultModeChange, minutesRemaining }) => {
   const isMobile = useIsDesktop() === false;
   const { theme, setTheme } = useTheme();
   useEffect(() => {
@@ -43,6 +44,7 @@ const UserNav: React.FC<UserNavProps> = ({ onCallClick, onMenuClick, adultMode, 
             onChange={(checked) => {
               onAdultModeChange(checked);
             }}
+            minutesLeft={minutesRemaining}
           />
         )}
         <div className={styles.logoArea}>
