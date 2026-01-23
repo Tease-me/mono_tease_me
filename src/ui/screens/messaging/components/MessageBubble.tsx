@@ -58,6 +58,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     const [expanded, setExpanded] = useState(false);
     const [transcriptExpanded, setTranscriptExpanded] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+    const objectUrlMapRef = useRef<Map<Blob, string>>(new Map());
 
     useLayoutEffect(() => {
         function updateSize() {
@@ -70,9 +71,23 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         return () => window.removeEventListener('resize', updateSize);
     }, [containerRef]);
 
+    useLayoutEffect(() => {
+        return () => {
+            objectUrlMapRef.current.forEach((url) => {
+                URL.revokeObjectURL(url);
+            });
+            objectUrlMapRef.current.clear();
+        };
+    }, []);
+
     const getAudioUrl = (attachment: MediaAttachment): string => {
-        if (attachment.blob)
-            return URL.createObjectURL(attachment.blob);
+        if (attachment.blob) {
+            const cachedUrl = objectUrlMapRef.current.get(attachment.blob);
+            if (cachedUrl) return cachedUrl;
+            const url = URL.createObjectURL(attachment.blob);
+            objectUrlMapRef.current.set(attachment.blob, url);
+            return url;
+        }
         if (attachment.audioUrl)
             return attachment.audioUrl;
         return "";
