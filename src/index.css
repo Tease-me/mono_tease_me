@@ -58,6 +58,7 @@ body,
   --color-purple: #AD4ADE;
   --color-purple-background: rgba(136, 1, 203, 0.15);
   --color-purple-light: #CC68FF;
+  --color-purple-disabled: #72508A;
   --color-green-background: rgba(18, 255, 105, 0.10);
 }
 
@@ -152,12 +153,12 @@ button {
 }
 
 .u-sidebar-page {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .u-sidebar-footer {
-    margin-top: auto;
-    padding-bottom: 16px;
+  margin-top: auto;
+  padding-bottom: 16px;
 }

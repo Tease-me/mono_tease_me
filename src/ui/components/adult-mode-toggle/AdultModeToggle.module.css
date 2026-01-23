@@ -1,10 +1,49 @@
 .container {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  padding: 0 4px 0 11px;
+  gap: 12px;
+  min-width: 200px;
+  border-radius: 74px;
+  border: 1px solid rgba(66, 66, 66, 0.50);
+  background: #212121;
+}
+
+.minutesArea {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.minutesArea span {
+  text-align: center;
+  font-family: var(--secondary-font-family);
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0.2px;
+
+}
+
+.minutesEnabled span {
+  color: var(--color-purple-light);
+}
+
+.minutesDisabled span {
+  color: var(--color-purple-disabled);
+}
+
+
+.toggleArea {
+  display: flex;
+  align-items: center;
   gap: 12px;
   height: 30px;
   width: 80px;
   position: relative;
+
 }
 
 .pill {
