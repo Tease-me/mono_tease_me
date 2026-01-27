@@ -14,12 +14,16 @@ export type SystemPromptListItem = {
 export type SystemPromptDetail = {
     key: string;
     prompt: string;
+    name?: string;
+    type?: SystemPromptType;
     description?: string;
     updated_at?: string;
 };
 
 export type SystemPromptUpdateRequest = {
     prompt: string;
+    name?: string;
+    type?: SystemPromptType;
     description?: string;
 };
 

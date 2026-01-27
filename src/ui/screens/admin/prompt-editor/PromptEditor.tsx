@@ -169,6 +169,8 @@ const PromptEditor: React.FC = () => {
                             ? {
                                 ...node,
                                 defaultPrompt: detail.prompt ?? node.defaultPrompt,
+                                name: detail.name ?? node.name,
+                                type: detail.type ?? node.type,
                                 description: detail.description ?? node.description,
                                 updatedAt: formatUpdatedAt(detail.updated_at) ?? node.updatedAt,
                             }
@@ -215,6 +217,8 @@ const PromptEditor: React.FC = () => {
         try {
             const response = await systemPromptService.upsert(selectedNode.id, {
                 prompt: selectedNode.defaultPrompt,
+                name: selectedNode.name,
+                type: selectedNode.type,
                 description: selectedNode.description,
             });
             setNodes((prev) =>
@@ -285,7 +289,7 @@ const PromptEditor: React.FC = () => {
                     {selectedNode ? (
                         <>
                             <header className={styles["editor-header"]}>
-                                <div>
+                                <div className={styles["header-fields"]}>
                                     <input
                                         className={styles["title-input"]}
                                         value={selectedNode.name}
@@ -332,6 +336,10 @@ const PromptEditor: React.FC = () => {
                             </div>
 
                             <div className={styles["preview-bar"]}>
+                                <div className={styles["preview-chip"]}>
+                                    <span className={styles["preview-chip__label"]}>Key</span>
+                                    <span className={styles["preview-chip__value"]}>{selectedNode.id}</span>
+                                </div>
                                 <div className={styles["preview-chip"]}>
                                     <span className={styles["preview-chip__label"]}>Characters</span>
                                     <span className={styles["preview-chip__value"]}>{selectedNode.defaultPrompt.length}</span>
