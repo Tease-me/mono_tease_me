@@ -2,7 +2,7 @@ import React, { ChangeEvent, useCallback, useEffect, useMemo, useState } from "r
 import styles from "./PromptEditor.module.css";
 import SvgPack from "@/utils/SvgPack";
 import { apiClient } from "@/api/apis";
-import { SystemPromptService, SystemPromptListItem } from "@/api/services/SystemPromptService";
+import { SystemPromptService, SystemPromptListItem, SystemPromptType } from "@/api/services/SystemPromptService";
 import TabsLayout, { TabItem } from "@/ui/components/tabs/TabsLayout";
 
 type PromptNode = {
@@ -10,30 +10,34 @@ type PromptNode = {
     name: string;
     description: string;
     defaultPrompt: string;
+    type: SystemPromptType;
     updatedAt: string;
 };
 
-type PromptTabKey = "normal" | "adult" | "other";
+type PromptTabKey = SystemPromptType;
 
 const nowLabel = () => new Date().toLocaleString("en-US", { month: "short", day: "numeric" });
 
 const systemPromptService = SystemPromptService(apiClient);
 
-const DEFAULT_PROMPTS: Record<string, { name: string; description: string; defaultPrompt: string }> = {
+const DEFAULT_PROMPTS: Record<string, { name: string; description: string; defaultPrompt: string; type: SystemPromptType }> = {
     "general-prompt": {
         name: "Base System Prompt",
         description: "Global system instructions applied to every interaction unless overridden.",
         defaultPrompt: "You are a charming conversational AI for TeaseMe. Keep replies playful, concise, supportive, and ask thoughtful follow-ups.",
+        type: "normal",
     },
     "general-voice-prompt": {
         name: "Global Audio Prompt",
         description: "Voice/call guidance layered on top of the base system prompt.",
         defaultPrompt: "Stay responsive to live context. Keep answers tight so users can interrupt easily. Confirm what you heard when audio is unclear.",
+        type: "normal",
     },
     "fact-extractor-prompt": {
         name: "FactExtractor Prompt",
         description: "Fact extraction rules for grounding and summaries.",
         defaultPrompt: "Extract concise facts and attributes only. Avoid speculation; prefer verbatim, sourced details. Flag uncertainty explicitly.",
+        type: "others",
     },
 };
 
@@ -52,6 +56,7 @@ const createSeedNodes = (): PromptNode[] =>
         name: meta.name,
         description: meta.description,
         defaultPrompt: meta.defaultPrompt,
+        type: meta.type,
         updatedAt: nowLabel(),
     }));
 
@@ -59,9 +64,10 @@ const mapListItemToNode = (item: SystemPromptListItem): PromptNode => {
     const meta = DEFAULT_PROMPTS[item.key];
     return {
         id: item.key,
-        name: meta?.name ?? item.key,
+        name: item.name ?? meta?.name ?? "Unnamed Prompt",
         description: item.description ?? meta?.description ?? "",
         defaultPrompt: meta?.defaultPrompt ?? "",
+        type: item.type ?? meta?.type ?? "others",
         updatedAt: formatUpdatedAt(item.updated_at),
     };
 };
@@ -91,21 +97,15 @@ const PromptEditor: React.FC = () => {
         [activeTabId, promptTabs],
     );
 
-    const getPromptTab = useCallback((key: string): PromptTabKey => {
-        if (key === "adult-mode-prompt") return "adult";
-        if (key === "general-prompt" || key === "general-voice-prompt") return "normal";
-        return "other";
-    }, []);
-
     const activeTabKey: PromptTabKey = useMemo(() => {
         if (activeTab.id === 1) return "adult";
-        if (activeTab.id === 2) return "other";
+        if (activeTab.id === 2) return "others";
         return "normal";
     }, [activeTab.id]);
 
     const visibleNodes = useMemo(
-        () => nodes.filter((node) => getPromptTab(node.id) === activeTabKey),
-        [nodes, getPromptTab, activeTabKey],
+        () => nodes.filter((node) => node.type === activeTabKey),
+        [nodes, activeTabKey],
     );
 
     const selectedNode = useMemo(
@@ -249,7 +249,7 @@ const PromptEditor: React.FC = () => {
                 <aside className={styles["node-rail"]}>
                     <div className={styles["rail-header"]}>
                         <div className={styles["rail-title"]}>
-                            <h2 className={styles["rail-heading"]}>Prompt Nodes</h2>
+                            <div className={styles["rail-heading"]}>Prompt Nodes</div>
                         </div>
                         <span className={styles["rail-caption"]}></span>
                     </div>
