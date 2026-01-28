@@ -173,7 +173,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
     }
     setLoading(true);
     try {
-      await subscriptionService.activateMySubscriptionForInfluencer(data.id, true);
+      await subscriptionService.startSubscription(data.id, 1);
       const sub = await subscriptionService.getMySubscriptionForInfluencer(data.id);
       setData((d) => ({
         ...d,
