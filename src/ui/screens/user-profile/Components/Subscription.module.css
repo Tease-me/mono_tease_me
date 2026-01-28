@@ -1,3 +1,7 @@
+.container {
+  width: 100%;
+}
+
 .cards {
   display: flex;
   flex-direction: row;
@@ -6,12 +10,16 @@
   scroll-snap-type: x mandatory;
   -ms-overflow-style: none;
   scrollbar-width: none;
+  font-family: var(--secondary-font-family);
 }
 
 .card {
   min-height: 40px;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-weight: 14px;
 }
 
 .loading {
@@ -19,4 +27,76 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.red {
+  color: var(--color-alert);
+}
+
+.divider {
+  width: 80%;
+  height: 1px;
+  background: #424242;
+  margin-top: 32px;
+  margin-bottom: 32px;
+  align-self: center;
+}
+
+.title {
+  color: white;
+  font-family: var(--secondary-font-family);
+
+  /* heading/h3 */
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 140%;
+  /* 25.2px */
+  letter-spacing: 0.2px;
+}
+
+.title2 {
+  color: white;
+
+  /* body/01/medium */
+  font-family: var(--secondary-font-family);
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 140%;
+  /* 22.4px */
+  letter-spacing: 0.2px;
+}
+
+.subtitle {
+  color: #757575;
+
+  /* body/02/medium */
+  font-family: var(--secondary-font-family);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 140%;
+  /* 19.6px */
+  letter-spacing: 0.2px;
+}
+
+.addOnArea {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+}
+
+.addOns {
+  display: flex;
+  flex-direction: column;
+  margin-top: 24px;
+  margin-bottom: 24px;
+
+}
+
+.addOnContent {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 24px;
 }

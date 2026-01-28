@@ -6,6 +6,7 @@ import clsx from "clsx"
 import PricingPlanCard from "@/ui/components/cards/PricingPlanCard";
 import styles from "./Subscription.module.css";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
+import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 
 
 type SubscriptionProps = {
@@ -32,6 +33,7 @@ const Subscription = ({ }: SubscriptionProps) => {
   );
 
   const recurringPlans = data?.recurring ?? [];
+  const addOns = data?.addons ?? [];
 
   return (
     <div className={clsx(styles.container, "u-sidebar-page")} >
@@ -46,8 +48,33 @@ const Subscription = ({ }: SubscriptionProps) => {
               callTime={`${plan.features.minutes_equivalent ?? 0} min`}
               active={plan.is_featured}
             />
+            <div><span className={styles.red}>18+ </span>only</div>
           </div>
         ))}
+      </div>
+      <div className={styles.divider}></div>
+      <div className={styles.addOnArea}>
+        <span className={styles.title}>
+          Add On Packages
+        </span>
+        <span className={styles.subtitle}>
+          One-time add-ons available with an active subscription.
+        </span>
+
+        <div >
+          {addOns.map((addOn) => (
+            <div key={addOn.id} className={styles.addOns}>
+              <div className={styles.addOnContent}>
+                <span className={styles.title2}>{addOn.name}</span>
+                <span className={styles.subtitle}>{addOn.description}</span>
+              </div>
+              <PrimaryButton variant="purple" text={`$${addOn.price_display}s`} />
+              <div className={styles.divider}></div>
+
+            </div>
+          ))}
+
+        </div>
       </div>
     </div>
   );
