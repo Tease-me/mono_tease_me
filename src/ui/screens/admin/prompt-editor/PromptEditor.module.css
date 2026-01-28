@@ -193,6 +193,7 @@
     flex-direction: column;
     gap: 16px;
     min-height: 0;
+    overflow-y: auto;
 }
 
 .editor-header {
@@ -266,7 +267,6 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 16px;
-    min-height: 0;
 }
 
 .field-card {
