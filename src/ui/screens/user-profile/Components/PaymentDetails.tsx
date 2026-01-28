@@ -10,16 +10,12 @@ type PaymentDetailsProps = { goTo: (id: string) => void };
 const PaymentDetails = ({ goTo }: PaymentDetailsProps) => {
     const handleVisaBtn = () => {
         // Handle Visa button click
-        //temporarily disable
-        const a=false;
-        if (a) {
-        goTo("");
-        }
+        goTo("subscription")
     };
 
     const handleMasterCardBtn = () => {
         //temporary
-       goTo('payment-check');
+        goTo('payment-check');
     };
 
 

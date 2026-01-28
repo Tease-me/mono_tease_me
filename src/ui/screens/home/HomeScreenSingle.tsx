@@ -12,6 +12,7 @@ import AddCredits from "../user-profile/Components/AddCredits";
 import SlideDrawerLayout from "@/ui/templates/SlideDrawerLayout";
 import AdultModePage from "../messaging/pages/adult-mode/AdultModePage";
 import PaymentCheck from "../user-profile/Components/PaymentCheck";
+import Subscription from "../user-profile/Components/Subscription";
 import clsx from "clsx";
 import styles from "./HomeScreenSingle.module.css"
 
@@ -53,6 +54,7 @@ const sidebarPages: SidebarPage[] = [
       />
     )
   },
+  { id: "subscription", label: "Subscription", render: ({ goTo }) => <Subscription goTo={goTo} /> },
 
 ];
 

@@ -58,6 +58,7 @@ body,
   --color-purple: #AD4ADE;
   --color-purple-background: rgba(136, 1, 203, 0.15);
   --color-purple-light: #CC68FF;
+  --color-purple-deep: #AE21F5;
   --color-purple-disabled: #72508A;
   --color-green-background: rgba(18, 255, 105, 0.10);
 }
