@@ -99,6 +99,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             attachment.type === 'audio' ? (
                 <AudioPlayer
                     key={idx}
+                    width={150}
+                    height={50}
                     src={getAudioUrl(attachment)}
                     progressColor={(message.sender ?? "received") === "received" ? '#FF8395' : "#FF981F"}
                     onPlay={onAudioPlay}
