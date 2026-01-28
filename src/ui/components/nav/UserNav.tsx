@@ -7,6 +7,7 @@ import IconButton from '../inputs/buttons/IconButton'
 import useIsDesktop from '@/utils/hooks/useIsDesktop'
 import { useTheme } from '@/theme/ThemeProvider'
 import AdultModeToggle from "@/ui/components/adult-mode-toggle/AdultModeToggle";
+import clsx from 'clsx'
 
 interface UserNavProps extends React.HTMLAttributes<HTMLDivElement> {
   onCallClick?: () => void;
@@ -51,7 +52,7 @@ const UserNav: React.FC<UserNavProps> = ({ onCallClick, onMenuClick, adultMode, 
           <TeaseMeLogo variant="full" />
         </div>
         <div className={styles["right-buttons"]}>
-          {!adultMode && <IconButton leftIcon={callMode ? <SvgPack.Chat /> : <SvgPack.Call />} onClick={onCallClick} className={styles.callButton} color='black' text={isMobile ? "" : "Mode"} />}
+          <IconButton leftIcon={callMode ? <SvgPack.Chat /> : <SvgPack.Call />} onClick={onCallClick} className={clsx(styles.callButton, adultMode && styles.hidden)} color='black' text={isMobile ? "" : "Mode"} />
         </div>
       </div>
     </div>
