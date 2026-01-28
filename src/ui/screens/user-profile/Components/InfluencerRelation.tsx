@@ -99,7 +99,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
 
   const [showBalanceDetails, setShowBalanceDetails] = useState(false);
   const [showAdultBalanceDetails, setShowAdultBalanceDetails] = useState(false);
-  const [adultModeChecked, setAdultModeChecked] = useState(data.hasSubscription || false);
+  const [adultModeChecked, setAdultModeChecked] = useState(!!data.hasSubscription && data.subscriptionStatus !== 'cancelled');
 
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
@@ -134,6 +134,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
           lastConnected: rel?.last_interaction_at ?? d.lastConnected,
           balance: bal ? bal.balance_cents / 100 : d.balance,
           hasSubscription: sub?.has_subscription ?? d.hasSubscription,
+          subscriptionStatus: sub?.status ?? d.subscriptionStatus,
           is18: sub?.is_18_selected ?? d.is18,
           expiresAt: sub?.current_period_end ?? d.expiresAt,
           voiceMinutes: u?.normal?.live_chat?.remaining_minutes ?? d.voiceMinutes,
@@ -150,9 +151,11 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
   }, [initial.id]);
 
 
+  const isSubscribed = !!data.hasSubscription && data.subscriptionStatus !== 'cancelled';
+
   useEffect(() => {
-    setAdultModeChecked(!!data.hasSubscription);
-  }, [data.hasSubscription]);
+    setAdultModeChecked(isSubscribed);
+  }, [isSubscribed]);
 
   //Navpayload 
   useEffect(() => {
@@ -173,7 +176,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
     }
     setLoading(true);
     try {
-      await subscriptionService.activateMySubscriptionForInfluencer(data.id, true);
+      await subscriptionService.startSubscription(data.id, 1);
       const sub = await subscriptionService.getMySubscriptionForInfluencer(data.id);
       setData((d) => ({
         ...d,
@@ -202,7 +205,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
   const handleAdultToggleChange = async () => {
     // const a = adultModeChecked;
     // setAdultModeChecked(!a);
-    if (!data.hasSubscription) {
+    if (!isSubscribed) {
       goTo('subscribe', {
         influencerId: data.id,
         image: data.image,
@@ -225,15 +228,14 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
     try {
       await subscriptionService.cancelSubscription(data.id, cancelReason);
       setCancelSuccess(true);
-      setData((d) => ({ ...d, hasSubscription: false }));
+      setData((d) => ({ ...d, hasSubscription: false, subscriptionStatus: 'cancelled' }));
+      setAdultModeChecked(false);
     } catch (e: any) {
       setCancelError("Could not cancel right now.");
       logger.error(e);
     } finally {
-      setAdultModeChecked(false);
       setCancelLoading(false);
       setCancelReason("");
-      data.hasSubscription = false;
     }
   };
 
@@ -252,7 +254,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
       <div className={styles.heroRow}>
         <ProfileMedia imageSrc={data.image} videoSrc={data.video} size="medium" active />
         <div className={styles.heroInfo}>
-          <div className={data.hasSubscription ? styles.badges : styles.badgesHide}>
+          <div className={isSubscribed ? styles.badges : styles.badgesHide}>
             <span className={styles.modeText}>
               <span
                 className={styles.eighteenPlus}
@@ -298,7 +300,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
           />
         </div>
         <div className={styles.adultBalanceArea}>
-          {data.hasSubscription && <NormalButton type="nobg" className={styles.grayBtn} text={!showAdultBalanceDetails ? "View Details" : "Hide Details"} onClick={
+          {isSubscribed && <NormalButton type="nobg" className={styles.grayBtn} text={!showAdultBalanceDetails ? "View Details" : "Hide Details"} onClick={
             () => { setShowAdultBalanceDetails((prev) => !prev) }
           } />
           }
@@ -319,7 +321,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
             <button type="button" className={styles.adultToggleBtn}>
               <AdultModeToggle checked={adultModeChecked} onChange={handleAdultToggleChange} minutesLeft={data.adultVoiceMinutes} />
             </button>
-            {data.hasSubscription && <p>
+            {isSubscribed && <p>
               Until: {data.expiresAt ? new Date(data.expiresAt).toLocaleDateString() : "--"}
             </p>}
           </div>

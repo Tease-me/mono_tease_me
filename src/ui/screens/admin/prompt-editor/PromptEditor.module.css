@@ -35,6 +35,13 @@
     height: 32px;
 }
 
+.header-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
 .rail-eyebrow {
     font-size: 12px;
     text-transform: uppercase;
@@ -186,6 +193,7 @@
     flex-direction: column;
     gap: 16px;
     min-height: 0;
+    overflow-y: auto;
 }
 
 .editor-header {
@@ -259,7 +267,6 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 16px;
-    min-height: 0;
 }
 
 .field-card {
