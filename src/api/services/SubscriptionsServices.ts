@@ -2,12 +2,12 @@ import { Endpoints } from "../urls";
 import { AxiosInstance } from "axios";
 
 export const SubscriptionsServices = (apiClient: AxiosInstance) => ({
-    startSubscription: async (influencerId: string): Promise<any> => {
+    startSubscription: async (influencerId: string, planId: number): Promise<any> => {
         const response = await apiClient.post(
             Endpoints.subscriptions.start,
             null,
             {
-                params: { influencer_id: influencerId, price_cents: 10000 }
+                params: { influencer_id: influencerId, plan_id: planId }
             }
         );
         return response.data;
