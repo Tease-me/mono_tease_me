@@ -209,7 +209,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         (async () => {
             if (!influencer) return;
             try {
-                const startResponse = await subscriptionsServices.startSubscription(influencer.id);
+                // Used placeholder 1 for plan id for now
+                const startResponse = await subscriptionsServices.startSubscription(influencer.id, 1);
                 const orderId =
                     typeof crypto !== "undefined" && "randomUUID" in crypto
                         ? crypto.randomUUID()
