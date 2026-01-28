@@ -15,7 +15,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, subtitle, headerRight,
             <AdminNav />
             <header className={styles["header"]}>
                 <div>
-                    <h1 className={styles["title"]}>{title}</h1>
+                    <div className={styles["title"]}>{title}</div>
                     {subtitle ? <p className={styles["subtitle"]}>{subtitle}</p> : null}
                 </div>
                 {headerRight ? <div className={styles["header-right"]}>{headerRight}</div> : null}
