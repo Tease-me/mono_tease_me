@@ -35,6 +35,11 @@
   align-content: center;
 }
 
+.hidden {
+  opacity: 0;
+  user-select: none;
+}
+
 @media (max-width: 768px) {
   .bar {
     padding: 12px 16px;
