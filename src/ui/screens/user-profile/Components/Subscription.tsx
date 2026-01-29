@@ -20,7 +20,7 @@ type SubscriptionProps = {
 };
 
 
-const Subscription = ({ goTo, navPayload }: SubscriptionProps) => {
+const Subscription = ({ goTo, }: SubscriptionProps) => {
 
   const subscriptionPlanSvc = SubscriptionsServices(apiClient);
 
@@ -55,7 +55,7 @@ const Subscription = ({ goTo, navPayload }: SubscriptionProps) => {
   }
 
   const handleOnSubscribeClick = () => {
-
+    goTo("payment-check");
   }
 
   function centsToDollar(cents: number) {

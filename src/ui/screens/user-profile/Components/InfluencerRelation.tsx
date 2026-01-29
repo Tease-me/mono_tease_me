@@ -70,7 +70,7 @@ type RelationData = {
 };
 
 
-export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) {
+export default function InfluencerRelation({ navPayload, goTo }: Props) {
   const initial: RelationData = useMemo(
     () => ({
       id: navPayload.influencerId,
@@ -170,37 +170,37 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
   }, [navPayload.image, navPayload.video, navPayload.name, navPayload.followingSince]);
 
 
-  const onSubscribe = async () => {
-    if (!data.id) {
-      return;
-    }
-    setLoading(true);
-    try {
-      await subscriptionService.startSubscription(data.id, 1);
-      const sub = await subscriptionService.getMySubscriptionForInfluencer(data.id);
-      setData((d) => ({
-        ...d,
-        hasSubscription: sub?.has_subscription ?? true,
-        // is18: sub?.is_18_selected ?? true,
-        expiresAt: sub?.current_period_end ?? d.expiresAt,
-        voiceMinutes: sub?.voice_minutes ?? d.voiceMinutes,
-        msgRemaining: sub?.text_messages ?? d.msgRemaining,
-        adultVoiceMinutes: sub?.voice_minutes ?? d.adultVoiceMinutes,
-        adultMsgRemaining: sub?.text_messages ?? d.adultMsgRemaining,
-      }));
+  // const onSubscribe = async () => {
+  //   if (!data.id) {
+  //     return;
+  //   }
+  //   setLoading(true);
+  //   try {
+  //     await subscriptionService.startSubscription(data.id, 1);
+  //     const sub = await subscriptionService.getMySubscriptionForInfluencer(data.id);
+  //     setData((d) => ({
+  //       ...d,
+  //       hasSubscription: sub?.has_subscription ?? true,
+  //       // is18: sub?.is_18_selected ?? true,
+  //       expiresAt: sub?.current_period_end ?? d.expiresAt,
+  //       voiceMinutes: sub?.voice_minutes ?? d.voiceMinutes,
+  //       msgRemaining: sub?.text_messages ?? d.msgRemaining,
+  //       adultVoiceMinutes: sub?.voice_minutes ?? d.adultVoiceMinutes,
+  //       adultMsgRemaining: sub?.text_messages ?? d.adultMsgRemaining,
+  //     }));
 
-      setAdultModeChecked(true);
-      alert('You are now subscribed tot 18+ mode');
-      // goTo("influencer_profile", { influencerId: data.id });
-      goBack();
-    }
-    catch (e) {
-      alert(`Error ${e}`);
-    }
-    finally {
-      setLoading(false);
-    }
-  };
+  //     setAdultModeChecked(true);
+  //     alert('You are now subscribed tot 18+ mode');
+  //     // goTo("influencer_profile", { influencerId: data.id });
+  //     goBack();
+  //   }
+  //   catch (e) {
+  //     alert(`Error ${e}`);
+  //   }
+  //   finally {
+  //     setLoading(false);
+  //   }
+  // };
 
 
   const handleAdultToggleChange = async () => {
