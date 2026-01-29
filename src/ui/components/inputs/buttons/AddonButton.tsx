@@ -6,10 +6,11 @@ import SvgPack from "@/utils/SvgPack";
 type AddonButtonProps = {
   text: string;
   variant?: "solid" | "outline";
+  onClick: () => void;
 } & React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 
-export default function AddonButton({ text, variant = "solid", className, ...rest }: AddonButtonProps) {
+export default function AddonButton({ text, variant = "solid", className, onClick, ...rest }: AddonButtonProps) {
   return (
     <button
       type="button"
@@ -19,6 +20,7 @@ export default function AddonButton({ text, variant = "solid", className, ...res
         variant === "outline" ? styles.addonBtnSolid : styles.addonBtnOutline,
         className
       )}
+      onClick={onClick}
     >
       <SvgPack.PlusPurple className={styles.addonBtnIcon} />
       <span className={styles.addonBtnText}>{text}</span>
