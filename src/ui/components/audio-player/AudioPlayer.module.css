@@ -1,7 +1,7 @@
 .audioPlayer {
     position: relative;
-    display: flex;
-    flex: 1;
+    display: grid;
+    grid-template-columns: 34px 1fr;
     flex-direction: row;
 }
 

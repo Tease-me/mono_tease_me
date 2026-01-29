@@ -24,13 +24,14 @@ type SidebarPage = {
   id: SidebarPageId;
   label: string;
   render: (ctx: { goTo: (id: SidebarPageId, payload?: NavPayload) => void; navPayload: NavPayload; goBack: () => void }) => React.ReactNode;
+  background?: string;
 };
 
 const sidebarPages: SidebarPage[] = [
   { id: "home", label: "User Menu", render: ({ goTo }) => <UserMenu goTo={goTo} /> },
   { id: "profile", label: "User Profile", render: ({ goTo }) => <UserProfile goTo={goTo} /> },
   { id: "payment", label: "Payment Details", render: ({ goTo }) => <PaymentDetails goTo={goTo} /> },
-  { id: "payment-check", label: "Payment", render: () => <PaymentCheck /> },
+  { id: "payment-check", label: "Payment", render: () => <PaymentCheck />, background: "#181A20" },
   {
     id: "influencers",
     label: "Manage Influencers",
@@ -54,7 +55,7 @@ const sidebarPages: SidebarPage[] = [
       />
     )
   },
-  { id: "subscription", label: "Subscription", render: ({ goTo }) => <Subscription goTo={goTo} /> },
+  { id: "subscription", label: "Subscription", render: ({ goTo }) => <Subscription goTo={goTo} />, background: "linear-gradient(0deg, #131313 0%, #131313 100%), url(<path-to-image>) lightgray -60.714px 0px / 130.206% 89.736% no-repeat" },
 
 ];
 
@@ -178,6 +179,7 @@ export default function HomeScreenSingle() {
           ? navPayload.name
           : active.label
       }
+      background={active.background}
     >
       {needsSelection ? (
         !id ? <InfluencerSelector onItemClick={handleSelect} influencers={influencers} /> : chatContent

@@ -20,7 +20,7 @@ const AdultModeToggle: React.FC<AdultModeToggleProps> = ({ minutesLeft, checked,
   };
 
   return (
-    <div className={styles.container}>
+    <div className={styles.adultModeToggleContainer}>
       <div className={clsx(styles.minutesArea, checked ? styles.minutesEnabled : styles.minutesDisabled)}>
         <span>{minutesLeft ? minutesToTime(minutesLeft) : "0"} mins</span>
       </div>
