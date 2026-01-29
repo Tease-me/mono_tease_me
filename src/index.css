@@ -60,6 +60,18 @@ body,
   --color-purple-light: #CC68FF;
   --color-purple-disabled: #72508A;
   --color-green-background: rgba(18, 255, 105, 0.10);
+
+  /* Spacing Tokens */
+  --space-px-4: 4px;
+  --space-px-8: 8px;
+  --space-px-12: 12px;
+  --space-px-16: 16px;
+  --space-px-20: 20px;
+  --space-px-24: 24px;
+  --space-px-28: 28px;
+  --space-px-32: 32px;
+  --space-px-44: 44px;
+  --space-px-52: 52px;
 }
 
 /* Light theme fallbacks (optional preview) */

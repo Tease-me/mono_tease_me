@@ -51,6 +51,7 @@ interface ChatScreenContentProps {
     onMenuClick?: () => void;
     showChangeInfluencerButton?: boolean;
 }
+export type TypingStatus = "idle" | "typing" | "recording";
 
 const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, setNeedsSelection, showChangeInfluencerButton = false }) => {
     const [influencer, setInfluencer] = useState<InfluencerDataModel>();
@@ -59,7 +60,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const [messages, setMessages] = useState<Message[] | undefined>();
     const [inputText, setInputText] = useState("");
     const [inputAudio, setInputAudio] = useState<Blob>();
-    const [typing, setTyping] = useState(false);
+    const [typing, setTyping] = useState<TypingStatus>("idle");
     const [isWsConnected, setIsWsConnected] = useState(false);
     const [error, setError] = useState<string | undefined>(undefined);
 
@@ -139,7 +140,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         });
         const checkSubscription = async () => {
             if (!influencer) {
-                setTyping(false);
+                setTyping("idle");
                 return;
             }
             try {
@@ -156,7 +157,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                 logger.error("Error checking subscription for influencer:", err);
             } finally {
                 if (isMounted) {
-                    setTyping(false);
+                    setTyping("idle");
                 }
             }
         };
@@ -338,11 +339,11 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             scheduleReconnect(influencerId);
         };
         ws.current.onmessage = (event) => {
-            setTyping(false);
+            setTyping("idle");
             console.warn("WebSocket message received:", event.data);
             const data = JSON.parse(event.data);
             if (data.reply) {
-                setTyping(true);
+                setTyping("typing");
                 if (data.usage) {
                     adultMode ? setCreditsRemaining(data.usage.adult?.messages?.remaining) : setCreditsRemaining(data.usage.normal?.messages?.remaining);
                     setAdultMinutesRemaining(data.usage.adult?.livechat?.remaining_minutes)
@@ -365,7 +366,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                             },
                         ]
                     });
-                    setTyping(false);
+                    setTyping("idle");
                     scrollToBottom();
                     setError(undefined);
                     if (data.relationship) {
@@ -374,7 +375,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                     }
                 }, calculateReplyTime(data.reply));
             } else if (data.error) {
-                setTyping(false);
+                setTyping("idle");
                 logger.error("Error in WebSocket message:", data.error);
                 setError(data.error || "An error occurred while sending the message.");
             }
@@ -398,7 +399,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
         const { audio_url, transcript, ai_text } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
 
-        setTyping(false);
+        setTyping("idle");
         setMessages((prev) => {
             if (!prev) return prev;
             const nextMessages = prev.map((message) => {
@@ -444,16 +445,16 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         if (inputText.trim()) {
             if (!chatId) {
                 setError("Chat is still loading. Please wait.");
-                setTyping(false);
+                setTyping("idle");
                 return false;
             }
             const socket = ws.current;
             if (!socket || socket.readyState !== WebSocket.OPEN) {
                 setError("Not connected. Reconnecting...");
-                setTyping(false);
+                setTyping("idle");
                 return false;
             }
-            setTyping(false);
+            setTyping("idle");
             try {
                 socket.send(
                     JSON.stringify({
@@ -487,10 +488,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         } else if (audioToSend) {
             if (!chatId) {
                 setError("Chat is still loading. Please wait.");
-                setTyping(false);
+                setTyping("idle");
                 return false;
             }
-            setTyping(true);
+            setTyping("recording");
             const sentMessageId = Date.now();
             sendAndPlay(audioToSend, sentMessageId);
             setMessages(prev => {
@@ -575,7 +576,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             setMessages([]);
             setHasMore(false);
             setPageNumber(1);
-            setTyping(false);
+            setTyping("idle");
         } catch (err) {
             logger.error("Error clearing chat history", err);
         } finally {
@@ -631,6 +632,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                                     messagesEndRef={messagesEndRef}
                                     influencerName={influencer?.name}
                                     showAudioTranscript={isSuperUser}
+                                    isAudio={Boolean(inputAudio)}
                                     onAudioPlay={(src) => {
                                         // Pause any currently playing audio
                                         if (currentAudioRef.current && currentAudioRef.current.src !== src) {
