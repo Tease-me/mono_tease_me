@@ -11,11 +11,11 @@ import styles from "./UpgradePlanModal.module.css";
 type UpgradePlanModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onUpgrade?: () => void;
+  goTo: (page: string, payload?: any) => void;
 };
 
 
-export default function UpgradePlanModal({ isOpen, onClose, onUpgrade }: UpgradePlanModalProps) {
+export default function UpgradePlanModal({ isOpen, onClose, goTo }: UpgradePlanModalProps) {
   const subscriptionPlanSvc = SubscriptionsServices(apiClient);
 
   const { data, isLoading, error } = useQuery({
@@ -27,9 +27,16 @@ export default function UpgradePlanModal({ isOpen, onClose, onUpgrade }: Upgrade
 
   const plans = data?.addons ?? [];
 
+  const handleUpgrade = () => {
+    onClose();
+    goTo("subscription");
+  };
+
+
+
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className={styles.modal}>
+    <Modal isOpen={isOpen} onClose={onClose} size="xl" className={styles.modal}>
       <div className={styles.container}>
         <div className={styles.header}>
           <div className={styles.topLine}></div>
@@ -55,7 +62,7 @@ export default function UpgradePlanModal({ isOpen, onClose, onUpgrade }: Upgrade
                 variant="purple"
                 text="Upgrade Your Plan"
                 className={styles.upgradeBtn}
-                onClick={onUpgrade}
+                onClick={handleUpgrade}
               />
             </div>
             <div className={styles.divider}></div>
@@ -90,4 +97,3 @@ export default function UpgradePlanModal({ isOpen, onClose, onUpgrade }: Upgrade
 
 
 }
-

@@ -7,9 +7,9 @@ import CardMockup from '@/assets/image/card-mockup.png';
 
 import UpgradePlanModal from '@/ui/components/modals/subscription/UpgradePlanModal';
 
-type PaymentDetailsProps = { goTo: (id: string) => void };
+type PaymentDetailsProps = { goTo: (id: string) => void; openSidebar: () => void };
 
-const PaymentDetails = ({ goTo }: PaymentDetailsProps) => {
+const PaymentDetails = ({ goTo, openSidebar }: PaymentDetailsProps) => {
 
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
@@ -44,7 +44,12 @@ const PaymentDetails = ({ goTo }: PaymentDetailsProps) => {
                     <IconButton leftIcon={<SvgPack.PlusBox />} text="Add New Payment Method" onClick={handleAddNew} color='pink-glass' className={styles.addButton} />
                 </div>
             </div>
-            <UpgradePlanModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
+            <UpgradePlanModal
+                isOpen={showUpgradeModal}
+                onClose={() => setShowUpgradeModal(false)}
+                openSidebar={openSidebar}
+                goTo={goTo}
+            />
         </div>
     );
 };

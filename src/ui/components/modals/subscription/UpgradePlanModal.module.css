@@ -1,5 +1,6 @@
 .modal {
   background: #0f0f12;
+  width: 100%;
 }
 
 .container {
@@ -7,8 +8,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 24px;
-
+  padding: 32px;
   border-radius: 16px;
   color: #fff;
   min-width: 280px;
@@ -59,8 +59,10 @@
   flex-direction: column;
   gap: 12px;
   align-items: flex-start;
-  flex: 1;
+
 }
+
+
 
 .title1 {
   font-size: 18px;
@@ -108,14 +110,8 @@
 }
 
 .upgradeBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 48px;
-  padding: 0 20px;
-  width: 100%;
+  width: auto;
   max-width: 320px;
-  max-height: none;
   align-self: flex-start;
 }
 
@@ -128,7 +124,7 @@
 @media (min-width: 768px) {
   .container {
     width: 100%;
-    max-width: 1080px;
+    max-width: 1180px;
   }
 
   .content {
