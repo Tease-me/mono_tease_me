@@ -27,7 +27,6 @@
     "react-lottie": "^1.2.10",
     "react-router-dom": "^7.6.0",
     "recharts": "^3.1.2",
-    "root": "github:tanstack/react-query",
     "swiper": "^11.2.8",
     "three": "^0.178.0",
     "typescript": "^5.8.3",
