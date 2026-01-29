@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import styles from "./MessageList.module.css";
 import MessageBubble, { CallMessageGroup } from "./MessageBubble";
 import { Message } from "@/data/models/MessageDataModel";
+import { TypingStatus } from "./ChatScreenContent";
 
 export type DisplayMessage = Message | CallMessageGroup;
 
@@ -12,11 +13,12 @@ const isCallGroup = (message: DisplayMessage): message is CallMessageGroup => {
 
 interface MessagesListProps {
   messages: DisplayMessage[];
-  typing: boolean;
+  typing: TypingStatus;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
   influencerName?: string;
   onAudioPlay?: (src: string) => void;
   showAudioTranscript?: boolean;
+  isAudio?: boolean;
 }
 
 const MessagesList = React.memo(
@@ -46,7 +48,8 @@ const MessagesList = React.memo(
               showAudioTranscript={showAudioTranscript}
             />
           ))}
-          {typing && <MessageBubble />}
+
+          {typing !== "idle" && <MessageBubble isAudio={typing === "recording"} />}
         </div>
         <div ref={messagesEndRef} style={{ height: "50px" }} />
       </>
