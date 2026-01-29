@@ -202,6 +202,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
     }
   };
 
+
   const handleAdultToggleChange = async () => {
     // const a = adultModeChecked;
     // setAdultModeChecked(!a);
@@ -209,7 +210,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
       goTo('subscribe', {
         influencerId: data.id,
         image: data.image,
-        onSubscribe: onSubscribe
+        onSubscribe: () => { goTo("subscription") }
       });
     }
     else {

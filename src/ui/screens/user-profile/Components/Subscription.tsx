@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
 import { apiClient } from "@/api/apis";
@@ -20,9 +20,7 @@ type SubscriptionProps = {
 };
 
 
-
-
-const Subscription = ({ }: SubscriptionProps) => {
+const Subscription = ({ goTo, navPayload }: SubscriptionProps) => {
 
   const subscriptionPlanSvc = SubscriptionsServices(apiClient);
 
@@ -36,7 +34,14 @@ const Subscription = ({ }: SubscriptionProps) => {
   const addOns = data?.addons ?? [];
 
   const featuredPlan = recurringPlans.find((p) => p.is_featured)?.id;
-  const [selectedPlanId, setSelectedPlanId] = useState<number>(featuredPlan ?? 1);
+  const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!recurringPlans.length) return;
+    const fallback = featuredPlan ?? recurringPlans[0]?.id ?? null;
+    setSelectedPlanId((prev) => prev ?? fallback);
+  }, [featuredPlan, recurringPlans]);
+
   const selectedPlan =
     recurringPlans.find((p) => p.id === selectedPlanId) ||
     recurringPlans.find((p) => p.is_featured) ||
@@ -58,11 +63,11 @@ const Subscription = ({ }: SubscriptionProps) => {
 
   }
 
+  if (isLoading) return <div className={styles.loading}><LoadingSpinner /></div>;
+  if (error) return <div className={styles.error}>Couldn’t load plans</div>;
+
   return (
     <div className={clsx(styles.container, "u-sidebar-page")} >
-      {isLoading && <div className={styles.loading}><LoadingSpinner /></div>}
-      {error && <div className={styles.error}>Couldn’t load plans</div>}
-
       <div className={styles.content}>
         <div className={styles.cards}>
           {recurringPlans.map((plan) => (
@@ -112,7 +117,15 @@ const Subscription = ({ }: SubscriptionProps) => {
         <span className={styles.title}>
           Let's heat things up...
         </span>
-        <PrimaryButton variant="purple" text={`Subscribe for $${centsToDollar(selectedPlan.price_cents)}`} onClick={handleOnSubscribeClick} />
+        <PrimaryButton
+          variant="purple"
+          text={
+            selectedPlan
+              ? `Subscribe for $${centsToDollar(selectedPlan.price_cents)}`
+              : "Subscribe"
+          }
+          onClick={handleOnSubscribeClick}
+        />
         <span className={styles.note}>
           You will be charged, your subscription will auto-renew for the same price and package length until you cancel via account settings, and you agree to our Terms.
         </span>

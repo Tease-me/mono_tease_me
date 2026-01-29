@@ -1,16 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import NavigationRow from '@/ui/components/inputs/buttons/NavigationRow';
 import styles from "./PaymentDetails.module.css"
 import IconButton from '@/ui/components/inputs/buttons/IconButton';
 import SvgPack from '@/utils/SvgPack';
 import CardMockup from '@/assets/image/card-mockup.png';
 
+import UpgradePlanModal from '@/ui/components/modals/subscription/UpgradePlanModal';
+
 type PaymentDetailsProps = { goTo: (id: string) => void };
 
 const PaymentDetails = ({ goTo }: PaymentDetailsProps) => {
+
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
     const handleVisaBtn = () => {
         // Handle Visa button click
-        goTo("subscription")
+        setShowUpgradeModal(true);
     };
 
     const handleMasterCardBtn = () => {
@@ -39,6 +44,7 @@ const PaymentDetails = ({ goTo }: PaymentDetailsProps) => {
                     <IconButton leftIcon={<SvgPack.PlusBox />} text="Add New Payment Method" onClick={handleAddNew} color='pink-glass' className={styles.addButton} />
                 </div>
             </div>
+            <UpgradePlanModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
         </div>
     );
 };
