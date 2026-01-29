@@ -6,8 +6,7 @@ import clsx from "clsx"
 import PricingPlanCard from "@/ui/components/cards/PricingPlanCard";
 import styles from "./Subscription.module.css";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
-import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
-
+import AddonButton from "@/ui/components/inputs/buttons/AddonButton";
 
 type SubscriptionProps = {
   goTo: (id: string, payload?: Record<string, any>) => void;
@@ -68,7 +67,7 @@ const Subscription = ({ }: SubscriptionProps) => {
                 <span className={styles.title2}>{addOn.name}</span>
                 <span className={styles.subtitle}>{addOn.description}</span>
               </div>
-              <PrimaryButton variant="purple" text={`$${addOn.price_display}s`} />
+              <AddonButton variant="outline" text={`$${(addOn.price_cents / 100).toFixed(2)}`} />
               <div className={styles.divider}></div>
 
             </div>

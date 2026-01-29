@@ -1,457 +1,457 @@
 :root {
-    /* global colors */
+        /* global colors */
 
-    --white: hsl(0, 0%, 100%);
-    --black: hsl(0, 0%, 0%);
+        --white: hsl(0, 0%, 100%);
+        --black: hsl(0, 0%, 0%);
 
-    --gradient-outer-disabled: linear-gradient(82deg,
-            hsl(0, 0%, 78%) 11.75%,
-            hsl(0, 0%, 100%) 25.54%,
-            hsl(0, 0%, 73%) 46.73%,
-            hsl(0, 0%, 70%) 65.34%,
-            hsl(0, 0%, 78%) 82.28%,
-            hsl(0, 0%, 78%) 90.95%);
+        --gradient-outer-disabled: linear-gradient(82deg,
+                        hsl(0, 0%, 78%) 11.75%,
+                        hsl(0, 0%, 100%) 25.54%,
+                        hsl(0, 0%, 73%) 46.73%,
+                        hsl(0, 0%, 70%) 65.34%,
+                        hsl(0, 0%, 78%) 82.28%,
+                        hsl(0, 0%, 78%) 90.95%);
 
-    --gradient-inner-disabled: linear-gradient(250deg,
-            hsl(0, 0%, 73%) 8.83%,
-            hsl(0, 0%, 62%) 13.08%,
-            hsl(0, 0%, 60%) 23.52%,
-            hsl(0, 0%, 58%) 35.88%,
-            hsl(0, 0%, 58%) 61.39%,
-            hsl(0, 0%, 76%) 89.22%);
+        --gradient-inner-disabled: linear-gradient(250deg,
+                        hsl(0, 0%, 73%) 8.83%,
+                        hsl(0, 0%, 62%) 13.08%,
+                        hsl(0, 0%, 60%) 23.52%,
+                        hsl(0, 0%, 58%) 35.88%,
+                        hsl(0, 0%, 58%) 61.39%,
+                        hsl(0, 0%, 76%) 89.22%);
 
-    /* 🟣 Border Radius tokens */
-    --radius-pill-outer: 6rem;
-    --radius-pill-inner: 5.5rem;
-    --radius-smooth-outer: 0.5rem;
-    --radius-smooth-inner: 0.45rem;
+        /* 🟣 Border Radius tokens */
+        --radius-pill-outer: 6rem;
+        --radius-pill-inner: 5.5rem;
+        --radius-smooth-outer: 0.5rem;
+        --radius-smooth-inner: 0.45rem;
 
-    /* 🖋 Text Shadow tokens */
-    --text-shadow-light: 1px 1px 0 hsla(var(--hue-neutral), 0%, 0%, 0.1),
-        1px 3px 3px hsla(var(--hue-neutral), 0%, 0%, 0.25);
+        /* 🖋 Text Shadow tokens */
+        --text-shadow-light: 1px 1px 0 hsla(var(--hue-neutral), 0%, 0%, 0.1),
+                1px 3px 3px hsla(var(--hue-neutral), 0%, 0%, 0.25);
 
-    --text-shadow-subtle: 1px 1px 0 hsla(var(--hue-neutral), 0%, 0%, 0.1),
-        1px 2px 2px hsla(var(--hue-neutral), 0%, 0%, 0.15);
+        --text-shadow-subtle: 1px 1px 0 hsla(var(--hue-neutral), 0%, 0%, 0.1),
+                1px 2px 2px hsla(var(--hue-neutral), 0%, 0%, 0.15);
 
-    /* Icon shadows */
-    --shadow-icon: 1px 1px 0 0 hsla(var(--hue-neutral), 0%, 0%, 0.1),
-        1px 3px 3px 0 hsla(var(--hue-neutral), 0%, 0%, 0.1);
+        /* Icon shadows */
+        --shadow-icon: 1px 1px 0 0 hsla(var(--hue-neutral), 0%, 0%, 0.1),
+                1px 3px 3px 0 hsla(var(--hue-neutral), 0%, 0%, 0.1);
 }
 
 /**** Button Shapes ****/
 .pill-button.button-cta-outer,
 .pill-button.button-normal-outer {
-    cursor: pointer;
-    user-select: none;
-    border-radius: var(--radius-pill-outer);
+        cursor: pointer;
+        user-select: none;
+        border-radius: var(--radius-pill-outer);
 }
 
 .pill-button.button-cta-outer>.button-cta-inner,
 .pill-button.button-normal-outer>.button-normal-inner {
-    border-radius: var(--radius-pill-inner);
+        border-radius: var(--radius-pill-inner);
 }
 
 .smooth-button.button-cta-outer,
 .smooth-button.button-normal-outer {
-    border-radius: var(--radius-smooth-outer);
+        border-radius: var(--radius-smooth-outer);
 }
 
 .smooth-button.button-cta-outer>.button-cta-inner,
 .smooth-button.button-normal-outer>.button-normal-inner {
-    cursor: pointer;
-    user-select: none;
-    border-radius: var(--radius-smooth-inner);
+        cursor: pointer;
+        user-select: none;
+        border-radius: var(--radius-smooth-inner);
 }
 
 /* ---- disabled state ***/
 
 .button-normal-outer.disabled {
-    opacity: 0.35;
-    background: var(--gradient-outer-disabled);
+        opacity: 0.35;
+        background: var(--gradient-outer-disabled);
 }
 
 .button-normal-outer.disabled .button-normal-inner {
-    background: var(--gradient-inner-disabled);
-    color: #000;
-    box-shadow: -4px -4px 1px -4px hsla(0, 0%, 71%, 0.45) inset,
-        5px 3px 3px -4px hsla(0, 0%, 75%, 0.5) inset,
-        -12px -9px 2px -10px hsla(0, 0%, 73%, 0.19) inset,
-        13px 9px 1px -11px hsla(0, 0%, 100%, 0.1) inset,
-        9px 10px 1px -11px hsla(0, 0%, 65%, 0.4) inset;
+        background: var(--gradient-inner-disabled);
+        color: #000;
+        box-shadow: -4px -4px 1px -4px hsla(0, 0%, 71%, 0.45) inset,
+                5px 3px 3px -4px hsla(0, 0%, 75%, 0.5) inset,
+                -12px -9px 2px -10px hsla(0, 0%, 73%, 0.19) inset,
+                13px 9px 1px -11px hsla(0, 0%, 100%, 0.1) inset,
+                9px 10px 1px -11px hsla(0, 0%, 65%, 0.4) inset;
 }
 
 .button-normal-outer.disabled .button-normal-inner .button-text {
-    transition: all 200ms ease-in-out;
-    color: inherit;
-    text-shadow: none;
+        transition: all 200ms ease-in-out;
+        color: inherit;
+        text-shadow: none;
 }
 
 .button-cta-outer.disabled {
-    opacity: 0.35;
-    background: var(--gradient-outer-disabled);
+        opacity: 0.35;
+        background: var(--gradient-outer-disabled);
 }
 
 .button-cta-outer.disabled .button-cta-inner {
-    background: var(--gradient-inner-disabled);
-    color: #000;
-    box-shadow: -4px -4px 1px -4px hsla(0, 0%, 71%, 0.45) inset,
-        5px 3px 3px -4px hsla(0, 0%, 75%, 0.5) inset,
-        -12px -9px 2px -10px hsla(0, 0%, 73%, 0.19) inset,
-        13px 9px 1px -11px hsla(0, 0%, 100%, 0.1) inset,
-        9px 10px 1px -11px hsla(0, 0%, 65%, 0.4) inset;
+        background: var(--gradient-inner-disabled);
+        color: #000;
+        box-shadow: -4px -4px 1px -4px hsla(0, 0%, 71%, 0.45) inset,
+                5px 3px 3px -4px hsla(0, 0%, 75%, 0.5) inset,
+                -12px -9px 2px -10px hsla(0, 0%, 73%, 0.19) inset,
+                13px 9px 1px -11px hsla(0, 0%, 100%, 0.1) inset,
+                9px 10px 1px -11px hsla(0, 0%, 65%, 0.4) inset;
 }
 
 .button-cta-outer.disabled .button-cta-inner .button-text {
-    transition: all 200ms ease-in-out;
-    color: inherit;
-    text-shadow: none;
+        transition: all 200ms ease-in-out;
+        color: inherit;
+        text-shadow: none;
 }
 
 
 .circle-shine {
-    width: 6rem;
-    height: 6rem;
-    position: absolute;
-    background: hsla(0, 0%, 100%, 0.423);
-    mix-blend-mode: soft-light;
-    filter: blur(2px);
-    z-index: 1;
-    top: 0;
-    left: -50%;
-    transform: skewX(-50deg);
-    animation: shine-left-to-right 5s 5s linear infinite;
+        width: 6rem;
+        height: 6rem;
+        position: absolute;
+        background: hsla(0, 0%, 100%, 0.423);
+        mix-blend-mode: soft-light;
+        filter: blur(2px);
+        z-index: 1;
+        top: 0;
+        left: -50%;
+        transform: skewX(-50deg);
+        animation: shine-left-to-right 5s 5s linear infinite;
 }
 
 .circle-shine-02 {
-    width: 3rem;
-    height: 6rem;
-    position: absolute;
-    background: hsla(0, 0%, 100%, 0.109);
-    filter: blur(2px);
-    z-index: 2;
-    top: 0;
-    left: -50%;
-    transform: skewX(50deg);
-    animation: shine-left-to-right 5s 5s linear infinite;
+        width: 3rem;
+        height: 6rem;
+        position: absolute;
+        background: hsla(0, 0%, 100%, 0.109);
+        filter: blur(2px);
+        z-index: 2;
+        top: 0;
+        left: -50%;
+        transform: skewX(50deg);
+        animation: shine-left-to-right 5s 5s linear infinite;
 }
 
 .circle-shine-03 {
-    width: 3rem;
-    height: 6rem;
-    position: absolute;
-    background: hsla(11, 100%, 90%, 0.173);
-    mix-blend-mode: overlay;
-    filter: blur(2px);
-    z-index: 3;
-    top: 0;
-    left: -15%;
-    transform: skewX(50deg);
-    animation: shine-left-to-right 4.8s 8s ease-in-out infinite;
+        width: 3rem;
+        height: 6rem;
+        position: absolute;
+        background: hsla(11, 100%, 90%, 0.173);
+        mix-blend-mode: overlay;
+        filter: blur(2px);
+        z-index: 3;
+        top: 0;
+        left: -15%;
+        transform: skewX(50deg);
+        animation: shine-left-to-right 4.8s 8s ease-in-out infinite;
 }
 
 
 @keyframes shine-left-to-right {
-    0% {
-        left: -50%;
-    }
+        0% {
+                left: -50%;
+        }
 
-    60% {
-        filter: blur(5px);
-        transform: skewX(0deg);
-    }
+        60% {
+                filter: blur(5px);
+                transform: skewX(0deg);
+        }
 
-    100% {
-        transform: skewX(-50deg);
-        left: 150%;
-        filter: blur(0px);
-    }
+        100% {
+                transform: skewX(-50deg);
+                left: 150%;
+                filter: blur(0px);
+        }
 }
 
 .button-cta-outer {
-    display: inline-flex;
-    flex: 1 1 auto;
-    padding: 1px;
-    justify-content: center;
-    align-items: stretch;
-    gap: 0.5em;
-    position: relative;
-    overflow: hidden;
+        display: inline-flex;
+        flex: 1 1 auto;
+        padding: 1px;
+        justify-content: center;
+        align-items: stretch;
+        gap: 0.5em;
+        position: relative;
+        overflow: hidden;
 }
 
 .button-cta-inner {
-    display: flex;
-    justify-content: center;
-    padding: 0.5rem 1rem;
-    flex: 1 1 auto;
-    align-items: center;
-    position: relative;
-    z-index: 3;
+        display: flex;
+        justify-content: center;
+        padding: 0.5rem 1rem;
+        flex: 1 1 auto;
+        align-items: center;
+        position: relative;
+        z-index: 3;
 }
 
 .button-cta-content-container {
-    display: flex;
-    justify-content: space-between;
-    max-width: max-content;
-    align-items: center;
-    gap: 0.75rem;
-    flex-grow: 1;
+        display: flex;
+        justify-content: space-between;
+        max-width: max-content;
+        align-items: center;
+        gap: 0.75rem;
+        flex-grow: 1;
 }
 
 .left-icon,
 .right-icon {
-    display: flex;
-    height: 1.5rem;
-    width: 1.5rem;
-    padding: 0.08331rem 0.08338rem 0.08338rem 0.08331rem;
-    justify-content: center;
-    align-items: center;
-    opacity: 0.85;
+        display: flex;
+        height: 1.5rem;
+        width: 1.5rem;
+        padding: 0.08331rem 0.08338rem 0.08338rem 0.08331rem;
+        justify-content: center;
+        align-items: center;
+        opacity: 0.85;
 }
 
 .button-text {
-    opacity: 0.85;
-    text-align: center;
-    font-family: Urbanist;
-    font-size: 1rem;
-    font-style: normal;
-    font-weight: 700;
-    line-height: 140%;
-    letter-spacing: 0.0125rem;
-    transition: all 200ms ease-in-out;
+        opacity: 0.85;
+        text-align: center;
+        font-family: var(--secondary-font-family);
+        font-size: 1rem;
+        font-style: normal;
+        font-weight: 700;
+        line-height: 140%;
+        letter-spacing: 0.0125rem;
+        transition: all 200ms ease-in-out;
 }
 
 /*--------- Purple button Styling ---------*/
 .purple {
-    /* 🎨 Hue tokens */
-    --tm-color05: 286;
-    --tm-color04: 282;
-    --tm-color01: 276;
-    --tm-color03: 274;
-    --tm-color02: 270;
-    --tm-color06: 300;
-    --hue-neutral: 0;
+        /* 🎨 Hue tokens */
+        --tm-color05: 286;
+        --tm-color04: 282;
+        --tm-color01: 276;
+        --tm-color03: 274;
+        --tm-color02: 270;
+        --tm-color06: 300;
+        --hue-neutral: 0;
 
-    /* 🎨 Color tokens */
-    --color-mainhue-1: hsl(var(--tm-color01), 100%, 62%);
-    --color-secondhue-1: hsl(var(--tm-color01), 100%, 36%);
-    --color-mainhue-2: hsl(var(--tm-color04), 100%, 58%);
-    --color-secondhue-2: hsl(var(--tm-color04), 100%, 54%);
-    --color-mainhue-3: hsl(var(--tm-color01), 100%, 62%);
-    --color-mainhue-4: hsl(var(--tm-color01), 100%, 62%);
+        /* 🎨 Color tokens */
+        --color-mainhue-1: hsl(var(--tm-color01), 100%, 62%);
+        --color-secondhue-1: hsl(var(--tm-color01), 100%, 36%);
+        --color-mainhue-2: hsl(var(--tm-color04), 100%, 58%);
+        --color-secondhue-2: hsl(var(--tm-color04), 100%, 54%);
+        --color-mainhue-3: hsl(var(--tm-color01), 100%, 62%);
+        --color-mainhue-4: hsl(var(--tm-color01), 100%, 62%);
 
-    --color-secondhue-3: hsl(var(--tm-color02), 100%, 45%);
-    --color-secondhue-4: hsl(var(--tm-color03), 100%, 44%);
-    --color-secondhue-5: hsl(var(--tm-color02), 100%, 42%);
-    --color-mainhue-5: hsl(var(--tm-color04), 100%, 60%);
-    --color-secondhue-6: hsl(var(--tm-color02), 100%, 40%);
-    --color-secondhue-7: hsl(var(--tm-color01), 100%, 38%);
+        --color-secondhue-3: hsl(var(--tm-color02), 100%, 45%);
+        --color-secondhue-4: hsl(var(--tm-color03), 100%, 44%);
+        --color-secondhue-5: hsl(var(--tm-color02), 100%, 42%);
+        --color-mainhue-5: hsl(var(--tm-color04), 100%, 60%);
+        --color-secondhue-6: hsl(var(--tm-color02), 100%, 40%);
+        --color-secondhue-7: hsl(var(--tm-color01), 100%, 38%);
 
-    --shadow-light: hsl(var(--tm-color06), 97%, 82%);
-    --shadow-mid: hsl(var(--tm-color05), 99%, 65%);
+        --shadow-light: hsl(var(--tm-color06), 97%, 82%);
+        --shadow-mid: hsl(var(--tm-color05), 99%, 65%);
 
-    /* 🌈 Gradient tokens */
-    --gradient-outer-mainhue: linear-gradient(82deg,
-            var(--color-mainhue-1) 11.75%,
-            var(--color-secondhue-1) 25.54%,
-            var(--color-mainhue-2) 46.73%,
-            var(--color-secondhue-2) 65.34%,
-            var(--color-mainhue-3) 82.28%,
-            var(--color-mainhue-4) 90.95%);
+        /* 🌈 Gradient tokens */
+        --gradient-outer-mainhue: linear-gradient(82deg,
+                        var(--color-mainhue-1) 11.75%,
+                        var(--color-secondhue-1) 25.54%,
+                        var(--color-mainhue-2) 46.73%,
+                        var(--color-secondhue-2) 65.34%,
+                        var(--color-mainhue-3) 82.28%,
+                        var(--color-mainhue-4) 90.95%);
 
-    --gradient-inner-mainhue: linear-gradient(250deg,
-            var(--color-secondhue-3) 8.83%,
-            var(--color-secondhue-4) 13.08%,
-            var(--color-secondhue-5) 23.52%,
-            var(--color-mainhue-5) 35.88%,
-            var(--color-secondhue-6) 61.39%,
-            var(--color-secondhue-7) 89.22%);
+        --gradient-inner-mainhue: linear-gradient(250deg,
+                        var(--color-secondhue-3) 8.83%,
+                        var(--color-secondhue-4) 13.08%,
+                        var(--color-secondhue-5) 23.52%,
+                        var(--color-mainhue-5) 35.88%,
+                        var(--color-secondhue-6) 61.39%,
+                        var(--color-secondhue-7) 89.22%);
 
-    --gradient-outer-mainhue-pressed: linear-gradient(82deg,
-            hsla(var(--tm-color01), 100%, 20%, 0.1) 14.51%,
-            hsla(var(--tm-color01), 100%, 28%, 0.1) 23.18%,
-            hsla(var(--tm-color01), 100%, 30%, 0.1) 40.12%,
-            hsla(var(--tm-color01), 100%, 23%, 0.1) 58.73%,
-            hsla(var(--tm-color01), 100%, 34%, 0.1) 79.91%,
-            hsla(var(--tm-color01), 100%, 38%, 0.1) 93.7%);
+        --gradient-outer-mainhue-pressed: linear-gradient(82deg,
+                        hsla(var(--tm-color01), 100%, 20%, 0.1) 14.51%,
+                        hsla(var(--tm-color01), 100%, 28%, 0.1) 23.18%,
+                        hsla(var(--tm-color01), 100%, 30%, 0.1) 40.12%,
+                        hsla(var(--tm-color01), 100%, 23%, 0.1) 58.73%,
+                        hsla(var(--tm-color01), 100%, 34%, 0.1) 79.91%,
+                        hsla(var(--tm-color01), 100%, 38%, 0.1) 93.7%);
 
-    --gradient-inner-mainhue-pressed: linear-gradient(266deg,
-            hsl(var(--tm-color01), 100%, 33%) 9.6%,
-            hsl(var(--tm-color01), 100%, 32%) 13.73%,
-            hsl(var(--tm-color01), 100%, 30%) 23.88%,
-            hsl(var(--tm-color01), 100%, 38%) 35.9%,
-            hsl(var(--tm-color01), 100%, 28%) 60.69%,
-            hsl(var(--tm-color01), 100%, 26%) 87.74%);
+        --gradient-inner-mainhue-pressed: linear-gradient(266deg,
+                        hsl(var(--tm-color01), 100%, 33%) 9.6%,
+                        hsl(var(--tm-color01), 100%, 32%) 13.73%,
+                        hsl(var(--tm-color01), 100%, 30%) 23.88%,
+                        hsl(var(--tm-color01), 100%, 38%) 35.9%,
+                        hsl(var(--tm-color01), 100%, 28%) 60.69%,
+                        hsl(var(--tm-color01), 100%, 26%) 87.74%);
 
-    --gradient-outer-mainhue-hover: linear-gradient(82deg,
-            hsl(var(--tm-color01), 71%, 70%) 11.75%,
-            hsl(var(--tm-color01), 70%, 46%) 25.54%,
-            hsl(var(--tm-color01), 70%, 66%) 46.73%,
-            hsl(var(--tm-color01), 70%, 63%) 65.34%,
-            hsl(var(--tm-color01), 71%, 70%) 82.28%,
-            hsl(var(--tm-color01), 71%, 70%) 90.95%);
+        --gradient-outer-mainhue-hover: linear-gradient(82deg,
+                        hsl(var(--tm-color01), 71%, 70%) 11.75%,
+                        hsl(var(--tm-color01), 70%, 46%) 25.54%,
+                        hsl(var(--tm-color01), 70%, 66%) 46.73%,
+                        hsl(var(--tm-color01), 70%, 63%) 65.34%,
+                        hsl(var(--tm-color01), 71%, 70%) 82.28%,
+                        hsl(var(--tm-color01), 71%, 70%) 90.95%);
 
-    --gradient-outer-mainhue-selected: linear-gradient(82deg,
-            hsl(var(--tm-color01), 100%, 70%) 11.75%,
-            hsl(var(--tm-color01), 100%, 46%) 25.54%,
-            hsl(var(--tm-color01), 100%, 66%) 46.73%,
-            hsl(var(--tm-color01), 100%, 63%) 65.34%,
-            hsl(var(--tm-color02), 100%, 70%) 82.28%,
-            hsl(var(--tm-color01), 100%, 70%) 90.95%);
-    --gradient-inner-mainhue-selected: linear-gradient(250deg,
-            hsl(var(--tm-color01), 100%, 55%) 8.83%,
-            hsl(var(--tm-color01), 100%, 64%) 13.08%,
-            hsl(var(--tm-color01), 100%, 62%) 23.52%,
-            hsl(var(--tm-color01), 100%, 80%) 35.88%,
-            hsl(var(--tm-color01), 100%, 50%) 61.39%,
-            hsl(var(--tm-color01), 100%, 58%) 89.22%);
+        --gradient-outer-mainhue-selected: linear-gradient(82deg,
+                        hsl(var(--tm-color01), 100%, 70%) 11.75%,
+                        hsl(var(--tm-color01), 100%, 46%) 25.54%,
+                        hsl(var(--tm-color01), 100%, 66%) 46.73%,
+                        hsl(var(--tm-color01), 100%, 63%) 65.34%,
+                        hsl(var(--tm-color02), 100%, 70%) 82.28%,
+                        hsl(var(--tm-color01), 100%, 70%) 90.95%);
+        --gradient-inner-mainhue-selected: linear-gradient(250deg,
+                        hsl(var(--tm-color01), 100%, 55%) 8.83%,
+                        hsl(var(--tm-color01), 100%, 64%) 13.08%,
+                        hsl(var(--tm-color01), 100%, 62%) 23.52%,
+                        hsl(var(--tm-color01), 100%, 80%) 35.88%,
+                        hsl(var(--tm-color01), 100%, 50%) 61.39%,
+                        hsl(var(--tm-color01), 100%, 58%) 89.22%);
 }
 
 /*--------- Pink button Styling ---------*/
 
 .pink {
-    /* 🎨 Hue tokens */
-    --tm-color05: 353;
-    --tm-color04: 342;
-    --tm-color01: 340;
-    --tm-color03: 339;
-    --tm-color02: 338;
-    --tm-color06: 11;
-    --hue-neutral: 0;
+        /* 🎨 Hue tokens */
+        --tm-color05: 353;
+        --tm-color04: 342;
+        --tm-color01: 340;
+        --tm-color03: 339;
+        --tm-color02: 338;
+        --tm-color06: 11;
+        --hue-neutral: 0;
 
-    /* 🎨 Color tokens */
-    --color-mainhue-1: hsl(var(--tm-color01), 100%, 59%);
-    --color-secondhue-1: hsl(var(--tm-color01), 100%, 34%);
-    --color-mainhue-2: hsl(var(--tm-color04), 100%, 52%);
-    --color-secondhue-2: hsl(var(--tm-color04), 100%, 50%);
-    --color-mainhue-3: hsl(var(--tm-color01), 100%, 59%);
-    --color-mainhue-4: hsl(var(--tm-color01), 100%, 59%);
+        /* 🎨 Color tokens */
+        --color-mainhue-1: hsl(var(--tm-color01), 100%, 59%);
+        --color-secondhue-1: hsl(var(--tm-color01), 100%, 34%);
+        --color-mainhue-2: hsl(var(--tm-color04), 100%, 52%);
+        --color-secondhue-2: hsl(var(--tm-color04), 100%, 50%);
+        --color-mainhue-3: hsl(var(--tm-color01), 100%, 59%);
+        --color-mainhue-4: hsl(var(--tm-color01), 100%, 59%);
 
-    --color-secondhue-3: hsl(var(--tm-color02), 100%, 43%);
-    --color-secondhue-4: hsl(var(--tm-color03), 100%, 42%);
-    --color-secondhue-5: hsl(var(--tm-color02), 100%, 40%);
-    --color-mainhue-5: hsl(var(--tm-color04), 100%, 58%);
-    --color-secondhue-6: hsl(var(--tm-color02), 100%, 38%);
-    --color-secondhue-7: hsl(var(--tm-color01), 100%, 36%);
+        --color-secondhue-3: hsl(var(--tm-color02), 100%, 43%);
+        --color-secondhue-4: hsl(var(--tm-color03), 100%, 42%);
+        --color-secondhue-5: hsl(var(--tm-color02), 100%, 40%);
+        --color-mainhue-5: hsl(var(--tm-color04), 100%, 58%);
+        --color-secondhue-6: hsl(var(--tm-color02), 100%, 38%);
+        --color-secondhue-7: hsl(var(--tm-color01), 100%, 36%);
 
-    --shadow-light: hsl(var(--tm-color06), 97%, 82%);
-    --shadow-mid: hsl(var(--tm-color05), 99%, 65%);
+        --shadow-light: hsl(var(--tm-color06), 97%, 82%);
+        --shadow-mid: hsl(var(--tm-color05), 99%, 65%);
 
-    /* 🌈 Gradient tokens */
-    --gradient-outer-mainhue: linear-gradient(82deg,
-            var(--color-mainhue-1) 11.75%,
-            var(--color-secondhue-1) 25.54%,
-            var(--color-mainhue-2) 46.73%,
-            var(--color-secondhue-2) 65.34%,
-            var(--color-mainhue-3) 82.28%,
-            var(--color-mainhue-4) 90.95%);
+        /* 🌈 Gradient tokens */
+        --gradient-outer-mainhue: linear-gradient(82deg,
+                        var(--color-mainhue-1) 11.75%,
+                        var(--color-secondhue-1) 25.54%,
+                        var(--color-mainhue-2) 46.73%,
+                        var(--color-secondhue-2) 65.34%,
+                        var(--color-mainhue-3) 82.28%,
+                        var(--color-mainhue-4) 90.95%);
 
-    --gradient-inner-mainhue: linear-gradient(250deg,
-            var(--color-secondhue-3) 8.83%,
-            var(--color-secondhue-4) 13.08%,
-            var(--color-secondhue-5) 23.52%,
-            var(--color-mainhue-5) 35.88%,
-            var(--color-secondhue-6) 61.39%,
-            var(--color-secondhue-7) 89.22%);
+        --gradient-inner-mainhue: linear-gradient(250deg,
+                        var(--color-secondhue-3) 8.83%,
+                        var(--color-secondhue-4) 13.08%,
+                        var(--color-secondhue-5) 23.52%,
+                        var(--color-mainhue-5) 35.88%,
+                        var(--color-secondhue-6) 61.39%,
+                        var(--color-secondhue-7) 89.22%);
 
-    --gradient-outer-mainhue-pressed: linear-gradient(82deg,
-            hsla(var(--tm-color01), 100%, 20%, 0.1) 14.51%,
-            hsla(var(--tm-color01), 100%, 28%, 0.1) 23.18%,
-            hsla(var(--tm-color01), 100%, 30%, 0.1) 40.12%,
-            hsla(var(--tm-color01), 100%, 23%, 0.1) 58.73%,
-            hsla(var(--tm-color01), 100%, 34%, 0.1) 79.91%,
-            hsla(var(--tm-color01), 100%, 38%, 0.1) 93.7%);
+        --gradient-outer-mainhue-pressed: linear-gradient(82deg,
+                        hsla(var(--tm-color01), 100%, 20%, 0.1) 14.51%,
+                        hsla(var(--tm-color01), 100%, 28%, 0.1) 23.18%,
+                        hsla(var(--tm-color01), 100%, 30%, 0.1) 40.12%,
+                        hsla(var(--tm-color01), 100%, 23%, 0.1) 58.73%,
+                        hsla(var(--tm-color01), 100%, 34%, 0.1) 79.91%,
+                        hsla(var(--tm-color01), 100%, 38%, 0.1) 93.7%);
 
-    --gradient-inner-mainhue-pressed: linear-gradient(266deg,
-            hsl(var(--tm-color01), 100%, 33%) 9.6%,
-            hsl(var(--tm-color01), 100%, 32%) 13.73%,
-            hsl(var(--tm-color01), 100%, 30%) 23.88%,
-            hsl(var(--tm-color01), 100%, 38%) 35.9%,
-            hsl(var(--tm-color01), 100%, 28%) 60.69%,
-            hsl(var(--tm-color01), 100%, 26%) 87.74%);
+        --gradient-inner-mainhue-pressed: linear-gradient(266deg,
+                        hsl(var(--tm-color01), 100%, 33%) 9.6%,
+                        hsl(var(--tm-color01), 100%, 32%) 13.73%,
+                        hsl(var(--tm-color01), 100%, 30%) 23.88%,
+                        hsl(var(--tm-color01), 100%, 38%) 35.9%,
+                        hsl(var(--tm-color01), 100%, 28%) 60.69%,
+                        hsl(var(--tm-color01), 100%, 26%) 87.74%);
 
-    --gradient-outer-mainhue-hover: linear-gradient(82deg,
-            hsl(var(--tm-color01), 71%, 68%) 11.75%,
-            hsl(var(--tm-color01), 70%, 44%) 25.54%,
-            hsl(var(--tm-color01), 70%, 63%) 46.73%,
-            hsl(var(--tm-color01), 70%, 60%) 65.34%,
-            hsl(var(--tm-color01), 71%, 68%) 82.28%,
-            hsl(var(--tm-color01), 71%, 68%) 90.95%);
+        --gradient-outer-mainhue-hover: linear-gradient(82deg,
+                        hsl(var(--tm-color01), 71%, 68%) 11.75%,
+                        hsl(var(--tm-color01), 70%, 44%) 25.54%,
+                        hsl(var(--tm-color01), 70%, 63%) 46.73%,
+                        hsl(var(--tm-color01), 70%, 60%) 65.34%,
+                        hsl(var(--tm-color01), 71%, 68%) 82.28%,
+                        hsl(var(--tm-color01), 71%, 68%) 90.95%);
 
-    --gradient-outer-mainhue-selected: linear-gradient(82deg,
-            hsl(var(--tm-color01), 100%, 68%) 11.75%,
-            hsl(var(--tm-color01), 100%, 44%) 25.54%,
-            hsl(var(--tm-color01), 100%, 63%) 46.73%,
-            hsl(var(--tm-color01), 100%, 60%) 65.34%,
-            hsl(var(--tm-color02), 100%, 68%) 82.28%,
-            hsl(var(--tm-color01), 100%, 68%) 90.95%);
-    --gradient-inner-mainhue-selected: linear-gradient(250deg,
-            hsl(var(--tm-color01), 100%, 53%) 8.83%,
-            hsl(var(--tm-color01), 100%, 62%) 13.08%,
-            hsl(var(--tm-color01), 100%, 60%) 23.52%,
-            hsl(var(--tm-color01), 100%, 78%) 35.88%,
-            hsl(var(--tm-color01), 100%, 48%) 61.39%,
-            hsl(var(--tm-color01), 100%, 56%) 89.22%);
+        --gradient-outer-mainhue-selected: linear-gradient(82deg,
+                        hsl(var(--tm-color01), 100%, 68%) 11.75%,
+                        hsl(var(--tm-color01), 100%, 44%) 25.54%,
+                        hsl(var(--tm-color01), 100%, 63%) 46.73%,
+                        hsl(var(--tm-color01), 100%, 60%) 65.34%,
+                        hsl(var(--tm-color02), 100%, 68%) 82.28%,
+                        hsl(var(--tm-color01), 100%, 68%) 90.95%);
+        --gradient-inner-mainhue-selected: linear-gradient(250deg,
+                        hsl(var(--tm-color01), 100%, 53%) 8.83%,
+                        hsl(var(--tm-color01), 100%, 62%) 13.08%,
+                        hsl(var(--tm-color01), 100%, 60%) 23.52%,
+                        hsl(var(--tm-color01), 100%, 78%) 35.88%,
+                        hsl(var(--tm-color01), 100%, 48%) 61.39%,
+                        hsl(var(--tm-color01), 100%, 56%) 89.22%);
 
-    /* 🌑 Base Box Shadow tokens */
-    --shadow-inset-orange: -4px -4px 1px -4px hsla(var(--tm-color06), 97%, 71%, 0.55) inset;
-    --shadow-inset-light: 5px 3px 3px -4px var(--shadow-light) inset;
-    --shadow-inset-mid: -14px -7px 1px -15px var(--shadow-mid) inset;
-    --shadow-inset-secondhue: -12px -9px 2px -10px hsla(var(--tm-color02), 100%, 72%, 0.5) inset;
-    --shadow-inset-white: 13px 9px 1px -11px hsla(var(--hue-neutral),
-            0%,
-            100%,
-            0.15) inset;
-    --shadow-inset-rose: 9px 10px 1px -11px var(--shadow-mid) inset;
+        /* 🌑 Base Box Shadow tokens */
+        --shadow-inset-orange: -4px -4px 1px -4px hsla(var(--tm-color06), 97%, 71%, 0.55) inset;
+        --shadow-inset-light: 5px 3px 3px -4px var(--shadow-light) inset;
+        --shadow-inset-mid: -14px -7px 1px -15px var(--shadow-mid) inset;
+        --shadow-inset-secondhue: -12px -9px 2px -10px hsla(var(--tm-color02), 100%, 72%, 0.5) inset;
+        --shadow-inset-white: 13px 9px 1px -11px hsla(var(--hue-neutral),
+                        0%,
+                        100%,
+                        0.15) inset;
+        --shadow-inset-rose: 9px 10px 1px -11px var(--shadow-mid) inset;
 
-    /* Compound shadow for default state */
-    --shadow-button-inner: var(--shadow-inset-orange), var(--shadow-inset-light),
-        var(--shadow-inset-mid), var(--shadow-inset-secondhue),
-        var(--shadow-inset-white), var(--shadow-inset-rose);
+        /* Compound shadow for default state */
+        --shadow-button-inner: var(--shadow-inset-orange), var(--shadow-inset-light),
+                var(--shadow-inset-mid), var(--shadow-inset-secondhue),
+                var(--shadow-inset-white), var(--shadow-inset-rose);
 }
 
 /*---------------------------- end of color vars ----------------------------*/
 
 .vertical-button .button-cta-content-container {
-    flex-direction: column;
+        flex-direction: column;
 }
 
 /**---- Disabled State ----**/
 
 .button-cta-outer.disabled {
-    min-height: 3.25rem;
+        min-height: 3.25rem;
 }
 
 /**---- Default State ----**/
 
 .button-cta-outer {
-    min-height: 3.25rem;
-    background: var(--gradient-outer-mainhue);
-    transition: all 200ms ease-in-out;
+        min-height: 3.25rem;
+        background: var(--gradient-outer-mainhue);
+        transition: all 200ms ease-in-out;
 }
 
 .button-cta-outer.icon-only {
-    min-height: 3.50rem;
-    background: var(--gradient-outer-mainhue);
-    transition: all 200ms ease-in-out;
+        min-height: 3.50rem;
+        background: var(--gradient-outer-mainhue);
+        transition: all 200ms ease-in-out;
 }
 
 .button-cta-outer.pink .button-cta-inner,
 .button-cta-outer.red .button-cta-inner {
-    transition: all 200ms ease-in-out;
-    color: var(--white);
-    background: var(--gradient-inner-mainhue);
-    box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 97%, 71%, 0.55) inset,
-        5px 3px 3px -4px var(--shadow-light) inset,
-        -14px -7px 1px -15px var(--shadow-mid) inset,
-        -12px -9px 2px -10px hsla(var(--tm-color02), 100%, 72%, 0.5) inset,
-        13px 9px 1px -11px hsla(var(--hue-neutral), 0%, 100%, 0.15) inset,
-        9px 10px 1px -11px var(--shadow-mid) inset;
+        transition: all 200ms ease-in-out;
+        color: var(--white);
+        background: var(--gradient-inner-mainhue);
+        box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 97%, 71%, 0.55) inset,
+                5px 3px 3px -4px var(--shadow-light) inset,
+                -14px -7px 1px -15px var(--shadow-mid) inset,
+                -12px -9px 2px -10px hsla(var(--tm-color02), 100%, 72%, 0.5) inset,
+                13px 9px 1px -11px hsla(var(--hue-neutral), 0%, 100%, 0.15) inset,
+                9px 10px 1px -11px var(--shadow-mid) inset;
 }
 
 .button-cta-inner .left-icon,
 .button-cta-inner .right-icon {
-    transition: all 200ms ease-in-out;
-    filter: drop-shadow(1px 1px 0 hsla(var(--hue-neutral), 0%, 0%, 0.3)) drop-shadow(1px 3px 3px hsla(var(--hue-neutral), 0%, 0%, 0.3));
+        transition: all 200ms ease-in-out;
+        filter: drop-shadow(1px 1px 0 hsla(var(--hue-neutral), 0%, 0%, 0.3)) drop-shadow(1px 3px 3px hsla(var(--hue-neutral), 0%, 0%, 0.3));
 }
 
 .button-cta-outer.purple .button-cta-inner .button-text,
@@ -459,10 +459,10 @@
 .button-cta-outer.black .button-cta-inner .button-text,
 .button-cta-outer.red .button-cta-inner .button-text,
 .button-cta-outer.pink-glass .button-cta-inner .button-text {
-    transition: all 200ms ease-in-out;
-    color: var(--white);
-    text-shadow: 1px 1px 0 hsla(var(--hue-neutral), 0%, 0%, 0.2),
-        1px 3px 3px hsla(var(--hue-neutral), 0%, 0%, 0.45);
+        transition: all 200ms ease-in-out;
+        color: var(--white);
+        text-shadow: 1px 1px 0 hsla(var(--hue-neutral), 0%, 0%, 0.2),
+                1px 3px 3px hsla(var(--hue-neutral), 0%, 0%, 0.45);
 
 }
 
@@ -473,79 +473,79 @@
 .button-cta-outer.yellow.hover,
 .button-cta-outer.green.hover,
 .button-cta-outer.red.hover {
-    transition: all 200ms ease-in-out;
-    background: var(--gradient-outer-mainhue-hover);
-    box-shadow: 0 3px 11px -2px hsl(var(--tm-color01), 100%, 45%);
+        transition: all 200ms ease-in-out;
+        background: var(--gradient-outer-mainhue-hover);
+        box-shadow: 0 3px 11px -2px hsl(var(--tm-color01), 100%, 45%);
 }
 
 .button-cta-outer.pink.hover .button-cta-inner {
-    transition: all 200ms ease-in-out;
-    background: linear-gradient(250deg,
-            hsl(var(--tm-color01), 100%, 43%) 8.83%,
-            hsl(var(--tm-color01), 100%, 42%) 13.08%,
-            hsl(var(--tm-color01), 100%, 40%) 23.52%,
-            hsl(var(--tm-color01), 100%, 58%) 35.88%,
-            hsl(var(--tm-color01), 100%, 38%) 61.39%,
-            hsl(var(--tm-color01), 100%, 35%) 89.22%);
-    box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 100%, 70%, 0.55) inset,
-        -14px -7px 1px -15px hsl(var(--tm-color06), 0%, 100%) inset,
-        -12px -9px 2px -10px hsla(var(--tm-color06), 100%, 73%, 0.5) inset,
-        9px 9px 1px -11px hsla(var(--tm-color06), 0%, 100%, 0.56) inset,
-        8px 8px 3px -6px hsla(var(--tm-color06), 97%, 75%, 0.7) inset;
+        transition: all 200ms ease-in-out;
+        background: linear-gradient(250deg,
+                        hsl(var(--tm-color01), 100%, 43%) 8.83%,
+                        hsl(var(--tm-color01), 100%, 42%) 13.08%,
+                        hsl(var(--tm-color01), 100%, 40%) 23.52%,
+                        hsl(var(--tm-color01), 100%, 58%) 35.88%,
+                        hsl(var(--tm-color01), 100%, 38%) 61.39%,
+                        hsl(var(--tm-color01), 100%, 35%) 89.22%);
+        box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 100%, 70%, 0.55) inset,
+                -14px -7px 1px -15px hsl(var(--tm-color06), 0%, 100%) inset,
+                -12px -9px 2px -10px hsla(var(--tm-color06), 100%, 73%, 0.5) inset,
+                9px 9px 1px -11px hsla(var(--tm-color06), 0%, 100%, 0.56) inset,
+                8px 8px 3px -6px hsla(var(--tm-color06), 97%, 75%, 0.7) inset;
 }
 
 .button-cta-outer.pink.hover .button-cta-inner .button-text {
-    transform: translateY(-0.025em);
-    opacity: 1;
-    text-shadow: -2px 1px 1px hsla(var(--hue-neutral), 0%, 0%, 0.1),
-        1px 4px 3px hsla(var(--tm-color06), 0%, 0%, 0.45);
+        transform: translateY(-0.025em);
+        opacity: 1;
+        text-shadow: -2px 1px 1px hsla(var(--hue-neutral), 0%, 0%, 0.1),
+                1px 4px 3px hsla(var(--tm-color06), 0%, 0%, 0.45);
 }
 
 .button-cta-outer.hover .button-cta-inner .left-icon {
-    transition: all 200ms ease-in-out;
-    opacity: 1;
-    transform: translateX(-1px);
-    filter: drop-shadow(-3px 2px 1px hsla(var(--tm-color06), 0%, 0%, 0.1)) drop-shadow(-4px 1px 3px hsla(var(--tm-color06), 0%, 0%, 0.1));
+        transition: all 200ms ease-in-out;
+        opacity: 1;
+        transform: translateX(-1px);
+        filter: drop-shadow(-3px 2px 1px hsla(var(--tm-color06), 0%, 0%, 0.1)) drop-shadow(-4px 1px 3px hsla(var(--tm-color06), 0%, 0%, 0.1));
 }
 
 .button-cta-outer.hover .button-cta-inner .right-icon {
-    transition: all 200ms ease-in-out;
-    opacity: 1;
-    transform: translateX(1px);
-    filter: drop-shadow(-3px 2px 1px hsla(var(--tm-color06), 0%, 0%, 0.1)) drop-shadow(-4px 1px 3px hsla(var(--tm-color06), 0%, 0%, 0.1));
+        transition: all 200ms ease-in-out;
+        opacity: 1;
+        transform: translateX(1px);
+        filter: drop-shadow(-3px 2px 1px hsla(var(--tm-color06), 0%, 0%, 0.1)) drop-shadow(-4px 1px 3px hsla(var(--tm-color06), 0%, 0%, 0.1));
 }
 
 /**---- Pressed ----**/
 
 .button-cta-outer.pressed {
-    background: var(--gradient-outer-mainhue-pressed);
+        background: var(--gradient-outer-mainhue-pressed);
 }
 
 .button-cta-outer.pink.pressed .button-cta-inner,
 .button-cta-outer.red.pressed .button-cta-inner,
 .button-cta-outer.pink-glass.pressed .button-cta-inner {
-    color: var(--black);
-    background: var(--gradient-inner-mainhue-pressed);
-    box-shadow: 0 3px 0 0 hsla(var(--hue-neutral), 0%, 0%, 0.15) inset,
-        -4px -4px 1px -4px hsla(var(--tm-color06), 100%, 10%, 0.549) inset,
-        5px 3px 3px -4px hsla(var(--hue-neutral), 0%, 0%, 0.1) inset,
-        -14px -7px 1px -15px hsl(var(--hue-neutral), 0%, 0%) inset,
-        -12px -9px 2px -10px hsla(var(--hue-neutral), 100%, 12%, 0.5) inset,
-        13px 9px 1px -11px hsla(var(--hue-neutral), 0%, 0%, 0.15) inset,
-        9px 10px 1px -11px hsl(var(--tm-color05), 98%, 25%) inset;
+        color: var(--black);
+        background: var(--gradient-inner-mainhue-pressed);
+        box-shadow: 0 3px 0 0 hsla(var(--hue-neutral), 0%, 0%, 0.15) inset,
+                -4px -4px 1px -4px hsla(var(--tm-color06), 100%, 10%, 0.549) inset,
+                5px 3px 3px -4px hsla(var(--hue-neutral), 0%, 0%, 0.1) inset,
+                -14px -7px 1px -15px hsl(var(--hue-neutral), 0%, 0%) inset,
+                -12px -9px 2px -10px hsla(var(--hue-neutral), 100%, 12%, 0.5) inset,
+                13px 9px 1px -11px hsla(var(--hue-neutral), 0%, 0%, 0.15) inset,
+                9px 10px 1px -11px hsl(var(--tm-color05), 98%, 25%) inset;
 }
 
 .button-cta-outer.pink.pressed .button-cta-inner .button-text,
 .button-cta-outer.red.pressed .button-cta-inner .button-text,
 .button-cta-outer.pink-glass.pressed .button-cta-inner .button-text {
-    color: var(--black);
-    opacity: 0.4;
+        color: var(--black);
+        opacity: 0.4;
 }
 
 .button-cta-outer.pressed .button-cta-outer .button-cta-inner .left-icon,
 .button-cta-outer.pressed .button-cta-outer .button-cta-inner .right-icon {
-    opacity: 0.4;
-    filter: none;
+        opacity: 0.4;
+        filter: none;
 }
 
 /**---- Selected ----**/
@@ -556,8 +556,8 @@
 .button-cta-outer.red.selected,
 .button-cta-outer.yellow.selected,
 .button-cta-outer.pink-glass.selected {
-    background: var(--gradient-outer-mainhue-selected);
-    box-shadow: none;
+        background: var(--gradient-outer-mainhue-selected);
+        box-shadow: none;
 }
 
 .button-cta-outer.pink.selected .button-cta-inner,
@@ -566,14 +566,14 @@
 .button-cta-outer.red.selected .button-cta-inner,
 .button-cta-outer.yellow.selected .button-cta-inner,
 .button-cta-outer.pink-glass.selected .button-cta-inner {
-    background: var(--gradient-inner-mainhue-selected);
-    color: hsla(var(--tm-color01), 66%, 20%, 1);
-    box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 100%, 70%, 0.55) inset,
-        5px 3px 3px -4px hsl(var(--tm-color06), 97%, 75%) inset,
-        -14px -7px 1px -15px hsl(var(--tm-color05), 99%, 65%) inset,
-        -12px -9px 2px -10px hsl(var(--tm-color06), 100%, 73%, 0.5) inset,
-        13px 9px 1px -11px hsl(var(--tm-color06), 0%, 100%, 0.15) inset,
-        9px 10px 1px -11px hsl(var(--tm-color05), 99%, 65%) inset;
+        background: var(--gradient-inner-mainhue-selected);
+        color: hsla(var(--tm-color01), 66%, 20%, 1);
+        box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 100%, 70%, 0.55) inset,
+                5px 3px 3px -4px hsl(var(--tm-color06), 97%, 75%) inset,
+                -14px -7px 1px -15px hsl(var(--tm-color05), 99%, 65%) inset,
+                -12px -9px 2px -10px hsl(var(--tm-color06), 100%, 73%, 0.5) inset,
+                13px 9px 1px -11px hsl(var(--tm-color06), 0%, 100%, 0.15) inset,
+                9px 10px 1px -11px hsl(var(--tm-color05), 99%, 65%) inset;
 }
 
 .button-cta-outer.pink.selected .button-cta-inner .button-text,
@@ -582,9 +582,9 @@
 .button-cta-outer.red.selected .button-cta-inner .button-text,
 .button-cta-outer.yellow.selected .button-cta-inner .button-text,
 .button-cta-outer.pink-glass.selected .button-cta-inner .button-text {
-    color: hsla(var(--tm-color01), 66%, 20%, 1);
-    opacity: 1;
-    text-shadow: 0 1px 0 hsla(var(--hue-neutral), 0%, 100%, 0.25);
+        color: hsla(var(--tm-color01), 66%, 20%, 1);
+        opacity: 1;
+        text-shadow: 0 1px 0 hsla(var(--hue-neutral), 0%, 100%, 0.25);
 }
 
 .button-cta-outer.pink.selected .button-cta-inner .left-icon,
@@ -599,745 +599,745 @@
 .button-cta-outer.yellow.selected .button-cta-inner .right-icon,
 .button-cta-outer.pink-glass.selected .button-cta-inner .left-icon,
 .button-cta-outer.pink-glass.selected .button-cta-inner .right-icon {
-    opacity: 1;
-    filter: drop-shadow(0 1px 0 hsla(var(--hue-neutral), 0%, 100%, 0.25));
+        opacity: 1;
+        filter: drop-shadow(0 1px 0 hsla(var(--hue-neutral), 0%, 100%, 0.25));
 }
 
 /*--------- Pink button Styling ---------*/
 
 .black {
-    /* 🎨 Hue tokens */
-    --tm-color05: 0;
-    /*48*/
-    --tm-color04: 0;
-    /*37*/
-    --tm-color01: 0;
-    /*35*/
-    --tm-color03: 0;
-    /*34*/
-    --tm-color02: 0;
-    /*33*/
-    --tm-color06: 0;
-    /*38*/
-    --hue-neutral: 0;
-    /*0*/
+        /* 🎨 Hue tokens */
+        --tm-color05: 0;
+        /*48*/
+        --tm-color04: 0;
+        /*37*/
+        --tm-color01: 0;
+        /*35*/
+        --tm-color03: 0;
+        /*34*/
+        --tm-color02: 0;
+        /*33*/
+        --tm-color06: 0;
+        /*38*/
+        --hue-neutral: 0;
+        /*0*/
 
-    /* 🎨 Color tokens */
-    --color-mainhue-1: hsl(var(--tm-color01), 0%, 13%);
-    --color-secondhue-1: hsl(var(--tm-color01), 0%, 22%);
-    --color-mainhue-2: hsl(var(--tm-color04), 0%, 20%);
-    --color-secondhue-2: hsl(var(--tm-color04), 0%, 18%);
-    --color-mainhue-3: hsl(var(--tm-color01), 0%, 13%);
-    --color-mainhue-4: hsl(var(--tm-color01), 0%, 13%);
+        /* 🎨 Color tokens */
+        --color-mainhue-1: hsl(var(--tm-color01), 0%, 13%);
+        --color-secondhue-1: hsl(var(--tm-color01), 0%, 22%);
+        --color-mainhue-2: hsl(var(--tm-color04), 0%, 20%);
+        --color-secondhue-2: hsl(var(--tm-color04), 0%, 18%);
+        --color-mainhue-3: hsl(var(--tm-color01), 0%, 13%);
+        --color-mainhue-4: hsl(var(--tm-color01), 0%, 13%);
 
-    --color-secondhue-3: hsl(var(--tm-color02), 0%, 8%);
-    --color-secondhue-4: hsl(var(--tm-color03), 0%, 16%);
-    --color-secondhue-5: hsl(var(--tm-color02), 0%, 9%);
-    --color-mainhue-5: hsl(var(--tm-color04), 0%, 10%);
-    --color-secondhue-6: hsl(var(--tm-color02), 0%, 11%);
-    --color-secondhue-7: hsl(var(--tm-color01), 0%, 12%);
+        --color-secondhue-3: hsl(var(--tm-color02), 0%, 8%);
+        --color-secondhue-4: hsl(var(--tm-color03), 0%, 16%);
+        --color-secondhue-5: hsl(var(--tm-color02), 0%, 9%);
+        --color-mainhue-5: hsl(var(--tm-color04), 0%, 10%);
+        --color-secondhue-6: hsl(var(--tm-color02), 0%, 11%);
+        --color-secondhue-7: hsl(var(--tm-color01), 0%, 12%);
 
-    --shadow-light: hsl(var(--tm-color06), 0%, 10%);
-    --shadow-mid: hsl(var(--tm-color05), 0%, 13%);
+        --shadow-light: hsl(var(--tm-color06), 0%, 10%);
+        --shadow-mid: hsl(var(--tm-color05), 0%, 13%);
 
-    /* 🌈 Gradient tokens */
-    --gradient-outer-mainhue: linear-gradient(82deg,
-            var(--color-mainhue-1) 11.75%,
-            var(--color-secondhue-1) 25.54%,
-            var(--color-mainhue-2) 46.73%,
-            var(--color-secondhue-2) 65.22%,
-            var(--color-mainhue-3) 82.28%,
-            var(--color-mainhue-4) 90.95%);
+        /* 🌈 Gradient tokens */
+        --gradient-outer-mainhue: linear-gradient(82deg,
+                        var(--color-mainhue-1) 11.75%,
+                        var(--color-secondhue-1) 25.54%,
+                        var(--color-mainhue-2) 46.73%,
+                        var(--color-secondhue-2) 65.22%,
+                        var(--color-mainhue-3) 82.28%,
+                        var(--color-mainhue-4) 90.95%);
 
-    --gradient-inner-mainhue: linear-gradient(250deg,
-            var(--color-secondhue-3) 8.83%,
-            var(--color-secondhue-4) 13.08%,
-            var(--color-secondhue-5) 23.20%,
-            var(--color-mainhue-5) 35.88%,
-            var(--color-secondhue-6) 61.39%,
-            var(--color-secondhue-7) 89.22%);
+        --gradient-inner-mainhue: linear-gradient(250deg,
+                        var(--color-secondhue-3) 8.83%,
+                        var(--color-secondhue-4) 13.08%,
+                        var(--color-secondhue-5) 23.20%,
+                        var(--color-mainhue-5) 35.88%,
+                        var(--color-secondhue-6) 61.39%,
+                        var(--color-secondhue-7) 89.22%);
 
-    --gradient-outer-mainhue-pressed: linear-gradient(82deg,
-            hsla(var(--tm-color01), 0%, 8%, 0.1) 14.51%,
-            hsla(var(--tm-color01), 0%, 10%, 0.1) 23.18%,
-            hsla(var(--tm-color01), 0%, 9%, 0.1) 40.12%,
-            hsla(var(--tm-color01), 0%, 11%, 0.1) 58.73%,
-            hsla(var(--tm-color01), 0%, 7%, 0.1) 79.91%,
-            hsla(var(--tm-color01), 0%, 1%, 0.1) 93.7%);
+        --gradient-outer-mainhue-pressed: linear-gradient(82deg,
+                        hsla(var(--tm-color01), 0%, 8%, 0.1) 14.51%,
+                        hsla(var(--tm-color01), 0%, 10%, 0.1) 23.18%,
+                        hsla(var(--tm-color01), 0%, 9%, 0.1) 40.12%,
+                        hsla(var(--tm-color01), 0%, 11%, 0.1) 58.73%,
+                        hsla(var(--tm-color01), 0%, 7%, 0.1) 79.91%,
+                        hsla(var(--tm-color01), 0%, 1%, 0.1) 93.7%);
 
-    --gradient-inner-mainhue-pressed: linear-gradient(266deg,
-            hsl(var(--tm-color01), 0%, 14%) 9.6%,
-            hsl(var(--tm-color01), 0%, 13%) 13.73%,
-            hsl(var(--tm-color01), 0%, 10%) 23.88%,
-            hsl(var(--tm-color01), 0%, 8%) 35.9%,
-            hsl(var(--tm-color01), 0%, 4%) 60.69%,
-            hsl(var(--tm-color01), 0%, 4%) 87.74%);
+        --gradient-inner-mainhue-pressed: linear-gradient(266deg,
+                        hsl(var(--tm-color01), 0%, 14%) 9.6%,
+                        hsl(var(--tm-color01), 0%, 13%) 13.73%,
+                        hsl(var(--tm-color01), 0%, 10%) 23.88%,
+                        hsl(var(--tm-color01), 0%, 8%) 35.9%,
+                        hsl(var(--tm-color01), 0%, 4%) 60.69%,
+                        hsl(var(--tm-color01), 0%, 4%) 87.74%);
 
-    --gradient-outer-mainhue-hover: linear-gradient(82deg,
-            hsl(var(--tm-color01), 0%, 20%) 11.75%,
-            hsl(var(--tm-color01), 0%, 18%) 25.54%,
-            hsl(var(--tm-color01), 0%, 2%) 46.73%,
-            hsl(var(--tm-color01), 0%, 4%) 65.22%,
-            hsl(var(--tm-color01), 0%, 8%) 82.28%,
-            hsl(var(--tm-color01), 0%, 8%) 90.95%);
+        --gradient-outer-mainhue-hover: linear-gradient(82deg,
+                        hsl(var(--tm-color01), 0%, 20%) 11.75%,
+                        hsl(var(--tm-color01), 0%, 18%) 25.54%,
+                        hsl(var(--tm-color01), 0%, 2%) 46.73%,
+                        hsl(var(--tm-color01), 0%, 4%) 65.22%,
+                        hsl(var(--tm-color01), 0%, 8%) 82.28%,
+                        hsl(var(--tm-color01), 0%, 8%) 90.95%);
 
 
 
-    /* 🌑 Base Box Shadow tokens */
-    --shadow-inset-orange: -4px -4px 1px -4px hsla(var(--tm-color06), 0%, 18%, 0.55) inset;
-    --shadow-inset-light: 5px 3px 3px -4px var(--shadow-light) inset;
-    --shadow-inset-mid: -14px -7px 1px -15px var(--shadow-mid) inset;
-    --shadow-inset-secondhue: -12px -9px 2px -10px hsla(var(--tm-color02), 0%, 15%, 0.5) inset;
-    --shadow-inset-white: 13px 9px 1px -11px hsla(var(--hue-neutral),
-            0%,
-            0%,
-            0.15) inset;
-    --shadow-inset-rose: 9px 10px 1px -11px var(--shadow-mid) inset;
+        /* 🌑 Base Box Shadow tokens */
+        --shadow-inset-orange: -4px -4px 1px -4px hsla(var(--tm-color06), 0%, 18%, 0.55) inset;
+        --shadow-inset-light: 5px 3px 3px -4px var(--shadow-light) inset;
+        --shadow-inset-mid: -14px -7px 1px -15px var(--shadow-mid) inset;
+        --shadow-inset-secondhue: -12px -9px 2px -10px hsla(var(--tm-color02), 0%, 15%, 0.5) inset;
+        --shadow-inset-white: 13px 9px 1px -11px hsla(var(--hue-neutral),
+                        0%,
+                        0%,
+                        0.15) inset;
+        --shadow-inset-rose: 9px 10px 1px -11px var(--shadow-mid) inset;
 
-    /* Compound shadow for default state */
-    --shadow-button-inner: var(--shadow-inset-orange), var(--shadow-inset-light),
-        var(--shadow-inset-mid), var(--shadow-inset-secondhue),
-        var(--shadow-inset-white), var(--shadow-inset-rose);
+        /* Compound shadow for default state */
+        --shadow-button-inner: var(--shadow-inset-orange), var(--shadow-inset-light),
+                var(--shadow-inset-mid), var(--shadow-inset-secondhue),
+                var(--shadow-inset-white), var(--shadow-inset-rose);
 }
 
 /*---------------------------- end of color vars ----------------------------*/
 
 .button-cta-outer.black .button-cta-inner {
-    transition: all 200ms ease-in-out;
-    color: var(--white);
-    background: var(--gradient-inner-mainhue);
-    box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 0%, 15%, 0.55) inset,
-        5px 3px 3px -4px var(--shadow-light) inset,
-        -14px -7px 1px -15px var(--shadow-mid) inset,
-        -12px -9px 2px -10px hsla(var(--tm-color02), 0%, 18%, 0.5) inset,
-        13px 9px 1px -11px hsla(var(--hue-neutral), 0%, 0%, 0.15) inset,
-        9px 10px 1px -11px var(--shadow-mid) inset;
+        transition: all 200ms ease-in-out;
+        color: var(--white);
+        background: var(--gradient-inner-mainhue);
+        box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 0%, 15%, 0.55) inset,
+                5px 3px 3px -4px var(--shadow-light) inset,
+                -14px -7px 1px -15px var(--shadow-mid) inset,
+                -12px -9px 2px -10px hsla(var(--tm-color02), 0%, 18%, 0.5) inset,
+                13px 9px 1px -11px hsla(var(--hue-neutral), 0%, 0%, 0.15) inset,
+                9px 10px 1px -11px var(--shadow-mid) inset;
 }
 
 /**---- Hover state ----**/
 
 .button-cta-outer.black.hover {
-    transition: all 200ms ease-in-out;
-    background: var(--gradient-outer-mainhue-hover);
-    box-shadow: 0 3px 11px -2px hsl(var(--tm-color01), 0%, 22%);
+        transition: all 200ms ease-in-out;
+        background: var(--gradient-outer-mainhue-hover);
+        box-shadow: 0 3px 11px -2px hsl(var(--tm-color01), 0%, 22%);
 }
 
 .button-cta-outer.black.hover .button-cta-inner {
-    transition: all 200ms ease-in-out;
-    background: linear-gradient(250deg,
-            hsl(var(--tm-color01), 0%, 8%) 8.83%,
-            hsl(var(--tm-color01), 0%, 15%) 13.08%,
-            hsl(var(--tm-color01), 0%, 9%) 23.20%,
-            hsl(var(--tm-color01), 0%, 10%) 35.88%,
-            hsl(var(--tm-color01), 0%, 11%) 61.39%,
-            hsl(var(--tm-color01), 0%, 15%) 89.22%);
-    box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 0%, 70%, 0.55) inset,
-        -14px -7px 1px -15px hsl(var(--tm-color06), 0%, 0%) inset,
-        -12px -9px 2px -10px hsla(var(--tm-color06), 0%, 25%, 0.5) inset,
-        9px 9px 1px -11px hsla(var(--tm-color06), 0%, 0%, 0.56) inset,
-        8px 8px 3px -6px hsla(var(--tm-color06), 0%, 15%, 0.7) inset;
+        transition: all 200ms ease-in-out;
+        background: linear-gradient(250deg,
+                        hsl(var(--tm-color01), 0%, 8%) 8.83%,
+                        hsl(var(--tm-color01), 0%, 15%) 13.08%,
+                        hsl(var(--tm-color01), 0%, 9%) 23.20%,
+                        hsl(var(--tm-color01), 0%, 10%) 35.88%,
+                        hsl(var(--tm-color01), 0%, 11%) 61.39%,
+                        hsl(var(--tm-color01), 0%, 15%) 89.22%);
+        box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 0%, 70%, 0.55) inset,
+                -14px -7px 1px -15px hsl(var(--tm-color06), 0%, 0%) inset,
+                -12px -9px 2px -10px hsla(var(--tm-color06), 0%, 25%, 0.5) inset,
+                9px 9px 1px -11px hsla(var(--tm-color06), 0%, 0%, 0.56) inset,
+                8px 8px 3px -6px hsla(var(--tm-color06), 0%, 15%, 0.7) inset;
 }
 
 /**---- Pressed ----**/
 
 .button-cta-outer.black.pressed .button-cta-inner {
-    color: var(--white);
-    background: var(--gradient-inner-mainhue-pressed);
-    box-shadow: 0 3px 0 0 hsla(var(--hue-neutral), 0%, 0%, 0.15) inset,
-        -4px -4px 1px -4px hsla(var(--tm-color06), 0%, 10%, 0.549) inset,
-        5px 3px 3px -4px hsla(var(--hue-neutral), 0%, 0%, 0.1) inset,
-        -14px -7px 1px -15px hsl(var(--hue-neutral), 0%, 0%) inset,
-        -12px -9px 2px -10px hsla(var(--hue-neutral), 0%, 12%, 0.5) inset,
-        13px 9px 1px -11px hsla(var(--hue-neutral), 0%, 0%, 0.15) inset,
-        9px 10px 1px -11px hsl(var(--tm-color05), 0%, 25%) inset;
+        color: var(--white);
+        background: var(--gradient-inner-mainhue-pressed);
+        box-shadow: 0 3px 0 0 hsla(var(--hue-neutral), 0%, 0%, 0.15) inset,
+                -4px -4px 1px -4px hsla(var(--tm-color06), 0%, 10%, 0.549) inset,
+                5px 3px 3px -4px hsla(var(--hue-neutral), 0%, 0%, 0.1) inset,
+                -14px -7px 1px -15px hsl(var(--hue-neutral), 0%, 0%) inset,
+                -12px -9px 2px -10px hsla(var(--hue-neutral), 0%, 12%, 0.5) inset,
+                13px 9px 1px -11px hsla(var(--hue-neutral), 0%, 0%, 0.15) inset,
+                9px 10px 1px -11px hsl(var(--tm-color05), 0%, 25%) inset;
 }
 
 .button-cta-outer.black.pressed .button-cta-inner .button-text {
-    color: var(--white);
-    opacity: 0.4;
+        color: var(--white);
+        opacity: 0.4;
 }
 
 /*--------- Pink button Styling ---------*/
 
 .green {
-    /* 🎨 Hue tokens */
-    --tm-color05: 153;
-    --tm-color04: 142;
-    --tm-color01: 140;
-    --tm-color03: 139;
-    --tm-color02: 138;
-    --tm-color06: 144;
-    --hue-neutral: 0;
+        /* 🎨 Hue tokens */
+        --tm-color05: 153;
+        --tm-color04: 142;
+        --tm-color01: 140;
+        --tm-color03: 139;
+        --tm-color02: 138;
+        --tm-color06: 144;
+        --hue-neutral: 0;
 
-    /* 🎨 Color tokens */
-    --color-mainhue-1: hsl(var(--tm-color01), 100%, 59%);
-    --color-secondhue-1: hsl(var(--tm-color01), 100%, 34%);
-    --color-mainhue-2: hsl(var(--tm-color04), 100%, 52%);
-    --color-secondhue-2: hsl(var(--tm-color04), 100%, 50%);
-    --color-mainhue-3: hsl(var(--tm-color01), 100%, 59%);
-    --color-mainhue-4: hsl(var(--tm-color01), 100%, 59%);
+        /* 🎨 Color tokens */
+        --color-mainhue-1: hsl(var(--tm-color01), 100%, 59%);
+        --color-secondhue-1: hsl(var(--tm-color01), 100%, 34%);
+        --color-mainhue-2: hsl(var(--tm-color04), 100%, 52%);
+        --color-secondhue-2: hsl(var(--tm-color04), 100%, 50%);
+        --color-mainhue-3: hsl(var(--tm-color01), 100%, 59%);
+        --color-mainhue-4: hsl(var(--tm-color01), 100%, 59%);
 
-    --color-secondhue-3: hsl(var(--tm-color02), 100%, 43%);
-    --color-secondhue-4: hsl(var(--tm-color03), 100%, 42%);
-    --color-secondhue-5: hsl(var(--tm-color02), 100%, 40%);
-    --color-mainhue-5: hsl(var(--tm-color04), 100%, 58%);
-    --color-secondhue-6: hsl(var(--tm-color02), 100%, 38%);
-    --color-secondhue-7: hsl(var(--tm-color01), 100%, 36%);
+        --color-secondhue-3: hsl(var(--tm-color02), 100%, 43%);
+        --color-secondhue-4: hsl(var(--tm-color03), 100%, 42%);
+        --color-secondhue-5: hsl(var(--tm-color02), 100%, 40%);
+        --color-mainhue-5: hsl(var(--tm-color04), 100%, 58%);
+        --color-secondhue-6: hsl(var(--tm-color02), 100%, 38%);
+        --color-secondhue-7: hsl(var(--tm-color01), 100%, 36%);
 
-    --shadow-light: hsl(var(--tm-color06), 97%, 82%);
-    --shadow-mid: hsl(var(--tm-color05), 99%, 65%);
+        --shadow-light: hsl(var(--tm-color06), 97%, 82%);
+        --shadow-mid: hsl(var(--tm-color05), 99%, 65%);
 
-    /* 🌈 Gradient tokens */
-    --gradient-outer-mainhue: linear-gradient(82deg,
-            var(--color-mainhue-1) 11.75%,
-            var(--color-secondhue-1) 25.54%,
-            var(--color-mainhue-2) 46.73%,
-            var(--color-secondhue-2) 65.34%,
-            var(--color-mainhue-3) 82.28%,
-            var(--color-mainhue-4) 90.95%);
+        /* 🌈 Gradient tokens */
+        --gradient-outer-mainhue: linear-gradient(82deg,
+                        var(--color-mainhue-1) 11.75%,
+                        var(--color-secondhue-1) 25.54%,
+                        var(--color-mainhue-2) 46.73%,
+                        var(--color-secondhue-2) 65.34%,
+                        var(--color-mainhue-3) 82.28%,
+                        var(--color-mainhue-4) 90.95%);
 
-    --gradient-inner-mainhue: linear-gradient(250deg,
-            var(--color-secondhue-3) 8.83%,
-            var(--color-secondhue-4) 13.08%,
-            var(--color-secondhue-5) 23.52%,
-            var(--color-mainhue-5) 35.88%,
-            var(--color-secondhue-6) 61.39%,
-            var(--color-secondhue-7) 89.22%);
+        --gradient-inner-mainhue: linear-gradient(250deg,
+                        var(--color-secondhue-3) 8.83%,
+                        var(--color-secondhue-4) 13.08%,
+                        var(--color-secondhue-5) 23.52%,
+                        var(--color-mainhue-5) 35.88%,
+                        var(--color-secondhue-6) 61.39%,
+                        var(--color-secondhue-7) 89.22%);
 
-    --gradient-outer-mainhue-pressed: linear-gradient(82deg,
-            hsla(var(--tm-color01), 100%, 20%, 0.1) 14.51%,
-            hsla(var(--tm-color01), 100%, 28%, 0.1) 23.18%,
-            hsla(var(--tm-color01), 100%, 30%, 0.1) 40.12%,
-            hsla(var(--tm-color01), 100%, 23%, 0.1) 58.73%,
-            hsla(var(--tm-color01), 100%, 34%, 0.1) 79.91%,
-            hsla(var(--tm-color01), 100%, 38%, 0.1) 93.7%);
+        --gradient-outer-mainhue-pressed: linear-gradient(82deg,
+                        hsla(var(--tm-color01), 100%, 20%, 0.1) 14.51%,
+                        hsla(var(--tm-color01), 100%, 28%, 0.1) 23.18%,
+                        hsla(var(--tm-color01), 100%, 30%, 0.1) 40.12%,
+                        hsla(var(--tm-color01), 100%, 23%, 0.1) 58.73%,
+                        hsla(var(--tm-color01), 100%, 34%, 0.1) 79.91%,
+                        hsla(var(--tm-color01), 100%, 38%, 0.1) 93.7%);
 
-    --gradient-inner-mainhue-pressed: linear-gradient(266deg,
-            hsl(var(--tm-color01), 100%, 33%) 9.6%,
-            hsl(var(--tm-color01), 100%, 32%) 13.73%,
-            hsl(var(--tm-color01), 100%, 30%) 23.88%,
-            hsl(var(--tm-color01), 100%, 38%) 35.9%,
-            hsl(var(--tm-color01), 100%, 28%) 60.69%,
-            hsl(var(--tm-color01), 100%, 26%) 87.74%);
+        --gradient-inner-mainhue-pressed: linear-gradient(266deg,
+                        hsl(var(--tm-color01), 100%, 33%) 9.6%,
+                        hsl(var(--tm-color01), 100%, 32%) 13.73%,
+                        hsl(var(--tm-color01), 100%, 30%) 23.88%,
+                        hsl(var(--tm-color01), 100%, 38%) 35.9%,
+                        hsl(var(--tm-color01), 100%, 28%) 60.69%,
+                        hsl(var(--tm-color01), 100%, 26%) 87.74%);
 
-    --gradient-outer-mainhue-hover: linear-gradient(82deg,
-            hsl(var(--tm-color01), 71%, 68%) 11.75%,
-            hsl(var(--tm-color01), 70%, 44%) 25.54%,
-            hsl(var(--tm-color01), 70%, 63%) 46.73%,
-            hsl(var(--tm-color01), 70%, 60%) 65.34%,
-            hsl(var(--tm-color01), 71%, 68%) 82.28%,
-            hsl(var(--tm-color01), 71%, 68%) 90.95%);
+        --gradient-outer-mainhue-hover: linear-gradient(82deg,
+                        hsl(var(--tm-color01), 71%, 68%) 11.75%,
+                        hsl(var(--tm-color01), 70%, 44%) 25.54%,
+                        hsl(var(--tm-color01), 70%, 63%) 46.73%,
+                        hsl(var(--tm-color01), 70%, 60%) 65.34%,
+                        hsl(var(--tm-color01), 71%, 68%) 82.28%,
+                        hsl(var(--tm-color01), 71%, 68%) 90.95%);
 
-    --gradient-outer-mainhue-selected: linear-gradient(82deg,
-            hsl(var(--tm-color01), 100%, 68%) 11.75%,
-            hsl(var(--tm-color01), 100%, 44%) 25.54%,
-            hsl(var(--tm-color01), 100%, 63%) 46.73%,
-            hsl(var(--tm-color01), 100%, 60%) 65.34%,
-            hsl(var(--tm-color02), 100%, 68%) 82.28%,
-            hsl(var(--tm-color01), 100%, 68%) 90.95%);
-    --gradient-inner-mainhue-selected: linear-gradient(250deg,
-            hsl(var(--tm-color01), 100%, 53%) 8.83%,
-            hsl(var(--tm-color01), 100%, 62%) 13.08%,
-            hsl(var(--tm-color01), 100%, 60%) 23.52%,
-            hsl(var(--tm-color01), 100%, 78%) 35.88%,
-            hsl(var(--tm-color01), 100%, 48%) 61.39%,
-            hsl(var(--tm-color01), 100%, 56%) 89.22%);
+        --gradient-outer-mainhue-selected: linear-gradient(82deg,
+                        hsl(var(--tm-color01), 100%, 68%) 11.75%,
+                        hsl(var(--tm-color01), 100%, 44%) 25.54%,
+                        hsl(var(--tm-color01), 100%, 63%) 46.73%,
+                        hsl(var(--tm-color01), 100%, 60%) 65.34%,
+                        hsl(var(--tm-color02), 100%, 68%) 82.28%,
+                        hsl(var(--tm-color01), 100%, 68%) 90.95%);
+        --gradient-inner-mainhue-selected: linear-gradient(250deg,
+                        hsl(var(--tm-color01), 100%, 53%) 8.83%,
+                        hsl(var(--tm-color01), 100%, 62%) 13.08%,
+                        hsl(var(--tm-color01), 100%, 60%) 23.52%,
+                        hsl(var(--tm-color01), 100%, 78%) 35.88%,
+                        hsl(var(--tm-color01), 100%, 48%) 61.39%,
+                        hsl(var(--tm-color01), 100%, 56%) 89.22%);
 
-    /* 🌑 Base Box Shadow tokens */
-    --shadow-inset-orange: -4px -4px 1px -4px hsla(var(--tm-color06), 97%, 71%, 0.55) inset;
-    --shadow-inset-light: 5px 3px 3px -4px var(--shadow-light) inset;
-    --shadow-inset-mid: -14px -7px 1px -15px var(--shadow-mid) inset;
-    --shadow-inset-secondhue: -12px -9px 2px -10px hsla(var(--tm-color02), 100%, 72%, 0.5) inset;
-    --shadow-inset-white: 13px 9px 1px -11px hsla(var(--hue-neutral),
-            0%,
-            100%,
-            0.15) inset;
-    --shadow-inset-rose: 9px 10px 1px -11px var(--shadow-mid) inset;
+        /* 🌑 Base Box Shadow tokens */
+        --shadow-inset-orange: -4px -4px 1px -4px hsla(var(--tm-color06), 97%, 71%, 0.55) inset;
+        --shadow-inset-light: 5px 3px 3px -4px var(--shadow-light) inset;
+        --shadow-inset-mid: -14px -7px 1px -15px var(--shadow-mid) inset;
+        --shadow-inset-secondhue: -12px -9px 2px -10px hsla(var(--tm-color02), 100%, 72%, 0.5) inset;
+        --shadow-inset-white: 13px 9px 1px -11px hsla(var(--hue-neutral),
+                        0%,
+                        100%,
+                        0.15) inset;
+        --shadow-inset-rose: 9px 10px 1px -11px var(--shadow-mid) inset;
 
-    /* Compound shadow for default state */
-    --shadow-button-inner: var(--shadow-inset-orange), var(--shadow-inset-light),
-        var(--shadow-inset-mid), var(--shadow-inset-secondhue),
-        var(--shadow-inset-white), var(--shadow-inset-rose);
+        /* Compound shadow for default state */
+        --shadow-button-inner: var(--shadow-inset-orange), var(--shadow-inset-light),
+                var(--shadow-inset-mid), var(--shadow-inset-secondhue),
+                var(--shadow-inset-white), var(--shadow-inset-rose);
 }
 
 /*---------------------------- end of color vars ----------------------------*/
 
 .button-cta-outer.green .button-cta-inner {
-    transition: all 200ms ease-in-out;
-    color: var(--black);
-    background: var(--gradient-inner-mainhue);
-    box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 97%, 71%, 0.55) inset,
-        5px 3px 3px -4px var(--shadow-light) inset,
-        -14px -7px 1px -15px var(--shadow-mid) inset,
-        -12px -9px 2px -10px hsla(var(--tm-color02), 100%, 72%, 0.5) inset,
-        13px 9px 1px -11px hsla(var(--hue-neutral), 0%, 100%, 0.15) inset,
-        9px 10px 1px -11px var(--shadow-mid) inset;
+        transition: all 200ms ease-in-out;
+        color: var(--black);
+        background: var(--gradient-inner-mainhue);
+        box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 97%, 71%, 0.55) inset,
+                5px 3px 3px -4px var(--shadow-light) inset,
+                -14px -7px 1px -15px var(--shadow-mid) inset,
+                -12px -9px 2px -10px hsla(var(--tm-color02), 100%, 72%, 0.5) inset,
+                13px 9px 1px -11px hsla(var(--hue-neutral), 0%, 100%, 0.15) inset,
+                9px 10px 1px -11px var(--shadow-mid) inset;
 }
 
 .button-cta-outer.green .button-cta-inner .button-text {
-    transition: all 200ms ease-in-out;
-    color: var(--black);
-    text-shadow: 1px 1px 0 hsla(var(--hue-neutral), 0%, 0%, 0.2),
-        1px 3px 3px hsla(var(--hue-neutral), 0%, 0%, 0.45);
+        transition: all 200ms ease-in-out;
+        color: var(--black);
+        text-shadow: 1px 1px 0 hsla(var(--hue-neutral), 0%, 0%, 0.2),
+                1px 3px 3px hsla(var(--hue-neutral), 0%, 0%, 0.45);
 }
 
 /**---- Hover state ----**/
 .button-cta-outer.green.hover .button-cta-inner {
-    transition: all 200ms ease-in-out;
+        transition: all 200ms ease-in-out;
 
-    background: linear-gradient(250deg,
-            hsl(var(--tm-color01), 100%, 43%) 8.83%,
-            hsl(var(--tm-color01), 100%, 42%) 13.08%,
-            hsl(var(--tm-color01), 100%, 40%) 23.52%,
-            hsl(var(--tm-color01), 100%, 58%) 35.88%,
-            hsl(var(--tm-color01), 100%, 38%) 61.39%,
-            hsl(var(--tm-color01), 100%, 35%) 89.22%);
-    box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 100%, 70%, 0.55) inset,
-        -14px -7px 1px -15px hsl(var(--tm-color06), 0%, 100%) inset,
-        -12px -9px 2px -10px hsla(var(--tm-color06), 100%, 73%, 0.5) inset,
-        9px 9px 1px -11px hsla(var(--tm-color06), 0%, 100%, 0.56) inset,
-        8px 8px 3px -6px hsla(var(--tm-color06), 97%, 75%, 0.7) inset;
+        background: linear-gradient(250deg,
+                        hsl(var(--tm-color01), 100%, 43%) 8.83%,
+                        hsl(var(--tm-color01), 100%, 42%) 13.08%,
+                        hsl(var(--tm-color01), 100%, 40%) 23.52%,
+                        hsl(var(--tm-color01), 100%, 58%) 35.88%,
+                        hsl(var(--tm-color01), 100%, 38%) 61.39%,
+                        hsl(var(--tm-color01), 100%, 35%) 89.22%);
+        box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 100%, 70%, 0.55) inset,
+                -14px -7px 1px -15px hsl(var(--tm-color06), 0%, 100%) inset,
+                -12px -9px 2px -10px hsla(var(--tm-color06), 100%, 73%, 0.5) inset,
+                9px 9px 1px -11px hsla(var(--tm-color06), 0%, 100%, 0.56) inset,
+                8px 8px 3px -6px hsla(var(--tm-color06), 97%, 75%, 0.7) inset;
 }
 
 /**---- Pressed ----**/
 .button-cta-outer.green.pressed .button-cta-inner {
-    background: var(--gradient-inner-mainhue-pressed);
-    box-shadow: 0 3px 0 0 hsla(var(--hue-neutral), 0%, 0%, 0.15) inset,
-        -4px -4px 1px -4px hsla(var(--tm-color06), 100%, 10%, 0.549) inset,
-        5px 3px 3px -4px hsla(var(--hue-neutral), 0%, 0%, 0.1) inset,
-        -14px -7px 1px -15px hsl(var(--hue-neutral), 0%, 0%) inset,
-        -12px -9px 2px -10px hsla(var(--hue-neutral), 100%, 12%, 0.5) inset,
-        13px 9px 1px -11px hsla(var(--hue-neutral), 0%, 0%, 0.15) inset,
-        9px 10px 1px -11px hsl(var(--tm-color05), 98%, 25%) inset;
+        background: var(--gradient-inner-mainhue-pressed);
+        box-shadow: 0 3px 0 0 hsla(var(--hue-neutral), 0%, 0%, 0.15) inset,
+                -4px -4px 1px -4px hsla(var(--tm-color06), 100%, 10%, 0.549) inset,
+                5px 3px 3px -4px hsla(var(--hue-neutral), 0%, 0%, 0.1) inset,
+                -14px -7px 1px -15px hsl(var(--hue-neutral), 0%, 0%) inset,
+                -12px -9px 2px -10px hsla(var(--hue-neutral), 100%, 12%, 0.5) inset,
+                13px 9px 1px -11px hsla(var(--hue-neutral), 0%, 0%, 0.15) inset,
+                9px 10px 1px -11px hsl(var(--tm-color05), 98%, 25%) inset;
 }
 
 .button-cta-outer.green.pressed .button-cta-inner .button-text {
-    opacity: 0.4;
-    text-shadow: -2px 1px 1px hsla(var(--hue-neutral), 0%, 0%, 0.1),
-        1px 4px 3px hsla(var(--hue-neutral), 0%, 0%, 0.45);
+        opacity: 0.4;
+        text-shadow: -2px 1px 1px hsla(var(--hue-neutral), 0%, 0%, 0.1),
+                1px 4px 3px hsla(var(--hue-neutral), 0%, 0%, 0.45);
 }
 
 /*--------- Pink button Styling ---------*/
 
 .red {
-    /* 🎨 Hue tokens */
-    --tm-color05: 8;
-    /*48*/
-    --tm-color04: 2;
-    /*37*/
-    --tm-color01: 0;
-    /*35*/
-    --tm-color03: 360;
-    /*34*/
-    --tm-color02: 359;
-    /*33*/
-    --tm-color06: 3;
-    /*38*/
-    --hue-neutral: 0;
-    /*0*/
+        /* 🎨 Hue tokens */
+        --tm-color05: 8;
+        /*48*/
+        --tm-color04: 2;
+        /*37*/
+        --tm-color01: 0;
+        /*35*/
+        --tm-color03: 360;
+        /*34*/
+        --tm-color02: 359;
+        /*33*/
+        --tm-color06: 3;
+        /*38*/
+        --hue-neutral: 0;
+        /*0*/
 
-    /* 🎨 Color tokens */
-    --color-mainhue-1: hsl(var(--tm-color01), 100%, 59%);
-    --color-secondhue-1: hsl(var(--tm-color01), 100%, 34%);
-    --color-mainhue-2: hsl(var(--tm-color04), 100%, 52%);
-    --color-secondhue-2: hsl(var(--tm-color04), 100%, 50%);
-    --color-mainhue-3: hsl(var(--tm-color01), 100%, 59%);
-    --color-mainhue-4: hsl(var(--tm-color01), 100%, 59%);
+        /* 🎨 Color tokens */
+        --color-mainhue-1: hsl(var(--tm-color01), 100%, 59%);
+        --color-secondhue-1: hsl(var(--tm-color01), 100%, 34%);
+        --color-mainhue-2: hsl(var(--tm-color04), 100%, 52%);
+        --color-secondhue-2: hsl(var(--tm-color04), 100%, 50%);
+        --color-mainhue-3: hsl(var(--tm-color01), 100%, 59%);
+        --color-mainhue-4: hsl(var(--tm-color01), 100%, 59%);
 
-    --color-secondhue-3: hsl(var(--tm-color02), 100%, 43%);
-    --color-secondhue-4: hsl(var(--tm-color03), 100%, 42%);
-    --color-secondhue-5: hsl(var(--tm-color02), 100%, 40%);
-    --color-mainhue-5: hsl(var(--tm-color04), 100%, 58%);
-    --color-secondhue-6: hsl(var(--tm-color02), 100%, 38%);
-    --color-secondhue-7: hsl(var(--tm-color01), 100%, 36%);
+        --color-secondhue-3: hsl(var(--tm-color02), 100%, 43%);
+        --color-secondhue-4: hsl(var(--tm-color03), 100%, 42%);
+        --color-secondhue-5: hsl(var(--tm-color02), 100%, 40%);
+        --color-mainhue-5: hsl(var(--tm-color04), 100%, 58%);
+        --color-secondhue-6: hsl(var(--tm-color02), 100%, 38%);
+        --color-secondhue-7: hsl(var(--tm-color01), 100%, 36%);
 
-    --shadow-light: hsl(var(--tm-color06), 97%, 82%);
-    --shadow-mid: hsl(var(--tm-color05), 99%, 65%);
+        --shadow-light: hsl(var(--tm-color06), 97%, 82%);
+        --shadow-mid: hsl(var(--tm-color05), 99%, 65%);
 
-    /* 🌈 Gradient tokens */
-    --gradient-outer-mainhue: linear-gradient(82deg,
-            var(--color-mainhue-1) 11.75%,
-            var(--color-secondhue-1) 25.54%,
-            var(--color-mainhue-2) 46.73%,
-            var(--color-secondhue-2) 65.34%,
-            var(--color-mainhue-3) 82.28%,
-            var(--color-mainhue-4) 90.95%);
+        /* 🌈 Gradient tokens */
+        --gradient-outer-mainhue: linear-gradient(82deg,
+                        var(--color-mainhue-1) 11.75%,
+                        var(--color-secondhue-1) 25.54%,
+                        var(--color-mainhue-2) 46.73%,
+                        var(--color-secondhue-2) 65.34%,
+                        var(--color-mainhue-3) 82.28%,
+                        var(--color-mainhue-4) 90.95%);
 
-    --gradient-inner-mainhue: linear-gradient(250deg,
-            var(--color-secondhue-3) 8.83%,
-            var(--color-secondhue-4) 13.08%,
-            var(--color-secondhue-5) 23.52%,
-            var(--color-mainhue-5) 35.88%,
-            var(--color-secondhue-6) 61.39%,
-            var(--color-secondhue-7) 89.22%);
+        --gradient-inner-mainhue: linear-gradient(250deg,
+                        var(--color-secondhue-3) 8.83%,
+                        var(--color-secondhue-4) 13.08%,
+                        var(--color-secondhue-5) 23.52%,
+                        var(--color-mainhue-5) 35.88%,
+                        var(--color-secondhue-6) 61.39%,
+                        var(--color-secondhue-7) 89.22%);
 
-    --gradient-outer-mainhue-pressed: linear-gradient(82deg,
-            hsla(var(--tm-color01), 100%, 20%, 0.1) 14.51%,
-            hsla(var(--tm-color01), 100%, 28%, 0.1) 23.18%,
-            hsla(var(--tm-color01), 100%, 30%, 0.1) 40.12%,
-            hsla(var(--tm-color01), 100%, 23%, 0.1) 58.73%,
-            hsla(var(--tm-color01), 100%, 34%, 0.1) 79.91%,
-            hsla(var(--tm-color01), 100%, 38%, 0.1) 93.7%);
+        --gradient-outer-mainhue-pressed: linear-gradient(82deg,
+                        hsla(var(--tm-color01), 100%, 20%, 0.1) 14.51%,
+                        hsla(var(--tm-color01), 100%, 28%, 0.1) 23.18%,
+                        hsla(var(--tm-color01), 100%, 30%, 0.1) 40.12%,
+                        hsla(var(--tm-color01), 100%, 23%, 0.1) 58.73%,
+                        hsla(var(--tm-color01), 100%, 34%, 0.1) 79.91%,
+                        hsla(var(--tm-color01), 100%, 38%, 0.1) 93.7%);
 
-    --gradient-inner-mainhue-pressed: linear-gradient(266deg,
-            hsl(var(--tm-color01), 100%, 33%) 9.6%,
-            hsl(var(--tm-color01), 100%, 32%) 13.73%,
-            hsl(var(--tm-color01), 100%, 30%) 23.88%,
-            hsl(var(--tm-color01), 100%, 38%) 35.9%,
-            hsl(var(--tm-color01), 100%, 28%) 60.69%,
-            hsl(var(--tm-color01), 100%, 26%) 87.74%);
+        --gradient-inner-mainhue-pressed: linear-gradient(266deg,
+                        hsl(var(--tm-color01), 100%, 33%) 9.6%,
+                        hsl(var(--tm-color01), 100%, 32%) 13.73%,
+                        hsl(var(--tm-color01), 100%, 30%) 23.88%,
+                        hsl(var(--tm-color01), 100%, 38%) 35.9%,
+                        hsl(var(--tm-color01), 100%, 28%) 60.69%,
+                        hsl(var(--tm-color01), 100%, 26%) 87.74%);
 
-    --gradient-outer-mainhue-hover: linear-gradient(82deg,
-            hsl(var(--tm-color01), 71%, 68%) 11.75%,
-            hsl(var(--tm-color01), 70%, 44%) 25.54%,
-            hsl(var(--tm-color01), 70%, 63%) 46.73%,
-            hsl(var(--tm-color01), 70%, 60%) 65.34%,
-            hsl(var(--tm-color01), 71%, 68%) 82.28%,
-            hsl(var(--tm-color01), 71%, 68%) 90.95%);
+        --gradient-outer-mainhue-hover: linear-gradient(82deg,
+                        hsl(var(--tm-color01), 71%, 68%) 11.75%,
+                        hsl(var(--tm-color01), 70%, 44%) 25.54%,
+                        hsl(var(--tm-color01), 70%, 63%) 46.73%,
+                        hsl(var(--tm-color01), 70%, 60%) 65.34%,
+                        hsl(var(--tm-color01), 71%, 68%) 82.28%,
+                        hsl(var(--tm-color01), 71%, 68%) 90.95%);
 
-    --gradient-outer-mainhue-selected: linear-gradient(82deg,
-            hsl(var(--tm-color01), 100%, 68%) 11.75%,
-            hsl(var(--tm-color01), 100%, 44%) 25.54%,
-            hsl(var(--tm-color01), 100%, 63%) 46.73%,
-            hsl(var(--tm-color01), 100%, 60%) 65.34%,
-            hsl(var(--tm-color02), 100%, 68%) 82.28%,
-            hsl(var(--tm-color01), 100%, 68%) 90.95%);
-    --gradient-inner-mainhue-selected: linear-gradient(250deg,
-            hsl(var(--tm-color01), 100%, 53%) 8.83%,
-            hsl(var(--tm-color01), 100%, 62%) 13.08%,
-            hsl(var(--tm-color01), 100%, 60%) 23.52%,
-            hsl(var(--tm-color01), 100%, 78%) 35.88%,
-            hsl(var(--tm-color01), 100%, 48%) 61.39%,
-            hsl(var(--tm-color01), 100%, 56%) 89.22%);
+        --gradient-outer-mainhue-selected: linear-gradient(82deg,
+                        hsl(var(--tm-color01), 100%, 68%) 11.75%,
+                        hsl(var(--tm-color01), 100%, 44%) 25.54%,
+                        hsl(var(--tm-color01), 100%, 63%) 46.73%,
+                        hsl(var(--tm-color01), 100%, 60%) 65.34%,
+                        hsl(var(--tm-color02), 100%, 68%) 82.28%,
+                        hsl(var(--tm-color01), 100%, 68%) 90.95%);
+        --gradient-inner-mainhue-selected: linear-gradient(250deg,
+                        hsl(var(--tm-color01), 100%, 53%) 8.83%,
+                        hsl(var(--tm-color01), 100%, 62%) 13.08%,
+                        hsl(var(--tm-color01), 100%, 60%) 23.52%,
+                        hsl(var(--tm-color01), 100%, 78%) 35.88%,
+                        hsl(var(--tm-color01), 100%, 48%) 61.39%,
+                        hsl(var(--tm-color01), 100%, 56%) 89.22%);
 
-    /* 🌑 Base Box Shadow tokens */
-    --shadow-inset-orange: -4px -4px 1px -4px hsla(var(--tm-color06), 97%, 71%, 0.55) inset;
-    --shadow-inset-light: 5px 3px 3px -4px var(--shadow-light) inset;
-    --shadow-inset-mid: -14px -7px 1px -15px var(--shadow-mid) inset;
-    --shadow-inset-secondhue: -12px -9px 2px -10px hsla(var(--tm-color02), 100%, 72%, 0.5) inset;
-    --shadow-inset-white: 13px 9px 1px -11px hsla(var(--hue-neutral),
-            0%,
-            100%,
-            0.15) inset;
-    --shadow-inset-rose: 9px 10px 1px -11px var(--shadow-mid) inset;
+        /* 🌑 Base Box Shadow tokens */
+        --shadow-inset-orange: -4px -4px 1px -4px hsla(var(--tm-color06), 97%, 71%, 0.55) inset;
+        --shadow-inset-light: 5px 3px 3px -4px var(--shadow-light) inset;
+        --shadow-inset-mid: -14px -7px 1px -15px var(--shadow-mid) inset;
+        --shadow-inset-secondhue: -12px -9px 2px -10px hsla(var(--tm-color02), 100%, 72%, 0.5) inset;
+        --shadow-inset-white: 13px 9px 1px -11px hsla(var(--hue-neutral),
+                        0%,
+                        100%,
+                        0.15) inset;
+        --shadow-inset-rose: 9px 10px 1px -11px var(--shadow-mid) inset;
 
-    /* Compound shadow for default state */
-    --shadow-button-inner: var(--shadow-inset-orange), var(--shadow-inset-light),
-        var(--shadow-inset-mid), var(--shadow-inset-secondhue),
-        var(--shadow-inset-white), var(--shadow-inset-rose);
+        /* Compound shadow for default state */
+        --shadow-button-inner: var(--shadow-inset-orange), var(--shadow-inset-light),
+                var(--shadow-inset-mid), var(--shadow-inset-secondhue),
+                var(--shadow-inset-white), var(--shadow-inset-rose);
 }
 
 /*---------------------------- end of color vars ----------------------------*/
 
 /**---- Hover state ----**/
 .button-cta-outer.red.hover .button-cta-inner {
-    transition: all 200ms ease-in-out;
+        transition: all 200ms ease-in-out;
 
-    background: linear-gradient(250deg,
-            hsl(var(--tm-color01), 100%, 43%) 8.83%,
-            hsl(var(--tm-color01), 100%, 42%) 13.08%,
-            hsl(var(--tm-color01), 100%, 40%) 23.52%,
-            hsl(var(--tm-color01), 100%, 58%) 35.88%,
-            hsl(var(--tm-color01), 100%, 38%) 61.39%,
-            hsl(var(--tm-color01), 100%, 35%) 89.22%);
-    box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 100%, 70%, 0.55) inset,
-        -14px -7px 1px -15px hsl(var(--tm-color06), 0%, 100%) inset,
-        -12px -9px 2px -10px hsla(var(--tm-color06), 100%, 73%, 0.5) inset,
-        9px 9px 1px -11px hsla(var(--tm-color06), 0%, 100%, 0.56) inset,
-        8px 8px 3px -6px hsla(var(--tm-color06), 97%, 75%, 0.7) inset;
+        background: linear-gradient(250deg,
+                        hsl(var(--tm-color01), 100%, 43%) 8.83%,
+                        hsl(var(--tm-color01), 100%, 42%) 13.08%,
+                        hsl(var(--tm-color01), 100%, 40%) 23.52%,
+                        hsl(var(--tm-color01), 100%, 58%) 35.88%,
+                        hsl(var(--tm-color01), 100%, 38%) 61.39%,
+                        hsl(var(--tm-color01), 100%, 35%) 89.22%);
+        box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 100%, 70%, 0.55) inset,
+                -14px -7px 1px -15px hsl(var(--tm-color06), 0%, 100%) inset,
+                -12px -9px 2px -10px hsla(var(--tm-color06), 100%, 73%, 0.5) inset,
+                9px 9px 1px -11px hsla(var(--tm-color06), 0%, 100%, 0.56) inset,
+                8px 8px 3px -6px hsla(var(--tm-color06), 97%, 75%, 0.7) inset;
 }
 
 /*--------- Pink button Styling ---------*/
 
 .yellow {
-    /* 🎨 Hue tokens */
-    --tm-color05: 48;
-    --tm-color04: 37;
-    --tm-color01: 35;
-    --tm-color03: 34;
-    --tm-color02: 33;
-    --tm-color06: 38;
-    --hue-neutral: 0;
+        /* 🎨 Hue tokens */
+        --tm-color05: 48;
+        --tm-color04: 37;
+        --tm-color01: 35;
+        --tm-color03: 34;
+        --tm-color02: 33;
+        --tm-color06: 38;
+        --hue-neutral: 0;
 
 
-    /* 🎨 Color tokens */
-    --color-mainhue-1: hsl(var(--tm-color01), 100%, 59%);
-    --color-secondhue-1: hsl(var(--tm-color01), 100%, 34%);
-    --color-mainhue-2: hsl(var(--tm-color04), 100%, 52%);
-    --color-secondhue-2: hsl(var(--tm-color04), 100%, 50%);
-    --color-mainhue-3: hsl(var(--tm-color01), 100%, 59%);
-    --color-mainhue-4: hsl(var(--tm-color01), 100%, 59%);
+        /* 🎨 Color tokens */
+        --color-mainhue-1: hsl(var(--tm-color01), 100%, 59%);
+        --color-secondhue-1: hsl(var(--tm-color01), 100%, 34%);
+        --color-mainhue-2: hsl(var(--tm-color04), 100%, 52%);
+        --color-secondhue-2: hsl(var(--tm-color04), 100%, 50%);
+        --color-mainhue-3: hsl(var(--tm-color01), 100%, 59%);
+        --color-mainhue-4: hsl(var(--tm-color01), 100%, 59%);
 
-    --color-secondhue-3: hsl(var(--tm-color02), 100%, 43%);
-    --color-secondhue-4: hsl(var(--tm-color03), 100%, 42%);
-    --color-secondhue-5: hsl(var(--tm-color02), 100%, 40%);
-    --color-mainhue-5: hsl(var(--tm-color04), 100%, 58%);
-    --color-secondhue-6: hsl(var(--tm-color02), 100%, 38%);
-    --color-secondhue-7: hsl(var(--tm-color01), 100%, 36%);
+        --color-secondhue-3: hsl(var(--tm-color02), 100%, 43%);
+        --color-secondhue-4: hsl(var(--tm-color03), 100%, 42%);
+        --color-secondhue-5: hsl(var(--tm-color02), 100%, 40%);
+        --color-mainhue-5: hsl(var(--tm-color04), 100%, 58%);
+        --color-secondhue-6: hsl(var(--tm-color02), 100%, 38%);
+        --color-secondhue-7: hsl(var(--tm-color01), 100%, 36%);
 
-    --shadow-light: hsl(var(--tm-color06), 97%, 82%);
-    --shadow-mid: hsl(var(--tm-color05), 99%, 65%);
+        --shadow-light: hsl(var(--tm-color06), 97%, 82%);
+        --shadow-mid: hsl(var(--tm-color05), 99%, 65%);
 
-    /* 🌈 Gradient tokens */
-    --gradient-outer-mainhue: linear-gradient(82deg,
-            var(--color-mainhue-1) 11.75%,
-            var(--color-secondhue-1) 25.54%,
-            var(--color-mainhue-2) 46.73%,
-            var(--color-secondhue-2) 65.34%,
-            var(--color-mainhue-3) 82.28%,
-            var(--color-mainhue-4) 90.95%);
+        /* 🌈 Gradient tokens */
+        --gradient-outer-mainhue: linear-gradient(82deg,
+                        var(--color-mainhue-1) 11.75%,
+                        var(--color-secondhue-1) 25.54%,
+                        var(--color-mainhue-2) 46.73%,
+                        var(--color-secondhue-2) 65.34%,
+                        var(--color-mainhue-3) 82.28%,
+                        var(--color-mainhue-4) 90.95%);
 
-    --gradient-inner-mainhue: linear-gradient(250deg,
-            var(--color-secondhue-3) 8.83%,
-            var(--color-secondhue-4) 13.08%,
-            var(--color-secondhue-5) 23.52%,
-            var(--color-mainhue-5) 35.88%,
-            var(--color-secondhue-6) 61.39%,
-            var(--color-secondhue-7) 89.22%);
+        --gradient-inner-mainhue: linear-gradient(250deg,
+                        var(--color-secondhue-3) 8.83%,
+                        var(--color-secondhue-4) 13.08%,
+                        var(--color-secondhue-5) 23.52%,
+                        var(--color-mainhue-5) 35.88%,
+                        var(--color-secondhue-6) 61.39%,
+                        var(--color-secondhue-7) 89.22%);
 
 
 
-    --gradient-outer-mainhue-pressed: linear-gradient(82deg,
-            hsla(var(--tm-color01), 100%, 20%, 0.1) 14.51%,
-            hsla(var(--tm-color01), 100%, 28%, 0.1) 23.18%,
-            hsla(var(--tm-color01), 100%, 30%, 0.1) 40.12%,
-            hsla(var(--tm-color01), 100%, 23%, 0.1) 58.73%,
-            hsla(var(--tm-color01), 100%, 34%, 0.1) 79.91%,
-            hsla(var(--tm-color01), 100%, 38%, 0.1) 93.7%);
+        --gradient-outer-mainhue-pressed: linear-gradient(82deg,
+                        hsla(var(--tm-color01), 100%, 20%, 0.1) 14.51%,
+                        hsla(var(--tm-color01), 100%, 28%, 0.1) 23.18%,
+                        hsla(var(--tm-color01), 100%, 30%, 0.1) 40.12%,
+                        hsla(var(--tm-color01), 100%, 23%, 0.1) 58.73%,
+                        hsla(var(--tm-color01), 100%, 34%, 0.1) 79.91%,
+                        hsla(var(--tm-color01), 100%, 38%, 0.1) 93.7%);
 
-    --gradient-inner-mainhue-pressed: linear-gradient(266deg,
-            hsl(var(--tm-color01), 100%, 33%) 9.6%,
-            hsl(var(--tm-color01), 100%, 32%) 13.73%,
-            hsl(var(--tm-color01), 100%, 30%) 23.88%,
-            hsl(var(--tm-color01), 100%, 38%) 35.9%,
-            hsl(var(--tm-color01), 100%, 28%) 60.69%,
-            hsl(var(--tm-color01), 100%, 26%) 87.74%);
+        --gradient-inner-mainhue-pressed: linear-gradient(266deg,
+                        hsl(var(--tm-color01), 100%, 33%) 9.6%,
+                        hsl(var(--tm-color01), 100%, 32%) 13.73%,
+                        hsl(var(--tm-color01), 100%, 30%) 23.88%,
+                        hsl(var(--tm-color01), 100%, 38%) 35.9%,
+                        hsl(var(--tm-color01), 100%, 28%) 60.69%,
+                        hsl(var(--tm-color01), 100%, 26%) 87.74%);
 
-    --gradient-outer-mainhue-hover: linear-gradient(82deg,
-            hsl(var(--tm-color01), 71%, 68%) 11.75%,
-            hsl(var(--tm-color01), 70%, 44%) 25.54%,
-            hsl(var(--tm-color01), 70%, 63%) 46.73%,
-            hsl(var(--tm-color01), 70%, 60%) 65.34%,
-            hsl(var(--tm-color01), 71%, 68%) 82.28%,
-            hsl(var(--tm-color01), 71%, 68%) 90.95%);
+        --gradient-outer-mainhue-hover: linear-gradient(82deg,
+                        hsl(var(--tm-color01), 71%, 68%) 11.75%,
+                        hsl(var(--tm-color01), 70%, 44%) 25.54%,
+                        hsl(var(--tm-color01), 70%, 63%) 46.73%,
+                        hsl(var(--tm-color01), 70%, 60%) 65.34%,
+                        hsl(var(--tm-color01), 71%, 68%) 82.28%,
+                        hsl(var(--tm-color01), 71%, 68%) 90.95%);
 
-    --gradient-outer-mainhue-selected: linear-gradient(82deg,
-            hsl(var(--tm-color01), 100%, 68%) 11.75%,
-            hsl(var(--tm-color01), 100%, 44%) 25.54%,
-            hsl(var(--tm-color01), 100%, 63%) 46.73%,
-            hsl(var(--tm-color01), 100%, 60%) 65.34%,
-            hsl(var(--tm-color02), 100%, 68%) 82.28%,
-            hsl(var(--tm-color01), 100%, 68%) 90.95%);
-    --gradient-inner-mainhue-selected: linear-gradient(250deg,
-            hsl(var(--tm-color01), 100%, 53%) 8.83%,
-            hsl(var(--tm-color01), 100%, 62%) 13.08%,
-            hsl(var(--tm-color01), 100%, 60%) 23.52%,
-            hsl(var(--tm-color01), 100%, 78%) 35.88%,
-            hsl(var(--tm-color01), 100%, 48%) 61.39%,
-            hsl(var(--tm-color01), 100%, 56%) 89.22%);
+        --gradient-outer-mainhue-selected: linear-gradient(82deg,
+                        hsl(var(--tm-color01), 100%, 68%) 11.75%,
+                        hsl(var(--tm-color01), 100%, 44%) 25.54%,
+                        hsl(var(--tm-color01), 100%, 63%) 46.73%,
+                        hsl(var(--tm-color01), 100%, 60%) 65.34%,
+                        hsl(var(--tm-color02), 100%, 68%) 82.28%,
+                        hsl(var(--tm-color01), 100%, 68%) 90.95%);
+        --gradient-inner-mainhue-selected: linear-gradient(250deg,
+                        hsl(var(--tm-color01), 100%, 53%) 8.83%,
+                        hsl(var(--tm-color01), 100%, 62%) 13.08%,
+                        hsl(var(--tm-color01), 100%, 60%) 23.52%,
+                        hsl(var(--tm-color01), 100%, 78%) 35.88%,
+                        hsl(var(--tm-color01), 100%, 48%) 61.39%,
+                        hsl(var(--tm-color01), 100%, 56%) 89.22%);
 
-    /* 🌑 Base Box Shadow tokens */
-    --shadow-inset-orange: -4px -4px 1px -4px hsla(var(--tm-color06), 97%, 71%, 0.55) inset;
-    --shadow-inset-light: 5px 3px 3px -4px var(--shadow-light) inset;
-    --shadow-inset-mid: -14px -7px 1px -15px var(--shadow-mid) inset;
-    --shadow-inset-secondhue: -12px -9px 2px -10px hsla(var(--tm-color02), 100%, 72%, 0.5) inset;
-    --shadow-inset-white: 13px 9px 1px -11px hsla(var(--hue-neutral), 0%, 100%, 0.15) inset;
-    --shadow-inset-rose: 9px 10px 1px -11px var(--shadow-mid) inset;
+        /* 🌑 Base Box Shadow tokens */
+        --shadow-inset-orange: -4px -4px 1px -4px hsla(var(--tm-color06), 97%, 71%, 0.55) inset;
+        --shadow-inset-light: 5px 3px 3px -4px var(--shadow-light) inset;
+        --shadow-inset-mid: -14px -7px 1px -15px var(--shadow-mid) inset;
+        --shadow-inset-secondhue: -12px -9px 2px -10px hsla(var(--tm-color02), 100%, 72%, 0.5) inset;
+        --shadow-inset-white: 13px 9px 1px -11px hsla(var(--hue-neutral), 0%, 100%, 0.15) inset;
+        --shadow-inset-rose: 9px 10px 1px -11px var(--shadow-mid) inset;
 
-    /* Compound shadow for default state */
-    --shadow-button-inner: var(--shadow-inset-orange), var(--shadow-inset-light),
-        var(--shadow-inset-mid), var(--shadow-inset-secondhue), var(--shadow-inset-white),
-        var(--shadow-inset-rose);
+        /* Compound shadow for default state */
+        --shadow-button-inner: var(--shadow-inset-orange), var(--shadow-inset-light),
+                var(--shadow-inset-mid), var(--shadow-inset-secondhue), var(--shadow-inset-white),
+                var(--shadow-inset-rose);
 }
 
 /*---------------------------- end of color vars ----------------------------*/
 .button-cta-outer.yellow .button-cta-inner {
-    transition: all 200ms ease-in-out;
-    color: var(--white);
-    background: var(--gradient-inner-mainhue);
-    box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 97%, 71%, 0.55) inset,
-        5px 3px 3px -4px var(--shadow-light) inset,
-        -14px -7px 1px -15px var(--shadow-mid) inset,
-        -12px -9px 2px -10px hsla(var(--tm-color02), 100%, 72%, 0.5) inset,
-        13px 9px 1px -11px hsla(var(--hue-neutral), 0%, 100%, 0.15) inset,
-        9px 10px 1px -11px var(--shadow-mid) inset;
+        transition: all 200ms ease-in-out;
+        color: var(--white);
+        background: var(--gradient-inner-mainhue);
+        box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 97%, 71%, 0.55) inset,
+                5px 3px 3px -4px var(--shadow-light) inset,
+                -14px -7px 1px -15px var(--shadow-mid) inset,
+                -12px -9px 2px -10px hsla(var(--tm-color02), 100%, 72%, 0.5) inset,
+                13px 9px 1px -11px hsla(var(--hue-neutral), 0%, 100%, 0.15) inset,
+                9px 10px 1px -11px var(--shadow-mid) inset;
 }
 
 .button-cta-outer.yellow .button-cta-inner .button-text {
-    transition: all 200ms ease-in-out;
-    color: var(--white);
-    text-shadow: 1px 1px 0 hsla(var(--hue-neutral), 0%, 0%, 0.2),
-        1px 3px 3px hsla(var(--hue-neutral), 0%, 0%, 0.45);
+        transition: all 200ms ease-in-out;
+        color: var(--white);
+        text-shadow: 1px 1px 0 hsla(var(--hue-neutral), 0%, 0%, 0.2),
+                1px 3px 3px hsla(var(--hue-neutral), 0%, 0%, 0.45);
 }
 
 /**---- Hover state ----**/
 
 .button-cta-outer.yellow.hover .button-cta-inner {
-    transition: all 200ms ease-in-out;
+        transition: all 200ms ease-in-out;
 
-    background: linear-gradient(250deg,
-            hsl(var(--tm-color01), 100%, 43%) 8.83%,
-            hsl(var(--tm-color01), 100%, 42%) 13.08%,
-            hsl(var(--tm-color01), 100%, 40%) 23.52%,
-            hsl(var(--tm-color01), 100%, 58%) 35.88%,
-            hsl(var(--tm-color01), 100%, 38%) 61.39%,
-            hsl(var(--tm-color01), 100%, 35%) 89.22%);
-    box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 100%, 70%, 0.55) inset,
-        -14px -7px 1px -15px hsl(var(--tm-color06), 0%, 100%) inset,
-        -12px -9px 2px -10px hsla(var(--tm-color06), 100%, 73%, 0.5) inset,
-        9px 9px 1px -11px hsla(var(--tm-color06), 0%, 100%, 0.56) inset,
-        8px 8px 3px -6px hsla(var(--tm-color06), 97%, 75%, 0.7) inset;
+        background: linear-gradient(250deg,
+                        hsl(var(--tm-color01), 100%, 43%) 8.83%,
+                        hsl(var(--tm-color01), 100%, 42%) 13.08%,
+                        hsl(var(--tm-color01), 100%, 40%) 23.52%,
+                        hsl(var(--tm-color01), 100%, 58%) 35.88%,
+                        hsl(var(--tm-color01), 100%, 38%) 61.39%,
+                        hsl(var(--tm-color01), 100%, 35%) 89.22%);
+        box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 100%, 70%, 0.55) inset,
+                -14px -7px 1px -15px hsl(var(--tm-color06), 0%, 100%) inset,
+                -12px -9px 2px -10px hsla(var(--tm-color06), 100%, 73%, 0.5) inset,
+                9px 9px 1px -11px hsla(var(--tm-color06), 0%, 100%, 0.56) inset,
+                8px 8px 3px -6px hsla(var(--tm-color06), 97%, 75%, 0.7) inset;
 }
 
 /**---- Pressed ----**/
 .button-cta-outer.yellow.pressed .button-cta-inner {
-    background: var(--gradient-inner-mainhue-pressed);
-    box-shadow: 0 3px 0 0 hsla(var(--hue-neutral), 0%, 0%, 0.15) inset,
-        -4px -4px 1px -4px hsla(var(--tm-color06), 100%, 10%, 0.549) inset,
-        5px 3px 3px -4px hsla(var(--hue-neutral), 0%, 0%, 0.1) inset,
-        -14px -7px 1px -15px hsl(var(--hue-neutral), 0%, 0%) inset,
-        -12px -9px 2px -10px hsla(var(--hue-neutral), 100%, 12%, 0.5) inset,
-        13px 9px 1px -11px hsla(var(--hue-neutral), 0%, 0%, 0.15) inset,
-        9px 10px 1px -11px hsl(var(--tm-color05), 98%, 25%) inset;
+        background: var(--gradient-inner-mainhue-pressed);
+        box-shadow: 0 3px 0 0 hsla(var(--hue-neutral), 0%, 0%, 0.15) inset,
+                -4px -4px 1px -4px hsla(var(--tm-color06), 100%, 10%, 0.549) inset,
+                5px 3px 3px -4px hsla(var(--hue-neutral), 0%, 0%, 0.1) inset,
+                -14px -7px 1px -15px hsl(var(--hue-neutral), 0%, 0%) inset,
+                -12px -9px 2px -10px hsla(var(--hue-neutral), 100%, 12%, 0.5) inset,
+                13px 9px 1px -11px hsla(var(--hue-neutral), 0%, 0%, 0.15) inset,
+                9px 10px 1px -11px hsl(var(--tm-color05), 98%, 25%) inset;
 }
 
 .button-cta-outer.yellow.pressed .button-cta-inner .button-text {
-    opacity: 0.4;
-    text-shadow: -2px 1px 1px hsla(var(--hue-neutral), 0%, 0%, 0.1),
-        1px 4px 3px hsla(var(--hue-neutral), 0%, 0%, 0.45);
+        opacity: 0.4;
+        text-shadow: -2px 1px 1px hsla(var(--hue-neutral), 0%, 0%, 0.1),
+                1px 4px 3px hsla(var(--hue-neutral), 0%, 0%, 0.45);
 }
 
 /*--------- Pink button Styling ---------*/
 
 .pink-glass {
-    /* 🎨 Hue tokens */
-    --tm-color05: 353;
-    --tm-color04: 342;
-    --tm-color01: 340;
-    --tm-color03: 339;
-    --tm-color02: 338;
-    --tm-color06: 11;
-    --hue-neutral: 0;
+        /* 🎨 Hue tokens */
+        --tm-color05: 353;
+        --tm-color04: 342;
+        --tm-color01: 340;
+        --tm-color03: 339;
+        --tm-color02: 338;
+        --tm-color06: 11;
+        --hue-neutral: 0;
 
-    /* 🎨 Color tokens */
-    --color-mainhue-1: hsl(var(--tm-color01), 100%, 20%);
-    --color-secondhue-1: hsl(var(--tm-color01), 100%, 12%);
-    --color-mainhue-2: hsl(var(--tm-color04), 100%, 4%);
-    --color-secondhue-2: hsl(var(--tm-color04), 100%, 18%);
-    --color-mainhue-3: hsl(var(--tm-color01), 100%, 20%);
-    --color-mainhue-4: hsl(var(--tm-color01), 100%, 20%);
+        /* 🎨 Color tokens */
+        --color-mainhue-1: hsl(var(--tm-color01), 100%, 20%);
+        --color-secondhue-1: hsl(var(--tm-color01), 100%, 12%);
+        --color-mainhue-2: hsl(var(--tm-color04), 100%, 4%);
+        --color-secondhue-2: hsl(var(--tm-color04), 100%, 18%);
+        --color-mainhue-3: hsl(var(--tm-color01), 100%, 20%);
+        --color-mainhue-4: hsl(var(--tm-color01), 100%, 20%);
 
-    --color-secondhue-3: hsl(var(--tm-color02), 100%, 8%);
-    --color-secondhue-4: hsl(var(--tm-color03), 100%, 12%);
-    --color-secondhue-5: hsl(var(--tm-color02), 100%, 4%);
-    --color-mainhue-5: hsl(var(--tm-color04), 100%, 12%);
-    --color-secondhue-6: hsl(var(--tm-color02), 100%, 11%);
-    --color-secondhue-7: hsl(var(--tm-color01), 100%, 8%);
+        --color-secondhue-3: hsl(var(--tm-color02), 100%, 8%);
+        --color-secondhue-4: hsl(var(--tm-color03), 100%, 12%);
+        --color-secondhue-5: hsl(var(--tm-color02), 100%, 4%);
+        --color-mainhue-5: hsl(var(--tm-color04), 100%, 12%);
+        --color-secondhue-6: hsl(var(--tm-color02), 100%, 11%);
+        --color-secondhue-7: hsl(var(--tm-color01), 100%, 8%);
 
-    --shadow-light: hsl(var(--tm-color06), 97%, 22%);
-    --shadow-mid: hsl(var(--tm-color05), 99%, 45%);
+        --shadow-light: hsl(var(--tm-color06), 97%, 22%);
+        --shadow-mid: hsl(var(--tm-color05), 99%, 45%);
 
-    /* 🌈 Gradient tokens */
-    --gradient-outer-mainhue: linear-gradient(82deg,
-            var(--color-mainhue-1) 11.75%,
-            var(--color-secondhue-1) 25.54%,
-            var(--color-mainhue-2) 46.73%,
-            var(--color-secondhue-2) 65.34%,
-            var(--color-mainhue-3) 82.28%,
-            var(--color-mainhue-4) 90.95%);
+        /* 🌈 Gradient tokens */
+        --gradient-outer-mainhue: linear-gradient(82deg,
+                        var(--color-mainhue-1) 11.75%,
+                        var(--color-secondhue-1) 25.54%,
+                        var(--color-mainhue-2) 46.73%,
+                        var(--color-secondhue-2) 65.34%,
+                        var(--color-mainhue-3) 82.28%,
+                        var(--color-mainhue-4) 90.95%);
 
-    --gradient-inner-mainhue: linear-gradient(250deg,
-            var(--color-secondhue-3) 8.83%,
-            var(--color-secondhue-4) 13.08%,
-            var(--color-secondhue-5) 23.52%,
-            var(--color-mainhue-5) 35.88%,
-            var(--color-secondhue-6) 61.39%,
-            var(--color-secondhue-7) 89.22%);
+        --gradient-inner-mainhue: linear-gradient(250deg,
+                        var(--color-secondhue-3) 8.83%,
+                        var(--color-secondhue-4) 13.08%,
+                        var(--color-secondhue-5) 23.52%,
+                        var(--color-mainhue-5) 35.88%,
+                        var(--color-secondhue-6) 61.39%,
+                        var(--color-secondhue-7) 89.22%);
 
-    --gradient-outer-mainhue-pressed: linear-gradient(82deg,
-            hsla(var(--tm-color01), 100%, 20%, 0.1) 14.51%,
-            hsla(var(--tm-color01), 100%, 28%, 0.1) 23.18%,
-            hsla(var(--tm-color01), 100%, 30%, 0.1) 40.12%,
-            hsla(var(--tm-color01), 100%, 23%, 0.1) 58.73%,
-            hsla(var(--tm-color01), 100%, 34%, 0.1) 79.91%,
-            hsla(var(--tm-color01), 100%, 38%, 0.1) 93.7%);
+        --gradient-outer-mainhue-pressed: linear-gradient(82deg,
+                        hsla(var(--tm-color01), 100%, 20%, 0.1) 14.51%,
+                        hsla(var(--tm-color01), 100%, 28%, 0.1) 23.18%,
+                        hsla(var(--tm-color01), 100%, 30%, 0.1) 40.12%,
+                        hsla(var(--tm-color01), 100%, 23%, 0.1) 58.73%,
+                        hsla(var(--tm-color01), 100%, 34%, 0.1) 79.91%,
+                        hsla(var(--tm-color01), 100%, 38%, 0.1) 93.7%);
 
-    --gradient-inner-mainhue-pressed: linear-gradient(266deg,
-            hsl(var(--tm-color01), 100%, 33%) 9.6%,
-            hsl(var(--tm-color01), 100%, 32%) 13.73%,
-            hsl(var(--tm-color01), 100%, 30%) 23.88%,
-            hsl(var(--tm-color01), 100%, 38%) 35.9%,
-            hsl(var(--tm-color01), 100%, 28%) 60.69%,
-            hsl(var(--tm-color01), 100%, 26%) 87.74%);
+        --gradient-inner-mainhue-pressed: linear-gradient(266deg,
+                        hsl(var(--tm-color01), 100%, 33%) 9.6%,
+                        hsl(var(--tm-color01), 100%, 32%) 13.73%,
+                        hsl(var(--tm-color01), 100%, 30%) 23.88%,
+                        hsl(var(--tm-color01), 100%, 38%) 35.9%,
+                        hsl(var(--tm-color01), 100%, 28%) 60.69%,
+                        hsl(var(--tm-color01), 100%, 26%) 87.74%);
 
-    --gradient-outer-mainhue-hover: linear-gradient(82deg,
-            hsl(var(--tm-color01), 71%, 25%) 11.75%,
-            hsl(var(--tm-color01), 70%, 40%) 25.54%,
-            hsl(var(--tm-color01), 70%, 53%) 46.73%,
-            hsl(var(--tm-color01), 70%, 30%) 65.34%,
-            hsl(var(--tm-color01), 71%, 35%) 82.28%,
-            hsl(var(--tm-color01), 71%, 35%) 90.95%);
+        --gradient-outer-mainhue-hover: linear-gradient(82deg,
+                        hsl(var(--tm-color01), 71%, 25%) 11.75%,
+                        hsl(var(--tm-color01), 70%, 40%) 25.54%,
+                        hsl(var(--tm-color01), 70%, 53%) 46.73%,
+                        hsl(var(--tm-color01), 70%, 30%) 65.34%,
+                        hsl(var(--tm-color01), 71%, 35%) 82.28%,
+                        hsl(var(--tm-color01), 71%, 35%) 90.95%);
 
 
 
-    /* 🌑 Base Box Shadow tokens */
-    --shadow-inset-orange: -4px -4px 1px -4px hsla(var(--tm-color06), 97%, 15%, 0.55) inset;
-    --shadow-inset-light: 5px 3px 3px -4px var(--shadow-light) inset;
-    --shadow-inset-mid: -14px -7px 1px -15px var(--shadow-mid) inset;
-    --shadow-inset-secondhue: -12px -9px 2px -10px hsla(var(--tm-color02), 100%, 18%, 0.5) inset;
-    --shadow-inset-white: 13px 9px 1px -11px hsla(var(--hue-neutral),
-            0%,
-            100%,
-            0.15) inset;
-    --shadow-inset-rose: 9px 10px 1px -11px var(--shadow-mid) inset;
+        /* 🌑 Base Box Shadow tokens */
+        --shadow-inset-orange: -4px -4px 1px -4px hsla(var(--tm-color06), 97%, 15%, 0.55) inset;
+        --shadow-inset-light: 5px 3px 3px -4px var(--shadow-light) inset;
+        --shadow-inset-mid: -14px -7px 1px -15px var(--shadow-mid) inset;
+        --shadow-inset-secondhue: -12px -9px 2px -10px hsla(var(--tm-color02), 100%, 18%, 0.5) inset;
+        --shadow-inset-white: 13px 9px 1px -11px hsla(var(--hue-neutral),
+                        0%,
+                        100%,
+                        0.15) inset;
+        --shadow-inset-rose: 9px 10px 1px -11px var(--shadow-mid) inset;
 
-    /* Compound shadow for default state */
-    --shadow-button-inner: var(--shadow-inset-orange), var(--shadow-inset-light),
-        var(--shadow-inset-mid), var(--shadow-inset-secondhue),
-        var(--shadow-inset-white), var(--shadow-inset-rose);
+        /* Compound shadow for default state */
+        --shadow-button-inner: var(--shadow-inset-orange), var(--shadow-inset-light),
+                var(--shadow-inset-mid), var(--shadow-inset-secondhue),
+                var(--shadow-inset-white), var(--shadow-inset-rose);
 }
 
 /*---------------------------- end of color vars ----------------------------*/
 
 .button-cta-outer.pink-glass .button-cta-inner {
-    transition: all 200ms ease-in-out;
-    color: var(--white);
-    background: var(--gradient-inner-mainhue);
-    box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 97%, 15%, 0.55) inset,
-        5px 3px 3px -4px var(--shadow-light) inset,
-        -14px -7px 1px -15px var(--shadow-mid) inset,
-        -12px -9px 2px -10px hsla(var(--tm-color02), 100%, 18%, 0.5) inset,
-        13px 9px 1px -11px hsla(var(--hue-neutral), 0%, 20%, 0.15) inset,
-        9px 10px 1px -11px var(--shadow-mid) inset;
+        transition: all 200ms ease-in-out;
+        color: var(--white);
+        background: var(--gradient-inner-mainhue);
+        box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 97%, 15%, 0.55) inset,
+                5px 3px 3px -4px var(--shadow-light) inset,
+                -14px -7px 1px -15px var(--shadow-mid) inset,
+                -12px -9px 2px -10px hsla(var(--tm-color02), 100%, 18%, 0.5) inset,
+                13px 9px 1px -11px hsla(var(--hue-neutral), 0%, 20%, 0.15) inset,
+                9px 10px 1px -11px var(--shadow-mid) inset;
 }
 
 /**---- Hover state ----**/
 
 .button-cta-outer.pink-glass.hover {
-    transition: all 200ms ease-in-out;
-    background: var(--gradient-outer-mainhue-hover);
-    box-shadow: 0 3px 11px -2px hsl(var(--tm-color01), 100%, 15%);
+        transition: all 200ms ease-in-out;
+        background: var(--gradient-outer-mainhue-hover);
+        box-shadow: 0 3px 11px -2px hsl(var(--tm-color01), 100%, 15%);
 }
 
 .button-cta-outer.pink-glass.hover .button-cta-inner {
-    transition: all 200ms ease-in-out;
+        transition: all 200ms ease-in-out;
 
-    background: linear-gradient(250deg,
-            hsl(var(--tm-color01), 100%, 10%) 8.83%,
-            hsl(var(--tm-color01), 100%, 9%) 13.08%,
-            hsl(var(--tm-color01), 100%, 10%) 23.52%,
-            hsl(var(--tm-color01), 100%, 10%) 35.88%,
-            hsl(var(--tm-color01), 100%, 19%) 61.39%,
-            hsl(var(--tm-color01), 100%, 11%) 89.22%);
-    box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 100%, 70%, 0.55) inset,
-        -14px -7px 1px -15px hsl(var(--tm-color06), 0%, 15%) inset,
-        -12px -9px 2px -10px hsla(var(--tm-color06), 100%, 20%, 0.5) inset,
-        9px 9px 1px -11px hsla(var(--tm-color06), 0%, 15%, 0.56) inset,
-        8px 8px 3px -6px hsla(var(--tm-color06), 97%, 18%, 0.7) inset;
+        background: linear-gradient(250deg,
+                        hsl(var(--tm-color01), 100%, 10%) 8.83%,
+                        hsl(var(--tm-color01), 100%, 9%) 13.08%,
+                        hsl(var(--tm-color01), 100%, 10%) 23.52%,
+                        hsl(var(--tm-color01), 100%, 10%) 35.88%,
+                        hsl(var(--tm-color01), 100%, 19%) 61.39%,
+                        hsl(var(--tm-color01), 100%, 11%) 89.22%);
+        box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 100%, 70%, 0.55) inset,
+                -14px -7px 1px -15px hsl(var(--tm-color06), 0%, 15%) inset,
+                -12px -9px 2px -10px hsla(var(--tm-color06), 100%, 20%, 0.5) inset,
+                9px 9px 1px -11px hsla(var(--tm-color06), 0%, 15%, 0.56) inset,
+                8px 8px 3px -6px hsla(var(--tm-color06), 97%, 18%, 0.7) inset;
 }
 
 .redText {
-    color: var(--color-alert) !important;
+        color: var(--color-alert) !important;
 }
 
 /*--------- End of red button Styling ---------*/
