@@ -11,10 +11,11 @@ import styles from "./UpgradePlanModal.module.css";
 type UpgradePlanModalProps = {
   isOpen: boolean;
   onClose: () => void;
+  onUpgrade?: () => void;
 };
 
 
-export default function UpgradePlanModal({ isOpen, onClose }: UpgradePlanModalProps) {
+export default function UpgradePlanModal({ isOpen, onClose, onUpgrade }: UpgradePlanModalProps) {
   const subscriptionPlanSvc = SubscriptionsServices(apiClient);
 
   const { data, isLoading, error } = useQuery({
@@ -26,14 +27,6 @@ export default function UpgradePlanModal({ isOpen, onClose }: UpgradePlanModalPr
 
   const plans = data?.addons ?? [];
 
-  const handleClickAddon = () => {
-
-
-  }
-
-  if (isLoading) return <div className={styles.loading}><LoadingSpinner /></div>;
-  if (error) return <div className={styles.error}>Error</div>;
-
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className={styles.modal}>
@@ -44,37 +37,52 @@ export default function UpgradePlanModal({ isOpen, onClose }: UpgradePlanModalPr
             <SvgPack.Cross />
           </button>
         </div>
-        <div className={styles.content}>
-          <div className={styles.sectionUpgrade}>
-            <div className={styles.title1}>
-              You're almost out of time
-            </div>
-            <div className={styles.subtitle}>
-              Your call credit is running low. Upgrade now to keep the conversation going.
-            </div>
-            <PrimaryButton variant="purple" text={"Upgrade Your Plan"} />
-          </div>
-          <div className={styles.divider}></div>
-          <div className={styles.sectionAddon}>
-            <div className={styles.title1}>
-              Continue the conversation
-            </div>
-            <div className={styles.subtitle}>
-              Choose a call time pack to stay connected.
-            </div>
-            {plans.map((plan) => (
-              <div key={plan.id} className={styles.addonRow}>
-                <div className={styles.addonText}>
-                  <span className={styles.title2}>{plan.name}</span>
-                  <span className={styles.addonDesc}>{plan.description}</span>
-                </div>
-                <AddonButton variant="outline" text={`$${(plan.price_cents / 100).toFixed(2)}`} onClick={handleClickAddon} />
+
+        {isLoading ? (
+          <div className={styles.loading}><LoadingSpinner /></div>
+        ) : error ? (
+          <div className={styles.error}>Couldn’t load plans.</div>
+        ) : (
+          <div className={styles.content}>
+            <div className={styles.sectionUpgrade}>
+              <div className={styles.title1}>
+                You’re almost out of time
               </div>
-            ))}
+              <div className={styles.subtitle}>
+                Your call credit is running low. Upgrade now to keep the conversation going.
+              </div>
+              <PrimaryButton
+                variant="purple"
+                text="Upgrade Your Plan"
+                className={styles.upgradeBtn}
+                onClick={onUpgrade}
+              />
+            </div>
+            <div className={styles.divider}></div>
+            <div className={styles.sectionAddon}>
+              <div className={styles.title1}>
+                Continue the conversation
+              </div>
+              <div className={styles.subtitle}>
+                Choose a call time pack to stay connected.
+              </div>
+              {plans.map((plan) => (
+                <div key={plan.id} className={styles.addonRow}>
+                  <div className={styles.addonText}>
+                    <span className={styles.title2}>{plan.name}</span>
+                    <span className={styles.addonDesc}>{plan.description}</span>
+                  </div>
+                  <AddonButton
+                    variant="outline"
+                    text={`$${(plan.price_cents / 100).toFixed(2)}`}
+                    onClick={() => { }}
+                  />
+                </div>
+              ))}
 
+            </div>
           </div>
-        </div>
-
+        )}
 
       </div >
     </Modal>
@@ -82,5 +90,4 @@ export default function UpgradePlanModal({ isOpen, onClose }: UpgradePlanModalPr
 
 
 }
-
 
