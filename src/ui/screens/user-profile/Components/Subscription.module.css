@@ -141,3 +141,29 @@
   /* 14px */
   letter-spacing: 0.2px;
 }
+
+.addOnInfoModal {
+  background-color: black;
+  position: relative;
+  padding: 24px;
+  padding-top: 32px;
+}
+
+.modalClose {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  padding: 6px;
+  cursor: pointer;
+  line-height: 0;
+}
+
+.modalClose svg {
+  stroke: #F54336;
+}
+
+.modalClose:hover {
+  transform: scale(1.05);
+}

@@ -11,6 +11,8 @@ import AddonButton from "@/ui/components/inputs/buttons/AddonButton";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import SvgPack from "@/utils/SvgPack";
 
+import { Modal } from "@/ui/components/modals/Modal";
+
 type SubscriptionProps = {
   goTo: (id: string, payload?: Record<string, any>) => void;
   navPayload?: Record<string, any>;
@@ -34,16 +36,14 @@ const Subscription = ({ }: SubscriptionProps) => {
   const addOns = data?.addons ?? [];
 
   const featuredPlan = recurringPlans.find((p) => p.is_featured)?.id;
-
   const [selectedPlanId, setSelectedPlanId] = useState<number>(featuredPlan ?? 1);
-
   const selectedPlan =
     recurringPlans.find((p) => p.id === selectedPlanId) ||
     recurringPlans.find((p) => p.is_featured) ||
     recurringPlans[0] ||
     null;
 
-
+  const [showAddonInfoModal, setShowAddonInfoModal] = useState(false);
 
   const handleClickAddon = () => {
 
@@ -84,7 +84,7 @@ const Subscription = ({ }: SubscriptionProps) => {
             <span className={styles.title}>
               Add On Packages
             </span>
-            <SvgPack.InfoCircle className={styles.infoIcon} />
+            <SvgPack.InfoCircle className={styles.infoIcon} onClick={() => setShowAddonInfoModal(true)} />
           </div>
           <span className={styles.subtitle}>
             One-time add-ons available with an active subscription.
@@ -117,7 +117,22 @@ const Subscription = ({ }: SubscriptionProps) => {
           You will be charged, your subscription will auto-renew for the same price and package length until you cancel via account settings, and you agree to our Terms.
         </span>
       </div>
+      <Modal onClose={() => setShowAddonInfoModal(false)} isOpen={showAddonInfoModal} className={styles.addOnInfoModal} closeOnOverlayClick={false}>
+        <button
+          type="button"
+          aria-label="Close"
+          className={styles.modalClose}
+          onClick={() => setShowAddonInfoModal(false)}
+        >
+          <SvgPack.Cross />
+        </button>
+        <div className={styles.title}>
+          How call minutes work
+        </div>
+        <div className={styles.subtitle}>Subscription minutes are used first, starting with higher-tier plans. Add-on minutes are used after and don’t auto-renew. Add-ons can be stacked, and minutes are deducted based on actual call duration.</div>
+      </Modal>
     </div>
+
   );
 
 };
