@@ -20,6 +20,7 @@ interface MessageBubbleProps {
     influencerName?: string;
     onAudioPlay?: (src: string) => void;
     showAudioTranscript?: boolean;
+    isAudio?: boolean;
 }
 
 const formatDuration = (ms: number) => {
@@ -53,6 +54,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     influencerName,
     onAudioPlay,
     showAudioTranscript,
+    isAudio = false,
 }) => {
     // const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const [expanded, setExpanded] = useState(false);
@@ -111,10 +113,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
     if (!msg && !callGroup) {
         return <div className={clsx(styles["message"], styles["received"])}>
-            <TypingIndicator />
+            <TypingIndicator isAduio={isAudio} />
         </div>
     }
-
     const sender = callGroup?.sender ?? msg?.sender ?? "received";
     const time = callGroup?.time ?? msg?.time ?? "";
     const callDuration = getCallDuration(callGroup);
@@ -125,6 +126,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         if (messageSender === "received") return influencerName || "Influencer";
         return "You";
     };
+
 
     return (
         <div
