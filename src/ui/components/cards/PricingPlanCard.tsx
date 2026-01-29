@@ -7,6 +7,7 @@ type PricingPlanCardProps = {
   price: string;
   callTime: string;
   active?: boolean;
+  onClick: () => void;
 };
 
 const PricingPlanCard: FC<PricingPlanCardProps> = ({
@@ -14,9 +15,10 @@ const PricingPlanCard: FC<PricingPlanCardProps> = ({
   price,
   callTime,
   active = false,
+  onClick
 }) => {
   return (
-    <div className={clsx(styles.card, active && styles.activeCard)}>
+    <div className={clsx(styles.card, active && styles.activeCard)} onClick={onClick}>
       <div className={clsx(styles.headerArea, active && styles.activeHeaderArea)}>
         <div className={styles.title}>{title}</div>
       </div>

@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
 import { apiClient } from "@/api/apis";
@@ -8,6 +9,7 @@ import styles from "./Subscription.module.css";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import AddonButton from "@/ui/components/inputs/buttons/AddonButton";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
+import SvgPack from "@/utils/SvgPack";
 
 type SubscriptionProps = {
   goTo: (id: string, payload?: Record<string, any>) => void;
@@ -20,7 +22,7 @@ type SubscriptionProps = {
 
 const Subscription = ({ }: SubscriptionProps) => {
 
-  const subscriptionPlanSvc = SubscriptionsServices(apiClient)
+  const subscriptionPlanSvc = SubscriptionsServices(apiClient);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["subscriptionPlans"],
@@ -28,9 +30,20 @@ const Subscription = ({ }: SubscriptionProps) => {
     staleTime: Infinity,
   }
   );
-
   const recurringPlans = data?.recurring ?? [];
   const addOns = data?.addons ?? [];
+
+  const featuredPlan = recurringPlans.find((p) => p.is_featured)?.id;
+
+  const [selectedPlanId, setSelectedPlanId] = useState<number>(featuredPlan ?? 1);
+
+  const selectedPlan =
+    recurringPlans.find((p) => p.id === selectedPlanId) ||
+    recurringPlans.find((p) => p.is_featured) ||
+    recurringPlans[0] ||
+    null;
+
+
 
   const handleClickAddon = () => {
 
@@ -40,19 +53,26 @@ const Subscription = ({ }: SubscriptionProps) => {
 
   }
 
+  function centsToDollar(cents: number) {
+    return (cents / 100).toFixed(2);
+
+  }
+
   return (
     <div className={clsx(styles.container, "u-sidebar-page")} >
       {isLoading && <div className={styles.loading}><LoadingSpinner /></div>}
       {error && <div className={styles.error}>Couldn’t load plans</div>}
+
       <div className={styles.content}>
         <div className={styles.cards}>
           {recurringPlans.map((plan) => (
             <div key={plan.id} className={styles.card}>
               <PricingPlanCard
                 title={plan.name}
-                price={(plan.price_cents / 100).toFixed(2)}
+                price={centsToDollar(plan.price_cents)}
                 callTime={`${plan.features.minutes_equivalent ?? 0} min`}
-                active={plan.is_featured}
+                active={selectedPlanId === plan.id}
+                onClick={() => setSelectedPlanId(plan.id)}
               />
               <div><span className={styles.red}>18+ </span>only</div>
             </div>
@@ -60,9 +80,12 @@ const Subscription = ({ }: SubscriptionProps) => {
         </div>
         <div className={styles.divider}></div>
         <div className={styles.addOnArea}>
-          <span className={styles.title}>
-            Add On Packages
-          </span>
+          <div className={styles.spread}>
+            <span className={styles.title}>
+              Add On Packages
+            </span>
+            <SvgPack.InfoCircle className={styles.infoIcon} />
+          </div>
           <span className={styles.subtitle}>
             One-time add-ons available with an active subscription.
           </span>
@@ -74,7 +97,7 @@ const Subscription = ({ }: SubscriptionProps) => {
                   <span className={styles.title2}>{addOn.name}</span>
                   <span className={styles.subtitle}>{addOn.description}</span>
                 </div>
-                <AddonButton variant="outline" text={`$${(addOn.price_cents / 100).toFixed(2)}`}
+                <AddonButton variant="outline" text={`$${centsToDollar(addOn.price_cents)}`}
                   onClick={handleClickAddon} />
                 {/* <AddonButton variant="outline" text={`${addOn.price_display}`} /> */}
                 <div className={styles.divider}></div>
@@ -89,7 +112,7 @@ const Subscription = ({ }: SubscriptionProps) => {
         <span className={styles.title}>
           Let's heat things up...
         </span>
-        <PrimaryButton variant="purple" text="Subscribe for ---" onClick={handleOnSubscribeClick} />
+        <PrimaryButton variant="purple" text={`Subscribe for $${centsToDollar(selectedPlan.price_cents)}`} onClick={handleOnSubscribeClick} />
         <span className={styles.note}>
           You will be charged, your subscription will auto-renew for the same price and package length until you cancel via account settings, and you agree to our Terms.
         </span>

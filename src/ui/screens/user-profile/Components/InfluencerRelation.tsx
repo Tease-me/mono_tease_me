@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-// import clsx from "clsx";
+import clsx from "clsx";
 import styles from "./InfluencerRelation.module.css";
 import SvgPack from "@/utils/SvgPack";
 import { apiClient } from "@/api/apis";
@@ -249,7 +249,7 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
 
 
   return (
-    <div className={styles.shell}>
+    <div className={clsx("u-sidebar-page", styles.shell)}>
       {/* Hero */}
       <div className={styles.heroRow}>
         <ProfileMedia imageSrc={data.image} videoSrc={data.video} size="medium" active />
