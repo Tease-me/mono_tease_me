@@ -47,9 +47,18 @@ export default function useCallWebRTC() {
   }, []);
 
   const [micMuted, setMicMuted] = useState<boolean>(false);
-  const [agentPrompt, setAgentPrompt] = useState<string | undefined>(undefined);
-  const [agentFirstMessage, setAgentFirstMessage] = useState<string | undefined>(undefined);
-  const [agentLanguage, setAgentLanguage] = useState<string>("en");
+
+  const [agentSettings, setAgentSettings] = useState<{
+    prompt: string;
+    firstMessage: string;
+    language: string;
+  } | null>(null);
+  const pendingStartRef = useRef<{
+    conversationToken: string;
+    creditsRemaining: number | null;
+    greetingUsed: string;
+    abortController: AbortController;
+  } | null>(null);
 
   const conversation = useConversation({
     micMuted,
@@ -64,11 +73,13 @@ export default function useCallWebRTC() {
       }
     },
     overrides: {
-      agent: {
-        prompt: { prompt: agentPrompt },
-        firstMessage: agentFirstMessage,
-        language: agentLanguage,
-      },
+      ...(agentSettings && {
+        agent: {
+          prompt: { prompt: agentSettings.prompt },
+          firstMessage: agentSettings.firstMessage,
+          language: agentSettings.language,
+        },
+      }),
     },
     onConnect: () => {
       setStatus("connected");
@@ -112,15 +123,27 @@ export default function useCallWebRTC() {
         setErrorMessage("Microphone permission is required.");
         setStatus("idle");
         stopRing();
+        if (startAbortControllerRef.current === abortController) {
+          startAbortControllerRef.current = null;
+        }
+        startInFlightRef.current = false;
         return;
       }
       if (!user || !user.id) {
         setErrorMessage("Please log in to start a call.");
         setStatus("idle");
         stopRing();
+        if (startAbortControllerRef.current === abortController) {
+          startAbortControllerRef.current = null;
+        }
+        startInFlightRef.current = false;
         return;
       }
       if (abortController.signal.aborted) {
+        if (startAbortControllerRef.current === abortController) {
+          startAbortControllerRef.current = null;
+        }
+        startInFlightRef.current = false;
         return;
       }
 
@@ -130,11 +153,11 @@ export default function useCallWebRTC() {
         abortController.signal,
       );
 
-      setAgentLanguage(native_language || "en");
-      setAgentPrompt(prompt || undefined);
-      setAgentFirstMessage(greeting_used ?? undefined);
-
       if (abortController.signal.aborted) {
+        if (startAbortControllerRef.current === abortController) {
+          startAbortControllerRef.current = null;
+        }
+        startInFlightRef.current = false;
         return;
       }
 
@@ -142,6 +165,10 @@ export default function useCallWebRTC() {
         setErrorMessage("Unable to start a conversation right now.");
         stopRing();
         setStatus("idle");
+        if (startAbortControllerRef.current === abortController) {
+          startAbortControllerRef.current = null;
+        }
+        startInFlightRef.current = false;
         return;
       }
 
@@ -149,50 +176,99 @@ export default function useCallWebRTC() {
         setErrorMessage("You have no remaining credits.");
         stopRing();
         setStatus("idle");
+        if (startAbortControllerRef.current === abortController) {
+          startAbortControllerRef.current = null;
+        }
+        startInFlightRef.current = false;
         return;
       }
 
-      const conversationId = await conversation.startSession({
-        conversationToken,
-        connectionType: "webrtc",
-        dynamicVariables: {
-          first_message: greeting_used ?? "",
-        },
+      const resolvedPrompt = prompt ?? "";
+      const resolvedLanguage = native_language || "en";
+      const resolvedFirstMessage = greeting_used ?? "";
+      setAgentSettings({
+        prompt: resolvedPrompt,
+        firstMessage: resolvedFirstMessage,
+        language: resolvedLanguage,
       });
-
-      if (abortController.signal.aborted) {
-        await conversation.endSession();
-        return;
-      }
-
-      if (user && user.id) {
-        await chatRepo.registerConversation(
-          conversationId,
-          user?.id ?? 0,
-          influencerId,
-          abortController.signal,
-        );
-      }
-
-      if (abortController.signal.aborted) {
-        await conversation.endSession();
-        return;
-      }
-
-      setTimeRemaining(credits_remainder_secs ?? null);
+      pendingStartRef.current = {
+        conversationToken,
+        creditsRemaining: credits_remainder_secs ?? null,
+        greetingUsed: resolvedFirstMessage,
+        abortController,
+      };
+      return;
     } catch (error: any) {
       if (!abortController.signal.aborted) {
         setStatus("error");
         setErrorMessage(error.response?.data?.detail?.error || "Call failed");
         logger.error(error);
       }
-    } finally {
-      if (startAbortControllerRef.current === abortController) {
-        startAbortControllerRef.current = null;
-      }
-      startInFlightRef.current = false;
     }
-  }, [chatRepo, conversation, influencerId, requestMicrophonePermission, ring, stopRing, user]);
+    if (startAbortControllerRef.current === abortController) {
+      startAbortControllerRef.current = null;
+    }
+    startInFlightRef.current = false;
+  }, [chatRepo, influencerId, requestMicrophonePermission, stopRing, user]);
+
+  useEffect(() => {
+    const pending = pendingStartRef.current;
+    if (!agentSettings || !pending) {
+      return;
+    }
+    pendingStartRef.current = null;
+    (async () => {
+      const { conversationToken, creditsRemaining, greetingUsed, abortController } = pending;
+      if (abortController.signal.aborted) {
+        if (startAbortControllerRef.current === abortController) {
+          startAbortControllerRef.current = null;
+        }
+        startInFlightRef.current = false;
+        return;
+      }
+      try {
+        const conversationId = await conversation.startSession({
+          conversationToken,
+          connectionType: "webrtc",
+          dynamicVariables: {
+            first_message: greetingUsed,
+          },
+        });
+
+        if (abortController.signal.aborted) {
+          await conversation.endSession();
+          return;
+        }
+
+        if (user && user.id) {
+          await chatRepo.registerConversation(
+            conversationId,
+            user?.id ?? 0,
+            influencerId ?? "",
+            abortController.signal,
+          );
+        }
+
+        if (abortController.signal.aborted) {
+          await conversation.endSession();
+          return;
+        }
+
+        setTimeRemaining(creditsRemaining);
+      } catch (error: any) {
+        if (!abortController.signal.aborted) {
+          setStatus("error");
+          setErrorMessage(error.response?.data?.detail?.error || "Call failed");
+          logger.error(error);
+        }
+      } finally {
+        if (startAbortControllerRef.current === abortController) {
+          startAbortControllerRef.current = null;
+        }
+        startInFlightRef.current = false;
+      }
+    })();
+  }, [agentSettings, chatRepo, conversation, influencerId, user]);
 
   const stopConversation = useCallback(async () => {
     if (startAbortControllerRef.current) {
