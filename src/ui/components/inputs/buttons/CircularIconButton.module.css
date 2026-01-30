@@ -42,7 +42,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: var(--space-px-8);
 }
 
 .icon-container {
@@ -65,7 +65,7 @@
 
 .button-with-text-and-icon {
     display: flex;
-    gap: 8px;
+    gap: var(--space-px-8);
     padding: 18px 16px;
     flex: 1;
 }
@@ -148,12 +148,12 @@
 
 .button-with-text-and-icon.small {
     padding: 12px 10px;
-    gap: 6px;
+    gap: var(--space-px-8);
 }
 
 .button-with-text-and-icon.xsmall {
     padding: 8px 8px;
-    gap: 4px;
+    gap: var(--space-px-4);
 }
 
 .button-with-text-only.small {

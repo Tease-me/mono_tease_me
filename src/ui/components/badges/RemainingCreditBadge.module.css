@@ -13,7 +13,7 @@
   padding: 0.5rem;
   justify-content: center;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-px-8);
 }
 
 .normal {

@@ -1,6 +1,6 @@
 .sidebar-button {
     display: flex;
-    gap: 20px;
+    gap: var(--space-px-20);
     align-items: center;
     justify-content: space-between;
     padding: 8px 10px;
@@ -14,7 +14,7 @@
 
 .sidebar-button-right {
     display: flex;
-    gap: 20px;
+    gap: var(--space-px-20);
     align-items: center;
     font-size: 16px;
     font-weight: 600;

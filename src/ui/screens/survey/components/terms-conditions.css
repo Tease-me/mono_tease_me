@@ -42,7 +42,7 @@
 
 .tm-terms__body {
   display: grid;
-  gap: 14px;
+  gap: var(--space-px-12);
 }
 
 .tm-clause {
@@ -127,7 +127,7 @@
 .terms-modal__footer {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-px-12);
   margin-top: 12px;
   position: sticky;
   bottom: 0;
@@ -138,12 +138,12 @@
 .terms-modal__checkbox {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-px-8);
 }
 
 .terms-modal__actions {
   display: flex;
-  gap: 8px;
+  gap: var(--space-px-8);
 }
 .terms-modal__actions > * {
   flex: 1;

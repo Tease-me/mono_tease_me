@@ -1,7 +1,7 @@
 .page {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--space-px-16);
 }
 
 .refresh {
@@ -47,7 +47,7 @@
 
 .card-grid {
     display: grid;
-    gap: 12px;
+    gap: var(--space-px-12);
 }
 
 .card {
@@ -62,13 +62,13 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 12px;
+    gap: var(--space-px-12);
 }
 
 .card__identity {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--space-px-4);
     min-width: 0;
 }
 
@@ -85,7 +85,7 @@
 .meta-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 10px;
+    gap: var(--space-px-12);
     margin-top: 12px;
 }
 
@@ -125,7 +125,7 @@
 
 .row {
     display: grid;
-    gap: 12px;
+    gap: var(--space-px-12);
     align-items: center;
     padding: 12px 14px;
     font-size: 13px;
@@ -157,14 +157,14 @@
 .fp-block {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--space-px-4);
     font-size: 12px;
 }
 
 .card__actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-px-8);
 }
 
 .status-pill {
@@ -182,7 +182,7 @@
 .actions {
     display: flex;
     justify-content: flex-end;
-    gap: 8px;
+    gap: var(--space-px-8);
 }
 
 .approve {

@@ -7,11 +7,11 @@
     --cb-bg-checked: var(--color-primary);
     --cb-check-color: #fff;
     --cb-focus: #3b82f6;
-    --cb-gap: 0.5rem;
+
 
     display: inline-flex;
     align-items: center;
-    gap: var(--cb-gap);
+    gap: var(--space-px-8);
     cursor: pointer;
     user-select: none;
     position: relative;
@@ -96,7 +96,7 @@
 
 .label {
     display: flex;
-    gap: 8px;
+    gap: var(--space-px-8);
     align-items: center;
     line-height: 1.3;
 }
