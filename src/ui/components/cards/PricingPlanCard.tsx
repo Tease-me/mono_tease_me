@@ -24,7 +24,7 @@ const PricingPlanCard: FC<PricingPlanCardProps> = ({
       </div>
       <div className={clsx(styles.mainArea, active && styles.activeMainArea)}>
         <div className={styles.price}>${price}</div>
-        <div className={styles.callTimeArea}>${callTime}<span className={styles.grayed}> / Call time</span></div>
+        <div className={styles.callTimeArea}>{callTime}<span className={styles.grayed}> / Call time</span></div>
       </div>
     </div>
   );
