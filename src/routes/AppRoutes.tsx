@@ -1,4 +1,5 @@
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
+import DisclaimerScreen from "@/ui/screens/disclaimer/DisclaimerScreen";
 import PayPalCancel from "@/ui/components/modals/payment-modal/PayPalCancel";
 import PayPalReturn from "@/ui/components/modals/payment-modal/PayPalReturn";
 import RelationshipDashboard from "@/ui/screens/admin/dashboard_relationship/RelationshipDashboard";
@@ -21,6 +22,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import SuperRoute from "./components/SuperRoute";
 import { ThemeProvider } from "@/theme/ThemeProvider";
 import TestPage from "@/ui/screens/test/TestPage";
+
 
 const AdminPreInfluencers = lazy(
   () => import("@/ui/screens/admin/pre-influencers/AdminPreInfluencers")
@@ -74,6 +76,7 @@ const IntencionInfluencerHome = lazy(
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.all, element: <HomePage /> },
+    { path: Paths.disclaimer, element: <DisclaimerScreen /> },
     { path: Paths.influencerProfile(), element: <InfluencerProfileScreen /> },
     { path: Paths.testButtons, element: <TestPage /> },
     { path: Paths.updateProfile, element: <UpdateProfile /> },
@@ -81,6 +84,7 @@ function AppRoutes() {
     { path: Paths.welcome, element: <InfluencerWelcome /> },
     { path: Paths.incomeDialog, element: <IncomeDialogStep01 /> },
     { path: Paths.profileSurvey, element: <ProfileSurvey /> },
+    
     {
       path: Paths.influencerAudioManager(),
       element: <InfluencerAudioManagerRoute />,
