@@ -6,12 +6,14 @@ import SvgPack from '@/utils/SvgPack';
 import CardMockup from '@/assets/image/card-mockup.png';
 
 import UpgradePlanModal from '@/ui/components/modals/subscription/UpgradePlanModal';
+import AdultTermsModal from '@/ui/components/modals/adult-terms/AdultTermsModal';
 
 type PaymentDetailsProps = { goTo: (id: string) => void };
 
 const PaymentDetails = ({ goTo }: PaymentDetailsProps) => {
 
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+    const [showAdultTermsModal, setShowAdultTermsModal] = useState(false);
 
     const handleVisaBtn = () => {
         // Handle Visa button click
@@ -20,7 +22,8 @@ const PaymentDetails = ({ goTo }: PaymentDetailsProps) => {
 
     const handleMasterCardBtn = () => {
         //temporary
-        goTo('payment-check');
+        // goTo('payment-check');
+        setShowAdultTermsModal(true);
     };
 
 
@@ -50,6 +53,9 @@ const PaymentDetails = ({ goTo }: PaymentDetailsProps) => {
                 // openSidebar={openSidebar}
                 goTo={goTo}
             />
+            <AdultTermsModal isOpen={showAdultTermsModal} onClose={() => setShowAdultTermsModal(false)} onAgree={function (): void {
+
+            }} />
         </div>
     );
 };

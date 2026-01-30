@@ -15,6 +15,7 @@ interface UnifiedPopupProps {
   closeOnEsc?: boolean;
   className?: string;
   ariaLabel?: string;
+  horizontalOnDesktop?: boolean;
 }
 
 export default function UnifiedPopup({
@@ -28,6 +29,7 @@ export default function UnifiedPopup({
   closeOnEsc = true,
   className,
   ariaLabel,
+  horizontalOnDesktop = false,
 }: UnifiedPopupProps) {
   const [openClass, setOpenClass] = useState<string>();
 
@@ -61,13 +63,16 @@ export default function UnifiedPopup({
       role="presentation"
     >
       <div
-        className={clsx(styles.container, styles[`size-${size}`], openClass, className)}
+        className={clsx(styles.container, styles[`size-${size}`], openClass, horizontalOnDesktop && styles.horizontalOnDesktop, className)}
         role="dialog"
         aria-modal="true"
         aria-label={ariaLabel}
         onClick={(event) => event.stopPropagation()}
       >
-        {header && <div className={styles.header}>{header}</div>}
+        {header && <>
+          <div className={styles.header}>{header}</div>
+          <div className={styles.spacer} />
+        </>}
         <div className={styles.body}>{body}</div>
         {footer && <div className={styles.footer}>{footer}</div>}
       </div>

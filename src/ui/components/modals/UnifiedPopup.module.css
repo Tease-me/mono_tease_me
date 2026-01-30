@@ -16,7 +16,7 @@
   max-height: 90vh;
   overflow: hidden;
   border-radius: 16px;
-  background: var(--color-dark-1);
+  background: var(--color-dark-2);
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
   transform: translateY(12px);
@@ -33,15 +33,31 @@
   flex: 0 0 auto;
 }
 
+.spacer {
+  display: flex;
+  height: 1px;
+  margin: 0 var(--space-px-28, 28px) var(--space-px-28, 28px) var(--space-px-28, 28px);
+  flex-direction: column;
+  align-items: flex-start;
+  background: rgba(255, 255, 255, 0.20);
+  gap: var(--space-px-32, 32px);
+  align-self: stretch;
+}
+
 .body {
   flex: 1 1 auto;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   min-height: 0;
+  padding: var(--space-px-28, 28px) var(--space-px-28, 28px) var(--space-px-52, 52px) var(--space-px-28, 28px);
 }
 
 .footer {
   flex: 0 0 auto;
+  position: sticky;
+  padding: 38px var(--space-px-28) var(--space-px-52);
+  bottom: 0;
+  z-index: 1;
 }
 
 .size-sm {
@@ -60,6 +76,10 @@
   max-width: 1200px;
 }
 
+.container.horizontalOnDesktop {
+  flex-direction: row;
+}
+
 @media (max-width: 767px) {
   .overlay {
     padding: 16px;
@@ -70,5 +90,15 @@
     max-height: 92vh;
     border-radius: 16px 16px 0 0;
     transform: translateY(24px);
+  }
+
+  .container.horizontalOnDesktop {
+    flex-direction: column;
+  }
+
+  .container.horizontalOnDesktop .spacer {
+    height: 100%;
+    width: 1px;
+    margin: 0 var(--space-px-28, 28px) var(--space-px-32, 32px) var(--space-px-28, 28px);
   }
 }

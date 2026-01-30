@@ -34,12 +34,28 @@ export default function UpgradePlanModal({ isOpen, onClose, goTo }: UpgradePlanM
 
 
   const header = (
-    <div className={styles.header}>
-      <div className={styles.topLine}></div>
-      <button className={styles.close} aria-label="Close" onClick={onClose}>
-        <SvgPack.Cross />
-      </button>
-    </div>
+    <>
+      <div className={styles.header}>
+        <div className={styles.topLine}></div>
+        <button className={styles.close} aria-label="Close" onClick={onClose}>
+          <SvgPack.Cross />
+        </button>
+      </div>
+      <div className={styles.sectionUpgrade}>
+        <div className={styles.title1}>
+          You’re almost out of time
+        </div>
+        <div className={styles.subtitle}>
+          Your call credit is running low. Upgrade now to keep the conversation going.
+        </div>
+        <PrimaryButton
+          variant="purple"
+          text="Upgrade Your Plan"
+          className={styles.upgradeBtn}
+          onClick={handleUpgrade}
+        />
+      </div>
+    </>
   );
 
   const body = (
@@ -50,21 +66,6 @@ export default function UpgradePlanModal({ isOpen, onClose, goTo }: UpgradePlanM
         <div className={styles.error}>Couldn’t load plans.</div>
       ) : (
         <div className={styles.content}>
-          <div className={styles.sectionUpgrade}>
-            <div className={styles.title1}>
-              You’re almost out of time
-            </div>
-            <div className={styles.subtitle}>
-              Your call credit is running low. Upgrade now to keep the conversation going.
-            </div>
-            <PrimaryButton
-              variant="purple"
-              text="Upgrade Your Plan"
-              className={styles.upgradeBtn}
-              onClick={handleUpgrade}
-            />
-          </div>
-          <div className={styles.divider}></div>
           <div className={styles.sectionAddon}>
             <div className={styles.title1}>
               Continue the conversation
@@ -96,6 +97,7 @@ export default function UpgradePlanModal({ isOpen, onClose, goTo }: UpgradePlanM
       isOpen={isOpen}
       onClose={onClose}
       size="xl"
+      horizontalOnDesktop={true}
       className={styles.modal}
       header={header}
       body={body}
