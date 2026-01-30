@@ -58,9 +58,8 @@ const Subscription = ({ navPayload }: SubscriptionProps) => {
 
   const handleClickAddon = async (addonId: number) => {
     try {
-      const addon = await subscriptionPlanSvc.purchaseAddon(addonId, influencerId);
+      await subscriptionPlanSvc.purchaseAddon(addonId, influencerId);
       setAlertMsg(`Addon successful`);
-
     }
     catch (err: any) {
       setAlertMsg(err?.response?.data?.detail ?? "There was an error");
