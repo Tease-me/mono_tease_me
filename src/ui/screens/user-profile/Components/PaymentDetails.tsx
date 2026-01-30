@@ -7,9 +7,9 @@ import CardMockup from '@/assets/image/card-mockup.png';
 
 import UpgradePlanModal from '@/ui/components/modals/subscription/UpgradePlanModal';
 
-type PaymentDetailsProps = { goTo: (id: string) => void; openSidebar: () => void };
+type PaymentDetailsProps = { goTo: (id: string) => void };
 
-const PaymentDetails = ({ goTo, openSidebar }: PaymentDetailsProps) => {
+const PaymentDetails = ({ goTo }: PaymentDetailsProps) => {
 
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
@@ -47,7 +47,7 @@ const PaymentDetails = ({ goTo, openSidebar }: PaymentDetailsProps) => {
             <UpgradePlanModal
                 isOpen={showUpgradeModal}
                 onClose={() => setShowUpgradeModal(false)}
-                openSidebar={openSidebar}
+                // openSidebar={openSidebar}
                 goTo={goTo}
             />
         </div>
