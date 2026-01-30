@@ -25,8 +25,6 @@ import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 
 //TODO
 // UNFOLLOW BUTTON IS HIDDEN
-//RELATIONSHIP RADAR CSS WARNING
-//REMOVE ALERT ON SUBSCRIBE
 //CHECK STATUS OF SUBSCRIPTION IF CANCELLED OR REACTIVATED ETC
 
 const relationshipService = RelationshipServices(apiClient);
@@ -210,7 +208,11 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
       goTo('subscribe', {
         influencerId: data.id,
         image: data.image,
-        onSubscribe: () => { goTo("subscription") }
+        onSubscribe: () => {
+          goTo("subscription", {
+            influencerId: data.id
+          })
+        }
       });
     }
     else {
