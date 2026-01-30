@@ -57,7 +57,7 @@ const sidebarPages: SidebarPage[] = [
       />
     )
   },
-  { id: "subscription", label: "Subscription", render: ({ goTo }) => <Subscription goTo={goTo} />, background: "linear-gradient(0deg, #131313 0%, #131313 100%), url(<path-to-image>) lightgray -60.714px 0px / 130.206% 89.736% no-repeat" },
+  { id: "subscription", label: "Subscription", render: ({ goTo, navPayload }) => <Subscription goTo={goTo} navPayload={navPayload} />, background: "linear-gradient(0deg, #131313 0%, #131313 100%), url(<path-to-image>) lightgray -60.714px 0px / 130.206% 89.736% no-repeat" },
 
 ];
 

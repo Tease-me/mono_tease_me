@@ -13,11 +13,11 @@ export const SubscriptionsServices = (apiClient: AxiosInstance) => ({
         );
         return response.data;
     },
-    captureSubscription: async (orderId: string, subscriptionId: string, amountCents: number): Promise<any> => {
+    captureSubscription: async (subscriptionId: string, orderId: string, amountCents: number): Promise<any> => {
         const response = await apiClient.post(
             Endpoints.subscriptions.capture,
             {},
-            { params: { order_id: orderId, subscription_id: subscriptionId, amount_cents: amountCents } }
+            { params: { subscription_id: subscriptionId, order_id: orderId, amount_cents: amountCents } }
         );
         return response.data;
     },
@@ -54,6 +54,14 @@ export const SubscriptionsServices = (apiClient: AxiosInstance) => ({
     },
     getPlans: async (): Promise<SubscriptionPlansResponse> => {
         const response = await apiClient.get(Endpoints.subscriptions.plans);
+        return response.data;
+    },
+    purchaseAddon: async (addonId: number, influencerId: string) => {
+        const payload = {
+            addon_plan_id: addonId,
+            influencer_id: influencerId
+        }
+        const response = await apiClient.post(Endpoints.subscriptions.addons_purchase, payload);
         return response.data;
     }
 })
