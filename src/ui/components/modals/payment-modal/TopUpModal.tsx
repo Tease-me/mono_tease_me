@@ -83,6 +83,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
 
       // store for return page fallback
       localStorage.setItem("paypal_topup_order_id", order_id);
+      localStorage.setItem("paypal_topup_amount", String(dollars));
 
       // redirect user to PayPal approval page
       window.location.href = approve_url;

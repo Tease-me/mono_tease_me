@@ -1,19 +1,22 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import ChatScreenContent from "../messaging/components/ChatScreenContent";
 import InfluencerSelector from "../influencer/InfluencerSelector";
-import UserMenu from "../user-profile/UserMenu";
-import UserProfile from "../user-profile/Components/UserProfile";
-import PaymentDetails from "../user-profile/Components/PaymentDetails";
-import ManageInfluencers from "../user-profile/Components/ManageInfluencers";
-import InfluencerRelation from "../user-profile/Components/InfluencerRelation";
-import AddCredits from "../user-profile/Components/AddCredits";
 import SlideDrawerLayout from "@/ui/templates/SlideDrawerLayout";
-import AdultModePage from "../messaging/pages/adult-mode/AdultModePage";
-import PaymentCheck from "../user-profile/Components/PaymentCheck";
 import clsx from "clsx";
 import styles from "./HomeScreenSingle.module.css"
+import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
+
+const UserMenu = React.lazy(() => import("../user-profile/UserMenu"));
+const UserProfile = React.lazy(() => import("../user-profile/Components/UserProfile"));
+const PaymentDetails = React.lazy(() => import("../user-profile/Components/PaymentDetails"));
+const ManageInfluencers = React.lazy(() => import("../user-profile/Components/ManageInfluencers"));
+const InfluencerRelation = React.lazy(() => import("../user-profile/Components/InfluencerRelation"));
+const AddCredits = React.lazy(() => import("../user-profile/Components/AddCredits"));
+const AdultModePage = React.lazy(() => import("../messaging/pages/adult-mode/AdultModePage"));
+const PaymentCheck = React.lazy(() => import("../user-profile/Components/PaymentCheck"));
+const Subscription = React.lazy(() => import("../user-profile/Components/Subscription"));
 
 type SidebarPageId = string;
 type NavPayload = Record<string, any>;
@@ -23,13 +26,14 @@ type SidebarPage = {
   id: SidebarPageId;
   label: string;
   render: (ctx: { goTo: (id: SidebarPageId, payload?: NavPayload) => void; navPayload: NavPayload; goBack: () => void }) => React.ReactNode;
+  background?: string;
 };
 
 const sidebarPages: SidebarPage[] = [
   { id: "home", label: "User Menu", render: ({ goTo }) => <UserMenu goTo={goTo} /> },
   { id: "profile", label: "User Profile", render: ({ goTo }) => <UserProfile goTo={goTo} /> },
   { id: "payment", label: "Payment Details", render: ({ goTo }) => <PaymentDetails goTo={goTo} /> },
-  { id: "payment-check", label: "Payment", render: () => <PaymentCheck /> },
+  { id: "payment-check", label: "Payment", render: () => <PaymentCheck />, background: "#181A20" },
   {
     id: "influencers",
     label: "Manage Influencers",
@@ -53,6 +57,7 @@ const sidebarPages: SidebarPage[] = [
       />
     )
   },
+  { id: "subscription", label: "Subscription", render: ({ goTo, navPayload }) => <Subscription goTo={goTo} navPayload={navPayload} />, background: "linear-gradient(0deg, #131313 0%, #131313 100%), url(<path-to-image>) lightgray -60.714px 0px / 130.206% 89.736% no-repeat" },
 
 ];
 
@@ -70,14 +75,29 @@ export default function HomeScreenSingle() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [history, setHistory] = useState<NavStackEntry[]>([]);
   const [navPayload, setNavPayload] = useState<NavPayload>({});
+  const currentPageRef = useRef<SidebarPageId>("home");
+  const navPayloadRef = useRef<NavPayload>({});
 
   const influencerRepo = useMemo(() => InfluencerRepo(), []);
 
+  useEffect(() => {
+    currentPageRef.current = currentPage;
+  }, [currentPage]);
+
+  useEffect(() => {
+    navPayloadRef.current = navPayload;
+  }, [navPayload]);
+
   const goTo = useCallback((pageId: SidebarPageId, payload?: NavPayload) => {
-    if (payload) setNavPayload((p) => ({ ...p, ...payload }));
-    setHistory((h) => [...h, { id: currentPage, payload: navPayload }]);
+    if (payload) {
+      setNavPayload((p) => ({ ...p, ...payload }));
+    }
+    setHistory((h) => [
+      ...h,
+      { id: currentPageRef.current, payload: navPayloadRef.current },
+    ]);
     setCurrentPage(pageId);
-  }, [currentPage, navPayload]);
+  }, []);
 
   const prevPage = useCallback(() => {
     setHistory((h) => {
@@ -114,7 +134,9 @@ export default function HomeScreenSingle() {
   const sidebar = (
     <div className={styles.sidebarPages}>
       <div className={clsx(styles.sidebarPage, styles.sidebarPageActive)}>
-        {active.render({ goTo, navPayload, goBack: prevPage })}
+        <Suspense fallback={<div className={styles.loadingSpinner}><LoadingSpinner /></div>}>
+          {active.render({ goTo, navPayload, goBack: prevPage })}
+        </Suspense>
       </div>
     </div>
   );
@@ -176,6 +198,7 @@ export default function HomeScreenSingle() {
           ? navPayload.name
           : active.label
       }
+      background={active.background}
     >
       {needsSelection ? (
         !id ? <InfluencerSelector onItemClick={handleSelect} influencers={influencers} /> : chatContent

@@ -1,0 +1,105 @@
+.modal {
+  background: #0e0f12;
+  width: 100%;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: #e9e9ee;
+}
+
+.header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0 6px;
+}
+
+.headerTitle {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-px-28);
+}
+
+.topLine {
+  width: 54px;
+  height: 4px;
+  border-radius: 100px;
+  background: #5e5e5e;
+}
+
+.close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: none;
+  border: none;
+  padding: 6px;
+  cursor: pointer;
+  line-height: 0;
+}
+
+.close svg {
+  stroke: #f54336;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f5f4ff;
+}
+
+.titleContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: rgba(245, 244, 255, 0.6);
+  line-height: 1.5;
+}
+
+.section h4 {
+  font-size: 12px;
+  letter-spacing: 0.4px;
+  color: #ffffff;
+  margin-bottom: 6px;
+}
+
+.section p {
+  font-size: 12px;
+  color: rgba(245, 244, 255, 0.6);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.actions {
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 20px 0;
+}
+
+.primaryBtn {
+  width: 100%;
+  justify-content: center;
+}
+
+.secondaryBtn {
+  width: 100%;
+  justify-content: center;
+}
+
+.footerNote {
+  text-align: center;
+  color: rgba(245, 244, 255, 0.5);
+  font-size: 11px;
+  padding: 6px 20px 16px;
+}

@@ -1,0 +1,150 @@
+.modal {
+  background: #0f0f12;
+  width: 100%;
+}
+
+.container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-radius: 16px;
+  color: #fff;
+  min-width: 280px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.topLine {
+  width: 54px;
+  height: 4px;
+  border-radius: 100px;
+  background: #5E5E5E;
+  margin: var(--space-px-28);
+}
+
+.close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  padding: 6px;
+  cursor: pointer;
+  line-height: 0;
+}
+
+.close svg {
+  stroke: #F54336;
+}
+
+.close:hover {
+  transform: scale(1.05);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.sectionUpgrade,
+.sectionAddon {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+
+}
+
+.sectionUpgrade {
+  padding: var(--space-px-28);
+}
+
+
+
+.title1 {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #9e9e9e;
+  line-height: 1.5;
+}
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background: #2f2f2f;
+  margin: 4px 0;
+}
+
+.addonRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.addonText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.title2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.addonDesc {
+  font-size: 14px;
+  color: #9e9e9e;
+  line-height: 1.4;
+}
+
+.upgradeBtn {
+  width: auto;
+  align-self: flex-start;
+}
+
+.loading,
+.error {
+  padding: 24px;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .container {
+    width: 100%;
+    max-width: 1180px;
+  }
+
+  .content {
+    flex-direction: row;
+    gap: 24px;
+    align-items: flex-start;
+  }
+
+  .divider {
+    width: 1px;
+    height: auto;
+    background: #2f2f2f;
+    align-self: stretch;
+    margin: 0 12px;
+  }
+
+  .topLine {
+    display: none;
+  }
+}

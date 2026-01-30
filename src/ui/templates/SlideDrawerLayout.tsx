@@ -12,6 +12,7 @@ interface SlideDrawerLayoutProps {
   title: string;
   showBack: boolean;
   children: React.ReactNode;
+  background?: string;
 }
 
 const SlideDrawerLayout: React.FC<SlideDrawerLayoutProps> = ({
@@ -22,6 +23,7 @@ const SlideDrawerLayout: React.FC<SlideDrawerLayoutProps> = ({
   title,
   showBack = true,
   children,
+  background
 }) => {
 
 
@@ -29,9 +31,11 @@ const SlideDrawerLayout: React.FC<SlideDrawerLayoutProps> = ({
     <div className={styles.container}>
       <div
         className={clsx(styles.sidebar, showSidebar ? styles.open : styles.closed)}
+        style={background ? { background } : undefined}
         data-open={showSidebar ? "true" : "false"}
         data-show-back={showBack ? "true" : "false"}
       >
+
         <div className={styles.sidebarHeader}>
           <div className={styles.headerLeft}>
             <button

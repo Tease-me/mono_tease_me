@@ -106,9 +106,8 @@ export default function InfluencerSelector({
             <LoadingSpinner />
           </div>
         ) : (
-<div className={clsx(styles.list, items.length > 1 && styles.edgeFade)}>
+          <div className={clsx(styles.list, items.length > 1 && styles.edgeFade)}>
             {items.map((inf) => (
-              <>
               <div key={inf.id}>
                 <div className={styles.card}>
                   <InfluencerRelationCard {...inf} />
@@ -122,12 +121,11 @@ export default function InfluencerSelector({
                   />
                 </div>
               </div>
-              </>
             ))}
             {error && <div className={styles.error}>{error}</div>}
           </div>
         )}
       </div>
-      </BackgroundGradient>
+    </BackgroundGradient>
   );
 }
