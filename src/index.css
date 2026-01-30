@@ -136,6 +136,7 @@ button {
   background: none;
   border: none;
   color: var(--color-text);
+  font-size: 1rem;
 }
 
 /* --- Default themed scrollbars (app‑wide) --- */
