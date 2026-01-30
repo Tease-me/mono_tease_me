@@ -89,6 +89,7 @@ export const Endpoints = {
     list: "/subscriptions/me",
     influencer: (influencerId: string) => `/subscriptions/${influencerId}`,
     influencerActivate: (influencerId: string) => `/subscriptions/${influencerId}/18`,
+    addons_purchase: "/subscriptions/addons/purchase"
   },
   ws: {
     chat: "/chat/ws",
