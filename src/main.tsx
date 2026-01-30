@@ -6,6 +6,7 @@ import ErrorModalProvider from "./ui/components/modals/ErrorModalProvider";
 import "./index.css";
 import AppRoutes from "./routes/AppRoutes.jsx";
 import logger from "./utils/logger";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 
 function registerServiceWorker() {
   if ("serviceWorker" in navigator) {
@@ -25,14 +26,18 @@ function registerServiceWorker() {
 }
 
 const rootElement = document.getElementById("root");
+const queryClient = new QueryClient();
+
 if (rootElement) {
   registerServiceWorker();
   createRoot(rootElement).render(
     <StrictMode>
-      <AuthProvider>
-        <ErrorModalProvider />
-        <AppRoutes />
-      </AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <ErrorModalProvider />
+          <AppRoutes />
+        </AuthProvider>
+      </QueryClientProvider>
     </StrictMode>
   );
 } else {

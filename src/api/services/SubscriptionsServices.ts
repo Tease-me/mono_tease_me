@@ -1,5 +1,6 @@
 import { Endpoints } from "../urls";
 import { AxiosInstance } from "axios";
+import type { SubscriptionPlansResponse } from "@/data/models/SubscriptionPlans";
 
 export const SubscriptionsServices = (apiClient: AxiosInstance) => ({
     startSubscription: async (influencerId: string, planId: number): Promise<any> => {
@@ -49,6 +50,10 @@ export const SubscriptionsServices = (apiClient: AxiosInstance) => ({
         const response = await apiClient.post(
             Endpoints.subscriptions.cancel, payload
         );
+        return response.data;
+    },
+    getPlans: async (): Promise<SubscriptionPlansResponse> => {
+        const response = await apiClient.get(Endpoints.subscriptions.plans);
         return response.data;
     }
 })

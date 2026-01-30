@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import InfluencerRelationCard from "@/ui/components/cards/InfluencerRelationCard";
+import clsx from "clsx";
 
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import { RelationshipServices } from "@/api/services/RelationshipServices";
@@ -123,7 +124,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
   };
 
   return (
-    <div className={styles.container}>
+    <div className={clsx("u-sidebar-page", styles.container)}>
       {loading ? <div className={styles.loading} >{<LoadingSpinner />} </div> :
         <div className={styles.list}>
           {items.map((inf) => (

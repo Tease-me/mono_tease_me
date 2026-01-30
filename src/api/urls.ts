@@ -83,6 +83,7 @@ export const Endpoints = {
   },
   subscriptions: {
     start: "/subscriptions/start",
+    plans: "/subscriptions/plans",
     cancel: "/subscriptions/cancel",
     capture: "/subscriptions/paypal/capture",
     list: "/subscriptions/me",

@@ -36,6 +36,8 @@ export default {
     Cross: lazy(() => import("@/assets/svg/Cross.svg?react")),
     Delete: lazy(() => import("@/assets/svg/Delete.svg?react")),
     HangupCallIcon: lazy(() => import("@/assets/svg/HangupCall.svg?react")),
+    PlusPurple: lazy(() => import("@/assets/svg/PlusPurple.svg?react")),
+    InfoCircle: lazy(() => import("@/assets/svg/InfoCircle.svg?react")),
     // CircleTick: lazy(() => import("@/assets/svg/circle_tick.svg?react")),
     // CircleCross: lazy(() => import("@/assets/svg/circle_cross.svg?react")),
     PaymentTick: lazy(() => import("@/assets/svg/PaymentTick.svg?react")),

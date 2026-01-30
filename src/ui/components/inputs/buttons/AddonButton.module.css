@@ -1,0 +1,37 @@
+.addonBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid #a94cff;
+  backdrop-filter: blur(12px);
+  font-family: var(--secondary-font-family);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.2px;
+  color: #fff;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.10), 1px 3px 3px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
+.addonBtnSolid {
+  background: linear-gradient(180deg, #0a0814 0%, #130c21 32%, #24103b 80%);
+}
+
+.addonBtnOutline {
+  background: transparent;
+  border-color: #a94cff;
+}
+
+
+
+.addonBtn {
+  transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.addonBtn:hover {
+  transform: translateY(-1px);
+}

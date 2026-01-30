@@ -47,6 +47,8 @@ body,
   --chat-bubble-gradient-mid: rgba(255, 77, 116, 0.70);
   --chat-bubble-gradient-end: #FF8395;
 
+  --sidebar-bg-color: rgba(33, 33, 33, 1);
+
   --gradient-orange-start: #FB9400;
   --gradient-orange-end: #FFAB38;
   --max-chat-content-width: 960px;
@@ -58,6 +60,7 @@ body,
   --color-purple: #AD4ADE;
   --color-purple-background: rgba(136, 1, 203, 0.15);
   --color-purple-light: #CC68FF;
+  --color-purple-deep: #AE21F5;
   --color-purple-disabled: #72508A;
   --color-green-background: rgba(18, 255, 105, 0.10);
 
@@ -165,6 +168,14 @@ button {
 }
 
 .u-sidebar-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+.u-sidebar-page-fullwidth {
   display: flex;
   flex-direction: column;
   height: 100%;
