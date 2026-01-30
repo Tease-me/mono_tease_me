@@ -145,17 +145,3 @@
     display: none;
   }
 }
-
-@media (max-width: 767px) {
-  .modal {
-    position: absolute;
-    left: 12px;
-    right: 12px;
-    bottom: 12px;
-    top: auto;
-    width: auto;
-    max-width: 520px;
-    margin: 0 auto;
-    border-radius: 16px 16px 0 0;
-  }
-}
