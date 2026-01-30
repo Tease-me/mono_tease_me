@@ -15,7 +15,10 @@ type PaymentResultProps = {
 }
 
 export default function PaymentResult({ isSuccessful, onBack, onContactSupport, amount, influencerName }: PaymentResultProps) {
-  const successText = `You have successfully recharged $${amount} toward’s ${influencerName}’s account.`;
+  const hasSuccessContext = Number.isFinite(amount) && Boolean(influencerName);
+  const successText = hasSuccessContext
+    ? `You have successfully recharged $${amount} towards ${influencerName}'s account.`
+    : "Your payment was successful.";
   const failureText = `Please check that you have the required funds and try again. Perhaps try with a different payment method. You have not been charged for this transaction.`;
 
   return (
@@ -37,7 +40,6 @@ export default function PaymentResult({ isSuccessful, onBack, onContactSupport, 
           {isSuccessful ? successText : failureText}
         </span>
         <br></br>
-        {isSuccessful && <span className={styles.bolded}>You have not been charged for this transaction.</span>}
       </div>
       <div className={clsx('u-sidebar-footer', styles.footer)}>
         <div className={clsx(styles.footerTxt, isSuccessful ? styles.success : styles.error)}>
@@ -48,9 +50,6 @@ export default function PaymentResult({ isSuccessful, onBack, onContactSupport, 
           <IconButton className={styles.btn} color="black" text="Back to Profile" onClick={onBack} />
         </div>
       </div>
-
     </div>
-
   )
-
 }
