@@ -36,6 +36,7 @@ export const Paths = {
     call: (conversationId = ":conversation_id") => `/call/${conversationId}`,
     paypalReturn: "/paypal/return",
     paypalCancel: "/paypal/cancel",
+    diditReturn: "/didit/return",
     profileSelector: "/profile-selector",
     adultMode: "/adult-mode",
 

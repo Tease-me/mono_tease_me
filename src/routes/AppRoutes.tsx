@@ -1,6 +1,7 @@
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 import PayPalCancel from "@/ui/components/modals/payment-modal/PayPalCancel";
 import PayPalReturn from "@/ui/components/modals/payment-modal/PayPalReturn";
+import DiditReturn from "@/ui/components/modals/verification/DiditReturn";
 import RelationshipDashboard from "@/ui/screens/admin/dashboard_relationship/RelationshipDashboard";
 import InfluencerAudioManagerRoute from "@/ui/screens/influencer-audio-manager/InfluencerAudioManagerRoute";
 import InfluencerWelcome from "@/ui/screens/landing-page/InfluencerWelcome";
@@ -140,6 +141,7 @@ function AppRoutes() {
     { path: Paths.call(), element: <CallScreen /> },
     { path: Paths.paypalReturn, element: <PayPalReturn /> },
     { path: Paths.paypalCancel, element: <PayPalCancel /> },
+    { path: Paths.diditReturn, element: <DiditReturn /> },
   ];
 
   return (
