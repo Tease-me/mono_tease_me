@@ -21,6 +21,7 @@
   overflow: clip;
   display: grid;
   align-items: center;
+  padding: 0 var(--space-px-24);
 }
 
 .influencerStatsContainer {
@@ -96,6 +97,7 @@
   border-radius: 50%;
   position: absolute;
   z-index: 2;
+  animation: glowPulse01 5s ease 0s infinite normal none;
 }
 
 .glowStatusCircle02 {
@@ -108,6 +110,8 @@
   position: absolute;
   filter: blur(10px);
   z-index: 1;
+  animation: glowPulse02 5s ease 0s infinite normal none;
+  
 }
 
 .glowStatusCircle {
@@ -120,15 +124,33 @@
   background-color: var(--glowColor);
   transition: background-color 200ms ease-in-out;
   /* be specific */
+  animation: glowPulse02 8s ease 0s infinite normal none;
 }
 
 .glowStatusCircleDefault {
-  --glowColor: rgba(255, 7, 98, 0.9);
+  --glowColor: hsla(338, 100%, 51%, 0.9);
 }
 
 .glowStatusCircleAdult {
-  --glowColor: rgba(167, 0, 255, 0.9);
+  --glowColor: hsla(279, 100%, 50%, 0.9);
 }
+
+/** animations 🎥 **/
+@keyframes glowPulse01 {
+	0% {transform: scale(0.80) translateY(1%); filter: blur(1px); }
+  50% {transform: scale(0.88) translateY(0%); filter: blur(2px);}
+	100% {transform: scale(0.80) translateY(1%); filter: blur(1px);}
+}
+
+
+@keyframes glowPulse02 {
+	0% {transform: scale(0.5);}
+  50% {transform: scale(0.9);}
+	100% {transform: scale(0.5);}
+}
+
+
+
 
 .influencerBottom {
   z-index: 6;
@@ -261,13 +283,15 @@
   }
 
   .circleGlowContainer {
-    left: 49.83%;
-    transform: translateX(-49.83%);
+    left: 49.70%;
+    transform: translateX(-49.70%);
     bottom: -80%;
   }
 
   .influencerTop {
     min-height: 5rem;
+    padding: unset;
+
   }
 
   .influencerStatsRow {
