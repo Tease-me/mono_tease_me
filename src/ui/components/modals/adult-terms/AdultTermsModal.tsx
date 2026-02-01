@@ -26,14 +26,13 @@ export default function AdultTermsModal({
   const handleAgree = async () => {
     try {
       const verificationSession = await verificationService.startVerificationSession();
-      const sessionId = verificationSession?.response?.data?.session_id;
+      verificationSession?.response?.data?.session_id;
       const url = verificationSession?.verification_url;
-      console.log(verificationSession)
       if (!url) {
         alert("No URL found")
         throw new Error("No verification URL returned");
       }
-      window.open(url, "_blank");
+      window.location.href = url
     }
     catch (err: any) {
       logger.error(err);
