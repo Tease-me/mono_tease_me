@@ -1,6 +1,7 @@
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 import PayPalCancel from "@/ui/components/modals/payment-modal/PayPalCancel";
 import PayPalReturn from "@/ui/components/modals/payment-modal/PayPalReturn";
+import DiditReturn from "@/ui/components/modals/verification/DiditReturn";
 import RelationshipDashboard from "@/ui/screens/admin/dashboard_relationship/RelationshipDashboard";
 import InfluencerAudioManagerRoute from "@/ui/screens/influencer-audio-manager/InfluencerAudioManagerRoute";
 import InfluencerWelcome from "@/ui/screens/landing-page/InfluencerWelcome";
@@ -22,8 +23,15 @@ import SuperRoute from "./components/SuperRoute";
 import { ThemeProvider } from "@/theme/ThemeProvider";
 import TestPage from "@/ui/screens/test/TestPage";
 
+// Fixed: Removed duplicate non-lazy DisclaimerScreen import
+// Keep only the lazy version below
+
 const AdminPreInfluencers = lazy(
   () => import("@/ui/screens/admin/pre-influencers/AdminPreInfluencers")
+);
+
+const DisclaimerScreen = lazy(
+  () => import("@/ui/screens/disclaimer/DisclaimerScreen")
 );
 const AdminPreInfluencerDetail = lazy(
   () =>
@@ -74,6 +82,8 @@ const IntencionInfluencerHome = lazy(
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.all, element: <HomePage /> },
+    // Fixed: Now uses the lazy-loaded DisclaimerScreen consistently
+    { path: Paths.disclaimer, element: <DisclaimerScreen /> },
     { path: Paths.influencerProfile(), element: <InfluencerProfileScreen /> },
     { path: Paths.testButtons, element: <TestPage /> },
     { path: Paths.updateProfile, element: <UpdateProfile /> },
@@ -85,7 +95,6 @@ function AppRoutes() {
       path: Paths.influencerAudioManager(),
       element: <InfluencerAudioManagerRoute />,
     },
-
     { path: Paths.thankYou, element: <ThankYouScreen /> },
     { path: Paths.profileSurveyForm, element: <ProfileSurveyForm /> },
     { path: Paths.voiceTerms, element: <RecordTerms /> },
@@ -112,6 +121,8 @@ function AppRoutes() {
     { path: "/cookies", element: <TermsPage {...terms.cookies} /> },
     { path: "/prohibited-content", element: <TermsPage {...terms.prohibitedContent} /> },
   ];
+
+  // Rest of the routes remain unchanged...
   const guestRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.login, element: <LoginScreen /> },
     { path: Paths.register(), element: <RegisterScreen /> },
@@ -140,6 +151,7 @@ function AppRoutes() {
     { path: Paths.call(), element: <CallScreen /> },
     { path: Paths.paypalReturn, element: <PayPalReturn /> },
     { path: Paths.paypalCancel, element: <PayPalCancel /> },
+    { path: Paths.diditReturn, element: <DiditReturn /> },
   ];
 
   return (
