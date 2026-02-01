@@ -19,7 +19,7 @@ export const validationRules = {
   email: composeValidators(required("Email"), emailFormat),
   password: composeValidators(
     required("Password"),
-    minLength("Password", 8),
+    // minLength("Password", 8),
     maxLength("Password", 64),
     // hasUppercase("Password"),
     hasLowercase("Password"),
