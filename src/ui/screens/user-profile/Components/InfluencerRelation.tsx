@@ -15,14 +15,14 @@ import AdultModeToggle from "@/ui/components/adult-mode-toggle/AdultModeToggle";
 import { Modal } from "@/ui/components/modals/Modal";
 import { formatDateTimeRelative, minutesToTime } from "@/utils/DateTimeUtils";
 
+
 import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
 import { RelationshipServices } from "@/api/services/RelationshipServices";
 import { BalanceServices } from "@/api/services/BalanceServices";
 import { UserServices } from "@/api/services/UserServices";
 import logger from "@/utils/logger";
 import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
-
-
+import AdultTermsModal from "@/ui/components/modals/adult-terms/AdultTermsModal";
 //TODO
 // UNFOLLOW BUTTON IS HIDDEN
 //CHECK STATUS OF SUBSCRIPTION IF CANCELLED OR REACTIVATED ETC
@@ -105,6 +105,8 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
   const [cancelLoading, setCancelLoading] = useState(false);
 
   const [cancelReason, setCancelReason] = useState("");
+
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   useEffect(() => {
     if (!initial.id) return;
@@ -202,18 +204,29 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
 
 
   const handleAdultToggleChange = async () => {
-    // const a = adultModeChecked;
-    // setAdultModeChecked(!a);
     if (!isSubscribed) {
-      goTo('subscribe', {
-        influencerId: data.id,
-        image: data.image,
-        onSubscribe: () => {
-          goTo("subscription", {
-            influencerId: data.id
-          })
+      //Check if verified
+      try {
+        await subscriptionService.activateMySubscriptionForInfluencer(data.id, true);
+        goTo('subscribe', {
+          influencerId: data.id,
+          image: data.image,
+          onSubscribe: () => {
+            goTo("subscription", {
+              influencerId: data.id
+            })
+          }
+        });
+      }
+      catch (err: any) {
+        const ageVerified = err?.response?.data?.detai?.verification_status?.is_age_verified
+        const idVerified = err?.response?.data?.detai?.verification_status?.is_identity_verified;
+        if (!ageVerified && !idVerified) {
+          setShowTermsModal(true);
+          logger.error(err);
+          return;
         }
-      });
+      }
     }
     else {
       setShowCancelModal(true);
@@ -249,6 +262,10 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
   const followingDate = data.followingSince && !Number.isNaN(Date.parse(data.followingSince))
     ? new Date(data.followingSince).toLocaleDateString()
     : "--";
+
+  const onAdultTermsAgreed = () => {
+
+  }
 
 
   return (
@@ -415,10 +432,12 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         </Modal>
 
       )}
-
+      <AdultTermsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} onAgree={onAdultTermsAgreed} />
       {/* Temporary loading to avoid  warning */}
       {loading && <div> </div>}
 
     </div>
   );
 }
+
+
