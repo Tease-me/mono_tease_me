@@ -127,6 +127,19 @@ export default function RegisterScreen() {
       Object.entries(errors).filter(([, value]) => value !== undefined && value !== ""),
     ) as Partial<T>;
 
+  const isAdult = (isoDate: string, minimumAge = 18) => {
+    if (!isoDate) return false;
+    const dob = new Date(isoDate);
+    if (Number.isNaN(dob.getTime())) return false;
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+      age -= 1;
+    }
+    return age >= minimumAge;
+  };
+
   const validateStepTwo = () => {
     const fieldErrors = validateFields(
       {
@@ -143,12 +156,18 @@ export default function RegisterScreen() {
       },
     );
 
-    return cleanErrors({
+    const nextErrors = {
       fullName: fieldErrors.fullName,
       userName: fieldErrors.userName,
       gender: fieldErrors.gender,
       dateOfBirth: fieldErrors.dateOfBirth,
-    });
+    };
+
+    if (!nextErrors.dateOfBirth && !isAdult(profile.dateOfBirth)) {
+      nextErrors.dateOfBirth = "You must be at least 18 years old";
+    }
+
+    return cleanErrors(nextErrors);
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
@@ -246,7 +265,12 @@ export default function RegisterScreen() {
     if (field === "fullName") error = required("Full name")(value);
     if (field === "userName") error = validationRules.username(value);
     if (field === "gender") error = required("Gender")(value);
-    if (field === "dateOfBirth") error = required("Date of birth")(value);
+    if (field === "dateOfBirth") {
+      error = required("Date of birth")(value);
+      if (!error && !isAdult(value)) {
+        error = "You must be at least 18 years old";
+      }
+    }
     if (field === "email" || field === "password" || field === "confirmPassword") {
       setAccountErrors((prev) => ({ ...prev, [field]: error }));
       return;
