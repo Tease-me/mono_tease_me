@@ -37,6 +37,7 @@ import AdultConvoStarterCard from '@/ui/components/cards/AdultConvoStarterCard';
 import { mergeCallMessages } from './messageUtils';
 import { UserServices } from '@/api/services/UserServices';
 import UpgradePlanModal from '@/ui/components/modals/subscription/UpgradePlanModal';
+import AddCreditsModal from '@/ui/components/modals/payment-modal/AddCreditsModal';
 
 const chatRepository = ChatRepository();
 const influencerRepo = InfluencerRepo();
@@ -91,6 +92,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const [adultMinutesRemaining, setAdultMinutesRemaining] = useState<number | undefined>(undefined);
 
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+    const [showTopupModal, setShowTopupModal] = useState(false);
 
     const { user_id } = useParams();
 
@@ -384,7 +386,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                     if (adultMode) {
                         setShowUpgradeModal(true);
                     } else {
-                        setShowErrorAlert("You do not have enough chat credits to send this message. Please purchase more credits.");
+                        setShowTopupModal(true);
+                        // setShowErrorAlert("You do not have enough chat credits to send this message. Please purchase more credits.");
                     }
                 }
                 setError(data.error || "An error occurred while sending the message.");
@@ -693,10 +696,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             <UpgradePlanModal
                 isOpen={showUpgradeModal}
                 onClose={() => setShowUpgradeModal(false)}
-                goTo={(page: string) => {
-
-                }}
             />
+
+            <AddCreditsModal
+                isOpen={showTopupModal}
+                onClose={() => setShowTopupModal(false)}
+                influencerId={influencer?.id || ''} />
+
             <Modal isOpen={!(!showErrorAlert)} onClose={() => {
                 setShowErrorAlert(undefined);
             }}

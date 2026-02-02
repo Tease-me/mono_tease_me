@@ -11,7 +11,7 @@ import styles from "./UpgradePlanModal.module.css";
 type UpgradePlanModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  goTo: (page: string, payload?: any) => void;
+  goTo?: (page: string, payload?: any) => void;
 };
 
 
@@ -29,7 +29,7 @@ export default function UpgradePlanModal({ isOpen, onClose, goTo }: UpgradePlanM
 
   const handleUpgrade = () => {
     onClose();
-    goTo("subscription");
+    goTo && goTo("subscription");
   };
 
 
