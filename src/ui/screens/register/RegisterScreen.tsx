@@ -1,7 +1,8 @@
 import { apiClient } from "@/api/apis";
 import { RegisterResponse } from "@/api/models/auth";
 import { AuthServices } from "@/api/services/AuthServices";
-import QuestionMarkCircleIcon from "@/assets/svg/QuestionMark.svg?react";
+
+
 import { AuthContext } from "@/context/AuthContext";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
@@ -18,6 +19,7 @@ import styles from "./RegisterScreen.module.css";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { Paths } from "@/routes/path";
 import logger from "@/utils/logger";
+import clsx from "clsx";
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState("");
@@ -102,7 +104,7 @@ export default function RegisterScreen() {
         </HeadingText>
         <form className={styles["auth-form"]} onSubmit={handleSubmit}>
           <div className={styles["input-fields"]}>
-            <div className={styles["input-field"]}>
+            <div className={clsx(styles["input-field"], styles["email-field"])}>
               <TextInput
                 type="email"
                 placeholder="Email"
@@ -126,13 +128,26 @@ export default function RegisterScreen() {
                 <span className={styles["error"]}>{errors.password}</span>
               )}
             </div>
+                  <div className={styles["input-field"]}>
+              <TextInput
+                type="password"
+                placeholder="Confirm Password"
+                value={password}
+                onChange={(e) =>
+                  setPassword((e.target as HTMLInputElement).value)
+                }
+              />
+              {errors.password && (
+                <span className={styles["error"]}>{errors.password}</span>
+              )}
+            </div>
           </div>
           <CheckBox
             className={styles["check-box"]}
             checked={agree}
             onChange={handleOnAgreeChange}
           >
-            NSFW (Not Safe For Work) <QuestionMarkCircleIcon />
+            I am over 18 
           </CheckBox>
           {errors.general && (
             <span className={styles["error"]}>{errors.general}</span>
