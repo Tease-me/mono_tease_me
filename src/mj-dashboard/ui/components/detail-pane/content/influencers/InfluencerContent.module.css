@@ -5,7 +5,7 @@
 
 .user-cell {
     display: flex;
-    gap: 16px;
+    gap: var(--space-px-16);
     justify-content: center;
     align-items: center;
 }

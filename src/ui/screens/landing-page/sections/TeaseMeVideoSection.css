@@ -17,7 +17,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 16px;
+  gap: var(--space-px-16);
   margin-bottom: 32px;
 }
 
@@ -48,7 +48,7 @@
 
 .tm-video-scroll {
   display: flex;
-  gap: 20px;
+  gap: var(--space-px-20);
   overflow-x: auto;
   padding-bottom: 8px;
   scroll-snap-type: x mandatory;

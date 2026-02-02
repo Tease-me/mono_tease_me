@@ -14,7 +14,7 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-px-8);
 
 }
 
@@ -89,13 +89,13 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: var(--space-px-8);
 }
 
 .call-bubble {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-px-12);
     cursor: pointer;
     transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     border-radius: 0.75rem;
@@ -132,7 +132,7 @@
 .call-copy {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--space-px-4);
 }
 
 .call-title {
@@ -155,7 +155,7 @@
 .call-lines {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--space-px-12);
     padding: 10px;
     border-radius: 10px;
     background: rgba(0, 0, 0, 0.2);
@@ -164,7 +164,7 @@
 .call-line {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--space-px-8);
     font-size: 13px;
 }
 
@@ -175,13 +175,13 @@
     padding: 8px 10px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--space-px-8);
 }
 
 .call-line-header {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-px-12);
 }
 
 .call-speaker {

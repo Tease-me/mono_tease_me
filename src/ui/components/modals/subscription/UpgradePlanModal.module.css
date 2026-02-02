@@ -49,7 +49,7 @@
 .content {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-px-16);
   align-items: flex-start;
 }
 
@@ -57,7 +57,7 @@
 .sectionAddon {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-px-12);
   align-items: flex-start;
 
 }
@@ -91,14 +91,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-px-12);
   padding: 10px 0;
 }
 
 .addonText {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-px-4);
 }
 
 .title2 {
@@ -132,7 +132,7 @@
 
   .content {
     flex-direction: row;
-    gap: 24px;
+    gap: var(--space-px-24);
     align-items: flex-start;
   }
 

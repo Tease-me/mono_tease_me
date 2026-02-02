@@ -39,7 +39,7 @@
 
 .call-buttons {
     display: flex;
-    gap: 20px;
+    gap: var(--space-px-20);
     justify-content: center;
 }
 

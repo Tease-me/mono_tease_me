@@ -1,7 +1,7 @@
 .prompt-editor {
     display: grid;
     grid-template-columns: 320px 1fr;
-    gap: 20px;
+    gap: var(--space-px-20);
     height: 100%;
     min-height: 0;
 }
@@ -13,7 +13,7 @@
     padding: 18px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--space-px-16);
     min-height: 0;
 }
 
@@ -21,13 +21,13 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: var(--space-px-12);
 }
 
 .rail-title {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-px-12);
 }
 
 .rail-title svg {
@@ -38,7 +38,7 @@
 .header-fields {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--space-px-4);
     flex: 1;
 }
 
@@ -82,7 +82,7 @@
 .node-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--space-px-12);
     overflow-y: auto;
     padding-right: 2px;
     flex: 1;
@@ -125,7 +125,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: var(--space-px-8);
 }
 
 .node-name {
@@ -163,7 +163,7 @@
 .node-meta {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-px-8);
     margin-top: 10px;
     font-size: 12px;
     color: var(--color-text-secondary);
@@ -191,7 +191,7 @@
     padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--space-px-16);
     min-height: 0;
     overflow-y: auto;
 }
@@ -200,7 +200,7 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 16px;
+    gap: var(--space-px-16);
 }
 
 .title-input {
@@ -233,7 +233,7 @@
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-px-12);
 }
 
 .primary-button {
@@ -266,7 +266,7 @@
 .fields-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
+    gap: var(--space-px-16);
 }
 
 .field-card {
@@ -276,7 +276,7 @@
     border: 1px solid rgba(255, 255, 255, 0.06);
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-px-8);
 }
 
 .field-label-row {
@@ -318,7 +318,7 @@
 .preview-bar {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: var(--space-px-12);
 }
 
 .preview-chip {
@@ -328,7 +328,7 @@
     border: 1px solid rgba(255, 255, 255, 0.08);
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-px-12);
 }
 
 .preview-chip__label {
@@ -351,7 +351,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: var(--space-px-12);
     color: var(--color-text-secondary);
     text-align: center;
     padding: 24px;
