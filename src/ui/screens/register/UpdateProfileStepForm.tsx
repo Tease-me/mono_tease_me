@@ -9,12 +9,14 @@ import ValidationPill from "@/ui/components/inputs/buttons/ValidationPill";
 
 type ProfileValues = {
   fullName: string;
+  userName: string;
   gender: "male" | "female" | "";
   dateOfBirth: string;
 };
 
 type ProfileErrors = {
   fullName?: string;
+  userName?: string;
   gender?: string;
   dateOfBirth?: string;
   general?: string;
@@ -23,9 +25,9 @@ type ProfileErrors = {
 type UpdateProfileStepFormProps = {
   values: ProfileValues;
   errors: ProfileErrors;
-  onChange: (field: "fullName" | "dateOfBirth", value: string) => void;
+  onChange: (field: "fullName" | "userName" | "dateOfBirth", value: string) => void;
   onGenderSelect: (value: "male" | "female") => void;
-  onBlur: (field: "fullName" | "dateOfBirth") => void;
+  onBlur: (field: "fullName" | "userName" | "dateOfBirth") => void;
   onBack: () => void;
   onSubmit: () => void;
   handleEditProfileMediaClicked: () => void;
@@ -83,6 +85,19 @@ export default function UpdateProfileStepForm({
           />
           {errors.fullName && (
             <span className={styles["error"]}>{errors.fullName}</span>
+          )}
+          <TextInput
+            type="text"
+            placeholder="Username"
+            value={values.userName}
+            onChange={(e) =>
+              onChange("userName", (e.target as HTMLInputElement).value)
+            }
+            onBlur={() => onBlur("userName")}
+            autoComplete="username"
+          />
+          {errors.userName && (
+            <span className={styles["error"]}>{errors.userName}</span>
           )}
           <TextInput
             type="date"

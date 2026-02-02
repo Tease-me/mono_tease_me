@@ -29,6 +29,7 @@ export default function RegisterScreen() {
   });
   const [profile, setProfile] = useState({
     fullName: "",
+    userName: "",
     gender: "" as "male" | "female" | "",
     dateOfBirth: "",
   });
@@ -41,6 +42,7 @@ export default function RegisterScreen() {
   }>({});
   const [profileErrors, setProfileErrors] = useState<{
     fullName?: string;
+    userName?: string;
     gender?: string;
     dateOfBirth?: string;
     general?: string;
@@ -126,11 +128,13 @@ export default function RegisterScreen() {
     const fieldErrors = validateFields(
       {
         fullName: profile.fullName,
+        userName: profile.userName,
         gender: profile.gender,
         dateOfBirth: profile.dateOfBirth,
       },
       {
         fullName: required("Full name"),
+        userName: validationRules.username,
         gender: required("Gender"),
         dateOfBirth: required("Date of birth"),
       },
@@ -138,6 +142,7 @@ export default function RegisterScreen() {
 
     return cleanErrors({
       fullName: fieldErrors.fullName,
+      userName: fieldErrors.userName,
       gender: fieldErrors.gender,
       dateOfBirth: fieldErrors.dateOfBirth,
     });
@@ -178,6 +183,7 @@ export default function RegisterScreen() {
         influencerId,
         profile.fullName,
         profile.gender,
+        profile.userName,
         profile.dateOfBirth
       );
       const detailMessage =
@@ -216,6 +222,7 @@ export default function RegisterScreen() {
       | "password"
       | "confirmPassword"
       | "fullName"
+      | "userName"
       | "gender"
       | "dateOfBirth",
     value: string,
@@ -230,6 +237,7 @@ export default function RegisterScreen() {
       }
     }
     if (field === "fullName") error = required("Full name")(value);
+    if (field === "userName") error = validationRules.username(value);
     if (field === "gender") error = required("Gender")(value);
     if (field === "dateOfBirth") error = required("Date of birth")(value);
     if (field === "email" || field === "password" || field === "confirmPassword") {

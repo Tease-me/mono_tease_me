@@ -24,16 +24,26 @@ export const AuthServices = (apiClient: AxiosInstance) => ({
     influencer_id: string,
     full_name: string,
     gender: string,
-    date_of_birth: string
+    user_name: string,
+    date_of_birth: string,
+    file?: File | null
   ): Promise<RegisterResponse> => {
     try {
-      const response = await apiClient.post(Endpoints.auth.register, {
-        password,
-        email,
-        influencer_id: influencer_id,
-        full_name,
-        gender,
-        date_of_birth,
+      const formData = new FormData();
+      formData.append("password", password);
+      formData.append("email", email);
+      if (influencer_id) formData.append("influencer_id", influencer_id);
+      formData.append("full_name", full_name);
+      formData.append("gender", gender);
+      formData.append("user_name", user_name);
+      formData.append("date_of_birth", date_of_birth);
+      if (file) {
+        formData.append("file", file);
+      }
+      const response = await apiClient.post(Endpoints.auth.register, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
       return response.data;
     } catch (error: any) {
