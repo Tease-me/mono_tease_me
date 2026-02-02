@@ -11,6 +11,13 @@
   width: 100%;
 }
 
+.left-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
 .file-input {
   margin-top: 12px;
   color: #bdbdbd;
