@@ -57,7 +57,7 @@
 
 .leftCol p.statusText {
   opacity: 0.7;
-  font-size: 14px;
+  font-size: 12px;
   align-items: center;
 }
 
@@ -290,7 +290,7 @@
 
   .influencerTop {
     min-height: 5rem;
-    padding: unset;
+
 
   }
 
