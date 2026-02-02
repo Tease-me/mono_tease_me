@@ -42,7 +42,7 @@
 .call-buttons {
   margin-top: 20px;
   display: flex;
-  gap: 16px;
+  gap: var(--space-px-16);
   justify-content: center;
 }
 
@@ -79,7 +79,7 @@
   margin-top: 16px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--space-px-16);
 }
 
 /* "Sign in with email" button extra spacing */

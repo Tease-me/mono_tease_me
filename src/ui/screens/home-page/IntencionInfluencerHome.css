@@ -125,7 +125,7 @@
   width: 344px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-px-8);
 }
 
 .intencion-email-label {
@@ -255,7 +255,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--space-px-8);
   z-index: 5;
 }
 
@@ -344,7 +344,7 @@
 .intencion-invite-input-container {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--space-px-16);
   width: 284.585px;
 }
 

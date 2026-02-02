@@ -2,7 +2,7 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    gap: 24px;
+    gap: var(--space-px-24);
     background: radial-gradient(160% 120% at 50% 0%, rgba(30, 34, 45, 0.4), rgba(14, 16, 24, 0.9));
 }
 
@@ -10,7 +10,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
+    gap: var(--space-px-16);
 }
 
 .create-ai__title {
@@ -31,7 +31,7 @@
 .upload-status-group {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--space-px-8);
     align-items: flex-end;
     min-height: 36px;
 }
@@ -50,13 +50,13 @@
     min-height: 0;
     display: grid;
     grid-template-columns: 400px 1fr;
-    gap: 24px;
+    gap: var(--space-px-24);
 }
 
 .sidebar {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: var(--space-px-20);
     border-radius: 24px;
     padding: 24px;
     background: linear-gradient(140deg, rgba(37, 42, 56, 0.95), rgba(18, 20, 30, 0.94));
@@ -67,7 +67,7 @@
 .sidebar-top {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--space-px-16);
 }
 
 .sidebar-title {
@@ -107,7 +107,7 @@
 .sidebar-actions {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--space-px-16);
 }
 
 .new-button {
@@ -146,7 +146,7 @@
 .influencer-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--space-px-12);
     overflow-y: auto;
     max-height: calc(100vh - 320px);
     padding-right: 6px;
@@ -165,7 +165,7 @@
 .influencer-item {
     display: grid;
     grid-template-columns: auto 1fr auto;
-    gap: 14px;
+    gap: var(--space-px-12);
     align-items: center;
     width: 100%;
     padding: 14px 18px;
@@ -211,7 +211,7 @@
 .influencer-item__copy {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--space-px-4);
     text-align: left;
 }
 
@@ -274,7 +274,7 @@
 .detail-card {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: var(--space-px-24);
     padding: 28px 32px;
     border-radius: 24px;
     background: linear-gradient(145deg, rgba(33, 37, 51, 0.95), rgba(18, 20, 28, 0.92));
@@ -287,7 +287,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 24px;
+    gap: var(--space-px-24);
 }
 
 .detail-header h2 {
@@ -325,13 +325,13 @@
 .detail-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 18px;
+    gap: var(--space-px-20);
 }
 
 .field {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-px-8);
 }
 
 .field label {
@@ -369,7 +369,7 @@
 .section-heading {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--space-px-4);
     margin-top: 8px;
     margin-bottom: 12px;
 }
@@ -378,7 +378,7 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: var(--space-px-12);
 }
 
 .section-heading h3 {
@@ -414,13 +414,13 @@
 .persona-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(560px, 1fr));
-    gap: 14px;
+    gap: var(--space-px-12);
 }
 
 .tag-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--space-px-8);
     margin-top: 8px;
 }
 
@@ -433,7 +433,7 @@
     font-size: 13px;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-px-8);
     transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
 }
 
@@ -465,7 +465,7 @@
 .social-connectors {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 14px;
+    gap: var(--space-px-16);
     margin-bottom: 8px;
 }
 
@@ -476,7 +476,7 @@
     background: rgba(22, 24, 32, 0.85);
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--space-px-12);
     transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
@@ -523,7 +523,7 @@
 .knowledge-actions {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-px-12);
     flex-wrap: wrap;
     margin-bottom: 12px;
 }
@@ -531,13 +531,13 @@
 .knowledge-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--space-px-12);
 }
 
 .knowledge-item {
     display: flex;
     justify-content: space-between;
-    gap: 12px;
+    gap: var(--space-px-12);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 16px;
     padding: 14px 16px;
@@ -554,7 +554,7 @@
 .knowledge-item__meta {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-px-8);
     margin-top: 4px;
     font-size: 12px;
     color: var(--color-text-secondary);
@@ -564,7 +564,7 @@
 .form-footer {
     display: flex;
     justify-content: flex-end;
-    gap: 12px;
+    gap: var(--space-px-12);
     align-items: center;
 }
 
@@ -626,14 +626,14 @@
 .upload-modal {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--space-px-16);
 }
 
 .upload-modal__header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-px-12);
 }
 
 .upload-modal__header h3 {
@@ -671,7 +671,7 @@
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--space-px-12);
     max-height: 60vh;
     overflow-y: auto;
 }
@@ -710,13 +710,13 @@
     padding: 12px 16px 16px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--space-px-12);
 }
 
 .upload-modal__row {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--space-px-4);
 }
 
 .upload-modal__key {

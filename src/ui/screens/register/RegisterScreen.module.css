@@ -22,7 +22,49 @@
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: var(--space-px-16);
+}
+
+.auth-buttons {
+  display: flex;
+  gap: var(--space-px-16);
+  justify-content: end;
+  margin-top: 10px;
+  flex: 1;
+}
+
+.auth-footer {
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+.auth-footer span {
+  color: #ff4d6d;
+  cursor: pointer;
+}
+
+.auth-footer span:hover {
+  text-decoration: underline;
+}
+
+.check-box svg {
+  height: 24px;
+}
+
+.error {
+  color: red;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 767px) {

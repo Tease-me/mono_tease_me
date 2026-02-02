@@ -32,7 +32,7 @@
 .audioPlayer {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-px-12);
 }
 
 .waveformCanvas {

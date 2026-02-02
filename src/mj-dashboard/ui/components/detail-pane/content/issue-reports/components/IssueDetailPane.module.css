@@ -1,7 +1,7 @@
 .container {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: var(--space-px-24);
     background: linear-gradient(135deg, rgba(41, 47, 60, 0.92), rgba(18, 20, 28, 0.92));
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 18px;
@@ -14,13 +14,13 @@
 .meta {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 16px 32px;
+    gap: var(--space-px-16) var(--space-px-32);
 }
 
 .meta-item {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-px-8);
 }
 
 .meta-label {
@@ -44,7 +44,7 @@
 .issue-section {
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: var(--space-px-20);
 }
 
 .issue-title {
@@ -56,7 +56,7 @@
 .issue-body {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--space-px-12);
     color: var(--color-text-secondary);
     font-size: 14px;
     line-height: 1.6;
@@ -65,7 +65,7 @@
 .reply-section {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--space-px-12);
 }
 
 .reply-label {

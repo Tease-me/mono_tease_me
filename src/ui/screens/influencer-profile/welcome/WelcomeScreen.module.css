@@ -49,7 +49,7 @@
 .call-buttons {
   display: flex;
   flex: 1;
-  gap: 20px;
+  gap: var(--space-px-20);
   justify-content: center;
 }
 

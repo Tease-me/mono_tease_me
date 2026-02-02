@@ -87,6 +87,16 @@ const TeaseMeLanding: React.FC = () => {
                 ))}
               </ul>
 
+        <div className="ctaContainer">
+            <PrimaryButton
+            onClick={() => navigate("/profile-survey")}
+            text="Start Building Persona"
+            rightIcon={<SvgPack.ArrowRight />}
+          />
+        </div>
+
+
+
               <div className="tm-integrations">
                 <p>Integrates your</p>
                 <div className="tm-icons-row">

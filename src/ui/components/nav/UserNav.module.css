@@ -17,6 +17,9 @@
   flex-shrink: 0;
 }
 
+.callChatIcon {color: var(--color-primary);}
+.callCallIcon {color: var(----tm-green-color01, hsl(140, 71%, 68%));}
+
 .menuButton {
   display: flex;
   align-content: center;
