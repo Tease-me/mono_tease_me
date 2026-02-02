@@ -100,6 +100,7 @@ function AdultModeRoute() {
       influencerImageUrl={searchParams.get("img")}
       influencerName={searchParams.get("name")}
       onSubscribePressed={() => navigate(Paths.home)}
+      onBackClicked={() => navigate(Paths.home)}
     />
   );
 }

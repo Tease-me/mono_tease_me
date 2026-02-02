@@ -708,13 +708,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                 </> : (
                     <AdultModePage
                         onSubscribePressed={handleSubscribePressed}
-                        influencerId={influencer?.id ?? ""}
-                        influencerImageUrl={influencer?.img ?? null}
-                        influencerName={influencer?.name ?? null}
                         onBackClicked={() => {
                             setShowSubscriptionPage(false);
                             setAdultModeSwitch(false);
                         }}
+                        influencerId={influencer?.id ?? ""}
+                        influencerImageUrl={influencer?.img ?? null}
+                        influencerName={influencer?.name ?? null}
                     />
                 )}
             </div>
