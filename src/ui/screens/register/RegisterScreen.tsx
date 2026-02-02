@@ -122,7 +122,7 @@ export default function RegisterScreen() {
   };
 
   const handleBackClick = () => {
-    navigate("/");
+    navigate(Paths.influencerProfile(username || ""));
   };
   const handleContinueClicked = () => {
     handleSubmit();
