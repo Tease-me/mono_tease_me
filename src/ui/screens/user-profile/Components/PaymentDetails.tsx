@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import NavigationRow from '@/ui/components/inputs/buttons/NavigationRow';
 import styles from "./PaymentDetails.module.css"
 import IconButton from '@/ui/components/inputs/buttons/IconButton';
