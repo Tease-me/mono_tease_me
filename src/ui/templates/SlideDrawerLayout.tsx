@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useEffect } from 'react';
 import styles from './SlideDrawerLayout.module.css';
 import clsx from "clsx"
 import SvgPack from '@/utils/SvgPack';
@@ -26,9 +26,33 @@ const SlideDrawerLayout: React.FC<SlideDrawerLayoutProps> = ({
   background
 }) => {
 
+  // Lock body scroll on mobile when sidebar is open
+  useEffect(() => {
+    if (!showSidebar) return;
+    const mq = window.matchMedia('(max-width: 768px)');
+    if (!mq.matches) return;
+    const scrollY = window.scrollY;
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+      window.scrollTo(0, scrollY);
+    };
+  }, [showSidebar]);
 
   return (
     <div className={styles.container}>
+      {showSidebar && (
+        <div
+          className={styles.overlay}
+          onClick={onToggle}
+        />
+      )}
       <div
         className={clsx(styles.sidebar, showSidebar ? styles.open : styles.closed)}
         style={background ? { background } : undefined}
