@@ -5,6 +5,7 @@ import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 import SvgPack from "@/utils/SvgPack";
 import styles from "./UpdateProfileStepForm.module.css";
+import ValidationPill from "@/ui/components/inputs/buttons/ValidationPill";
 
 type ProfileValues = {
   fullName: string;
@@ -16,6 +17,7 @@ type ProfileErrors = {
   fullName?: string;
   gender?: string;
   dateOfBirth?: string;
+  general?: string;
 };
 
 type UpdateProfileStepFormProps = {
@@ -93,6 +95,12 @@ export default function UpdateProfileStepForm({
           />
           {errors.dateOfBirth && (
             <span className={styles["error"]}>{errors.dateOfBirth}</span>
+          )}
+
+          {errors.general && (
+            <ValidationPill variant="error" className={styles["errorPill"]}>
+              {errors.general}
+            </ValidationPill>
           )}
           <div className={styles["auth-buttons"]}>
             <NormalButton text="Back" onClick={onBack} className={styles["btn-back"]} />

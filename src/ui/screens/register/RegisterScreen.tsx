@@ -43,6 +43,7 @@ export default function RegisterScreen() {
     fullName?: string;
     gender?: string;
     dateOfBirth?: string;
+    general?: string;
   }>({});
   const authServices = AuthServices(apiClient);
   const influencerRepo = InfluencerRepo();
@@ -67,6 +68,21 @@ export default function RegisterScreen() {
       }
     })();
   }, [username])
+
+  useEffect(() => {
+    logger.debug("Register errors updated", {
+      accountErrors,
+      profileErrors,
+    });
+  }, [accountErrors, profileErrors]);
+
+  useEffect(() => {
+    logger.debug("Register data updated", {
+      step,
+      account,
+      profile,
+    });
+  }, [step, account, profile]);
 
   const validateStepOne = () => {
     const fieldErrors = validateFields(
@@ -98,8 +114,13 @@ export default function RegisterScreen() {
     }
     if (!account.agree) nextErrors.general = "Please Agree to NSFW";
 
-    return nextErrors;
+    return cleanErrors(nextErrors);
   };
+
+  const cleanErrors = <T extends Record<string, string | undefined>>(errors: T) =>
+    Object.fromEntries(
+      Object.entries(errors).filter(([, value]) => value !== undefined && value !== ""),
+    ) as Partial<T>;
 
   const validateStepTwo = () => {
     const fieldErrors = validateFields(
@@ -115,11 +136,11 @@ export default function RegisterScreen() {
       },
     );
 
-    return {
+    return cleanErrors({
       fullName: fieldErrors.fullName,
       gender: fieldErrors.gender,
       dateOfBirth: fieldErrors.dateOfBirth,
-    };
+    });
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
@@ -128,10 +149,11 @@ export default function RegisterScreen() {
     if (step === 1) {
       const newErrors = validateStepOne();
       if (Object.keys(newErrors).length) {
-        setAccountErrors(newErrors);
+        setAccountErrors(cleanErrors(newErrors));
         return;
       }
       setAccountErrors({});
+      setProfileErrors({});
       setStep(2);
       return;
     }
@@ -142,7 +164,7 @@ export default function RegisterScreen() {
       Object.keys(stepOneErrors).length > 0 ||
       Object.keys(stepTwoErrors).length > 0;
     if (hasErrors) {
-      setAccountErrors(stepOneErrors);
+      setAccountErrors(cleanErrors(stepOneErrors));
       setProfileErrors(stepTwoErrors);
       return;
     }
@@ -158,13 +180,32 @@ export default function RegisterScreen() {
         profile.gender,
         profile.dateOfBirth
       );
+      const detailMessage =
+        typeof (response as any)?.detail === "string" ? (response as any).detail : undefined;
+      if (detailMessage) {
+        setAccountErrors({ general: detailMessage });
+        setProfileErrors((prev) => ({ ...prev, general: detailMessage }));
+        return;
+      }
       if (response.ok) {
         navigate(Paths.registerVerify, {
           state: { email: account.email, password: account.password, influencerId },
         });
+        return;
       }
       setAccountErrors({ general: "Registration Failed. Please Try Again Later" });
-    } catch (err) {
+      setProfileErrors((prev) => ({
+        ...prev,
+        general: "Registration Failed. Please Try Again Later",
+      }));
+    } catch (err: any) {
+      const detail = err?.detail || err?.response?.data?.detail;
+      const message =
+        typeof detail === "string" && detail.trim()
+          ? detail
+          : "Registration Failed. Please Try Again Later";
+      setAccountErrors({ general: message });
+      setProfileErrors((prev) => ({ ...prev, general: message }));
       console.error(err);
     }
   };

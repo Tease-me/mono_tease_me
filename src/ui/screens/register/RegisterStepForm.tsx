@@ -6,6 +6,7 @@ import ButtonRow from "@/ui/templates/ButtonRow";
 import SvgPack from "@/utils/SvgPack";
 import clsx from "clsx";
 import styles from "./RegisterStepForm.module.css";
+import ValidationPill from "@/ui/components/inputs/buttons/ValidationPill";
 
 type AccountValues = {
   email: string;
@@ -97,7 +98,11 @@ export default function RegisterStepForm({
       >
         I am over 18
       </CheckBox>
-      {errors.general && <span className={styles["error"]}>{errors.general}</span>}
+      {errors.general && (
+        <ValidationPill variant="error" className={styles["errorPill"]}>
+          {errors.general}
+        </ValidationPill>
+      )}
       <div className={styles["user-action-section"]}>
         <div className={styles["auth-buttons"]}>
           <ButtonRow>

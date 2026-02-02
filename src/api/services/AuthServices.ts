@@ -26,16 +26,19 @@ export const AuthServices = (apiClient: AxiosInstance) => ({
     gender: string,
     date_of_birth: string
   ): Promise<RegisterResponse> => {
-    const response = await apiClient.post(Endpoints.auth.register, {
-      password,
-      email,
-      influencer_id: influencer_id,
-      full_name,
-      gender,
-      date_of_birth,
-    });
-
-    return response.data;
+    try {
+      const response = await apiClient.post(Endpoints.auth.register, {
+        password,
+        email,
+        influencer_id: influencer_id,
+        full_name,
+        gender,
+        date_of_birth,
+      });
+      return response.data;
+    } catch (error: any) {
+      throw error?.response?.data || error;
+    }
   },
   refreshToken: async (refreshToken: string): Promise<TokenResponse> => {
     try {
