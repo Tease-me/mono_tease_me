@@ -4,7 +4,6 @@ import { Paths } from "@/routes/path";
 import styles from "@/ui/components/modals/payment-modal/PayPalReturn.module.css";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import VerificationResult from "@/ui/components/verification/VerificationResult";
-
 type VerificationStatus = "loading" | "success" | "error";
 
 const normalizeStatus = (value?: string | null) =>
@@ -33,7 +32,12 @@ export default function DiditReturn() {
 
     if (isApproved(statusParam)) {
       setStatus("success");
-      setTimeout(() => navigate(Paths.home), 1200);
+      setTimeout(() => {
+        navigate(Paths.home, {
+          replace: true,
+          state: { openSubscribe: true },
+        });
+      }, 1200);
       return;
     }
 

@@ -11,7 +11,7 @@
   background: var(--Dark-Dark-1, #181A20);
 }
 
-.nobg{
+.nobg {
   background: transparent;
 }
 
@@ -187,6 +187,16 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-px-16);
+}
+
+.plansSection {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  gap: 16px;
+  font-size: 14px;
+  margin-top: 32px;
+  margin-bottom: 32px;
 }
 
 @keyframes wavePulse {
