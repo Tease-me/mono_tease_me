@@ -58,12 +58,9 @@
 
 .btn-primary,
 .btn-back {
-  padding: 12px 25px;
-  border-radius: 50px;
   border: none;
   cursor: pointer;
   font-size: 15px;
-  transition: background-color 0.3s ease;
 }
 
 .btn-primary {
