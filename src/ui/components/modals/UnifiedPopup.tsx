@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import clsx from "clsx";
 import styles from "./UnifiedPopup.module.css";
 
@@ -34,14 +35,24 @@ export default function UnifiedPopup({
   const [openClass, setOpenClass] = useState<string>();
 
   useEffect(() => {
-    if (!isOpen) return;
-    const prev = document.body.style.overflow;
+    if (!isOpen) {
+      setOpenClass(undefined);
+      return;
+    }
+    const scrollY = window.scrollY;
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
     document.body.style.overflow = "hidden";
     setTimeout(() => {
       setOpenClass(styles.open);
     }, 80);
     return () => {
-      document.body.style.overflow = prev;
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+      document.body.style.overflow = "";
+      window.scrollTo(0, scrollY);
     };
   }, [isOpen]);
 
@@ -56,7 +67,7 @@ export default function UnifiedPopup({
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div
       className={clsx(styles.overlay, isOpen && styles.open)}
       onClick={closeOnOverlayClick ? onClose : undefined}
@@ -76,6 +87,7 @@ export default function UnifiedPopup({
         <div className={styles.body}>{body}</div>
         {footer && <div className={styles.footer}>{footer}</div>}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

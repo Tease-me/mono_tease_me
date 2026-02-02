@@ -5,6 +5,7 @@ import clsx from 'clsx';
 interface TextInputProps extends HTMLAttributes<HTMLInputElement> {
     type?: HTMLInputTypeAttribute;
     placeholder?: string;
+    autoComplete?: string;
     leftIcon?: React.ReactNode;
     leftIconStyles?: { style: React.CSSProperties, hoverStyle?: React.CSSProperties }
     rightIcon?: React.ReactNode;

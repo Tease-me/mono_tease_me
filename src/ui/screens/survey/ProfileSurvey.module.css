@@ -11,6 +11,7 @@
       rgb(247, 8, 72) 65%,
       black 65%,
       black);
+
 }
 
 .audioWrapper {
@@ -124,7 +125,6 @@
 /* SCROLLABLE CONTENT */
 .content {
   flex: 1;
-  overflow-y: auto;
   padding-right: 4px;
   margin-top: 8px;
   --auto-grid-min-size: 20rem;

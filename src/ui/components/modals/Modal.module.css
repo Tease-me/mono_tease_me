@@ -7,6 +7,7 @@
     padding: 56px;
     background-color: rgba(0, 0, 0, 0.4);
     display: none;
+    overflow: hidden;
 }
 
 .overlay.open {

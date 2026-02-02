@@ -1,5 +1,4 @@
-
-.uploadPictureStep{
+.uploadPictureStep {
   margin: auto;
 }
 
@@ -42,9 +41,15 @@
   box-shadow: 0 16px 34px rgba(0, 0, 0, 0.35);
 }
 
-.previewLeft { flex-shrink: 0; }
+.previewLeft {
+  flex-shrink: 0;
+}
 
-.previewRight { display: flex; flex-direction: column; gap: 6px; }
+.previewRight {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 
 .previewTitle {
   margin: 0;
@@ -59,7 +64,7 @@
   align-items: center;
 }
 
-.uploadArea{
+.uploadArea {
   padding: 16px 14px;
   border-radius: 18px;
   background: linear-gradient(180deg, rgba(20, 20, 24, 0.92), rgba(12, 6, 10, 0.78));
@@ -77,14 +82,15 @@
 .uploadPictureStep {
   margin: 0 auto;
 }
+
 @media (min-width: 782px) {
 
-.label {
-  width: 100%;
-  text-align: center;
-  display: flex;
-  justify-content: center;
-}
+  .label {
+    width: 100%;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+  }
 
   .uploadPictureStep {
     grid-column: 1 / -1;
@@ -92,6 +98,7 @@
     width: 100%;
     max-width: 960px;
   }
+
   .uploadArea,
   .previewCard {
     width: 100%;
@@ -100,8 +107,8 @@
     margin-right: auto;
   }
 
-  .previewSection{
-margin-top: 32px;
+  .previewSection {
+    margin-top: 32px;
   }
 
 }
