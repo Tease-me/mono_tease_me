@@ -33,6 +33,9 @@ const AdminPreInfluencers = lazy(
 const DisclaimerScreen = lazy(
   () => import("@/ui/screens/disclaimer/DisclaimerScreen")
 );
+const UnderageRedirectScreen = lazy(
+  () => import("@/ui/screens/disclaimer/UnderageRedirectScreen")
+);
 const AdminPreInfluencerDetail = lazy(
   () =>
     import("@/ui/screens/admin/pre-influencers/AdminPreInfluencerDetail")
@@ -129,6 +132,7 @@ function AppRoutes() {
       path: Paths.intencionInfluencerHome,
       element: <IntencionInfluencerHome />,
     },
+    { path: Paths.underage, element: <UnderageRedirectScreen /> },
     // --- Public Legal & Compliance Pages ---
     { path: "/terms", element: <TermsPage {...terms.terms} /> },
     { path: "/privacy", element: <TermsPage {...terms.privacy} /> },

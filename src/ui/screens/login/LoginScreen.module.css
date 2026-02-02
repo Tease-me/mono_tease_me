@@ -17,7 +17,7 @@
 .input-fields {
   display: flex;
   flex: 1;
-  gap: 15px;
+  gap: var(--space-px-16);
 }
 
 .input-field {
@@ -55,12 +55,12 @@
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: var(--space-px-16);
 }
 
 .auth-buttons {
   display: flex;
-  gap: 15px;
+  gap: var(--space-px-16);
   justify-content: end;
   margin-top: 10px;
   min-width: 300px;

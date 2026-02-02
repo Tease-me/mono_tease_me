@@ -157,7 +157,7 @@ const InfluencerAudioManager: React.FC<Props> = ({
                 style={{ width: "100%", marginBottom: 8 }}
               />
 
-              <div style={{ display: "flex", gap: 8 }}>
+              <div style={{ display: "flex", gap: '8' }}>
                 <button
                   type="button"
                   onClick={() => window.open(file.download_url, "_blank")}

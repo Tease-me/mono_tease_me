@@ -3,7 +3,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 20px 0 var(--space-px-12);
-  gap: 12px;
+  gap: var(--space-px-12);
   min-width: 200px;
   border-radius: 74px;
   border: 1px solid rgba(66, 66, 66, 0.50);
@@ -40,7 +40,7 @@
 .toggleArea {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-px-12);
   height: 30px;
   width: 80px;
   position: relative;

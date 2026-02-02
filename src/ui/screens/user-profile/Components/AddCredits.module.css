@@ -19,7 +19,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-px-8);
   margin-top: 20px;
 }
 
@@ -29,7 +29,7 @@
   padding: 16px;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: var(--space-px-16);
   align-self: stretch;
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.20);
@@ -43,7 +43,7 @@
 .presetList {
   display: flex;
   flex-direction: row;
-  gap: 12px;
+  gap: var(--space-px-12);
   width: 100%;
 }
 
@@ -55,7 +55,7 @@
 .customAmountArea {
   display: flex;
   flex-direction: row;
-  gap: 12px;
+  gap: var(--space-px-12);
   align-items: center;
   padding-left: 100px;
   padding-right: 100px;
@@ -63,7 +63,7 @@
 }
 
 .amountInput {
-  gap: 8px;
+  gap: var(--space-px-8);
   color: white;
   flex: 0 0 auto;
   display: flex;

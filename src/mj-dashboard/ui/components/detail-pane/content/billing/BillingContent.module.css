@@ -1,7 +1,7 @@
 .billing-content {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: var(--space-px-24);
     height: 100%;
 }
 
@@ -20,7 +20,7 @@
 .filter-button {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-px-8);
     padding: 10px 18px;
     border-radius: 999px;
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -46,7 +46,7 @@
 .card {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: var(--space-px-20);
     padding: 24px;
     border-radius: 20px;
     background: linear-gradient(140deg, rgba(41, 47, 60, 0.95), rgba(17, 19, 26, 0.9));
@@ -100,7 +100,7 @@
 .header-cell__content {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-px-8);
 }
 
 .sort-icon svg {
@@ -184,7 +184,7 @@
 .plan-pill {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-px-8);
     padding: 6px 16px;
     border-radius: 999px;
     font-size: 13px;

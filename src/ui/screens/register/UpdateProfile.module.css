@@ -1,7 +1,7 @@
 .two-column-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: var(--space-px-20);
   margin: 0 auto;
   padding: 20px;
 }
@@ -27,7 +27,7 @@
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: var(--space-px-16);
 }
 
 .auth-input {
@@ -51,19 +51,16 @@
 
 .auth-buttons {
   display: flex;
-  gap: 15px;
+  gap: var(--space-px-16);
   justify-content: center;
   margin-top: 10px;
 }
 
 .btn-primary,
 .btn-back {
-  padding: 12px 25px;
-  border-radius: 50px;
   border: none;
   cursor: pointer;
   font-size: 15px;
-  transition: background-color 0.3s ease;
 }
 
 .btn-primary {
@@ -128,7 +125,7 @@
 
 .gender-selection {
   display: flex;
-  gap: 10px;
+  gap: var(--space-px-12);
   justify-content: center;
   margin-bottom: 15px;
 }

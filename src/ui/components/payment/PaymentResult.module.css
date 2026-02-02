@@ -2,7 +2,7 @@
   font-family: var(--secondary-font-family);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-px-12);
   align-items: center;
 }
 
@@ -72,7 +72,7 @@
 .footer {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-px-12);
 }
 
 .footerBtnArea {

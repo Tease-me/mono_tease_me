@@ -3,7 +3,7 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  gap: 0.25rem;
+  gap: var(--space-px-4);
 }
 
 .loveScore>* {
@@ -21,7 +21,7 @@
 
 .loveScoreSmall {
   max-width: 5.5vw;
-  gap: 0.2rem;
+  gap: var(--space-px-4);
 }
 
 .loveScoreSmall .loveScoreValue {
@@ -35,7 +35,7 @@
 
 .loveScoreLarge {
   max-width: 9vw;
-  gap: 0.35rem;
+  gap: var(--space-px-8);
 }
 
 .loveScoreLarge .loveScoreValue {

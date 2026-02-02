@@ -19,7 +19,7 @@
 
 .links {
     display: inline-flex;
-    gap: 10px;
+    gap: var(--space-px-12);
 }
 
 .link {

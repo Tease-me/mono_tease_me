@@ -1,7 +1,7 @@
 .menu{
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-px-8);
   margin-top: 10px;
   width: 100%;
 }
