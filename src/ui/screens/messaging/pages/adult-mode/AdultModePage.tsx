@@ -1,6 +1,5 @@
 import styles from "./AdultModePage.module.css";
 import PlayIcon from "@/assets/svg/Play.svg?react";
-import MicrophoneIcon from "@/assets/Microphone.svg?react";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import avatarImage from "@/assets/image/avatar.png";
 import clsx from "clsx";
@@ -11,6 +10,7 @@ import { apiClient } from "@/api/apis";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
 import { useQuery } from "@tanstack/react-query";
+import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 
 
 const waveformBars = new Array(24).fill(0);
@@ -22,6 +22,7 @@ type AdultModePageProps = {
   influencerId: string;
   influencerImageUrl: string | null;
   influencerName: string | null;
+
 };
 
 const AdultModePage = ({
@@ -118,7 +119,7 @@ const AdultModePage = ({
             <div className={styles.audioRow}>{samplesError}</div>
           )}
           {!isLoadingSamples && !samplesError && samples.length === 0 && (
-            <div className={styles.audioRow}>No samples available for {influencerName}.</div>
+            <div className={styles.audioRow}>No samples available for {influencerName}</div>
           )}
           {samples.map((sample, index) => {
             const label =
@@ -154,30 +155,27 @@ const AdultModePage = ({
             );
           })}
         </section>
-        <div className={styles.plansSection}>
-          <PricingPlanCard
-            title={loadingPlan ? "Loading.." : basicPlan?.name ?? "unknown plan"}
-            price={basicPlan ? basicPlan.price_display : ""}
-            callTime={`${basicPlan?.features?.minutes_equivalent ?? 0} mins`}
-            onClick={() => { }}
-          />
-          <div><span className={styles.headerAccent}>18+</span>only</div>
-        </div>
 
         <div className={styles.bottomSection}>
+          <div className={styles.plansSection}>
+            <PricingPlanCard
+              title={loadingPlan ? "Loading.." : basicPlan?.name ?? "unknown plan"}
+              price={basicPlan ? basicPlan.price_display : ""}
+              callTime={`${basicPlan?.features?.minutes_equivalent ?? 0} mins`}
+              onClick={() => { }}
+            />
+            <div><span className={styles.headerAccent}>18+</span>only</div>
+          </div>
           <p className={styles.tagline}>Let&apos;s heat things up...</p>
 
           <div className={styles.subscribeButton}>
-            <PrimaryButton leftIcon={<MicrophoneIcon />} text="Subscribe" onClick={onSubscribePressed} variant="purple" />
+            <PrimaryButton text={basicPlan ? `Subscribe for $${(basicPlan.price_cents / 100).toFixed(2)}` : "Subscribe"} onClick={onSubscribePressed} variant="purple" />
           </div>
 
           <div className={styles.footer}>
-            <p>$99 a month (100mins per month) until cancelled.</p>
-            <p className={styles.bonus}>
-              Subscribe Today for Early Bird Bonus
-              <br />
-              Extra 15mins free every month!
-            </p>
+            You will be charged, your subscription will auto-renew for the same price and package length until you cancel via account settings, and you agree to our Terms.
+            <br />
+            <NormalButton type="nobg" text="No thank you, take me back" />
           </div>
         </div>
       </div>

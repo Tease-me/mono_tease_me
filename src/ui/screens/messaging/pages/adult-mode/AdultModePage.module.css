@@ -195,6 +195,8 @@
   text-align: center;
   gap: 16px;
   font-size: 14px;
+  margin-top: 32px;
+  margin-bottom: 32px;
 }
 
 @keyframes wavePulse {
