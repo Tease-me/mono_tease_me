@@ -50,10 +50,11 @@ interface ChatScreenContentProps {
     setNeedsSelection?: (needsSelection: boolean) => void;
     onMenuClick?: () => void;
     showChangeInfluencerButton?: boolean;
+    openSubscribe?: boolean;
 }
 export type TypingStatus = "idle" | "typing" | "recording";
 
-const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, setNeedsSelection, showChangeInfluencerButton = false }) => {
+const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, setNeedsSelection, showChangeInfluencerButton = false, openSubscribe }) => {
     const [influencer, setInfluencer] = useState<InfluencerDataModel>();
     const [chatId, setChatId] = useState<string | undefined>();
 
@@ -205,6 +206,12 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             }
         })();
     }, [adultModeSwitch]);
+
+    useEffect(() => {
+        if (openSubscribe) {
+            setShowSubscriptionPage(true);
+        }
+    }, [openSubscribe]);
 
     const handleSubscribePressed = () => {
         (async () => {

@@ -13,12 +13,18 @@ type AdultTermsModalProps = {
   onClose: () => void;
   onAgree: () => void;
   onDecline?: () => void;
+  influencerId: string;
+  influencerName?: string | null;
+  influencerImageUrl?: string | null;
 };
 
 export default function AdultTermsModal({
   isOpen,
   onClose,
   onDecline,
+  influencerId,
+  influencerName,
+  influencerImageUrl,
 }: AdultTermsModalProps) {
 
   const verificationService = AdultVerificationSerivces(apiClient);
@@ -32,8 +38,15 @@ export default function AdultTermsModal({
         alert("No URL found")
         throw new Error("No verification URL returned");
       }
+      const targetData = JSON.stringify({
+        influencerId: influencerId,
+        img: influencerImageUrl,
+        name: influencerName,
+      });
+      localStorage.setItem("adultVerificationTarget", targetData);
       window.location.href = url
     }
+
     catch (err: any) {
       logger.error(err);
     }

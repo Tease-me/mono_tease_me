@@ -435,12 +435,18 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         </Modal>
 
       )}
-      <AdultTermsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} onAgree={onAdultTermsAgreed} />
+      <AdultTermsModal
+        isOpen={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
+        onAgree={onAdultTermsAgreed}
+        influencerId={data.id}
+        influencerName={data.name}
+        influencerImageUrl={data.image}
+      />
       {/* Temporary loading to avoid  warning */}
       {loading && <div> </div>}
 
     </div>
   );
 }
-
 
