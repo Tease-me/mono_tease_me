@@ -56,13 +56,11 @@
 }
 
 .leftCol p.statusText {
-  opacity: 0.7;
-  font-size: 12px;
-  align-items: center;
-  color: var(--alerts-status-success, oklch(80.036% 0.18204 151.736));
-  padding: 0.15rem 0.75rem;
-  border-radius: 20px;
-  border: 1px dashed var(--alerts-status-success, oklch(80.036% 0.18204 151.736 / 0.5));
+  max-width:10px;
+  background-color:  var(--alerts-status-success, oklch(80.036% 0.18204 151.736 ));
+  overflow: clip;
+  color: transparent;
+  border-radius: 10px;
 }
 
 .middleCol {
@@ -101,7 +99,7 @@
   border-radius: 50%;
   position: absolute;
   z-index: 2;
-  animation: glowPulse01 5s ease 0s infinite normal none;
+  animation: glowPulse01 8s ease 0s infinite normal none;
 }
 
 .glowStatusCircle02 {
@@ -114,7 +112,7 @@
   position: absolute;
   filter: blur(10px);
   z-index: 1;
-  animation: glowPulse02 5s ease 0s infinite normal none;
+  animation: glowPulse02 8s ease 0s infinite normal none;
   
 }
 
@@ -176,7 +174,7 @@
   z-index: 1;
 
   background-color: #4ade80;
-  width: 120%;
+  width: 90%;
   margin-right: -80%;
   margin-top: -3.5rem;
   gap: var(--space-px-8);
@@ -203,7 +201,7 @@
   align-items: center;
   justify-content: flex-end;
   z-index: 1;
-  width: 120%;
+  width: 90%;
   margin-left: -80%;
   margin-top: -3.5rem;
   gap: var(--space-px-8);
@@ -287,9 +285,9 @@
   }
 
   .circleGlowContainer {
-    left: 49.70%;
-    transform: translateX(-49.70%);
-    bottom: -80%;
+    left: 49.75%;
+    transform: translateX(-49.75%);
+    bottom: -70%;
   }
 
   .influencerTop {
@@ -310,6 +308,18 @@
   .leftCol p {
     font-size: 1.25rem;
   }
+
+  .leftCol p.statusText {
+    max-width: unset;
+    background-color: transparent;
+  opacity: 0.7;
+  font-size: 12px;
+  align-items: center;
+  color: var(--alerts-status-success, oklch(80.036% 0.18204 151.736));
+  padding: 0.15rem 0.75rem;
+  border-radius: 20px;
+  border: 1px dashed var(--alerts-status-success, oklch(80.036% 0.18204 151.736 / 0.5));
+}
 
   .relationshipStatus {
     min-width: 8rem;
@@ -372,7 +382,10 @@
   .profileLeftCol,
   .profileRightCol {
     gap: var(--space-px-16);
+    width: 120%;
   }
+
+  
 
   .metricLabel {
     display: flex;
