@@ -47,7 +47,7 @@ const sidebarPages: SidebarPage[] = [
   { id: "influencer_profile", label: "Influencer Profile", render: ({ goTo, navPayload, goBack }) => <InfluencerRelation goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
   { id: "add_credits", label: "Add Credits", render: ({ goTo, navPayload }) => <AddCredits goTo={goTo} navpayload={navPayload} /> },
   {
-    id: "subscribe", label: "Subscribe", render: ({ navPayload }) => (
+    id: "subscribe", label: "Subscribe", render: ({ navPayload, goBack }) => (
       <AdultModePage
         influencerId={navPayload.influencerId}
         influencerImageUrl={navPayload.influencerImageUrl}
@@ -55,6 +55,7 @@ const sidebarPages: SidebarPage[] = [
         onSubscribePressed={() => {
           navPayload.onSubscribe();
         }}
+        onBackClicked={goBack}
         nobg
       />
     )
