@@ -4,13 +4,10 @@ import styles from "./PaymentDetails.module.css"
 import IconButton from '@/ui/components/inputs/buttons/IconButton';
 import SvgPack from '@/utils/SvgPack';
 import CardMockup from '@/assets/image/card-mockup.png';
-import AdultTermsModal from '@/ui/components/modals/adult-terms/AdultTermsModal';
-
 type PaymentDetailsProps = { goTo: (id: string) => void };
 
 const PaymentDetails = ({ }: PaymentDetailsProps) => {
 
-    const [showAdultTermsModal, setShowAdultTermsModal] = useState(false);
 
     const handleVisaBtn = () => {
         // Handle Visa button click
@@ -19,7 +16,6 @@ const PaymentDetails = ({ }: PaymentDetailsProps) => {
     const handleMasterCardBtn = () => {
         //temporary
         // goTo('payment-check');
-        setShowAdultTermsModal(true);
     };
 
 
@@ -43,9 +39,6 @@ const PaymentDetails = ({ }: PaymentDetailsProps) => {
                     <IconButton leftIcon={<SvgPack.PlusBox />} text="Add New Payment Method" onClick={handleAddNew} color='pink-glass' className={styles.addButton} />
                 </div>
             </div>
-            <AdultTermsModal isOpen={showAdultTermsModal} onClose={() => setShowAdultTermsModal(false)} onAgree={function (): void {
-
-            }} />
         </div>
     );
 };

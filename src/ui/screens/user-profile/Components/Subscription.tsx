@@ -115,7 +115,7 @@ const Subscription = ({ navPayload }: SubscriptionProps) => {
             <div key={plan.id} className={styles.card}>
               <PricingPlanCard
                 title={plan.name}
-                price={centsToDollar(plan.price_cents)}
+                price={plan.price_display}
                 callTime={`${plan.features.minutes_equivalent ?? 0} min`}
                 active={selectedPlanId === plan.id}
                 onClick={() => setSelectedPlanId(plan.id)}

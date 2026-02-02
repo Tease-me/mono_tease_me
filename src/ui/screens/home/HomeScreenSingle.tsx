@@ -1,4 +1,5 @@
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import ChatScreenContent from "../messaging/components/ChatScreenContent";
@@ -49,7 +50,8 @@ const sidebarPages: SidebarPage[] = [
     id: "subscribe", label: "Subscribe", render: ({ navPayload }) => (
       <AdultModePage
         influencerId={navPayload.influencerId}
-        influencerImageUrl={navPayload.image}
+        influencerImageUrl={navPayload.influencerImageUrl}
+        influencerName={navPayload.influencerName}
         onSubscribePressed={() => {
           navPayload.onSubscribe();
         }}
@@ -78,6 +80,9 @@ export default function HomeScreenSingle() {
   const currentPageRef = useRef<SidebarPageId>("home");
   const navPayloadRef = useRef<NavPayload>({});
 
+  const location = useLocation();
+  const [openSubscribe, setOpenSubscribe] = useState(false);
+  const skipInfluencerResetRef = useRef(false);
   const influencerRepo = useMemo(() => InfluencerRepo(), []);
 
   useEffect(() => {
@@ -143,6 +148,25 @@ export default function HomeScreenSingle() {
 
 
   useEffect(() => {
+    if (!location.state?.openSubscribe) return;
+    const raw = localStorage.getItem("adultVerificationTarget");
+    if (!raw) return;
+    try {
+      const target = JSON.parse(raw);
+      localStorage.removeItem("adultVerificationTarget");
+      if (target.influencerId) {
+        skipInfluencerResetRef.current = true;
+        setId(target.influencerId);
+        setNeedsSelection(false);
+        setOpenSubscribe(true);
+      }
+    } catch {
+      // invalid JSON, ignore
+    }
+    window.history.replaceState({}, "");
+  }, [location.state]);
+
+  useEffect(() => {
     localStorage.setItem("selected_id", id?.toString() || "");
   }, [id]);
 
@@ -150,14 +174,17 @@ export default function HomeScreenSingle() {
     influencerRepo
       .getFollowedInfluencers()
       .then((influencers: InfluencerDataModel[]) => {
-        localStorage.setItem("selected_id", "");
-        if (influencers.length > 1) {
-          setNeedsSelection(true);
-          setHasMultipleInfluencers(true);
-        } else if (influencers.length === 1) {
-          setId(influencers[0].id);
-          setHasMultipleInfluencers(false);
+        if (!skipInfluencerResetRef.current) {
+          localStorage.setItem("selected_id", "");
+          if (influencers.length > 1) {
+            setNeedsSelection(true);
+            setHasMultipleInfluencers(true);
+          } else if (influencers.length === 1) {
+            setId(influencers[0].id);
+            setHasMultipleInfluencers(false);
+          }
         }
+        setHasMultipleInfluencers(influencers.length > 1);
         setInfluencers(influencers);
       });
   }, [influencerRepo]);
@@ -181,9 +208,10 @@ export default function HomeScreenSingle() {
         onMenuClick={toggleSidebar}
         setNeedsSelection={handleNeedsSelectionChange}
         showChangeInfluencerButton={hasMultipleInfluencers}
+        openSubscribe={openSubscribe}
       />
     ),
-    [handleNeedsSelectionChange, hasMultipleInfluencers, id, toggleSidebar]
+    [handleNeedsSelectionChange, hasMultipleInfluencers, id, toggleSidebar, openSubscribe]
   );
 
   return (
