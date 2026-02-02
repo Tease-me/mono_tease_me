@@ -6,15 +6,22 @@ import avatarImage from "@/assets/image/avatar.png";
 import clsx from "clsx";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { InfluencerSampleModel } from "@/data/models/InfluencerDataModel";
+import PricingPlanCard from "@/ui/components/cards/PricingPlanCard";
+import { apiClient } from "@/api/apis";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
+import { useQuery } from "@tanstack/react-query";
+
 
 const waveformBars = new Array(24).fill(0);
+const subscriptionSvc = SubscriptionsServices(apiClient);
 
 type AdultModePageProps = {
   nobg?: boolean;
   onSubscribePressed: () => void;
-  influencerId?: string;
-  influencerImageUrl?: string | null;
+  influencerId: string;
+  influencerImageUrl: string | null;
+  influencerName: string | null;
 };
 
 const AdultModePage = ({
@@ -22,6 +29,7 @@ const AdultModePage = ({
   onSubscribePressed,
   influencerId,
   influencerImageUrl,
+  influencerName
 }: AdultModePageProps) => {
   const influencerRepo = useMemo(() => InfluencerRepo(), []);
   const [samples, setSamples] = useState<InfluencerSampleModel[]>([]);
@@ -29,6 +37,15 @@ const AdultModePage = ({
   const [isLoadingSamples, setIsLoadingSamples] = useState(false);
   const [playingId, setPlayingId] = useState<string | number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+
+  const { data: plansData, isLoading: loadingPlan } =
+    useQuery({
+      queryKey: ["subscriptionPlans"],
+      queryFn: () => subscriptionSvc.getPlans(),
+      staleTime: Infinity
+    })
+  const basicPlan = plansData?.recurring.find((p) => p.id === 1);
 
   useEffect(() => {
     if (!influencerId) return;
@@ -101,12 +118,12 @@ const AdultModePage = ({
             <div className={styles.audioRow}>{samplesError}</div>
           )}
           {!isLoadingSamples && !samplesError && samples.length === 0 && (
-            <div className={styles.audioRow}>No samples available.</div>
+            <div className={styles.audioRow}>No samples available for {influencerName}.</div>
           )}
           {samples.map((sample, index) => {
             const label =
               sample.original_filename?.trim() ||
-              `Audio Sample ${String(index + 1).padStart(2, "0")}`;
+              `${influencerName || "Influencer"} Sample ${String(index + 1).padStart(2, "0")}`;
             const isPlaying = playingId === sample.id;
             return (
               <div className={styles.audioRow} key={sample.s3_key || `${sample.id}-${index}`}>
@@ -137,6 +154,15 @@ const AdultModePage = ({
             );
           })}
         </section>
+        <div className={styles.plansSection}>
+          <PricingPlanCard
+            title={loadingPlan ? "Loading.." : basicPlan?.name ?? "unknown plan"}
+            price={basicPlan ? basicPlan.price_display : ""}
+            callTime={`${basicPlan?.features?.minutes_equivalent ?? 0} mins`}
+            onClick={() => { }}
+          />
+          <div><span className={styles.headerAccent}>18+</span>only</div>
+        </div>
 
         <div className={styles.bottomSection}>
           <p className={styles.tagline}>Let&apos;s heat things up...</p>

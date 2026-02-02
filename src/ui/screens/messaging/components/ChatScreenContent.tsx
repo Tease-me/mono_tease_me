@@ -677,6 +677,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                         onSubscribePressed={handleSubscribePressed}
                         influencerId={influencer?.id}
                         influencerImageUrl={influencer?.img}
+                        influencerName={influencer?.name}
                     />
                 )}
             </div>

@@ -49,7 +49,8 @@ const sidebarPages: SidebarPage[] = [
     id: "subscribe", label: "Subscribe", render: ({ navPayload }) => (
       <AdultModePage
         influencerId={navPayload.influencerId}
-        influencerImageUrl={navPayload.image}
+        influencerImageUrl={navPayload.influencerImageUrl}
+        influencerName={navPayload.influencerName}
         onSubscribePressed={() => {
           navPayload.onSubscribe();
         }}
