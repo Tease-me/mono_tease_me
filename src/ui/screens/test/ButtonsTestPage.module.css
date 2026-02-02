@@ -9,6 +9,6 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(5rem, 18rem));
     grid-auto-rows: auto;
-    gap: 1.5rem;
+   gap: var(--space-px-24);
     margin: 8px;
 }

@@ -1,7 +1,7 @@
 .chat-input-area {
     display: flex;
     flex-direction: row;
-    gap: 14px;
+    gap: var(--space-px-16);
     align-items: center;
     border: 1px solid rgba(33, 33, 33, 1);
     padding: 16px 23px;
@@ -76,7 +76,7 @@
 .input-container input:active {
     outline: none;
     border-radius: 12px;
-    box-shadow: 0 0 0 2px rgba(255, 77, 109, 0.5);
+    box-shadow: 0 0 0 2px hsl(0deg 0% 100% / 22%);
     background-color: var(--color-dark-1);
 }
 
@@ -88,7 +88,7 @@
 .buttons {
     display: flex;
     flex-direction: row;
-    gap: 4px;
+    gap: var(--space-px-4);
 }
 
 .buttons.voice-mode {

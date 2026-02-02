@@ -49,7 +49,7 @@
 
 .tm-why-scroll {
   display: flex;
-  gap: 20px;
+  gap: var(--space-px-20);
   overflow-x: auto;
   padding-bottom: 8px;
   scroll-snap-type: x mandatory;

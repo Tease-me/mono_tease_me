@@ -1,27 +1,27 @@
 .shell {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-px-16);
   font-family: var(--secondary-font-family);
 }
 
 .heroRow {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-px-12);
 }
 
 .heroInfo {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-px-8);
 }
 
 .badges {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: var(--space-px-12);
   margin-bottom: 4px;
 }
 
@@ -55,7 +55,7 @@
 .meta {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-px-4);
   color: var(--color-grey-500);
   font-size: 14px;
   font-weight: 500;
@@ -72,7 +72,7 @@
   background: rgba(97, 97, 97, 0.20);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-px-12);
 }
 
 .balanceBadge {
@@ -84,14 +84,14 @@
   display: flex;
   flex-direction: row;
   justify-content: center;
-  gap: 12px;
+  gap: var(--space-px-12);
   padding: 16px;
 }
 
 .balanceArea {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--space-px-24);
   align-items: center;
 }
 
@@ -100,7 +100,7 @@
   padding: 24px 8px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--space-px-24);
   justify-content: center;
   align-items: center;
   width: 100%;
@@ -112,7 +112,7 @@
   align-items: center;
   justify-content: space-between;
   text-align: left;
-  gap: 12px;
+  gap: var(--space-px-12);
   width: auto;
 }
 
@@ -131,7 +131,7 @@
   padding: 0 4px 0 11px;
   justify-content: space-between;
   align-items: center;
-  gap: 9px;
+  gap: var(--space-px-8);
   flex-shrink: 0;
 
 }
@@ -140,7 +140,7 @@
   display: flex;
   flex-direction: row;
   justify-content: center;
-  gap: 12px;
+  gap: var(--space-px-12);
   padding: 16px;
 }
 
@@ -163,7 +163,7 @@
 .relationshipArea {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-px-12);
   font-family: var(--secondary-font-family);
 }
 
@@ -184,14 +184,14 @@
 .relationshipStatsArea {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--space-px-20);
   margin-bottom: 32px;
 }
 
 .progressBar {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-px-8);
 }
 
 .progressBar p {
@@ -232,13 +232,13 @@
   color: #f5f5f5;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-px-16);
 }
 
 .modalActions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: var(--space-px-12);
   margin-top: 8px;
 }
 

@@ -95,6 +95,7 @@ const ProfileMedia: React.FC<ProfileMediaProps> = ({
                 alt="Profile"
                 className={styles["profile-media-filter"]}
             />}
+            <div className={styles["profile-media-placeholder"]}></div>
             {onEditClick && <div className={clsx(styles["edit-button"], styles[editButtonAlignment])} onClick={handleEditButtonClick}><EditIcon /></div>}
         </div>
         {

@@ -42,7 +42,7 @@
 .tm-process-header {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-px-12);
   margin-bottom: 26px;
 }
 
@@ -65,7 +65,7 @@
 
 .tm-process-scroll {
   display: flex;
-  gap: 20px;
+  gap: var(--space-px-20);
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   padding-bottom: 8px;

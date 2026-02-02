@@ -1,7 +1,7 @@
 .dashboard-stats-card {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-px-8);
 }
 
 .title {
