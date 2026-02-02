@@ -91,6 +91,14 @@ export const Endpoints = {
     influencerActivate: (influencerId: string) => `/subscriptions/${influencerId}/18`,
     addons_purchase: "/subscriptions/addons/purchase"
   },
+  verification: {
+    session: "/verification/session",
+    sessionStatus: (sessionId: string) => `/verification/session/${sessionId}`,
+    sessionComplete: (sessionId: string) => `/verification/session/${sessionId}/complete`,
+    status: "/verification/status",
+    history: "/verification/history",
+    webhook: "/verification/webhook",
+  },
   ws: {
     chat: "/chat/ws",
     chat18: "/chat18/ws",

@@ -3,6 +3,10 @@ import styles from "./AdultTermsModal.module.css";
 import SvgPack from "@/utils/SvgPack";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
+import { apiClient } from "@/api/apis";
+import logger from "@/utils/logger";
+
+import { AdultVerificationSerivces } from "@/api/services/AdultVerificationServices";
 
 type AdultTermsModalProps = {
   isOpen: boolean;
@@ -14,9 +18,27 @@ type AdultTermsModalProps = {
 export default function AdultTermsModal({
   isOpen,
   onClose,
-  onAgree,
   onDecline,
 }: AdultTermsModalProps) {
+
+  const verificationService = AdultVerificationSerivces(apiClient);
+
+  const handleAgree = async () => {
+    try {
+      const verificationSession = await verificationService.startVerificationSession();
+      verificationSession?.response?.data?.session_id;
+      const url = verificationSession?.verification_url;
+      if (!url) {
+        alert("No URL found")
+        throw new Error("No verification URL returned");
+      }
+      window.location.href = url
+    }
+    catch (err: any) {
+      logger.error(err);
+    }
+  }
+
   const header = (
     <>
       <div className={styles.header}>
@@ -135,7 +157,7 @@ export default function AdultTermsModal({
         <PrimaryButton
           variant="purple"
           text="I Agree, Let’s Verify My Age"
-          onClick={onAgree}
+          onClick={handleAgree}
           className={styles.primaryBtn}
         />
         <NormalButton
