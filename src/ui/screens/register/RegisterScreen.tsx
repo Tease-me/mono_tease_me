@@ -20,15 +20,20 @@ import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { Paths } from "@/routes/path";
 import logger from "@/utils/logger";
 import clsx from "clsx";
+import { validationRules } from "@/utils/validationRules";
+import { validateFields } from "@/utils/validations";
+import SvgPack from "@/utils/SvgPack";
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [agree, setAgree] = useState(false);
 
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
+    confirmPassword?: string;
     general?: string;
   }>({});
   const authServices = AuthServices(apiClient);
@@ -58,10 +63,25 @@ export default function RegisterScreen() {
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
-    const newErrors: { email?: string; password?: string; general?: string } =
-      {};
-    if (!email.trim()) newErrors.email = "Email is required";
-    if (!password) newErrors.password = "Password is required";
+    const fieldErrors = validateFields(
+      { email, password, confirmPassword },
+      {
+        email: validationRules.email,
+        password: validationRules.password,
+        confirmPassword: validationRules.password,
+      },
+    );
+
+    const newErrors: {
+      email?: string;
+      password?: string;
+      confirmPassword?: string;
+      general?: string;
+    } = { ...fieldErrors };
+
+    if (password && confirmPassword && password !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
     if (!agree) newErrors.general = "Please Agree to NSFW";
 
     if (Object.keys(newErrors).length) {
@@ -82,6 +102,19 @@ export default function RegisterScreen() {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const validateField = (field: "email" | "password" | "confirmPassword", value: string) => {
+    let error: string | undefined;
+    if (field === "email") error = validationRules.email(value);
+    if (field === "password") error = validationRules.password(value);
+    if (field === "confirmPassword") {
+      error = validationRules.password(value);
+      if (!error && password && value && password !== value) {
+        error = "Passwords do not match";
+      }
+    }
+    setErrors((prev) => ({ ...prev, [field]: error }));
   };
 
   const handleOnAgreeChange = () => {
@@ -106,10 +139,13 @@ export default function RegisterScreen() {
           <div className={styles["input-fields"]}>
             <div className={clsx(styles["input-field"], styles["email-field"])}>
               <TextInput
+                leftIcon={<SvgPack.Message />}
                 type="email"
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
+                onBlur={() => validateField("email", email)}
+                autoComplete="email"
               />
               {errors.email && (
                 <span className={styles["error"]}>{errors.email}</span>
@@ -117,28 +153,34 @@ export default function RegisterScreen() {
             </div>
             <div className={styles["input-field"]}>
               <TextInput
+                leftIcon={<SvgPack.Lock />}
                 type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) =>
                   setPassword((e.target as HTMLInputElement).value)
                 }
+                onBlur={() => validateField("password", password)}
+                autoComplete="new-password"
               />
               {errors.password && (
                 <span className={styles["error"]}>{errors.password}</span>
               )}
             </div>
-                  <div className={styles["input-field"]}>
+            <div className={styles["input-field"]}>
               <TextInput
+                leftIcon={<SvgPack.Lock />}
                 type="password"
                 placeholder="Confirm Password"
-                value={password}
+                value={confirmPassword}
                 onChange={(e) =>
-                  setPassword((e.target as HTMLInputElement).value)
+                  setConfirmPassword((e.target as HTMLInputElement).value)
                 }
+                onBlur={() => validateField("confirmPassword", confirmPassword)}
+                autoComplete="new-password"
               />
-              {errors.password && (
-                <span className={styles["error"]}>{errors.password}</span>
+              {errors.confirmPassword && (
+                <span className={styles["error"]}>{errors.confirmPassword}</span>
               )}
             </div>
           </div>
@@ -147,7 +189,7 @@ export default function RegisterScreen() {
             checked={agree}
             onChange={handleOnAgreeChange}
           >
-            I am over 18 
+            I am over 18
           </CheckBox>
           {errors.general && (
             <span className={styles["error"]}>{errors.general}</span>
