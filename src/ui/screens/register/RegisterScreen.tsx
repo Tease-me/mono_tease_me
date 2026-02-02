@@ -18,6 +18,7 @@ import { validationRules } from "@/utils/validationRules";
 import { required, validateFields } from "@/utils/validations";
 import RegisterStepForm from "./RegisterStepForm";
 import UpdateProfileStepForm from "./UpdateProfileStepForm";
+import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 
 export default function RegisterScreen() {
   const [step, setStep] = useState<1 | 2>(1);
@@ -48,6 +49,7 @@ export default function RegisterScreen() {
     dateOfBirth?: string;
     general?: string;
   }>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const authServices = AuthServices(apiClient);
   const influencerRepo = InfluencerRepo();
 
@@ -176,6 +178,7 @@ export default function RegisterScreen() {
     }
 
     try {
+      setIsSubmitting(true);
       const influencerId =
         localStorage.getItem("influencer_referral_id") || username || "";
       const response: RegisterResponse = await authServices.register(
@@ -215,6 +218,8 @@ export default function RegisterScreen() {
       setAccountErrors({ general: message });
       setProfileErrors((prev) => ({ ...prev, general: message }));
       console.error(err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -270,7 +275,9 @@ export default function RegisterScreen() {
         <HeadingText className={styles["title"]}>
           Create your Account
         </HeadingText>
-        {step === 1 ? (
+        {isSubmitting ? (
+          <BlockingLoader />
+        ) : step === 1 ? (
           <RegisterStepForm
             values={account}
             errors={accountErrors}
