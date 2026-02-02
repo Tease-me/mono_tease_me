@@ -37,7 +37,7 @@
 
 .leftCol {
   display: flex;
- gap: var(--space-px-8);
+  gap: var(--space-px-8);
   flex-direction: row;
   justify-content: center;
   align-items: center;
@@ -58,6 +58,10 @@
   opacity: 0.7;
   font-size: 14px;
   align-items: center;
+  color: var(--alerts-status-success, oklch(80.036% 0.18204 151.736));
+  padding: 0.15rem 0.75rem;
+  border-radius: 20px;
+  border: 1px dashed var(--alerts-status-success, oklch(80.036% 0.18204 151.736 / 0.5));
 }
 
 .middleCol {
@@ -66,7 +70,7 @@
 
 .rightCol {
   display: grid;
- gap: var(--space-px-8);
+  gap: var(--space-px-8);
   grid-template-columns: 1fr 1fr;
   justify-items: center;
 }
@@ -289,7 +293,7 @@
     flex-direction: row;
     justify-content: center;
     align-items: center;
-   gap: var(--space-px-8);
+    gap: var(--space-px-8);
     border: 1px solid rgba(66, 66, 66, 0.5);
     border-radius: 2rem;
     padding: 0.25rem 1rem;
@@ -334,6 +338,7 @@
     opacity: 0.7;
     max-width: 8rem;
     transition: all 200ms ease-out;
+    font-size: 14px;
   }
 
   .profileMetricContainer {
@@ -342,7 +347,7 @@
 
   .profileLeftCol,
   .profileRightCol {
-   gap: var(--space-px-16);
+    gap: var(--space-px-16);
   }
 
   .metricLabel {
