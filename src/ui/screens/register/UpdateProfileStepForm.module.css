@@ -11,6 +11,12 @@
   width: 100%;
 }
 
+.file-input {
+  margin-top: 12px;
+  color: #bdbdbd;
+  display: none;
+}
+
 .auth-form {
   display: flex;
   flex-direction: column;

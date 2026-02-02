@@ -32,6 +32,7 @@ export default function RegisterScreen() {
     userName: "",
     gender: "" as "male" | "female" | "",
     dateOfBirth: "",
+    profilePhotoFile: null as File | null,
   });
 
   const [accountErrors, setAccountErrors] = useState<{
@@ -184,7 +185,8 @@ export default function RegisterScreen() {
         profile.fullName,
         profile.gender,
         profile.userName,
-        profile.dateOfBirth
+        profile.dateOfBirth,
+        profile.profilePhotoFile
       );
       const detailMessage =
         typeof (response as any)?.detail === "string" ? (response as any).detail : undefined;
@@ -298,6 +300,9 @@ export default function RegisterScreen() {
             onBack={() => setStep(1)}
             onSubmit={handleContinueClicked}
             handleEditProfileMediaClicked={handleEditProfileMediaClicked}
+            onProfilePhotoChange={(file) => {
+              setProfile((prev) => ({ ...prev, profilePhotoFile: file }));
+            }}
           />
         )}
       </FullWidthLayout>

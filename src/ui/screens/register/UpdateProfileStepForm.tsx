@@ -5,6 +5,7 @@ import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 import SvgPack from "@/utils/SvgPack";
 import styles from "./UpdateProfileStepForm.module.css";
+import { useRef } from "react";
 import ValidationPill from "@/ui/components/inputs/buttons/ValidationPill";
 
 type ProfileValues = {
@@ -12,6 +13,7 @@ type ProfileValues = {
   userName: string;
   gender: "male" | "female" | "";
   dateOfBirth: string;
+  profilePhotoFile: File | null;
 };
 
 type ProfileErrors = {
@@ -31,6 +33,7 @@ type UpdateProfileStepFormProps = {
   onBack: () => void;
   onSubmit: () => void;
   handleEditProfileMediaClicked: () => void;
+  onProfilePhotoChange: (file: File | null) => void;
 };
 
 export default function UpdateProfileStepForm({
@@ -42,11 +45,35 @@ export default function UpdateProfileStepForm({
   onBack,
   onSubmit,
   handleEditProfileMediaClicked,
+  onProfilePhotoChange,
 }: UpdateProfileStepFormProps) {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const previewUrl = values.profilePhotoFile
+    ? URL.createObjectURL(values.profilePhotoFile)
+    : undefined;
+
   return (
     <div className={styles["two-column-layout"]}>
       <div className={styles["left-column"]}>
-        <ProfileMedia mediaType="image" size="xlarge" onEditClick={handleEditProfileMediaClicked} />
+        <ProfileMedia
+          mediaType="image"
+          size="xlarge"
+          imageSrc={previewUrl}
+          onEditClick={() => {
+            handleEditProfileMediaClicked();
+            fileInputRef.current?.click();
+          }}
+        />
+        <input
+          ref={fileInputRef}
+          className={styles["file-input"]}
+          type="file"
+          accept="image/*"
+          onChange={(event) => {
+            const file = event.target.files?.[0] ?? null;
+            onProfilePhotoChange(file);
+          }}
+        />
       </div>
       <div className={styles["right-column"]}>
         <form className={styles["auth-form"]} onSubmit={(e) => e.preventDefault()}>
