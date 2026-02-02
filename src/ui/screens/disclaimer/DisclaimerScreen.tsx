@@ -30,7 +30,7 @@ const DisclaimerScreen: React.FC<DisclaimerScreenProps> = ({
       onExit();
       return;
     }
-    window.location.href = "https://www.google.com";
+    navigate("/underage");
   };
 
   return (

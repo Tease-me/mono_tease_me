@@ -12,6 +12,7 @@ import logger from "@/utils/logger";
 import { FollowServices } from "@/api/services/FollowServices";
 import { apiClient } from "@/api/apis";
 import DisclaimerModal from "@/ui/components/modals/DisclaimerModal";
+import { Paths } from "@/routes/path";
 
 interface InfluencerProfileScreenProps { }
 
@@ -115,7 +116,7 @@ const InfluencerProfileScreen: React.FC<
         }}
         onExit={() => {
           setScreenState("loading");
-          window.location.href = "https://www.google.com";
+          navigate(Paths.underage)
         }}
       />
       <WelcomeScreen

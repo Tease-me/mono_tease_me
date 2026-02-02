@@ -41,6 +41,7 @@ export const Paths = {
     diditReturn: "/didit/return",
     profileSelector: "/profile-selector",
     adultMode: "/adult-mode",
+    underage: "/underage",
 
     influencerAudioManager: (influencerId = ":influencer_id") =>
         `/influencer/${influencerId}/audio-manager`,
