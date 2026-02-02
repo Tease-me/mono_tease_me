@@ -11,6 +11,7 @@ import logger from "@/utils/logger";
 
 import { FollowServices } from "@/api/services/FollowServices";
 import { apiClient } from "@/api/apis";
+import DisclaimerModal from "@/ui/components/modals/DisclaimerModal";
 
 interface InfluencerProfileScreenProps { }
 
@@ -27,6 +28,7 @@ const InfluencerProfileScreen: React.FC<
 
   const followServices = useMemo(() => (FollowServices(apiClient)), []);
 
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
 
   type ScreenState = "loading" | "welcome" | "redirecting";
   const [screenState, setScreenState] = useState<ScreenState>("loading");
@@ -81,6 +83,14 @@ const InfluencerProfileScreen: React.FC<
       });
   }, [isSignedIn, influencer?.id, followServices]);
 
+  useEffect(() => {
+    if (screenState !== "welcome") return;
+    const sessionKey = `disclaimer_seen`;
+    if (!sessionStorage.getItem(sessionKey)) {
+      setShowDisclaimer(true);
+    }
+  }, [screenState, username]);
+
   //Redirect if signed in and following 
   useEffect(() => {
     if (screenState === "redirecting" && influencer?.id) {
@@ -95,6 +105,19 @@ const InfluencerProfileScreen: React.FC<
 
   return (
     <>
+      <DisclaimerModal
+        isOpen={showDisclaimer}
+        onClose={() => setShowDisclaimer(false)}
+        onEnter={() => {
+          const sessionKey = `disclaimer_seen`;
+          sessionStorage.setItem(sessionKey, "true");
+          setShowDisclaimer(false);
+        }}
+        onExit={() => {
+          setScreenState("loading");
+          window.location.href = "https://www.google.com";
+        }}
+      />
       <WelcomeScreen
         influencer={influencer!}
         showFollowBtn={isSignedIn}
