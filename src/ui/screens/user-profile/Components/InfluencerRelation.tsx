@@ -202,37 +202,40 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
   //   }
   // };
 
+  const goToSubPage = () => {
+    goTo('subscribe', {
+      influencerId: data.id,
+      influencerImageUrl: data.image,
+      influencerName: data.name,
+      onSubscribe: () => goTo("subscription", {
+        influencerId: data.id,
+      }),
+    });
+
+  }
 
   const handleAdultToggleChange = async () => {
     if (!isSubscribed) {
       //Check if verified
       try {
         await subscriptionService.activateMySubscriptionForInfluencer(data.id, true);
-        goTo('subscribe', {
-          influencerId: data.id,
-          image: data.image,
-          onSubscribe: () => {
-            goTo("subscription", {
-              influencerId: data.id
-            })
-          }
-        });
+        goToSubPage();
       }
       catch (err: any) {
-        const ageVerified = err?.response?.data?.detai?.verification_status?.is_age_verified
-        const idVerified = err?.response?.data?.detai?.verification_status?.is_identity_verified;
-        if (!ageVerified && !idVerified) {
+        const idVerified = err?.response?.data?.detail?.verification_status?.is_identity_verified;
+        if (idVerified === false) {
           setShowTermsModal(true);
-          logger.error(err);
           return;
         }
+        goToSubPage();
       }
     }
     else {
       setShowCancelModal(true);
     }
-
   }
+
+
   const handleCancelSubscription = async () => {
     if (!data.id) {
       setCancelError(`Cannot find influencer ID : ${data.id}`);
@@ -432,12 +435,18 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         </Modal>
 
       )}
-      <AdultTermsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} onAgree={onAdultTermsAgreed} />
+      <AdultTermsModal
+        isOpen={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
+        onAgree={onAdultTermsAgreed}
+        influencerId={data.id}
+        influencerName={data.name}
+        influencerImageUrl={data.image}
+      />
       {/* Temporary loading to avoid  warning */}
       {loading && <div> </div>}
 
     </div>
   );
 }
-
 

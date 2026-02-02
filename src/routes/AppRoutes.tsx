@@ -15,7 +15,7 @@ import TermsPage from "@/ui/screens/terms/TermsPage";
 import { terms } from "@/ui/screens/terms/termsContent";
 
 import { JSX, Suspense, lazy } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate, useSearchParams, useNavigate } from "react-router-dom";
 import { Paths } from "./path";
 import GuestRoute from "./components/GuestRoute";
 import PrivateRoute from "./components/PrivateRoute";
@@ -68,6 +68,9 @@ const CreateInfluencer = lazy(
 const PromptEditorAdmin = lazy(
   () => import("@/ui/screens/admin/PromptEditorAdmin")
 );
+const AdultModePage = lazy(
+  () => import("@/ui/screens/messaging/pages/adult-mode/AdultModePage")
+);
 const HomePage = lazy(() => import("@/ui/screens/home-page/HomePage"));
 const InfluencerHome = lazy(
   () => import("@/ui/screens/home-page/InfluencerHome")
@@ -81,6 +84,25 @@ const RecordTerms = lazy(
 const IntencionInfluencerHome = lazy(
   () => import("@/ui/screens/home-page/IntencionInfluencerHome")
 );
+
+function AdultModeRoute() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const influencerId = searchParams.get("influencerId");
+
+  if (!influencerId) {
+    return <Navigate to={Paths.home} replace />;
+  }
+
+  return (
+    <AdultModePage
+      influencerId={influencerId}
+      influencerImageUrl={searchParams.get("img")}
+      influencerName={searchParams.get("name")}
+      onSubscribePressed={() => navigate(Paths.home)}
+    />
+  );
+}
 
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
@@ -151,6 +173,7 @@ function AppRoutes() {
   const privateRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.voice, element: <VoiceCallEleven /> },
     { path: Paths.home, element: <HomeScreenSingle /> },
+    { path: Paths.adultMode, element: <AdultModeRoute /> },
     { path: Paths.chat(), element: <ChatScreen /> },
     { path: Paths.call(), element: <CallScreen /> },
     { path: Paths.paypalReturn, element: <PayPalReturn /> },

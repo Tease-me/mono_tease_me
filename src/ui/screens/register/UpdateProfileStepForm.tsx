@@ -145,7 +145,7 @@ export default function UpdateProfileStepForm({
             </ValidationPill>
           )}
           <div className={styles["auth-buttons"]}>
-            <NormalButton text="Back" onClick={onBack} className={styles["btn-back"]} />
+            <NormalButton text="Back" onClick={onBack} className={styles["btn-back"]} style={{ height: "auto" }} />
             <PrimaryButton
               text="Continue"
               onClick={onSubmit}
