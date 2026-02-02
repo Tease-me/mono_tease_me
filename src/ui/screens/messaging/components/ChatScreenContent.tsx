@@ -36,6 +36,8 @@ import { RelationshipDataModel } from '@/data/models/RelationshipDataModel';
 import AdultConvoStarterCard from '@/ui/components/cards/AdultConvoStarterCard';
 import { mergeCallMessages } from './messageUtils';
 import { UserServices } from '@/api/services/UserServices';
+import UpgradePlanModal from '@/ui/components/modals/subscription/UpgradePlanModal';
+import AddCreditsModal from '@/ui/components/modals/payment-modal/AddCreditsModal';
 
 const chatRepository = ChatRepository();
 const influencerRepo = InfluencerRepo();
@@ -89,6 +91,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const [relationship, setRelationship] = useState<RelationshipDataModel | undefined>();
     const [creditsRemaining, setCreditsRemaining] = useState<number | undefined>(undefined);
     const [adultMinutesRemaining, setAdultMinutesRemaining] = useState<number | undefined>(undefined);
+
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+    const [showTopupModal, setShowTopupModal] = useState(false);
 
     const { user_id } = useParams();
 
@@ -384,6 +389,14 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             } else if (data.error) {
                 setTyping("idle");
                 logger.error("Error in WebSocket message:", data.error);
+                if (data.error === "INSUFFICIENT_CREDITS") {
+                    if (adultMode) {
+                        setShowUpgradeModal(true);
+                    } else {
+                        setShowTopupModal(true);
+                        // setShowErrorAlert("You do not have enough chat credits to send this message. Please purchase more credits.");
+                    }
+                }
                 setError(data.error || "An error occurred while sending the message.");
             }
         };
@@ -688,6 +701,16 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                     />
                 )}
             </div>
+            <UpgradePlanModal
+                isOpen={showUpgradeModal}
+                onClose={() => setShowUpgradeModal(false)}
+            />
+
+            <AddCreditsModal
+                isOpen={showTopupModal}
+                onClose={() => setShowTopupModal(false)}
+                influencerId={influencer?.id || ''} />
+
             <Modal isOpen={!(!showErrorAlert)} onClose={() => {
                 setShowErrorAlert(undefined);
             }}
