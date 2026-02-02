@@ -1,0 +1,62 @@
+.two-column-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.left-column,
+.right-column {
+  width: 100%;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.auth-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.gender-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.gender-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.error {
+  color: red;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+@media (max-width: 767px) {
+  .auth-buttons {
+    flex-direction: column;
+  }
+
+  .two-column-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .gender-buttons {
+    flex-direction: column;
+  }
+}

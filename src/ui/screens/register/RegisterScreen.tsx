@@ -4,13 +4,8 @@ import { AuthServices } from "@/api/services/AuthServices";
 
 
 import { AuthContext } from "@/context/AuthContext";
-import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
-import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
-import CheckBox from "@/ui/components/inputs/check-boxes/CheckBox";
-import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 import OnBoardingTopNav from "@/ui/components/nav/OnBoardingTopNav";
 import HeadingText from "@/ui/components/typography/HeadingText";
-import ButtonRow from "@/ui/templates/ButtonRow";
 import FullWidthLayout from "@/ui/templates/FullWidthLayout";
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -19,22 +14,35 @@ import styles from "./RegisterScreen.module.css";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { Paths } from "@/routes/path";
 import logger from "@/utils/logger";
-import clsx from "clsx";
 import { validationRules } from "@/utils/validationRules";
-import { validateFields } from "@/utils/validations";
-import SvgPack from "@/utils/SvgPack";
+import { required, validateFields } from "@/utils/validations";
+import RegisterStepForm from "./RegisterStepForm";
+import UpdateProfileStepForm from "./UpdateProfileStepForm";
 
 export default function RegisterScreen() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [agree, setAgree] = useState(false);
+  const [step, setStep] = useState<1 | 2>(1);
+  const [account, setAccount] = useState({
+    email: "",
+    password: "",
+    confirmPassword: "",
+    agree: false,
+  });
+  const [profile, setProfile] = useState({
+    fullName: "",
+    gender: "" as "male" | "female" | "",
+    dateOfBirth: "",
+  });
 
-  const [errors, setErrors] = useState<{
+  const [accountErrors, setAccountErrors] = useState<{
     email?: string;
     password?: string;
     confirmPassword?: string;
     general?: string;
+  }>({});
+  const [profileErrors, setProfileErrors] = useState<{
+    fullName?: string;
+    gender?: string;
+    dateOfBirth?: string;
   }>({});
   const authServices = AuthServices(apiClient);
   const influencerRepo = InfluencerRepo();
@@ -60,11 +68,13 @@ export default function RegisterScreen() {
     })();
   }, [username])
 
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-
+  const validateStepOne = () => {
     const fieldErrors = validateFields(
-      { email, password, confirmPassword },
+      {
+        email: account.email,
+        password: account.password,
+        confirmPassword: account.confirmPassword,
+      },
       {
         email: validationRules.email,
         password: validationRules.password,
@@ -72,58 +82,132 @@ export default function RegisterScreen() {
       },
     );
 
-    const newErrors: {
+    const nextErrors: {
       email?: string;
       password?: string;
       confirmPassword?: string;
       general?: string;
     } = { ...fieldErrors };
 
-    if (password && confirmPassword && password !== confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
+    if (
+      account.password &&
+      account.confirmPassword &&
+      account.password !== account.confirmPassword
+    ) {
+      nextErrors.confirmPassword = "Passwords do not match";
     }
-    if (!agree) newErrors.general = "Please Agree to NSFW";
+    if (!account.agree) nextErrors.general = "Please Agree to NSFW";
 
-    if (Object.keys(newErrors).length) {
-      setErrors(newErrors);
+    return nextErrors;
+  };
+
+  const validateStepTwo = () => {
+    const fieldErrors = validateFields(
+      {
+        fullName: profile.fullName,
+        gender: profile.gender,
+        dateOfBirth: profile.dateOfBirth,
+      },
+      {
+        fullName: required("Full name"),
+        gender: required("Gender"),
+        dateOfBirth: required("Date of birth"),
+      },
+    );
+
+    return {
+      fullName: fieldErrors.fullName,
+      gender: fieldErrors.gender,
+      dateOfBirth: fieldErrors.dateOfBirth,
+    };
+  };
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
+    if (step === 1) {
+      const newErrors = validateStepOne();
+      if (Object.keys(newErrors).length) {
+        setAccountErrors(newErrors);
+        return;
+      }
+      setAccountErrors({});
+      setStep(2);
+      return;
+    }
+
+    const stepOneErrors = validateStepOne();
+    const stepTwoErrors = validateStepTwo();
+    const hasErrors =
+      Object.keys(stepOneErrors).length > 0 ||
+      Object.keys(stepTwoErrors).length > 0;
+    if (hasErrors) {
+      setAccountErrors(stepOneErrors);
+      setProfileErrors(stepTwoErrors);
       return;
     }
 
     try {
+      const influencerId =
+        localStorage.getItem("influencer_referral_id") || username || "";
       const response: RegisterResponse = await authServices.register(
-        password,
-        email.toLowerCase(),
-        username || ""
+        account.password,
+        account.email.toLowerCase(),
+        influencerId,
+        profile.fullName,
+        profile.gender,
+        profile.dateOfBirth
       );
       if (response.ok) {
-        navigate(Paths.registerVerify, { state: { email, password, influencerId: username } });
+        navigate(Paths.registerVerify, {
+          state: { email: account.email, password: account.password, influencerId },
+        });
       }
-      setErrors({ general: "Registration Failed. Please Try Again Later" });
+      setAccountErrors({ general: "Registration Failed. Please Try Again Later" });
     } catch (err) {
       console.error(err);
     }
   };
 
-  const validateField = (field: "email" | "password" | "confirmPassword", value: string) => {
+  const validateField = (
+    field:
+      | "email"
+      | "password"
+      | "confirmPassword"
+      | "fullName"
+      | "gender"
+      | "dateOfBirth",
+    value: string,
+  ) => {
     let error: string | undefined;
     if (field === "email") error = validationRules.email(value);
     if (field === "password") error = validationRules.password(value);
     if (field === "confirmPassword") {
       error = validationRules.password(value);
-      if (!error && password && value && password !== value) {
+      if (!error && account.password && value && account.password !== value) {
         error = "Passwords do not match";
       }
     }
-    setErrors((prev) => ({ ...prev, [field]: error }));
+    if (field === "fullName") error = required("Full name")(value);
+    if (field === "gender") error = required("Gender")(value);
+    if (field === "dateOfBirth") error = required("Date of birth")(value);
+    if (field === "email" || field === "password" || field === "confirmPassword") {
+      setAccountErrors((prev) => ({ ...prev, [field]: error }));
+      return;
+    }
+    setProfileErrors((prev) => ({ ...prev, [field]: error }));
   };
-
-  const handleOnAgreeChange = () => {
-    setAgree((prev) => !prev);
+  const handleEditProfileMediaClicked = () => {
+    console.warn("Edit Clicked")
   };
-
   const handleBackClick = () => {
+    if (step === 2) {
+      setStep(1);
+      return;
+    }
     navigate(Paths.influencerProfile(username || ""));
   };
+
   const handleContinueClicked = () => {
     handleSubmit();
   };
@@ -135,87 +219,38 @@ export default function RegisterScreen() {
         <HeadingText className={styles["title"]}>
           Create your Account
         </HeadingText>
-        <form className={styles["auth-form"]} onSubmit={handleSubmit}>
-          <div className={styles["input-fields"]}>
-            <div className={clsx(styles["input-field"], styles["email-field"])}>
-              <TextInput
-                leftIcon={<SvgPack.Message />}
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
-                onBlur={() => validateField("email", email)}
-                autoComplete="email"
-              />
-              {errors.email && (
-                <span className={styles["error"]}>{errors.email}</span>
-              )}
-            </div>
-            <div className={styles["input-field"]}>
-              <TextInput
-                leftIcon={<SvgPack.Lock />}
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) =>
-                  setPassword((e.target as HTMLInputElement).value)
-                }
-                onBlur={() => validateField("password", password)}
-                autoComplete="new-password"
-              />
-              {errors.password && (
-                <span className={styles["error"]}>{errors.password}</span>
-              )}
-            </div>
-            <div className={styles["input-field"]}>
-              <TextInput
-                leftIcon={<SvgPack.Lock />}
-                type="password"
-                placeholder="Confirm Password"
-                value={confirmPassword}
-                onChange={(e) =>
-                  setConfirmPassword((e.target as HTMLInputElement).value)
-                }
-                onBlur={() => validateField("confirmPassword", confirmPassword)}
-                autoComplete="new-password"
-              />
-              {errors.confirmPassword && (
-                <span className={styles["error"]}>{errors.confirmPassword}</span>
-              )}
-            </div>
-          </div>
-          <CheckBox
-            className={styles["check-box"]}
-            checked={agree}
-            onChange={handleOnAgreeChange}
-          >
-            I am over 18
-          </CheckBox>
-          {errors.general && (
-            <span className={styles["error"]}>{errors.general}</span>
-          )}
-          <div className={styles["user-action-section"]}>
-            <div className={styles["auth-buttons"]}>
-              <ButtonRow>
-                <NormalButton
-                  className={styles["btn-back"]}
-                  onClick={() => navigate(Paths.root)}
-                  text="Back"
-                  color="black"
-                />
-                <PrimaryButton
-                  className={styles["btn-primary"]}
-                  text="Continue"
-                  onClick={handleContinueClicked}
-                />
-              </ButtonRow>
-            </div>
-            <p className={styles["auth-footer"]}>
-              Already have an account?{" "}
-              <span onClick={() => navigate(Paths.login)}>Sign in</span>
-            </p>
-          </div>
-        </form>
+        {step === 1 ? (
+          <RegisterStepForm
+            values={account}
+            errors={accountErrors}
+            onChange={(field, value) => {
+              setAccount((prev) => ({ ...prev, [field]: value }));
+              if (field === "agree") {
+                setAccountErrors((prev) => ({ ...prev, general: undefined }));
+              }
+            }}
+            onBlur={(field) => validateField(field, String(account[field]))}
+            onContinue={handleContinueClicked}
+            onBack={() => navigate(Paths.root)}
+            onSignIn={() => navigate(Paths.login)}
+          />
+        ) : (
+          <UpdateProfileStepForm
+            values={profile}
+            errors={profileErrors}
+            onChange={(field, value) => {
+              setProfile((prev) => ({ ...prev, [field]: value }));
+            }}
+            onGenderSelect={(value) => {
+              setProfile((prev) => ({ ...prev, gender: value }));
+              validateField("gender", value);
+            }}
+            onBlur={(field) => validateField(field, profile[field])}
+            onBack={() => setStep(1)}
+            onSubmit={handleContinueClicked}
+            handleEditProfileMediaClicked={handleEditProfileMediaClicked}
+          />
+        )}
       </FullWidthLayout>
     </BackgroundGradient>
   );

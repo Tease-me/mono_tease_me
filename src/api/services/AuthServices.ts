@@ -21,12 +21,18 @@ export const AuthServices = (apiClient: AxiosInstance) => ({
   register: async (
     password: string,
     email: string,
-    influencer_id: string
+    influencer_id: string,
+    full_name: string,
+    gender: string,
+    date_of_birth: string
   ): Promise<RegisterResponse> => {
     const response = await apiClient.post(Endpoints.auth.register, {
       password,
       email,
       influencer_id: influencer_id,
+      full_name,
+      gender,
+      date_of_birth,
     });
 
     return response.data;
