@@ -7,7 +7,7 @@
     background: linear-gradient(135deg, rgba(41, 47, 60, 0.95), rgba(25, 27, 34, 0.95));
     border: 1px solid rgba(255, 255, 255, 0.05);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
-    gap: 16px;
+    gap: var(--space-px-16);
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     cursor: pointer;
     margin-bottom: 12px;
@@ -28,7 +28,7 @@
 .issue-list-item__info {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--space-px-8);
 }
 
 .issue-list-item__ticket {
@@ -53,7 +53,7 @@
     letter-spacing: 0.06em;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-px-8);
     backdrop-filter: blur(6px);
     transition: box-shadow 0.2s ease, transform 0.2s ease;
 }

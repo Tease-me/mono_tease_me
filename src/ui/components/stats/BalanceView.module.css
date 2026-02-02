@@ -3,7 +3,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: start;
-    gap: 4px;
+    gap: var(--space-px-4);
 }
 
 .label {

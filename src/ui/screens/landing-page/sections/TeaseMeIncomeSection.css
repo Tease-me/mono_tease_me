@@ -117,7 +117,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: var(--space-px-12);
 
 
   /* ★ MULTI-GRADIENT EXACT DO FIGMA ★ */

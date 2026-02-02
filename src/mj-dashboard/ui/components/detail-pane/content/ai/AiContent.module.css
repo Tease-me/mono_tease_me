@@ -1,7 +1,7 @@
 .ai-cell {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: var(--space-px-16);
 }
 
 .ai-cell .avatar {
@@ -13,7 +13,7 @@
 .ai-content {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: var(--space-px-24);
     height: 100%;
 }
 

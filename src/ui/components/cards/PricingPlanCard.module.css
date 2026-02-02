@@ -23,7 +23,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-px-8);
   align-self: stretch;
   border-radius: 16px 16px 0 0;
   border-bottom: 1px solid #3D3839;
@@ -58,7 +58,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-px-8);
   align-self: stretch;
   border-radius: 0 0 var(--space-px-16, 16px) var(--space-px-16, 16px);
   background: #151515;

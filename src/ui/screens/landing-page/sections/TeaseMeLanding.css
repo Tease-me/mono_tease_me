@@ -91,7 +91,7 @@
 .tm-icons-row {
   display: flex;
   flex-direction: row;
-  gap: 1rem;
+ gap: var(--space-px-16);
   justify-content: space-between;
   align-items: flex-start;
   max-width: 9rem;
@@ -224,13 +224,13 @@
 
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-px-8);
 }
 
 .tm-benefit-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: var(--space-px-8);
 
   padding: 0.5rem 1rem;
   border-radius: 3rem;
@@ -257,10 +257,15 @@
   object-fit: contain;
 }
 
+
+/* ============= CTA Button =============== */
+
+.ctaContainer {max-width: 17rem;}
+
 /* =============== SOCIALS =============== */
 .tm-integrations {
   margin-top: 3rem;
-  gap: 1rem;
+ gap: var(--space-px-16);
   display: flex;
   flex-direction: column;
 }
@@ -345,7 +350,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: var(--space-px-12);
 
 
   /* ★ MULTI-GRADIENT EXACT DO FIGMA ★ */
@@ -376,7 +381,7 @@
   font-size: 12px;
   display: flex;
   justify-content: center;
-  gap: 6px;
+  gap: var(--space-px-8);
   display: flex;
   flex-direction: row;
   align-items: center;

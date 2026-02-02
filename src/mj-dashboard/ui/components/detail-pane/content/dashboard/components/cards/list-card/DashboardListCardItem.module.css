@@ -7,7 +7,7 @@
 
 .left-side {
     display: flex;
-    gap: 16px;
+    gap: var(--space-px-16);
     align-items: center;
 }
 
@@ -19,6 +19,6 @@
 
 .right-side {
     display: flex;
-    gap: 16px;
+    gap: var(--space-px-16);
     align-items: center;
 }
