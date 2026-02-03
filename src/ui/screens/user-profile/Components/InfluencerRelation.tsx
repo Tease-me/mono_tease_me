@@ -465,8 +465,6 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         influencerName={data.name}
         influencerImageUrl={data.image}
       />
-      {/* Temporary loading to avoid  warning */}
-      {loading && <div> </div>}
 
     </div>
   );
