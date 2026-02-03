@@ -22,7 +22,7 @@ export default function AddCreditsModal({
       isOpen={isOpen}
       onClose={onClose}
       size="lg"
-      className={styles.modal}
+      className={styles.modalAddCredits}
       body={
         <AddCreditsContent
           influencerId={influencerId}

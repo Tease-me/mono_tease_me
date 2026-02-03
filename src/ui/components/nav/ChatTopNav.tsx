@@ -41,7 +41,7 @@ const ChatTopNav: React.FC<ChatTopNavProps> = ({
     return (
         <div className={styles["chat-header"]}>
             <div className={styles["left-buttons"]}>
-                <button className={clsx(styles["back-btn"], !showBackButton && styles["hidden"])} onClick={onBack || (() => navigate(-1))}>
+                <button className={clsx(styles["back-btn"], !showBackButton && clsx(styles["hidden"]))} onClick={onBack || (() => navigate(-1))}>
                     <ArrowLeftIcon />
                 </button>
                 {menuItems && <DropDownMenu menu={menuItems} className={clsx(styles["menu-button"])}>

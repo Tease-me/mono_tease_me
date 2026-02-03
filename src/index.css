@@ -178,6 +178,8 @@ button {
   height: 100%;
   padding-left: 24px;
   padding-right: 24px;
+  justify-content: space-between;
+      padding-bottom: 3dvh;
 }
 
 .u-sidebar-page-fullwidth {
@@ -187,6 +189,6 @@ button {
 }
 
 .u-sidebar-footer {
-  margin-top: auto;
+ 
   padding-bottom: 16px;
 }

@@ -51,8 +51,8 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
 
     return (
         <div className={styles.page}>
-            <div className={styles.card}>
-                <BalanceBadge balance={balance} />
+            <div className={styles.cardCaller}>
+                <BalanceBadge balance={balance}   />
                 <ProfileMedia active size="xlarge" mediaType="image" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} glow />
                 <div className={styles.name}>{influencer?.name}</div>
 
