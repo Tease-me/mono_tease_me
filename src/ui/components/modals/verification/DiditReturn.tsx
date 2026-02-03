@@ -37,7 +37,7 @@ export default function DiditReturn() {
           replace: true,
           state: { openSubscribe: true },
         });
-      }, 1200);
+      }, 1500);
       return;
     }
 

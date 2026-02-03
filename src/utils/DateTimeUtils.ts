@@ -36,6 +36,11 @@ export function formatDateTimeRelative(input: string | Date): string {
     return `${day} ${month}${isCurrentYear ? '' : ` ${year}`}`;
 }
 
+export function secondsToMinutes(seconds: number): number {
+    if (!Number.isFinite(seconds)) return 0;
+    return seconds / 60;
+}
+
 export function minutesToTime(minutes: number) {
     if (!Number.isFinite(minutes)) return "0:00";
 
