@@ -174,7 +174,6 @@ export default function HomeScreenSingle() {
       .getFollowedInfluencers()
       .then((influencers: InfluencerDataModel[]) => {
         if (!skipInfluencerResetRef.current) {
-          localStorage.setItem("selected_id", "");
           if (influencers.length > 1) {
             setNeedsSelection(true);
             setHasMultipleInfluencers(true);
