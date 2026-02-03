@@ -96,11 +96,16 @@ const AdultModePage = ({
   return (
     <div className={clsx(styles.container, nobg && styles.nobg)}>
       <div className={styles.innerContainer}>
-        <header className={styles.header}>
+     
+      
+          
+
+
+        <section className={styles.audioList}>
+             <header className={styles.header}>
           <span className={styles.headerAccent}>18+</span> Mode
         </header>
-        <section className={styles.card}>
-          <div className={styles.avatar}>
+          <div className={styles.titleContainer}><div className={styles.avatar}>
             <img src={resolvedAvatar} alt="Influencer avatar" />
           </div>
           <div className={styles.cardText}>
@@ -109,10 +114,7 @@ const AdultModePage = ({
               Receive access to more adult conversations including explicit
               messages.
             </p>
-          </div>
-        </section>
-
-        <section className={styles.audioList}>
+          </div></div>
           {isLoadingSamples && (
             <div className={styles.audioRow}>Loading samples...</div>
           )}
@@ -133,7 +135,7 @@ const AdultModePage = ({
                   <img src={resolvedAvatar} alt="Influencer avatar" />
                 </div>
                 <div className={styles.audioCard}>
-                  <div className={styles.title}>{label}</div>
+                  <div className={styles.title}>{label} Sample  {index + 1}</div>
                   <div className={styles.audioPill}>
                     <button
                       className={styles.playButton}
@@ -149,7 +151,7 @@ const AdultModePage = ({
                         <span key={`wave-${sample.s3_key ?? sample.id}-${waveIndex}`} />
                       ))}
                     </div>
-                    <span className={styles.duration}>Sample</span>
+                    <span className={styles.duration}>15sec</span>
                   </div>
                 </div>
               </div>
@@ -158,7 +160,7 @@ const AdultModePage = ({
         </section>
 
         <div className={styles.bottomSection}>
-          <div className={styles.plansSection}>
+       <div className={styles.bottomLeftCol}>   <div className={styles.plansSection}>
             <PricingPlanCard
               title={loadingPlan ? "Loading.." : basicPlan?.name ?? "unknown plan"}
               price={basicPlan ? basicPlan.price_display : ""}
@@ -166,9 +168,10 @@ const AdultModePage = ({
               onClick={() => { }}
             />
             <div><span className={styles.headerAccent}>18+</span>only</div>
-          </div>
-          <p className={styles.tagline}>Let&apos;s heat things up...</p>
-
+          </div></div>
+         
+         
+       <div className={styles.bottomRightCol}>   <p className={styles.tagline}>Let&apos;s heat things up...</p>
           <div className={styles.subscribeButton}>
             <PrimaryButton text={basicPlan ? `Subscribe for $${(basicPlan.price_cents / 100).toFixed(2)}` : "Subscribe"} onClick={onSubscribePressed} variant="purple" />
           </div>
@@ -176,8 +179,8 @@ const AdultModePage = ({
           <div className={styles.footer}>
             You will be charged, your subscription will auto-renew for the same price and package length until you cancel via account settings, and you agree to our Terms.
             <br />
-            <NormalButton type="nobg" text="No thank you, take me back" onClick={onBackClicked} />
-          </div>
+            <NormalButton type="nobg" text="No thank you, take me back" onClick={onBackClicked} className={styles.takeMeBack} />
+          </div></div>
         </div>
       </div>
       <audio ref={audioRef} onEnded={() => setPlayingId(null)} />
