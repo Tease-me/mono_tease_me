@@ -42,7 +42,7 @@ const sidebarPages: SidebarPage[] = [
   { id: "payment-check", label: "Payment", render: () => <PaymentCheck />, background: "#181A20" },
   {
     id: "influencers",
-    label: "Manage Influencers",
+    label: "Topup",
     render: ({ goTo, navPayload }) =>
       <ManageInfluencers
         goTo={goTo}
