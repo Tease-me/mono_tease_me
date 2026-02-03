@@ -5,7 +5,7 @@
   justify-content: space-between;
   padding: 0 20px 0 var(--space-px-12);
   gap: var(--space-px-12);
-  min-width: 200px;
+  max-width: 200px;
   border-radius: 74px;
   border: 1px solid rgba(66, 66, 66, 0.50);
   background: #212121;
