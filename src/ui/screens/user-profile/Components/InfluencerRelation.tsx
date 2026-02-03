@@ -23,6 +23,9 @@ import { UserServices } from "@/api/services/UserServices";
 import logger from "@/utils/logger";
 import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 import AdultTermsModal from "@/ui/components/modals/adult-terms/AdultTermsModal";
+import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
+import { FollowServices } from "@/api/services/FollowServices";
+import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 //TODO
 // UNFOLLOW BUTTON IS HIDDEN
 //CHECK STATUS OF SUBSCRIPTION IF CANCELLED OR REACTIVATED ETC
@@ -31,6 +34,9 @@ const relationshipService = RelationshipServices(apiClient);
 const balanceService = BalanceServices(apiClient);
 const subscriptionService = SubscriptionsServices(apiClient);
 const userServices = UserServices(apiClient);
+const influencerRepo = InfluencerRepo();
+
+const followingService = FollowServices(apiClient);
 
 type NavPayload = Record<string, any>;
 type Props = {
@@ -115,16 +121,22 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
 
     (async () => {
       try {
-        const [rel, bal, sub, u] = await Promise.all([
+        const [rel, bal, sub, u, i, following] = await Promise.all([
           relationshipService.getRelationship(initial.id!),
           balanceService.getBalance(initial.id!, false).catch(() => null),
           subscriptionService.getMySubscriptionForInfluencer(initial.id!),
           userServices.getUserUsage(initial.id),
+          influencerRepo.getInfluencer(initial.id!),
+          followingService.list(),
         ]);
 
         if (cancelled) return;
         setData((d) => ({
           ...d,
+          image: i?.img ?? d.image,
+          video: i?.videoUrl ?? d.video,
+          name: i?.name ?? d.name,
+          followingSince: (following.items.find(f => f.influencer_id === initial.id)?.created_at) ?? d.followingSince,
           trust: rel?.trust ?? d.trust,
           safety: rel?.safety ?? d.safety,
           attraction: rel?.attraction ?? d.attraction,
@@ -162,10 +174,10 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
     setData((d) => ({
       ...d,
       id: navPayload.influencerId ?? d.id,
-      image: navPayload.image ?? d.image,
-      video: navPayload.video ?? d.video,
-      name: navPayload.name ?? d.name,
-      followingSince: navPayload.followingSince ?? d.followingSince,
+      // image: navPayload.image ?? d.image,
+      // video: navPayload.video ?? d.video,
+      // name: navPayload.name ?? d.name,
+      // followingSince: navPayload.followingSince ?? d.followingSince,
     }));
   }, [navPayload.image, navPayload.video, navPayload.name, navPayload.followingSince]);
 
@@ -268,6 +280,10 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
 
   const onAdultTermsAgreed = () => {
 
+  }
+
+  if (loading) {
+    return <LoadingSpinner />
   }
 
 
@@ -384,7 +400,6 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         <IconButton color="black" type="pill" leftIcon={<SvgPack.Delete />} text={`Unfollow ${data.name}`} redText className={styles.unfollowBtn} />
       </div> */}
 
-      {loading && <div className={styles.loading}>Loading…</div>}
       {showCancelModal && (
         <Modal isOpen={showCancelModal} onClose={() => {
           setCancelError("");
