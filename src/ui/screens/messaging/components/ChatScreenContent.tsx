@@ -684,10 +684,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                             onChangeInfluencer={handleChangeInfluencerClicked}
                         />
                         <div
-                        className={clsx(styles["chat-messages-container"], isLoadingMessages && styles["loading"])}
-                        ref={containerRef}
-                        onScroll={handleScrollEvent}
-                    >
+                            className={clsx(styles["chat-messages-container"], isLoadingMessages && styles["loading"])}
+                            ref={containerRef}
+                            onScroll={handleScrollEvent}
+                        >
                             {(messages) ? <>
                                 {isLoadingMore && <LoadingSpinner size='small' />}
                                 <div className={styles.adultConvoCardArea}>
@@ -760,6 +760,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
             <AddCreditsModal
                 isOpen={showTopupModal}
+                image={influencer?.img || ''}
                 onClose={() => setShowTopupModal(false)}
                 influencerId={influencer?.id || ''} />
 
