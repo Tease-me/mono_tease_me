@@ -13,6 +13,8 @@ import { FollowServices } from "@/api/services/FollowServices";
 import { apiClient } from "@/api/apis";
 import DisclaimerModal from "@/ui/components/modals/DisclaimerModal";
 import { Paths } from "@/routes/path";
+import { LocalStorageKeys } from "@/constants/localStorageKeys";
+import { storage } from "@/utils/storage";
 
 interface InfluencerProfileScreenProps { }
 
@@ -86,8 +88,7 @@ const InfluencerProfileScreen: React.FC<
 
   useEffect(() => {
     if (screenState !== "welcome") return;
-    const sessionKey = `disclaimer_seen`;
-    if (!sessionStorage.getItem(sessionKey)) {
+    if (!storage.getBoolean(LocalStorageKeys.DisclaimerSeen)) {
       setShowDisclaimer(true);
     }
   }, [screenState, username]);
@@ -110,8 +111,7 @@ const InfluencerProfileScreen: React.FC<
         isOpen={showDisclaimer}
         onClose={() => setShowDisclaimer(false)}
         onEnter={() => {
-          const sessionKey = `disclaimer_seen`;
-          sessionStorage.setItem(sessionKey, "true");
+          storage.setBoolean(LocalStorageKeys.DisclaimerSeen, true);
           setShowDisclaimer(false);
         }}
         onExit={() => {
