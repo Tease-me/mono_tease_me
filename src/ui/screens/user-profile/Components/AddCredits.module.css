@@ -36,8 +36,9 @@
 
 }
 
-.presetsBox h4{
-  font-weight: 500;;
+.presetsBox h4 {
+  font-weight: 500;
+  ;
 }
 
 .presetList {
@@ -47,9 +48,10 @@
   width: 100%;
 }
 
-.customBtn{
+.customBtn {
   width: 60px;
-  height: 43px;;
+  height: 43px;
+  ;
 }
 
 .customAmountArea {
@@ -63,18 +65,15 @@
 }
 
 .amountInput {
-  gap: var(--space-px-8);
-  color: white;
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 150px;
   min-width: 120px;
-  min-height: 60px;
+}
+
+.amountInput input {
+  color: white;
+  text-align: center;
 }
 
 .confirmBtn {
-width: 100%;
+  width: 100%;
 }
-
