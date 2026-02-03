@@ -260,7 +260,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                     throw new Error("Missing subscription capture data");
                 }
 
-                await subscriptionsServices.captureSubscription(orderId, String(subscriptionId), amountCents);
+                await subscriptionsServices.captureSubscription(String(subscriptionId), orderId, amountCents);
                 await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, true);
                 setAdultMode(true);
                 setShowSubscriptionPage(false);

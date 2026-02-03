@@ -97,7 +97,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
 
   const [showBalanceDetails, setShowBalanceDetails] = useState(false);
   const [showAdultBalanceDetails, setShowAdultBalanceDetails] = useState(false);
-  const [adultModeChecked, setAdultModeChecked] = useState(!!data.hasSubscription && data.subscriptionStatus !== 'cancelled');
+  const [adultModeChecked, setAdultModeChecked] = useState(!!data.hasSubscription && data.subscriptionStatus === 'active');
 
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
@@ -151,7 +151,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
   }, [initial.id]);
 
 
-  const isSubscribed = !!data.hasSubscription && data.subscriptionStatus !== 'cancelled';
+  const isSubscribed = !!data.hasSubscription && data.subscriptionStatus === 'active';
 
   useEffect(() => {
     setAdultModeChecked(isSubscribed);
