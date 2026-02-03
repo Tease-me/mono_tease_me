@@ -288,7 +288,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
             </span>
           </div>
           <div className={styles.meta}>
-            <span>Last Connected: <strong>{data.lastConnected != null ? formatDateTimeRelative(data.lastConnected) : "--"}</strong></span>
+            <span>Last Connected: <strong>{data.lastConnected ? formatDateTimeRelative(data.lastConnected) : "--"}</strong></span>
             <span>Following since: {followingDate}</span>
           </div>
         </div>
