@@ -96,25 +96,20 @@ const AdultModePage = ({
   return (
     <div className={clsx(styles.container, nobg && styles.nobg)}>
       <div className={styles.innerContainer}>
-     
-      
-          
-
-
         <section className={styles.audioList}>
-             <header className={styles.header}>
-          <span className={styles.headerAccent}>18+</span> Mode
-        </header>
+          <header className={styles.header}>
+            <span className={styles.headerAccent}>18+</span> Mode
+          </header>
           <div className={styles.titleContainer}><div className={styles.avatar}>
             <img src={resolvedAvatar} alt="Influencer avatar" />
           </div>
-          <div className={styles.cardText}>
-            <div className={styles.title}>Adult Chat</div>
-            <p>
-              Receive access to more adult conversations including explicit
-              messages.
-            </p>
-          </div></div>
+            <div className={styles.cardText}>
+              <div className={styles.title}>Adult Chat</div>
+              <p>
+                Receive access to more adult conversations including explicit
+                messages.
+              </p>
+            </div></div>
           {isLoadingSamples && (
             <div className={styles.audioRow}>Loading samples...</div>
           )}
@@ -159,8 +154,8 @@ const AdultModePage = ({
           })}
         </section>
 
-        <div className={styles.bottomSection}>
-       <div className={styles.bottomLeftCol}>   <div className={styles.plansSection}>
+        <div className={clsx(styles.bottomSection, nobg && styles.nobg)}>
+          <div className={styles.bottomLeftCol}>   <div className={styles.plansSection}>
             <PricingPlanCard
               title={loadingPlan ? "Loading.." : basicPlan?.name ?? "unknown plan"}
               price={basicPlan ? basicPlan.price_display : ""}
@@ -169,18 +164,18 @@ const AdultModePage = ({
             />
             <div><span className={styles.headerAccent}>18+</span>only</div>
           </div></div>
-         
-         
-       <div className={styles.bottomRightCol}>   <p className={styles.tagline}>Let&apos;s heat things up...</p>
-          <div className={styles.subscribeButton}>
-            <PrimaryButton text={basicPlan ? `Subscribe for $${(basicPlan.price_cents / 100).toFixed(2)}` : "Subscribe"} onClick={onSubscribePressed} variant="purple" />
-          </div>
 
-          <div className={styles.footer}>
-            You will be charged, your subscription will auto-renew for the same price and package length until you cancel via account settings, and you agree to our Terms.
-            <br />
-            <NormalButton type="nobg" text="No thank you, take me back" onClick={onBackClicked} className={styles.takeMeBack} />
-          </div></div>
+
+          <div className={styles.bottomRightCol}>   <p className={styles.tagline}>Let&apos;s heat things up...</p>
+            <div className={styles.subscribeButton}>
+              <PrimaryButton text={basicPlan ? `Subscribe for $${(basicPlan.price_cents / 100).toFixed(2)}` : "Subscribe"} onClick={onSubscribePressed} variant="purple" />
+            </div>
+
+            <div className={styles.footer}>
+              You will be charged, your subscription will auto-renew for the same price and package length until you cancel via account settings, and you agree to our Terms.
+              <br />
+              <NormalButton type="nobg" text="No thank you, take me back" onClick={onBackClicked} className={styles.takeMeBack} />
+            </div></div>
         </div>
       </div>
       <audio ref={audioRef} onEnded={() => setPlayingId(null)} />
