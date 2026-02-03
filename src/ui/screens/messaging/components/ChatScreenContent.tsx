@@ -62,7 +62,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const [influencer, setInfluencer] = useState<InfluencerDataModel>();
     const [chatId, setChatId] = useState<string | undefined>();
 
-    const [messages, setMessages] = useState<Message[] | undefined>();
+    const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState("");
     const [inputAudio, setInputAudio] = useState<Blob>();
     const [typing, setTyping] = useState<TypingStatus>("idle");
@@ -131,11 +131,11 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                 }
                 const localInfluencer = await influencerRepo.getInfluencer(user_id);
                 setInfluencer(localInfluencer);
-                setMessages(undefined);
+                setMessages([]);
             } else {
                 const localInfluencer = await influencerRepo.getInfluencer(id);
                 setInfluencer(localInfluencer);
-                setMessages(undefined);
+                setMessages([]);
             }
         })()
     }, [id, user_id]);
@@ -308,12 +308,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                 setChatId(chat_id);
                 setPageNumber(1);
                 setHasMore(true);
-                fetchMessages(chat_id, 1);
+                await fetchMessages(chat_id, 1);
                 connectChat(influencer.id);
                 setInfluencerId(influencer.id);
                 relationshipServices.getRelationship(influencer.id).then((relationshipResponse) => {
                     setRelationship(relationshipResponse)
                 })
+                setIsLoadingMore(false);
             }
 
         })()
@@ -397,7 +398,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                 }
                 setTimeout(() => {
                     setMessages(prev => {
-                        if (!prev) return
+                        if (!prev) return [];
                         return [
                             ...prev,
                             {
@@ -429,7 +430,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                         setShowUpgradeModal(true);
                     } else {
                         setShowTopupModal(true);
-                        // setShowErrorAlert("You do not have enough chat credits to send this message. Please purchase more credits.");
                     }
                 }
                 setError(data.error || "An error occurred while sending the message.");
@@ -524,7 +524,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                 return false;
             }
             setMessages(prev => {
-                if (!prev) return;
+                if (!prev) return [];
                 return [
                     ...prev,
                     {
@@ -550,7 +550,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             const sentMessageId = Date.now();
             sendAndPlay(audioToSend, sentMessageId);
             setMessages(prev => {
-                if (!prev) return
+                if (!prev) return [];
                 return [
                     ...prev,
                     {
@@ -685,6 +685,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                                     messages={displayMessages}
                                     typing={typing}
                                     messagesEndRef={messagesEndRef}
+                                    containerRef={containerRef}
                                     influencerName={influencer?.name}
                                     showAudioTranscript={isSuperUser}
                                     isAudio={Boolean(inputAudio)}
