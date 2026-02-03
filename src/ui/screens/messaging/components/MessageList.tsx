@@ -71,7 +71,7 @@ const MessagesList = React.memo(
 
           {typing !== "idle" && <MessageBubble isAudio={typing === "recording"} />}
         </div>
-        <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} style={{ height: "50px" }} />
       </>
     );
   }

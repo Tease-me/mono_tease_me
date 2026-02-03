@@ -32,12 +32,12 @@ export default function DiditReturn() {
 
     if (isApproved(statusParam)) {
       setStatus("success");
-      // setTimeout(() => {
-      //   navigate(Paths.home, {
-      //     replace: true,
-      //     state: { openSubscribe: true },
-      //   });
-      // }, 1200);
+      setTimeout(() => {
+        navigate(Paths.home, {
+          replace: true,
+          state: { openSubscribe: true },
+        });
+      }, 1500);
       return;
     }
 
