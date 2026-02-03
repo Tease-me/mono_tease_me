@@ -38,6 +38,7 @@ import { mergeCallMessages } from './messageUtils';
 import { UserServices } from '@/api/services/UserServices';
 import UpgradePlanModal from '@/ui/components/modals/subscription/UpgradePlanModal';
 import AddCreditsModal from '@/ui/components/modals/payment-modal/AddCreditsModal';
+import AdultTermsModal from '@/ui/components/modals/adult-terms/AdultTermsModal';
 
 const chatRepository = ChatRepository();
 const influencerRepo = InfluencerRepo();
@@ -94,6 +95,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [showTopupModal, setShowTopupModal] = useState(false);
+
+    const [showTermsModal, setShowTermsModal] = useState(false);
 
     const { user_id } = useParams();
 
@@ -180,10 +183,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             setAdultModeSwitch(false);
             return;
         }
+
         setAdultModeSwitch(checked);
+
         if (!checked) {
             await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, false);
         }
+
     };
 
     useEffect(() => {
@@ -196,10 +202,29 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                         setShowSubscriptionPage(false);
                         setAdultMode(true);
                     } else {
-                        setShowSubscriptionPage(true);
-                        setAdultMode(false);
+                        try {
+                            await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, true);
+                            setShowSubscriptionPage(true);
+                            setAdultMode(false);
+                        } catch (activateErr: any) {
+                            const idVerified = activateErr?.response?.data?.detail?.verification_status?.is_identity_verified;
+                            if (idVerified === false) {
+                                setShowTermsModal(true);
+                                setAdultModeSwitch(false);
+                                return;
+                            }
+                            setShowSubscriptionPage(true);
+                            setAdultMode(false);
+                        }
                     }
-                } catch (err) {
+                }
+                catch (err: any) {
+                    const idVerified = err?.response?.data?.detail?.verification_status?.is_identity_verified;
+                    if (idVerified === false) {
+                        setShowTermsModal(true);
+                        setAdultModeSwitch(false);
+                        return;
+                    }
                     logger.error("Error enabling adult mode subscription:", err);
                     setAdultModeSwitch(false);
                     setShowSubscriptionPage(false);
@@ -282,6 +307,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                     setRelationship(relationshipResponse)
                 })
             }
+
         })()
     }, [influencer, user, adultMode]);
 
@@ -695,9 +721,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                 </> : (
                     <AdultModePage
                         onSubscribePressed={handleSubscribePressed}
-                        influencerId={influencer?.id}
-                        influencerImageUrl={influencer?.img}
-                        influencerName={influencer?.name}
+                        onBackClicked={() => {
+                            setShowSubscriptionPage(false);
+                            setAdultModeSwitch(false);
+                        }}
+                        influencerId={influencer?.id ?? ""}
+                        influencerImageUrl={influencer?.img ?? null}
+                        influencerName={influencer?.name ?? null}
                     />
                 )}
             </div>
@@ -729,6 +759,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                     </>
                 </div>
             </Modal>
+            <AdultTermsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} influencerId={influencer?.id || ''} onAgree={() => setShowTermsModal(false)} />
 
         </div>
     );

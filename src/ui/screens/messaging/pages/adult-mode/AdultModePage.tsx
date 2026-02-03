@@ -22,7 +22,7 @@ type AdultModePageProps = {
   influencerId: string;
   influencerImageUrl: string | null;
   influencerName: string | null;
-
+  onBackClicked: () => void;
 };
 
 const AdultModePage = ({
@@ -30,7 +30,8 @@ const AdultModePage = ({
   onSubscribePressed,
   influencerId,
   influencerImageUrl,
-  influencerName
+  influencerName,
+  onBackClicked
 }: AdultModePageProps) => {
   const influencerRepo = useMemo(() => InfluencerRepo(), []);
   const [samples, setSamples] = useState<InfluencerSampleModel[]>([]);
@@ -175,7 +176,7 @@ const AdultModePage = ({
           <div className={styles.footer}>
             You will be charged, your subscription will auto-renew for the same price and package length until you cancel via account settings, and you agree to our Terms.
             <br />
-            <NormalButton type="nobg" text="No thank you, take me back" />
+            <NormalButton type="nobg" text="No thank you, take me back" onClick={onBackClicked} />
           </div>
         </div>
       </div>
