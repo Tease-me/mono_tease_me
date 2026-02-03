@@ -123,9 +123,9 @@ const AdultModePage = ({
             <div className={styles.audioRow}>No samples available for {influencerName}</div>
           )}
           {samples.map((sample, index) => {
-            const label =
-              sample.original_filename?.trim() ||
-              `${influencerName || "Influencer"} Sample ${String(index + 1).padStart(2, "0")}`;
+            const label = influencerName;
+            // sample.original_filename?.trim() ||
+            // `${influencerName || "Influencer"} Sample ${String(index + 1).padStart(2, "0")}`;
             const isPlaying = playingId === sample.id;
             return (
               <div className={styles.audioRow} key={sample.s3_key || `${sample.id}-${index}`}>
