@@ -198,7 +198,7 @@ const AdultModePage = ({
           <p className={styles.tagline}>Let&apos;s heat things up...</p>
 
           <div className={styles.subscribeButton}>
-            <PrimaryButton text={subscribing ? "Subscribing..." : basicPlan ? `Subscribe for $${(basicPlan.price_cents / 100).toFixed(2)}` : "Subscribe"} onClick={handleSubscribe} disabled={subscribing} variant="purple" />
+            <PrimaryButton text={basicPlan ? `Subscribe for $${(basicPlan.price_cents / 100).toFixed(2)}` : "Subscribe"} onClick={onSubscribePressed} variant="purple" />
           </div>
 
           <div className={styles.footer}>
