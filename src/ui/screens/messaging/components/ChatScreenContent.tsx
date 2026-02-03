@@ -63,6 +63,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const [chatId, setChatId] = useState<string | undefined>();
 
     const [messages, setMessages] = useState<Message[]>([]);
+    const [isLoadingMessages, setIsLoadingMessages] = useState(false);
     const [inputText, setInputText] = useState("");
     const [inputAudio, setInputAudio] = useState<Blob>();
     const [typing, setTyping] = useState<TypingStatus>("idle");
@@ -131,11 +132,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                 }
                 const localInfluencer = await influencerRepo.getInfluencer(user_id);
                 setInfluencer(localInfluencer);
-                setMessages([]);
             } else {
                 const localInfluencer = await influencerRepo.getInfluencer(id);
                 setInfluencer(localInfluencer);
-                setMessages([]);
             }
         })()
     }, [id, user_id]);
@@ -281,18 +280,29 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
     const fetchMessages = async (chat_id: string, page: number) => {
         try {
+            if (page === 1) {
+                setIsLoadingMessages(true);
+            }
             const responseMessagesPagination: MessagePagination = await (adultMode ? adultChatRepo.getChatHistory(chat_id, page, pageSize) : chatRepository.getChatHistory(chat_id, page, pageSize));
 
             const totalPages = Math.ceil(responseMessagesPagination.total / pageSize);
-            const localMessages = responseMessagesPagination.messages;
+            const localMessages = responseMessagesPagination.messages ?? [];
             if (page === 1) {
-                setMessages(responseMessagesPagination.messages);
+                setMessages(localMessages);
             } else {
                 setMessages(prev => prev ? [...localMessages, ...prev] : localMessages);
             }
             setHasMore(page < totalPages);
         } catch (err) {
             console.error('Error loading messages', err);
+            if (page === 1) {
+                setMessages([]);
+                setHasMore(false);
+            }
+        } finally {
+            if (page === 1) {
+                setIsLoadingMessages(false);
+            }
         }
     };
 
@@ -672,10 +682,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                             onChangeInfluencer={handleChangeInfluencerClicked}
                         />
                         <div
-                            className={clsx(styles["chat-messages-container"], !messages && styles["loading"])}
-                            ref={containerRef}
-                            onScroll={handleScrollEvent}
-                        >
+                        className={clsx(styles["chat-messages-container"], isLoadingMessages && styles["loading"])}
+                        ref={containerRef}
+                        onScroll={handleScrollEvent}
+                    >
                             {(messages) ? <>
                                 {isLoadingMore && <LoadingSpinner size='small' />}
                                 <div className={styles.adultConvoCardArea}>
