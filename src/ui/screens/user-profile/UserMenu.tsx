@@ -8,10 +8,11 @@ import useIsDesktop from '@/utils/hooks/useIsDesktop';
 import { AuthContext } from '@/context/AuthContext';
 import clsx from "clsx"
 
-type UserMenuProps = { goTo: (id: string) => void };
+type UserMenuProps = { goTo: (id: string, payload?: any) => void };
 
 
 export default function UserMenu({ goTo }: UserMenuProps) {
+  const storedId = localStorage.getItem("selected_id");
   const { logout } = useContext(AuthContext);
 
   const handleUserProfileClick = () => {
@@ -23,9 +24,15 @@ export default function UserMenu({ goTo }: UserMenuProps) {
     goTo("payment")
   }
 
-  const handleManageInfluencersClick = () => {
-    goTo("influencers")
+  const handlePTopupClick = () => {
+    goTo("influencer_profile", {
+      influencerId: storedId || "sophia",
+    });
   }
+
+  // const handleManageInfluencersClick = () => {
+  //   goTo("influencers")
+  // }
 
   const isDesktop = useIsDesktop();
   return (
@@ -40,7 +47,8 @@ export default function UserMenu({ goTo }: UserMenuProps) {
         <div className={styles.menuArea}>
           <NavigationRow title="User Profile" subtitle='Edit & Update User Details' onClick={handleUserProfileClick} />
           <NavigationRow title="Payment Details" subtitle='Add & Edit Payment Sources' onClick={handlePaymentDetailsClick} />
-          <NavigationRow title="Manage Influencer" subtitle='Fund, Manage & View Your Influencers' onClick={handleManageInfluencersClick} />
+          <NavigationRow title="Topup" subtitle='Topup your account' onClick={handlePTopupClick} />
+          {/* <NavigationRow title="Manage Influencer" subtitle='Fund, Manage & View Your Influencers' onClick={handleManageInfluencersClick} /> */}
         </div>
       </div>
       <div className="u-sidebar-footer">
