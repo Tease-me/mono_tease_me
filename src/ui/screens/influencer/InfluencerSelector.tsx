@@ -106,9 +106,9 @@ export default function InfluencerSelector({
             <LoadingSpinner />
           </div>
         ) : (
-<div className={clsx(styles.list, items.length > 1 && styles.edgeFade)}>
+          <div className={clsx(styles.list, items.length > 1 && styles.edgeFade)}>
+            <div className="spacer"></div>
             {items.map((inf) => (
-              <>
               <div key={inf.id}>
                 <div className={styles.card}>
                   <InfluencerRelationCard {...inf} />
@@ -121,13 +121,15 @@ export default function InfluencerSelector({
                     className={styles.chatButton}
                   />
                 </div>
+               
               </div>
-              </>
+              
             ))}
             {error && <div className={styles.error}>{error}</div>}
+          <div className="spacer"></div>
           </div>
         )}
       </div>
-      </BackgroundGradient>
+    </BackgroundGradient>
   );
 }

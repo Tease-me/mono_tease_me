@@ -35,7 +35,7 @@
 .col.user {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-px-12);
     justify-self: start;
     overflow: hidden;
     text-overflow: ellipsis;

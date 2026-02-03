@@ -105,7 +105,7 @@
   height: 2.3125rem;
   padding: 0.3125rem 0.625rem;
   align-items: center;
-  gap: 0.3125rem;
+  gap: var(--space-px-32);
   background: rgba(38, 38, 38, 0.2);
   width: max-content;
   margin: 0.5rem auto 1.5rem;
@@ -165,7 +165,7 @@ transition: all 350ms ease;}
 .ps-socials-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: var(--space-px-8);
   margin-bottom: 20px;
 }
 

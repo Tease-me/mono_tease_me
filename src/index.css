@@ -47,6 +47,8 @@ body,
   --chat-bubble-gradient-mid: rgba(255, 77, 116, 0.70);
   --chat-bubble-gradient-end: #FF8395;
 
+  --sidebar-bg-color: rgba(33, 33, 33, 1);
+
   --gradient-orange-start: #FB9400;
   --gradient-orange-end: #FFAB38;
   --max-chat-content-width: 960px;
@@ -58,20 +60,25 @@ body,
   --color-purple: #AD4ADE;
   --color-purple-background: rgba(136, 1, 203, 0.15);
   --color-purple-light: #CC68FF;
+  --color-purple-deep: #AE21F5;
   --color-purple-disabled: #72508A;
   --color-green-background: rgba(18, 255, 105, 0.10);
 
+
   /* Spacing Tokens */
-  --space-px-4: 4px;
-  --space-px-8: 8px;
-  --space-px-12: 12px;
-  --space-px-16: 16px;
-  --space-px-20: 20px;
-  --space-px-24: 24px;
-  --space-px-28: 28px;
-  --space-px-32: 32px;
-  --space-px-44: 44px;
-  --space-px-52: 52px;
+  --space-px-4: 0.25rem;
+  --space-px-8: 0.5rem;
+  --space-px-12: 0.75rem;
+  --space-px-16: 1rem;
+  --space-px-20: 1.25rem;
+  --space-px-24: 1.5rem;
+  --space-px-28: 1.75rem;
+  --space-px-32: 2rem;
+  --space-px-44: 2.75rem;
+  --space-px-52: 3.25rem;
+
+
+  
 }
 
 /* Light theme fallbacks (optional preview) */
@@ -129,6 +136,7 @@ button {
   background: none;
   border: none;
   color: var(--color-text);
+  font-size: 1rem;
 }
 
 /* --- Default themed scrollbars (app‑wide) --- */
@@ -165,6 +173,14 @@ button {
 }
 
 .u-sidebar-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+.u-sidebar-page-fullwidth {
   display: flex;
   flex-direction: column;
   height: 100%;

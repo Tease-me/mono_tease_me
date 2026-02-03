@@ -138,6 +138,7 @@ export default function LoginScreen() {
               />
               <span className={styles["error"]}>{errors.password}</span>
             </div>
+            
           </div>
           <CheckBox className={styles["check-box"]} checked={agree} onChange={handleOnAgreeChange}>
             Remember Me

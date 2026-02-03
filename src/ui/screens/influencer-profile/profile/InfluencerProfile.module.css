@@ -7,14 +7,14 @@
 .action-buttons {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--space-px-16);
 }
 
 .button-group {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: var(--space-px-12);
 }
 
 .screen {
@@ -35,20 +35,20 @@
     max-width: 960px;
     display: flex;
     flex-direction: column;
-    gap: 32px;
+    gap: var(--space-px-32);
 }
 
 .detail-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 24px;
+    gap: var(--space-px-24);
 }
 
 .nav-actions {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-px-12);
 }
 
 .back-button {
@@ -90,7 +90,7 @@
     border: none;
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-px-12);
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -110,7 +110,7 @@
     flex-direction: column;
     align-items: center;
     text-align: center;
-    gap: 18px;
+    gap: var(--space-px-20);
 }
 
 .profile-hero__avatar {
@@ -142,7 +142,7 @@
 .primary-actions {
     display: inline-flex;
     align-items: center;
-    gap: 16px;
+    gap: var(--space-px-16);
     padding: 8px;
     background: rgba(24, 27, 36, 0.85);
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -169,7 +169,7 @@
 .social-actions {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-px-12);
 }
 
 .social-button {
@@ -194,7 +194,7 @@
 .panel {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: var(--space-px-16);
     padding: 28px 32px;
     border-radius: 12px;
     background: var(--color-dark-2);
@@ -215,7 +215,7 @@
 .about-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 16px 32px;
+    gap: var(--space-px-16) var(--space-px-32);
 }
 
 .about-grid__item:nth-child(n + 5) {
@@ -225,7 +225,7 @@
 .about-grid__item {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--space-px-8);
 }
 
 .about-grid__label {
@@ -243,7 +243,7 @@
 .gallery {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 10px;
+    gap: var(--space-px-12);
 }
 
 .gallery__item {
@@ -268,7 +268,7 @@
     }
 
     .detail {
-        gap: 28px;
+        gap: var(--space-px-28);
     }
 
     .primary-actions {

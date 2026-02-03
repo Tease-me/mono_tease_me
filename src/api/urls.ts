@@ -83,11 +83,21 @@ export const Endpoints = {
   },
   subscriptions: {
     start: "/subscriptions/start",
+    plans: "/subscriptions/plans",
     cancel: "/subscriptions/cancel",
     capture: "/subscriptions/paypal/capture",
     list: "/subscriptions/me",
     influencer: (influencerId: string) => `/subscriptions/${influencerId}`,
     influencerActivate: (influencerId: string) => `/subscriptions/${influencerId}/18`,
+    addons_purchase: "/subscriptions/addons/purchase"
+  },
+  verification: {
+    session: "/verification/session",
+    sessionStatus: (sessionId: string) => `/verification/session/${sessionId}`,
+    sessionComplete: (sessionId: string) => `/verification/session/${sessionId}/complete`,
+    status: "/verification/status",
+    history: "/verification/history",
+    webhook: "/verification/webhook",
   },
   ws: {
     chat: "/chat/ws",

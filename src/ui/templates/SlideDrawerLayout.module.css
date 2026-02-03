@@ -4,10 +4,8 @@
 }
 
 .sidebar {
-  background-color: rgba(33, 33, 33, 1);
+  background-color: var(--sidebar-bg-color);
   border-right: 1px solid rgba(66, 66, 66, 1);
-  padding-left: 24px;
-  padding-right: 24px;
   width: 100%;
   height: 100dvh;
   max-width: var(--max-sidebar-width);
@@ -64,7 +62,7 @@
 .headerLeft {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-px-12);
 }
 
 .title {
@@ -152,6 +150,10 @@
   display: none;
 }
 
+.overlay {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .container {
     height: 100%;
@@ -169,5 +171,14 @@
 
   .sidebar.open {
     transform: translateX(0);
+  }
+
+  .overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    background: rgba(0, 0, 0, 0.4);
+    -webkit-tap-highlight-color: transparent;
   }
 }

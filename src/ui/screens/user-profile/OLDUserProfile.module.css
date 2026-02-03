@@ -14,7 +14,7 @@
 .profile-row02 {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 2rem;
+   gap: var(--space-px-32);
 
 }
 
@@ -27,7 +27,7 @@
 .section-body {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: var(--space-px-24);
     justify-content: center;
     margin-bottom: 12px;
 }
@@ -50,7 +50,7 @@
     display: grid;
     grid-template-columns: 1fr;
     margin-bottom: 3rem;
-    gap: 1rem;
+   gap: var(--space-px-16);
 }
 
 .payment-row> :first-child {
@@ -90,7 +90,7 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 0.5rem;
+   gap: var(--space-px-8);
 }
 
 

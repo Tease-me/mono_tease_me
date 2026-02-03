@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import clsx from 'clsx';
 import styles from "./Modal.module.css";
 
@@ -27,16 +28,26 @@ export const Modal: React.FC<ModalProps> = ({
 }) => {
     const [openClass, setOpenClass] = useState<string>();
 
-    // Lock body scroll while modal is open
+    // Lock body scroll while modal is open (iOS-safe)
     useEffect(() => {
-        if (!isOpen) return;
-        const prev = document.body.style.overflow;
+        if (!isOpen) {
+            setOpenClass(undefined);
+            return;
+        }
+        const scrollY = window.scrollY;
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.width = '100%';
         document.body.style.overflow = 'hidden';
         setTimeout(() => {
             setOpenClass(styles.open);
         }, 100);
         return () => {
-            document.body.style.overflow = prev;
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.width = '';
+            document.body.style.overflow = '';
+            window.scrollTo(0, scrollY);
         };
     }, [isOpen]);
 
@@ -50,8 +61,7 @@ export const Modal: React.FC<ModalProps> = ({
         return () => window.removeEventListener('keydown', onKey);
     }, [isOpen, closeOnEsc, onClose]);
 
-
-    return (
+    return createPortal(
         <div
             className={clsx(styles.overlay, isOpen && styles.open)}
             onClick={closeOnOverlayClick ? onClose : undefined}
@@ -64,6 +74,7 @@ export const Modal: React.FC<ModalProps> = ({
                 onClick={(e) => e.stopPropagation()}>
                 {children}
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };

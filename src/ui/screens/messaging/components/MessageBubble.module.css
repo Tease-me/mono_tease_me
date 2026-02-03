@@ -14,7 +14,7 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-px-8);
 
 }
 
@@ -39,6 +39,7 @@
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: linear-gradient(180deg, rgba(47, 49, 55, 0.70) 0%, rgba(47, 49, 55, 0.70) 80.96%, #3A3F50 100%);
     box-shadow: -3px 4px 0 -3px rgba(255, 255, 255, 0.18) inset;
+    animation: fadeInRight 0.2s ease-in 0s 1 normal forwards;
 }
 
 .message.received {
@@ -47,6 +48,31 @@
     border: 1px solid rgba(151, 77, 255, 0.15);
     background: linear-gradient(var(--chat-bubble-gradient-angle), var(--chat-bubble-gradient-start) 0%, var(--chat-bubble-gradient-mid) 70.19%, var(--chat-bubble-gradient-end) 100%);
     box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.15) inset;
+    animation: fadeInLeft 0.2s ease-in 0s 1 normal forwards;
+}
+
+@keyframes fadeInLeft {
+	0% {
+		opacity: 0;
+		transform: translateX(-3.125rem) scale(0.5);
+	}
+
+	100% {
+		opacity: 1;
+		transform: translateX(0) scale(1);
+	}
+}
+
+@keyframes fadeInRight {
+	0% {
+		opacity: 0;
+		transform: translateX(3.125rem) scale(0.5);
+	}
+
+	100% {
+		opacity: 1;
+		transform: translateX(0) scale(1);
+	}
 }
 
 
@@ -63,13 +89,13 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: var(--space-px-8);
 }
 
 .call-bubble {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-px-12);
     cursor: pointer;
     transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     border-radius: 0.75rem;
@@ -106,7 +132,7 @@
 .call-copy {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--space-px-4);
 }
 
 .call-title {
@@ -129,7 +155,7 @@
 .call-lines {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--space-px-12);
     padding: 10px;
     border-radius: 10px;
     background: rgba(0, 0, 0, 0.2);
@@ -138,7 +164,7 @@
 .call-line {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--space-px-8);
     font-size: 13px;
 }
 
@@ -149,13 +175,13 @@
     padding: 8px 10px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--space-px-8);
 }
 
 .call-line-header {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-px-12);
 }
 
 .call-speaker {

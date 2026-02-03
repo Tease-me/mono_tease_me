@@ -1,6 +1,7 @@
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 import PayPalCancel from "@/ui/components/modals/payment-modal/PayPalCancel";
 import PayPalReturn from "@/ui/components/modals/payment-modal/PayPalReturn";
+import DiditReturn from "@/ui/components/modals/verification/DiditReturn";
 import RelationshipDashboard from "@/ui/screens/admin/dashboard_relationship/RelationshipDashboard";
 import InfluencerAudioManagerRoute from "@/ui/screens/influencer-audio-manager/InfluencerAudioManagerRoute";
 import InfluencerWelcome from "@/ui/screens/landing-page/InfluencerWelcome";
@@ -14,7 +15,7 @@ import TermsPage from "@/ui/screens/terms/TermsPage";
 import { terms } from "@/ui/screens/terms/termsContent";
 
 import { JSX, Suspense, lazy } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate, useSearchParams, useNavigate } from "react-router-dom";
 import { Paths } from "./path";
 import GuestRoute from "./components/GuestRoute";
 import PrivateRoute from "./components/PrivateRoute";
@@ -22,8 +23,18 @@ import SuperRoute from "./components/SuperRoute";
 import { ThemeProvider } from "@/theme/ThemeProvider";
 import TestPage from "@/ui/screens/test/TestPage";
 
+// Fixed: Removed duplicate non-lazy DisclaimerScreen import
+// Keep only the lazy version below
+
 const AdminPreInfluencers = lazy(
   () => import("@/ui/screens/admin/pre-influencers/AdminPreInfluencers")
+);
+
+const DisclaimerScreen = lazy(
+  () => import("@/ui/screens/disclaimer/DisclaimerScreen")
+);
+const UnderageRedirectScreen = lazy(
+  () => import("@/ui/screens/disclaimer/UnderageRedirectScreen")
 );
 const AdminPreInfluencerDetail = lazy(
   () =>
@@ -57,6 +68,9 @@ const CreateInfluencer = lazy(
 const PromptEditorAdmin = lazy(
   () => import("@/ui/screens/admin/PromptEditorAdmin")
 );
+const AdultModePage = lazy(
+  () => import("@/ui/screens/messaging/pages/adult-mode/AdultModePage")
+);
 const HomePage = lazy(() => import("@/ui/screens/home-page/HomePage"));
 const InfluencerHome = lazy(
   () => import("@/ui/screens/home-page/InfluencerHome")
@@ -71,9 +85,31 @@ const IntencionInfluencerHome = lazy(
   () => import("@/ui/screens/home-page/IntencionInfluencerHome")
 );
 
+function AdultModeRoute() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const influencerId = searchParams.get("influencerId");
+
+  if (!influencerId) {
+    return <Navigate to={Paths.home} replace />;
+  }
+
+  return (
+    <AdultModePage
+      influencerId={influencerId}
+      influencerImageUrl={searchParams.get("img")}
+      influencerName={searchParams.get("name")}
+      onSubscribePressed={() => navigate(Paths.home)}
+      onBackClicked={() => navigate(Paths.home)}
+    />
+  );
+}
+
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.all, element: <HomePage /> },
+    // Fixed: Now uses the lazy-loaded DisclaimerScreen consistently
+    { path: Paths.disclaimer, element: <DisclaimerScreen /> },
     { path: Paths.influencerProfile(), element: <InfluencerProfileScreen /> },
     { path: Paths.testButtons, element: <TestPage /> },
     { path: Paths.updateProfile, element: <UpdateProfile /> },
@@ -85,7 +121,6 @@ function AppRoutes() {
       path: Paths.influencerAudioManager(),
       element: <InfluencerAudioManagerRoute />,
     },
-
     { path: Paths.thankYou, element: <ThankYouScreen /> },
     { path: Paths.profileSurveyForm, element: <ProfileSurveyForm /> },
     { path: Paths.voiceTerms, element: <RecordTerms /> },
@@ -98,6 +133,7 @@ function AppRoutes() {
       path: Paths.intencionInfluencerHome,
       element: <IntencionInfluencerHome />,
     },
+    { path: Paths.underage, element: <UnderageRedirectScreen /> },
     // --- Public Legal & Compliance Pages ---
     { path: "/terms", element: <TermsPage {...terms.terms} /> },
     { path: "/privacy", element: <TermsPage {...terms.privacy} /> },
@@ -112,6 +148,8 @@ function AppRoutes() {
     { path: "/cookies", element: <TermsPage {...terms.cookies} /> },
     { path: "/prohibited-content", element: <TermsPage {...terms.prohibitedContent} /> },
   ];
+
+  // Rest of the routes remain unchanged...
   const guestRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.login, element: <LoginScreen /> },
     { path: Paths.register(), element: <RegisterScreen /> },
@@ -136,10 +174,12 @@ function AppRoutes() {
   const privateRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.voice, element: <VoiceCallEleven /> },
     { path: Paths.home, element: <HomeScreenSingle /> },
+    { path: Paths.adultMode, element: <AdultModeRoute /> },
     { path: Paths.chat(), element: <ChatScreen /> },
     { path: Paths.call(), element: <CallScreen /> },
     { path: Paths.paypalReturn, element: <PayPalReturn /> },
     { path: Paths.paypalCancel, element: <PayPalCancel /> },
+    { path: Paths.diditReturn, element: <DiditReturn /> },
   ];
 
   return (

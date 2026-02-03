@@ -4,22 +4,18 @@ import styles from "./PaymentDetails.module.css"
 import IconButton from '@/ui/components/inputs/buttons/IconButton';
 import SvgPack from '@/utils/SvgPack';
 import CardMockup from '@/assets/image/card-mockup.png';
-
 type PaymentDetailsProps = { goTo: (id: string) => void };
 
-const PaymentDetails = ({ goTo }: PaymentDetailsProps) => {
+const PaymentDetails = ({ }: PaymentDetailsProps) => {
+
+
     const handleVisaBtn = () => {
         // Handle Visa button click
-        //temporarily disable
-        const a=false;
-        if (a) {
-        goTo("");
-        }
     };
 
     const handleMasterCardBtn = () => {
         //temporary
-       goTo('payment-check');
+        // goTo('payment-check');
     };
 
 

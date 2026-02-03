@@ -53,7 +53,7 @@
 
 .call-buttons-row {
   display: flex;
-  gap: 24px;
+  gap: var(--space-px-24);
   margin-bottom: 24px;
 }
 

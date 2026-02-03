@@ -2,6 +2,7 @@ export const Paths = {
     all: "*",
     root: "/",
     influencerProfile: (username = ":username") => `/${username}`,
+    disclaimer: "/disclaimer",
     updateProfile: "/update-profile",
     join: "/join",
     welcome: "/welcome",
@@ -25,7 +26,8 @@ export const Paths = {
         prompts: "/admin/prompts",
         relationship: "/admin/relationship",
         preInfluencers: "/admin/pre-influencers",
-        preInfluencerDetail: (id = ":pre_influencer_id") => `/admin/pre-influencers/${id}`,
+        preInfluencerDetail: (id = ":pre_influencer_id") =>
+            `/admin/pre-influencers/${id}`,
     },
     mjDashboard: "/mj/dashboard",
 
@@ -36,10 +38,13 @@ export const Paths = {
     call: (conversationId = ":conversation_id") => `/call/${conversationId}`,
     paypalReturn: "/paypal/return",
     paypalCancel: "/paypal/cancel",
+    diditReturn: "/didit/return",
     profileSelector: "/profile-selector",
     adultMode: "/adult-mode",
+    underage: "/underage",
 
-    influencerAudioManager: (influencerId = ":influencer_id") => `/influencer/${influencerId}/audio-manager`,
+    influencerAudioManager: (influencerId = ":influencer_id") =>
+        `/influencer/${influencerId}/audio-manager`,
 
     testButtons: "/test/buttons",
     testProfilePage: "/test/profile-page",

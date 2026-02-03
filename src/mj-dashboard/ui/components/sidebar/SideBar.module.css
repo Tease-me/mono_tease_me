@@ -25,7 +25,7 @@
     display: flex;
     flex: 1;
     flex-direction: column;
-    gap: 24px;
+    gap: var(--space-px-24);
 }
 
 .bottom-menu {
@@ -35,7 +35,7 @@
 .logout-button {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: var(--space-px-20);
     color: var(--color-primary);
 }
 

@@ -1,0 +1,95 @@
+.card {
+  flex: 0 0 200px;
+  border-radius: 16px;
+  border: 1px solid #3D3839;
+  display: flex;
+  width: 100%;
+  min-width: 186px;
+  flex-direction: column;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.activeCard {
+  border-radius: 16px;
+  border: 1px solid var(--color-purple-deep);
+}
+
+
+.headerArea {
+  color: white;
+  display: flex;
+  padding: 8px 12px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-px-8);
+  align-self: stretch;
+  border-radius: 16px 16px 0 0;
+  border-bottom: 1px solid #3D3839;
+  background: #252525;
+}
+
+.activeHeaderArea {
+  border-radius: 16px 16px 0 0;
+  border-bottom: 1px solid rgba(174, 33, 245, 0.87);
+  background: #300247;
+  color: var(--color-purple-deep);
+}
+
+.title {
+  text-align: center;
+  font-family: var(--secondary-font-family);
+  /* heading/h3 */
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 140%;
+  /* 25.2px */
+  letter-spacing: 0.2px;
+}
+
+
+
+.mainArea {
+  flex: 1;
+  display: flex;
+  padding: 24px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-px-8);
+  align-self: stretch;
+  border-radius: 0 0 var(--space-px-16, 16px) var(--space-px-16, 16px);
+  background: #151515;
+}
+
+.activeMainArea {
+  background: linear-gradient(180deg,
+      #0a0814 0%,
+      #130c21 32%,
+      #24103b 80%,
+      #6117ad 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.grayed {
+  color: #757575;
+}
+
+.price {
+
+  font-size: 24px;
+}
+
+.callTimeArea {
+  color: white;
+  text-align: center;
+
+  font-family: var(--secondary-font-family);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 140%;
+  letter-spacing: 0.2px;
+}

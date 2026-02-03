@@ -1,15 +1,28 @@
 import { apiClient } from "@/api/apis";
 import { BillingServices } from "@/api/services/BillingServices";
 import { Paths } from "@/routes/path";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import PaymentResult from "@/ui/components/payment/PaymentResult";
+import styles from "./PayPalReturn.module.css";
+import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 
 const billing = BillingServices(apiClient);
 
 export default function PayPalReturn() {
-  const [msg, setMsg] = useState("Capturing payment...");
-  const [detail, setDetail] = useState<string>("");
+  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const [amount, setAmount] = useState<number | undefined>();
+  const [influencerName, setInfluencerName] = useState<string | undefined>();
   const navigate = useNavigate();
+  const fallbackAmount = useMemo(() => {
+    const raw = localStorage.getItem("paypal_topup_amount");
+    const parsed = raw ? Number(raw) : NaN;
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }, []);
+  const fallbackInfluencerName = useMemo(() => {
+    const raw = localStorage.getItem("paypal_topup_influencer_name");
+    return raw?.trim() || undefined;
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -20,57 +33,55 @@ export default function PayPalReturn() {
       const influencer_id =
         localStorage.getItem("paypal_topup_influencer_id") || "";
 
-      setDetail(`token=${tokenOrderId || ""}`);
-
       if (!order_id) {
-        setMsg("Missing PayPal order id.");
+        setStatus("error");
         return;
       }
 
       try {
-        setMsg(`Capturing order ${order_id}...`);
-
         const res = await billing.paypalCapture({ order_id, influencer_id });
-
-        setDetail(JSON.stringify(res, null, 2));
 
         if (res?.ok) {
           localStorage.removeItem("paypal_topup_order_id");
           localStorage.removeItem("paypal_topup_influencer_id");
-          setMsg("Top up success! Redirecting...");
-          setTimeout(() => navigate(Paths.home), 1200);
+          localStorage.removeItem("paypal_topup_amount");
+          localStorage.removeItem("paypal_topup_influencer_name");
+          setStatus("success");
+          setTimeout(() => navigate(Paths.home), 2000);
         } else {
-          setMsg(`Top up not completed. Status: ${res?.status || "UNKNOWN"}`);
+          setStatus("error");
         }
-      } catch (e: any) {
-        // axios error details
-        const status = e?.response?.status;
-        const data = e?.response?.data;
-        setMsg(`Capture failed${status ? ` (HTTP ${status})` : ""}.`);
-        setDetail(
-          data ? JSON.stringify(data, null, 2) : e?.message || String(e)
-        );
+      } catch {
+        setStatus("error");
       }
     })();
   }, [navigate]);
 
+  useEffect(() => {
+    if (fallbackAmount !== undefined) {
+      setAmount(fallbackAmount);
+    }
+    if (fallbackInfluencerName) {
+      setInfluencerName(fallbackInfluencerName);
+    }
+  }, [fallbackAmount, fallbackInfluencerName]);
+
   return (
-    <div style={{ padding: 24, color: "white" }}>
-      <h2 style={{ marginBottom: 12 }}>{msg}</h2>
-      {detail && (
-        <pre
-          style={{
-            whiteSpace: "pre-wrap",
-            opacity: 0.85,
-            fontSize: 12,
-            background: "rgba(255,255,255,0.06)",
-            padding: 12,
-            borderRadius: 12,
-            border: "1px solid rgba(255,255,255,0.12)",
-          }}
-        >
-          {detail}
-        </pre>
+    <div className={styles.container}>
+      {status === "loading" ? (
+        <div className={styles.loading}>
+          <LoadingSpinner />
+          <div className={styles.loadingText}>Capturing your payment...</div>
+        </div>
+      ) : (
+        <div className={styles.resultWrap}>
+          <PaymentResult
+            isSuccessful={status === "success"}
+            amount={amount}
+            influencerName={influencerName}
+            onBack={() => navigate(Paths.home)}
+          />
+        </div>
       )}
     </div>
   );

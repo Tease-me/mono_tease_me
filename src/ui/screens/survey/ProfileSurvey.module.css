@@ -11,6 +11,7 @@
       rgb(247, 8, 72) 65%,
       black 65%,
       black);
+
 }
 
 .audioWrapper {
@@ -83,7 +84,7 @@
   flex-direction: column-reverse;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-px-12);
   margin-bottom: 2rem;
 }
 
@@ -117,14 +118,13 @@
   color: hsl(145, 100%, 59%);
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-px-8);
   align-self: end;
 }
 
 /* SCROLLABLE CONTENT */
 .content {
   flex: 1;
-  overflow-y: auto;
   padding-right: 4px;
   margin-top: 8px;
   --auto-grid-min-size: 20rem;
@@ -198,7 +198,7 @@ textarea.input {
 .radioGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+ gap: var(--space-px-8);
   padding: 1.2rem 1.5rem;
   border-radius: 14px;
   background: hsla(222, 0%, 11%, 0.3);
@@ -211,7 +211,7 @@ textarea.input {
 .radioGroup label {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-px-8);
   font-size: 1rem;
   line-height: 130%;
   color: rgba(255, 255, 255, 0.6);
@@ -256,7 +256,7 @@ textarea.input {
   flex-direction: column;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 1.5rem;
+ gap: var(--space-px-24);
   padding-top: 12px;
   margin-top: 2rem;
 }
@@ -279,7 +279,7 @@ textarea.input {
 .buttonRow {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: var(--space-px-8);
 }
 
 
@@ -297,7 +297,7 @@ textarea.input {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--space-px-8);
   transition: background 130ms ease, color 130ms ease, border-color 130ms ease,
     transform 80ms ease, box-shadow 130ms ease;
 }
@@ -337,7 +337,7 @@ textarea.input {
 
 @media (min-width: 32rem) {
   .content {
-    grid-gap: 1rem;
+    grid-gap: var(--space-px-16);
   }
 
   .headerRow {
@@ -390,7 +390,7 @@ textarea.input {
   .buttonRow {
     width: 100%;
     justify-content: stretch;
-    gap: 8px;
+    gap: var(--space-px-8);
   }
 
   .btnPrimary,
@@ -409,7 +409,7 @@ textarea.input {
   .buttonRow {
     width: 100%;
     justify-content: stretch;
-    gap: 10px;
+    gap: var(--space-px-12);
   }
 
   .buttonRow>div {
@@ -476,7 +476,7 @@ textarea.input {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-px-12);
   text-align: center;
   margin-bottom: 16px;
 }
@@ -534,19 +534,19 @@ textarea.input {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-px-12);
 }
 
 .checkboxRow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-px-8);
   color: rgba(255, 255, 255, 0.9);
 }
 
 .modalActions {
   display: flex;
-  gap: 10px;
+  gap: var(--space-px-12);
   justify-content: flex-end;
 }
 
@@ -561,7 +561,7 @@ textarea.input {
     width: 100%;
     display: flex;
     justify-content: space;
-    gap: 8px;
+    gap: var(--space-px-8);
   }
 
   .buttonRow>div {

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-// import clsx from "clsx";
+import clsx from "clsx";
 import styles from "./InfluencerRelation.module.css";
 import SvgPack from "@/utils/SvgPack";
 import { apiClient } from "@/api/apis";
@@ -15,18 +15,16 @@ import AdultModeToggle from "@/ui/components/adult-mode-toggle/AdultModeToggle";
 import { Modal } from "@/ui/components/modals/Modal";
 import { formatDateTimeRelative, minutesToTime } from "@/utils/DateTimeUtils";
 
+
 import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
 import { RelationshipServices } from "@/api/services/RelationshipServices";
 import { BalanceServices } from "@/api/services/BalanceServices";
 import { UserServices } from "@/api/services/UserServices";
 import logger from "@/utils/logger";
 import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
-
-
+import AdultTermsModal from "@/ui/components/modals/adult-terms/AdultTermsModal";
 //TODO
 // UNFOLLOW BUTTON IS HIDDEN
-//RELATIONSHIP RADAR CSS WARNING
-//REMOVE ALERT ON SUBSCRIBE
 //CHECK STATUS OF SUBSCRIPTION IF CANCELLED OR REACTIVATED ETC
 
 const relationshipService = RelationshipServices(apiClient);
@@ -70,7 +68,7 @@ type RelationData = {
 };
 
 
-export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) {
+export default function InfluencerRelation({ navPayload, goTo }: Props) {
   const initial: RelationData = useMemo(
     () => ({
       id: navPayload.influencerId,
@@ -107,6 +105,8 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
   const [cancelLoading, setCancelLoading] = useState(false);
 
   const [cancelReason, setCancelReason] = useState("");
+
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   useEffect(() => {
     if (!initial.id) return;
@@ -170,53 +170,72 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
   }, [navPayload.image, navPayload.video, navPayload.name, navPayload.followingSince]);
 
 
-  const onSubscribe = async () => {
-    if (!data.id) {
-      return;
-    }
-    setLoading(true);
-    try {
-      await subscriptionService.startSubscription(data.id, 1);
-      const sub = await subscriptionService.getMySubscriptionForInfluencer(data.id);
-      setData((d) => ({
-        ...d,
-        hasSubscription: sub?.has_subscription ?? true,
-        // is18: sub?.is_18_selected ?? true,
-        expiresAt: sub?.current_period_end ?? d.expiresAt,
-        voiceMinutes: sub?.voice_minutes ?? d.voiceMinutes,
-        msgRemaining: sub?.text_messages ?? d.msgRemaining,
-        adultVoiceMinutes: sub?.voice_minutes ?? d.adultVoiceMinutes,
-        adultMsgRemaining: sub?.text_messages ?? d.adultMsgRemaining,
-      }));
+  // const onSubscribe = async () => {
+  //   if (!data.id) {
+  //     return;
+  //   }
+  //   setLoading(true);
+  //   try {
+  //     await subscriptionService.startSubscription(data.id, 1);
+  //     const sub = await subscriptionService.getMySubscriptionForInfluencer(data.id);
+  //     setData((d) => ({
+  //       ...d,
+  //       hasSubscription: sub?.has_subscription ?? true,
+  //       // is18: sub?.is_18_selected ?? true,
+  //       expiresAt: sub?.current_period_end ?? d.expiresAt,
+  //       voiceMinutes: sub?.voice_minutes ?? d.voiceMinutes,
+  //       msgRemaining: sub?.text_messages ?? d.msgRemaining,
+  //       adultVoiceMinutes: sub?.voice_minutes ?? d.adultVoiceMinutes,
+  //       adultMsgRemaining: sub?.text_messages ?? d.adultMsgRemaining,
+  //     }));
 
-      setAdultModeChecked(true);
-      alert('You are now subscribed tot 18+ mode');
-      // goTo("influencer_profile", { influencerId: data.id });
-      goBack();
-    }
-    catch (e) {
-      alert(`Error ${e}`);
-    }
-    finally {
-      setLoading(false);
-    }
-  };
+  //     setAdultModeChecked(true);
+  //     alert('You are now subscribed tot 18+ mode');
+  //     // goTo("influencer_profile", { influencerId: data.id });
+  //     goBack();
+  //   }
+  //   catch (e) {
+  //     alert(`Error ${e}`);
+  //   }
+  //   finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const goToSubPage = () => {
+    goTo('subscribe', {
+      influencerId: data.id,
+      influencerImageUrl: data.image,
+      influencerName: data.name,
+      onSubscribe: () => goTo("subscription", {
+        influencerId: data.id,
+      }),
+    });
+
+  }
 
   const handleAdultToggleChange = async () => {
-    // const a = adultModeChecked;
-    // setAdultModeChecked(!a);
     if (!isSubscribed) {
-      goTo('subscribe', {
-        influencerId: data.id,
-        image: data.image,
-        onSubscribe: onSubscribe
-      });
+      //Check if verified
+      try {
+        await subscriptionService.activateMySubscriptionForInfluencer(data.id, true);
+        goToSubPage();
+      }
+      catch (err: any) {
+        const idVerified = err?.response?.data?.detail?.verification_status?.is_identity_verified;
+        if (idVerified === false) {
+          setShowTermsModal(true);
+          return;
+        }
+        goToSubPage();
+      }
     }
     else {
       setShowCancelModal(true);
     }
-
   }
+
+
   const handleCancelSubscription = async () => {
     if (!data.id) {
       setCancelError(`Cannot find influencer ID : ${data.id}`);
@@ -247,9 +266,13 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
     ? new Date(data.followingSince).toLocaleDateString()
     : "--";
 
+  const onAdultTermsAgreed = () => {
+
+  }
+
 
   return (
-    <div className={styles.shell}>
+    <div className={clsx("u-sidebar-page", styles.shell)}>
       {/* Hero */}
       <div className={styles.heroRow}>
         <ProfileMedia imageSrc={data.image} videoSrc={data.video} size="medium" active />
@@ -412,10 +435,18 @@ export default function InfluencerRelation({ navPayload, goTo, goBack }: Props) 
         </Modal>
 
       )}
-
+      <AdultTermsModal
+        isOpen={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
+        onAgree={onAdultTermsAgreed}
+        influencerId={data.id}
+        influencerName={data.name}
+        influencerImageUrl={data.image}
+      />
       {/* Temporary loading to avoid  warning */}
       {loading && <div> </div>}
 
     </div>
   );
 }
+

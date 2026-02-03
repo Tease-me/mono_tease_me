@@ -55,7 +55,7 @@
   );
   border-radius: 16px;
   display: flex;
-  gap: 16px;
+  gap: var(--space-px-16);
   align-items: center;
   z-index: 5;
 }
@@ -97,7 +97,7 @@
 .influencer-profile-info {
   display: flex;
   flex-direction: column;
-  gap: 13px;
+  gap: var(--space-px-12);
   flex: 1;
   min-width: 0;
 }
@@ -133,7 +133,7 @@
 
 .influencer-actions {
   display: flex;
-  gap: 8px;
+  gap: var(--space-px-8);
   align-items: center;
 }
 
