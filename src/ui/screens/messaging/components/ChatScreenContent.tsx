@@ -150,6 +150,11 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         }).catch((err) => {
             logger.error("Error fetching user usage:", err);
         });
+        return () => { isMounted = false; };
+    }, [influencer, adultMode]);
+
+    useEffect(() => {
+        let isMounted = true;
         const checkSubscription = async () => {
             if (!influencer) {
                 setTyping("idle");
@@ -179,7 +184,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         return () => {
             isMounted = false;
         };
-    }, [influencer, adultMode]);
+    }, [influencer]);
 
     const handleAdultModeChange = async (checked: boolean) => {
         if (!influencer) {
