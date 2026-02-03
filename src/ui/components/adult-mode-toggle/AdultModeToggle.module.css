@@ -1,10 +1,11 @@
 .adultModeToggleContainer {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   align-items: center;
   justify-content: space-between;
   padding: 0 20px 0 var(--space-px-12);
-  gap: var(--space-px-12);
-  min-width: 200px;
+  gap: var(--space-px-6);
+  max-width: 200px;
   border-radius: 74px;
   border: 1px solid rgba(66, 66, 66, 0.50);
   background: #212121;
@@ -15,6 +16,7 @@
   height: 42px;
   flex-direction: row;
   align-items: center;
+  justify-content: center;
 }
 
 .minutesArea span {
@@ -34,6 +36,8 @@
 
 .minutesDisabled span {
   color: var(--color-purple-disabled);
+  
+  text-decoration: line-through;
 }
 
 
@@ -43,6 +47,7 @@
   gap: var(--space-px-12);
   height: 30px;
   width: 80px;
+  translate: 4px -1px;
   margin-left: 20px;
   position: relative;
 }
@@ -98,7 +103,7 @@
 
 .pillLabelActive {
   color: #FFFFFF;
-  left: calc(100% - 40px);
+  left: calc(100% - 50px);
 }
 
 .rightIcon {
@@ -117,7 +122,7 @@
 
 .rightIconActive {
   color: #f0ddff;
-  left: 10px;
+  left: 9px;
 }
 
 .iconMuted {

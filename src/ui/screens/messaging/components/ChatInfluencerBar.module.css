@@ -56,11 +56,12 @@
 }
 
 .leftCol p.statusText {
-  max-width:10px;
+  max-width:16px;
   background-color:  var(--alerts-status-success, oklch(80.036% 0.18204 151.736 ));
   overflow: clip;
   color: transparent;
   border-radius: 10px;
+  max-height: 16px;
 }
 
 .middleCol {
