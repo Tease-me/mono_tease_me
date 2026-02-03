@@ -1,4 +1,2 @@
-.modal {
-  background: transparent;
-  width: 100%;
-}
+.modalAddCredits { background: linear-gradient(0deg, hsla(0, 0%, 0%, 0.2)), hsla(0, 0%, 0%, 0.5); backdrop-filter: blur(4px);     border: 1px solid #ffffff1f;
+    box-shadow: 0px 9px 7px black; }

@@ -5,6 +5,8 @@
   flex-direction: column;
   align-items: center;
   font-family: var(--secondary-font-family);
+
+
 }
 
 .selectionBox {
@@ -38,6 +40,7 @@
 
 .presetsBox h4 {
   font-weight: 500;
+
   ;
 }
 
@@ -55,25 +58,35 @@
 }
 
 .customAmountArea {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+
+  grid-template-columns: 1fr 2fr 1fr;
   gap: var(--space-px-12);
   align-items: center;
-  padding-left: 100px;
-  padding-right: 100px;
   margin-bottom: 20px;
 }
 
 .amountInput {
-  width: 150px;
-  min-width: 120px;
+  gap: var(--space-px-8);
+  color: white;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  padding: 0 0 0 0.75rem;
+
 }
 
-.amountInput input {
-  color: white;
-  text-align: center;
+.amountInput input[type="number"] {
+  max-width: 5rem;
 }
+
 
 .confirmBtn {
   width: 100%;
+}
+
+.input-right-padding {
+  padding-right: unset;
 }

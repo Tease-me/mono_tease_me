@@ -438,13 +438,15 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                 setTyping("idle");
                 logger.error("Error in WebSocket message:", data.error);
                 if (data.error === "INSUFFICIENT_CREDITS") {
+                    setError("Insufficient credits to send message.");
                     if (adultMode) {
                         setShowUpgradeModal(true);
                     } else {
                         setShowTopupModal(true);
                     }
+                } else {
+                    setError(data.error || "An error occurred while sending the message.");
                 }
-                setError(data.error || "An error occurred while sending the message.");
             }
         };
     }
@@ -651,7 +653,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         }
     };
 
-    if (!influencer) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "rgba(255, 255, 255, 0.5)" }} /></div>;
+    if (!influencer) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "hsla(0, 0%, 100%, 0.20)" }} /></div>;
 
     return (
         <div className={styles["container"]}>

@@ -13,6 +13,10 @@ import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import ValidationPill from "@/ui/components/inputs/buttons/ValidationPill";
 import { validationRules } from "@/utils/validationRules";
 import { validateFields } from "@/utils/validations";
+import { Paths } from "@/routes/path";
+import DisclaimerModal from "@/ui/components/modals/DisclaimerModal";
+import { storage } from "@/utils/storage";
+import { LocalStorageKeys } from "@/constants/localStorageKeys";
 
 type LoginErrors = {
   email?: string;
@@ -24,6 +28,11 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [agree, setAgree] = useState(false);
+
+  const [showDisclaimer, setShowDisclaimer] = useState<boolean>(() => {
+    const storedId = localStorage.getItem(LocalStorageKeys.DisclaimerSeen);
+    return storedId === "true" ? false : true;
+  });
 
   const [errors, setErrors] = useState<LoginErrors>({});
 
@@ -113,6 +122,17 @@ export default function LoginScreen() {
 
   return (
     <BackgroundGradient>
+      <DisclaimerModal
+        isOpen={showDisclaimer}
+        onClose={() => setShowDisclaimer(false)}
+        onEnter={() => {
+          storage.setBoolean(LocalStorageKeys.DisclaimerSeen, true);
+          setShowDisclaimer(false);
+        }}
+        onExit={() => {
+          navigate(Paths.underage)
+        }}
+      />
       <FullWidthLayout fullWidthNav={<OnBoardingTopNav onBackClicked={handleBackClick} />}>
         <HeadingText className={styles["title"]}>Login to your Account</HeadingText>
         <form className={styles["auth-form"]} onSubmit={handleSubmit}>
@@ -138,7 +158,7 @@ export default function LoginScreen() {
               />
               <span className={styles["error"]}>{errors.password}</span>
             </div>
-            
+
           </div>
           <CheckBox className={styles["check-box"]} checked={agree} onChange={handleOnAgreeChange}>
             Remember Me

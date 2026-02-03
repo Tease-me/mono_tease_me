@@ -54,7 +54,7 @@
     margin-top: -60px;
     max-width: var(--max-chat-content-width);
     width: 100%;
-    margin-bottom: 60px;
+    margin-bottom: 9dvh;
 }
 
 .chat-messages-container.loading {
@@ -62,12 +62,14 @@
     align-items: center;
     justify-content: center;
     align-items: center;
+    display: flex;
+    justify-content: center;
 }
 
 .chat-input-area {
     position: fixed;
-    width: 100%;
-    bottom: 0dvh;
+    width: 97%;
+    bottom: 1dvh;
 }
 
 .empty-chat-screen {
