@@ -438,13 +438,15 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                 setTyping("idle");
                 logger.error("Error in WebSocket message:", data.error);
                 if (data.error === "INSUFFICIENT_CREDITS") {
+                    setError("Insufficient credits to send message.");
                     if (adultMode) {
                         setShowUpgradeModal(true);
                     } else {
                         setShowTopupModal(true);
                     }
+                } else {
+                    setError(data.error || "An error occurred while sending the message.");
                 }
-                setError(data.error || "An error occurred while sending the message.");
             }
         };
     }
