@@ -11,7 +11,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
 import { useQuery } from "@tanstack/react-query";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
-import logger from "@/utils/logger";
 
 
 const waveformBars = new Array(24).fill(0);
@@ -49,33 +48,6 @@ const AdultModePage = ({
       staleTime: Infinity
     })
   const basicPlan = plansData?.recurring.find((p) => p.id === 1);
-  const [subscribing, setSubscribing] = useState(false);
-
-  const handleSubscribe = async () => {
-    if (!influencerId || subscribing) return;
-    setSubscribing(true);
-    try {
-      const startResponse = await subscriptionSvc.startSubscription(influencerId, 1);
-      const orderId =
-        typeof crypto !== "undefined" && "randomUUID" in crypto
-          ? crypto.randomUUID()
-          : `order_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-      const subscriptionId = startResponse?.subscription_id ?? startResponse?.subscriptionId;
-      const amountCents = basicPlan?.price_cents ?? 10000;
-
-      if (!subscriptionId) {
-        throw new Error("Missing subscription ID from start response");
-      }
-
-      await subscriptionSvc.captureSubscription(String(subscriptionId), orderId, amountCents);
-      await subscriptionSvc.activateMySubscriptionForInfluencer(influencerId, true);
-      onSubscribePressed();
-    } catch (err) {
-      logger.error("Error during subscription process:", err);
-    } finally {
-      setSubscribing(false);
-    }
-  };
 
   useEffect(() => {
     if (!influencerId) return;
@@ -198,7 +170,7 @@ const AdultModePage = ({
           <p className={styles.tagline}>Let&apos;s heat things up...</p>
 
           <div className={styles.subscribeButton}>
-            <PrimaryButton text={subscribing ? "Subscribing..." : basicPlan ? `Subscribe for $${(basicPlan.price_cents / 100).toFixed(2)}` : "Subscribe"} onClick={handleSubscribe} disabled={subscribing} variant="purple" />
+            <PrimaryButton text={basicPlan ? `Subscribe for $${(basicPlan.price_cents / 100).toFixed(2)}` : "Subscribe"} onClick={onSubscribePressed} variant="purple" />
           </div>
 
           <div className={styles.footer}>

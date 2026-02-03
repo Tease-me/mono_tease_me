@@ -269,10 +269,12 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
                 await subscriptionsServices.captureSubscription(String(subscriptionId), orderId, amountCents);
                 await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, true);
+                window.alert("Subscription successful!");
                 setAdultMode(true);
                 setShowSubscriptionPage(false);
-            } catch (err) {
+            } catch (err: any) {
                 logger.error("Error during subscription process:", err);
+                window.alert(err?.response?.data?.detail?.message ?? err?.message ?? "Error subscribing. Please try again.");
                 return;
             }
         })();

@@ -8,6 +8,11 @@ import SlideDrawerLayout from "@/ui/templates/SlideDrawerLayout";
 import clsx from "clsx";
 import styles from "./HomeScreenSingle.module.css"
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
+import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
+import { apiClient } from "@/api/apis";
+import logger from "@/utils/logger";
+
+const subscriptionSvc = SubscriptionsServices(apiClient);
 
 const UserMenu = React.lazy(() => import("../user-profile/UserMenu"));
 const UserProfile = React.lazy(() => import("../user-profile/Components/UserProfile"));
@@ -52,7 +57,23 @@ const sidebarPages: SidebarPage[] = [
         influencerId={navPayload.influencerId}
         influencerImageUrl={navPayload.influencerImageUrl}
         influencerName={navPayload.influencerName}
-        onSubscribePressed={goBack}
+        onSubscribePressed={async () => {
+          try {
+            const startRes = await subscriptionSvc.startSubscription(navPayload.influencerId, 1);
+            const orderId = typeof crypto !== "undefined" && "randomUUID" in crypto
+              ? crypto.randomUUID()
+              : `order_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+            const subId = startRes?.subscription_id ?? startRes?.subscriptionId;
+            if (!subId) throw new Error("Missing subscription ID");
+            await subscriptionSvc.captureSubscription(String(subId), orderId, 10000);
+            await subscriptionSvc.activateMySubscriptionForInfluencer(navPayload.influencerId, true);
+            window.alert("Subscription successful!");
+          } catch (err: any) {
+            logger.error("Sidebar subscribe error:", err);
+            window.alert(err?.response?.data?.detail?.message ?? err?.message ?? "Error subscribing. Please try again.");
+          }
+          goBack();
+        }}
         onBackClicked={goBack}
         nobg
       />
