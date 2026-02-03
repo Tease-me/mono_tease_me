@@ -90,7 +90,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const adultModeRef = useRef(false);
     useEffect(() => { adultModeRef.current = adultMode; }, [adultMode]);
     const [adultModeSwitch, setAdultModeSwitch] = useState(false);
-    const [mode, setMode] = useState<"chat" | "call">(storage.get(LocalStorageKeys.PreferredChatMode) === "call" ? "call" : "chat");
+    const storedMode = storage.get(LocalStorageKeys.PreferredChatMode);
+    const [mode, setMode] = useState<"chat" | "call">(storedMode == null ? "call" : storedMode === "call" ? "call" : "chat");
     const [showSubscriptionPage, setShowSubscriptionPage] = useState(false);
     const [showErrorAlert, setShowErrorAlert] = useState<string | undefined>();
     const [relationship, setRelationship] = useState<RelationshipDataModel | undefined>();
