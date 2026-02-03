@@ -249,6 +249,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
       setCancelSuccess(true);
       setData((d) => ({ ...d, hasSubscription: false, subscriptionStatus: 'cancelled' }));
       setAdultModeChecked(false);
+      setShowAdultBalanceDetails(false);
     } catch (e: any) {
       setCancelError("Could not cancel right now.");
       logger.error(e);
@@ -323,10 +324,12 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           />
         </div>
         <div className={styles.adultBalanceArea}>
-          {isSubscribed && <NormalButton type="nobg" className={styles.grayBtn} text={!showAdultBalanceDetails ? "View Details" : "Hide Details"} onClick={
-            () => { setShowAdultBalanceDetails((prev) => !prev) }
-          } />
-          }
+          <NormalButton
+            type="nobg"
+            className={styles.grayBtn}
+            text={!showAdultBalanceDetails ? "View Details" : "Hide Details"}
+            onClick={() => setShowAdultBalanceDetails((prev) => !prev)}
+          />
           {showAdultBalanceDetails && (<div className={styles.adultBalanceStats}>
             <UsageView
               label="Voice Minutes"
@@ -339,7 +342,11 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
               value={data.adultMsgRemaining != null ? data.adultMsgRemaining.toString() : "--"}
             />
           </div>)}
-          {showAdultBalanceDetails && <button className={styles.cancelSub} type="button" onClick={() => { setShowCancelModal(true) }}> Cancel Subscription</button>}
+          {isSubscribed && showAdultBalanceDetails && (
+            <button className={styles.cancelSub} type="button" onClick={() => { setShowCancelModal(true); }}>
+              Cancel Subscription
+            </button>
+          )}
           <div className={styles.adultToggleArea}>
             <button type="button" className={styles.adultToggleBtn}>
               <AdultModeToggle checked={adultModeChecked} onChange={handleAdultToggleChange} minutesLeft={data.adultVoiceMinutes} />
@@ -449,4 +456,3 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
     </div>
   );
 }
-
