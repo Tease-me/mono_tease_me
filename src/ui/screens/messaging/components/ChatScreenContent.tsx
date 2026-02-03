@@ -62,7 +62,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const [influencer, setInfluencer] = useState<InfluencerDataModel>();
     const [chatId, setChatId] = useState<string | undefined>();
 
-    const [messages, setMessages] = useState<Message[] | undefined>();
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [isLoadingMessages, setIsLoadingMessages] = useState(false);
     const [inputText, setInputText] = useState("");
     const [inputAudio, setInputAudio] = useState<Blob>();
     const [typing, setTyping] = useState<TypingStatus>("idle");
@@ -131,11 +132,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                 }
                 const localInfluencer = await influencerRepo.getInfluencer(user_id);
                 setInfluencer(localInfluencer);
-                setMessages(undefined);
             } else {
                 const localInfluencer = await influencerRepo.getInfluencer(id);
                 setInfluencer(localInfluencer);
-                setMessages(undefined);
             }
         })()
     }, [id, user_id]);
@@ -281,18 +280,29 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
     const fetchMessages = async (chat_id: string, page: number) => {
         try {
+            if (page === 1) {
+                setIsLoadingMessages(true);
+            }
             const responseMessagesPagination: MessagePagination = await (adultMode ? adultChatRepo.getChatHistory(chat_id, page, pageSize) : chatRepository.getChatHistory(chat_id, page, pageSize));
 
             const totalPages = Math.ceil(responseMessagesPagination.total / pageSize);
-            const localMessages = responseMessagesPagination.messages;
+            const localMessages = responseMessagesPagination.messages ?? [];
             if (page === 1) {
-                setMessages(responseMessagesPagination.messages);
+                setMessages(localMessages);
             } else {
                 setMessages(prev => prev ? [...localMessages, ...prev] : localMessages);
             }
             setHasMore(page < totalPages);
         } catch (err) {
             console.error('Error loading messages', err);
+            if (page === 1) {
+                setMessages([]);
+                setHasMore(false);
+            }
+        } finally {
+            if (page === 1) {
+                setIsLoadingMessages(false);
+            }
         }
     };
 
@@ -308,12 +318,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                 setChatId(chat_id);
                 setPageNumber(1);
                 setHasMore(true);
-                fetchMessages(chat_id, 1);
+                await fetchMessages(chat_id, 1);
                 connectChat(influencer.id);
                 setInfluencerId(influencer.id);
                 relationshipServices.getRelationship(influencer.id).then((relationshipResponse) => {
                     setRelationship(relationshipResponse)
                 })
+                setIsLoadingMore(false);
             }
 
         })()
@@ -397,7 +408,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                 }
                 setTimeout(() => {
                     setMessages(prev => {
-                        if (!prev) return
+                        if (!prev) return [];
                         return [
                             ...prev,
                             {
@@ -429,7 +440,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                         setShowUpgradeModal(true);
                     } else {
                         setShowTopupModal(true);
-                        // setShowErrorAlert("You do not have enough chat credits to send this message. Please purchase more credits.");
                     }
                 }
                 setError(data.error || "An error occurred while sending the message.");
@@ -524,7 +534,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                 return false;
             }
             setMessages(prev => {
-                if (!prev) return;
+                if (!prev) return [];
                 return [
                     ...prev,
                     {
@@ -550,7 +560,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             const sentMessageId = Date.now();
             sendAndPlay(audioToSend, sentMessageId);
             setMessages(prev => {
-                if (!prev) return
+                if (!prev) return [];
                 return [
                     ...prev,
                     {
@@ -672,10 +682,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                             onChangeInfluencer={handleChangeInfluencerClicked}
                         />
                         <div
-                            className={clsx(styles["chat-messages-container"], !messages && styles["loading"])}
-                            ref={containerRef}
-                            onScroll={handleScrollEvent}
-                        >
+                        className={clsx(styles["chat-messages-container"], isLoadingMessages && styles["loading"])}
+                        ref={containerRef}
+                        onScroll={handleScrollEvent}
+                    >
                             {(messages) ? <>
                                 {isLoadingMore && <LoadingSpinner size='small' />}
                                 <div className={styles.adultConvoCardArea}>
@@ -685,6 +695,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                                     messages={displayMessages}
                                     typing={typing}
                                     messagesEndRef={messagesEndRef}
+                                    containerRef={containerRef}
                                     influencerName={influencer?.name}
                                     showAudioTranscript={isSuperUser}
                                     isAudio={Boolean(inputAudio)}
