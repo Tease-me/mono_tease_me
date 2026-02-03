@@ -14,7 +14,7 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: var(--space-px-8);
+    gap: var(--space-px-4);
 
 }
 
@@ -30,6 +30,7 @@
     flex-direction: column;
     word-break: break-word;
     color: var(--color-text);
+    font-size: 1rem;
 }
 
 .message.sent {
@@ -78,10 +79,11 @@
 
 .time {
     align-self: end;
-    font-size: 10px;
+    font-size: 0.75rem;
     opacity: 0.8;
     margin-top: 5px;
     text-align: right;
+    opacity: 0.5;
 }
 
 .message-meta {
@@ -90,6 +92,7 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--space-px-8);
+    
 }
 
 .call-bubble {
