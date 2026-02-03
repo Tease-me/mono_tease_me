@@ -52,9 +52,7 @@ const sidebarPages: SidebarPage[] = [
         influencerId={navPayload.influencerId}
         influencerImageUrl={navPayload.influencerImageUrl}
         influencerName={navPayload.influencerName}
-        onSubscribePressed={() => {
-          navPayload.onSubscribe();
-        }}
+        onSubscribePressed={goBack}
         onBackClicked={goBack}
         nobg
       />

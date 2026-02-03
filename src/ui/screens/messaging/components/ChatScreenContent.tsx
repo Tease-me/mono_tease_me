@@ -13,6 +13,7 @@ import { storage } from '@/utils/storage';
 import { LocalStorageKeys } from '@/constants/localStorageKeys';
 import LoadingSpinner from '@/ui/components/loading/LoadingSpinner';
 import clsx from 'clsx';
+import { secondsToMinutes } from '@/utils/DateTimeUtils';
 import { ChatRepository } from '@/data/repositories/ChatRepo';
 import { InfluencerRepo } from '@/data/repositories/InfluencerRepo';
 import logger from '@/utils/logger';
@@ -85,6 +86,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
     const { user } = useContext(AuthContext);
     const [adultMode, setAdultMode] = useState(false);
+    const adultModeRef = useRef(false);
+    useEffect(() => { adultModeRef.current = adultMode; }, [adultMode]);
     const [adultModeSwitch, setAdultModeSwitch] = useState(false);
     const [mode, setMode] = useState<"chat" | "call">(storage.get(LocalStorageKeys.PreferredChatMode) === "call" ? "call" : "chat");
     const [showSubscriptionPage, setShowSubscriptionPage] = useState(false);
@@ -141,12 +144,17 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         let isMounted = true;
         UserServices(apiClient).getUserUsage(influencer?.id).then((usage) => {
             if (isMounted) {
-                adultMode ? setCreditsRemaining(usage.adult?.messages?.remaining) : setCreditsRemaining(usage.normal?.messages?.remaining);
-                setAdultMinutesRemaining(usage.adult?.livechat?.remaining_minutes)
+                adultModeRef.current ? setCreditsRemaining(usage.adult?.messages?.remaining) : setCreditsRemaining(usage.normal?.messages?.remaining);
+                setAdultMinutesRemaining(usage.adult?.live_chat?.remaining_minutes ?? usage.adult?.voice?.remaining_minutes)
             }
         }).catch((err) => {
             logger.error("Error fetching user usage:", err);
         });
+        return () => { isMounted = false; };
+    }, [influencer, adultMode]);
+
+    useEffect(() => {
+        let isMounted = true;
         const checkSubscription = async () => {
             if (!influencer) {
                 setTyping("idle");
@@ -260,7 +268,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                     throw new Error("Missing subscription capture data");
                 }
 
-                await subscriptionsServices.captureSubscription(orderId, String(subscriptionId), amountCents);
+                await subscriptionsServices.captureSubscription(String(subscriptionId), orderId, amountCents);
                 await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, true);
                 setAdultMode(true);
                 setShowSubscriptionPage(false);
@@ -383,8 +391,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             if (data.reply) {
                 setTyping("typing");
                 if (data.usage) {
-                    adultMode ? setCreditsRemaining(data.usage.adult?.messages?.remaining) : setCreditsRemaining(data.usage.normal?.messages?.remaining);
-                    setAdultMinutesRemaining(data.usage.adult?.livechat?.remaining_minutes)
+                    adultModeRef.current ? setCreditsRemaining(data.usage.adult?.messages?.remaining) : setCreditsRemaining(data.usage.normal?.messages?.remaining);
+                    const voiceSeconds = data.usage.adult?.voice_seconds?.remaining;
+                    setAdultMinutesRemaining(voiceSeconds != null ? secondsToMinutes(voiceSeconds) : undefined)
                 }
                 setTimeout(() => {
                     setMessages(prev => {
