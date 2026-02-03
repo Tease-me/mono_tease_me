@@ -43,6 +43,7 @@
   gap: var(--space-px-12);
   height: 30px;
   width: 80px;
+  margin-left: 20px;
   position: relative;
 }
 
