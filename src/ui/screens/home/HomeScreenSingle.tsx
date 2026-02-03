@@ -67,8 +67,10 @@ const sidebarPages: SidebarPage[] = [
             if (!subId) throw new Error("Missing subscription ID");
             await subscriptionSvc.captureSubscription(String(subId), orderId, 10000);
             await subscriptionSvc.activateMySubscriptionForInfluencer(navPayload.influencerId, true);
-          } catch (err) {
+            window.alert("Subscription successful!");
+          } catch (err: any) {
             logger.error("Sidebar subscribe error:", err);
+            window.alert(err?.response?.data?.detail?.message ?? err?.message ?? "Error subscribing. Please try again.");
           }
           goBack();
         }}
