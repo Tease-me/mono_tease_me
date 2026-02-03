@@ -89,6 +89,7 @@ const Subscription = ({ navPayload }: SubscriptionProps) => {
         logger.error(errr);
         return;
       }
+      await subscriptionPlanSvc.activateMySubscriptionForInfluencer(influencerId, true);
       setAlertMsg("Subscription successful.")
     } catch (err: any) {
       logger.error(err);
