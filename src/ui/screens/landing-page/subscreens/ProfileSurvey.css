@@ -1,6 +1,6 @@
 .ps-screen {
   width: 100%;
-  min-height: 100vh;
+  min-height: 100dvh;
     overflow-y: auto;
      background: linear-gradient(0deg, rgb(247, 8, 72), rgb(247, 8, 72) 65%, black 65%, black);
   background-position: bottom;
