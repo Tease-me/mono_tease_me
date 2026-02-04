@@ -12,7 +12,7 @@ import SvgPack from "@/utils/SvgPack";
 import { formatTime } from "@/utils/time";
 import clsx from "clsx";
 import React, { useEffect } from "react";
-import { getRelationshipStatusIcon, RelationshipStatus } from "@/utils/relationshipStatusIcons";
+import { getRelationshipStatusIcon, RelationshipStatus } from "@/utils/relationshipStatusUtils";
 import { BalanceServices } from "@/api/services/BalanceServices";
 import { apiClient } from "@/api/apis";
 import { formatDateTimeRelative } from "@/utils/DateTimeUtils";
@@ -52,7 +52,7 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
     return (
         <div className={styles.page}>
             <div className={styles.cardCaller}>
-                <BalanceBadge balance={balance}   />
+                <BalanceBadge balance={balance} />
                 <ProfileMedia active size="xlarge" mediaType="image" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} glow />
                 <div className={styles.name}>{influencer?.name}</div>
 
