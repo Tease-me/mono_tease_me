@@ -162,7 +162,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             }
             try {
                 const subscription = await subscriptionsServices.getMySubscriptionForInfluencer(influencer.id);
-                const isActive = subscription?.status === "active";
+                const isActive = subscription?.has_subscription === true;
                 const isAdult = isActive && subscription?.is_18_selected === true;
                 if (isMounted) {
                     setAdultModeSwitch(isAdult);
@@ -191,13 +191,14 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             setAdultModeSwitch(false);
             return;
         }
-
         setAdultModeSwitch(checked);
-
         if (!checked) {
-            await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, false);
+            try {
+                await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, false);
+            } catch (err) {
+                logger.error("Error deactivating adult mode:", err);
+            }
         }
-
     };
 
     useEffect(() => {
@@ -205,8 +206,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             if (adultModeSwitch && influencer) {
                 try {
                     const subscription = await subscriptionsServices.getMySubscriptionForInfluencer(influencer.id);
-                    if (subscription?.status === "active") {
-                        await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, true);
+                    if (subscription?.has_subscription === true) {
+                        if (!subscription?.is_18_selected) {
+                            await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, true);
+                        }
                         setShowSubscriptionPage(false);
                         setAdultMode(true);
                     } else {
@@ -236,6 +239,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                     logger.error("Error enabling adult mode subscription:", err);
                     setAdultModeSwitch(false);
                     setShowSubscriptionPage(false);
+                    setShowErrorAlert(err?.response?.data?.detail?.message || "Failed to enable adult mode. Please try again.");
                 }
 
             } else {
