@@ -162,7 +162,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             }
             try {
                 const subscription = await subscriptionsServices.getMySubscriptionForInfluencer(influencer.id);
-                const isActive = subscription?.status === "active";
+                const isActive = subscription?.has_subscription === true;
                 const isAdult = isActive && subscription?.is_18_selected === true;
                 if (isMounted) {
                     setAdultModeSwitch(isAdult);
@@ -191,9 +191,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             setAdultModeSwitch(false);
             return;
         }
-
         setAdultModeSwitch(checked);
-
         if (!checked) {
             await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, false);
         }
@@ -205,7 +203,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             if (adultModeSwitch && influencer) {
                 try {
                     const subscription = await subscriptionsServices.getMySubscriptionForInfluencer(influencer.id);
-                    if (subscription?.status === "active") {
+                    if (subscription?.has_subscription === true) {
                         await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, true);
                         setShowSubscriptionPage(false);
                         setAdultMode(true);
