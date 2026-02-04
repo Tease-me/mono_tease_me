@@ -6,7 +6,7 @@ export type RelationshipStatus =
   | "HATE"
   | "DISLIKE"
   | "STRANGERS"
-  | "FRIENDLY"
+  | "FRIENDS"
   | "FLIRTING"
   | "DATING"
   | "GIRLFRIEND";
@@ -15,7 +15,7 @@ const STATUS_ICON_MAP: Record<RelationshipStatus, ComponentType> = {
   HATE: SvgPack.DangerTriangleSmall,
   DISLIKE: SvgPack.Cross,
   STRANGERS: SvgPack.Users,
-  FRIENDLY: SvgPack.Chat,
+  FRIENDS: SvgPack.Chat,
   FLIRTING: SvgPack.KissGray,
   DATING: SvgPack.Heart,
   GIRLFRIEND: SvgPack.Crown,
@@ -25,7 +25,7 @@ const STATUS_LABEL_MAP: Record<RelationshipStatus, string> = {
   HATE: "Hate",
   DISLIKE: "Dislike",
   STRANGERS: "Strangers",
-  FRIENDLY: "Friendly",
+  FRIENDS: "Friends",
   FLIRTING: "Flirting",
   DATING: "Dating",
   GIRLFRIEND: "Girlfriend",
