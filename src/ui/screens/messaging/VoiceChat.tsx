@@ -12,6 +12,8 @@ import CallIcon from "@/assets/Call.svg?react";
 import WifiIcon from "@/assets/Wifi.svg?react";
 import NoSignalIcon from "@/assets/svg/NoSignal.svg"
 import { getSessionToken } from "@/api/bland/bland";
+import { showErrorModal } from "@/utils/errorModal";
+import logger from "@/utils/logger";
 
 // Cross-browser getUserMedia
 const getUserMedia = (constraints: MediaStreamConstraints): Promise<MediaStream> => {
@@ -111,8 +113,14 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
     try {
       await getUserMedia({ audio: true });
     } catch (err) {
-      console.error("Microphone permission denied:", err);
+      logger.error("Microphone permission denied:", err);
       setError("Microphone permission denied");
+      showErrorModal({
+        title: "Microphone Permission Denied",
+        message:
+          "Microphone access is required to start the voice chat. Please enable microphone permissions in your browser settings and try again.",
+      });
+      stopRing();
       setIsLoading(false);
       return;
     }

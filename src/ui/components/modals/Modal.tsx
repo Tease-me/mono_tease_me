@@ -14,6 +14,7 @@ interface ModalProps {
     className?: string;
     ariaLabel?: string;
     children: React.ReactNode;
+    zIndex?: number;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -25,6 +26,7 @@ export const Modal: React.FC<ModalProps> = ({
     className,
     ariaLabel,
     children,
+    zIndex,
 }) => {
     const [openClass, setOpenClass] = useState<string>();
 
@@ -64,6 +66,7 @@ export const Modal: React.FC<ModalProps> = ({
     return createPortal(
         <div
             className={clsx(styles.overlay, isOpen && styles.open)}
+            style={zIndex ? { zIndex } : undefined}
             onClick={closeOnOverlayClick ? onClose : undefined}
             role="presentation"
         >
