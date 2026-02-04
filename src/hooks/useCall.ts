@@ -4,6 +4,7 @@ import { ChatRepository } from "@/data/repositories/ChatRepo";
 import logger from "@/utils/logger";
 import { AuthContext } from "@/context/AuthContext";
 import { useConversation } from "@elevenlabs/react";
+import { showErrorModal } from "@/utils/errorModal";
 
 export default function useCall() {
   const [status, setStatus] = useState<
@@ -92,6 +93,11 @@ export default function useCall() {
       const hasPermission = await requestMicrophonePermission();
       if (!hasPermission) {
         alert("No permission");
+        showErrorModal({
+          title: "Microphone Permission Denied",
+          message:
+            "Microphone access is required to start the call. Please enable microphone permissions in your browser settings and try again.",
+        });
         setStatus("idle");
         stopRing();
         return;

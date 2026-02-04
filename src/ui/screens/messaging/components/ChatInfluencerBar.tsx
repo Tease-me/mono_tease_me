@@ -8,7 +8,11 @@ import MetricRing from "@/ui/components/stats/MetricRing";
 import SvgPack from "@/utils/SvgPack";
 import LoveScore from "./LoveScore";
 import styles from "./ChatInfluencerBar.module.css";
-import { getRelationshipStatusIcon, RelationshipStatus } from "@/utils/relationshipStatusIcons";
+import {
+  getRelationshipStatusIcon,
+  getRelationshipStatusLabel,
+  RelationshipStatus,
+} from "@/utils/relationshipStatusUtils";
 
 export type ChatInfluencerBarProps = {
   relationship?: RelationshipResponse
@@ -44,7 +48,12 @@ export default function ChatInfluencerBar({
             </div>
             <div className={styles.middleCol}></div>
             <div className={clsx(styles.rightCol, adultMode && styles.hidden)}>
-              <div className={styles.relationshipStatus}>{getRelationshipStatusIcon(relationship?.state as RelationshipStatus)} <div className={styles.relationshipStatusLabel}>{relationship?.state}</div></div>
+              <div className={styles.relationshipStatus}>
+                {getRelationshipStatusIcon(relationship?.state as RelationshipStatus)}
+                <div className={styles.relationshipStatusLabel}>
+                  {getRelationshipStatusLabel(relationship?.state)}
+                </div>
+              </div>
               <LoveScore sentimentScore={relationship?.sentiment_score} />
             </div>
           </div>
