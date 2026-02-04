@@ -143,6 +143,7 @@
 }
 
 .stageArea svg {
+  width: 1rem;
   max-width: 24px;
 }
 

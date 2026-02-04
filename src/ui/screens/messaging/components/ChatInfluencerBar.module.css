@@ -80,6 +80,12 @@
   display: none;
 }
 
+  .relationshipStatus svg {
+    width: 1.2rem;
+    height: 1.5rem;
+    color: hsla(0, 0%, 100%, 0.75);
+  }
+
 .circleGlowContainer {
   position: absolute;
   bottom: -90%;
@@ -359,8 +365,9 @@
   }
 
   .relationshipStatus svg {
-    width: 1.5rem;
+    width: 1rem;
     height: 1.5rem;
+    color: hsla(0, 0%, 100%, 0.5);
   }
 
   .relationshipStatusLabel {
