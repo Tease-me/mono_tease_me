@@ -24,7 +24,7 @@ const STATUS_ICON_MAP: Record<RelationshipStatus, ComponentType> = {
 const STATUS_LABEL_MAP: Record<RelationshipStatus, string> = {
   HATE: "Hate",
   DISLIKE: "Dislike",
-  STRANGERS: "Stranger",
+  STRANGERS: "Strangers",
   FRIENDLY: "Friendly",
   FLIRTING: "Flirting",
   DATING: "Dating",

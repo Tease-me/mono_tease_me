@@ -3,7 +3,6 @@ import React, { memo, useContext, useEffect, useMemo, useRef, useState } from 'r
 import { Endpoints, WS_BASE_URL } from "@/api/urls";
 import { AuthContext } from "@/context/AuthContext";
 import styles from "./ChatScreenContent.module.css"
-import { useParams } from 'react-router-dom';
 import MessagesList from './MessageList';
 import ChatInputArea from './ChatInputArea';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
@@ -48,7 +47,7 @@ const subscriptionsServices = SubscriptionsServices(apiClient);
 const relationshipServices = RelationshipServices(apiClient);
 
 interface ChatScreenContentProps {
-    id?: string;
+    influencerId?: string;
     onBackPressed?: () => void;
     menuItems?: DropDownMenuDataModel[];
     setNeedsSelection?: (needsSelection: boolean) => void;
@@ -58,7 +57,7 @@ interface ChatScreenContentProps {
 }
 export type TypingStatus = "idle" | "typing" | "recording";
 
-const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, setNeedsSelection, showChangeInfluencerButton = false, openSubscribe }) => {
+const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onMenuClick, setNeedsSelection, showChangeInfluencerButton = false, openSubscribe }) => {
     const [influencer, setInfluencer] = useState<InfluencerDataModel>();
     const [chatId, setChatId] = useState<string | undefined>();
 
@@ -103,8 +102,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
     const [showTermsModal, setShowTermsModal] = useState(false);
 
-    const { user_id } = useParams();
-
     const isSuperUser = user?.id === 1;
 
     const pageSize = 20;
@@ -126,19 +123,11 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
     useEffect(() => {
         (async () => {
-            if (!id) {
-                if (!user_id) {
-                    setInfluencer(undefined);
-                    return;
-                }
-                const localInfluencer = await influencerRepo.getInfluencer(user_id);
-                setInfluencer(localInfluencer);
-            } else {
-                const localInfluencer = await influencerRepo.getInfluencer(id);
-                setInfluencer(localInfluencer);
-            }
+            if (!influencerId) return;
+            const localInfluencer = await influencerRepo.getInfluencer(influencerId);
+            setInfluencer(localInfluencer);
         })()
-    }, [id, user_id]);
+    }, [influencerId]);
 
     useEffect(() => {
         let isMounted = true;
@@ -191,13 +180,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             setAdultModeSwitch(false);
             return;
         }
-
         setAdultModeSwitch(checked);
-
         if (!checked) {
             await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, false);
         }
-
     };
 
     useEffect(() => {

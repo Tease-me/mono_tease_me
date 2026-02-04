@@ -12,7 +12,7 @@ import SvgPack from "@/utils/SvgPack";
 import { formatTime } from "@/utils/time";
 import clsx from "clsx";
 import React, { useEffect } from "react";
-import { getRelationshipStatusIcon, RelationshipStatus } from "@/utils/relationshipStatusUtils";
+import { getRelationshipStatusIcon, getRelationshipStatusLabel, RelationshipStatus } from "@/utils/relationshipStatusUtils";
 import { BalanceServices } from "@/api/services/BalanceServices";
 import { apiClient } from "@/api/apis";
 import { formatDateTimeRelative } from "@/utils/DateTimeUtils";
@@ -89,7 +89,7 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                             <span className={styles.statIcon}>
                                 {getRelationshipStatusIcon(relationship?.state as RelationshipStatus)}
                             </span>
-                            {relationship?.state || 'N/A'}
+                            {getRelationshipStatusLabel(relationship?.state as RelationshipStatus)}
                         </div>
                     </div>
                 </div>

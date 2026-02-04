@@ -58,7 +58,7 @@ const TestProfilePage = () => {
       showBack={currentPage !== "home"}
       title={active.label}
     >
-      <ChatScreenContent id="anna"
+      <ChatScreenContent influencerId="anna"
         onMenuClick={() => setShowSidebar((v) => !v)} />
     </SlideDrawerLayout>
   );

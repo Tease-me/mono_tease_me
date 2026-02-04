@@ -25,6 +25,7 @@ export default function useCallWebRTC() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const startInFlightRef = useRef(false);
   const startAbortControllerRef = useRef<AbortController | null>(null);
+
   useEffect(() => {
     return () => {
       if (intervalRef.current) {
