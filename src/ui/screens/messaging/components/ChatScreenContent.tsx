@@ -109,7 +109,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
     const pageSize = 20;
 
-    const { status, startConversation, stopConversation, setInfluencerId, timeRemaining, micMuted, toggleMute, errorMessage } = useCallWebRTC();
+    const { status, startConversation, stopConversation, setInfluencerId, timeRemaining, micMuted, toggleMute, errorMessage, cancelCall } = useCallWebRTC();
     const displayMessages = useMemo(() => messages ? mergeCallMessages(messages) : [], [messages]);
     useEffect(() => {
         setMode(prev => {
@@ -733,6 +733,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                                 inputAudio={inputAudio} />
                         </div>
                     </> : <CallModePage
+                        cancelCall={cancelCall}
                         toggleMute={toggleMute}
                         status={status}
                         timeRemaining={timeRemaining}

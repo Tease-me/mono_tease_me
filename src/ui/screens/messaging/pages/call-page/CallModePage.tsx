@@ -29,14 +29,17 @@ type CallModePageProps = {
     relationship?: RelationshipDataModel;
     toggleMute?: () => void;
     errorMessage?: string;
+    cancelCall?: () => void;
 };
 
-const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, timeRemaining, errorMessage }: CallModePageProps) => {
+const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, timeRemaining, errorMessage, cancelCall }: CallModePageProps) => {
     const [balance, setBalance] = React.useState<number>(0);
 
     const handleCallButtonClicked = () => {
         if (status === "connected") {
             stopConversation?.();
+        } else if (status === "connecting") {
+            cancelCall?.();
         } else {
             startConversation?.();
         }
@@ -48,7 +51,24 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
             });
         }
     }, [influencer]);
-
+    const getButtonIcon = () => {
+        if (status === "connected") {
+            return <SvgPack.HangupCallIcon />;
+        } else if (status === "connecting") {
+            return <SvgPack.HangupCallIcon />;
+        } else {
+            return <SvgPack.Call />;
+        }
+    }
+    const getButtonColor = () => {
+        if (status === "connected") {
+            return "red";
+        } else if (status === "connecting") {
+            return "red";
+        } else {
+            return "green";
+        }
+    };
     return (
         <div className={styles.page}>
             <div className={styles.cardCaller}>
@@ -93,7 +113,7 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                             Last Connected: <span>{relationship?.last_interaction_at ? formatDateTimeRelative(relationship?.last_interaction_at) : "Never"}</span>
                         </div>
                     )}
-                    <IconButton className={styles.callButton} color={status === "connected" ? "red" : "green"} type="pill" leftIcon={status === "connected" ? <SvgPack.HangupCallIcon /> : <SvgPack.Call />} onClick={handleCallButtonClicked} />
+                    <IconButton className={styles.callButton} color={getButtonColor()} type="pill" leftIcon={getButtonIcon()} onClick={handleCallButtonClicked} />
                 </div>
             </div>
         </div>
