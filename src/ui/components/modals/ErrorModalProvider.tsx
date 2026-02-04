@@ -30,6 +30,7 @@ const ErrorModalProvider = () => {
       onClose={handleClose}
       ariaLabel="Error notification"
       size="sm"
+      zIndex={1100}
     >
       <div className={styles.modal}>
         <h3 className={styles.title}>{payload?.title || DEFAULT_TITLE}</h3>
