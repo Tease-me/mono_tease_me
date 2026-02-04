@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { useMicrophonePermission } from "./useMicrophonePermission";
+import { showErrorModal } from "@/utils/errorModal";
 
 export type RecordingStatus = "inactive" | "recording";
 
@@ -33,7 +34,14 @@ export const useAudioRecorder = (mimeType: string = "audio/webm"): UseAudioRecor
         // Ask for permission and continue in the same tap instead of requiring a second press
         if (!streamRef || permissionState !== "granted") {
             const granted = await requestMicrophonePermission();
-            if (!granted) return;
+            if (!granted) {
+                showErrorModal({
+                    title: "Microphone Permission Denied",
+                    message:
+                        "Microphone access is required to start recording. Please enable microphone permissions in your browser settings and try again.",
+                });
+                return;
+            };
         }
 
         // clear previous buffer
