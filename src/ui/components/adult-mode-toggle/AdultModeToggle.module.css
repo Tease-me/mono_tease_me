@@ -3,7 +3,7 @@
   grid-template-columns: 1fr 1fr;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px 0 var(--space-px-12);
+  padding: 0 12px 0 var(--space-px-8);
   gap: var(--space-px-6);
   max-width: 200px;
   border-radius: 74px;

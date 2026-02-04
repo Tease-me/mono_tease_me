@@ -56,8 +56,8 @@
 }
 
 .leftCol p.statusText {
-  max-width:16px;
-  background-color:  var(--alerts-status-success, oklch(80.036% 0.18204 151.736 ));
+  max-width: 16px;
+  background-color: var(--alerts-status-success, oklch(80.036% 0.18204 151.736));
   overflow: clip;
   color: transparent;
   border-radius: 10px;
@@ -114,7 +114,7 @@
   filter: blur(10px);
   z-index: 1;
   animation: glowPulse02 8s ease 0s infinite normal none;
-  
+
 }
 
 .glowStatusCircle {
@@ -140,16 +140,35 @@
 
 /** animations 🎥 **/
 @keyframes glowPulse01 {
-	0% {transform: scale(0.80) translateY(1%); filter: blur(1px); }
-  50% {transform: scale(0.88) translateY(0%); filter: blur(2px);}
-	100% {transform: scale(0.80) translateY(1%); filter: blur(1px);}
+  0% {
+    transform: scale(0.80) translateY(1%);
+    filter: blur(1px);
+  }
+
+  50% {
+    transform: scale(0.88) translateY(0%);
+    filter: blur(2px);
+  }
+
+  100% {
+    transform: scale(0.80) translateY(1%);
+    filter: blur(1px);
+  }
 }
 
 
 @keyframes glowPulse02 {
-	0% {transform: scale(0.5);}
-  50% {transform: scale(0.9);}
-	100% {transform: scale(0.5);}
+  0% {
+    transform: scale(0.5);
+  }
+
+  50% {
+    transform: scale(0.9);
+  }
+
+  100% {
+    transform: scale(0.5);
+  }
 }
 
 
@@ -313,14 +332,15 @@
   .leftCol p.statusText {
     max-width: unset;
     background-color: transparent;
-  opacity: 0.7;
-  font-size: 12px;
-  align-items: center;
-  color: var(--alerts-status-success, oklch(80.036% 0.18204 151.736));
-  padding: 0.15rem 0.75rem;
-  border-radius: 20px;
-  border: 1px dashed var(--alerts-status-success, oklch(80.036% 0.18204 151.736 / 0.5));
-}
+    opacity: 0.7;
+    font-size: 12px;
+    align-items: center;
+    color: var(--alerts-status-success, oklch(80.036% 0.18204 151.736));
+    padding: var(--space-px-12);
+    border-radius: 20px;
+    border: 1px solid var(--alerts-status-success, oklch(80.036% 0.18204 151.736 / 0.5));
+    display: flex;
+  }
 
   .relationshipStatus {
     min-width: 8rem;
@@ -386,7 +406,7 @@
     width: 120%;
   }
 
-  
+
 
   .metricLabel {
     display: flex;

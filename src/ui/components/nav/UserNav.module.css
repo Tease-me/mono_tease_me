@@ -8,9 +8,8 @@
 }
 
 .maxWidthSpacer {
-  display: grid;
-    grid-template-columns: 211px 211px 211px;
-    justify-items: center;
+  display: flex;
+  flex-direction: row;
   max-width: var(--max-chat-content-width);
   align-items: center;
   width: 100%;
@@ -18,8 +17,13 @@
   flex-shrink: 0;
 }
 
-.callChatIcon {color: var(--color-primary);}
-.callCallIcon {color: var(----tm-green-color01, hsl(140, 71%, 68%));}
+.callChatIcon {
+  color: var(--color-primary);
+}
+
+.callCallIcon {
+  color: var(----tm-green-color01, hsl(140, 71%, 68%));
+}
 
 .menuButton {
   display: flex;
@@ -52,4 +56,16 @@
   .logoArea {
     display: none;
   }
+}
+
+
+
+/*** media query Desktop ***/
+@media (min-width: 32rem) {
+  .maxWidthSpacer {
+    display: grid;
+    grid-template-columns: 211px 211px 211px;
+    justify-items: center;
+  }
+
 }
