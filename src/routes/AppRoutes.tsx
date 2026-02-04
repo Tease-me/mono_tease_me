@@ -149,7 +149,7 @@ function AppRoutes() {
     { path: "/prohibited-content", element: <TermsPage {...terms.prohibitedContent} /> },
   ];
 
-  // Rest of the routes remain unchanged...
+
   const guestRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.login, element: <LoginScreen /> },
     { path: Paths.register(), element: <RegisterScreen /> },
