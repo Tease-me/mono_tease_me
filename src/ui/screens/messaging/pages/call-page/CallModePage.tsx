@@ -12,7 +12,7 @@ import SvgPack from "@/utils/SvgPack";
 import { formatTime } from "@/utils/time";
 import clsx from "clsx";
 import React, { useEffect } from "react";
-import { getRelationshipStatusIcon, RelationshipStatus } from "@/utils/relationshipStatusIcons";
+import { getRelationshipStatusIcon, getRelationshipStatusLabel, RelationshipStatus } from "@/utils/relationshipStatusUtils";
 import { BalanceServices } from "@/api/services/BalanceServices";
 import { apiClient } from "@/api/apis";
 import { formatDateTimeRelative } from "@/utils/DateTimeUtils";
@@ -29,14 +29,17 @@ type CallModePageProps = {
     relationship?: RelationshipDataModel;
     toggleMute?: () => void;
     errorMessage?: string;
+    cancelCall?: () => void;
 };
 
-const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, timeRemaining, errorMessage }: CallModePageProps) => {
+const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, timeRemaining, errorMessage, cancelCall }: CallModePageProps) => {
     const [balance, setBalance] = React.useState<number>(0);
 
     const handleCallButtonClicked = () => {
         if (status === "connected") {
             stopConversation?.();
+        } else if (status === "connecting") {
+            cancelCall?.();
         } else {
             startConversation?.();
         }
@@ -48,11 +51,28 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
             });
         }
     }, [influencer]);
-
+    const getButtonIcon = () => {
+        if (status === "connected") {
+            return <SvgPack.HangupCallIcon />;
+        } else if (status === "connecting") {
+            return <SvgPack.HangupCallIcon />;
+        } else {
+            return <SvgPack.Call />;
+        }
+    }
+    const getButtonColor = () => {
+        if (status === "connected") {
+            return "red";
+        } else if (status === "connecting") {
+            return "red";
+        } else {
+            return "green";
+        }
+    };
     return (
         <div className={styles.page}>
             <div className={styles.cardCaller}>
-                <BalanceBadge balance={balance}   />
+                <BalanceBadge balance={balance} />
                 <ProfileMedia active size="xlarge" mediaType="image" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} glow />
                 <div className={styles.name}>{influencer?.name}</div>
 
@@ -60,7 +80,7 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                     <div className={styles.statCard}>
                         <div className={styles.statLabel}>Love</div>
                         <div className={styles.statValue}>
-                            <LoveScore rankPosition="left" sentimentScore={relationship?.sentiment_score || 0} size="large" />
+                            <LoveScore rankPosition="left" sentimentDelta={relationship?.sentiment_delta || 0} size="large" />
                         </div>
                     </div>
                     <div className={styles.statCard}>
@@ -69,7 +89,7 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                             <span className={styles.statIcon}>
                                 {getRelationshipStatusIcon(relationship?.state as RelationshipStatus)}
                             </span>
-                            {relationship?.state || 'N/A'}
+                            {getRelationshipStatusLabel(relationship?.state as RelationshipStatus)}
                         </div>
                     </div>
                 </div>
@@ -93,7 +113,7 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                             Last Connected: <span>{relationship?.last_interaction_at ? formatDateTimeRelative(relationship?.last_interaction_at) : "Never"}</span>
                         </div>
                     )}
-                    <IconButton className={styles.callButton} color={status === "connected" ? "red" : "green"} type="pill" leftIcon={status === "connected" ? <SvgPack.HangupCallIcon /> : <SvgPack.Call />} onClick={handleCallButtonClicked} />
+                    <IconButton className={styles.callButton} color={getButtonColor()} type="pill" leftIcon={getButtonIcon()} onClick={handleCallButtonClicked} />
                 </div>
             </div>
         </div>

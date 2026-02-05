@@ -20,6 +20,7 @@ export type ThemeTokens = {
   "--chat-bubble-gradient-angle": string;
   "--chat-bubble-gradient-start": string;
   "--chat-bubble-gradient-mid": string;
+  "--chat-bubble-gradient-mid02": string;
   "--chat-bubble-gradient-end": string;
 
   "--gradient-orange-start": string;
@@ -45,9 +46,10 @@ export const THEMES: Record<ThemeName, ThemeTokens> = {
     "--gradient-end-red-end": "#FF8395",
 
     "--chat-bubble-gradient-angle": "180deg",
-    "--chat-bubble-gradient-start": "rgba(255, 77, 116, 0.70)",
-    "--chat-bubble-gradient-mid": "rgba(255, 77, 116, 0.70)",
-    "--chat-bubble-gradient-end": "#FF8395",
+    "--chat-bubble-gradient-start": "hsla(347, 100%, 65%, 0.15)",
+    "--chat-bubble-gradient-mid": "hsla(347, 93%, 63%, 0.13)",
+    "--chat-bubble-gradient-mid02": "hsla(349, 97%, 65%, 0.322)",
+    "--chat-bubble-gradient-end": "hsla(351, 100%, 65.9%, 0.47)",
 
     "--gradient-orange-start": "#FB9400",
     "--gradient-orange-end": "#FFAB38",
@@ -71,9 +73,10 @@ export const THEMES: Record<ThemeName, ThemeTokens> = {
     "--gradient-end-red-end": "#9D59FF",
 
     "--chat-bubble-gradient-angle": "180deg",
-    "--chat-bubble-gradient-start": "rgba(151, 77, 255, 0.70)",
-    "--chat-bubble-gradient-mid": "rgba(151, 77, 255, 0.70)",
-    "--chat-bubble-gradient-end": "#974DFF",
+    "--chat-bubble-gradient-start": "hsla(265, 100%, 65%, 0.15)",
+    "--chat-bubble-gradient-mid": "hsla(265, 93%, 63%, 0.13)",
+    "--chat-bubble-gradient-mid02": "hsla(265, 97%, 65%, 0.322)",
+    "--chat-bubble-gradient-end": "hsla(265, 100%, 65.9%, 0.47)",
 
     "--gradient-orange-start": "rgba(255, 123, 0, 1)",
     "--gradient-orange-end": "rgba(255, 59, 212, 1)",

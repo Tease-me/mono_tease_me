@@ -43,9 +43,10 @@ body,
   --gradient-end-red-end: #FF8395;
 
   --chat-bubble-gradient-angle: 180deg;
-  --chat-bubble-gradient-start: rgba(255, 77, 116, 0.70);
-  --chat-bubble-gradient-mid: rgba(255, 77, 116, 0.70);
-  --chat-bubble-gradient-end: #FF8395;
+  --chat-bubble-gradient-start: hsla(347, 100%, 65%, 0.15);
+  --chat-bubble-gradient-mid: hsla(347, 93%, 63%, 0.13);
+  --chat-bubble-gradient-mid02: hsla(349, 97%, 65%, 0.322);
+  --chat-bubble-gradient-end: hsla(351, 100%, 65.9%, 0.47);
 
   --sidebar-bg-color: rgba(33, 33, 33, 1);
 

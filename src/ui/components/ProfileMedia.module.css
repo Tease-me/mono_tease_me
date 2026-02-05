@@ -117,6 +117,37 @@
     background-image: conic-gradient(from 0deg, var(--color-primary), #FF4925);
 }
 
+
+.profile-container.xsmall.default>.profile-media-container,
+.profile-container.xsmall>.profile-media-filter {
+    padding: 2px;
+}
+
+.profile-container.small.default>.profile-media-container,
+.profile-container.small>.profile-media-filter {
+    padding: 3px;
+}
+
+.profile-container.medium.default>.profile-media-container,
+.profile-container.medium>.profile-media-filter {
+    padding: 5px;
+}
+
+.profile-container.large.default>.profile-media-container,
+.profile-container.large>.profile-media-filter {
+    padding: 8px;
+}
+
+.profile-container.xlarge.default>.profile-media-container,
+.profile-container.xlarge>.profile-media-filter {
+    padding: 11px;
+}
+
+
+.profile-container.default>.profile-media-container {
+    background: var(--Greyscale-800, #424242);
+}
+
 .hearts-overlay {
     position: absolute;
     top: 0;

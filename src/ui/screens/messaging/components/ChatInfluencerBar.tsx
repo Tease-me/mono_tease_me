@@ -8,14 +8,18 @@ import MetricRing from "@/ui/components/stats/MetricRing";
 import SvgPack from "@/utils/SvgPack";
 import LoveScore from "./LoveScore";
 import styles from "./ChatInfluencerBar.module.css";
-import { getRelationshipStatusIcon, RelationshipStatus } from "@/utils/relationshipStatusIcons";
+import {
+  getRelationshipStatusIcon,
+  getRelationshipStatusLabel,
+  RelationshipStatus,
+} from "@/utils/relationshipStatusUtils";
 
 export type ChatInfluencerBarProps = {
   relationship?: RelationshipResponse
   influencer?: InfluencerDataModel;
   middleContent?: React.ReactNode;
   showChangeInfluencerButton?: boolean;
-  loveScore?: number | string;
+  sentimentDelta?: number | string;
   adultMode?: boolean;
   status?: string;
   onChangeInfluencer?: () => void;
@@ -44,8 +48,13 @@ export default function ChatInfluencerBar({
             </div>
             <div className={styles.middleCol}></div>
             <div className={clsx(styles.rightCol, adultMode && styles.hidden)}>
-              <div className={styles.relationshipStatus}>{getRelationshipStatusIcon(relationship?.state as RelationshipStatus)} <div className={styles.relationshipStatusLabel}>{relationship?.state}</div></div>
-              <LoveScore sentimentScore={relationship?.sentiment_score} />
+              <div className={styles.relationshipStatus}>
+                {getRelationshipStatusIcon(relationship?.state as RelationshipStatus)}
+                <div className={styles.relationshipStatusLabel}>
+                  {getRelationshipStatusLabel(relationship?.state)}
+                </div>
+              </div>
+              <LoveScore sentimentDelta={relationship?.sentiment_delta} />
             </div>
           </div>
         </div>
@@ -68,7 +77,7 @@ export default function ChatInfluencerBar({
           </div>
         </div>
         <div className={styles.profileMidCol}>
-          <ProfileMedia active size="medium" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} />
+          <ProfileMedia size="medium" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} />
           <button
             type="button"
             className={clsx(styles.profileSwitch, profileSwitch, !showChangeInfluencerButton && styles.hidden)}
