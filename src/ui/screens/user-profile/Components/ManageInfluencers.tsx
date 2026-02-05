@@ -29,7 +29,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
       video: string;
       balance: number;
       lastConnected: string;
-      loveScore: number;
+      sentimentDelta: number;
       status: string;
       trust: number;
       safety: number;
@@ -57,7 +57,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
             video: (inf as any).videoUrl || inf.videoUrl,
             balance: 0,
             lastConnected: "",
-            loveScore: 0,
+            sentimentDelta: 0,
             status: "",
             trust: 0,
             safety: 0,
@@ -85,7 +85,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
               video: (inf as any).videoUrl || inf.videoUrl,
               balance: balanceValue,
               lastConnected: rel.last_interaction_at || "",
-              loveScore: rel.sentiment_score || 0,
+              sentimentDelta: rel.sentiment_delta || 0,
               status: rel.state,
               trust: rel.trust,
               safety: rel.safety,
@@ -118,7 +118,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
       status: inf.status,
       attraction: inf.attraction,
       closeness: inf.closeness,
-      stageScore: inf.loveScore,
+      sentimentDelta: inf.sentimentDelta,
       followingSince: inf.followingSince,
     });
   };
