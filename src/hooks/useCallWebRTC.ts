@@ -113,6 +113,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any) => 
     if (!influencerId || startInFlightRef.current) {
       return;
     }
+    let errorStatus: number | null = null;
     const abortController = new AbortController();
     if (startAbortControllerRef.current) {
       startAbortControllerRef.current.abort();
@@ -213,12 +214,14 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any) => 
         setStatus("error");
         setErrorMessage(error.response?.data?.detail?.error || "Call failed");
         logger.error(error);
+        errorStatus = error.response?.status ?? null;
       }
     }
     if (startAbortControllerRef.current === abortController) {
       startAbortControllerRef.current = null;
     }
     startInFlightRef.current = false;
+    return { errorStatus };
   }, [chatRepo, influencerId, requestMicrophonePermission, stopRing, user]);
 
   useEffect(() => {
