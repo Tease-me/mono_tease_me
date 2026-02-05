@@ -779,7 +779,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
 
             <AddCreditsModal
                 isOpen={showTopupModal}
-                image={influencer?.img || ''}
+                image={influencer?.img}
                 onClose={() => setShowTopupModal(false)}
                 influencerId={influencer?.id || ''} />
 
