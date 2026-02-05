@@ -602,6 +602,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const handleCallModeChange = () => {
         setMode(prev => {
             if (prev === "call") return "chat";
+            startConversation();
             return "call";
         })
     }
