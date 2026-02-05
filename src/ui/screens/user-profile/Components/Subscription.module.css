@@ -1,6 +1,6 @@
 .container {
-
   display: flex;
+  flex-direction: column;
 }
 
 
@@ -22,7 +22,9 @@
   align-items: center;
   gap: var(--space-px-8);
   font-weight: 14px;
+  flex: 0 0 auto;
 }
+
 
 .loading {
   flex: 1;
@@ -39,9 +41,7 @@
   width: 80%;
   height: 1px;
   background: #424242;
-  margin-top: 32px;
-  margin-bottom: 32px;
-  align-self: center;
+  margin: 32px auto;
 }
 
 .spread {
