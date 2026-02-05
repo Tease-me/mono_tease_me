@@ -37,7 +37,7 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
     useCall();
 
   const audioRef = useRef(
-    new Howl({ src: ["/audio/ringtone.wav"], loop: true, html5: true })
+    new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: true })
   );
 
   const [error, setError] = useState<string | null>(null);

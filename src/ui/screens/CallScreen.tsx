@@ -18,7 +18,7 @@ export default function CallScreen() {
   const [callStatus, setCallStatus] = useState("Calling...");
   const [callTime, setCallTime] = useState(0);
   const ringtoneRef = useRef(
-    new Howl({ src: ["/audio/ringtone.wav"], loop: true, html5: true })
+    new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: true })
   );
   const audioRef = useRef(new Audio());
 
