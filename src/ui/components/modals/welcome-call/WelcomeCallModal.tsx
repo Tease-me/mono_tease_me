@@ -31,6 +31,9 @@ const WelcomeCallModal: React.FC<WelcomeCallModalProps> = ({ isOpen, onClose, in
         } else if (status === "disconnected") {
 
         }
+        else if (status === "error") {
+
+        }
     }, [status])
 
     useEffect(() => {

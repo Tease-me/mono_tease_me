@@ -97,7 +97,7 @@ function stateBadge(state?: string) {
       fg: "#e9d5ff",
       border: "rgba(168,85,247,0.28)",
     },
-    TALKING: {
+    FRIENDLY: {
       bg: "rgba(59,130,246,0.14)",
       fg: "#bfdbfe",
       border: "rgba(59,130,246,0.26)",
@@ -486,9 +486,8 @@ export default function RelationshipDashboard() {
                 setSelectedUserId(u.id);
                 if (isMobile) setShowSidebarMobile(false);
               }}
-              className={`${styles["list-item"]} ${
-                active ? styles["list-item--active"] : ""
-              }`}
+              className={`${styles["list-item"]} ${active ? styles["list-item--active"] : ""
+                }`}
             >
               <div className={styles["list-item__title"]}>
                 {u.username || u.full_name || `User #${u.id}`}
@@ -527,9 +526,8 @@ export default function RelationshipDashboard() {
                   setSelectedInfluencer(r.influencer_id);
                   if (isMobile) setShowSidebarMobile(false);
                 }}
-                className={`${styles["influencer"]} ${
-                  active ? styles["influencer--active"] : ""
-                }`}
+                className={`${styles["influencer"]} ${active ? styles["influencer--active"] : ""
+                  }`}
               >
                 <span className={styles["influencer__name"]}>
                   {r.influencer_id}
@@ -594,19 +592,18 @@ export default function RelationshipDashboard() {
               <div className={styles["eyebrow"]}>Relationship Dashboard</div>
               <div className={styles["title"]}>
                 {selectedUser
-                  ? `${
-                      selectedUser.username ||
-                      selectedUser.full_name ||
-                      `User #${selectedUser.id}`
-                    }`
+                  ? `${selectedUser.username ||
+                  selectedUser.full_name ||
+                  `User #${selectedUser.id}`
+                  }`
                   : "Select a user"}
                 {selectedRel ? ` • ${selectedRel.influencer_id}` : ""}
               </div>
               <div className={styles["subline"]}>
                 {selectedRel?.updated_at
                   ? `Updated: ${new Date(
-                      selectedRel.updated_at
-                    ).toLocaleString()}`
+                    selectedRel.updated_at
+                  ).toLocaleString()}`
                   : ""}
               </div>
             </div>
@@ -629,7 +626,7 @@ export default function RelationshipDashboard() {
                       "HATE",
                       "DISLIKE",
                       "STRANGERS",
-                      "TALKING",
+                      "FRIENDLY",
                       "FLIRTING",
                       "DATING",
                       "GIRLFRIEND",
@@ -667,9 +664,9 @@ export default function RelationshipDashboard() {
                         setEdit((p) =>
                           p
                             ? {
-                                ...p,
-                                girlfriend_confirmed: e.target.checked,
-                              }
+                              ...p,
+                              girlfriend_confirmed: e.target.checked,
+                            }
                             : p
                         )
                       }
@@ -700,9 +697,8 @@ export default function RelationshipDashboard() {
                     <button
                       onClick={saveEdits}
                       disabled={saving}
-                      className={`${styles["primary"]} ${
-                        isDirty ? styles["primary--warning"] : ""
-                      }`}
+                      className={`${styles["primary"]} ${isDirty ? styles["primary--warning"] : ""
+                        }`}
                     >
                       {saving ? "Saving…" : isDirty ? "Save changes" : "Save"}
                     </button>
