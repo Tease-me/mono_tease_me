@@ -114,7 +114,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
             return;
         }
 
+        logger.debug("Fetching relationship", { influencerId });
         relationshipServices.getRelationship(influencerId).then((relationship) => {
+            logger.debug("Fetched relationship", { influencerId });
             setRelationship(relationship);
         }).catch((err) => logger.error("Error refreshing relationship", err));
     };
@@ -122,9 +124,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
     const { status, startConversation, stopConversation, setInfluencerId, timeRemaining, micMuted, toggleMute, errorMessage, cancelCall } = useCallWebRTC({
         onMessage: (message) => {
             logger.debug("Received WebRTC message on ChatScreenContent:", message);
-            if (status === "connected") {
-                fetchRelationship();
-            }
+            fetchRelationship();
         }
     });
 
