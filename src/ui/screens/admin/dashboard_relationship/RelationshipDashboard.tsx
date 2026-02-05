@@ -61,9 +61,9 @@ function sentimentLabel(score: number) {
   if (score <= -60) return "HATE";
   if (score <= -20) return "DISLIKE";
   if (score < 20) return "NEUTRAL";
-  if (score < 50) return "FRIENDLY";
+  if (score < 50) return "FRIENDS";
   if (score < 75) return "FLIRTY";
-  return "IN_LOVE";
+  return "GIRLFRIEND";
 }
 
 function clamp01to100(x: number) {
@@ -97,7 +97,7 @@ function stateBadge(state?: string) {
       fg: "#e9d5ff",
       border: "rgba(168,85,247,0.28)",
     },
-    FRIENDLY: {
+    FRIENDS: {
       bg: "rgba(59,130,246,0.14)",
       fg: "#bfdbfe",
       border: "rgba(59,130,246,0.26)",
@@ -626,7 +626,7 @@ export default function RelationshipDashboard() {
                       "HATE",
                       "DISLIKE",
                       "STRANGERS",
-                      "FRIENDLY",
+                      "FRIENDS",
                       "FLIRTING",
                       "DATING",
                       "GIRLFRIEND",

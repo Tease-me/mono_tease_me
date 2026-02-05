@@ -25,6 +25,7 @@ export default function useCallWebRTC() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const startInFlightRef = useRef(false);
   const startAbortControllerRef = useRef<AbortController | null>(null);
+
   useEffect(() => {
     return () => {
       if (intervalRef.current) {
@@ -298,6 +299,20 @@ export default function useCallWebRTC() {
     }
   }, [conversation, releaseMicrophonePermission, stopRing]);
 
+  const cancelCall = useCallback(() => {
+    if (status !== "connecting") {
+      return;
+    }
+    if (startAbortControllerRef.current) {
+      startAbortControllerRef.current.abort();
+      startAbortControllerRef.current = null;
+    }
+    startInFlightRef.current = false;
+    stopRing();
+    setStatus("idle");
+    setErrorMessage(null);
+  }, [status, stopRing]);
+
   useEffect(() => {
     if (timeRemaining === null) {
       if (intervalRef.current) {
@@ -352,5 +367,6 @@ export default function useCallWebRTC() {
     micMuted,
     toggleMute,
     setMicMuted,
+    cancelCall,
   };
 }

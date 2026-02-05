@@ -142,7 +142,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           attraction: rel?.attraction ?? d.attraction,
           state: rel?.state ?? d.state,
           closeness: rel?.closeness ?? d.closeness,
-          stageScore: rel?.sentiment_score ?? d.stageScore,
+          stageScore: rel?.stage_points ?? d.stageScore,
           lastConnected: rel?.last_interaction_at ?? d.lastConnected,
           balance: bal ? bal.balance_cents / 100 : d.balance,
           hasSubscription: sub?.has_subscription ?? d.hasSubscription,
