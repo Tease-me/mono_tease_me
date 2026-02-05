@@ -25,7 +25,7 @@ type InfluencerCardItem = {
   video: string;
   balance: number;
   lastConnected: string;
-  loveScore: number;
+  sentimentDelta: number;
   status: string;
   trust: number;
   safety: number;
@@ -73,7 +73,7 @@ export default function InfluencerSelector({
               video: (inf as any).videoUrl || inf.videoUrl,
               balance: balanceValue,
               lastConnected: rel.last_interaction_at || "",
-              loveScore: rel.sentiment_score || 0,
+              sentimentDelta: rel.sentiment_delta || 0,
               status: rel.state,
               trust: rel.trust,
               safety: rel.safety,
@@ -121,12 +121,12 @@ export default function InfluencerSelector({
                     className={styles.chatButton}
                   />
                 </div>
-               
+
               </div>
-              
+
             ))}
             {error && <div className={styles.error}>{error}</div>}
-          <div className="spacer"></div>
+            <div className="spacer"></div>
           </div>
         )}
       </div>
