@@ -601,7 +601,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
     const handleCallModeChange = () => {
         setMode(prev => {
-            if (prev === "call") return "chat";
+            if (prev === "call") {
+                stopConversation();
+                return "chat";
+            }
             startConversation();
             return "call";
         })
@@ -721,7 +724,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                                             currentAudioRef.current = audioEl;
                                         }
                                     }}
-                                    onCallBack={() => setMode("call")}
+                                    onCallBack={() => handleCallModeChange()}
                                 />
                             </> : <LoadingSpinner />}
                         </div>
