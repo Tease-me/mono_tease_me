@@ -61,7 +61,7 @@ function sentimentLabel(score: number) {
   if (score <= -60) return "HATE";
   if (score <= -20) return "DISLIKE";
   if (score < 20) return "NEUTRAL";
-  if (score < 50) return "FRIENDLY";
+  if (score < 50) return "FRIENDS";
   if (score < 75) return "FLIRTY";
   return "GIRLFRIEND";
 }
