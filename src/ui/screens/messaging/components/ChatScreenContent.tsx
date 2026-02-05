@@ -720,6 +720,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                                             currentAudioRef.current = audioEl;
                                         }
                                     }}
+                                    onCallBack={() => setMode("call")}
                                 />
                             </> : <LoadingSpinner />}
                         </div>
