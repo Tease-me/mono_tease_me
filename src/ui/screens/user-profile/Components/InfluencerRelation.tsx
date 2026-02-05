@@ -391,6 +391,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
             attraction={data.attraction ?? 0}
             safety={data.safety ?? 0}
             height={280}
+            width={320}
           />
         </div>
       </div>
