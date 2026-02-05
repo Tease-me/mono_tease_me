@@ -3,12 +3,13 @@
   grid-template-columns: 1fr 1fr;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px 0 var(--space-px-12);
+  padding: 0 12px 0 var(--space-px-8);
   gap: var(--space-px-6);
   max-width: 200px;
   border-radius: 74px;
-  border: 1px solid rgba(66, 66, 66, 0.50);
-  background: #212121;
+border: 1px solid hsla(0, 0%, 79%, 0.09);
+background: hsla(0, 0%, 13%, 0.43);
+min-height: 48px;
 }
 
 .minutesArea {

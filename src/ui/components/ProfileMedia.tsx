@@ -62,7 +62,7 @@ const ProfileMedia: React.FC<ProfileMediaProps> = ({
         onEditClick?.()
     }
 
-    return (<div {...restProps} className={clsx(styles["profile-container"], styles[size], active && styles["active"], showHearts && styles["hearts"], glow && styles["glow"], restProps.className)} >
+    return (<div {...restProps} className={clsx(styles["profile-container"], styles[size], active ? styles["active"]: styles["default"], showHearts && styles["hearts"], glow && styles["glow"], restProps.className)} >
         <div className={styles["profile-media-container"]}>
             {shouldShowVideo ? (
                 <video

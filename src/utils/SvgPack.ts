@@ -52,6 +52,16 @@ export default {
     Angles: lazy(() => import("@/assets/svg/Angles.svg?react")),
 
 
+        //Influencer Relationship Status
+    RelHate: lazy(() => import("@/assets/svg/iconHate.svg?react")),
+    RelDislike: lazy(() => import("@/assets/svg/iconDislike.svg?react")), 
+    RelTalking: lazy(() => import("@/assets/svg/iconTalking.svg?react")), 
+    RelStrangers: lazy(() => import("@/assets/svg/iconStrangers.svg?react")), 
+    RelFlirting: lazy(() => import("@/assets/svg/iconFlirting.svg?react")), 
+    RelDating: lazy(() => import("@/assets/svg/iconDating.svg?react")),  
+    RelInLove: lazy(() => import("@/assets/svg/iconInLove.svg?react")), 
+
+
     // Social Media Icons
     OnlyFans: lazy(() => import("@/assets/svg/OnlyFans.svg?react")),
     Instagram: lazy(() => import("@/assets/svg/Instagram.svg?react")),
