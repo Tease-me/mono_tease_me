@@ -17,7 +17,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-px-4);
-   
+
 
 }
 
@@ -34,13 +34,13 @@
     word-break: break-word;
     color: var(--color-text);
     font-size: 1rem;
-   
+
 }
 
 .message.sent {
     align-self: flex-end;
-      border-radius: var(--space-px-16) var(--space-px-16) var(--space-px-4) var(--space-px-16);
-   
+    border-radius: var(--space-px-16) var(--space-px-16) var(--space-px-4) var(--space-px-16);
+
     border: 1px solid hsla(0, 0%, 100%, 0.08);
     background: linear-gradient(180deg, hsla(225, 8%, 20%, 0.7) 0%, hsla(225, 8%, 20%, 0.7) 80.96%, hsl(226, 16%, 27%) 100%);
     box-shadow: -3px 4px 0 -3px hsla(0, 0%, 100%, 0.18) inset;
@@ -57,27 +57,27 @@
 }
 
 @keyframes fadeInLeft {
-	0% {
-		opacity: 0;
-		transform: translateX(-3.125rem) scale(0.5);
-	}
+    0% {
+        opacity: 0;
+        transform: translateX(-3.125rem) scale(0.5);
+    }
 
-	100% {
-		opacity: 1;
-		transform: translateX(0) scale(1);
-	}
+    100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
 }
 
 @keyframes fadeInRight {
-	0% {
-		opacity: 0;
-		transform: translateX(3.125rem) scale(0.5);
-	}
+    0% {
+        opacity: 0;
+        transform: translateX(3.125rem) scale(0.5);
+    }
 
-	100% {
-		opacity: 1;
-		transform: translateX(0) scale(1);
-	}
+    100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
 }
 
 
@@ -96,7 +96,7 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--space-px-8);
-    
+
 }
 
 .call-bubble {
@@ -105,12 +105,12 @@
     gap: var(--space-px-12);
     cursor: pointer;
     transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-  border-radius: 0.75rem;
-border: 1px solid hsla(140, 100%, 65%, 0.18);
-background: linear-gradient(hsla(140, 100%, 65%, 0.1), hsla(140, 100%, 64.87%, 0.35) 70.19%, hsla(140, 100%, 64.87%, 0.21));
-box-shadow: -8px 7px 5px -9px hsla(0, 0%, 100%, 0.77) inset, 0 9px 31px -15px hsla(0, 0%, 0%, 1);
-min-width: 220px;
-min-height: 67px;
+    border-radius: 0.75rem;
+    border: 1px solid hsla(140, 100%, 65%, 0.18);
+    background: linear-gradient(hsla(140, 100%, 65%, 0.1), hsla(140, 100%, 64.87%, 0.35) 70.19%, hsla(140, 100%, 64.87%, 0.21));
+    box-shadow: -8px 7px 5px -9px hsla(0, 0%, 100%, 0.77) inset, 0 9px 31px -15px hsla(0, 0%, 0%, 1);
+    min-width: 220px;
+    min-height: 67px;
 
 }
 
@@ -137,7 +137,7 @@ min-height: 67px;
 .call-icon {
     width: 24px;
     height: 24px;
-   
+
 }
 
 
@@ -224,12 +224,10 @@ min-height: 67px;
     font-weight: 500;
     text-align: left;
     cursor: pointer;
-    padding: 0 2px;
-    text-align: center;
 }
 
 .call-transcript-link:hover {
-color: hsla(234, 0%, 84%, 0.35);
+    color: hsla(234, 0%, 84%, 0.35);
 }
 
 .audio-transcript {

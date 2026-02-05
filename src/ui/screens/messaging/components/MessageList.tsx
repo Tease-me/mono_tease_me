@@ -20,6 +20,7 @@ interface MessagesListProps {
   onAudioPlay?: (src: string) => void;
   showAudioTranscript?: boolean;
   isAudio?: boolean;
+  onCallBack?: () => void;
 }
 
 const MessagesList = React.memo(
@@ -31,6 +32,7 @@ const MessagesList = React.memo(
     influencerName,
     onAudioPlay,
     showAudioTranscript,
+    onCallBack,
   }: MessagesListProps) => {
 
     useEffect(() => {
@@ -66,6 +68,7 @@ const MessagesList = React.memo(
               influencerName={influencerName}
               onAudioPlay={onAudioPlay}
               showAudioTranscript={showAudioTranscript}
+              onCallBack={onCallBack}
             />
           ))}
 
