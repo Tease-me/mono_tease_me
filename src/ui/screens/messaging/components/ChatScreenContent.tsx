@@ -82,7 +82,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
     const currentAudioRef = useRef<HTMLAudioElement | null>(null);
     const lastChatInitRef = useRef<string | null>(null);
     const callModalTimeoutRef = useRef<number | null>(null);
-    const relationshipPollRef = useRef<number | null>(null);
 
     const { user } = useContext(AuthContext);
     const [adultMode, setAdultMode] = useState(false);
@@ -106,7 +105,29 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
 
     const pageSize = 20;
 
-    const { status, startConversation, stopConversation, setInfluencerId, timeRemaining, micMuted, toggleMute, errorMessage, cancelCall } = useCallWebRTC();
+    const fetchRelationship = (influencerId?: string) => {
+        if (!influencerId && influencer) {
+            influencerId = influencer.id;
+        }
+        if (!influencerId) {
+            logger.error("No influencer ID available to fetch relationship");
+            return;
+        }
+
+        relationshipServices.getRelationship(influencerId).then((relationship) => {
+            setRelationship(relationship);
+        }).catch((err) => logger.error("Error refreshing relationship", err));
+    };
+
+    const { status, startConversation, stopConversation, setInfluencerId, timeRemaining, micMuted, toggleMute, errorMessage, cancelCall } = useCallWebRTC({
+        onMessage: (message) => {
+            logger.debug("Received WebRTC message on ChatScreenContent:", message);
+            if (status === "connected") {
+                fetchRelationship();
+            }
+        }
+    });
+
     const displayMessages = useMemo(() => messages ? mergeCallMessages(messages) : [], [messages]);
     useEffect(() => {
         setMode(prev => {
@@ -317,9 +338,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                 await fetchMessages(chat_id, 1);
                 connectChat(influencer.id);
                 setInfluencerId(influencer.id);
-                relationshipServices.getRelationship(influencer.id).then((relationshipResponse) => {
-                    setRelationship(relationshipResponse)
-                })
+                fetchRelationship(influencer.id);
                 setIsLoadingMore(false);
             }
 
@@ -606,31 +625,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
     const handleChangeInfluencerClicked = async () => {
         setNeedsSelection?.(true)
     };
-
-    useEffect(() => {
-        if (relationshipPollRef.current) {
-            window.clearInterval(relationshipPollRef.current);
-            relationshipPollRef.current = null;
-        }
-
-        if (status === "connected" && influencer?.id) {
-            const fetchRelationship = () => {
-                relationshipServices.getRelationship(influencer.id).then((relationship) => {
-                    setRelationship(relationship);
-                }).catch((err) => logger.error("Error refreshing relationship", err));
-            };
-
-            fetchRelationship();
-            relationshipPollRef.current = window.setInterval(fetchRelationship, 5000);
-        }
-
-        return () => {
-            if (relationshipPollRef.current) {
-                window.clearInterval(relationshipPollRef.current);
-                relationshipPollRef.current = null;
-            }
-        };
-    }, [status, influencer?.id]);
 
     const handleClearHistory = async () => {
         if (!chatId || !isSuperUser) return;

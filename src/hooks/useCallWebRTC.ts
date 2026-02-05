@@ -9,7 +9,7 @@ import { showErrorModal } from "@/utils/errorModal";
 
 export type CallStatus = "connecting" | "connected" | "disconnected" | "idle" | "error";
 
-export default function useCallWebRTC() {
+export default function useCallWebRTC(options?: { onMessage?: (message: any) => void }) {
   const [status, setStatus] = useState<CallStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const {
@@ -100,6 +100,7 @@ export default function useCallWebRTC() {
     },
     onMessage: (message) => {
       logger.debug(message);
+      options?.onMessage?.(message);
     },
   });
 
