@@ -18,7 +18,7 @@ export default function useCallWebRTC() {
   } = useMicrophonePermission();
   const [influencerId, setInfluencerId] = useState<string>();
 
-  const ringtoneRef = useRef(new Audio("/audio/ringtone.wav"));
+  const ringtoneRef = useRef(new Audio("/audio/ringtone.mp3"));
   const chatRepo = ChatRepository();
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const { user } = useContext(AuthContext);
