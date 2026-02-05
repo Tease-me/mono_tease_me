@@ -6,19 +6,19 @@ import rankDown from "@/assets/lottie/rankDown.json";
 import styles from "./LoveScore.module.css";
 
 export type LoveScoreProps = {
-  sentimentScore?: number | string | null;
+  sentimentDelta?: number | null;
   className?: string;
   size?: "small" | "medium" | "large";
   rankPosition?: "left" | "right";
 };
 
 export default function LoveScore({
-  sentimentScore,
+  sentimentDelta,
   className,
   size = "medium",
   rankPosition = "right",
 }: LoveScoreProps) {
-  const parsedScore = Number(sentimentScore);
+  const parsedScore = Number(sentimentDelta);
   const numericScore = Number.isFinite(parsedScore) ? parsedScore : 0;
   const displayScore = Number.isFinite(parsedScore) ? parsedScore.toFixed(2) : "";
   const isPositive = numericScore > 0;
