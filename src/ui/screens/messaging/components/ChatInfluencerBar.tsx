@@ -19,7 +19,7 @@ export type ChatInfluencerBarProps = {
   influencer?: InfluencerDataModel;
   middleContent?: React.ReactNode;
   showChangeInfluencerButton?: boolean;
-  loveScore?: number | string;
+  sentimentDelta?: number | string;
   adultMode?: boolean;
   status?: string;
   onChangeInfluencer?: () => void;
