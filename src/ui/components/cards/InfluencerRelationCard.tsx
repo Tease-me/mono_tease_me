@@ -14,7 +14,7 @@ type InfleuncerRelationCardProps = {
   video: string
   balance: number;
   lastConnected: string;
-  loveScore: number;
+  sentimentDelta: number;
   status: string;
   trust: number;
   safety: number;
@@ -29,7 +29,7 @@ const InfluencerRelationCard: React.FC<InfleuncerRelationCardProps> = ({
   video,
   balance,
   lastConnected,
-  loveScore,
+  sentimentDelta,
   status,
   trust,
   safety,
@@ -82,7 +82,7 @@ const InfluencerRelationCard: React.FC<InfleuncerRelationCardProps> = ({
       <div className={styles.lower}>
         <div className={styles.stat}>
           <span className={styles.label}>Love</span>
-          <LoveScore size="large" sentimentScore={loveScore} rankPosition="left" />
+          <LoveScore size="large" sentimentDelta={sentimentDelta} rankPosition="left" />
         </div>
         <div className={styles.stat}>
           <span className={styles.label}>Status</span>
