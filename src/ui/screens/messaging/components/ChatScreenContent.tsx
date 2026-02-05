@@ -460,44 +460,55 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
         if (!influencer) return;
         if (!chatId) return;
 
-        const { audio_url, transcript, ai_text } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
+        try {
+            const { audio_url, transcript, ai_text } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
 
-        setTyping("idle");
-        setMessages((prev) => {
-            if (!prev) return prev;
-            const nextMessages = prev.map((message) => {
-                if (!sentMessageId || message.id !== sentMessageId) {
-                    return message;
-                }
-                return {
-                    ...message,
-                    transcript: isSuperUser ? (transcript ?? message.transcript) : message.transcript,
-                };
+            setTyping("idle");
+            setMessages((prev) => {
+                if (!prev) return prev;
+                const nextMessages = prev.map((message) => {
+                    if (!sentMessageId || message.id !== sentMessageId) {
+                        return message;
+                    }
+                    return {
+                        ...message,
+                        transcript: isSuperUser ? (transcript ?? message.transcript) : message.transcript,
+                    };
+                });
+                return [
+                    ...nextMessages,
+                    {
+                        id: Date.now(),
+                        sender: "received",
+                        channel: "chat",
+                        time: new Date().toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        }),
+                        timestamp: Date.now(),
+                        attachments: audio_url
+                            ? [
+                                {
+                                    audioUrl: audio_url,
+                                    type: "audio",
+                                },
+                            ]
+                            : [],
+                        transcript: isSuperUser ? ai_text : undefined,
+                    },
+                ];
             });
-            return [
-                ...nextMessages,
-                {
-                    id: Date.now(),
-                    sender: "received",
-                    channel: "chat",
-                    time: new Date().toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                    }),
-                    timestamp: Date.now(),
-                    attachments: audio_url
-                        ? [
-                            {
-                                audioUrl: audio_url,
-                                type: "audio",
-                            },
-                        ]
-                        : [],
-                    transcript: isSuperUser ? ai_text : undefined,
-                },
-            ];
-        });
-        scrollToBottom();
+            scrollToBottom();
+        } catch (err: any) {
+            setTyping("idle");
+            if (err?.response?.status === 402) {
+                setError("Insufficient credits to send voice message.");
+                setShowUpgradeModal(true);
+            } else {
+                setError("Failed to send voice message.");
+            }
+            logger.error("Error sending voice message:", err);
+        }
     }
 
     const sendMessage = (forcedAudio?: Blob): boolean => {

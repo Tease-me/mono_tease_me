@@ -43,10 +43,10 @@ export default function UpgradePlanModal({ isOpen, onClose, goTo }: UpgradePlanM
       </div>
       <div className={styles.sectionUpgrade}>
         <div className={styles.title1}>
-          You’re almost out of time
+          You’re out of time
         </div>
         <div className={styles.subtitle}>
-          Your call credit is running low. Upgrade now to keep the conversation going.
+          Your are out of credits. Upgrade now to keep the conversation going.
         </div>
         <PrimaryButton
           variant="purple"
