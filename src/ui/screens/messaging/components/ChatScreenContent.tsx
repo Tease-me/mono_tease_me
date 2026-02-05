@@ -114,9 +114,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
             return;
         }
 
-        logger.debug("Fetching relationship", { influencerId });
         relationshipServices.getRelationship(influencerId).then((relationship) => {
-            logger.debug("Fetched relationship", { influencerId });
             setRelationship(relationship);
         }).catch((err) => logger.error("Error refreshing relationship", err));
     };
