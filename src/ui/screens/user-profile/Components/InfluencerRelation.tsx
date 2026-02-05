@@ -284,7 +284,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
   }
 
   if (loading) {
-    return <LoadingSpinner />
+    return <div className={styles.loading}> <LoadingSpinner /></div>
   }
 
 
