@@ -599,15 +599,21 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
         return true;
     };
 
-    const handleCallModeChange = () => {
-        setMode(prev => {
-            if (prev === "call") {
-                stopConversation();
-                return "chat";
-            }
-            startConversation();
-            return "call";
-        })
+    const handleStartConversation = React.useCallback(async () => {
+        const result = await startConversation();
+        if (result?.errorStatus === 402) {
+            setShowTopupModal(true);
+        }
+    }, [startConversation]);
+
+    const handleCallModeChange = async () => {
+        if (mode === "call") {
+            stopConversation();
+            setMode("chat");
+            return;
+        }
+        setMode("call");
+        await handleStartConversation();
     }
 
     const handleScrollEvent = () => {
@@ -747,7 +753,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                         status={status}
                         timeRemaining={timeRemaining}
                         micMute={micMuted}
-                        startConversation={startConversation}
+                        startConversation={handleStartConversation}
                         stopConversation={stopConversation}
                         relationship={relationship}
                         influencer={influencer}
