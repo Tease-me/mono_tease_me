@@ -77,7 +77,7 @@ export default function ChatInfluencerBar({
           </div>
         </div>
         <div className={styles.profileMidCol}>
-          <ProfileMedia active size="medium" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} />
+          <ProfileMedia  size="medium" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} />
           <button
             type="button"
             className={clsx(styles.profileSwitch, profileSwitch, !showChangeInfluencerButton && styles.hidden)}

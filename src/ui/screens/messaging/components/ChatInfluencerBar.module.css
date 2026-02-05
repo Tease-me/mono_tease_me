@@ -56,12 +56,13 @@
 }
 
 .leftCol p.statusText {
-  max-width:16px;
-  background-color:  var(--alerts-status-success, oklch(80.036% 0.18204 151.736 ));
+  max-width: 12px;
+  background-color: var(--alerts-status-success, oklch(80.036% 0.18204 151.736));
   overflow: clip;
   color: transparent;
   border-radius: 10px;
   max-height: 16px;
+  mask-image: linear-gradient(45deg, hsla(0, 0%, 0%, 0.208), hsl(0, 0%, 0%), hsla(0, 0%, 0%, 0.208));
 }
 
 .middleCol {
@@ -78,6 +79,12 @@
 .relationshipStatusLabel {
   display: none;
 }
+
+  .relationshipStatus svg {
+    width: 1.2rem;
+    height: 1.5rem;
+    color: hsla(0, 0%, 100%, 0.75);
+  }
 
 .circleGlowContainer {
   position: absolute;
@@ -114,7 +121,7 @@
   filter: blur(10px);
   z-index: 1;
   animation: glowPulse02 8s ease 0s infinite normal none;
-  
+
 }
 
 .glowStatusCircle {
@@ -140,16 +147,35 @@
 
 /** animations 🎥 **/
 @keyframes glowPulse01 {
-	0% {transform: scale(0.80) translateY(1%); filter: blur(1px); }
-  50% {transform: scale(0.88) translateY(0%); filter: blur(2px);}
-	100% {transform: scale(0.80) translateY(1%); filter: blur(1px);}
+  0% {
+    transform: scale(0.80) translateY(1%);
+    filter: blur(1px);
+  }
+
+  50% {
+    transform: scale(0.88) translateY(0%);
+    filter: blur(2px);
+  }
+
+  100% {
+    transform: scale(0.80) translateY(1%);
+    filter: blur(1px);
+  }
 }
 
 
 @keyframes glowPulse02 {
-	0% {transform: scale(0.5);}
-  50% {transform: scale(0.9);}
-	100% {transform: scale(0.5);}
+  0% {
+    transform: scale(0.5);
+  }
+
+  50% {
+    transform: scale(0.9);
+  }
+
+  100% {
+    transform: scale(0.5);
+  }
 }
 
 
@@ -184,6 +210,7 @@
   background: rgba(33, 33, 33, 0.8);
   padding: 0.4375rem 2rem 0.4375rem 0.8rem;
   backdrop-filter: blur(2px);
+  box-shadow: 8px 8px 12px hsla(0, 0%, 0%, 0.47);
 
   /* outline: 1px solid orange; */
 }
@@ -211,6 +238,7 @@
   background: rgba(33, 33, 33, 0.8);
   padding: 0.4375rem 0.8rem 0.4375rem 2rem;
   backdrop-filter: blur(2px);
+   box-shadow: -8px 8px 12px hsla(0, 0%, 0%, 0.47);
 }
 
 .profileImage {
@@ -313,14 +341,16 @@
   .leftCol p.statusText {
     max-width: unset;
     background-color: transparent;
-  opacity: 0.7;
-  font-size: 12px;
-  align-items: center;
-  color: var(--alerts-status-success, oklch(80.036% 0.18204 151.736));
-  padding: 0.15rem 0.75rem;
-  border-radius: 20px;
-  border: 1px dashed var(--alerts-status-success, oklch(80.036% 0.18204 151.736 / 0.5));
-}
+    opacity: 0.7;
+    font-size: 12px;
+    align-items: center;
+    color: var(--alerts-status-success, oklch(80.036% 0.18204 151.736));
+    padding: var(--space-px-12);
+    border-radius: 20px;
+    border: 1px solid var(--alerts-status-success, oklch(80.036% 0.18204 151.736 / 0.5));
+    display: flex;
+    mask-image: unset;
+  }
 
   .relationshipStatus {
     min-width: 8rem;
@@ -335,8 +365,9 @@
   }
 
   .relationshipStatus svg {
-    width: 1.5rem;
+    width: 1rem;
     height: 1.5rem;
+    color: hsla(0, 0%, 100%, 0.5);
   }
 
   .relationshipStatusLabel {
@@ -386,7 +417,7 @@
     width: 120%;
   }
 
-  
+
 
   .metricLabel {
     display: flex;
