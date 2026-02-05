@@ -39,6 +39,7 @@ import { UserServices } from '@/api/services/UserServices';
 import UpgradePlanModal from '@/ui/components/modals/subscription/UpgradePlanModal';
 import AddCreditsModal from '@/ui/components/modals/payment-modal/AddCreditsModal';
 import AdultTermsModal from '@/ui/components/modals/adult-terms/AdultTermsModal';
+import { useSidebar } from '@/hooks/useSidebar';
 
 const chatRepository = ChatRepository();
 const influencerRepo = InfluencerRepo();
@@ -84,6 +85,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
     const callModalTimeoutRef = useRef<number | null>(null);
 
     const { user } = useContext(AuthContext);
+    const { openSidebar } = useSidebar();
     const [adultMode, setAdultMode] = useState(false);
     const adultModeRef = useRef(false);
     useEffect(() => { adultModeRef.current = adultMode; }, [adultMode]);
@@ -767,6 +769,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
             <UpgradePlanModal
                 isOpen={showUpgradeModal}
                 onClose={() => setShowUpgradeModal(false)}
+                onUpgrade={() => openSidebar("subscription", { influencerId: influencer?.id })}
             />
 
             <AddCreditsModal

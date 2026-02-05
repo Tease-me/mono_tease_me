@@ -11,11 +11,11 @@ import styles from "./UpgradePlanModal.module.css";
 type UpgradePlanModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  goTo?: (page: string, payload?: any) => void;
+  onUpgrade?: () => void;
 };
 
 
-export default function UpgradePlanModal({ isOpen, onClose, goTo }: UpgradePlanModalProps) {
+export default function UpgradePlanModal({ isOpen, onClose, onUpgrade }: UpgradePlanModalProps) {
   const subscriptionPlanSvc = SubscriptionsServices(apiClient);
 
   const { data, isLoading, error } = useQuery({
@@ -29,7 +29,7 @@ export default function UpgradePlanModal({ isOpen, onClose, goTo }: UpgradePlanM
 
   const handleUpgrade = () => {
     onClose();
-    goTo && goTo("subscription");
+    onUpgrade?.();
   };
 
 
