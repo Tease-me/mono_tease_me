@@ -21,6 +21,7 @@ interface MessageBubbleProps {
     onAudioPlay?: (src: string) => void;
     showAudioTranscript?: boolean;
     isAudio?: boolean;
+    onCallBack?: () => void;
 }
 
 const formatDuration = (ms: number) => {
@@ -55,6 +56,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     onAudioPlay,
     showAudioTranscript,
     isAudio = false,
+    onCallBack,
 }) => {
     // const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const [expanded, setExpanded] = useState(false);
@@ -145,11 +147,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                             className={styles["call-bubble"]}
                             role="button"
                             tabIndex={0}
-                            onClick={() => setExpanded((prev) => !prev)}
+                            onClick={() => onCallBack?.()}
                             onKeyDown={(e) => {
                                 if (e.key === "Enter" || e.key === " ") {
                                     e.preventDefault();
-                                    setExpanded((prev) => !prev);
+                                    onCallBack?.();
                                 }
                             }}
                         >

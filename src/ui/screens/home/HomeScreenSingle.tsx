@@ -223,7 +223,7 @@ export default function HomeScreenSingle() {
   const chatContent = useMemo(
     () => (
       <ChatScreenContent
-        id={id}
+        influencerId={id}
         onMenuClick={toggleSidebar}
         setNeedsSelection={handleNeedsSelectionChange}
         showChangeInfluencerButton={hasMultipleInfluencers}

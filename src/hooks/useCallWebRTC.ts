@@ -1,13 +1,15 @@
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { Howl } from "howler";
 import { useMicrophonePermission } from "./useMicrophonePermission";
 import { ChatRepository } from "@/data/repositories/ChatRepo";
 import logger from "@/utils/logger";
 import { AuthContext } from "@/context/AuthContext";
 import { useConversation } from "@elevenlabs/react";
+import { showErrorModal } from "@/utils/errorModal";
 
 export type CallStatus = "connecting" | "connected" | "disconnected" | "idle" | "error";
 
-export default function useCallWebRTC() {
+export default function useCallWebRTC(options?: { onMessage?: (message: any) => void }) {
   const [status, setStatus] = useState<CallStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const {
@@ -17,13 +19,16 @@ export default function useCallWebRTC() {
   } = useMicrophonePermission();
   const [influencerId, setInfluencerId] = useState<string>();
 
-  const ringtoneRef = useRef(new Audio("/audio/ringtone.wav"));
+  const ringtoneRef = useRef(
+    new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: true })
+  );
   const chatRepo = ChatRepository();
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const { user } = useContext(AuthContext);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const startInFlightRef = useRef(false);
   const startAbortControllerRef = useRef<AbortController | null>(null);
+
   useEffect(() => {
     return () => {
       if (intervalRef.current) {
@@ -34,16 +39,15 @@ export default function useCallWebRTC() {
 
   const ring = useCallback(() => {
     const ringtone = ringtoneRef.current;
-    ringtone.loop = true;
-
-    ringtone.play().catch((err) => {
+    try {
+      ringtone.play();
+    } catch (err) {
       console.error("Ringtone playback failed:", err);
-    });
+    }
   }, []);
 
   const stopRing = useCallback(() => {
-    ringtoneRef.current.pause();
-    ringtoneRef.current.currentTime = 0;
+    ringtoneRef.current.stop();
   }, []);
 
   const [micMuted, setMicMuted] = useState<boolean>(false);
@@ -96,6 +100,7 @@ export default function useCallWebRTC() {
     },
     onMessage: (message) => {
       logger.debug(message);
+      options?.onMessage?.(message);
     },
   });
 
@@ -121,6 +126,11 @@ export default function useCallWebRTC() {
       const hasPermission = await requestMicrophonePermission();
       if (!hasPermission) {
         setErrorMessage("Microphone permission is required.");
+        showErrorModal({
+          title: "Microphone Permission Denied",
+          message:
+            "Microphone access is required to start the call. Please enable microphone permissions in your browser settings and try again.",
+        });
         setStatus("idle");
         stopRing();
         if (startAbortControllerRef.current === abortController) {
@@ -292,6 +302,20 @@ export default function useCallWebRTC() {
     }
   }, [conversation, releaseMicrophonePermission, stopRing]);
 
+  const cancelCall = useCallback(() => {
+    if (status !== "connecting") {
+      return;
+    }
+    if (startAbortControllerRef.current) {
+      startAbortControllerRef.current.abort();
+      startAbortControllerRef.current = null;
+    }
+    startInFlightRef.current = false;
+    stopRing();
+    setStatus("idle");
+    setErrorMessage(null);
+  }, [status, stopRing]);
+
   useEffect(() => {
     if (timeRemaining === null) {
       if (intervalRef.current) {
@@ -346,5 +370,6 @@ export default function useCallWebRTC() {
     micMuted,
     toggleMute,
     setMicMuted,
+    cancelCall,
   };
 }

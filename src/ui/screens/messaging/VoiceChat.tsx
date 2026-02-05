@@ -3,6 +3,7 @@ import ProfileMedia from "@/ui/components/ProfileMedia";
 import { BlandWebClient } from "bland-client-js-sdk";
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./VoiceChat.module.css";
+import { Howl } from "howler";
 
 import oliviaImage from "@/assets/image/avatar.png"
 import oliviaVideo from "@/assets/video/avatar_video.mp4";
@@ -12,6 +13,8 @@ import CallIcon from "@/assets/Call.svg?react";
 import WifiIcon from "@/assets/Wifi.svg?react";
 import NoSignalIcon from "@/assets/svg/NoSignal.svg"
 import { getSessionToken } from "@/api/bland/bland";
+import { showErrorModal } from "@/utils/errorModal";
+import logger from "@/utils/logger";
 
 // Cross-browser getUserMedia
 const getUserMedia = (constraints: MediaStreamConstraints): Promise<MediaStream> => {
@@ -39,7 +42,9 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
   const audioLevelIntervalRef = useRef<NodeJS.Timeout>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
-  const ringtoneRef = useRef(new Audio("/audio/ringtone.wav"));
+  const ringtoneRef = useRef(
+    new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: true })
+  );
 
   useEffect(() => {
     const updateStatus = () => setIsOnline(navigator.onLine);
@@ -53,16 +58,15 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
 
   const ring = () => {
     const ringtone = ringtoneRef.current;
-    ringtone.loop = true;
-
-    ringtone.play().catch((err) => {
+    try {
+      ringtone.play();
+    } catch (err) {
       console.error("Ringtone playback failed:", err);
-    });
+    }
   }
 
   const stopRing = () => {
-    ringtoneRef.current.pause();
-    ringtoneRef.current.currentTime = 0;
+    ringtoneRef.current.stop();
   }
 
   const cleanup = useCallback(async () => {
@@ -111,8 +115,14 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
     try {
       await getUserMedia({ audio: true });
     } catch (err) {
-      console.error("Microphone permission denied:", err);
+      logger.error("Microphone permission denied:", err);
       setError("Microphone permission denied");
+      showErrorModal({
+        title: "Microphone Permission Denied",
+        message:
+          "Microphone access is required to start the voice chat. Please enable microphone permissions in your browser settings and try again.",
+      });
+      stopRing();
       setIsLoading(false);
       return;
     }

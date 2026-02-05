@@ -45,20 +45,20 @@ type PersonaStages = {
   hate: string;
   dislike: string;
   strangers: string;
-  talking: string;
+  friends: string;
   flirting: string;
   dating: string;
-  in_love: string;
+  girlfriend: string;
 };
 
 const STAGE_KEYS: Array<keyof PersonaStages> = [
   "hate",
   "dislike",
   "strangers",
-  "talking",
+  "friends",
   "flirting",
   "dating",
-  "in_love",
+  "girlfriend",
 ];
 type PersonaProfile = {
   likes: string[];
@@ -209,10 +209,10 @@ const STAGE_PLACEHOLDERS: Record<keyof PersonaStages, string> = {
   hate: "Avoids interaction and stays quiet.",
   dislike: "Remains silent and distant.",
   strangers: "Observes quietly, initially reserved.",
-  talking: "Engages in meaningful conversation but remains private.",
+  friends: "Engages in friendly conversation and shows interest.",
   flirting: "Shows interest through subtle actions.",
   dating: "Plans meticulously and shows affection through acts of service.",
-  in_love:
+  girlfriend:
     "Demonstrates deep care and commitment, prioritizes long-term connection.",
 };
 
@@ -227,10 +227,10 @@ const createDefaultPersonaProfile = (): PersonaProfile => ({
     hate: "",
     dislike: "",
     strangers: "",
-    talking: "",
+    friends: "",
     flirting: "",
     dating: "",
-    in_love: "",
+    girlfriend: "",
   },
   stages_focus: "",
 });

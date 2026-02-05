@@ -1,9 +1,11 @@
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { Howl } from "howler";
 import { useMicrophonePermission } from "./useMicrophonePermission";
 import { ChatRepository } from "@/data/repositories/ChatRepo";
 import logger from "@/utils/logger";
 import { AuthContext } from "@/context/AuthContext";
 import { useConversation } from "@elevenlabs/react";
+import { showErrorModal } from "@/utils/errorModal";
 
 export default function useCall() {
   const [status, setStatus] = useState<
@@ -16,7 +18,9 @@ export default function useCall() {
   } = useMicrophonePermission();
   const [influencerId, setInfluencerId] = useState<string>();
 
-  const ringtoneRef = useRef(new Audio("/audio/ringtone.wav"));
+  const ringtoneRef = useRef(
+    new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: true })
+  );
   const chatRepo = ChatRepository();
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const { user } = useContext(AuthContext);
@@ -33,16 +37,15 @@ export default function useCall() {
 
   const ring = useCallback(() => {
     const ringtone = ringtoneRef.current;
-    ringtone.loop = true;
-
-    ringtone.play().catch((err) => {
+    try {
+      ringtone.play();
+    } catch (err) {
       console.error("Ringtone playback failed:", err);
-    });
+    }
   }, []);
 
   const stopRing = useCallback(() => {
-    ringtoneRef.current.pause();
-    ringtoneRef.current.currentTime = 0;
+    ringtoneRef.current.stop();
   }, []);
 
   const [micMuted, setMicMuted] = useState<boolean>(false);
@@ -92,6 +95,11 @@ export default function useCall() {
       const hasPermission = await requestMicrophonePermission();
       if (!hasPermission) {
         alert("No permission");
+        showErrorModal({
+          title: "Microphone Permission Denied",
+          message:
+            "Microphone access is required to start the call. Please enable microphone permissions in your browser settings and try again.",
+        });
         setStatus("idle");
         stopRing();
         return;
