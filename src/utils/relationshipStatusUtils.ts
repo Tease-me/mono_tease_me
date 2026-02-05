@@ -12,13 +12,13 @@ export type RelationshipStatus =
   | "GIRLFRIEND";
 
 const STATUS_ICON_MAP: Record<RelationshipStatus, ComponentType> = {
-  HATE: SvgPack.DangerTriangleSmall,
-  DISLIKE: SvgPack.Cross,
-  STRANGERS: SvgPack.Users,
-  FRIENDLY: SvgPack.Chat,
-  FLIRTING: SvgPack.KissGray,
-  DATING: SvgPack.Heart,
-  GIRLFRIEND: SvgPack.Crown,
+  HATE: SvgPack.RelHate,
+  DISLIKE: SvgPack.RelDislike,
+  STRANGERS: SvgPack.RelStrangers,
+  FRIENDLY: SvgPack.RelTalking,
+  FLIRTING: SvgPack.RelFlirting,
+  DATING: SvgPack.RelDating,
+  GIRLFRIEND: SvgPack.RelInLove,
 };
 
 const STATUS_LABEL_MAP: Record<RelationshipStatus, string> = {
