@@ -486,6 +486,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
         if (!chatId) return;
 
         try {
+
             const { audio_url, transcript, ai_text } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
             setTyping("recording");
             setTimeout(() => {
@@ -525,7 +526,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                 });
                 setTyping("idle");
                 scrollToBottom();
-            }, 10000);
+            });
         } catch (err: any) {
             setTyping("idle");
             if (err?.response?.status === 402) {
