@@ -35,6 +35,12 @@ export default function useCallLanding() {
       }
     };
   }, []);
+  useEffect(() => {
+    return () => {
+      ringtoneRef.current.stop();
+      ringtoneRef.current.unload();
+    };
+  }, []);
 
   const ring = useCallback(() => {
     const ringtone = ringtoneRef.current;

@@ -86,6 +86,12 @@ const InfluencerWelcome: React.FC<InfluencerWelcomeProps> = () => {
       navigate("/income-dialog");
     }
   }, [status, hasConnected, navigate]);
+  useEffect(() => {
+    return () => {
+      audioRef.current.stop();
+      audioRef.current.unload();
+    };
+  }, []);
 
   useEffect(() => {
     try {

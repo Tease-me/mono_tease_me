@@ -44,6 +44,12 @@ export default function CallScreen() {
       ringtone.stop();
     };
   }, []);
+  useEffect(() => {
+    return () => {
+      ringtoneRef.current.stop();
+      ringtoneRef.current.unload();
+    };
+  }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;

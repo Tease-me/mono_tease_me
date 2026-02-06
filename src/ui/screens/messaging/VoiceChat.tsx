@@ -55,6 +55,12 @@ export default function VoiceChat({ agentId }: VoiceChatProps) {
       window.removeEventListener("offline", updateStatus);
     };
   }, []);
+  useEffect(() => {
+    return () => {
+      ringtoneRef.current.stop();
+      ringtoneRef.current.unload();
+    };
+  }, []);
 
   const ring = () => {
     const ringtone = ringtoneRef.current;
