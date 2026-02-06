@@ -11,6 +11,7 @@ import IconButton from '@/ui/components/inputs/buttons/IconButton';
 import SvgPack from '@/utils/SvgPack';
 import useIsDesktop from '@/utils/hooks/useIsDesktop';
 import RemainingCreditBadge from '@/ui/components/badges/RemainingCreditBadge';
+import { showErrorModal } from '@/utils/errorModal';
 
 interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
     adultMode?: boolean;
@@ -95,6 +96,12 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
             return;
         }
         if (audio && sendOnStop) {
+            if (audio.size < 1000) {
+                showErrorModal({ title: "Error", message: "Invalid audio" })
+                setSendOnStop(false);
+                clearAudio();
+                return;
+            }
             const didSend = onSendMessage?.(audio);
             setSendOnStop(false);
             if (didSend === false) {
