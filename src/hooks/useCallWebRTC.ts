@@ -20,7 +20,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any) => 
   const [influencerId, setInfluencerId] = useState<string>();
 
   const ringtoneRef = useRef(
-    new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: true })
+    new Howl({ src: ["/audio/ringtone.mp3"], loop: true })
   );
   const chatRepo = ChatRepository();
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
