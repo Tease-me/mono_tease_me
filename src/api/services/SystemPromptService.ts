@@ -1,7 +1,7 @@
 import { AxiosInstance } from "axios";
 import { Endpoints } from "../urls";
 
-export type SystemPromptType = "normal" | "adult" | "others";
+export type SystemPromptType = "normal" | "adult" | "others" | "relationship";
 
 export type SystemPromptListItem = {
     key: string;

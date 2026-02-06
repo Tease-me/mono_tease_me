@@ -41,7 +41,7 @@ type MbtiPersonality = {
   rules: string[];
 };
 
-type PersonaStages = {
+export type PersonaStages = {
   hate: string;
   dislike: string;
   strangers: string;
@@ -51,7 +51,7 @@ type PersonaStages = {
   girlfriend: string;
 };
 
-const STAGE_KEYS: Array<keyof PersonaStages> = [
+export const STAGE_KEYS: Array<keyof PersonaStages> = [
   "hate",
   "dislike",
   "strangers",
