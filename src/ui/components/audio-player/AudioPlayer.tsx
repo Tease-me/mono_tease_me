@@ -3,6 +3,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import PlayButtonIcon from "@/assets/svg/Play.svg?react";
 import PauseButtonIcon from "@/assets/svg/Pause.svg?react";
 import styles from "./AudioPlayer.module.css"
+import { showErrorModal } from '@/utils/errorModal';
 
 interface AudioPlayerProps {
     src: string;
@@ -24,7 +25,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, height, width, progressC
             audioRef.current.pause();
         } else {
             onPlay?.(src);
-            audioRef.current.play();
+            audioRef.current.play().catch(() => {
+                showErrorModal({
+                    title: "Audio Error",
+                    message: "Failed to play audio"
+                });
+                setIsPlaying(false);
+            });
         }
     };
 
