@@ -481,43 +481,45 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
 
         try {
             const { audio_url, transcript, ai_text } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
-
-            setTyping("idle");
-            setMessages((prev) => {
-                if (!prev) return prev;
-                const nextMessages = prev.map((message) => {
-                    if (!sentMessageId || message.id !== sentMessageId) {
-                        return message;
-                    }
-                    return {
-                        ...message,
-                        transcript: isSuperUser ? (transcript ?? message.transcript) : message.transcript,
-                    };
+            setTyping("recording");
+            setTimeout(() => {
+                setMessages((prev) => {
+                    if (!prev) return prev;
+                    const nextMessages = prev.map((message) => {
+                        if (!sentMessageId || message.id !== sentMessageId) {
+                            return message;
+                        }
+                        return {
+                            ...message,
+                            transcript: isSuperUser ? (transcript ?? message.transcript) : message.transcript,
+                        };
+                    });
+                    return [
+                        ...nextMessages,
+                        {
+                            id: Date.now(),
+                            sender: "received",
+                            channel: "chat",
+                            time: new Date().toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            }),
+                            timestamp: Date.now(),
+                            attachments: audio_url
+                                ? [
+                                    {
+                                        audioUrl: audio_url,
+                                        type: "audio",
+                                    },
+                                ]
+                                : [],
+                            transcript: isSuperUser ? ai_text : undefined,
+                        },
+                    ];
                 });
-                return [
-                    ...nextMessages,
-                    {
-                        id: Date.now(),
-                        sender: "received",
-                        channel: "chat",
-                        time: new Date().toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                        }),
-                        timestamp: Date.now(),
-                        attachments: audio_url
-                            ? [
-                                {
-                                    audioUrl: audio_url,
-                                    type: "audio",
-                                },
-                            ]
-                            : [],
-                        transcript: isSuperUser ? ai_text : undefined,
-                    },
-                ];
-            });
-            scrollToBottom();
+                setTyping("idle");
+                scrollToBottom();
+            }, 10000);
         } catch (err: any) {
             setTyping("idle");
             if (err?.response?.status === 402) {
@@ -607,10 +609,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                     },
                 ]
             });
-            setTimeout(() => {
-                setTyping("recording");
-                sendAndPlay(audioToSend, sentMessageId);
-            }, 10000);
+            sendAndPlay(audioToSend, sentMessageId);
         } else {
             return false;
         }
