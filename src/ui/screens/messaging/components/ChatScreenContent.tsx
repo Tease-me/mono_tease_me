@@ -448,6 +448,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                     }
                 }, calculateReplyTime(data.reply));
             } else if (data.error) {
+
                 setTyping("idle");
                 logger.error("Error in WebSocket message:", data.error);
                 if (data.error === "INSUFFICIENT_CREDITS") {
@@ -458,7 +459,12 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                         setShowTopupModal(true);
                     }
                 } else {
-                    setError(data.error || "An error occurred while sending the message.");
+                    if (typeof data.error === "string") {
+                        setError(data.error);
+                    } else {
+                        setError("An error occurred while sending the message.");
+                    }
+
                 }
             }
         };

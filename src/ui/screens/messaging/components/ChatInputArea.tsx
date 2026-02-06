@@ -145,7 +145,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     return (
         <div className={clsx(styles["chat-input-area"], voiceMode && styles["voice"])} >
             {!(adultMode && voiceMode) && <div className={clsx(styles["input-container"], recordingStatus === "recording" && styles["recording"], error && styles["error"])} ref={containerRef}>
-                {error && <div className={styles["error-message"]}>{error}</div>}
+                {error && <div className={styles["error-message"]}>{typeof error === 'string' ? error : 'An error occurred'}</div>}
                 {!error && (recordingStatus === "inactive" && !audio) &&
                     <div className={styles["input-with-badge"]}>
                         <input
