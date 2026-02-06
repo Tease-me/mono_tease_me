@@ -584,9 +584,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                 setTyping("idle");
                 return false;
             }
-            setTyping("recording");
             const sentMessageId = Date.now();
-            sendAndPlay(audioToSend, sentMessageId);
             setMessages(prev => {
                 if (!prev) return [];
                 return [
@@ -609,6 +607,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                     },
                 ]
             });
+            setTimeout(() => {
+                setTyping("recording");
+                sendAndPlay(audioToSend, sentMessageId);
+            }, 10000);
         } else {
             return false;
         }
