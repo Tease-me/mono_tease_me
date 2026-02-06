@@ -175,6 +175,9 @@ const PromptEditor: React.FC = () => {
     const [fetchedKeys, setFetchedKeys] = useState<Set<string>>(() => new Set());
     const [activeTabId, setActiveTabId] = useState<number>(promptTabs[0]?.id ?? 0);
     const [activeStage, setActiveStage] = useState<string>("HATE");
+    const [relationshipStagePrompts, setRelationshipStagePrompts] = useState<Record<string, string[]>>(
+        RELATIONSHIP_STAGE_PROMPTS,
+    );
 
     const activeTab = useMemo(
         () => promptTabs.find((tab) => tab.id === activeTabId) ?? promptTabs[0],
@@ -203,8 +206,8 @@ const PromptEditor: React.FC = () => {
         [selectedNode],
     );
     const activeStagePrompts = useMemo(
-        () => RELATIONSHIP_STAGE_PROMPTS[activeStage] ?? [],
-        [activeStage],
+        () => relationshipStagePrompts[activeStage] ?? [],
+        [activeStage, relationshipStagePrompts],
     );
 
     const handleFieldChange = (field: "defaultPrompt" | "name" | "description") => {
@@ -452,24 +455,39 @@ const PromptEditor: React.FC = () => {
                                         </p>
                                     </div>
                                     <div className={styles["relationship-body"]}>
-                                        <div className={styles["relationship-stages"]}>
-                                            {relationshipStages.map((stage) => (
-                                                <button
-                                                    key={stage}
-                                                    type="button"
-                                                    className={`${styles["relationship-stage"]} ${activeStage === stage ? styles["relationship-stage--active"] : ""}`}
-                                                    onClick={() => setActiveStage(stage)}
-                                                >
-                                                    {stage}
-                                                </button>
-                                            ))}
+                                        <div className={styles["field"]}>
+                                            <label htmlFor="relationship-stage-select">Relationship stage</label>
+                                            <select
+                                                id="relationship-stage-select"
+                                                value={activeStage}
+                                                onChange={(event) => setActiveStage(event.target.value)}
+                                            >
+                                                {relationshipStages.map((stage) => (
+                                                    <option key={stage} value={stage}>
+                                                        {stage}
+                                                    </option>
+                                                ))}
+                                            </select>
                                         </div>
-                                        <div className={styles["relationship-prompts"]}>
-                                            {activeStagePrompts.map((line, index) => (
-                                                <div key={`${activeStage}-${index}`} className={styles["relationship-line"]}>
-                                                    {line}
-                                                </div>
-                                            ))}
+                                        <div className={styles["field"]}>
+                                            <label htmlFor="relationship-stage-prompt">
+                                                {`Prompt for ${activeStage}`}
+                                            </label>
+                                            <textarea
+                                                id="relationship-stage-prompt"
+                                                value={activeStagePrompts.join("\n")}
+                                                rows={12}
+                                                onChange={(event) => {
+                                                    const lines = event.target.value.split("\n");
+                                                    setRelationshipStagePrompts((prev) => ({
+                                                        ...prev,
+                                                        [activeStage]: lines,
+                                                    }));
+                                                }}
+                                            />
+                                            <div className={styles["relationship-hint"]}>
+                                                Use one line per bullet.
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
