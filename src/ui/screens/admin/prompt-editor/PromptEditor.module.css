@@ -460,7 +460,7 @@
 
 .relationship-body {
     display: grid;
-    grid-template-columns: minmax(180px, 240px) 1fr;
+    grid-template-columns: 1fr;
     gap: var(--space-px-16);
     align-items: start;
 }
