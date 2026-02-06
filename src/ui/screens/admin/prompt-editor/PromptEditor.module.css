@@ -470,6 +470,11 @@
     color: var(--color-text-secondary);
 }
 
+.relationship-save {
+    margin-top: var(--space-px-8);
+    align-self: flex-start;
+}
+
 @media (max-width: 900px) {
     .relationship-body {
         grid-template-columns: 1fr;
