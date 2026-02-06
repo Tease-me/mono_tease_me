@@ -20,7 +20,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    outline: 1px solid greenyellow;
+    /* outline: 1px solid rgb(136, 162, 255); */
     justify-content: space-between;
     width: 100%;
 }
@@ -67,7 +67,7 @@
 
 /* hearticon */
 .hearticon {
-    translate: -2.3rem -0.5rem;
+    translate: -3.75rem -0.35rem;
     font-size: 2.75rem;
     z-index: 2;
     opacity: 0.8;
@@ -144,7 +144,7 @@
 .profileSociallinks .socialContainer {
     display: flex;
     width: 100%;
-    height: 3.8rem;
+    height: 4rem;
     justify-content: center;
     align-items: center;
     gap: var(--space-px-12, 0.75rem);
