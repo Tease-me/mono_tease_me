@@ -6,81 +6,70 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
   <style>
+
+/* animation variables */
+@property --mask-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+ 
+ .heartContainer {display: flex;
+width: 3rem;
+    aspect-ratio: 1.035;
+   position: absolute;
+    top: 1rem;
+    left: 1rem;}
+
     .heart {
-      display: flex;
-      height: 220px;
-      transform-origin: bottom;
-      translate: 10px 10px;
-
-
-	aspect-ratio: 1.035;
-	clip-path: shape(from 91.61% 9.42%,curve by 7.52% 32.58% with 7.28% 7.75%/9.94% 19.33%,curve by -47.76% 57.7% with -4.28% 23.45%/-23.05% 46.09%,curve by -1.38% 0.3% with -0.43% 0.2%/-0.91% 0.3%,smooth by -1.38% -0.3% with -0.95% -0.11%,curve to 0.87% 42.02% with 23.89% 88.1%/5.15% 65.45%,curve by 7.49% -32.62% with -2.42% -13.27%/0.22% -24.87%,curve by 41.63% -1.13% with 14.84% -15.81%/32.52% -8.48%,curve by 41.62% 1.14% with 9.09% -7.38%/26.76% -14.65%,hline by 0%);
-
-      z-index: 2;
-      position: absolute;
-      top: 0;
-      left: 0;
-      backdrop-filter: blur(10px);
-      mix-blend-mode: multiply;
+    display: flex;
+    width: 100%;
+    translate: -2% 1%;
+    aspect-ratio: 1.035;
+    clip-path: shape(from 91.61% 9.42%, curve by 7.52% 32.58% with 7.28% 7.75% / 9.94% 19.33%, curve by -47.76% 57.7% with -4.28% 23.45% / -23.05% 46.09%, curve by -1.38% 0.3% with -0.43% 0.2% / -0.91% 0.3%, smooth by -1.38% -0.3% with -0.95% -0.11%, curve to 0.87% 42.02% with 23.89% 88.1% / 5.15% 65.45%, curve by 7.49% -32.62% with -2.42% -13.27% / 0.22% -24.87%, curve by 41.63% -1.13% with 14.84% -15.81% / 32.52% -8.48%, curve by 41.62% 1.14% with 9.09% -7.38% / 26.76% -14.65%, hline by 0%);
+    z-index: 2;
+    position: absolute;
+    top: 0;
+    left: 0;
+       backdrop-filter: blur(0.3em);
+     scale: 0.9;
+   mix-blend-mode: plus-lighter;
 
     }
 
     .heartfill {
-      background: linear-gradient(143deg, hsla(271, 100%, 69.78%, 0.84) 0.84%, rgba(217, 193, 238, 0.8392156862745098) 35.29%, hsla(271, 80%, 31%, 0.84));
-      width: 100%;
-      height: 100%;
+background: linear-gradient(143deg, hsl(271deg 100% 69.78%) 0.84%, hsl(272deg 93.6% 50.3% / 81%) 35.29%, hsl(271deg 80% 31%));
+    width: 100%;
+    height: 100%;
+    mask-image: linear-gradient(var(--mask-angle), black 9%, transparent 50%, black 70%);
+    animation: rotateMask 8s linear infinite;
+      
     }
+
+    @keyframes rotateMask {
+  from {
+    --mask-angle: 0deg;
+  }
+  to {
+    --mask-angle: 360deg;
+  }
+}
 
     .heart2 {
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 250px;
+      height: 100%;
       aspect-ratio: 1;
       z-index: 3;
       position: absolute;
       top: 0;
       left: 0;
-     
-    }
-
-
-
-    .icon {
-      width: 30px;
-      height: 30px;
-      outline: 1px solid red;
-      display: block;
-
-      & svg {
-        width: 100%;
-      }
+      filter: drop-shadow(0px -2px 1px hsl(271, 0%, 0%, 0.5));
 
     }
 
-    .rr {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 1
-    }
-
-
-
-
-
-
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      grid-auto-flow: column;
-      place-content: center;
-      gap: 30px;
-      background: #f9e3e7;
-
-    }
 
 
     /*** media query Desktop ***/
@@ -88,24 +77,24 @@
   </style>
 </head>
 
-<body bgcolor="#181A20">
-  <div>
+
+  <div class="heartContainer">
     <div class="heart2">
       <?xml version="1.0" encoding="UTF-8"?><svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 31">
         <defs>
           <style>
             .cls-1,
             .cls-2 {
-              fill: #b85cff;
+              fill: #ffffff;
             }
 
             .cls-2 {
               isolation: isolate;
-              opacity: .4;
+              opacity: .7;
             }
 
             .cls-3 {
-              fill: #a83df5;
+              fill: #a03aee;
             }
           </style>
         </defs>
@@ -122,12 +111,11 @@
     <div class="heart">
       <div class="heartfill"></div>
     </div>
-    <div>
-
-      <img src="https://picsum.photos/id/64/300/300" class="rr" alt="a random girl">
-    </div>
+       </div>
 
 
-</body>
+
+
+
 
 </html>
