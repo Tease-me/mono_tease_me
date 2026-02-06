@@ -39,6 +39,7 @@ import { UserServices } from '@/api/services/UserServices';
 import UpgradePlanModal from '@/ui/components/modals/subscription/UpgradePlanModal';
 import AddCreditsModal from '@/ui/components/modals/payment-modal/AddCreditsModal';
 import AdultTermsModal from '@/ui/components/modals/adult-terms/AdultTermsModal';
+import { useSidebar } from '@/hooks/useSidebar';
 
 const chatRepository = ChatRepository();
 const influencerRepo = InfluencerRepo();
@@ -84,6 +85,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
     const callModalTimeoutRef = useRef<number | null>(null);
 
     const { user } = useContext(AuthContext);
+    const { openSidebar } = useSidebar();
     const [adultMode, setAdultMode] = useState(false);
     const adultModeRef = useRef(false);
     useEffect(() => { adultModeRef.current = adultMode; }, [adultMode]);
@@ -616,15 +618,21 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
         return true;
     };
 
-    const handleCallModeChange = () => {
-        setMode(prev => {
-            if (prev === "call") {
-                stopConversation();
-                return "chat";
-            }
-            startConversation();
-            return "call";
-        })
+    const handleStartConversation = React.useCallback(async () => {
+        const result = await startConversation();
+        if (result?.errorStatus === 402) {
+            setShowTopupModal(true);
+        }
+    }, [startConversation]);
+
+    const handleCallModeChange = async () => {
+        if (mode === "call") {
+            stopConversation();
+            setMode("chat");
+            return;
+        }
+        setMode("call");
+        await handleStartConversation();
     }
 
     const handleScrollEvent = () => {
@@ -739,7 +747,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                         status={status}
                         timeRemaining={timeRemaining}
                         micMute={micMuted}
-                        startConversation={startConversation}
+                        startConversation={handleStartConversation}
                         stopConversation={stopConversation}
                         relationship={relationship}
                         influencer={influencer}
@@ -761,11 +769,12 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
             <UpgradePlanModal
                 isOpen={showUpgradeModal}
                 onClose={() => setShowUpgradeModal(false)}
+                onUpgrade={() => openSidebar("subscription", { influencerId: influencer?.id })}
             />
 
             <AddCreditsModal
                 isOpen={showTopupModal}
-                image={influencer?.img || ''}
+                image={influencer?.img}
                 onClose={() => setShowTopupModal(false)}
                 influencerId={influencer?.id || ''} />
 

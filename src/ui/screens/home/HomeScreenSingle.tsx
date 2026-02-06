@@ -1,4 +1,5 @@
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { SidebarContext } from "@/hooks/useSidebar";
 import { useLocation } from "react-router-dom";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
@@ -156,6 +157,11 @@ export default function HomeScreenSingle() {
     });
   }, []);
 
+  const openSidebar = useCallback((pageId: string, payload?: Record<string, any>) => {
+    setShowSidebar(true);
+    goTo(pageId, payload);
+  }, [goTo]);
+
   const sidebar = (
     <div className={styles.sidebarPages}>
       <div className={clsx(styles.sidebarPage, styles.sidebarPageActive)}>
@@ -234,24 +240,26 @@ export default function HomeScreenSingle() {
   );
 
   return (
-    <SlideDrawerLayout
-      showSidebar={showSidebar}
-      sidebar={sidebar}
-      onBack={prevPage}
-      onToggle={toggleSidebar}
-      showBack={currentPage !== "home"}
-      title={
-        currentPage === "influencer_profile" && navPayload?.name
-          ? navPayload.name
-          : active.label
-      }
-      background={active.background}
-    >
-      {needsSelection ? (
-        !id ? <InfluencerSelector onItemClick={handleSelect} influencers={influencers} /> : chatContent
-      ) : (
-        chatContent
-      )}
-    </SlideDrawerLayout>
+    <SidebarContext.Provider value={{ openSidebar }}>
+      <SlideDrawerLayout
+        showSidebar={showSidebar}
+        sidebar={sidebar}
+        onBack={prevPage}
+        onToggle={toggleSidebar}
+        showBack={currentPage !== "home"}
+        title={
+          currentPage === "influencer_profile" && navPayload?.name
+            ? navPayload.name
+            : active.label
+        }
+        background={active.background}
+      >
+        {needsSelection ? (
+          !id ? <InfluencerSelector onItemClick={handleSelect} influencers={influencers} /> : chatContent
+        ) : (
+          chatContent
+        )}
+      </SlideDrawerLayout>
+    </SidebarContext.Provider>
   );
 }
