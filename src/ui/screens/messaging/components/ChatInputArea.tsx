@@ -111,6 +111,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
             setInputAudio?.(undefined);
             clearAudio();
         }
+        document.querySelectorAll('audio').forEach(el => (el as HTMLAudioElement).pause());
         startRecording();
     }
 
