@@ -526,7 +526,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                 });
                 setTyping("idle");
                 scrollToBottom();
-            });
+            }, 5000);
         } catch (err: any) {
             setTyping("idle");
             if (err?.response?.status === 402) {
