@@ -1,3 +1,193 @@
+@import url("https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap");
+
+:root {
+    --Others-White: #fff;
+    --fontfamily01: "Abril Fatface", serif;
+    --fontfamily02: "Urbanist", sans-serif;
+}
+
+/* ===== Type ====== */
+.heading01 {
+    font-family: var(--fontfamily01);
+    font-size: 1.75rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 120%;
+}
+
+.heading02 {
+    color: var(--Others-White);
+    font-family: var(--fontfamily02);
+    font-size: 1.5rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 120%;
+}
+
+.heading03 {
+    color: var(--Others-White);
+    font-family: var(--fontfamily02);
+    font-size: 1.125rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 140%;
+    letter-spacing: 0.0125rem;
+    margin: 0;
+}
+
+.body01 {
+    color: var(--Others-White);
+    font-family: var(--fontfamily02);
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 140%;
+    letter-spacing: 0.0125rem;
+}
+
+.body01medium {
+    color: var(--Others-White);
+    font-family: var(--fontfamily02);
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 140%;
+    letter-spacing: 0.0125rem;
+}
+
+.body02 {
+    color: var(--Others-White);
+    font-family: var(--fontfamily02);
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 140%;
+    letter-spacing: 0.0125rem;
+}
+
+.body02medium {
+    color: var(--Others-White);
+    font-family: var(--fontfamily02);
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 140%;
+    letter-spacing: 0.0125rem;
+}
+
+.subtitle01 {
+    color: var(--Others-White);
+    text-align: center;
+    leading-trim: both;
+    text-edge: cap;
+    font-family: var(--fontfamily02);
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+    letter-spacing: 0.0125rem;
+}
+
+.subtitle02 {
+    color: var(--Others-White);
+    text-align: center;
+    leading-trim: both;
+    text-edge: cap;
+    font-family: var(--fontfamily02);
+    font-size: 0.625rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+    letter-spacing: 0.0125rem;
+    text-transform: uppercase;
+}
+
+/*** animations  **/
+
+@-webkit-keyframes fade-in-left {
+    0% {
+        -webkit-transform: translateX(-10px);
+        transform: translateX(-10px);
+        opacity: 0
+    }
+
+    100% {
+        -webkit-transform: translateX(0);
+        transform: translateX(0);
+        opacity: 1
+    }
+}
+
+
+
+@keyframes fade-in-top {
+    0% {
+        transform: translateY(-20px);
+        opacity: 0
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 1
+    }
+}
+
+
+@keyframes bar-grow {
+
+    0% {
+        transform: scaleX(1);
+        transform-origin: left;
+
+    }
+
+
+    5% {
+        transform: scaleX(0.95);
+        transform-origin: left;
+
+    }
+
+    25% {
+        transform: scaleX(1.05);
+        transform-origin: left;
+
+
+    }
+
+
+    27% {
+        transform: scaleX(1.05);
+        transform-origin: left;
+
+    }
+
+    50% {
+        transform: scaleX(1);
+        transform-origin: left;
+
+    }
+
+    75% {
+        transform: scaleX(1.05);
+        transform-origin: left;
+    }
+
+    100% {
+        transform: scaleX(1);
+        transform-origin: left;
+
+
+    }
+
+}
+
+
+
+
+/* :::::::: END UTILS ::::::::::: */
+
+
 /* ========== overlayContainer ========== */
 .overlayContainer {
     background: hsla(0, 0%, 0%, 0.696);
@@ -9,10 +199,11 @@
     position: absolute;
     display: flex;
     flex-direction: column;
-    font-family: Urbanist, sans-serif;
+    font-family: var(--fontfamily02);
     font-weight: normal;
     max-width: 28rem;
-    padding: 3.3125rem 1.625rem 0 1.625rem;
+    overflow-y: scroll;
+    padding: 3.3125rem 1.625rem 10rem 1.625rem;
 }
 
 /* ========== innerContainer ========== */
@@ -20,7 +211,6 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* outline: 1px solid rgb(136, 162, 255); */
     justify-content: space-between;
     width: 100%;
 }
@@ -35,17 +225,25 @@
 
 /* profileTitle */
 .profileTitle {
-    color: white;
+    color: var(--Others-White);
     width: 100%;
     margin: 0;
 }
 
-/* ========== topsection ========== */
-.topsection {
+
+.profileDetails {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-px-32, 2rem);
+}
+
+
+
+/* ::::::::::::::: SECTION 01 Profile Section :::::::::; */
+.section01 {
     display: flex;
     flex-direction: column;
     gap: var(--space-px-12, 0.75rem);
-    outline: 1px solid green;
 }
 
 /* ========== profileCardContainer ========== */
@@ -57,6 +255,7 @@
     background: var(--tm-black-color06, #212121);
     padding: var(--space-px-20, 1.25rem) var(--space-px-16, 1rem);
     gap: var(--space-px-16, 1rem);
+    animation: fade-in-top .4s cubic-bezier(.39, .575, .565, 1.000) both;
 }
 
 /* profileimageContainer */
@@ -84,7 +283,7 @@
 }
 
 .textDetails span {
-    color: var(----tm-purple-color03, #B85CFF);
+    color: var(----tm-purple-color03, #b85cff);
     font-weight: 700;
 }
 
@@ -105,13 +304,13 @@
 /* badge */
 .badge {
     border-radius: 6.25rem;
-    border: 1px solid #AD4ADE;
-    background: rgba(176, 18, 255, 0.10);
+    border: 1px solid #ad4ade;
+    background: rgba(176, 18, 255, 0.1);
     padding: 0.35rem 1rem;
     justify-content: center;
     align-items: center;
     gap: 0.5rem;
-    color: #AD4ADE;
+    color: #ad4ade;
     text-align: center;
     font-size: 0.875rem;
     font-weight: 700;
@@ -152,6 +351,190 @@
     border-radius: var(--space-px-12, 0.75rem);
     border: 1px solid var(----tm-black-color02, #333);
     background: var(----tm-black-color06, #212121);
+    -webkit-animation: fade-in-left .5s ease both;
+    animation: fade-in-left .5s ease both;
+}
+
+
+.profileSociallinks .socialContainer:nth-of-type(2) {
+    animation-delay: 0.135s; /* was 0.15s */
+}
+
+.profileSociallinks .socialContainer:nth-of-type(3) {
+    animation-delay: 0.171s; /* was 0.19s */
+}
+
+.profileSociallinks .socialContainer:nth-of-type(4) {
+    animation-delay: 0.189s; /* was 0.21s */
+}
+
+.profileSociallinks .socialContainer:nth-of-type(5) {
+    animation-delay: 0.216s; /* was 0.24s */
+}
+
+.profileSociallinks .socialContainer:nth-of-type(6) {
+    animation-delay: 0.243s; /* was 0.27s */
+}
+
+.profileSociallinks .socialContainer:nth-of-type(7) {
+    animation-delay: 0.27s; /* was 0.30s */
+}
+
+
+
+.socialContainer img {
+    width: 1.375rem;
+}
+
+/* ::::::::::::::: SECTION 02 relationShip Stats ::::::::::::::: */
+.section02 {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-px-12, 0.75rem);
+}
+
+.loveScoreCardContainer {
+    display: grid;
+    grid-template-columns: 1fr;
+    border-radius: var(--space-px-16, 1rem);
+    border: 1px solid var(--tm-black-color02, #333);
+    background: var(--tm-black-color06, #212121);
+    padding: var(--space-px-20, 1.25rem) var(--space-px-16, 1rem);
+    gap: var(--space-px-16, 1rem);
+    animation: fade-in-top .4s cubic-bezier(.39, .575, .565, 1.000) both;
+    animation-delay: 0.18s;
+}
+
+.loveScoreCardContainer .row01 {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.loveScoreCardContainer .row02 {
+    display: flex;
+    flex-direction: row;
+    border-radius: var(--space-px-32, 2rem);
+    background: #282828;
+    padding: var(--space-px-8, 0.5rem);
+}
+
+/** this will be replaced delete it **/
+.loveScoreCardContainer .row02 .placholderBar {
+    display: flex;
+    width: 12.25rem;
+    height: 0.8125rem;
+    align-items: center;
+    gap: 1.125rem;
+    border-radius: 1.25rem;
+    background: linear-gradient(90deg,
+            var(----tm-pink-color11, #903) 0%,
+            var(----tm-pink-color04, #f37) 100%);
+
+    animation: bar-grow 1s ease-in-out forwards;
+    animation-delay: 1.17s;
+
+}
+
+.loveScoreCardContainer .row03 {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.loveScoreCardContainer .row03 .body02 {
+    color: var(----tm-pink-color05, #ff2a71);
+}
+
+.loveScoreCardContainer .row03 .body02:last-child {
+    opacity: 0.3;
+}
+
+/* ::::::::::::::: SECTION 03 relationShip diamond ::::::::::::::: */
+
+.section03 {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: 1.55;
+    overflow: hidden;
+    animation: fade-in-top .4s cubic-bezier(.39, .575, .565, 1.000) both;
+    animation-delay: 0.405s;
+}
+
+.section03 img {
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+
+/* ::::::::::::::: SECTION 04 affinites ::::::::::::::: */
+
+.section04 {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: var(--space-px-16, 1rem)
+}
+
+.affinitesCardContainer {
+    display: grid;
+    grid-template-columns: 1fr;
+    border-radius: var(--space-px-16, 1rem);
+    border: 1px solid var(--tm-black-color02, #333);
+    background: var(--tm-black-color06, #212121);
+    padding: var(--space-px-20, 1.25rem) var(--space-px-16, 1rem);
+    gap: var(--space-px-16, 1rem);
+        animation: fade-in-top .4s cubic-bezier(.39, .575, .565, 1.000) both;
+    animation-delay: 0.54s;
+}
+
+.affinitesCardContainer .affinityContainer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-px-16, 1rem);
+}
+
+.affinityContainer .row01 {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.affinityContainer .infoIcon {
+    width: 1.0625rem;
+    aspect-ratio: 1/1;
+    display: flex;
+    align-items: center;
+}
+
+.affinityContainer .affinityIcon {    width: 1.0625rem;
+    aspect-ratio: 1/1;
+    display: flex;
+    align-items: center;}
+
+.affinityContainer .leftCol {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-px-8, 0.5rem);
+}
+
+.affinityContainer .row02 {
+    display: flex;
+    flex-direction: row;
+    border-radius: var(--space-px-32, 2rem);
+    background: #282828;
+    padding: var(--space-px-8, 0.5rem);
+}
+
+.affinityContainer .row02 .placholderBar {
+    display: flex;
+    width: 12.25rem;
+    min-height: 0.8125rem;
+    align-items: center;
+    gap: var(--space-px-18, 1.125rem);
+    border-radius: var(--space-px-20, 1.25rem);
+    background: linear-gradient(90deg, #b2001a 0%, #ff4d67 100%);
 }
 
 /* ========== placeholderImage ========== */
@@ -160,6 +543,13 @@
     top: 0;
     left: 0;
     z-index: 0;
+}
+
+
+.spacer {
+    display: flex;
+    flex-direction: column;
+    min-height: 0.5rem;
 }
 
 /*** media query Desktop ***/
