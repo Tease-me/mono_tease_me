@@ -398,10 +398,10 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
 
       <div className={styles.relationshipStatsArea}>
 
-        <ProgressBar icon={<SvgPack.Trust />} compact label="Trust" value={data.trust ?? 0} max={100} showInfoIcon />
-        <ProgressBar icon={<SvgPack.Angles />} compact label="Closeness" value={data.closeness ?? 0} max={100} showInfoIcon />
-        <ProgressBar icon={<SvgPack.KissGray />} compact label="Attraction" value={data.attraction ?? 0} max={100} showInfoIcon />
-        <ProgressBar icon={<SvgPack.Shield />} compact label="Safety" value={data.safety ?? 0} max={100} showInfoIcon />
+        <ProgressBar icon={<SvgPack.Trust />} compact label="Trust" value={data.trust ?? 0} max={100} showInfoIcon tooltipLabel="Trust" />
+        <ProgressBar icon={<SvgPack.Angles />} compact label="Closeness" value={data.closeness ?? 0} max={100} showInfoIcon tooltipLabel="Closeness" />
+        <ProgressBar icon={<SvgPack.KissGray />} compact label="Attraction" value={data.attraction ?? 0} max={100} showInfoIcon tooltipLabel="Attraction" />
+        <ProgressBar icon={<SvgPack.Shield />} compact label="Safety" value={data.safety ?? 0} max={100} showInfoIcon tooltipLabel="Safety" />
       </div>
 
       {/* <div className={styles.unfollow}>

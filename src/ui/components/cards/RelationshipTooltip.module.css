@@ -1,0 +1,91 @@
+.card {
+    background: #1c1c1e;
+    color: #f5f5f5;
+    padding: 20px;
+    border-radius: 14px;
+    width: 320px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+.headerRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.titleWrap {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.icon :global(svg) {
+    width: 18px;
+    height: 18px;
+}
+
+.close {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.headline {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.body {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #c7c7c7;
+    margin-bottom: 14px;
+}
+
+.tipsCard {
+    background: #2a2a2d;
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.tipsTitle {
+    font-size: 13px;
+    color: #dcdcdc;
+    margin-bottom: 10px;
+}
+
+.tipList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tipItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.check {
+    color: #00d26a;
+    font-weight: 700;
+}
+
+.cross {
+    color: #ff5b5b;
+    font-weight: 700;
+}
+
+.caution {
+    color: #ff5b5b;
+}
