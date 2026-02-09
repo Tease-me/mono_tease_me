@@ -3,7 +3,8 @@
   flex-direction: column;
   gap: var(--space-px-8);
   font-family: var(--secondary-font-family);
-  font-weight: 500;;
+  font-weight: 500;
+  ;
 }
 
 .header {
@@ -22,6 +23,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.infoIcon {
+  cursor: pointer;
 }
 
 .label {

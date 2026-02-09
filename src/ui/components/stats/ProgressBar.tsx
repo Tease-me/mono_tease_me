@@ -11,6 +11,7 @@ type ProgressBarProps = {
   compact?: boolean;
   mutedLabel?: boolean;
   className?: string;
+  showInfoIcon?: boolean;
 };
 
 export default function ProgressBar({
@@ -21,9 +22,15 @@ export default function ProgressBar({
   compact = false,
   mutedLabel = false,
   className,
+  showInfoIcon = false
 }: ProgressBarProps) {
   const pct = value / max * 100;
   const clamped = Math.max(0, Math.min(100, pct));
+
+  const handleClickInfo = () => {
+
+
+  }
 
   return (
     <div className={clsx(styles.wrap, className)}>
@@ -33,7 +40,7 @@ export default function ProgressBar({
           <span className={clsx(styles.label, mutedLabel && styles.labelMuted)}>
             {label}
           </span>
-          <span className={styles.icon}><SvgPack.InfoCircleGray /></span>
+          {showInfoIcon && <span className={clsx(styles.icon, styles.infoIcon)} onClick={handleClickInfo}><SvgPack.InfoCircleGray /></span>}
         </div>
         <span className={styles.value}>{value.toFixed(0)}/{max}</span>
       </div>
