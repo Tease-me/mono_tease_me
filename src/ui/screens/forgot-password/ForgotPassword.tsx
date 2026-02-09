@@ -16,7 +16,7 @@ import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
 interface ForgotPasswordProps { }
 
 const ForgotPassword: React.FC<ForgotPasswordProps> = ({ }) => {
-    const [email, setPassword] = useState("");
+    const [email, setEmail] = useState("");
     const [status, setStatus] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
@@ -60,7 +60,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ }) => {
                                 type="email"
                                 placeholder="Email address"
                                 value={email}
-                                onChange={e => setPassword((e.target as HTMLInputElement).value)} />
+                                onChange={e => setEmail((e.target as HTMLInputElement).value)} />
                         </div>
                         {status && <span className={styles["error"]}>{status}</span>}
                         <div className={styles["user-action-section"]}>
