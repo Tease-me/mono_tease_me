@@ -1,10 +1,10 @@
 import clsx from "clsx";
 import styles from "./ProgressBar.module.css";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import SvgPack from "@/utils/SvgPack";
 import { Modal } from "@/ui/components/modals/Modal";
-import RelationshipTooltip, { RelationshipTooltipLabel, relationshipTooltipContent } from "@/ui/components/cards/RelationshipTooltip";
-import { useState } from "react";
+import RelationshipTooltip from "@/ui/components/cards/RelationshipTooltip";
+import { RelationshipTooltipLabel, relationshipTooltipContent } from "@/ui/components/cards/relationshipTooltipData";
 
 type ProgressBarProps = {
   label: string;
