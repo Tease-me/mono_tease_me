@@ -45,6 +45,9 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ }) => {
             logger.error(err);
             setStatus("Something went wrong. Please try again later.");
         }
+        finally {
+            setIsLoading(false)
+        }
     };
 
     return (
@@ -66,7 +69,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ }) => {
                         <div className={styles["user-action-section"]}>
                             <ButtonRow>
                                 <NormalButton className={styles["btn-back"]} onClick={() => navigate("/login")} text="Back to Login" color='black' />
-                                <PrimaryButton className={styles["btn-primary"]} text="Send Reset Link" onClick={() => handleSubmit()} />
+                                <PrimaryButton className={styles["btn-primary"]} text="Send Reset Link" onClick={() => handleSubmit()} disabled={isLoading} />
                             </ButtonRow>
                         </div>
                     </form>
