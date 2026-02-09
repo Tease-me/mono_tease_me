@@ -65,8 +65,8 @@ export default function ProgressBar({
       </div>
 
       {showTooltip && tooltipLabel && (
-        <Modal isOpen onClose={() => setShowTooltip(false)}>
-          <RelationshipTooltip label={tooltipLabel} onClose={() => setShowTooltip(false)} />
+        <Modal isOpen onClose={() => setShowTooltip(false)} className={styles.tooltipModal}>
+          <RelationshipTooltip label={tooltipLabel} />
         </Modal>
       )}
     </>

@@ -2,6 +2,8 @@ import clsx from "clsx";
 import styles from "./RelationshipTooltip.module.css";
 import SvgPack from "@/utils/SvgPack";
 import React from "react";
+import iconCheckCircle from "@/assets/svg/iconCheckCircle.svg";
+import iconCross from "@/assets/svg/iconCross.svg";
 
 export type RelationshipTooltipLabel = "Trust" | "Closeness" | "Attraction" | "Safety";
 
@@ -91,11 +93,6 @@ export default function RelationshipTooltip({ label, className, onClose }: Relat
           <span className={styles.icon}>{content.icon}</span>
           <span className={styles.title}>{content.title}</span>
         </div>
-        {onClose && (
-          <button className={styles.close} onClick={onClose} aria-label="Close tooltip">
-            ×
-          </button>
-        )}
       </div>
       <div className={styles.headline}>{content.headline}</div>
       <div className={styles.body}>{content.body}</div>
@@ -104,13 +101,13 @@ export default function RelationshipTooltip({ label, className, onClose }: Relat
         <ul className={styles.tipList}>
           {content.tips.map((tip) => (
             <li key={tip} className={styles.tipItem}>
-              <span className={styles.check}>✓</span>
+              <img className={styles.tipIcon} src={iconCheckCircle} alt="" />
               <span>{tip}</span>
             </li>
           ))}
           {content.cautions.map((tip) => (
             <li key={tip} className={clsx(styles.tipItem, styles.caution)}>
-              <span className={styles.cross}>✕</span>
+              <img className={styles.tipIcon} src={iconCross} alt="" />
               <span>{tip}</span>
             </li>
           ))}

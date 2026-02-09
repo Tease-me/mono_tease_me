@@ -27,14 +27,6 @@
     height: 18px;
 }
 
-.close {
-    background: transparent;
-    border: none;
-    color: #aaa;
-    font-size: 20px;
-    cursor: pointer;
-}
-
 .headline {
     font-size: 16px;
     font-weight: 700;
@@ -76,16 +68,12 @@
     font-size: 13px;
 }
 
-.check {
-    color: #00d26a;
-    font-weight: 700;
-}
-
-.cross {
-    color: #ff5b5b;
-    font-weight: 700;
-}
-
 .caution {
     color: #ff5b5b;
+}
+
+.tipIcon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
 }
