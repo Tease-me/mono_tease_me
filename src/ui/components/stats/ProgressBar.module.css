@@ -3,7 +3,8 @@
   flex-direction: column;
   gap: var(--space-px-8);
   font-family: var(--secondary-font-family);
-  font-weight: 500;;
+  font-weight: 500;
+  ;
 }
 
 .header {
@@ -22,6 +23,26 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.infoIcon {
+  cursor: pointer;
+}
+
+.tooltipModal {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  width: fit-content;
+  max-width: 360px;
+  align-self: center;
+}
+
+@media (max-width: 480px) {
+  .tooltipModal {
+    max-width: calc(100vw - 32px);
+  }
 }
 
 .label {
