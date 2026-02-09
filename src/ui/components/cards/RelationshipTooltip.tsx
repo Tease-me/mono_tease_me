@@ -53,7 +53,7 @@ export const relationshipTooltipContent: Record<RelationshipTooltipLabel, {
     ]
   },
   Attraction: {
-    icon: <SvgPack.Heart />,
+    icon: <SvgPack.KissGray />,
     title: "Attraction",
     headline: "Things are moving forward. Does she see potential in you?",
     body: "There's no spark yet. Build attraction through respectful flirting, genuine compliments, and showing confidence.",
