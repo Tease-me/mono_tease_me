@@ -34,6 +34,15 @@
   background: transparent;
   box-shadow: none;
   border: none;
+  width: fit-content;
+  max-width: 360px;
+  align-self: center;
+}
+
+@media (max-width: 480px) {
+  .tooltipModal {
+    max-width: calc(100vw - 32px);
+  }
 }
 
 .label {
