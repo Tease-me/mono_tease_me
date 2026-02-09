@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import clsx from "clsx";
 import LottieAnimation from "@/ui/components/LottieAnimation";
 import rankUp from "@/assets/lottie/rankUp.json";
@@ -18,10 +18,26 @@ export default function LoveScore({
   size = "medium",
   rankPosition = "right",
 }: LoveScoreProps) {
+  const [visible, setVisible] = useState(false);
+
   const parsedScore = Number(sentimentDelta);
   const numericScore = Number.isFinite(parsedScore) ? parsedScore : 0;
-  const displayScore = Number.isFinite(parsedScore) ? parsedScore.toFixed(2) : "";
   const isPositive = numericScore > 0;
+  const displayScore = Number.isFinite(parsedScore)
+    ? `${isPositive ? '+' : ''}${parsedScore.toFixed(2)}`
+    : "";
+
+  const shouldShow = Math.abs(numericScore) >= 0.01;
+
+  useEffect(() => {
+    if (shouldShow) {
+      setVisible(true);
+      const timer = setTimeout(() => setVisible(false), 5000);
+      return () => clearTimeout(timer);
+    } else {
+      setVisible(false);
+    }
+  }, [sentimentDelta, shouldShow]);
 
   const loveScoreClass = isPositive ? styles.loveScoreRankUp : styles.loveScoreRankDown;
   const rankClass = isPositive ? styles.rankUp : styles.rankDown;
@@ -31,7 +47,14 @@ export default function LoveScore({
     size === "small" ? styles.rankSmall : size === "large" ? styles.rankLarge : styles.rankMedium;
 
   return (
-    <div className={clsx(styles.loveScore, loveScoreClass, sizeClass, className)}>
+    <div
+      className={clsx(styles.loveScore, loveScoreClass, sizeClass, className)}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'scale(1)' : 'scale(0.9)',
+        pointerEvents: visible ? 'auto' : 'none'
+      }}
+    >
       {rankPosition === "left" && (
         <div className={clsx(styles.rank, rankClass, rankSizeClass)}>
           {isPositive ? (
