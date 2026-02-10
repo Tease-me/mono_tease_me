@@ -19,6 +19,9 @@ export default function LoveScore({
   rankPosition = "right",
 }: LoveScoreProps) {
   const [visible, setVisible] = useState(false);
+  const prevSentimentDelta = React.useRef<number | null>(null);
+  const renderCount = React.useRef(0);
+  const hasSeenValue = React.useRef(false);
 
   const parsedScore = Number(sentimentDelta);
   const numericScore = Number.isFinite(parsedScore) ? parsedScore : 0;
@@ -27,9 +30,24 @@ export default function LoveScore({
     ? `${isPositive ? '+' : ''}${parsedScore.toFixed(2)}`
     : "";
 
-  const shouldShow = Math.abs(numericScore) >= 0.01;
+  const shouldShow = Math.abs(numericScore) !== 0;
 
   useEffect(() => {
+    renderCount.current++;
+    const currentValue = sentimentDelta ?? null;
+    const hasChanged = prevSentimentDelta.current !== currentValue;
+    if (currentValue !== null) {
+      hasSeenValue.current = true;
+    }
+
+    const isStable = hasSeenValue.current && renderCount.current >= 2;
+
+    prevSentimentDelta.current = currentValue;
+
+    if (!isStable || !hasChanged) {
+      return;
+    }
+
     if (shouldShow) {
       setVisible(true);
       const timer = setTimeout(() => setVisible(false), 5000);
