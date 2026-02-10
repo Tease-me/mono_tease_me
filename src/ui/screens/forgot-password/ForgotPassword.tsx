@@ -16,34 +16,42 @@ import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
 interface ForgotPasswordProps { }
 
 const ForgotPassword: React.FC<ForgotPasswordProps> = ({ }) => {
-    const [email, setPassword] = useState("");
+    const [email, setEmail] = useState("");
     const [status, setStatus] = useState("");
+    const [isSuccess, setIsSuccess] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     const navigate = useNavigate();
     const authServices = AuthServices(apiClient);
     const handleSubmit = async (e?: React.FormEvent) => {
         e?.preventDefault()
-        setIsLoading(true);
+
+        if (isLoading) return;
+
         if (email === "") {
-            setIsLoading(false);
             setStatus("Please enter your email address.");
+            setIsSuccess(false);
             return;
         }
+
+        setIsLoading(true);
         try {
             const data = await authServices.forgotPassword(email);
-            setIsLoading(false);
             if (!data.ok) {
                 throw new Error(`Server error: ${data.message}`);
             }
 
             setStatus("If an account with that email exists, you will receive an email with instructions to reset your password.");
+            setIsSuccess(true);
             setTimeout(() => {
                 navigate("/login")
             }, 5000);
         } catch (err: any) {
             logger.error(err);
             setStatus("Something went wrong. Please try again later.");
+            setIsSuccess(false);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -60,13 +68,13 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ }) => {
                                 type="email"
                                 placeholder="Email address"
                                 value={email}
-                                onChange={e => setPassword((e.target as HTMLInputElement).value)} />
+                                onChange={e => setEmail((e.target as HTMLInputElement).value)} />
                         </div>
-                        {status && <span className={styles["error"]}>{status}</span>}
+                        {status && <span className={styles[isSuccess ? "success" : "error"]}>{status}</span>}
                         <div className={styles["user-action-section"]}>
                             <ButtonRow>
                                 <NormalButton className={styles["btn-back"]} onClick={() => navigate("/login")} text="Back to Login" color='black' />
-                                <PrimaryButton className={styles["btn-primary"]} text="Send Reset Link" onClick={() => handleSubmit()} />
+                                <PrimaryButton className={styles["btn-primary"]} text={isLoading ? "Sending..." : "Send Reset Link"} onClick={() => handleSubmit()} disabled={isLoading} />
                             </ButtonRow>
                         </div>
                     </form>

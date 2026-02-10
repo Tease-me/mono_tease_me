@@ -28,6 +28,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [agree, setAgree] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const [showDisclaimer, setShowDisclaimer] = useState<boolean>(() => {
     const storedId = localStorage.getItem(LocalStorageKeys.DisclaimerSeen);
@@ -44,7 +45,23 @@ export default function LoginScreen() {
 
   useEffect(() => {
     if (authErrors) {
-      setErrors(prev => ({ ...prev, general: authErrors.data.error }));
+      const error = authErrors.data?.error;
+      let errorMessage = 'Login failed. Please try again.';
+
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error && typeof error === 'object') {
+        const errorObj = error as Record<string, unknown>;
+        if (typeof errorObj.error === 'string') {
+          errorMessage = errorObj.error;
+        } else if (typeof errorObj.message === 'string') {
+          errorMessage = errorObj.message;
+        } else {
+          errorMessage = JSON.stringify(error);
+        }
+      }
+
+      setErrors(prev => ({ ...prev, general: errorMessage }));
     }
   }, [authErrors]);
 
@@ -89,6 +106,7 @@ export default function LoginScreen() {
   }, [touched.password, validatePassword]);
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (isLoggingIn) return;
 
     const nextErrors = validate();
     if (Object.keys(nextErrors).length) {
@@ -96,7 +114,13 @@ export default function LoginScreen() {
       setTouched({ email: true, password: true });
       return false;
     }
-    await login(email, password);
+
+    setIsLoggingIn(true);
+    try {
+      await login(email, password);
+    } finally {
+      setIsLoggingIn(false);
+    }
   };
 
   const handleEmailBlur = useCallback(() => {
@@ -170,7 +194,12 @@ export default function LoginScreen() {
           )}
           <div className={styles["user-action-section"]}>
             <div className={styles["auth-buttons"]}>
-              <PrimaryButton className={styles["btn-primary"]} text="Sign In" onClick={handleContinueClicked} />
+              <PrimaryButton
+                className={styles["btn-primary"]}
+                text={isLoggingIn ? "Signing In..." : "Sign In"}
+                onClick={handleContinueClicked}
+                disabled={isLoggingIn}
+              />
             </div>
             <p className={styles["auth-footer"]}>
               <span onClick={() => navigate("/forgot-password")}>Forgot your password?</span>
