@@ -448,6 +448,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                     }
                 }, calculateReplyTime(data.reply));
             } else if (data.error) {
+
                 setTyping("idle");
                 logger.error("Error in WebSocket message:", data.error);
                 if (data.error === "INSUFFICIENT_CREDITS") {
@@ -458,7 +459,12 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                         setShowTopupModal(true);
                     }
                 } else {
-                    setError(data.error || "An error occurred while sending the message.");
+                    if (typeof data.error === "string") {
+                        setError(data.error);
+                    } else {
+                        setError("An error occurred while sending the message.");
+                    }
+
                 }
             }
         };
@@ -480,44 +486,47 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
         if (!chatId) return;
 
         try {
-            const { audio_url, transcript, ai_text } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
 
-            setTyping("idle");
-            setMessages((prev) => {
-                if (!prev) return prev;
-                const nextMessages = prev.map((message) => {
-                    if (!sentMessageId || message.id !== sentMessageId) {
-                        return message;
-                    }
-                    return {
-                        ...message,
-                        transcript: isSuperUser ? (transcript ?? message.transcript) : message.transcript,
-                    };
+            const { audio_url, transcript, ai_text } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
+            setTyping("recording");
+            setTimeout(() => {
+                setMessages((prev) => {
+                    if (!prev) return prev;
+                    const nextMessages = prev.map((message) => {
+                        if (!sentMessageId || message.id !== sentMessageId) {
+                            return message;
+                        }
+                        return {
+                            ...message,
+                            transcript: isSuperUser ? (transcript ?? message.transcript) : message.transcript,
+                        };
+                    });
+                    return [
+                        ...nextMessages,
+                        {
+                            id: Date.now(),
+                            sender: "received",
+                            channel: "chat",
+                            time: new Date().toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            }),
+                            timestamp: Date.now(),
+                            attachments: audio_url
+                                ? [
+                                    {
+                                        audioUrl: audio_url,
+                                        type: "audio",
+                                    },
+                                ]
+                                : [],
+                            transcript: isSuperUser ? ai_text : undefined,
+                        },
+                    ];
                 });
-                return [
-                    ...nextMessages,
-                    {
-                        id: Date.now(),
-                        sender: "received",
-                        channel: "chat",
-                        time: new Date().toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                        }),
-                        timestamp: Date.now(),
-                        attachments: audio_url
-                            ? [
-                                {
-                                    audioUrl: audio_url,
-                                    type: "audio",
-                                },
-                            ]
-                            : [],
-                        transcript: isSuperUser ? ai_text : undefined,
-                    },
-                ];
-            });
-            scrollToBottom();
+                setTyping("idle");
+                scrollToBottom();
+            }, 5000);
         } catch (err: any) {
             setTyping("idle");
             if (err?.response?.status === 402) {
@@ -584,9 +593,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                 setTyping("idle");
                 return false;
             }
-            setTyping("recording");
             const sentMessageId = Date.now();
-            sendAndPlay(audioToSend, sentMessageId);
             setMessages(prev => {
                 if (!prev) return [];
                 return [
@@ -609,6 +616,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                     },
                 ]
             });
+            sendAndPlay(audioToSend, sentMessageId);
         } else {
             return false;
         }
