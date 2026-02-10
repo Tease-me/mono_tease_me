@@ -19,6 +19,7 @@ export default function LoveScore({
   rankPosition = "right",
 }: LoveScoreProps) {
   const [visible, setVisible] = useState(false);
+  const prevSentimentDelta = React.useRef<number | null>(null);
 
   const parsedScore = Number(sentimentDelta);
   const numericScore = Number.isFinite(parsedScore) ? parsedScore : 0;
@@ -30,6 +31,13 @@ export default function LoveScore({
   const shouldShow = Math.abs(numericScore) >= 0.01;
 
   useEffect(() => {
+    const hasChanged = prevSentimentDelta.current !== sentimentDelta;
+    const isFirstRender = prevSentimentDelta.current === null;
+    prevSentimentDelta.current = sentimentDelta ?? null;
+    if (isFirstRender || !hasChanged) {
+      return;
+    }
+
     if (shouldShow) {
       setVisible(true);
       const timer = setTimeout(() => setVisible(false), 5000);
