@@ -308,12 +308,13 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
 
         if (blob.size < 1000) {
           onErrorChange(ERROR_MESSAGES.AUDIO_NO_DATA);
+          // alert(`Size: ${blob.size}`)
           setRecordingState({ status: 'idle' });
           cleanup();
           return;
         }
 
-        const isValid = await new Promise<boolean>((resolve) => {
+        await new Promise<boolean>((resolve) => {
           const audio = new Audio();
           const objectUrl = URL.createObjectURL(blob);
 
@@ -338,12 +339,13 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
           audio.src = objectUrl;
         });
 
-        if (!isValid) {
-          onErrorChange(ERROR_MESSAGES.AUDIO_NO_DATA);
-          setRecordingState({ status: 'idle' });
-          cleanup();
-          return;
-        }
+        // if (!isValid) {
+        //   onErrorChange(ERROR_MESSAGES.AUDIO_NO_DATA);
+        //   alert(`Invvalid`)
+        //   setRecordingState({ status: 'idle' });
+        //   cleanup();
+        //   return;
+        // }
 
         const file = new File([blob], `recording-${Date.now()}.${extension}`, {
           type: mimeType || 'audio/webm',
