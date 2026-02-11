@@ -1,0 +1,173 @@
+/* UPLOAD PICTURE STEP */
+.uploadPictureStep {
+  margin: 0 auto;
+  width: 100%;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+/* TIPS LIST */
+.tipsList {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.tip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #e9e9e9;
+}
+
+.tipIcon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* UPLOAD AREA */
+.uploadArea {
+  padding: 20px 16px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(20, 20, 24, 0.92), rgba(12, 6, 10, 0.78));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.uploadStateArea {
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* PREVIEW SECTION */
+.previewSection {
+  margin-top: 24px;
+}
+
+.previewCard {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(0, 0, 0, 0.9), rgba(30, 5, 10, 0.7));
+  display: grid;
+  grid-template-columns: minmax(96px, 28%) 1fr;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.35);
+}
+
+.previewLeft {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.previewRight {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.previewLeft img {
+  width: 100%;
+  max-width: 140px;
+  height: auto;
+  border-radius: 14px;
+  object-fit: cover;
+}
+
+.previewTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.previewButtons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.previewButtons button,
+.previewButtons [role="button"] {
+  pointer-events: none;
+  cursor: default;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+.previewButtons button:hover,
+.previewButtons button:active,
+.previewButtons [role="button"]:hover,
+.previewButtons [role="button"]:active {
+  box-shadow: none !important;
+  transform: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+.label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #e5e7eb;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* DESKTOP LAYOUT */
+@media (min-width: 768px) {
+  .uploadPictureStep {
+    max-width: 800px;
+  }
+
+  .uploadArea {
+    padding: 24px 20px;
+  }
+
+  .previewSection {
+    margin-top: 32px;
+  }
+
+  .label {
+    text-align: center;
+  }
+
+  .previewCard {
+    grid-template-columns: 140px 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .previewCard {
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+
+  .previewLeft {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .previewLeft img {
+    max-width: 180px;
+  }
+}
