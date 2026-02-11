@@ -1,6 +1,3 @@
-// Upload Picture Step Component (Rewritten)
-// Profile picture upload with validation guards and crop modal
-
 import React, { useRef, useEffect, useCallback } from 'react';
 import surveyStyles from '../ProfileSurvey.module.css';
 import styles from './UploadPictureStep.module.css';
@@ -66,16 +63,6 @@ const UploadPictureStep: React.FC<UploadPictureStepProps> = ({
     };
   }, []);
 
-  // Fetch picture URL from server when key changes
-  useEffect(() => {
-    if (!preInfluencerId) return;
-
-    const pictureKey = onAnswerChange ? undefined : pictureUrl; // Get from answers
-    // This effect should fetch the URL based on the profile_picture_key in answers
-    // For now, we'll rely on the parent to manage this
-  }, [preInfluencerId]);
-
-  // Handle file selection with validation guards
   const handlePictureSelect = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
