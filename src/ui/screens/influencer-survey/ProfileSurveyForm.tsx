@@ -324,7 +324,6 @@ const ProfileSurveyForm: React.FC = () => {
                     socialError={state.socialError}
                     verifyingSocial={state.verifyingSocial}
                     onAnswerChange={actions.updateAnswer}
-                    onSocialErrorChange={actions.setSocialError}
                     onVerifyingSocialChange={actions.setVerifyingSocial}
                   />
                 </Suspense>
@@ -337,9 +336,7 @@ const ProfileSurveyForm: React.FC = () => {
                     influencerId={state.preInfluencerId}
                     token={token}
                     temp_password={temp_password}
-                    audioCount={state.audioCount}
                     audioHasRecorded={state.audioHasRecorded}
-                    audioIsRecording={state.audioIsRecording}
                     audioError={state.audioError}
                     onCountChange={actions.setAudioCount}
                     onHasRecordedChange={actions.setAudioHasRecorded}

@@ -63,7 +63,7 @@ export async function validateImageFile(file: File | null | undefined): Promise<
   let dimensions: ImageDimensions;
   try {
     dimensions = await getImageDimensions(file);
-  } catch (error) {
+  } catch {
     return { valid: false, error: ERROR_MESSAGES.IMAGE_DIMENSIONS_FAILED };
   }
 

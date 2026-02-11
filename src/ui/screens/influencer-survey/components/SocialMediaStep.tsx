@@ -43,7 +43,6 @@ interface SocialMediaStepProps {
   socialError: string | null;
   verifyingSocial: Record<string, boolean>;
   onAnswerChange: (key: string, value: any) => void;
-  onSocialErrorChange: (error: string | null) => void;
   onVerifyingSocialChange: (platform: string, verifying: boolean) => void;
 }
 
@@ -68,7 +67,6 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
   socialError,
   verifyingSocial,
   onAnswerChange,
-  onSocialErrorChange,
   onVerifyingSocialChange,
 }) => {
   // Modal state

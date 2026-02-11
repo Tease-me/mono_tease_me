@@ -33,9 +33,7 @@ interface UploadAudioStepProps {
   influencerId: number | null;
   token: string;
   temp_password: string;
-  audioCount: number;
   audioHasRecorded: boolean;
-  audioIsRecording: boolean;
   audioError: string | null;
   onCountChange: (count: number) => void;
   onHasRecordedChange: (hasRecorded: boolean) => void;
@@ -54,9 +52,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
   influencerId,
   token,
   temp_password,
-  audioCount: _audioCount,
   audioHasRecorded,
-  audioIsRecording: _audioIsRecording,
   audioError,
   onCountChange,
   onHasRecordedChange,

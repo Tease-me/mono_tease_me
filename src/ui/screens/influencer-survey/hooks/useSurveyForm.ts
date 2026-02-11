@@ -227,8 +227,10 @@ export function useSurveyForm({
     setAnswers((prev) => ({ ...prev, [key]: value }));
     setIsDirty(true);
     setFieldErrors((prev) => {
-      const { [key]: _, ...rest } = prev;
-      return rest;
+      if (!(key in prev)) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
     });
   }, []);
 
@@ -248,8 +250,10 @@ export function useSurveyForm({
 
   const clearFieldError = useCallback((key: string) => {
     setFieldErrors((prev) => {
-      const { [key]: _, ...rest } = prev;
-      return rest;
+      if (!(key in prev)) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
     });
   }, []);
 
