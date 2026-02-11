@@ -1,7 +1,7 @@
 // Profile Survey Form - Complete Rewrite
 // Main survey form component with improved state management and performance
 
-import React, { lazy, Suspense, useCallback, useRef } from 'react';
+import React, { lazy, Suspense, useCallback, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { apiClient } from '@/api/apis';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
@@ -12,6 +12,7 @@ import { useStepValidation } from './hooks/useStepValidation';
 import SurveyQuestionStep from './components/SurveyQuestionStep';
 import styles from './ProfileSurvey.module.css';
 import { TermsModal } from '../survey/components/TermsConditions';
+import { isMediaRecorderSupported, isGetUserMediaSupported } from './utils/fileUploadHelpers';
 
 // Lazy load heavy components for better performance
 const UploadPictureStep = lazy(() => import('./components/UploadPictureStep'));
@@ -48,7 +49,16 @@ const ProfileSurveyForm: React.FC = () => {
     audioHasRecorded: state.audioHasRecorded,
   });
 
-  // Scroll to top helper
+  useEffect(() => {
+    if (!state.isLoading && !state.loadError && state.surveySteps.length > 0) {
+      if (!isMediaRecorderSupported() || !isGetUserMediaSupported()) {
+        actions.setFieldErrors({
+          _browser: 'Your browser does not support audio recording. Please use Chrome, Firefox, or Safari 14.5+ to complete this survey.'
+        });
+      }
+    }
+  }, [state.isLoading, state.loadError, state.surveySteps.length, actions]);
+
   const scrollToTop = useCallback(() => {
     const el = contentRef.current;
     if (el) el.scrollTo({ top: 0, behavior: 'smooth' });
@@ -73,7 +83,15 @@ const ProfileSurveyForm: React.FC = () => {
 
       actions.setTermsAccepted(true);
       actions.updateAnswer('terms_agreement', true);
-      await actions.saveNow();
+
+      try {
+        await actions.saveNow();
+      } catch (saveError) {
+        console.error('Failed to save after accepting terms:', saveError);
+        actions.setTermsError('Failed to save your acceptance. Please try again.');
+        return;
+      }
+
       actions.setShowTermsModal(false);
       navigate('/thank-you');
     } catch (error) {
@@ -110,10 +128,14 @@ const ProfileSurveyForm: React.FC = () => {
       return;
     }
 
-    // Save before navigation
-    await actions.saveNow();
+    try {
+      await actions.saveNow();
+    } catch (error) {
+      console.error('Failed to save before navigation:', error);
+      actions.setFieldErrors({ _save: 'Failed to save your progress. Please try again.' });
+      return;
+    }
 
-    // Navigate or go to next step
     if (state.currentStep < state.totalSteps - 1) {
       actions.goToNextStep();
       requestAnimationFrame(scrollToTop);
@@ -140,7 +162,14 @@ const ProfileSurveyForm: React.FC = () => {
     }
 
     if (state.currentStep === 0) return;
-    await actions.saveNow();
+
+    try {
+      await actions.saveNow();
+    } catch (error) {
+      console.error('Failed to save before going back:', error);
+      return;
+    }
+
     actions.goToPreviousStep();
     requestAnimationFrame(scrollToTop);
   }, [state.currentStep, state.audioIsRecording, actions, scrollToTop]);
@@ -223,7 +252,21 @@ const ProfileSurveyForm: React.FC = () => {
               <span className={styles.saving}>{state.isSaving ? 'Saving...' : 'Saved'}</span>
             </div>
 
-            {/* Step Content */}
+            {state.fieldErrors._browser && (
+              <div style={{
+                padding: '12px 16px',
+                margin: '16px 0',
+                backgroundColor: 'rgba(255, 77, 77, 0.15)',
+                border: '1px solid rgba(255, 77, 77, 0.4)',
+                borderRadius: '8px',
+                color: '#ff6b6b',
+                fontSize: '14px',
+                textAlign: 'center'
+              }}>
+                ⚠️ {state.fieldErrors._browser}
+              </div>
+            )}
+
             <div className={styles.content}>
               {/* Survey Question Steps */}
               {isSurveyStep && currentSurveyStep && (

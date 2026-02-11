@@ -83,7 +83,17 @@ const UploadPictureStep: React.FC<UploadPictureStepProps> = ({
 
       onErrorChange(null);
 
-      // Validate file BEFORE creating object URL
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if (isIOS && file.type === 'image/webp') {
+        const match = navigator.userAgent.match(/OS (\d+)_(\d+)_?(\d+)?/);
+        const iOSVersion = match ? parseFloat(match[1]) : 14;
+        if (iOSVersion < 14) {
+          onErrorChange('WebP images are not supported on your iOS version. Please use JPEG or PNG.');
+          if (fileInputRef.current) fileInputRef.current.value = '';
+          return;
+        }
+      }
+
       const validation = await validateImageFile(file);
       if (!validation.valid) {
         onErrorChange(validation.error || 'Invalid image file');
@@ -150,12 +160,13 @@ const UploadPictureStep: React.FC<UploadPictureStepProps> = ({
           temp_password,
         });
 
-        if (result.success && result.s3_key) {
-          // Update answer with S3 key
+        if (result.success) {
+          if (!result.s3_key) {
+            throw new Error('Upload succeeded but no S3 key returned');
+          }
           onAnswerChange('profile_picture_key', result.s3_key);
           onPictureKeyChange(result.s3_key);
 
-          // Fetch the actual signed URL from server
           setTimeout(async () => {
             try {
               const { data } = await apiClient.get<{ url: string }>(
