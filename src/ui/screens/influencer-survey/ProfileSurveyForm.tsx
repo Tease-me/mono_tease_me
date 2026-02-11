@@ -57,10 +57,16 @@ const ProfileSurveyForm: React.FC = () => {
   }, [state.isLoading, state.loadError, state.surveySteps.length, actions]);
 
   const scrollToTop = useCallback(() => {
-    const el = contentRef.current;
-    if (el) el.scrollTo({ top: 0, behavior: 'smooth' });
-    else window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (contentRef.current) {
+      contentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    const root = document.scrollingElement || document.documentElement;
+    root.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
+
+  useEffect(() => {
+    scrollToTop();
+  }, [state.currentStep, scrollToTop]);
 
   // Handle terms acceptance
   const handleAcceptTerms = useCallback(async () => {
