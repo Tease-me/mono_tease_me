@@ -34,7 +34,9 @@ const ErrorModalProvider = () => {
     >
       <div className={styles.modal}>
         <h3 className={styles.title}>{payload?.title || DEFAULT_TITLE}</h3>
-        <p className={styles.message}>{payload?.message}</p>
+        <p className={styles.message}>
+          {typeof payload?.message === 'string' ? payload.message : 'An unexpected error occurred'}
+        </p>
         {payload?.status && (
           <p className={styles.status}>Error code: {payload.status}</p>
         )}

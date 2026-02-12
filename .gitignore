@@ -33,3 +33,10 @@ dist-ssr
 tsconfig.tsbuildinfo
 .tscache/
 node_modules/.cache/tsbuildinfo
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/.auth/

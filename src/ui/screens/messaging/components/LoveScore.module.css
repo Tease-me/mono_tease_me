@@ -4,6 +4,7 @@
   justify-content: space-between;
   align-items: center;
   gap: var(--space-px-4);
+  transition: opacity 0.7s ease, transform 0.7s ease;
 }
 
 .loveScore>* {
@@ -34,7 +35,7 @@
 }
 
 .loveScoreLarge {
- 
+
   gap: var(--space-px-8);
 }
 

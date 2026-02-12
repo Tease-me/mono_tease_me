@@ -29,7 +29,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
       video: string;
       balance: number;
       lastConnected: string;
-      sentimentDelta: number;
+      // sentimentDelta: number;
       status: string;
       trust: number;
       safety: number;
@@ -85,7 +85,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
               video: (inf as any).videoUrl || inf.videoUrl,
               balance: balanceValue,
               lastConnected: rel.last_interaction_at || "",
-              sentimentDelta: rel.sentiment_delta || 0,
+              // sentimentDelta: rel.sentiment_delta || 0,
               status: rel.state,
               trust: rel.trust,
               safety: rel.safety,
