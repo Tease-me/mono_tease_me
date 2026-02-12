@@ -640,7 +640,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
             return;
         }
         setMode("call");
-        await handleStartConversation();
     }
 
     const handleScrollEvent = () => {
