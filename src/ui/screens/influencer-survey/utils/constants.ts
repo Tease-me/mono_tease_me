@@ -23,6 +23,8 @@ export const ACCEPTED_IMAGE_TYPES = [
   'image/jpg',
   'image/png',
   'image/webp',
+  'image/heic',
+  'image/heif',
 ] as const;
 
 export const ACCEPTED_AUDIO_TYPES = [
@@ -78,7 +80,7 @@ export const ERROR_MESSAGES = {
   // Image Upload
   IMAGE_REQUIRED: 'Please upload a profile picture before continuing.',
   IMAGE_TOO_LARGE: `Image must be under ${MAX_IMAGE_SIZE_MB}MB.`,
-  IMAGE_INVALID_TYPE: 'Image must be JPEG, PNG, or WEBP format.',
+  IMAGE_INVALID_TYPE: 'Image must be JPEG, PNG, WEBP, or HEIC format.',
   IMAGE_TOO_SMALL: `Image must be at least ${MIN_IMAGE_WIDTH}x${MIN_IMAGE_HEIGHT} pixels.`,
   IMAGE_INVALID_ASPECT: 'Image aspect ratio must be between 1:2 and 2:1.',
   IMAGE_UPLOAD_FAILED: 'Error uploading picture. Please try again.',

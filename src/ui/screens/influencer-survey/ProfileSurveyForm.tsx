@@ -170,6 +170,7 @@ const ProfileSurveyForm: React.FC = () => {
       await actions.saveNow();
     } catch (error) {
       console.error('Failed to save before going back:', error);
+      actions.setFieldErrors({ _save: 'Failed to save your progress. Please try again.' });
       return;
     }
 
@@ -268,6 +269,22 @@ const ProfileSurveyForm: React.FC = () => {
                 lineHeight: '1.4'
               }}>
                 ⚠️ {state.fieldErrors._browser}
+              </div>
+            )}
+
+            {state.fieldErrors._save && (
+              <div style={{
+                padding: '12px 16px',
+                margin: '8px 0',
+                backgroundColor: 'rgba(255, 77, 77, 0.15)',
+                border: '1px solid rgba(255, 77, 77, 0.4)',
+                borderRadius: '8px',
+                color: '#ff6b6b',
+                fontSize: '13px',
+                textAlign: 'center',
+                lineHeight: '1.4'
+              }}>
+                ⚠️ {state.fieldErrors._save}
               </div>
             )}
 

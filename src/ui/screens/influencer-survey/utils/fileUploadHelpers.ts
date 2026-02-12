@@ -90,7 +90,7 @@ export interface AudioValidationResult {
 
 /**
  * Validate audio file before upload
- * Guards: file exists, size, type
+ * Guards: file exists, size, type (with fallback for Android/wrong MIME types)
  */
 export function validateAudioFile(file: File | null | undefined): AudioValidationResult {
   // Guard 1: File exists
@@ -98,8 +98,13 @@ export function validateAudioFile(file: File | null | undefined): AudioValidatio
     return { valid: false, error: ERROR_MESSAGES.AUDIO_REQUIRED };
   }
 
-  // Guard 2: File type
-  if (!file.type?.startsWith('audio/')) {
+  // Guard 2: File type - check MIME type OR file extension
+  // Android file managers often return wrong/empty MIME types
+  const hasValidMimeType = file.type && file.type.startsWith('audio/');
+  const fileName = file.name.toLowerCase();
+  const hasValidExtension = /\.(mp3|m4a|wav|webm|ogg|mpeg|aac|flac)$/.test(fileName);
+
+  if (!hasValidMimeType && !hasValidExtension) {
     return { valid: false, error: ERROR_MESSAGES.AUDIO_INVALID_TYPE };
   }
 

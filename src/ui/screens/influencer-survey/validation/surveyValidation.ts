@@ -37,7 +37,7 @@ export function validateSurveyStep(
       (typeof value === 'string' && value.trim() === '');
 
     if (isEmpty) {
-      errors[question.id] = `${question.label} is required`;
+      errors[question.id] = 'This field is required';
     }
   });
 
@@ -91,6 +91,21 @@ export function validateSocialStep(answers: Record<string, any>): ValidationResu
 
   if (!hasAtLeastOne) {
     errors['social_media'] = ERROR_MESSAGES.SOCIAL_REQUIRED;
+  }
+
+  // Validate follower count for all platforms with handles
+  for (const platform of SOCIAL_PLATFORMS) {
+    const handle = answers[`social_${platform}`];
+    const followers = answers[`social_${platform}_followers`];
+
+    // If platform has a handle, verify it has minimum followers
+    if (handle && typeof handle === 'string' && handle.trim().length > 0) {
+      const followerCount = typeof followers === 'number' ? followers : 0;
+      if (followerCount < 100) {
+        errors['social_media'] = 'All social media accounts must have at least 100 followers';
+        break;
+      }
+    }
   }
 
   return {

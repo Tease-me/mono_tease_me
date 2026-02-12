@@ -143,6 +143,13 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
       return;
     }
 
+    // Require minimum 100 followers
+    if (parsedFollowers < 100) {
+      removeSelection(openId);
+      onAnswerChange(errorKey(openId), 'Minimum 100 followers required');
+      return;
+    }
+
     onAnswerChange(errorKey(openId), null);
     saveSelection(openId);
     setOpenId(null);
@@ -171,6 +178,13 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
     if (handleError) {
       removeSelection(openId);
       onAnswerChange(errorKey(openId), ERROR_MESSAGES.SOCIAL_HANDLE_REQUIRED_CONNECT);
+      return;
+    }
+
+    // Validate minimum followers before connecting
+    if (parsedFollowers < 100) {
+      removeSelection(openId);
+      onAnswerChange(errorKey(openId), 'Minimum 100 followers required');
       return;
     }
 
@@ -285,7 +299,13 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
               <label className={styles.inputLabel}>Handle</label>
               <TextInput
                 value={localHandle}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLocalHandle(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setLocalHandle(e.target.value);
+                  // Clear verification if handle changes
+                  if (openId && e.target.value !== answers[handleKey(openId)]) {
+                    onAnswerChange(verifiedKey(openId), false);
+                  }
+                }}
                 placeholder={modalPlatform.placeholder}
                 className={styles.textInput}
               />

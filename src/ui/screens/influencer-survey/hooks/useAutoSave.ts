@@ -42,6 +42,7 @@ export function useAutoSave({
     step: 0,
   });
   const isSavingRef = useRef(false);
+  const saveInProgressRef = useRef<Promise<void> | null>(null);
 
   useEffect(() => {
     // Skip if no influencer ID or not dirty
@@ -66,34 +67,40 @@ export function useAutoSave({
 
     // Debounce: wait for inactivity before saving
     saveTimeoutRef.current = setTimeout(async () => {
-      try {
-        isSavingRef.current = true;
-        onSaveStart();
+      const savePromise = (async () => {
+        try {
+          isSavingRef.current = true;
+          onSaveStart();
 
-        await apiClient.put(
-          `/pre-influencers/${preInfluencerId}/survey`,
-          {
-            survey_answers: answers,
-            survey_step: currentStep,
-          },
-          {
-            params: { token, temp_password },
-          }
-        );
+          await apiClient.put(
+            `/pre-influencers/${preInfluencerId}/survey`,
+            {
+              survey_answers: answers,
+              survey_step: currentStep,
+            },
+            {
+              params: { token, temp_password },
+            }
+          );
 
-        // Update last saved reference
-        lastSavedRef.current = {
-          answers: { ...answers },
-          step: currentStep,
-        };
+          // Update last saved reference
+          lastSavedRef.current = {
+            answers: { ...answers },
+            step: currentStep,
+          };
 
-        onSaveComplete();
-      } catch (error) {
-        console.error('Auto-save failed:', error);
-        onSaveError(error);
-      } finally {
-        isSavingRef.current = false;
-      }
+          onSaveComplete();
+        } catch (error) {
+          console.error('Auto-save failed:', error);
+          onSaveError(error);
+        } finally {
+          isSavingRef.current = false;
+          saveInProgressRef.current = null;
+        }
+      })();
+
+      saveInProgressRef.current = savePromise;
+      await savePromise;
     }, AUTO_SAVE_DEBOUNCE_MS);
 
     // Cleanup timeout on unmount or deps change
@@ -117,45 +124,62 @@ export function useAutoSave({
   /**
    * Manually trigger a save (for Next/Back buttons)
    * Returns a promise that resolves when save is complete
+   * Waits for any in-progress auto-save to complete first
    */
   const saveNow = async (): Promise<void> => {
     if (!preInfluencerId) return;
 
-    // Clear any pending auto-save
+    // Clear any pending auto-save timeout
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
       saveTimeoutRef.current = null;
     }
 
-    try {
-      isSavingRef.current = true;
-      onSaveStart();
-
-      await apiClient.put(
-        `/pre-influencers/${preInfluencerId}/survey`,
-        {
-          survey_answers: answers,
-          survey_step: currentStep,
-        },
-        {
-          params: { token, temp_password },
-        }
-      );
-
-      // Update last saved reference
-      lastSavedRef.current = {
-        answers: { ...answers },
-        step: currentStep,
-      };
-
-      onSaveComplete();
-    } catch (error) {
-      console.error('Manual save failed:', error);
-      onSaveError(error);
-      throw error; // Re-throw so caller knows save failed
-    } finally {
-      isSavingRef.current = false;
+    // Wait for any in-progress save to complete
+    if (saveInProgressRef.current) {
+      try {
+        await saveInProgressRef.current;
+      } catch {
+        // Ignore errors from auto-save, we'll try manual save anyway
+      }
     }
+
+    // Perform manual save
+    const savePromise = (async () => {
+      try {
+        isSavingRef.current = true;
+        onSaveStart();
+
+        await apiClient.put(
+          `/pre-influencers/${preInfluencerId}/survey`,
+          {
+            survey_answers: answers,
+            survey_step: currentStep,
+          },
+          {
+            params: { token, temp_password },
+          }
+        );
+
+        // Update last saved reference
+        lastSavedRef.current = {
+          answers: { ...answers },
+          step: currentStep,
+        };
+
+        onSaveComplete();
+      } catch (error) {
+        console.error('Manual save failed:', error);
+        onSaveError(error);
+        throw error; // Re-throw so caller knows save failed
+      } finally {
+        isSavingRef.current = false;
+        saveInProgressRef.current = null;
+      }
+    })();
+
+    saveInProgressRef.current = savePromise;
+    await savePromise;
   };
 
   return { saveNow };

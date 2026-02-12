@@ -139,6 +139,19 @@ export function useSurveyForm({
   const totalSteps = surveyStepsCount + 3;
 
   useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty || isSaving) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty, isSaving]);
+
+  useEffect(() => {
     const loadSurveyData = async () => {
       if (!token) {
         setLoadError(ERROR_MESSAGES.INVALID_SURVEY_LINK);
