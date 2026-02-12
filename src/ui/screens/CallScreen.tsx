@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Howl } from "howler";
 import avatar from "@/assets/image/avatar.png";
 import BackgroundGradient from "../templates/BackgroundGradient";
 import styles from "./CallScreen.module.css";
@@ -16,20 +17,21 @@ export default function CallScreen() {
 
   const [callStatus, setCallStatus] = useState("Calling...");
   const [callTime, setCallTime] = useState(0);
-  const ringtoneRef = useRef(new Audio("/audio/ringtone.wav")); // ✅ Corrigido aqui!
+  const ringtoneRef = useRef(
+    new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: true })
+  );
   const audioRef = useRef(new Audio());
 
   useEffect(() => {
     const ringtone = ringtoneRef.current;
-    ringtone.loop = true;
-
-    ringtone.play().catch((err) => {
+    try {
+      ringtone.play();
+    } catch (err) {
       console.error("Ringtone playback failed:", err);
-    });
+    }
 
     const timer = setTimeout(() => {
-      ringtone.pause();
-      ringtone.currentTime = 0;
+      ringtone.stop();
 
       setCallStatus("Connected");
       playAudio(
@@ -39,8 +41,13 @@ export default function CallScreen() {
 
     return () => {
       clearTimeout(timer);
-      ringtone.pause();
-      ringtone.currentTime = 0;
+      ringtone.stop();
+    };
+  }, []);
+  useEffect(() => {
+    return () => {
+      ringtoneRef.current.stop();
+      ringtoneRef.current.unload();
     };
   }, []);
 
@@ -78,8 +85,7 @@ export default function CallScreen() {
   };
 
   const endCall = () => {
-    ringtoneRef.current.pause();
-    ringtoneRef.current.currentTime = 0;
+    ringtoneRef.current.stop();
     audioRef.current.pause();
     audioRef.current.currentTime = 0;
     navigate(`/chat/${conversation_id}`);

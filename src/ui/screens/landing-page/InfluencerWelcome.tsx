@@ -2,6 +2,7 @@
 import clsx from "clsx";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Howl } from "howler";
 
 import { AuthContext } from "@/context/AuthContext";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
@@ -40,7 +41,9 @@ const InfluencerWelcome: React.FC<InfluencerWelcomeProps> = () => {
   const { status, startConversation, stopConversation, setInfluencerId } =
     useCall();
 
-  const audioRef = useRef(new Audio("/audio/ringtone.wav"));
+  const audioRef = useRef(
+    new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: true })
+  );
   const influencerRepo = InfluencerRepo();
 
   useEffect(() => {
@@ -83,20 +86,27 @@ const InfluencerWelcome: React.FC<InfluencerWelcomeProps> = () => {
       navigate("/income-dialog");
     }
   }, [status, hasConnected, navigate]);
+  useEffect(() => {
+    return () => {
+      audioRef.current.stop();
+      audioRef.current.unload();
+    };
+  }, []);
 
   useEffect(() => {
-    audioRef.current.currentTime = 0;
-    audioRef.current.play().catch(() => { });
+    try {
+      audioRef.current.play();
+    } catch {
+      // ignore play errors
+    }
 
     const timeoutId = window.setTimeout(() => {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
+      audioRef.current.stop();
     }, 60000);
 
     return () => {
       window.clearTimeout(timeoutId);
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
+      audioRef.current.stop();
     };
   }, []);
 
@@ -120,12 +130,12 @@ const InfluencerWelcome: React.FC<InfluencerWelcomeProps> = () => {
   }, [status]);
 
   const handlePickUpCall = () => {
-    audioRef.current.pause();
+    audioRef.current.stop();
     startConversation();
   };
 
   const handleHangUpCall = () => {
-    audioRef.current.pause();
+    audioRef.current.stop();
     stopConversation();
   };
 

@@ -3,7 +3,6 @@ import React, { memo, useContext, useEffect, useMemo, useRef, useState } from 'r
 import { Endpoints, WS_BASE_URL } from "@/api/urls";
 import { AuthContext } from "@/context/AuthContext";
 import styles from "./ChatScreenContent.module.css"
-import { useParams } from 'react-router-dom';
 import MessagesList from './MessageList';
 import ChatInputArea from './ChatInputArea';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
@@ -40,6 +39,7 @@ import { UserServices } from '@/api/services/UserServices';
 import UpgradePlanModal from '@/ui/components/modals/subscription/UpgradePlanModal';
 import AddCreditsModal from '@/ui/components/modals/payment-modal/AddCreditsModal';
 import AdultTermsModal from '@/ui/components/modals/adult-terms/AdultTermsModal';
+import { useSidebar } from '@/hooks/useSidebar';
 
 const chatRepository = ChatRepository();
 const influencerRepo = InfluencerRepo();
@@ -48,7 +48,7 @@ const subscriptionsServices = SubscriptionsServices(apiClient);
 const relationshipServices = RelationshipServices(apiClient);
 
 interface ChatScreenContentProps {
-    id?: string;
+    influencerId?: string;
     onBackPressed?: () => void;
     menuItems?: DropDownMenuDataModel[];
     setNeedsSelection?: (needsSelection: boolean) => void;
@@ -58,7 +58,7 @@ interface ChatScreenContentProps {
 }
 export type TypingStatus = "idle" | "typing" | "recording";
 
-const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, setNeedsSelection, showChangeInfluencerButton = false, openSubscribe }) => {
+const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onMenuClick, setNeedsSelection, showChangeInfluencerButton = false, openSubscribe }) => {
     const [influencer, setInfluencer] = useState<InfluencerDataModel>();
     const [chatId, setChatId] = useState<string | undefined>();
 
@@ -83,9 +83,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const currentAudioRef = useRef<HTMLAudioElement | null>(null);
     const lastChatInitRef = useRef<string | null>(null);
     const callModalTimeoutRef = useRef<number | null>(null);
-    const relationshipPollRef = useRef<number | null>(null);
 
     const { user } = useContext(AuthContext);
+    const { openSidebar } = useSidebar();
     const [adultMode, setAdultMode] = useState(false);
     const adultModeRef = useRef(false);
     useEffect(() => { adultModeRef.current = adultMode; }, [adultMode]);
@@ -103,13 +103,31 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
     const [showTermsModal, setShowTermsModal] = useState(false);
 
-    const { user_id } = useParams();
-
     const isSuperUser = user?.id === 1;
 
     const pageSize = 20;
 
-    const { status, startConversation, stopConversation, setInfluencerId, timeRemaining, micMuted, toggleMute, errorMessage } = useCallWebRTC();
+    const fetchRelationship = (influencerId?: string) => {
+        if (!influencerId && influencer) {
+            influencerId = influencer.id;
+        }
+        if (!influencerId) {
+            logger.error("No influencer ID available to fetch relationship");
+            return;
+        }
+
+        relationshipServices.getRelationship(influencerId).then((relationship) => {
+            setRelationship(relationship);
+        }).catch((err) => logger.error("Error refreshing relationship", err));
+    };
+
+    const { status, startConversation, stopConversation, setInfluencerId, timeRemaining, micMuted, toggleMute, errorMessage, cancelCall } = useCallWebRTC({
+        onMessage: (message) => {
+            logger.debug("Received WebRTC message on ChatScreenContent:", message);
+            fetchRelationship();
+        }
+    });
+
     const displayMessages = useMemo(() => messages ? mergeCallMessages(messages) : [], [messages]);
     useEffect(() => {
         setMode(prev => {
@@ -126,19 +144,11 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
 
     useEffect(() => {
         (async () => {
-            if (!id) {
-                if (!user_id) {
-                    setInfluencer(undefined);
-                    return;
-                }
-                const localInfluencer = await influencerRepo.getInfluencer(user_id);
-                setInfluencer(localInfluencer);
-            } else {
-                const localInfluencer = await influencerRepo.getInfluencer(id);
-                setInfluencer(localInfluencer);
-            }
+            if (!influencerId) return;
+            const localInfluencer = await influencerRepo.getInfluencer(influencerId);
+            setInfluencer(localInfluencer);
         })()
-    }, [id, user_id]);
+    }, [influencerId]);
 
     useEffect(() => {
         let isMounted = true;
@@ -328,9 +338,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                 await fetchMessages(chat_id, 1);
                 connectChat(influencer.id);
                 setInfluencerId(influencer.id);
-                relationshipServices.getRelationship(influencer.id).then((relationshipResponse) => {
-                    setRelationship(relationshipResponse)
-                })
+                fetchRelationship(influencer.id);
                 setIsLoadingMore(false);
             }
 
@@ -440,6 +448,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                     }
                 }, calculateReplyTime(data.reply));
             } else if (data.error) {
+
                 setTyping("idle");
                 logger.error("Error in WebSocket message:", data.error);
                 if (data.error === "INSUFFICIENT_CREDITS") {
@@ -450,7 +459,12 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                         setShowTopupModal(true);
                     }
                 } else {
-                    setError(data.error || "An error occurred while sending the message.");
+                    if (typeof data.error === "string") {
+                        setError(data.error);
+                    } else {
+                        setError("An error occurred while sending the message.");
+                    }
+
                 }
             }
         };
@@ -471,44 +485,58 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         if (!influencer) return;
         if (!chatId) return;
 
-        const { audio_url, transcript, ai_text } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
+        try {
 
-        setTyping("idle");
-        setMessages((prev) => {
-            if (!prev) return prev;
-            const nextMessages = prev.map((message) => {
-                if (!sentMessageId || message.id !== sentMessageId) {
-                    return message;
-                }
-                return {
-                    ...message,
-                    transcript: isSuperUser ? (transcript ?? message.transcript) : message.transcript,
-                };
-            });
-            return [
-                ...nextMessages,
-                {
-                    id: Date.now(),
-                    sender: "received",
-                    channel: "chat",
-                    time: new Date().toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                    }),
-                    timestamp: Date.now(),
-                    attachments: audio_url
-                        ? [
-                            {
-                                audioUrl: audio_url,
-                                type: "audio",
-                            },
-                        ]
-                        : [],
-                    transcript: isSuperUser ? ai_text : undefined,
-                },
-            ];
-        });
-        scrollToBottom();
+            const { audio_url, transcript, ai_text } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
+            setTyping("recording");
+            setTimeout(() => {
+                setMessages((prev) => {
+                    if (!prev) return prev;
+                    const nextMessages = prev.map((message) => {
+                        if (!sentMessageId || message.id !== sentMessageId) {
+                            return message;
+                        }
+                        return {
+                            ...message,
+                            transcript: isSuperUser ? (transcript ?? message.transcript) : message.transcript,
+                        };
+                    });
+                    return [
+                        ...nextMessages,
+                        {
+                            id: Date.now(),
+                            sender: "received",
+                            channel: "chat",
+                            time: new Date().toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            }),
+                            timestamp: Date.now(),
+                            attachments: audio_url
+                                ? [
+                                    {
+                                        audioUrl: audio_url,
+                                        type: "audio",
+                                    },
+                                ]
+                                : [],
+                            transcript: isSuperUser ? ai_text : undefined,
+                        },
+                    ];
+                });
+                setTyping("idle");
+                scrollToBottom();
+            }, 5000);
+        } catch (err: any) {
+            setTyping("idle");
+            if (err?.response?.status === 402) {
+                setError("Insufficient credits to send voice message.");
+                setShowUpgradeModal(true);
+            } else {
+                setError("Failed to send voice message.");
+            }
+            logger.error("Error sending voice message:", err);
+        }
     }
 
     const sendMessage = (forcedAudio?: Blob): boolean => {
@@ -565,9 +593,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                 setTyping("idle");
                 return false;
             }
-            setTyping("recording");
             const sentMessageId = Date.now();
-            sendAndPlay(audioToSend, sentMessageId);
             setMessages(prev => {
                 if (!prev) return [];
                 return [
@@ -590,6 +616,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                     },
                 ]
             });
+            sendAndPlay(audioToSend, sentMessageId);
         } else {
             return false;
         }
@@ -599,11 +626,20 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
         return true;
     };
 
-    const handleCallModeChange = () => {
-        setMode(prev => {
-            if (prev === "call") return "chat";
-            return "call";
-        })
+    const handleStartConversation = React.useCallback(async () => {
+        const result = await startConversation();
+        if (result?.errorStatus === 402) {
+            setShowTopupModal(true);
+        }
+    }, [startConversation]);
+
+    const handleCallModeChange = async () => {
+        if (mode === "call") {
+            stopConversation();
+            setMode("chat");
+            return;
+        }
+        setMode("call");
     }
 
     const handleScrollEvent = () => {
@@ -613,31 +649,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
     const handleChangeInfluencerClicked = async () => {
         setNeedsSelection?.(true)
     };
-
-    useEffect(() => {
-        if (relationshipPollRef.current) {
-            window.clearInterval(relationshipPollRef.current);
-            relationshipPollRef.current = null;
-        }
-
-        if (status === "connected" && influencer?.id) {
-            const fetchRelationship = () => {
-                relationshipServices.getRelationship(influencer.id).then((relationship) => {
-                    setRelationship(relationship);
-                }).catch((err) => logger.error("Error refreshing relationship", err));
-            };
-
-            fetchRelationship();
-            relationshipPollRef.current = window.setInterval(fetchRelationship, 5000);
-        }
-
-        return () => {
-            if (relationshipPollRef.current) {
-                window.clearInterval(relationshipPollRef.current);
-                relationshipPollRef.current = null;
-            }
-        };
-    }, [status, influencer?.id]);
 
     const handleClearHistory = async () => {
         if (!chatId || !isSuperUser) return;
@@ -720,6 +731,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                                             currentAudioRef.current = audioEl;
                                         }
                                     }}
+                                    onCallBack={() => handleCallModeChange()}
                                 />
                             </> : <LoadingSpinner />}
                         </div>
@@ -737,11 +749,12 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
                                 inputAudio={inputAudio} />
                         </div>
                     </> : <CallModePage
+                        cancelCall={cancelCall}
                         toggleMute={toggleMute}
                         status={status}
                         timeRemaining={timeRemaining}
                         micMute={micMuted}
-                        startConversation={startConversation}
+                        startConversation={handleStartConversation}
                         stopConversation={stopConversation}
                         relationship={relationship}
                         influencer={influencer}
@@ -763,11 +776,12 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ id, onMenuClick, 
             <UpgradePlanModal
                 isOpen={showUpgradeModal}
                 onClose={() => setShowUpgradeModal(false)}
+                onUpgrade={() => openSidebar("subscription", { influencerId: influencer?.id })}
             />
 
             <AddCreditsModal
                 isOpen={showTopupModal}
-                image={influencer?.img || ''}
+                image={influencer?.img}
                 onClose={() => setShowTopupModal(false)}
                 influencerId={influencer?.id || ''} />
 

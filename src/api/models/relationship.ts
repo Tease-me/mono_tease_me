@@ -8,6 +8,7 @@ export interface RelationshipResponse {
   state: string;
   stage_points: number;
   sentiment_score: number;
+  sentiment_delta: number;
   exclusive_agreed: boolean;
   girlfriend_confirmed: boolean;
   last_interaction_at: string | null;

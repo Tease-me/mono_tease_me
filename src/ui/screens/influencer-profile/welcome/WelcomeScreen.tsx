@@ -18,6 +18,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./WelcomeScreen.module.css";
 import ValidationPill from "@/ui/components/inputs/buttons/ValidationPill";
+import { Howl } from "howler";
 
 import { FollowServices } from "@/api/services/FollowServices";
 import { apiClient } from "@/api/apis";
@@ -35,7 +36,9 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
   const { status, startConversation, stopConversation, setInfluencerId } =
     useCall();
 
-  const audioRef = useRef(new Audio("/audio/ringtone.wav"));
+  const audioRef = useRef(
+    new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: true })
+  );
 
   const [error, setError] = useState<string | null>(null);
   const [waiting, setWaiting] = useState(false);
@@ -47,6 +50,12 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
       setIsFirstTime(false);
     }
   }, [status]);
+  useEffect(() => {
+    return () => {
+      audioRef.current.stop();
+      audioRef.current.unload();
+    };
+  }, []);
 
   useEffect(() => {
     setInfluencerId(influencer?.id);
@@ -62,12 +71,12 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
   };
 
   const handlePickUpCall = () => {
-    audioRef.current.pause();
+    audioRef.current.stop();
     startConversation();
   };
 
   const handleHangUpCall = () => {
-    audioRef.current.pause();
+    audioRef.current.stop();
     stopConversation();
     setIsFirstTime(false);
     setOnTryClicked(false);

@@ -5,7 +5,6 @@ import {
   PolarGrid,
   PolarAngleAxis,
   PolarRadiusAxis,
-  ResponsiveContainer,
 } from "recharts";
 
 type RelationshipRadarProps = {
@@ -14,6 +13,7 @@ type RelationshipRadarProps = {
   attraction: number;
   closeness: number;
   height?: number;          // default 260
+  width?: number;           // default 320
   color?: string;           // fill/stroke color, default "#a53cfd"
 };
 
@@ -25,6 +25,7 @@ const RelationshipRadar: React.FC<RelationshipRadarProps> = ({
   attraction,
   closeness,
   height = 260,
+  width = 320,
   color = "#a53cfd",
 }) => {
   const data = useMemo(
@@ -37,21 +38,21 @@ const RelationshipRadar: React.FC<RelationshipRadarProps> = ({
     [trust, safety, attraction, closeness]
   );
 
+  if (height <= 0 || width <= 0) return null;
+
   return (
-    <div style={{ width: "100%", height }}>
-      <ResponsiveContainer width="100%" height="100%">
-        <RadarChart data={data}>
-          <PolarGrid />
-          <PolarAngleAxis dataKey="metric" />
-          <PolarRadiusAxis domain={[0, 100]} tickCount={6} />
-          <Radar
-            dataKey="value"
-            stroke={color}
-            fill={color}
-            fillOpacity={0.8}
-          />
-        </RadarChart>
-      </ResponsiveContainer>
+    <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
+      <RadarChart data={data} width={width} height={height}>
+        <PolarGrid />
+        <PolarAngleAxis dataKey="metric" />
+        <PolarRadiusAxis domain={[0, 100]} tickCount={6} />
+        <Radar
+          dataKey="value"
+          stroke={color}
+          fill={color}
+          fillOpacity={0.8}
+        />
+      </RadarChart>
     </div>
   );
 };

@@ -142,7 +142,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           attraction: rel?.attraction ?? d.attraction,
           state: rel?.state ?? d.state,
           closeness: rel?.closeness ?? d.closeness,
-          stageScore: rel?.sentiment_score ?? d.stageScore,
+          stageScore: rel?.stage_points ?? d.stageScore,
           lastConnected: rel?.last_interaction_at ?? d.lastConnected,
           balance: bal ? bal.balance_cents / 100 : d.balance,
           hasSubscription: sub?.has_subscription ?? d.hasSubscription,
@@ -284,7 +284,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
   }
 
   if (loading) {
-    return <LoadingSpinner />
+    return <div className={styles.loading}> <LoadingSpinner /></div>
   }
 
 
@@ -391,16 +391,17 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
             attraction={data.attraction ?? 0}
             safety={data.safety ?? 0}
             height={280}
+            width={320}
           />
         </div>
       </div>
 
       <div className={styles.relationshipStatsArea}>
 
-        <ProgressBar icon={<SvgPack.Trust />} compact label="Trust" value={data.trust ?? 0} max={100} />
-        <ProgressBar icon={<SvgPack.Angles />} compact label="Closeness" value={data.closeness ?? 0} max={100} />
-        <ProgressBar icon={<SvgPack.KissGray />} compact label="Attraction" value={data.attraction ?? 0} max={100} />
-        <ProgressBar icon={<SvgPack.Shield />} compact label="Safety" value={data.safety ?? 0} max={100} />
+        <ProgressBar icon={<SvgPack.Trust />} compact label="Trust" value={data.trust ?? 0} max={100} showInfoIcon tooltipLabel="Trust" />
+        <ProgressBar icon={<SvgPack.Angles />} compact label="Closeness" value={data.closeness ?? 0} max={100} showInfoIcon tooltipLabel="Closeness" />
+        <ProgressBar icon={<SvgPack.KissGray />} compact label="Attraction" value={data.attraction ?? 0} max={100} showInfoIcon tooltipLabel="Attraction" />
+        <ProgressBar icon={<SvgPack.Shield />} compact label="Safety" value={data.safety ?? 0} max={100} showInfoIcon tooltipLabel="Safety" />
       </div>
 
       {/* <div className={styles.unfollow}>

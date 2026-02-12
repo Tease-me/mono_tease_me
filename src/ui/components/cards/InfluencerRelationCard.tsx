@@ -5,7 +5,6 @@ import ProfileMedia from "../ProfileMedia";
 import MetricRing from "../stats/MetricRing";
 import { formatDateTimeRelative } from "@/utils/DateTimeUtils";
 import BalanceBadge from "../stats/BalanceBadge";
-import LoveScore from "@/ui/screens/messaging/components/LoveScore";
 import { getRelationshipStatusIcon } from "@/utils/relationshipStatusUtils";
 
 type InfleuncerRelationCardProps = {
@@ -14,7 +13,6 @@ type InfleuncerRelationCardProps = {
   video: string
   balance: number;
   lastConnected: string;
-  loveScore: number;
   status: string;
   trust: number;
   safety: number;
@@ -29,7 +27,6 @@ const InfluencerRelationCard: React.FC<InfleuncerRelationCardProps> = ({
   video,
   balance,
   lastConnected,
-  loveScore,
   status,
   trust,
   safety,
@@ -80,10 +77,6 @@ const InfluencerRelationCard: React.FC<InfleuncerRelationCardProps> = ({
         </div>
       </div>
       <div className={styles.lower}>
-        <div className={styles.stat}>
-          <span className={styles.label}>Love</span>
-          <LoveScore size="large" sentimentScore={loveScore} rankPosition="left" />
-        </div>
         <div className={styles.stat}>
           <span className={styles.label}>Status</span>
           <div className={styles.stageArea}>

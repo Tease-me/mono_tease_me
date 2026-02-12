@@ -19,7 +19,7 @@ export type ChatInfluencerBarProps = {
   influencer?: InfluencerDataModel;
   middleContent?: React.ReactNode;
   showChangeInfluencerButton?: boolean;
-  loveScore?: number | string;
+  sentimentDelta?: number | string;
   adultMode?: boolean;
   status?: string;
   onChangeInfluencer?: () => void;
@@ -54,7 +54,7 @@ export default function ChatInfluencerBar({
                   {getRelationshipStatusLabel(relationship?.state)}
                 </div>
               </div>
-              <LoveScore sentimentScore={relationship?.sentiment_score} />
+              <LoveScore sentimentDelta={relationship?.sentiment_delta} />
             </div>
           </div>
         </div>
@@ -77,7 +77,7 @@ export default function ChatInfluencerBar({
           </div>
         </div>
         <div className={styles.profileMidCol}>
-          <ProfileMedia  size="medium" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} />
+          <ProfileMedia size="medium" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} />
           <button
             type="button"
             className={clsx(styles.profileSwitch, profileSwitch, !showChangeInfluencerButton && styles.hidden)}

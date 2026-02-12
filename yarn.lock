@@ -175,25 +175,25 @@
   resolved "https://registry.yarnpkg.com/@dimforge/rapier3d-compat/-/rapier3d-compat-0.12.0.tgz#7b3365e1dfdc5cd957b45afe920b4ac06c7cd389"
   integrity sha512-uekIGetywIgopfD97oDL5PfeezkFpNhwlzlaEYNOA0N6ghdsOvh/HYjSMek5Q2O1PYvRSDFcqFVJl4r4ZBwOow==
 
-"@elevenlabs/client@0.12.2", "@elevenlabs/client@^0.12.0":
-  version "0.12.2"
-  resolved "https://registry.yarnpkg.com/@elevenlabs/client/-/client-0.12.2.tgz#0a19057eb71c378cd115b2d3e8f292c5636c84a2"
-  integrity sha512-QWllhDndFfKmftlktNoa35+AF3gOCbSHowYhR42ZHb5u32lFbMPbh2BALCrpFa3edqCHSXtzG6zzLSAGjkhvHQ==
+"@elevenlabs/client@0.14.0", "@elevenlabs/client@^0.14.0":
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/@elevenlabs/client/-/client-0.14.0.tgz#b1f21f804c5d81232bbdf85a133457b8a07a9b78"
+  integrity sha512-Iy+iHSDhYm4vxWiIjrmIsjwiesEkgB5MPRizluigL7GTb9tZwlcx2J53/WNYewplQvRhLiMmwqGoDn6qxy7JzQ==
   dependencies:
-    "@elevenlabs/types" "0.4.0"
+    "@elevenlabs/types" "0.5.0"
     livekit-client "^2.11.4"
 
-"@elevenlabs/react@^0.12.1":
-  version "0.12.3"
-  resolved "https://registry.yarnpkg.com/@elevenlabs/react/-/react-0.12.3.tgz#131d342f98caffff861badce90ad826e3366a782"
-  integrity sha512-fQJlabwuvQziBCCNcxlXZt5GVxcPHjwb46NtSEbLJY0zaOUtWJynRX4kPfbz7ChqnMe7FAHYnrq2XsaSzpQXLQ==
+"@elevenlabs/react@^0.14.0":
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/@elevenlabs/react/-/react-0.14.0.tgz#a8649223c9ad45e7883b503d5397142f044a3d6b"
+  integrity sha512-iGI6yyPgZF1/FBtQtvyCW5lhQvlIEQ5LrKQxwzT3qBcS4Ja0f+jVftKQGhilRtJLOKeli5t7Dv9g9dDGO2gAwg==
   dependencies:
-    "@elevenlabs/client" "0.12.2"
+    "@elevenlabs/client" "0.14.0"
 
-"@elevenlabs/types@0.4.0":
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/@elevenlabs/types/-/types-0.4.0.tgz#f5a45ef2b8ed5a304eef9f28ba0da0af8ccdd7c2"
-  integrity sha512-6CQb4r9DjepILhLybDxW0h8rvbsR8jPAp74HvFGYuvYdXcQRTkYTD9BQ4PV6VcuC1iqx0UljzJj8js3ADQ8EXw==
+"@elevenlabs/types@0.5.0":
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/@elevenlabs/types/-/types-0.5.0.tgz#57bebc5216b39b0323b66a5bb6371cf2f8423a6c"
+  integrity sha512-tTawfIkJdOmV1W74yOYFbCXOwz/5sYKtdxVoK8uf5tDdtpZUHerBC25Oc8i7shZQc6QvvIuyV2YtMh37PKYMBA==
 
 "@esbuild/aix-ppc64@0.25.12":
   version "0.25.12"
@@ -466,6 +466,13 @@
   integrity sha512-0jeCwoMJKcwsZICg5S6RZM4xhJoF78qMvQELjACJQn6/VB+jmiySQKOSELTXvPBVafHfEbMlqxUw2UR1jTXs2g==
   dependencies:
     "@bufbuild/protobuf" "^1.10.0"
+
+"@playwright/test@^1.58.2":
+  version "1.58.2"
+  resolved "https://registry.yarnpkg.com/@playwright/test/-/test-1.58.2.tgz#b0ad585d2e950d690ef52424967a42f40c6d2cbd"
+  integrity sha512-akea+6bHYBBfA9uQqSYmlJXn61cTa+jbO87xVLCWbTqbWadRVmhxlXATaOjOgcBaWU4ePo0wB41KMFv3o35IXA==
+  dependencies:
+    playwright "1.58.2"
 
 "@react-three/fiber@^9.2.0":
   version "9.5.0"
@@ -837,6 +844,11 @@
   version "1.0.8"
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-1.0.8.tgz#958b91c991b1867ced318bedea0e215ee050726e"
   integrity sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==
+
+"@types/howler@^2.2.12":
+  version "2.2.12"
+  resolved "https://registry.yarnpkg.com/@types/howler/-/howler-2.2.12.tgz#078d20787911f6e3e871a0e93a23832e13abaa59"
+  integrity sha512-hy769UICzOSdK0Kn1FBk4gN+lswcj1EKRkmiDtMkUGvFfYJzgaDXmVXkSShS2m89ERAatGIPnTUlp2HhfkVo5g==
 
 "@types/json-schema@^7.0.15":
   version "7.0.15"
@@ -1639,6 +1651,11 @@ fraction.js@^5.3.4:
   resolved "https://registry.yarnpkg.com/fraction.js/-/fraction.js-5.3.4.tgz#8c0fcc6a9908262df4ed197427bdeef563e0699a"
   integrity sha512-1X1NTtiJphryn/uLQz3whtY6jK3fTqoE3ohKs0tT+Ujr1W59oopxmoEh7Lu5p6vBaPbgoM0bzveAW4Qi5RyWDQ==
 
+fsevents@2.3.2:
+  version "2.3.2"
+  resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-2.3.2.tgz#8a526f78b8fdf4623b709e0b975c52c24c02fd1a"
+  integrity sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==
+
 fsevents@~2.3.2, fsevents@~2.3.3:
   version "2.3.3"
   resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-2.3.3.tgz#cac6407785d03675a2a5e1a5305c697b347d90d6"
@@ -1723,6 +1740,11 @@ hasown@^2.0.2:
   integrity sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==
   dependencies:
     function-bind "^1.1.2"
+
+howler@^2.2.4:
+  version "2.2.4"
+  resolved "https://registry.yarnpkg.com/howler/-/howler-2.2.4.tgz#bd3df4a4f68a0118a51e4bd84a2bfc2e93e6e5a1"
+  integrity sha512-iARIBPgcQrwtEr+tALF+rapJ8qSc+Set2GJQl7xT1MQzWaVkFebdJhR3alVlSiUf5U7nAANKuj3aWpwerocD5w==
 
 ieee754@^1.2.1:
   version "1.2.1"
@@ -2098,6 +2120,20 @@ picomatch@^4.0.2, picomatch@^4.0.3:
   version "4.0.3"
   resolved "https://registry.yarnpkg.com/picomatch/-/picomatch-4.0.3.tgz#796c76136d1eead715db1e7bad785dedd695a042"
   integrity sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q==
+
+playwright-core@1.58.2:
+  version "1.58.2"
+  resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.58.2.tgz#ac5f5b4b10d29bcf934415f0b8d133b34b0dcb13"
+  integrity sha512-yZkEtftgwS8CsfYo7nm0KE8jsvm6i/PTgVtB8DL726wNf6H2IMsDuxCpJj59KDaxCtSnrWan2AeDqM7JBaultg==
+
+playwright@1.58.2:
+  version "1.58.2"
+  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.58.2.tgz#afe547164539b0bcfcb79957394a7a3fa8683cfd"
+  integrity sha512-vA30H8Nvkq/cPBnNw4Q8TWz1EJyqgpuinBcHET0YVJVFldr8JDNiU9LaWAE1KqSkRYazuaBhTpB5ZzShOezQ6A==
+  dependencies:
+    playwright-core "1.58.2"
+  optionalDependencies:
+    fsevents "2.3.2"
 
 postcss-value-parser@^4.2.0:
   version "4.2.0"

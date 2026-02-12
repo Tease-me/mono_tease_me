@@ -1,4 +1,5 @@
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { Howl } from "howler";
 import { useMicrophonePermission } from "./useMicrophonePermission";
 import { ChatRepository } from "@/data/repositories/ChatRepo";
 import logger from "@/utils/logger";
@@ -17,7 +18,9 @@ export default function useCall() {
   } = useMicrophonePermission();
   const [influencerId, setInfluencerId] = useState<string>();
 
-  const ringtoneRef = useRef(new Audio("/audio/ringtone.wav"));
+  const ringtoneRef = useRef(
+    new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: true })
+  );
   const chatRepo = ChatRepository();
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const { user } = useContext(AuthContext);
@@ -31,19 +34,24 @@ export default function useCall() {
       }
     };
   }, []);
+  useEffect(() => {
+    return () => {
+      ringtoneRef.current.stop();
+      ringtoneRef.current.unload();
+    };
+  }, []);
 
   const ring = useCallback(() => {
     const ringtone = ringtoneRef.current;
-    ringtone.loop = true;
-
-    ringtone.play().catch((err) => {
+    try {
+      ringtone.play();
+    } catch (err) {
       console.error("Ringtone playback failed:", err);
-    });
+    }
   }, []);
 
   const stopRing = useCallback(() => {
-    ringtoneRef.current.pause();
-    ringtoneRef.current.currentTime = 0;
+    ringtoneRef.current.stop();
   }, []);
 
   const [micMuted, setMicMuted] = useState<boolean>(false);
