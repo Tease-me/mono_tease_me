@@ -140,6 +140,20 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
     }, [adultMode]);
 
     useEffect(() => {
+        clearReconnectTimer();
+        ws.current?.close();
+        setMessages([]);
+        setInputText("");
+        setInputAudio(undefined);
+        setTyping("idle");
+        setError(undefined);
+        setPageNumber(1);
+        setHasMore(true);
+        setIsLoadingMore(false);
+        setIsLoadingMessages(false);
+    }, [adultMode]);
+
+    useEffect(() => {
         storage.set(LocalStorageKeys.PreferredChatMode, mode);
     }, [mode]);
 
@@ -396,6 +410,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
         const access_token = storage.get(LocalStorageKeys.AccessToken);
         ws.current = new window.WebSocket(`${WS_BASE_URL}${adultMode ? Endpoints.ws.chat18 : Endpoints.ws.chat}/${influencerId}?token=${access_token}`);
 
+        const connectionChatId = chatId;
+        const connectionAdultMode = adultMode;
+
         ws.current.onopen = () => {
             setIsWsConnected(true);
             setError(undefined);
@@ -423,6 +440,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                     setAdultMinutesRemaining(voiceSeconds != null ? secondsToMinutes(voiceSeconds) : undefined)
                 }
                 setTimeout(() => {
+                    if (chatId !== connectionChatId || adultModeRef.current !== connectionAdultMode) {
+                        return;
+                    }
+
                     setMessages(prev => {
                         if (!prev) return [];
                         return [
@@ -500,11 +521,23 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
         if (!influencer) return;
         if (!chatId) return;
 
+        const capturedMode = adultMode;
+        const capturedChatId = chatId;
+
         try {
 
-            const { audio_url, transcript, ai_text } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
+            const { audio_url, transcript, ai_text } = await (capturedMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, capturedChatId);
+
+            if (adultModeRef.current !== capturedMode || chatId !== capturedChatId) {
+                return;
+            }
+
             setTyping("recording");
             setTimeout(() => {
+                if (adultModeRef.current !== capturedMode || chatId !== capturedChatId) {
+                    return;
+                }
+
                 setMessages((prev) => {
                     if (!prev) return prev;
                     const nextMessages = prev.map((message) => {
