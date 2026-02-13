@@ -164,9 +164,10 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any) => 
         return;
       }
 
+      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
       const { token: conversationToken, credits_remainder_secs, greeting_used, prompt, native_language } = await chatRepo.getConversationToken(
         influencerId,
-        user.id,
+        userTimezone,
         abortController.signal,
       );
 
