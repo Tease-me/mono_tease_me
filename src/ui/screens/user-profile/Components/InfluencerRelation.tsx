@@ -380,7 +380,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         <div className={styles.relationshipHeader}>
           <div className={styles.relationshipTitle}>Relationship Statistics</div>
         </div>
-        <RelationshipStageProgress currentStage={data.state ?? ""} stageValue={data.stageScore ?? 0} large />
+        <RelationshipStageProgress stageValue={data.stageScore ?? 0} large />
 
         {/*  radar chart */}
         <div className={styles.radarPlaceholder}>
