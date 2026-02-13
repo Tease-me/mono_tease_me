@@ -14,6 +14,7 @@ import BalanceBadge from "@/ui/components/stats/BalanceBadge";
 import AdultModeToggle from "@/ui/components/adult-mode-toggle/AdultModeToggle";
 import { Modal } from "@/ui/components/modals/Modal";
 import { formatDateTimeRelative, minutesToTime } from "@/utils/DateTimeUtils";
+import RelationshipStageProgress from "@/ui/components/stats/RelationshipStageProgress";
 
 
 import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
@@ -379,9 +380,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         <div className={styles.relationshipHeader}>
           <div className={styles.relationshipTitle}>Relationship Statistics</div>
         </div>
-        <div className={styles.progressBar}>
-          <ProgressBar mutedLabel label="Relationship Stage Progress" value={data.stageScore ?? 0} max={100} /><p>{data.state}</p>
-        </div>
+        <RelationshipStageProgress currentStage={data.state ?? ""} stageValue={data.stageScore ?? 0} large />
 
         {/*  radar chart */}
         <div className={styles.radarPlaceholder}>
