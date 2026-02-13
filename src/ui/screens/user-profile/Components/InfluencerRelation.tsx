@@ -3,7 +3,6 @@ import clsx from "clsx";
 import styles from "./InfluencerRelation.module.css";
 import SvgPack from "@/utils/SvgPack";
 import { apiClient } from "@/api/apis";
-import ProfileMedia from "@/ui/components/ProfileMedia";
 import RelationshipRadar from "@/ui/components/visualizations/RelationshipRadart";
 import UsageView from "@/ui/components/stats/UsageView";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
@@ -15,6 +14,7 @@ import { Modal } from "@/ui/components/modals/Modal";
 import { formatDateTimeRelative, minutesToTime } from "@/utils/DateTimeUtils";
 import RelationshipStageProgress from "@/ui/components/stats/RelationshipStageProgress";
 import RelatioshipAffinities from "@/ui/components/stats/RelatioshipAffinities";
+import InfluencerProfileCard from "@/ui/components/profile/InfluencerProfileCard";
 
 
 import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
@@ -291,26 +291,13 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
 
   return (
     <div className={clsx("u-sidebar-page", styles.shell)}>
-      {/* Hero */}
-      <div className={styles.heroRow}>
-        <ProfileMedia imageSrc={data.image} videoSrc={data.video} size="medium" active />
-        <div className={styles.heroInfo}>
-          <div className={isSubscribed ? styles.badges : styles.badgesHide}>
-            <span className={styles.modeText}>
-              <span
-                className={styles.eighteenPlus}
-              >18+</span> Mode
-            </span>
-            <span className={styles.statusBadge}>
-              Subscribed
-            </span>
-          </div>
-          <div className={styles.meta}>
-            <span>Last Connected: <strong>{data.lastConnected ? formatDateTimeRelative(data.lastConnected) : "--"}</strong></span>
-            <span>Following since: {followingDate}</span>
-          </div>
-        </div>
-      </div>
+      <InfluencerProfileCard
+        name={data.name || ""}
+        image={data.image || ""}
+        isSubscribed={isSubscribed}
+        lastConnected={data.lastConnected ? formatDateTimeRelative(data.lastConnected) : "--"}
+        followingSince={followingDate}
+      />
 
       {/* Balance Card */}
       <div className={styles.balanceCard}>
