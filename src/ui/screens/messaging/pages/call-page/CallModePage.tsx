@@ -23,7 +23,7 @@ type CallModePageProps = {
     startConversation?: () => void;
     stopConversation?: () => void;
     status?: CallStatus;
-    timeRemaining?: number | null;
+    callTime?: number | null;
     micMute?: boolean;
     influencer?: InfluencerDataModel;
     relationship?: RelationshipDataModel;
@@ -32,7 +32,7 @@ type CallModePageProps = {
     cancelCall?: () => void;
 };
 
-const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, timeRemaining, errorMessage, cancelCall }: CallModePageProps) => {
+const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, callTime, errorMessage, cancelCall }: CallModePageProps) => {
     const [balance, setBalance] = React.useState<number>(0);
 
     const handleCallButtonClicked = () => {
@@ -78,9 +78,9 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
 
                 <div className={styles.statsRow}>
                     <div className={styles.statCard}>
-                        <div className={styles.statLabel}>Love</div>
+                        <div className={styles.statLabel}>Feelings</div>
                         <div className={styles.statValue}>
-                            <LoveScore rankPosition="left" sentimentDelta={relationship?.sentiment_delta || 0} size="large" />
+                            <LoveScore rankPosition="left" sentimentDelta={relationship?.sentiment_delta} size="large" />
                         </div>
                     </div>
                     <div className={styles.statCard}>
@@ -98,7 +98,7 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
 
                     {status === "connected" ? (
                         <div className={clsx(styles.connectionStatus, styles.connected)}>
-                            Connected <span>{timeRemaining && formatTime(timeRemaining)}</span>
+                            Connected <span>{formatTime(callTime ?? 0)}</span>
                         </div>
                     ) : status === "connecting" ? (
                         <div className={clsx(styles.connectionStatus, styles.connecting)}>

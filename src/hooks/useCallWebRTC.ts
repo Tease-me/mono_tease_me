@@ -36,6 +36,12 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any) => 
       }
     };
   }, []);
+  useEffect(() => {
+    return () => {
+      ringtoneRef.current.stop();
+      ringtoneRef.current.unload();
+    };
+  }, []);
 
   const ring = useCallback(() => {
     const ringtone = ringtoneRef.current;
@@ -113,6 +119,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any) => 
     if (!influencerId || startInFlightRef.current) {
       return;
     }
+    let errorStatus: number | null = null;
     const abortController = new AbortController();
     if (startAbortControllerRef.current) {
       startAbortControllerRef.current.abort();
@@ -157,9 +164,10 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any) => 
         return;
       }
 
+      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
       const { token: conversationToken, credits_remainder_secs, greeting_used, prompt, native_language } = await chatRepo.getConversationToken(
         influencerId,
-        user.id,
+        userTimezone,
         abortController.signal,
       );
 
@@ -213,12 +221,14 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any) => 
         setStatus("error");
         setErrorMessage(error.response?.data?.detail?.error || "Call failed");
         logger.error(error);
+        errorStatus = error.response?.status ?? null;
       }
     }
     if (startAbortControllerRef.current === abortController) {
       startAbortControllerRef.current = null;
     }
     startInFlightRef.current = false;
+    return { errorStatus };
   }, [chatRepo, influencerId, requestMicrophonePermission, stopRing, user]);
 
   useEffect(() => {

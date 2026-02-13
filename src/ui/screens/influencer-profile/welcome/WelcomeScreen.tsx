@@ -50,6 +50,12 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
       setIsFirstTime(false);
     }
   }, [status]);
+  useEffect(() => {
+    return () => {
+      audioRef.current.stop();
+      audioRef.current.unload();
+    };
+  }, []);
 
   useEffect(() => {
     setInfluencerId(influencer?.id);

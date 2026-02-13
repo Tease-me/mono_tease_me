@@ -39,6 +39,7 @@ import { UserServices } from '@/api/services/UserServices';
 import UpgradePlanModal from '@/ui/components/modals/subscription/UpgradePlanModal';
 import AddCreditsModal from '@/ui/components/modals/payment-modal/AddCreditsModal';
 import AdultTermsModal from '@/ui/components/modals/adult-terms/AdultTermsModal';
+import { useSidebar } from '@/hooks/useSidebar';
 
 const chatRepository = ChatRepository();
 const influencerRepo = InfluencerRepo();
@@ -84,6 +85,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
     const callModalTimeoutRef = useRef<number | null>(null);
 
     const { user } = useContext(AuthContext);
+    const { openSidebar } = useSidebar();
     const [adultMode, setAdultMode] = useState(false);
     const adultModeRef = useRef(false);
     useEffect(() => { adultModeRef.current = adultMode; }, [adultMode]);
@@ -101,6 +103,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
 
     const [showTermsModal, setShowTermsModal] = useState(false);
 
+    const [callTime, setCallTime] = useState(0);
     const isSuperUser = user?.id === 1;
 
     const pageSize = 20;
@@ -119,7 +122,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
         }).catch((err) => logger.error("Error refreshing relationship", err));
     };
 
-    const { status, startConversation, stopConversation, setInfluencerId, timeRemaining, micMuted, toggleMute, errorMessage, cancelCall } = useCallWebRTC({
+    const { status, startConversation, stopConversation, setInfluencerId, micMuted, toggleMute, errorMessage, cancelCall } = useCallWebRTC({
         onMessage: (message) => {
             logger.debug("Received WebRTC message on ChatScreenContent:", message);
             fetchRelationship();
@@ -134,6 +137,20 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
             }
             return prev;
         });
+    }, [adultMode]);
+
+    useEffect(() => {
+        clearReconnectTimer();
+        ws.current?.close();
+        setMessages([]);
+        setInputText("");
+        setInputAudio(undefined);
+        setTyping("idle");
+        setError(undefined);
+        setPageNumber(1);
+        setHasMore(true);
+        setIsLoadingMore(false);
+        setIsLoadingMessages(false);
     }, [adultMode]);
 
     useEffect(() => {
@@ -393,6 +410,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
         const access_token = storage.get(LocalStorageKeys.AccessToken);
         ws.current = new window.WebSocket(`${WS_BASE_URL}${adultMode ? Endpoints.ws.chat18 : Endpoints.ws.chat}/${influencerId}?token=${access_token}`);
 
+        const connectionChatId = chatId;
+        const connectionAdultMode = adultMode;
+
         ws.current.onopen = () => {
             setIsWsConnected(true);
             setError(undefined);
@@ -420,6 +440,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                     setAdultMinutesRemaining(voiceSeconds != null ? secondsToMinutes(voiceSeconds) : undefined)
                 }
                 setTimeout(() => {
+                    if (chatId !== connectionChatId || adultModeRef.current !== connectionAdultMode) {
+                        return;
+                    }
+
                     setMessages(prev => {
                         if (!prev) return [];
                         return [
@@ -446,6 +470,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                     }
                 }, calculateReplyTime(data.reply));
             } else if (data.error) {
+
                 setTyping("idle");
                 logger.error("Error in WebSocket message:", data.error);
                 if (data.error === "INSUFFICIENT_CREDITS") {
@@ -456,7 +481,12 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                         setShowTopupModal(true);
                     }
                 } else {
-                    setError(data.error || "An error occurred while sending the message.");
+                    if (typeof data.error === "string") {
+                        setError(data.error);
+                    } else {
+                        setError("An error occurred while sending the message.");
+                    }
+
                 }
             }
         };
@@ -473,49 +503,78 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
         };
     }, []);
 
+
+    useEffect(() => {
+        if (status === "connected") {
+            setCallTime(0);
+            const interval = setInterval(() => {
+                setCallTime(prev => prev + 1);
+            }, 1000);
+
+            return () => clearInterval(interval);
+        } else {
+            setCallTime(0);
+        }
+    }, [status])
+
     async function sendAndPlay(audioBlob: Blob, sentMessageId?: number) {
         if (!influencer) return;
         if (!chatId) return;
 
-        try {
-            const { audio_url, transcript, ai_text } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
+        const capturedMode = adultMode;
+        const capturedChatId = chatId;
 
-            setTyping("idle");
-            setMessages((prev) => {
-                if (!prev) return prev;
-                const nextMessages = prev.map((message) => {
-                    if (!sentMessageId || message.id !== sentMessageId) {
-                        return message;
-                    }
-                    return {
-                        ...message,
-                        transcript: isSuperUser ? (transcript ?? message.transcript) : message.transcript,
-                    };
+        try {
+
+            const { audio_url, transcript, ai_text } = await (capturedMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, capturedChatId);
+
+            if (adultModeRef.current !== capturedMode || chatId !== capturedChatId) {
+                return;
+            }
+
+            setTyping("recording");
+            setTimeout(() => {
+                if (adultModeRef.current !== capturedMode || chatId !== capturedChatId) {
+                    return;
+                }
+
+                setMessages((prev) => {
+                    if (!prev) return prev;
+                    const nextMessages = prev.map((message) => {
+                        if (!sentMessageId || message.id !== sentMessageId) {
+                            return message;
+                        }
+                        return {
+                            ...message,
+                            transcript: isSuperUser ? (transcript ?? message.transcript) : message.transcript,
+                        };
+                    });
+                    return [
+                        ...nextMessages,
+                        {
+                            id: Date.now(),
+                            sender: "received",
+                            channel: "chat",
+                            time: new Date().toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            }),
+                            timestamp: Date.now(),
+                            attachments: audio_url
+                                ? [
+                                    {
+                                        audioUrl: audio_url,
+                                        type: "audio",
+                                    },
+                                ]
+                                : [],
+                            transcript: isSuperUser ? ai_text : undefined,
+                        },
+                    ];
                 });
-                return [
-                    ...nextMessages,
-                    {
-                        id: Date.now(),
-                        sender: "received",
-                        channel: "chat",
-                        time: new Date().toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                        }),
-                        timestamp: Date.now(),
-                        attachments: audio_url
-                            ? [
-                                {
-                                    audioUrl: audio_url,
-                                    type: "audio",
-                                },
-                            ]
-                            : [],
-                        transcript: isSuperUser ? ai_text : undefined,
-                    },
-                ];
-            });
-            scrollToBottom();
+                setTyping("idle");
+                scrollToBottom();
+            }, 5000);
         } catch (err: any) {
             setTyping("idle");
             if (err?.response?.status === 402) {
@@ -582,9 +641,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                 setTyping("idle");
                 return false;
             }
-            setTyping("recording");
             const sentMessageId = Date.now();
-            sendAndPlay(audioToSend, sentMessageId);
             setMessages(prev => {
                 if (!prev) return [];
                 return [
@@ -607,6 +664,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                     },
                 ]
             });
+            sendAndPlay(audioToSend, sentMessageId);
         } else {
             return false;
         }
@@ -616,15 +674,20 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
         return true;
     };
 
-    const handleCallModeChange = () => {
-        setMode(prev => {
-            if (prev === "call") {
-                stopConversation();
-                return "chat";
-            }
-            startConversation();
-            return "call";
-        })
+    const handleStartConversation = React.useCallback(async () => {
+        const result = await startConversation();
+        if (result?.errorStatus === 402) {
+            setShowTopupModal(true);
+        }
+    }, [startConversation]);
+
+    const handleCallModeChange = async () => {
+        if (mode === "call") {
+            stopConversation();
+            setMode("chat");
+            return;
+        }
+        setMode("call");
     }
 
     const handleScrollEvent = () => {
@@ -737,9 +800,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                         cancelCall={cancelCall}
                         toggleMute={toggleMute}
                         status={status}
-                        timeRemaining={timeRemaining}
+                        callTime={callTime}
                         micMute={micMuted}
-                        startConversation={startConversation}
+                        startConversation={handleStartConversation}
                         stopConversation={stopConversation}
                         relationship={relationship}
                         influencer={influencer}
@@ -761,11 +824,12 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
             <UpgradePlanModal
                 isOpen={showUpgradeModal}
                 onClose={() => setShowUpgradeModal(false)}
+                onUpgrade={() => openSidebar("subscription", { influencerId: influencer?.id })}
             />
 
             <AddCreditsModal
                 isOpen={showTopupModal}
-                image={influencer?.img || ''}
+                image={influencer?.img}
                 onClose={() => setShowTopupModal(false)}
                 influencerId={influencer?.id || ''} />
 

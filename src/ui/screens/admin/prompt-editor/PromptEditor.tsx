@@ -79,6 +79,7 @@ const PromptEditor: React.FC = () => {
             { id: 0, name: "Normal Mode", content: null },
             { id: 1, name: "Adult Mode", content: null },
             { id: 2, name: "Others", content: null },
+            { id: 3, name: "Relationship", content: null },
         ],
         [],
     );
@@ -91,6 +92,9 @@ const PromptEditor: React.FC = () => {
     const [saveError, setSaveError] = useState<string | null>(null);
     const [fetchedKeys, setFetchedKeys] = useState<Set<string>>(() => new Set());
     const [activeTabId, setActiveTabId] = useState<number>(promptTabs[0]?.id ?? 0);
+    const [activeStage, setActiveStage] = useState<string>("HATE");
+    const [relationshipStagePrompts, setRelationshipStagePrompts] = useState<Record<string, string[]>>({});
+
 
     const activeTab = useMemo(
         () => promptTabs.find((tab) => tab.id === activeTabId) ?? promptTabs[0],
@@ -100,6 +104,7 @@ const PromptEditor: React.FC = () => {
     const activeTabKey: PromptTabKey = useMemo(() => {
         if (activeTab.id === 1) return "adult";
         if (activeTab.id === 2) return "others";
+        if (activeTab.id === 3) return "relationship";
         return "normal";
     }, [activeTab.id]);
 
@@ -111,6 +116,17 @@ const PromptEditor: React.FC = () => {
     const selectedNode = useMemo(
         () => nodes.find((node) => node.id === selectedId),
         [nodes, selectedId],
+    );
+
+    const relationshipStages = useMemo(() => Object.keys(relationshipStagePrompts), [relationshipStagePrompts]);
+    const showRelationshipStages = useMemo(
+        () => selectedNode?.id === "BASE_SYSTEM",
+        [selectedNode],
+    );
+
+    const activeStagePrompts = useMemo(
+        () => relationshipStagePrompts[activeStage] ?? [],
+        [activeStage, relationshipStagePrompts],
     );
 
     const handleFieldChange = (field: "defaultPrompt" | "name" | "description") => {
@@ -163,6 +179,16 @@ const PromptEditor: React.FC = () => {
             setPromptLoading(true);
             try {
                 const detail = await systemPromptService.get(key);
+                if (key === "BASE_SYSTEM") {
+                    try {
+                        const detail = await systemPromptService.get("RELATIONSHIP_STAGE_PROMPTS");
+                        const parsed = JSON.parse(detail.prompt);
+                        setRelationshipStagePrompts(parsed);
+                        setActiveStage(Object.keys(parsed)[0] ?? "HATE");
+                    } catch (e) {
+                        console.error("Failed to parse relationship stage prompts", e);
+                    }
+                }
                 setNodes((prev) =>
                     prev.map((node) =>
                         node.id === key
@@ -245,6 +271,25 @@ const PromptEditor: React.FC = () => {
             setSaveState("error");
         }
     }, [selectedNode]);
+
+    const handleRelationshipSave = useCallback(async () => {
+        if (!selectedNode) return;
+        if (selectedNode.id !== "BASE_SYSTEM")
+            return;
+        setSaveError(null);
+        setSaveState("saving");
+        try {
+            await systemPromptService.upsert("RELATIONSHIP_STAGE_PROMPTS", {
+                prompt: relationshipStagePrompts ? JSON.stringify(relationshipStagePrompts) : "",
+            });
+            setSaveState("saved");
+            setTimeout(() => setSaveState("idle"), 1800);
+        } catch (error) {
+            console.error("Failed to save relationship prompts", error);
+            setSaveError(error instanceof Error ? error.message : "Failed to save relationship prompts");
+            setSaveState("error");
+        }
+    }, [relationshipStagePrompts, selectedNode]);
 
     return (
         <>
@@ -349,6 +394,60 @@ const PromptEditor: React.FC = () => {
                                     <span className={styles["preview-chip__value"]}>{selectedNode.updatedAt}</span>
                                 </div>
                             </div>
+                            {showRelationshipStages && (
+                                <div className={styles["relationship-panel"]}>
+                                    <div className={styles["relationship-header"]}>
+                                        <div className={styles["relationship-title"]}>Relationship stages</div>
+                                        <p className={styles["relationship-subtitle"]}>
+                                            Select a stage to preview its behavior copy.
+                                        </p>
+                                    </div>
+                                    <div className={styles["relationship-body"]}>
+                                        <div className={styles["field"]}>
+                                            <label htmlFor="relationship-stage-select">Relationship stage</label>
+                                            <select
+                                                id="relationship-stage-select"
+                                                value={activeStage}
+                                                onChange={(event) => setActiveStage(event.target.value)}
+                                            >
+                                                {relationshipStages.map((stage) => (
+                                                    <option key={stage} value={stage}>
+                                                        {stage}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className={styles["field"]}>
+                                            <label htmlFor="relationship-stage-prompt">
+                                                {`Prompt for ${activeStage}`}
+                                            </label>
+                                            <textarea
+                                                id="relationship-stage-prompt"
+                                                value={activeStagePrompts.join("\n")}
+                                                rows={12}
+                                                onChange={(event) => {
+                                                    const lines = event.target.value.split("\n");
+                                                    setRelationshipStagePrompts((prev) => ({
+                                                        ...prev,
+                                                        [activeStage]: lines,
+                                                    }));
+                                                }}
+                                            />
+                                            <div className={styles["relationship-hint"]}>
+                                                Use one line per bullet.
+                                            </div>
+                                            <button
+                                                type="button"
+                                                className={`${styles["primary-button"]} ${styles["relationship-save"]} ${saveState === "saved" ? styles["primary-button--saved"] : ""}`}
+                                                onClick={handleRelationshipSave}
+                                                disabled={listLoading || promptLoading || saveState === "saving"}
+                                            >
+                                                {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : "Save relationship prompts"}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </>
                     ) : (
                         <div className={styles["empty-state"]}>

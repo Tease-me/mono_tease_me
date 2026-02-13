@@ -38,6 +38,7 @@ export default {
     HangupCallIcon: lazy(() => import("@/assets/svg/HangupCall.svg?react")),
     PlusPurple: lazy(() => import("@/assets/svg/PlusPurple.svg?react")),
     InfoCircle: lazy(() => import("@/assets/svg/InfoCircle.svg?react")),
+    InfoCircleGray: lazy(() => import("@/assets/svg/InfoCircleGray.svg?react")),
     // CircleTick: lazy(() => import("@/assets/svg/circle_tick.svg?react")),
     // CircleCross: lazy(() => import("@/assets/svg/circle_cross.svg?react")),
     PaymentTick: lazy(() => import("@/assets/svg/PaymentTick.svg?react")),
@@ -52,14 +53,14 @@ export default {
     Angles: lazy(() => import("@/assets/svg/Angles.svg?react")),
 
 
-        //Influencer Relationship Status
+    //Influencer Relationship Status
     RelHate: lazy(() => import("@/assets/svg/iconHate.svg?react")),
-    RelDislike: lazy(() => import("@/assets/svg/iconDislike.svg?react")), 
-    RelTalking: lazy(() => import("@/assets/svg/iconTalking.svg?react")), 
-    RelStrangers: lazy(() => import("@/assets/svg/iconStrangers.svg?react")), 
-    RelFlirting: lazy(() => import("@/assets/svg/iconFlirting.svg?react")), 
-    RelDating: lazy(() => import("@/assets/svg/iconDating.svg?react")),  
-    RelInLove: lazy(() => import("@/assets/svg/iconInLove.svg?react")), 
+    RelDislike: lazy(() => import("@/assets/svg/iconDislike.svg?react")),
+    RelTalking: lazy(() => import("@/assets/svg/iconTalking.svg?react")),
+    RelStrangers: lazy(() => import("@/assets/svg/iconStrangers.svg?react")),
+    RelFlirting: lazy(() => import("@/assets/svg/iconFlirting.svg?react")),
+    RelDating: lazy(() => import("@/assets/svg/iconDating.svg?react")),
+    RelInLove: lazy(() => import("@/assets/svg/iconInLove.svg?react")),
 
 
     // Social Media Icons

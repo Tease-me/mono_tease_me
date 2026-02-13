@@ -7,11 +7,16 @@
     "start": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:report": "playwright show-report"
   },
   "dependencies": {
-    "@elevenlabs/client": "^0.12.0",
-    "@elevenlabs/react": "^0.12.1",
+    "@elevenlabs/client": "^0.14.0",
+    "@elevenlabs/react": "^0.14.0",
     "@react-three/fiber": "^9.2.0",
     "@tanstack/react-query": "^5.90.20",
     "@types/dom-mediacapture-record": "^1",
@@ -36,6 +41,7 @@
   "devDependencies": {
     "@eslint/js": "^9.25.0",
     "@faker-js/faker": "^9.9.0",
+    "@playwright/test": "^1.58.2",
     "@types/howler": "^2.2.12",
     "@types/node": "^24.0.13",
     "@types/react": "^19.1.8",
