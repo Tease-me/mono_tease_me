@@ -8,13 +8,13 @@ import RelationshipRadar from "@/ui/components/visualizations/RelationshipRadart
 import UsageView from "@/ui/components/stats/UsageView";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
-import ProgressBar from "@/ui/components/stats/ProgressBar";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import BalanceBadge from "@/ui/components/stats/BalanceBadge";
 import AdultModeToggle from "@/ui/components/adult-mode-toggle/AdultModeToggle";
 import { Modal } from "@/ui/components/modals/Modal";
 import { formatDateTimeRelative, minutesToTime } from "@/utils/DateTimeUtils";
 import RelationshipStageProgress from "@/ui/components/stats/RelationshipStageProgress";
+import RelatioshipAffinities from "@/ui/components/stats/RelatioshipAffinities";
 
 
 import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
@@ -396,11 +396,8 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
       </div>
 
       <div className={styles.relationshipStatsArea}>
-
-        <ProgressBar icon={<SvgPack.Trust />} compact label="Trust" value={data.trust ?? 0} max={100} showInfoIcon tooltipLabel="Trust" />
-        <ProgressBar icon={<SvgPack.Angles />} compact label="Closeness" value={data.closeness ?? 0} max={100} showInfoIcon tooltipLabel="Closeness" />
-        <ProgressBar icon={<SvgPack.KissGray />} compact label="Attraction" value={data.attraction ?? 0} max={100} showInfoIcon tooltipLabel="Attraction" />
-        <ProgressBar icon={<SvgPack.Shield />} compact label="Safety" value={data.safety ?? 0} max={100} showInfoIcon tooltipLabel="Safety" />
+        <RelatioshipAffinities trust={data.trust ?? 0} closeness={data.closeness ?? 0} attraction={data.attraction ?? 0}
+          safety={data.safety ?? 0} />
       </div>
 
       {/* <div className={styles.unfollow}>
