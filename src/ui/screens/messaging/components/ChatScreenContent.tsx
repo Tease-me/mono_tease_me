@@ -103,6 +103,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
 
     const [showTermsModal, setShowTermsModal] = useState(false);
 
+    const [callTime, setCallTime] = useState(0);
     const isSuperUser = user?.id === 1;
 
     const pageSize = 20;
@@ -121,7 +122,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
         }).catch((err) => logger.error("Error refreshing relationship", err));
     };
 
-    const { status, startConversation, stopConversation, setInfluencerId, timeRemaining, micMuted, toggleMute, errorMessage, cancelCall } = useCallWebRTC({
+    const { status, startConversation, stopConversation, setInfluencerId, micMuted, toggleMute, errorMessage, cancelCall } = useCallWebRTC({
         onMessage: (message) => {
             logger.debug("Received WebRTC message on ChatScreenContent:", message);
             fetchRelationship();
@@ -136,6 +137,20 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
             }
             return prev;
         });
+    }, [adultMode]);
+
+    useEffect(() => {
+        clearReconnectTimer();
+        ws.current?.close();
+        setMessages([]);
+        setInputText("");
+        setInputAudio(undefined);
+        setTyping("idle");
+        setError(undefined);
+        setPageNumber(1);
+        setHasMore(true);
+        setIsLoadingMore(false);
+        setIsLoadingMessages(false);
     }, [adultMode]);
 
     useEffect(() => {
@@ -395,6 +410,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
         const access_token = storage.get(LocalStorageKeys.AccessToken);
         ws.current = new window.WebSocket(`${WS_BASE_URL}${adultMode ? Endpoints.ws.chat18 : Endpoints.ws.chat}/${influencerId}?token=${access_token}`);
 
+        const connectionChatId = chatId;
+        const connectionAdultMode = adultMode;
+
         ws.current.onopen = () => {
             setIsWsConnected(true);
             setError(undefined);
@@ -422,6 +440,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                     setAdultMinutesRemaining(voiceSeconds != null ? secondsToMinutes(voiceSeconds) : undefined)
                 }
                 setTimeout(() => {
+                    if (chatId !== connectionChatId || adultModeRef.current !== connectionAdultMode) {
+                        return;
+                    }
+
                     setMessages(prev => {
                         if (!prev) return [];
                         return [
@@ -481,15 +503,41 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
         };
     }, []);
 
+
+    useEffect(() => {
+        if (status === "connected") {
+            setCallTime(0);
+            const interval = setInterval(() => {
+                setCallTime(prev => prev + 1);
+            }, 1000);
+
+            return () => clearInterval(interval);
+        } else {
+            setCallTime(0);
+        }
+    }, [status])
+
     async function sendAndPlay(audioBlob: Blob, sentMessageId?: number) {
         if (!influencer) return;
         if (!chatId) return;
 
+        const capturedMode = adultMode;
+        const capturedChatId = chatId;
+
         try {
 
-            const { audio_url, transcript, ai_text } = await (adultMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, chatId);
+            const { audio_url, transcript, ai_text } = await (capturedMode ? adultChatRepo : chatRepository).sendAudioMessage(audioBlob, influencer.id, capturedChatId);
+
+            if (adultModeRef.current !== capturedMode || chatId !== capturedChatId) {
+                return;
+            }
+
             setTyping("recording");
             setTimeout(() => {
+                if (adultModeRef.current !== capturedMode || chatId !== capturedChatId) {
+                    return;
+                }
+
                 setMessages((prev) => {
                     if (!prev) return prev;
                     const nextMessages = prev.map((message) => {
@@ -752,7 +800,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                         cancelCall={cancelCall}
                         toggleMute={toggleMute}
                         status={status}
-                        timeRemaining={timeRemaining}
+                        callTime={callTime}
                         micMute={micMuted}
                         startConversation={handleStartConversation}
                         stopConversation={stopConversation}
