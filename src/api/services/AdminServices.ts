@@ -71,4 +71,112 @@ export const AdminServices = (apiClient: AxiosInstance) => ({
     const response = await apiClient.delete(Endpoints.admin.history(chat_id));
     return response.data;
   },
+
+  /* ── API-Usage Analytics ─────────────────────────────── */
+
+  getApiUsageSummary: async (
+    period = "24h",
+    groupBy = "category"
+  ): Promise<ApiUsageSummaryResponse> => {
+    const response = await apiClient.get(
+      Endpoints.admin.apiUsage.summary(period, groupBy)
+    );
+    return response.data;
+  },
+
+  getTopApiUsers: async (
+    period = "24h"
+  ): Promise<TopApiUsersResponse> => {
+    const response = await apiClient.get(
+      Endpoints.admin.apiUsage.topUsers(period)
+    );
+    return response.data;
+  },
+
+  getTopApiInfluencers: async (
+    period = "24h"
+  ): Promise<TopApiInfluencersResponse> => {
+    const response = await apiClient.get(
+      Endpoints.admin.apiUsage.topInfluencers(period)
+    );
+    return response.data;
+  },
+
+  getApiErrors: async (
+    period = "24h"
+  ): Promise<ApiErrorsResponse> => {
+    const response = await apiClient.get(
+      Endpoints.admin.apiUsage.errors(period)
+    );
+    return response.data;
+  },
 });
+
+/* ── Analytics Response Types ──────────────────────────── */
+
+export type UsageGroupRow = {
+  key: string;
+  total_calls: number;
+  total_input_tokens: number;
+  total_output_tokens: number;
+  total_tokens: number;
+  total_cost_micros: number;
+  estimated_cost_usd: number;
+  avg_latency_ms: number | null;
+  max_latency_ms: number | null;
+  total_duration_secs: number | null;
+  error_count: number;
+  error_rate: number;
+};
+
+export type ApiUsageSummaryResponse = {
+  period: string;
+  group_by: string;
+  cutoff: string;
+  groups: UsageGroupRow[];
+};
+
+export type TopApiUser = {
+  user_id: number;
+  total_calls: number;
+  total_tokens: number;
+  total_cost_micros: number;
+  estimated_cost_usd: number;
+};
+
+export type TopApiUsersResponse = {
+  period: string;
+  users: TopApiUser[];
+};
+
+export type TopApiInfluencer = {
+  influencer_id: string;
+  total_calls: number;
+  total_tokens: number;
+  total_cost_micros: number;
+  estimated_cost_usd: number;
+  total_call_secs: number;
+};
+
+export type TopApiInfluencersResponse = {
+  period: string;
+  influencers: TopApiInfluencer[];
+};
+
+export type ApiErrorRow = {
+  id: number;
+  created_at: string;
+  category: string;
+  provider: string;
+  model: string;
+  purpose: string;
+  user_id: number | null;
+  influencer_id: string | null;
+  error_message: string | null;
+};
+
+export type ApiErrorsResponse = {
+  period: string;
+  total_errors: number;
+  errors: ApiErrorRow[];
+};

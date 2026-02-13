@@ -26,6 +26,7 @@ export const Paths = {
         prompts: "/admin/prompts",
         relationship: "/admin/relationship",
         preInfluencers: "/admin/pre-influencers",
+        analytics: "/admin/analytics",
         preInfluencerDetail: (id = ":pre_influencer_id") =>
             `/admin/pre-influencers/${id}`,
     },

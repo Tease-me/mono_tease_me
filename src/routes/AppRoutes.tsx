@@ -68,6 +68,9 @@ const CreateInfluencer = lazy(
 const PromptEditorAdmin = lazy(
   () => import("@/ui/screens/admin/PromptEditorAdmin")
 );
+const AdminAnalytics = lazy(
+  () => import("@/ui/screens/admin/analytics/AdminAnalytics")
+);
 const AdultModePage = lazy(
   () => import("@/ui/screens/messaging/pages/adult-mode/AdultModePage")
 );
@@ -169,6 +172,7 @@ function AppRoutes() {
       element: <AdminPreInfluencerDetail />,
     },
     { path: Paths.admin.preInfluencers, element: <AdminPreInfluencers /> },
+    { path: Paths.admin.analytics, element: <AdminAnalytics /> },
   ];
 
   const privateRoutes: { path: string; element: JSX.Element }[] = [

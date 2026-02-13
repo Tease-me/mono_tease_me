@@ -36,6 +36,39 @@
 .body {
     flex: 1;
     min-height: 0;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
+}
+
+/* ─── Mobile Layout ───────────────────────────────────── */
+@media (max-width: 768px) {
+    .container {
+        padding: 14px;
+        gap: var(--space-px-12);
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-px-8);
+    }
+
+    .title {
+        font-size: 20px;
+    }
+
+    .subtitle {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 380px) {
+    .container {
+        padding: 10px;
+    }
+
+    .title {
+        font-size: 18px;
+    }
 }

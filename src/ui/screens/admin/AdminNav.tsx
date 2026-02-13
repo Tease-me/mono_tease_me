@@ -11,6 +11,7 @@ const links = [
     external: false,
   },
   { to: "/admin/pre-influencers", label: "Pre-Influencers" },
+  { to: "/admin/analytics", label: "Analytics" },
 ];
 
 const AdminNav: React.FC = () => {
