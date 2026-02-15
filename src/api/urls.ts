@@ -80,16 +80,16 @@ export const Endpoints = {
       `admin/relationships?user_id=${user_id}`,
 
     patchRelationship: `admin/relationships`,
-    apiUsage: {
-      summary: (period = "24h", groupBy = "category") =>
+    analytics: {
+      usageSummary: (
+        period: string = "24h",
+        groupBy: string = "category"
+      ) =>
         `admin/api-usage/summary?period=${period}&group_by=${groupBy}`,
-      topUsers: (period = "24h") =>
-        `admin/api-usage/top-users?period=${period}`,
-      topInfluencers: (period = "24h") =>
-        `admin/api-usage/top-influencers?period=${period}`,
-      errors: (period = "24h") =>
-        `admin/api-usage/errors?period=${period}`,
-    },
+      topUsers: (period: string = "24h") => `admin/api-usage/top-users?period=${period}`,
+      topInfluencers: (period: string = "24h") => `admin/api-usage/top-influencers?period=${period}`,
+      errors: (period: string = "24h") => `admin/api-usage/errors?period=${period}`,
+    }
   },
   subscriptions: {
     start: "/subscriptions/start",

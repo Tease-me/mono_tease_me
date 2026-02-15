@@ -40,6 +40,9 @@ const AdminPreInfluencerDetail = lazy(
   () =>
     import("@/ui/screens/admin/pre-influencers/AdminPreInfluencerDetail")
 );
+const AdminAnalytics = lazy(
+  () => import("@/ui/screens/admin/analytics/AdminAnalytics")
+);
 const InfluencerProfileScreen = lazy(
   () => import("@/ui/screens/influencer-profile/InfluencerProfileScreen")
 );
@@ -67,9 +70,6 @@ const CreateInfluencer = lazy(
 );
 const PromptEditorAdmin = lazy(
   () => import("@/ui/screens/admin/PromptEditorAdmin")
-);
-const AdminAnalytics = lazy(
-  () => import("@/ui/screens/admin/analytics/AdminAnalytics")
 );
 const AdultModePage = lazy(
   () => import("@/ui/screens/messaging/pages/adult-mode/AdultModePage")
