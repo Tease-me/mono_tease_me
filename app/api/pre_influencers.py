@@ -21,6 +21,7 @@ from fastapi import (
     Response,
     status
 )
+from app.utils.auth.dependencies import get_current_pre_influencer
 from app.agents.prompts import SURVEY_SUMMARIZER
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
@@ -62,6 +63,12 @@ router = APIRouter(prefix="/pre-influencers", tags=["pre-influencers"])
 
 def normalize_influencer_id(username: str) -> str:
     return re.sub(r"[^a-z0-9_]", "", username.lower())
+
+@router.get("/me")
+async def get_pre_influencer_me(
+    current_pre: PreInfluencer = Depends(get_current_pre_influencer),
+):
+    return _pre_influencer_with_profile_picture_url(current_pre)
 
 @router.get("/check-ig/{instagram_username}")
 async def check_instagram_exists(
