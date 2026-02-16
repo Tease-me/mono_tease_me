@@ -90,27 +90,34 @@ def adjust_dimensions_for_stage_change(trust: float, closeness: float, attractio
 
 
 def compute_stage_delta(sig) -> float:
+  """
+  Calculate stage points delta with balanced, gradual progression.
+  Reduced multipliers for more stable, realistic relationship changes.
+  """
+  # POSITIVE signals - reduced for slower, more earned progression
   delta = (
-      2.0 * sig.support +
-      1.6 * sig.affection +
-      1.6 * sig.respect +
-      1.4 * sig.flirt
+      1.0 * sig.support +      # Was 2.0
+      0.8 * sig.affection +    # Was 1.6
+      0.8 * sig.respect +      # Was 1.6
+      0.7 * sig.flirt          # Was 1.4
   )
 
-  delta -= 5.0 * sig.boundary_push
-  delta -= 3.5 * sig.rude
-
-  delta -= 4.0 * getattr(sig, "dislike", 0.0)
-  delta -= 8.0 * getattr(sig, "hate", 0.0)
-  delta -= 10.0 * getattr(sig, "threat", 0.0)
-  delta -= 4.0 * getattr(sig, "rejecting", 0.0)
-  delta -= 2.0 * getattr(sig, "insult", 0.0)
+  # NEGATIVE signals - reduced for less catastrophic drops
+  delta -= 2.0 * sig.boundary_push           # Was 5.0
+  delta -= 1.5 * sig.rude                    # Was 3.5
+  delta -= 1.5 * getattr(sig, "dislike", 0.0)   # Was 4.0
+  delta -= 3.0 * getattr(sig, "hate", 0.0)      # Was 8.0
+  delta -= 4.0 * getattr(sig, "threat", 0.0)    # Was 10.0
+  delta -= 1.5 * getattr(sig, "rejecting", 0.0) # Was 4.0
+  delta -= 1.0 * getattr(sig, "insult", 0.0)    # Was 2.0
 
   # No free baseline points - users must earn progression
   baseline = 0.0
   delta += baseline
 
-  return max(-8.0, min(3.0, delta))
+  # Tighter caps for more gradual progression
+  # Max gain: +1.5 per message, Max loss: -3.0 per message
+  return max(-3.0, min(1.5, delta))
 
 
 async def process_relationship_turn(
