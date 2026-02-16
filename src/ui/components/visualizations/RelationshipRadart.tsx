@@ -42,7 +42,12 @@ const RelationshipRadar: React.FC<RelationshipRadarProps> = ({
 
   return (
     <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
-      <RadarChart data={data} width={width} height={height}>
+      <RadarChart
+        data={data}
+        width={width}
+        height={height}
+        margin={{ top: 30, right: 40, bottom: 30, left: 90 }}
+      >
         <PolarGrid />
         <PolarAngleAxis dataKey="metric" />
         <PolarRadiusAxis domain={[0, 100]} tickCount={6} />

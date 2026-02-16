@@ -8,13 +8,20 @@ type InfluencerProfileCardProps = {
   lastConnected: string;
   followingSince: string;
   isSubscribed?: boolean;
+  onlyFansUrl?: string;
+  instagramUrl?: string;
+  tiktokUrl?: string;
+  snapchatUrl?: string;
+  telegramUrl?: string;
+  xUrl?: string;
+  whatsappUrl?: string;
 };
 
-const SOCIAL_ICONS = [
-  { icon: SvgPack.OnlyFans, label: "OnlyFans" },
-  { icon: SvgPack.Instagram, label: "Instagram" },
-  { icon: SvgPack.TikTok, label: "TikTok" },
-];
+type SocialLink = {
+  icon: React.ComponentType;
+  label: string;
+  url: string;
+};
 
 export default function InfluencerProfileCard({
   name,
@@ -22,7 +29,23 @@ export default function InfluencerProfileCard({
   lastConnected,
   followingSince,
   isSubscribed = false,
+  onlyFansUrl,
+  instagramUrl,
+  tiktokUrl,
+  snapchatUrl,
+  telegramUrl,
+  xUrl,
+  whatsappUrl,
 }: InfluencerProfileCardProps) {
+  const socialLinks: SocialLink[] = [
+    ...(onlyFansUrl ? [{ icon: SvgPack.OnlyFans, label: "OnlyFans", url: onlyFansUrl }] : []),
+    ...(instagramUrl ? [{ icon: SvgPack.Instagram, label: "Instagram", url: instagramUrl }] : []),
+    ...(tiktokUrl ? [{ icon: SvgPack.TikTok, label: "TikTok", url: tiktokUrl }] : []),
+    ...(snapchatUrl ? [{ icon: SvgPack.SocialSnapChatWhite, label: "Snapchat", url: snapchatUrl }] : []),
+    ...(telegramUrl ? [{ icon: SvgPack.SocialTelegramWhite, label: "Telegram", url: telegramUrl }] : []),
+    ...(xUrl ? [{ icon: SvgPack.SocialXWhite, label: "X", url: xUrl }] : []),
+    ...(whatsappUrl ? [{ icon: SvgPack.SocialWhatsAppWhite, label: "WhatsApp", url: whatsappUrl }] : []),
+  ];
   return (
     <div className={styles.section01}>
       <div className={styles.profileCardContainer}>
@@ -51,16 +74,25 @@ export default function InfluencerProfileCard({
           </div>
         </div>
       </div>
-      <div className={styles.profileSociallinks}>
-        {SOCIAL_ICONS.map((social, index) => {
-          const IconComponent = social.icon;
-          return (
-            <div key={index} className={styles.socialContainer}>
-              <IconComponent />
-            </div>
-          );
-        })}
-      </div>
+      {socialLinks.length > 0 && (
+        <div className={styles.profileSociallinks}>
+          {socialLinks.map((social, index) => {
+            const IconComponent = social.icon;
+            return (
+              <a
+                key={index}
+                href={social.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.socialContainer}
+                aria-label={social.label}
+              >
+                <IconComponent />
+              </a>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

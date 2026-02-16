@@ -90,6 +90,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
     const adultModeRef = useRef(false);
     useEffect(() => { adultModeRef.current = adultMode; }, [adultMode]);
     const [adultModeSwitch, setAdultModeSwitch] = useState(false);
+    const [hasSubscription, setHasSubscription] = useState(false);
     const storedMode = storage.get(LocalStorageKeys.PreferredChatMode);
     const [mode, setMode] = useState<"chat" | "call">(storedMode == null ? "call" : storedMode === "call" ? "call" : "chat");
     const [showSubscriptionPage, setShowSubscriptionPage] = useState(false);
@@ -187,13 +188,15 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
             }
             try {
                 const subscription = await subscriptionsServices.getMySubscriptionForInfluencer(influencer.id);
-                const isActive = subscription?.has_subscription === true;
+                const isActive = subscription?.has_subscription === true && subscription?.status === 'active';
                 const isAdult = isActive && subscription?.is_18_selected === true;
                 if (isMounted) {
+                    setHasSubscription(isActive);
                     setAdultModeSwitch(isAdult);
                     setAdultMode(isAdult);
                 }
             } catch (err) {
+                setHasSubscription(false);
                 setAdultModeSwitch(false);
                 setAdultMode(false);
                 logger.error("Error checking subscription for influencer:", err);
@@ -231,7 +234,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
             if (adultModeSwitch && influencer) {
                 try {
                     const subscription = await subscriptionsServices.getMySubscriptionForInfluencer(influencer.id);
-                    if (subscription?.has_subscription === true) {
+                    if (subscription?.has_subscription === true && subscription?.status === 'active') {
                         if (!subscription?.is_18_selected) {
                             await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, true);
                         }
@@ -748,6 +751,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                             adultMode={adultMode}
                             showChangeInfluencerButton={showChangeInfluencerButton}
                             onChangeInfluencer={handleChangeInfluencerClicked}
+                            isSubscribed={hasSubscription}
                         />
                         <div
                             className={clsx(styles["chat-messages-container"], isLoadingMessages && styles["loading"])}

@@ -65,13 +65,16 @@ type RelationData = {
   adultBalance?: number;
   adultVoiceMinutes?: number,
   adultMsgRemaining?: number,
-  //Love stats 
+  //Love stats
   trust?: number;
   safety?: number;
   attraction?: number;
   closeness?: number;
   stageScore?: number;
-  state?: string;
+  //Stage dimensions
+  currentStage?: string;
+  nextStage?: string;
+  stagePointsFromDims?: number;
 };
 
 
@@ -122,13 +125,14 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
 
     (async () => {
       try {
-        const [rel, bal, sub, u, i, following] = await Promise.all([
+        const [rel, bal, sub, u, i, following, dims] = await Promise.all([
           relationshipService.getRelationship(initial.id!),
           balanceService.getBalance(initial.id!, false).catch(() => null),
           subscriptionService.getMySubscriptionForInfluencer(initial.id!),
           userServices.getUserUsage(initial.id),
           influencerRepo.getInfluencer(initial.id!),
           followingService.list(),
+          relationshipService.getDimensions(initial.id!).catch(() => null),
         ]);
 
         if (cancelled) return;
@@ -141,7 +145,6 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           trust: rel?.trust ?? d.trust,
           safety: rel?.safety ?? d.safety,
           attraction: rel?.attraction ?? d.attraction,
-          state: rel?.state ?? d.state,
           closeness: rel?.closeness ?? d.closeness,
           stageScore: rel?.stage_points ?? d.stageScore,
           lastConnected: rel?.last_interaction_at ?? d.lastConnected,
@@ -154,6 +157,9 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           msgRemaining: u?.normal?.messages?.remaining ?? d.msgRemaining,
           adultVoiceMinutes: u?.adult?.voice?.remaining_minutes ?? d.adultVoiceMinutes,
           adultMsgRemaining: u?.adult?.messages?.remaining ?? d.adultMsgRemaining,
+          currentStage: dims?.current_stage ?? d.currentStage,
+          nextStage: dims?.next_stage ?? d.nextStage,
+          stagePointsFromDims: dims?.stage_points ?? d.stagePointsFromDims,
         }));
       } finally {
         if (!cancelled) setLoading(false);
@@ -367,7 +373,9 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         <div className={styles.relationshipHeader}>
           <div className={styles.relationshipTitle}>Relationship Statistics</div>
         </div>
-        <RelationshipStageProgress stageValue={data.stageScore ?? 0} large />
+        {data.currentStage && data.nextStage && (
+          <RelationshipStageProgress stageValue={data.stagePointsFromDims ?? data.stageScore ?? 0} large currentStage={data.currentStage} nextStage={data.nextStage} />
+        )}
 
         {/*  radar chart */}
         <div className={styles.radarPlaceholder}>

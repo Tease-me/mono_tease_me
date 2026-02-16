@@ -24,13 +24,17 @@
 }
 
 .profileimageContainer {
-  display: grid;
-  grid-template-columns: 1fr 1px;
+  position: relative;
+  display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .hearticon {
-  translate: -2.5rem -0.5rem;
+  position: absolute;
+  top: 50%;
+  left: calc(50% + 50px);
+  transform: translate(-50%, -50%);
   z-index: 2;
   opacity: 0.8;
   display: flex;
