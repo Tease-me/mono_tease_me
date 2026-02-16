@@ -138,36 +138,37 @@ def enforce_stage_dimension_caps(trust: float, closeness: float, attraction: flo
   return trust, closeness, attraction, safety
 
 
-def compute_stage_delta(sig) -> float:
+def compute_stage_delta(sig: Signals) -> float:
   """
   Calculate stage points delta with balanced, gradual progression.
-  Reduced multipliers for more stable, realistic relationship changes.
+  Heavily reduced multipliers for realistic, slow-burn relationship development.
+  Requires 3x more interactions per stage for meaningful progression.
   """
-  # POSITIVE signals - reduced for slower, more earned progression
+  # POSITIVE signals - reduced by ~50% for much slower progression
   delta = (
-      1.0 * sig.support +      # Was 2.0
-      0.8 * sig.affection +    # Was 1.6
-      0.8 * sig.respect +      # Was 1.6
-      0.7 * sig.flirt          # Was 1.4
+      0.5 * sig.support +      # Was 1.0 (originally 2.0)
+      0.4 * sig.affection +    # Was 0.8 (originally 1.6)
+      0.4 * sig.respect +      # Was 0.8 (originally 1.6)
+      0.3 * sig.flirt          # Was 0.7 (originally 1.4)
   )
 
-  # NEGATIVE signals - reduced for less catastrophic drops
-  delta -= 2.0 * sig.boundary_push  # Was 5.0
-  delta -= 1.5 * sig.rude           # Was 3.5
-  delta -= 1.5 * sig.dislike        # Was 4.0
-  delta -= 3.0 * sig.hate           # Was 8.0
+  # NEGATIVE signals - proportionally reduced by ~50%
+  delta -= 1.0 * sig.boundary_push  # Was 2.0 (originally 5.0)
+  delta -= 0.75 * sig.rude          # Was 1.5 (originally 3.5)
+  delta -= 0.75 * sig.dislike       # Was 1.5 (originally 4.0)
+  delta -= 1.5 * sig.hate           # Was 3.0 (originally 8.0)
 
-  # Small baseline for engaged conversation (not negative)
+  # Reduced baseline for non-negative engagement
   # Rewards genuine engagement without giving free points for spam
   is_negative = (sig.rude > 0.15 or sig.boundary_push > 0.15 or 
                  sig.dislike > 0.15 or sig.hate > 0.1)
   
-  baseline = 0.0 if is_negative else 0.15  # Small reward for non-negative engagement
+  baseline = 0.0 if is_negative else 0.08  # Was 0.15 - reduced for slower progression
   delta += baseline
 
-  # Tighter caps for more gradual progression
-  # Max gain: +1.5 per message, Max loss: -3.0 per message
-  return max(-3.0, min(1.5, delta))
+  # Tighter caps for controlled, realistic progression
+  # Max gain: +0.7 per message (was +1.5), Max loss: -1.5 per message (was -3.0)
+  return max(-1.5, min(0.7, delta))
 
 
 async def process_relationship_turn(
