@@ -237,7 +237,10 @@ def _format_history(messages: List[Message]) -> str:
         content = (msg.content or "").strip().replace("\n", " ")
         if not content:
             continue
-        lines.append(f"{speaker}: {content}")
+        ts = ""
+        if hasattr(msg, "created_at") and msg.created_at:
+            ts = f"[{msg.created_at.strftime('%b %d, %-I:%M %p')}] "
+        lines.append(f"{ts}{speaker}: {content}")
     return "\n".join(lines)
 
 

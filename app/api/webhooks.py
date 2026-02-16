@@ -339,16 +339,15 @@ async def eleven_webhook_get_memories(
     x_webhook_token: str | None = Header(default=None),
 ):
     _verify_token(ELEVENLABS_CONVAI_WEBHOOK_SECRET, x_webhook_token)
+    log.info("[MEMORIES] ── webhook hit ──")
 
     try:
         payload = await req.json()
-    except Exception:
+    except Exception as e:
+        log.warning("[MEMORIES] JSON parse failed: %s", e)
         return {"memories": []}
 
-    try:
-        log.info("[EL TOOL] payload(head)=%s", str(payload)[:800])
-    except Exception:
-        pass
+    log.info("[MEMORIES] payload(head)=%s", str(payload)[:800])
 
     # Simplified payload parsing
     user_text = str(
@@ -358,8 +357,10 @@ async def eleven_webhook_get_memories(
     ).strip()
     
     conversation_id = payload.get("conversation_id")
+    log.info("[MEMORIES] user_text=%r conv=%s", user_text[:120] if user_text else "", conversation_id)
     
     if not user_text or not conversation_id:
+        log.warning("[MEMORIES] early exit: user_text=%s conv=%s", bool(user_text), bool(conversation_id))
         return {"memories": []}
 
     # Quick lookup - fail fast
@@ -368,12 +369,18 @@ async def eleven_webhook_get_memories(
             select(CallRecord).where(CallRecord.conversation_id == conversation_id)
         )
     except Exception as e:
-        log.warning("[EL TOOL] CallRecord lookup failed: %s", str(e)[:100])
+        log.warning("[MEMORIES] CallRecord lookup failed: %s", str(e)[:100])
         return {"memories": []}
 
     if not call or not call.chat_id or not call.influencer_id:
+        log.warning(
+            "[MEMORIES] missing context: call=%s chat_id=%s infl=%s conv=%s",
+            bool(call), getattr(call, "chat_id", None), getattr(call, "influencer_id", None), conversation_id,
+        )
         return {"memories": []}
     
+    log.info("[MEMORIES] resolved: chat=%s infl=%s user=%s", call.chat_id, call.influencer_id, call.user_id)
+
     started = time.perf_counter()
     memories = []
     
@@ -381,12 +388,16 @@ async def eleven_webhook_get_memories(
         from app.services.embeddings import get_embedding
         
         # Tighter embedding timeout
+        emb_start = time.perf_counter()
         embedding = await asyncio.wait_for(
             get_embedding(user_text),
             timeout=0.5,
         )
+        emb_ms = int((time.perf_counter() - emb_start) * 1000)
+        log.info("[MEMORIES] embedding ok ms=%d", emb_ms)
         
         # Query ONLY memories (not messages) - faster, single query
+        mem_start = time.perf_counter()
         memories = await asyncio.wait_for(
             find_similar_memories(
                 message=user_text,
@@ -397,17 +408,27 @@ async def eleven_webhook_get_memories(
             ),
             timeout=1.5,
         )
+        mem_ms = int((time.perf_counter() - mem_start) * 1000)
+        mem_count = len(memories) if isinstance(memories, list) else 0
+        log.info("[MEMORIES] query ok ms=%d count=%d", mem_ms, mem_count)
+
+        # Log the actual memories returned for debugging
+        if isinstance(memories, list):
+            for i, mem in enumerate(memories[:5]):
+                preview = str(mem)[:120] if mem else "(empty)"
+                log.info("[MEMORIES]   [%d] %s", i, preview)
             
     except asyncio.TimeoutError:
-        log.warning("[EL TOOL] memory timeout conv=%s", conversation_id)
+        phase_ms = int((time.perf_counter() - started) * 1000)
+        log.warning("[MEMORIES] TIMEOUT at %dms conv=%s", phase_ms, conversation_id)
     except Exception as e:
-        log.warning("[EL TOOL] memory failed conv=%s: %s", conversation_id, str(e)[:100])
+        log.warning("[MEMORIES] FAILED conv=%s: %s", conversation_id, str(e)[:200])
     finally:
-        ms = int((time.perf_counter() - started) * 1000)
+        total_ms = int((time.perf_counter() - started) * 1000)
+        mem_count = len(memories) if isinstance(memories, list) else 0
         log.info(
-            "[EL TOOL] memories ms=%d count=%d conv=%s chat=%s infl=%s",
-            ms, len(memories) if isinstance(memories, list) else 0, 
-            conversation_id, call.chat_id, call.influencer_id
+            "[MEMORIES] ── done ── total_ms=%d count=%d conv=%s chat=%s infl=%s",
+            total_ms, mem_count, conversation_id, call.chat_id, call.influencer_id,
         )
 
     return {"memories": memories if isinstance(memories, list) else []}
