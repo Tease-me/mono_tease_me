@@ -1,0 +1,55 @@
+.progressBar {
+  display: grid;
+  grid-template-columns: 1fr;
+  border-radius: 1rem;
+  border: 1px solid #333;
+  background: #212121;
+  padding: 1.25rem 1rem;
+  gap: 0.75rem;
+  animation: fade-in-top 0.4s cubic-bezier(0.39, 0.575, 0.565, 1) both;
+  animation-delay: 0.5s;
+  font-family: var(--secondary-font-family);
+}
+
+.progressBar > div > div:first-child span {
+  font-weight: 400;
+}
+
+.progressBar > div {
+  gap: 1rem;
+}
+
+.stageLabelArea {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.stageLabelArea .body02 {
+  color: #ff2a71;
+  font-family: Urbanist, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 140%;
+  letter-spacing: 0.0125rem;
+  margin: 0;
+  opacity: 1;
+  padding: 0;
+  display: inline;
+}
+
+.stageLabelArea>div:last-child .body02 {
+  opacity: 0.3;
+}
+
+@keyframes fade-in-top {
+  0% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

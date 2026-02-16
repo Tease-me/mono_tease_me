@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+       .main {display: flex; flex-direction: column; height: 100vh; justify-content: center;}
+.anchor {anchor-name: --my-anchor; background: orange; max-width:200px; margin: 0 auto; }
+.target {position: absolute; position-anchor: --my-anchor; position-area: top center; background: purple; color: white; anchor-size: (width, 20%); translate:0 0vh;   opacity: 0;
+  pointer-events: none;
+  transition: all 0.15s ease;}
+.target::after {
+  content: "";
+  position: absolute;
+  bottom:-20px;
+
+  display: block;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-top: 20px solid #f00;
+  left: auto;
+  right: auto;
+
+
+ 
+ user-select: none;
+  pointer-events: none;
+
+}
+
+
+.main:has(.anchor:hover) .target {
+  opacity: 1;
+  pointer-events: auto;
+  translate:0 -1.5rem;
+  padding: 1rem;
+}
+
+        /*** media query Desktop ***/
+        @media (min-width: 32rem) {
+
+
+        }
+    </style>
+</head>
+
+<body bgcolor="#181A20">
+ <div class="main">
+<div class="anchor">anchor</div>
+<div class="target">target</div>
+</div>
+
+</body>
+
+</html>
