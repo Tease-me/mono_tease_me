@@ -350,13 +350,6 @@ def _extract_last_message(db_messages: List[Message], transcript: Optional[str])
 
 async def _get_contextual_first_message_prompt(db: AsyncSession) -> ChatPromptTemplate:
     system_prompt = await get_system_prompt(db, prompt_keys.CONTEXTUAL_FIRST_MESSAGE)
-    if not system_prompt:
-        system_prompt = (
-            "You are {influencer_name}, an affectionate companion. "
-            "Generate a warm, natural greeting for a call. Gap category: {gap_category}. "
-            "Last message: {last_message}. Keep it to 8-14 words with a natural pause."
-        )
-    
     return ChatPromptTemplate.from_messages([
         ("system", system_prompt),
         ("human", "Generate the greeting now. Output only the greeting text."),
