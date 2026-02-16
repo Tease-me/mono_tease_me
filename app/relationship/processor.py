@@ -285,7 +285,9 @@ async def process_relationship_turn(
     prev_state = rel.state  # Store before any changes
     
     # Calculate stage delta using current stage for stage-specific progression speeds
-    stage_points_delta = compute_stage_delta(sig, prev_state)
+    # For girlfriends, use dampened signals for consistency with dimension updates
+    active_sig = dampened_sig if rel.girlfriend_confirmed else sig
+    stage_points_delta = compute_stage_delta(active_sig, prev_state)
     rel.stage_points = max(STAGE_POINTS_MIN, min(STAGE_POINTS_MAX, prev_sp + stage_points_delta))
     
     # CHECK girlfriend_confirmed FIRST to preserve relationship status
