@@ -218,6 +218,28 @@ export function useSurveyForm({
     loadSurveyData();
   }, [token, temp_password]);
 
+  // Load picture URL from S3 key on page reload
+  useEffect(() => {
+    if (!preInfluencerId || !answers['profile_picture_key'] || pictureUrl) {
+      return;
+    }
+
+    const fetchPictureUrl = async () => {
+      try {
+        const { data } = await apiClient.get<{ url: string }>(
+          `/pre-influencers/${preInfluencerId}/picture-url`,
+          { params: { token, temp_password } }
+        );
+        setPictureUrl(data.url);
+      } catch (error) {
+        console.error('Failed to fetch picture URL on reload:', error);
+        // Silently fail - picture key is saved, just can't display URL yet
+      }
+    };
+
+    fetchPictureUrl();
+  }, [preInfluencerId, answers, token, temp_password, pictureUrl]);
+
   const { saveNow } = useAutoSave({
     preInfluencerId,
     answers,
