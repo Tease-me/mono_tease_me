@@ -798,7 +798,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                         stopConversation={stopConversation}
                         relationship={relationship}
                         influencer={influencer}
-                        errorMessage={errorMessage || "Something went wrong!"} />
+                        errorMessage={errorMessage || "Something went wrong!"}
+                        onChangeInfluencer={handleChangeInfluencerClicked} />
                     }
                 </> : (
                     <AdultModePage

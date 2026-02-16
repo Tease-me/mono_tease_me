@@ -16,6 +16,7 @@ import { getRelationshipStatusIcon, getRelationshipStatusLabel, RelationshipStat
 import { BalanceServices } from "@/api/services/BalanceServices";
 import { apiClient } from "@/api/apis";
 import { formatDateTimeRelative } from "@/utils/DateTimeUtils";
+import switchProfileImg from "@/assets/svg/switchProfile.svg";
 
 const balanceSvc = BalanceServices(apiClient);
 
@@ -30,9 +31,10 @@ type CallModePageProps = {
     toggleMute?: () => void;
     errorMessage?: string;
     cancelCall?: () => void;
+    onChangeInfluencer?: () => void;
 };
 
-const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, callTime, errorMessage, cancelCall }: CallModePageProps) => {
+const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, callTime, errorMessage, cancelCall, onChangeInfluencer }: CallModePageProps) => {
     const [balance, setBalance] = React.useState<number>(0);
 
     const handleCallButtonClicked = () => {
@@ -73,7 +75,17 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
         <div className={styles.page}>
             <div className={styles.cardCaller}>
                 <BalanceBadge balance={balance} />
-                <ProfileMedia active size="xlarge" mediaType="image" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} glow />
+                <div className={styles.profileWrap}>
+                    <ProfileMedia active size="xlarge" mediaType="image" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} glow />
+                    <button
+                        type="button"
+                        className={styles.profileSwitch}
+                        onClick={onChangeInfluencer}
+                        aria-label="Change influencer"
+                    >
+                        <img src={switchProfileImg} alt="Switch" /> <div className={styles.switchProfileLabel}>Switch Influencer</div>
+                    </button>
+                </div>
                 <div className={styles.name}>{influencer?.name}</div>
 
                 <div className={styles.statsRow}>
