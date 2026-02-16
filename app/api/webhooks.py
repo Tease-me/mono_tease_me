@@ -8,7 +8,7 @@ from app.agents.prompts import CONVO_ANALYZER
 from fastapi import APIRouter, Depends, HTTPException, Request, Header, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
-from app.db.session import get_db
+from app.db.session import get_db, SessionLocal
 from app.services.billing import charge_feature, _get_influencer_id_from_chat
 from app.api.elevenlabs import _extract_total_seconds
 from sqlalchemy import select
@@ -209,7 +209,6 @@ async def elevenlabs_post_call(request: Request, db: AsyncSession = Depends(get_
 async def update_relationship_api(
     req: Request,
     background_tasks: BackgroundTasks,
-    db: AsyncSession = Depends(get_db),
     x_webhook_token: str | None = Header(default=None),
 ):
     _verify_token(ELEVENLABS_CONVAI_WEBHOOK_SECRET, x_webhook_token)
@@ -239,13 +238,12 @@ async def update_relationship_api(
         _process_relationship_update,
         user_text,
         conversation_id,
-        db
     )
     
     return {"status": "processing"}
 
 
-async def _process_relationship_update(user_text: str, conversation_id: str, db: AsyncSession):
+async def _process_relationship_update(user_text: str, conversation_id: str):
     """Process relationship update in background without blocking webhook response."""
     if not user_text:
         log.warning("[EL TOOL BG] empty user_text")
@@ -255,72 +253,76 @@ async def _process_relationship_update(user_text: str, conversation_id: str, db:
         log.warning("[EL TOOL BG] missing conversation_id")
         return
 
-    try:
-        res = await db.execute(select(CallRecord).where(CallRecord.conversation_id == conversation_id))
-        call = res.scalar_one_or_none()
-    except Exception as e:
-        log.exception("[EL TOOL BG] CallRecord lookup failed: %s", e)
-        return
+    # Create a dedicated session for this background task.
+    # The request-scoped session from get_db() is closed before background tasks run,
+    # which causes connection pool leaks.
+    async with SessionLocal() as db:
+        try:
+            res = await db.execute(select(CallRecord).where(CallRecord.conversation_id == conversation_id))
+            call = res.scalar_one_or_none()
+        except Exception as e:
+            log.exception("[EL TOOL BG] CallRecord lookup failed: %s", e)
+            return
 
-    if not call:
-        log.warning("[EL TOOL BG] No CallRecord found for conv=%s", conversation_id)
-        return
+        if not call:
+            log.warning("[EL TOOL BG] No CallRecord found for conv=%s", conversation_id)
+            return
 
-    user_id = call.user_id
-    influencer_id = call.influencer_id
-    chat_id = call.chat_id
+        user_id = call.user_id
+        influencer_id = call.influencer_id
+        chat_id = call.chat_id
 
-    if not user_id or not influencer_id or not chat_id:
-        log.warning(
-            "[EL TOOL BG] incomplete CallRecord context conv=%s user=%s infl=%s chat=%s",
-            conversation_id, user_id, influencer_id, chat_id
+        if not user_id or not influencer_id or not chat_id:
+            log.warning(
+                "[EL TOOL BG] incomplete CallRecord context conv=%s user=%s infl=%s chat=%s",
+                conversation_id, user_id, influencer_id, chat_id
+            )
+            return
+
+        history = redis_history(chat_id)
+
+        if len(history.messages) > settings.MAX_HISTORY_WINDOW:
+            trimmed = history.messages[-settings.MAX_HISTORY_WINDOW:]
+            history.clear()
+            history.add_messages(trimmed)
+
+        recent_ctx = "\n".join(f"{m.type}: {m.content}" for m in history.messages[-6:])
+
+        influencer = await db.get(Influencer, influencer_id)
+        if not influencer:
+            log.warning("[EL TOOL BG] Influencer not found infl=%s conv=%s", influencer_id, conversation_id)
+            return
+
+        rel_pack = await process_relationship_turn(
+            db=db,
+            user_id=int(user_id),
+            influencer_id=influencer_id,
+            message=user_text,
+            recent_ctx=recent_ctx,
+            cid=f"el_{conversation_id}"[:16],
+            convo_analyzer=CONVO_ANALYZER,
+            influencer=influencer,
         )
-        return
 
-    history = redis_history(chat_id)
+        rel = rel_pack["rel"]
+        days_idle = rel_pack["days_idle"]
+        dtr_goal = rel_pack["dtr_goal"]
 
-    if len(history.messages) > settings.MAX_HISTORY_WINDOW:
-        trimmed = history.messages[-settings.MAX_HISTORY_WINDOW:]
-        history.clear()
-        history.add_messages(trimmed)
+        relationship = (
+            "# Relationship Metrics:\n"
+            f"- phase: {rel.state}\n"
+            f"- trust: {rel.trust}/100\n"
+            f"- closeness: {rel.closeness}/100\n"
+            f"- attraction: {rel.attraction}/100\n"
+            f"- safety: {rel.safety}/100\n"
+            f"- exclusive_agreed: {rel.exclusive_agreed}\n"
+            f"- girlfriend_confirmed: {rel.girlfriend_confirmed}\n"
+            f"- sentiment_delta: {rel.sentiment_delta}\n"
+            f"- days_idle_before_message: {days_idle}\n"
+            f"- dtr_goal: {dtr_goal}\n"
+        )
 
-    recent_ctx = "\n".join(f"{m.type}: {m.content}" for m in history.messages[-6:])
-
-    influencer = await db.get(Influencer, influencer_id)
-    if not influencer:
-        log.warning("[EL TOOL BG] Influencer not found infl=%s conv=%s", influencer_id, conversation_id)
-        return
-
-    rel_pack = await process_relationship_turn(
-        db=db,
-        user_id=int(user_id),
-        influencer_id=influencer_id,
-        message=user_text,
-        recent_ctx=recent_ctx,
-        cid=f"el_{conversation_id}"[:16],
-        convo_analyzer=CONVO_ANALYZER,
-        influencer=influencer,
-    )
-
-    rel = rel_pack["rel"]
-    days_idle = rel_pack["days_idle"]
-    dtr_goal = rel_pack["dtr_goal"]
-
-    relationship = (
-        "# Relationship Metrics:\n"
-        f"- phase: {rel.state}\n"
-        f"- trust: {rel.trust}/100\n"
-        f"- closeness: {rel.closeness}/100\n"
-        f"- attraction: {rel.attraction}/100\n"
-        f"- safety: {rel.safety}/100\n"
-        f"- exclusive_agreed: {rel.exclusive_agreed}\n"
-        f"- girlfriend_confirmed: {rel.girlfriend_confirmed}\n"
-        f"- sentiment_delta: {rel.sentiment_delta}\n"
-        f"- days_idle_before_message: {days_idle}\n"
-        f"- dtr_goal: {dtr_goal}\n"
-    )
-
-    log.info("[EL TOOL BG] relationship_metrics conv=%s\n%s", conversation_id, relationship)
+        log.info("[EL TOOL BG] relationship_metrics conv=%s\n%s", conversation_id, relationship)
 
 def _verify_token(shared: str, token: str | None) -> None:
     if not shared: 
