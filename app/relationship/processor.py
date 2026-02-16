@@ -89,35 +89,66 @@ def adjust_dimensions_for_stage_change(trust: float, closeness: float, attractio
   return trust, closeness, attraction, safety
 
 
-def enforce_stage_dimension_caps(trust: float, closeness: float, attraction: float, safety: float, stage: str):
+def enforce_stage_dimension_caps(trust: float, closeness: float, attraction: float, safety: float, stage: str, stage_points: float):
   """
-  Enforce maximum dimension values for each stage to keep relationships realistic.
+  Scale dimensions to match progress through current stage.
   
-  Each stage has natural limits on how much trust/closeness/attraction can develop.
-  This prevents unrealistic scenarios like "80 trust with strangers".
-  Sentiment continues to show progress even when dimensions hit their caps.
+  Dimensions grow proportionally with stage_points progression:
+  - At start of stage (0%): dimensions at minimum
+  - At middle of stage (50%): dimensions at midpoint
+  - At end of stage (100%): dimensions at maximum
+  
+  This keeps dimensions realistic and rewarding as you progress.
   """
-  # Define maximum dimensions for each stage
-  CAPS = {
-      "HATE": (20, 20, 30, 20),           # Minimal connection
-      "DISLIKE": (30, 30, 40, 30),        # Negative relationship
-      "STRANGERS": (40, 40, 60, 50),      # Limited trust/closeness, some attraction possible
-      "FRIENDS": (65, 65, 70, 70),        # Good friendship level
-      "FLIRTING": (80, 80, 85, 75),       # Romantic feelings developing
-      "DATING": (95, 95, 95, 90),         # Deep committed relationship
-      "GIRLFRIEND": (100, 100, 100, 100)  # No caps, can reach maximum
+  # Define dimension ranges (min, max) for each stage
+  RANGES = {
+      "HATE": ((5, 20), (5, 20), (0, 30), (0, 20)),           # (trust, closeness, attraction, safety)
+      "DISLIKE": ((10, 30), (10, 30), (0, 40), (5, 30)),
+      "STRANGERS": ((10, 40), (10, 40), (5, 60), (20, 50)),   # Can develop some attraction
+      "FRIENDS": ((25, 65), (25, 65), (10, 70), (30, 70)),     # Friendship grows
+      "FLIRTING": ((40, 80), (40, 80), (50, 85), (45, 75)),    # Romantic connection
+      "DATING": ((65, 95), (65, 95), (65, 95), (65, 90)),      # Deep relationship
+      "GIRLFRIEND": ((80, 100), (80, 100), (75, 100), (80, 100))  # Maximum potential
   }
   
-  if stage not in CAPS:
+  # Define stage point ranges
+  STAGE_RANGES = {
+      "HATE": (-40.0, -25.0),
+      "DISLIKE": (-25.0, 0.0),
+      "STRANGERS": (0.0, 25.0),
+      "FRIENDS": (25.0, 50.0),
+      "FLIRTING": (50.0, 75.0),
+      "DATING": (75.0, 90.0),
+      "GIRLFRIEND": (90.0, 100.0)
+  }
+  
+  if stage not in RANGES or stage not in STAGE_RANGES:
       return trust, closeness, attraction, safety
   
-  max_t, max_c, max_a, max_s = CAPS[stage]
+  # Calculate progress through current stage (0.0 to 1.0)
+  stage_min, stage_max = STAGE_RANGES[stage]
+  stage_range = stage_max - stage_min
+  if stage_range > 0:
+      progress = max(0.0, min(1.0, (stage_points - stage_min) / stage_range))
+  else:
+      progress = 0.0
   
-  # Cap dimensions to stage maximums
-  trust = min(trust, max_t)
-  closeness = min(closeness, max_c)
-  attraction = min(attraction, max_a)
-  safety = min(safety, max_s)
+  # Get dimension ranges for this stage
+  trust_range, close_range, attr_range, safety_range = RANGES[stage]
+  
+  # Calculate target dimensions based on progress
+  target_trust = trust_range[0] + (progress * (trust_range[1] - trust_range[0]))
+  target_close = close_range[0] + (progress * (close_range[1] - close_range[0]))
+  target_attr = attr_range[0] + (progress * (attr_range[1] - attr_range[0]))
+  target_safety = safety_range[0] + (progress * (safety_range[1] - safety_range[0]))
+  
+  # Apply soft caps - pull dimensions toward targets but allow natural variance
+  # If dimension is way above target, cap it
+  # If dimension is below target, let it grow naturally
+  trust = min(trust, target_trust + 5)  # Allow 5 points above target
+  closeness = min(closeness, target_close + 5)
+  attraction = min(attraction, target_attr + 5)
+  safety = min(safety, target_safety + 5)
   
   return trust, closeness, attraction, safety
 
@@ -278,11 +309,11 @@ async def process_relationship_turn(
         )
         log.info("[%s] Stage changed %s → %s, dimensions adjusted", cid, prev_state, rel.state)
     
-    # Enforce dimension caps for current stage to keep relationships realistic
-    # This prevents scenarios like "80 trust with strangers"
+    # Scale dimensions to match progress through current stage
+    # Dimensions grow proportionally with stage_points (0% to 100%)
     rel.trust, rel.closeness, rel.attraction, rel.safety = enforce_stage_dimension_caps(
         rel.trust, rel.closeness, rel.attraction, rel.safety,
-        rel.state
+        rel.state, rel.stage_points
     )
 
     # Calculate sentiment as 0-100% progress within current stage
