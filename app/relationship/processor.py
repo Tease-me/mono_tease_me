@@ -14,7 +14,15 @@ from app.constants.relationship_stages import (
     STAGE_THRESHOLDS,
     STAGE_POINTS_MIN,
     STAGE_POINTS_MAX,
-    DIMENSION_RANGES
+    DIMENSION_RANGES,
+    STAGE_DELTA_POSITIVE,
+    STAGE_DELTA_NEGATIVE,
+    STAGE_DELTA_BASELINE,
+    STAGE_DELTA_MULTIPLIER,
+    STAGE_DELTA_CAP_MAX_BY_STAGE,
+    STAGE_DELTA_CAP_MIN_BY_STAGE,
+    STAGE_DELTA_CAP_MAX,
+    STAGE_DELTA_CAP_MIN,
 )
 
 log = logging.getLogger("teachme-relationship")
@@ -138,37 +146,51 @@ def enforce_stage_dimension_caps(trust: float, closeness: float, attraction: flo
   return trust, closeness, attraction, safety
 
 
-def compute_stage_delta(sig: Signals) -> float:
+def compute_stage_delta(sig: Signals, current_stage: str) -> float:
   """
-  Calculate stage points delta with balanced, gradual progression.
-  Heavily reduced multipliers for realistic, slow-burn relationship development.
-  Requires 3x more interactions per stage for meaningful progression.
+  Calculate stage points delta with stage-specific multipliers and caps.
+  
+  Each stage has its own progression speed (multiplier) and caps:
+  - HATE/DISLIKE: Faster progression (easier to escape negative stages)
+  - STRANGERS: Normal pace
+  - FRIENDS: Slower (friendship takes time)
+  - FLIRTING: Much slower (romantic tension builds gradually)
+  - DATING: Very slow (serious relationships are earned)
+  - GIRLFRIEND: Slowest (deepening relationship bond requires consistent effort)
+  
+  Adjust STAGE_DELTA_* constants in relationship_stages.py to tune per-stage speeds.
   """
-  # POSITIVE signals - reduced by ~50% for much slower progression
+  # POSITIVE signals - using configurable multipliers
   delta = (
-      0.5 * sig.support +      # Was 1.0 (originally 2.0)
-      0.4 * sig.affection +    # Was 0.8 (originally 1.6)
-      0.4 * sig.respect +      # Was 0.8 (originally 1.6)
-      0.3 * sig.flirt          # Was 0.7 (originally 1.4)
+      STAGE_DELTA_POSITIVE["support"] * sig.support +
+      STAGE_DELTA_POSITIVE["affection"] * sig.affection +
+      STAGE_DELTA_POSITIVE["respect"] * sig.respect +
+      STAGE_DELTA_POSITIVE["flirt"] * sig.flirt
   )
 
-  # NEGATIVE signals - proportionally reduced by ~50%
-  delta -= 1.0 * sig.boundary_push  # Was 2.0 (originally 5.0)
-  delta -= 0.75 * sig.rude          # Was 1.5 (originally 3.5)
-  delta -= 0.75 * sig.dislike       # Was 1.5 (originally 4.0)
-  delta -= 1.5 * sig.hate           # Was 3.0 (originally 8.0)
+  # NEGATIVE signals - using configurable multipliers
+  delta -= STAGE_DELTA_NEGATIVE["boundary_push"] * sig.boundary_push
+  delta -= STAGE_DELTA_NEGATIVE["rude"] * sig.rude
+  delta -= STAGE_DELTA_NEGATIVE["dislike"] * sig.dislike
+  delta -= STAGE_DELTA_NEGATIVE["hate"] * sig.hate
 
-  # Reduced baseline for non-negative engagement
+  # Baseline reward for non-negative engagement
   # Rewards genuine engagement without giving free points for spam
   is_negative = (sig.rude > 0.15 or sig.boundary_push > 0.15 or 
                  sig.dislike > 0.15 or sig.hate > 0.1)
   
-  baseline = 0.0 if is_negative else 0.08  # Was 0.15 - reduced for slower progression
+  baseline = 0.0 if is_negative else STAGE_DELTA_BASELINE
   delta += baseline
 
-  # Tighter caps for controlled, realistic progression
-  # Max gain: +0.7 per message (was +1.5), Max loss: -1.5 per message (was -3.0)
-  return max(-1.5, min(0.7, delta))
+  # Apply stage-specific multiplier
+  stage_multiplier = STAGE_DELTA_MULTIPLIER.get(current_stage, 1.0)
+  delta *= stage_multiplier
+
+  # Apply stage-specific caps for controlled progression
+  max_cap = STAGE_DELTA_CAP_MAX_BY_STAGE.get(current_stage, STAGE_DELTA_CAP_MAX)
+  min_cap = STAGE_DELTA_CAP_MIN_BY_STAGE.get(current_stage, STAGE_DELTA_CAP_MIN)
+  
+  return max(min_cap, min(max_cap, delta))
 
 
 async def process_relationship_turn(
@@ -226,6 +248,7 @@ async def process_relationship_turn(
     # This will be calculated AFTER stage_points is updated, so we'll do it later
 
     # For girlfriends, reduce negative signal impact by 60% (they're more forgiving)
+    # Create dampened signals for both dimension updates and stage progression
     if rel.girlfriend_confirmed:
         dampened_sig = Signals(
             support=sig.support,
@@ -241,9 +264,11 @@ async def process_relationship_turn(
             accepted_exclusive=sig.accepted_exclusive,
             accepted_girlfriend=sig.accepted_girlfriend,
         )
-        out = update_relationship(rel.trust, rel.closeness, rel.attraction, rel.safety, rel.state, dampened_sig)
+        active_sig = dampened_sig
     else:
-        out = update_relationship(rel.trust, rel.closeness, rel.attraction, rel.safety, rel.state, sig)
+        active_sig = sig
+    
+    out = update_relationship(rel.trust, rel.closeness, rel.attraction, rel.safety, rel.state, active_sig)
 
     log.info(
         "[%s] DIM before->after | t %.4f->%.4f c %.4f->%.4f a %.4f->%.4f s %.4f->%.4f",
@@ -262,7 +287,9 @@ async def process_relationship_turn(
     prev_sp = float(rel.stage_points or 0.0)
     prev_state = rel.state  # Store before any changes
     
-    stage_points_delta = compute_stage_delta(sig)
+    # Calculate stage delta using current stage for stage-specific progression speeds
+    # active_sig is already set above (dampened for girlfriends, normal otherwise)
+    stage_points_delta = compute_stage_delta(active_sig, prev_state)
     rel.stage_points = max(STAGE_POINTS_MIN, min(STAGE_POINTS_MAX, prev_sp + stage_points_delta))
     
     # CHECK girlfriend_confirmed FIRST to preserve relationship status
