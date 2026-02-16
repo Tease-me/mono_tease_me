@@ -8,7 +8,7 @@ from app.agents.prompts import CONVO_ANALYZER
 from fastapi import APIRouter, Depends, HTTPException, Request, Header, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
-from app.db.session import get_db
+from app.db.session import get_db, SessionLocal
 from app.services.billing import charge_feature, _get_influencer_id_from_chat
 from app.api.elevenlabs import _extract_total_seconds
 from sqlalchemy import select
@@ -209,7 +209,6 @@ async def elevenlabs_post_call(request: Request, db: AsyncSession = Depends(get_
 async def update_relationship_api(
     req: Request,
     background_tasks: BackgroundTasks,
-    db: AsyncSession = Depends(get_db),
     x_webhook_token: str | None = Header(default=None),
 ):
     _verify_token(ELEVENLABS_CONVAI_WEBHOOK_SECRET, x_webhook_token)
@@ -239,13 +238,12 @@ async def update_relationship_api(
         _process_relationship_update,
         user_text,
         conversation_id,
-        db
     )
     
     return {"status": "processing"}
 
 
-async def _process_relationship_update(user_text: str, conversation_id: str, db: AsyncSession):
+async def _process_relationship_update(user_text: str, conversation_id: str):
     """Process relationship update in background without blocking webhook response."""
     if not user_text:
         log.warning("[EL TOOL BG] empty user_text")
@@ -255,72 +253,76 @@ async def _process_relationship_update(user_text: str, conversation_id: str, db:
         log.warning("[EL TOOL BG] missing conversation_id")
         return
 
-    try:
-        res = await db.execute(select(CallRecord).where(CallRecord.conversation_id == conversation_id))
-        call = res.scalar_one_or_none()
-    except Exception as e:
-        log.exception("[EL TOOL BG] CallRecord lookup failed: %s", e)
-        return
+    # Create a dedicated session for this background task.
+    # The request-scoped session from get_db() is closed before background tasks run,
+    # which causes connection pool leaks.
+    async with SessionLocal() as db:
+        try:
+            res = await db.execute(select(CallRecord).where(CallRecord.conversation_id == conversation_id))
+            call = res.scalar_one_or_none()
+        except Exception as e:
+            log.exception("[EL TOOL BG] CallRecord lookup failed: %s", e)
+            return
 
-    if not call:
-        log.warning("[EL TOOL BG] No CallRecord found for conv=%s", conversation_id)
-        return
+        if not call:
+            log.warning("[EL TOOL BG] No CallRecord found for conv=%s", conversation_id)
+            return
 
-    user_id = call.user_id
-    influencer_id = call.influencer_id
-    chat_id = call.chat_id
+        user_id = call.user_id
+        influencer_id = call.influencer_id
+        chat_id = call.chat_id
 
-    if not user_id or not influencer_id or not chat_id:
-        log.warning(
-            "[EL TOOL BG] incomplete CallRecord context conv=%s user=%s infl=%s chat=%s",
-            conversation_id, user_id, influencer_id, chat_id
+        if not user_id or not influencer_id or not chat_id:
+            log.warning(
+                "[EL TOOL BG] incomplete CallRecord context conv=%s user=%s infl=%s chat=%s",
+                conversation_id, user_id, influencer_id, chat_id
+            )
+            return
+
+        history = redis_history(chat_id)
+
+        if len(history.messages) > settings.MAX_HISTORY_WINDOW:
+            trimmed = history.messages[-settings.MAX_HISTORY_WINDOW:]
+            history.clear()
+            history.add_messages(trimmed)
+
+        recent_ctx = "\n".join(f"{m.type}: {m.content}" for m in history.messages[-6:])
+
+        influencer = await db.get(Influencer, influencer_id)
+        if not influencer:
+            log.warning("[EL TOOL BG] Influencer not found infl=%s conv=%s", influencer_id, conversation_id)
+            return
+
+        rel_pack = await process_relationship_turn(
+            db=db,
+            user_id=int(user_id),
+            influencer_id=influencer_id,
+            message=user_text,
+            recent_ctx=recent_ctx,
+            cid=f"el_{conversation_id}"[:16],
+            convo_analyzer=CONVO_ANALYZER,
+            influencer=influencer,
         )
-        return
 
-    history = redis_history(chat_id)
+        rel = rel_pack["rel"]
+        days_idle = rel_pack["days_idle"]
+        dtr_goal = rel_pack["dtr_goal"]
 
-    if len(history.messages) > settings.MAX_HISTORY_WINDOW:
-        trimmed = history.messages[-settings.MAX_HISTORY_WINDOW:]
-        history.clear()
-        history.add_messages(trimmed)
+        relationship = (
+            "# Relationship Metrics:\n"
+            f"- phase: {rel.state}\n"
+            f"- trust: {rel.trust}/100\n"
+            f"- closeness: {rel.closeness}/100\n"
+            f"- attraction: {rel.attraction}/100\n"
+            f"- safety: {rel.safety}/100\n"
+            f"- exclusive_agreed: {rel.exclusive_agreed}\n"
+            f"- girlfriend_confirmed: {rel.girlfriend_confirmed}\n"
+            f"- sentiment_delta: {rel.sentiment_delta}\n"
+            f"- days_idle_before_message: {days_idle}\n"
+            f"- dtr_goal: {dtr_goal}\n"
+        )
 
-    recent_ctx = "\n".join(f"{m.type}: {m.content}" for m in history.messages[-6:])
-
-    influencer = await db.get(Influencer, influencer_id)
-    if not influencer:
-        log.warning("[EL TOOL BG] Influencer not found infl=%s conv=%s", influencer_id, conversation_id)
-        return
-
-    rel_pack = await process_relationship_turn(
-        db=db,
-        user_id=int(user_id),
-        influencer_id=influencer_id,
-        message=user_text,
-        recent_ctx=recent_ctx,
-        cid=f"el_{conversation_id}"[:16],
-        convo_analyzer=CONVO_ANALYZER,
-        influencer=influencer,
-    )
-
-    rel = rel_pack["rel"]
-    days_idle = rel_pack["days_idle"]
-    dtr_goal = rel_pack["dtr_goal"]
-
-    relationship = (
-        "# Relationship Metrics:\n"
-        f"- phase: {rel.state}\n"
-        f"- trust: {rel.trust}/100\n"
-        f"- closeness: {rel.closeness}/100\n"
-        f"- attraction: {rel.attraction}/100\n"
-        f"- safety: {rel.safety}/100\n"
-        f"- exclusive_agreed: {rel.exclusive_agreed}\n"
-        f"- girlfriend_confirmed: {rel.girlfriend_confirmed}\n"
-        f"- sentiment_delta: {rel.sentiment_delta}\n"
-        f"- days_idle_before_message: {days_idle}\n"
-        f"- dtr_goal: {dtr_goal}\n"
-    )
-
-    log.info("[EL TOOL BG] relationship_metrics conv=%s\n%s", conversation_id, relationship)
+        log.info("[EL TOOL BG] relationship_metrics conv=%s\n%s", conversation_id, relationship)
 
 def _verify_token(shared: str, token: str | None) -> None:
     if not shared: 
@@ -337,16 +339,15 @@ async def eleven_webhook_get_memories(
     x_webhook_token: str | None = Header(default=None),
 ):
     _verify_token(ELEVENLABS_CONVAI_WEBHOOK_SECRET, x_webhook_token)
+    log.info("[MEMORIES] ── webhook hit ──")
 
     try:
         payload = await req.json()
-    except Exception:
+    except Exception as e:
+        log.warning("[MEMORIES] JSON parse failed: %s", e)
         return {"memories": []}
 
-    try:
-        log.info("[EL TOOL] payload(head)=%s", str(payload)[:800])
-    except Exception:
-        pass
+    log.info("[MEMORIES] payload(head)=%s", str(payload)[:800])
 
     # Simplified payload parsing
     user_text = str(
@@ -356,8 +357,10 @@ async def eleven_webhook_get_memories(
     ).strip()
     
     conversation_id = payload.get("conversation_id")
+    log.info("[MEMORIES] user_text=%r conv=%s", user_text[:120] if user_text else "", conversation_id)
     
     if not user_text or not conversation_id:
+        log.warning("[MEMORIES] early exit: user_text=%s conv=%s", bool(user_text), bool(conversation_id))
         return {"memories": []}
 
     # Quick lookup - fail fast
@@ -366,12 +369,18 @@ async def eleven_webhook_get_memories(
             select(CallRecord).where(CallRecord.conversation_id == conversation_id)
         )
     except Exception as e:
-        log.warning("[EL TOOL] CallRecord lookup failed: %s", str(e)[:100])
+        log.warning("[MEMORIES] CallRecord lookup failed: %s", str(e)[:100])
         return {"memories": []}
 
     if not call or not call.chat_id or not call.influencer_id:
+        log.warning(
+            "[MEMORIES] missing context: call=%s chat_id=%s infl=%s conv=%s",
+            bool(call), getattr(call, "chat_id", None), getattr(call, "influencer_id", None), conversation_id,
+        )
         return {"memories": []}
     
+    log.info("[MEMORIES] resolved: chat=%s infl=%s user=%s", call.chat_id, call.influencer_id, call.user_id)
+
     started = time.perf_counter()
     memories = []
     
@@ -379,12 +388,16 @@ async def eleven_webhook_get_memories(
         from app.services.embeddings import get_embedding
         
         # Tighter embedding timeout
+        emb_start = time.perf_counter()
         embedding = await asyncio.wait_for(
             get_embedding(user_text),
             timeout=0.5,
         )
+        emb_ms = int((time.perf_counter() - emb_start) * 1000)
+        log.info("[MEMORIES] embedding ok ms=%d", emb_ms)
         
         # Query ONLY memories (not messages) - faster, single query
+        mem_start = time.perf_counter()
         memories = await asyncio.wait_for(
             find_similar_memories(
                 message=user_text,
@@ -395,17 +408,27 @@ async def eleven_webhook_get_memories(
             ),
             timeout=1.5,
         )
+        mem_ms = int((time.perf_counter() - mem_start) * 1000)
+        mem_count = len(memories) if isinstance(memories, list) else 0
+        log.info("[MEMORIES] query ok ms=%d count=%d", mem_ms, mem_count)
+
+        # Log the actual memories returned for debugging
+        if isinstance(memories, list):
+            for i, mem in enumerate(memories[:5]):
+                preview = str(mem)[:120] if mem else "(empty)"
+                log.info("[MEMORIES]   [%d] %s", i, preview)
             
     except asyncio.TimeoutError:
-        log.warning("[EL TOOL] memory timeout conv=%s", conversation_id)
+        phase_ms = int((time.perf_counter() - started) * 1000)
+        log.warning("[MEMORIES] TIMEOUT at %dms conv=%s", phase_ms, conversation_id)
     except Exception as e:
-        log.warning("[EL TOOL] memory failed conv=%s: %s", conversation_id, str(e)[:100])
+        log.warning("[MEMORIES] FAILED conv=%s: %s", conversation_id, str(e)[:200])
     finally:
-        ms = int((time.perf_counter() - started) * 1000)
+        total_ms = int((time.perf_counter() - started) * 1000)
+        mem_count = len(memories) if isinstance(memories, list) else 0
         log.info(
-            "[EL TOOL] memories ms=%d count=%d conv=%s chat=%s infl=%s",
-            ms, len(memories) if isinstance(memories, list) else 0, 
-            conversation_id, call.chat_id, call.influencer_id
+            "[MEMORIES] ── done ── total_ms=%d count=%d conv=%s chat=%s infl=%s",
+            total_ms, mem_count, conversation_id, call.chat_id, call.influencer_id,
         )
 
     return {"memories": memories if isinstance(memories, list) else []}

@@ -25,10 +25,14 @@ def _render_recent_ctx(rows: list[Message18]) -> list[BaseMessage]:
         if not txt:
             continue
 
+        ts = ""
+        if hasattr(m, "created_at") and m.created_at:
+            ts = f"[{m.created_at.strftime('%b %d, %-I:%M %p')}] "
+
         if role == "user":
-            msgs.append(HumanMessage(content=txt))
+            msgs.append(HumanMessage(content=f"{ts}{txt}"))
         else:
-            msgs.append(AIMessage(content=txt))
+            msgs.append(AIMessage(content=f"{ts}{txt}"))
 
     return msgs
 

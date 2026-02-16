@@ -53,11 +53,11 @@ async def classify_signals(
 
     msg_len = len(message.strip())
     if msg_len <= 4:
-        scale = 0.15
+        scale = 0.40  # "Love" gets 40% (was 15%)
     elif msg_len <= 12:
-        scale = 0.35
+        scale = 0.70  # "I love you" gets 70% (was 35%)
     elif msg_len <= 30:
-        scale = 0.85
+        scale = 0.90  # Short sentences get 90% (was 85%)
     else:
         scale = 1.0
 

@@ -11,13 +11,13 @@ def sat_down(x: float, delta: float, k: float = 0.03) -> float:
     if delta <= 0: return x
     return x - x * (1 - math.exp(-k * delta))
 K_UP_BY_STAGE = {
-    "HATE": 0.010,
-    "DISLIKE": 0.015,
-    "STRANGERS": 0.120,
-    "FRIENDS": 0.035,
-    "FLIRTING": 0.015,
-    "DATING": 0.015,
-    "GIRLFRIEND": 0.001,
+    "HATE": 0.015,
+    "DISLIKE": 0.025,
+    "STRANGERS": 0.150,
+    "FRIENDS": 0.055,
+    "FLIRTING": 0.035,
+    "DATING": 0.025,
+    "GIRLFRIEND": 0.020,
     "STRAINED": 0.015,
     "BROKEN": 0.010
 }
@@ -25,11 +25,11 @@ K_UP_BY_STAGE = {
 K_DOWN_BY_STAGE = {
     "HATE": 0.050,
     "DISLIKE": 0.045,
-    "STRANGERS": 0.015,
-    "FRIENDS": 0.020,
-    "FLIRTING": 0.030,
-    "DATING": 0.040,
-    "GIRLFRIEND": 0.025,
+    "STRANGERS": 0.020,
+    "FRIENDS": 0.025,
+    "FLIRTING": 0.035,
+    "DATING": 0.045,
+    "GIRLFRIEND": 0.030,
     "STRAINED": 0.045,
     "BROKEN": 0.050,
 }
@@ -85,24 +85,30 @@ def can_ask_gf(trust, closeness, attraction, safety, state):
     return state == "DATING" and safety >= 70 and trust >= 75 and closeness >= 70 and attraction >= 65
 
 def update_relationship(trust, closeness, attraction, safety,state, sig: Signals) -> RelOut:
-    trust_pos = 5*sig.support + 4*sig.respect + 3*sig.apology
-    trust_neg = 9*sig.rude + 12*sig.boundary_push
+    """
+    Update relationship dimensions with balanced, gradual changes.
+    Reduced multipliers and caps for more stable progression.
+    """
+    # Calculate dimension deltas - reduced multipliers for gradual change
+    trust_pos = 3*sig.support + 2.5*sig.respect + 2*sig.apology     # Reduced
+    trust_neg = 5*sig.rude + 6*sig.boundary_push                    # Reduced
 
-    close_pos = 4*sig.affection + 4*sig.support
-    close_neg = 5*sig.rude
+    close_pos = 2.5*sig.affection + 2.5*sig.support                 # Reduced
+    close_neg = 3*sig.rude                                          # Reduced
 
-    attr_pos = 5*sig.flirt*sig.respect + 1.5*sig.flirt + 2*sig.affection
-    attr_neg = 10*sig.boundary_push + 6*sig.rude
+    attr_pos = 3*sig.flirt*sig.respect + 1.0*sig.flirt + 1.5*sig.affection  # Reduced
+    attr_neg = 5*sig.boundary_push + 3.5*sig.rude                  # Reduced
 
-    safety_pos = 6*sig.respect + 4*sig.apology
-    safety_neg = 10*sig.boundary_push + 8*sig.rude
+    safety_pos = 4*sig.respect + 2.5*sig.apology                   # Reduced
+    safety_neg = 5*sig.boundary_push + 4*sig.rude                  # Reduced
 
     def cap(x, max_val): return min(x, max_val)
 
-    trust_pos  = cap(trust_pos, 1.0); trust_neg  = cap(trust_neg, 4.0)
-    close_pos  = cap(close_pos, 1.0); close_neg  = cap(close_neg, 4.0)
-    attr_pos   = cap(attr_pos, 1.8);  attr_neg   = cap(attr_neg, 3.5)
-    safety_pos = cap(safety_pos, 1.5); safety_neg = cap(safety_neg, 3.5)
+    # Tighter caps for more gradual dimension changes
+    trust_pos  = cap(trust_pos, 0.6); trust_neg  = cap(trust_neg, 1.8)   # Was 1.0/4.0
+    close_pos  = cap(close_pos, 0.6); close_neg  = cap(close_neg, 1.8)   # Was 1.0/4.0
+    attr_pos   = cap(attr_pos, 1.0);  attr_neg   = cap(attr_neg, 2.0)    # Was 1.8/3.5
+    safety_pos = cap(safety_pos, 0.8); safety_neg = cap(safety_neg, 2.0) # Was 1.5/3.5
 
     trust = sat_up_staged(trust, trust_pos, state); trust = sat_down_staged(trust, trust_neg, state)
     closeness = sat_up_staged(closeness, close_pos, state); closeness = sat_down_staged(closeness, close_neg, state)
