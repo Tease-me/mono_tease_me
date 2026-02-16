@@ -8,43 +8,41 @@ from app.relationship.inactivity import apply_inactivity_decay, check_and_trigge
 from app.relationship.signals import classify_signals
 from app.relationship.engine import Signals, update_relationship
 from app.relationship.dtr import plan_dtr_goal
+from app.constants.relationship_stages import (
+    STAGES,
+    STAGE_RANGES,
+    STAGE_THRESHOLDS,
+    STAGE_POINTS_MIN,
+    STAGE_POINTS_MAX,
+    DIMENSION_RANGES
+)
 
 log = logging.getLogger("teachme-relationship")
 
 
-STAGES = ["HATE", "DISLIKE", "STRANGERS", "FRIENDS", "FLIRTING", "DATING", "GIRLFRIEND"]
-
-
-def stage_from_signals_and_points(stage_points: float, sig) -> str:
+def stage_from_signals_and_points(stage_points: float) -> str:
   """
   Determine relationship stage PURELY from accumulated stage_points.
   
-  Thresholds:
-  - HATE: -40 to -26 (toxic/abusive relationship)
-  - DISLIKE: -25 to -1 (negative relationship)
-  - STRANGERS: 0-24 (neutral, building connection)
-  - FRIENDS: 25-49 (friendly relationship)
-  - FLIRTING: 50-74 (romantic interest)
-  - DATING: 75-89 (committed relationship)
-  - GIRLFRIEND: 90-100 (ultimate level)
+  Uses thresholds from relationship_stages constants to ensure consistency.
   
-  Note: Signals affect the DELTA (how points change), not the stage directly.
-  Stage is determined by the cumulative points total.
+  Note: Stage is determined solely by the cumulative points total.
+  Signals affect only the DELTA (how points change), not the stage directly.
   """
   p = float(stage_points or 0.0)
   
-  # Pure points-based progression
-  if p < -25.0:
+  # Pure points-based progression using shared thresholds
+  if p < STAGE_THRESHOLDS["HATE"]:
       return "HATE"
-  if p < 0.0:
+  if p < STAGE_THRESHOLDS["DISLIKE"]:
       return "DISLIKE"
-  if p < 25.0:
+  if p < STAGE_THRESHOLDS["STRANGERS"]:
       return "STRANGERS"
-  if p < 50.0:
+  if p < STAGE_THRESHOLDS["FRIENDS"]:
       return "FRIENDS"
-  if p < 75.0:
+  if p < STAGE_THRESHOLDS["FLIRTING"]:
       return "FLIRTING"
-  if p < 90.0:
+  if p < STAGE_THRESHOLDS["DATING"]:
       return "DATING"
   return "GIRLFRIEND"
 
@@ -99,30 +97,9 @@ def enforce_stage_dimension_caps(trust: float, closeness: float, attraction: flo
   - At end of stage (100%): dimensions at maximum
   
   This keeps dimensions realistic and rewarding as you progress.
+  Uses shared constants from relationship_stages to ensure consistency.
   """
-  # Define dimension ranges (min, max) for each stage
-  RANGES = {
-      "HATE": ((5, 20), (5, 20), (0, 30), (0, 20)),           # (trust, closeness, attraction, safety)
-      "DISLIKE": ((10, 30), (10, 30), (0, 40), (5, 30)),
-      "STRANGERS": ((10, 40), (10, 40), (5, 60), (20, 50)),   # Can develop some attraction
-      "FRIENDS": ((25, 65), (25, 65), (10, 70), (30, 70)),     # Friendship grows
-      "FLIRTING": ((40, 80), (40, 80), (50, 85), (45, 75)),    # Romantic connection
-      "DATING": ((65, 95), (65, 95), (65, 95), (65, 90)),      # Deep relationship
-      "GIRLFRIEND": ((80, 100), (80, 100), (75, 100), (80, 100))  # Maximum potential
-  }
-  
-  # Define stage point ranges
-  STAGE_RANGES = {
-      "HATE": (-40.0, -25.0),
-      "DISLIKE": (-25.0, 0.0),
-      "STRANGERS": (0.0, 25.0),
-      "FRIENDS": (25.0, 50.0),
-      "FLIRTING": (50.0, 75.0),
-      "DATING": (75.0, 90.0),
-      "GIRLFRIEND": (90.0, 100.0)
-  }
-  
-  if stage not in RANGES or stage not in STAGE_RANGES:
+  if stage not in DIMENSION_RANGES or stage not in STAGE_RANGES:
       return trust, closeness, attraction, safety
   
   # Calculate progress through current stage (0.0 to 1.0)
@@ -134,7 +111,11 @@ def enforce_stage_dimension_caps(trust: float, closeness: float, attraction: flo
       progress = 0.0
   
   # Get dimension ranges for this stage
-  trust_range, close_range, attr_range, safety_range = RANGES[stage]
+  dim_ranges = DIMENSION_RANGES[stage]
+  trust_range = dim_ranges["trust"]
+  close_range = dim_ranges["closeness"]
+  attr_range = dim_ranges["attraction"]
+  safety_range = dim_ranges["safety"]
   
   # Calculate target dimensions based on progress
   target_trust = trust_range[0] + (progress * (trust_range[1] - trust_range[0]))
@@ -167,19 +148,15 @@ def compute_stage_delta(sig) -> float:
   )
 
   # NEGATIVE signals - reduced for less catastrophic drops
-  delta -= 2.0 * sig.boundary_push           # Was 5.0
-  delta -= 1.5 * sig.rude                    # Was 3.5
-  delta -= 1.5 * getattr(sig, "dislike", 0.0)   # Was 4.0
-  delta -= 3.0 * getattr(sig, "hate", 0.0)      # Was 8.0
-  delta -= 4.0 * getattr(sig, "threat", 0.0)    # Was 10.0
-  delta -= 1.5 * getattr(sig, "rejecting", 0.0) # Was 4.0
-  delta -= 1.0 * getattr(sig, "insult", 0.0)    # Was 2.0
+  delta -= 2.0 * sig.boundary_push  # Was 5.0
+  delta -= 1.5 * sig.rude           # Was 3.5
+  delta -= 1.5 * sig.dislike        # Was 4.0
+  delta -= 3.0 * sig.hate           # Was 8.0
 
   # Small baseline for engaged conversation (not negative)
   # Rewards genuine engagement without giving free points for spam
   is_negative = (sig.rude > 0.15 or sig.boundary_push > 0.15 or 
-                 getattr(sig, "dislike", 0.0) > 0.15 or 
-                 getattr(sig, "hate", 0.0) > 0.1)
+                 sig.dislike > 0.15 or sig.hate > 0.1)
   
   baseline = 0.0 if is_negative else 0.15  # Small reward for non-negative engagement
   delta += baseline
@@ -252,8 +229,8 @@ async def process_relationship_turn(
             respect=sig.respect,
             rude=sig.rude * 0.4,  # Reduce negative signals
             boundary_push=sig.boundary_push * 0.4,
-            dislike=getattr(sig, 'dislike', 0.0) * 0.4,
-            hate=getattr(sig, 'hate', 0.0) * 0.4,
+            dislike=sig.dislike * 0.4,
+            hate=sig.hate * 0.4,
             apology=sig.apology,
             commitment_talk=sig.commitment_talk,
             accepted_exclusive=sig.accepted_exclusive,
@@ -278,20 +255,19 @@ async def process_relationship_turn(
     rel.safety = out.safety
 
     prev_sp = float(rel.stage_points or 0.0)
-    delta = compute_stage_delta(sig)
-    rel.stage_points = max(-40.0, min(100.0, prev_sp + delta))  # Allow negative points down to -40
-
-    # Store previous state to detect changes
-    prev_state = rel.state
+    prev_state = rel.state  # Store before any changes
+    
+    stage_points_delta = compute_stage_delta(sig)
+    rel.stage_points = max(-40.0, min(100.0, prev_sp + stage_points_delta))  # Allow negative points down to -40
     
     # CHECK girlfriend_confirmed FIRST to preserve relationship status
     if rel.girlfriend_confirmed:
         # Once girlfriend, maintain at least GIRLFRIEND level unless serious negative interaction
-        if sig.hate > 0.6 or getattr(sig, "threat", 0.0) > 0.20:
+        if sig.hate > 0.6:
             rel.state = "HATE"
             rel.girlfriend_confirmed = False  # Reset on severe negativity
             rel.exclusive_agreed = False
-        elif sig.dislike > 0.4 or getattr(sig, "rejecting", 0.0) > 0.40:
+        elif sig.dislike > 0.4 or sig.rude > 0.5:
             rel.state = "DISLIKE"
             rel.girlfriend_confirmed = False
             rel.exclusive_agreed = False
@@ -299,7 +275,7 @@ async def process_relationship_turn(
             rel.state = "GIRLFRIEND"  # Keep as girlfriend
     else:
         # Normal state calculation for non-girlfriends
-        rel.state = stage_from_signals_and_points(rel.stage_points, sig)
+        rel.state = stage_from_signals_and_points(rel.stage_points)
     
     # Adjust dimensions when stage changes to ensure realistic values
     if prev_state != rel.state:
@@ -317,16 +293,7 @@ async def process_relationship_turn(
     )
 
     # Calculate sentiment as 0-100% progress within current stage
-    STAGE_RANGES = {
-        "HATE": (-40.0, -25.0),
-        "DISLIKE": (-25.0, 0.0),
-        "STRANGERS": (0.0, 25.0),
-        "FRIENDS": (25.0, 50.0),
-        "FLIRTING": (50.0, 75.0),
-        "DATING": (75.0, 90.0),
-        "GIRLFRIEND": (90.0, 100.0),
-    }
-    
+    # Uses shared STAGE_RANGES constant for consistency
     stage_points_value = float(rel.stage_points or 0.0)
     current_stage = rel.state
     
@@ -346,10 +313,22 @@ async def process_relationship_turn(
     else:
         sentiment_score = 0.0
     
-    # Store sentiment
-    prev_sentiment = float(rel.sentiment_score or 0.0)
+    # Calculate sentiment_delta intelligently to handle stage transitions
+    # Delta represents meaningful progress, not raw score differences across stages
+    if prev_state == current_stage:
+        # Same stage: delta is the simple difference
+        prev_sentiment = float(rel.sentiment_score or 0.0)
+        sentiment_delta = sentiment_score - prev_sentiment
+    else:
+        # Stage changed: delta should reflect the stage_points change as progress
+        # Convert stage_points_delta to a percentage of the overall scale (-40 to 100 = 140 range)
+        # Scale to -10 to +10 range for readability
+        sentiment_delta = (stage_points_delta / 140.0) * 100.0
+        # Clamp to reasonable bounds
+        sentiment_delta = max(-15.0, min(15.0, sentiment_delta))
+    
     rel.sentiment_score = sentiment_score
-    rel.sentiment_delta = sentiment_score - prev_sentiment
+    rel.sentiment_delta = sentiment_delta
 
     can_ask = (
         rel.state == "DATING"
@@ -374,7 +353,7 @@ async def process_relationship_turn(
 
     log.info(
         "[%s] STAGE prev=%.2f delta=%.2f new=%.2f state=%s can_ask=%s",
-        cid, prev_sp, delta, rel.stage_points, rel.state, can_ask
+        cid, prev_sp, stage_points_delta, rel.stage_points, rel.state, can_ask
     )
 
     rel.last_interaction_at = now

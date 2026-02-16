@@ -17,6 +17,8 @@ from pydantic import BaseModel, Field
 from datetime import datetime, timezone
 from typing import Optional
 
+from app.constants.relationship_stages import STAGE_POINTS_MIN, STAGE_POINTS_MAX
+
 router = APIRouter(prefix="/admin", tags=["admin"])
 log = logging.getLogger("admin")
 
@@ -147,18 +149,20 @@ async def clear_chat_history_by_user_influencer(
     }
 
 def sentiment_label(score: float) -> str:
-    if score <= -60:
-        return "HATE"
-    elif score <= -20:
-        return "DISLIKE"
-    elif score < 20:
-        return "NEUTRAL"
+    """
+    Legacy function - now provides a progress label within the current stage.
+    Since sentiment_score is now 0-100% progress within current stage,
+    this returns a progress descriptor rather than an emotional state.
+    The actual relationship level is captured by 'state' (STRANGERS, FRIENDS, etc.)
+    """
+    if score < 25:
+        return "EARLY"
     elif score < 50:
-        return "FRIENDLY"
+        return "DEVELOPING"
     elif score < 75:
-        return "FLIRTY"
+        return "PROGRESSING"
     else:
-        return "IN_LOVE"
+        return "ADVANCED"
     
 @router.get("/relationships")
 async def list_relationships(
@@ -237,9 +241,9 @@ class RelationshipPatch(BaseModel):
 
     state: Optional[str] = None
 
-    stage_points: Optional[float] = Field(default=None, ge=0, le=100)
-    sentiment_score: Optional[float] = Field(default=None, ge=-100, le=100)
-    sentiment_delta: Optional[float] = Field(default=None, ge=-10, le=5)
+    stage_points: Optional[float] = Field(default=None, ge=STAGE_POINTS_MIN, le=STAGE_POINTS_MAX)
+    sentiment_score: Optional[float] = Field(default=None, ge=0, le=100)  # 0-100% progress within stage
+    sentiment_delta: Optional[float] = Field(default=None, ge=-15, le=15)  # Progress change per turn
 
     exclusive_agreed: Optional[bool] = None
     girlfriend_confirmed: Optional[bool] = None
