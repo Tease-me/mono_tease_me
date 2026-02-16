@@ -248,6 +248,7 @@ async def process_relationship_turn(
     # This will be calculated AFTER stage_points is updated, so we'll do it later
 
     # For girlfriends, reduce negative signal impact by 60% (they're more forgiving)
+    # Create dampened signals for both dimension updates and stage progression
     if rel.girlfriend_confirmed:
         dampened_sig = Signals(
             support=sig.support,
@@ -263,9 +264,11 @@ async def process_relationship_turn(
             accepted_exclusive=sig.accepted_exclusive,
             accepted_girlfriend=sig.accepted_girlfriend,
         )
-        out = update_relationship(rel.trust, rel.closeness, rel.attraction, rel.safety, rel.state, dampened_sig)
+        active_sig = dampened_sig
     else:
-        out = update_relationship(rel.trust, rel.closeness, rel.attraction, rel.safety, rel.state, sig)
+        active_sig = sig
+    
+    out = update_relationship(rel.trust, rel.closeness, rel.attraction, rel.safety, rel.state, active_sig)
 
     log.info(
         "[%s] DIM before->after | t %.4f->%.4f c %.4f->%.4f a %.4f->%.4f s %.4f->%.4f",
@@ -285,8 +288,7 @@ async def process_relationship_turn(
     prev_state = rel.state  # Store before any changes
     
     # Calculate stage delta using current stage for stage-specific progression speeds
-    # For girlfriends, use dampened signals for consistency with dimension updates
-    active_sig = dampened_sig if rel.girlfriend_confirmed else sig
+    # active_sig is already set above (dampened for girlfriends, normal otherwise)
     stage_points_delta = compute_stage_delta(active_sig, prev_state)
     rel.stage_points = max(STAGE_POINTS_MIN, min(STAGE_POINTS_MAX, prev_sp + stage_points_delta))
     
