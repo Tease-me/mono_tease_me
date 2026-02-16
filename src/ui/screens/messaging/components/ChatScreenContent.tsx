@@ -349,6 +349,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                     return;
                 }
                 lastChatInitRef.current = initKey;
+                setMessages([]);
                 const chat_id = await (adultMode ? adultChatRepo.getChatId(user.id, influencer.id) : chatRepository.getChatId(user.id, influencer.id));
                 setChatId(chat_id);
                 setPageNumber(1);
@@ -771,6 +772,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                                     influencerName={influencer?.name}
                                     showAudioTranscript={isSuperUser}
                                     isAudio={Boolean(inputAudio)}
+                                    adultMode={adultMode}
                                     onAudioPlay={(src) => {
                                         // Pause any currently playing audio
                                         if (currentAudioRef.current && currentAudioRef.current.src !== src) {
