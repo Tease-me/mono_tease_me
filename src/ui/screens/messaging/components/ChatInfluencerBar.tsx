@@ -16,6 +16,7 @@ import {
 } from "@/utils/relationshipStatusUtils";
 import { apiClient } from "@/api/apis";
 import { RelationshipServices } from "@/api/services/RelationshipServices";
+import { formatDate } from "@/utils/DateTimeUtils";
 
 export type ChatInfluencerBarProps = {
   relationship?: RelationshipResponse
@@ -87,20 +88,6 @@ export default function ChatInfluencerBar({
     setIsPopupOpen(false);
   };
 
-  const formatDate = (dateString?: string | null): string => {
-    if (!dateString) return "--";
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-    } catch {
-      return "--";
-    }
-  };
-
   return (
     <div className={styles.chatInfluencerBar}>
       <div className={styles.influencerTop}>
@@ -140,7 +127,7 @@ export default function ChatInfluencerBar({
           </div>
         </div>
         <div className={styles.profileMidCol}>
-          <div onClick={handleOpenPopup} style={{ cursor: "pointer" }}>
+          <div onClick={adultMode ? undefined : handleOpenPopup} className={clsx(!adultMode && styles.profileImageClick)}>
             <ProfileMedia size="medium" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} />
           </div>
           <button

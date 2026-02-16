@@ -43,6 +43,10 @@
     margin-top: 4px;
 }
 
+.profileImageClick {
+    cursor: pointer;
+}
+
 .profileGlow {
     position: absolute;
     inset: -12px;

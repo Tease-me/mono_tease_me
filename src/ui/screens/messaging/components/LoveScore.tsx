@@ -73,29 +73,20 @@ export default function LoveScore({
 
   return (
     <div
-      className={clsx(styles.loveScore, loveScoreClass, sizeClass, className)}
-      style={{
-        justifyContent: !visible ? 'center' : undefined
-      }}
+      className={clsx(
+        styles.loveScore,
+        loveScoreClass,
+        sizeClass,
+        className,
+        !visible && styles.centered
+      )}
     >
       {rankPosition === "left" && (
         <div className={clsx(styles.rank, rankClass, rankSizeClass)}>
-          <div
-            className={styles.heartAnimation}
-            style={{
-              opacity: !visible ? 1 : 0,
-              pointerEvents: !visible ? 'auto' : 'none'
-            }}
-          >
+          <div className={clsx(styles.heartAnimation, !visible && styles.visible)}>
             <LottieAnimation autoplay loop animationData={lottieHeartDefault} />
           </div>
-          <div
-            className={styles.arrowAnimation}
-            style={{
-              opacity: visible ? 1 : 0,
-              pointerEvents: visible ? 'auto' : 'none'
-            }}
-          >
+          <div className={clsx(styles.arrowAnimation, visible && styles.visible)}>
             {isPositive ? (
               <LottieAnimation autoplay loop animationData={rankUp} />
             ) : (
@@ -104,34 +95,15 @@ export default function LoveScore({
           </div>
         </div>
       )}
-      <p
-        className={styles.loveScoreValue}
-        style={{
-          opacity: visible ? 1 : 0,
-          pointerEvents: visible ? 'auto' : 'none',
-          display: visible ? 'block' : 'none'
-        }}
-      >
+      <p className={clsx(styles.loveScoreValue, visible && styles.visible)}>
         {displayScore}
       </p>
       {rankPosition === "right" && (
         <div className={clsx(styles.rank, rankClass, rankSizeClass)}>
-          <div
-            className={styles.heartAnimation}
-            style={{
-              opacity: !visible ? 1 : 0,
-              pointerEvents: !visible ? 'auto' : 'none'
-            }}
-          >
+          <div className={clsx(styles.heartAnimation, !visible && styles.visible)}>
             <LottieAnimation autoplay loop animationData={lottieHeartDefault} />
           </div>
-          <div
-            className={styles.arrowAnimation}
-            style={{
-              opacity: visible ? 1 : 0,
-              pointerEvents: visible ? 'auto' : 'none'
-            }}
-          >
+          <div className={clsx(styles.arrowAnimation, visible && styles.visible)}>
             {isPositive ? (
               <LottieAnimation autoplay loop animationData={rankUp} />
             ) : (
