@@ -350,13 +350,6 @@ def _extract_last_message(db_messages: List[Message], transcript: Optional[str])
 
 async def _get_contextual_first_message_prompt(db: AsyncSession) -> ChatPromptTemplate:
     system_prompt = await get_system_prompt(db, prompt_keys.CONTEXTUAL_FIRST_MESSAGE)
-    if not system_prompt:
-        system_prompt = (
-            "You are {influencer_name}, an affectionate companion. "
-            "Generate a warm, natural greeting for a call. Gap category: {gap_category}. "
-            "Last message: {last_message}. Keep it to 8-14 words with a natural pause."
-        )
-    
     return ChatPromptTemplate.from_messages([
         ("system", system_prompt),
         ("human", "Generate the greeting now. Output only the greeting text."),
@@ -364,7 +357,8 @@ async def _get_contextual_first_message_prompt(db: AsyncSession) -> ChatPromptTe
 
 
 async def _generate_contextual_greeting(
-    db: AsyncSession, chat_id: str, influencer_id: str
+    db: AsyncSession, chat_id: str, influencer_id: str,
+    user_timezone: str | None = None,
 ) -> Optional[str]:
     """
     Generate a contextual greeting using parallel DB lookups for speed.
@@ -496,7 +490,7 @@ async def _generate_contextual_greeting(
     call_ending_type = _classify_call_ending(last_call)
     last_call_duration = last_call.call_duration_secs if last_call else 0
     last_message = _extract_last_message(db_messages, transcript)
-
+    time_context = get_time_context(user_timezone)
     persona_name = (
         influencer.display_name if influencer and influencer.display_name else influencer_id
     )
@@ -517,6 +511,7 @@ async def _generate_contextual_greeting(
             last_call_duration_secs=str(int(last_call_duration or 0)),
             last_message=last_message or "(no recent message)",
             history=transcript or "(no recent history)",
+            mood=time_context,
         ) | GREETING_GENERATOR
 
         llm_response = await chain.ainvoke({})
@@ -1331,6 +1326,7 @@ async def get_signed_url(
     db: AsyncSession = Depends(get_db),
     first_message: Optional[str] = Query(None),
     greeting_mode: str = Query("random", pattern="^(random|rr)$"),
+    user_timezone: str = Query("UTC"),
 ):
     user_id = current_user.id
     ok, cost_cents, free_left = await can_afford(
@@ -1354,7 +1350,7 @@ async def get_signed_url(
 
     greeting: Optional[str] = first_message
     if not greeting:
-        greeting = await _generate_contextual_greeting(db, chat_id, influencer_id)
+        greeting = await _generate_contextual_greeting(db, chat_id, influencer_id, user_timezone)
     if not greeting:
         greeting = _pick_greeting(influencer_id, greeting_mode)
 
@@ -1499,7 +1495,7 @@ async def get_conversation_token(
     # chat_id already obtained at line 1350 - removed duplicate call
     credits_remainder_secs = await get_remaining_units(db, user_id, influencer_id, feature="live_chat")
 
-    greeting: Optional[str] = await _generate_contextual_greeting(db, chat_id, influencer_id)
+    greeting: Optional[str] = await _generate_contextual_greeting(db, chat_id, influencer_id, user_timezone)
     
     if not greeting:
         greeting = _pick_greeting(influencer_id, "random")
