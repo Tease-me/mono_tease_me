@@ -1,0 +1,144 @@
+import { ERROR_MESSAGES, SOCIAL_PLATFORMS } from '../utils/constants';
+
+export interface SurveyQuestion {
+  id: string;
+  label: string;
+  type: 'text' | 'textarea' | 'radio';
+  required?: boolean;
+  options?: { value: string | number; label: string }[];
+}
+
+export interface SurveyStep {
+  id: string;
+  title: string;
+  questions: SurveyQuestion[];
+}
+
+export interface ValidationResult {
+  valid: boolean;
+  errors: Record<string, string>;
+}
+
+export function validateSurveyStep(
+  step: SurveyStep,
+  answers: Record<string, any>
+): ValidationResult {
+  const errors: Record<string, string> = {};
+
+  step.questions.forEach((question) => {
+    if (!question.required) return;
+
+    const value = answers[question.id];
+
+    // Check if value is empty
+    const isEmpty =
+      value === undefined ||
+      value === null ||
+      (typeof value === 'string' && value.trim() === '');
+
+    if (isEmpty) {
+      errors[question.id] = 'This field is required';
+    }
+  });
+
+  return {
+    valid: Object.keys(errors).length === 0,
+    errors,
+  };
+}
+
+export function validateField(
+  question: SurveyQuestion,
+  value: any
+): string | undefined {
+  if (!question.required) return undefined;
+
+  const isEmpty =
+    value === undefined ||
+    value === null ||
+    (typeof value === 'string' && value.trim() === '');
+
+  if (isEmpty) {
+    return `${question.label} is required`;
+  }
+
+  return undefined;
+}
+
+export function validatePictureStep(answers: Record<string, any>): ValidationResult {
+  const errors: Record<string, string> = {};
+  const key = answers['profile_picture_key'];
+
+  if (!key || typeof key !== 'string' || !key.trim()) {
+    errors['profile_picture_key'] = ERROR_MESSAGES.IMAGE_REQUIRED;
+  }
+
+  return {
+    valid: Object.keys(errors).length === 0,
+    errors,
+  };
+}
+
+export function validateSocialStep(answers: Record<string, any>): ValidationResult {
+  const errors: Record<string, string> = {};
+
+  // Check all social platform handles
+  const handles = SOCIAL_PLATFORMS.map((platform) => answers[`social_${platform}`]);
+
+  const hasAtLeastOne = handles.some(
+    (handle) => typeof handle === 'string' && handle.trim().length > 0
+  );
+
+  if (!hasAtLeastOne) {
+    errors['social_media'] = ERROR_MESSAGES.SOCIAL_REQUIRED;
+  }
+
+  // Validate follower count for all platforms with handles
+  for (const platform of SOCIAL_PLATFORMS) {
+    const handle = answers[`social_${platform}`];
+    const followers = answers[`social_${platform}_followers`];
+
+    // If platform has a handle, verify it has at least 1 follower
+    if (handle && typeof handle === 'string' && handle.trim().length > 0) {
+      const followerCount = typeof followers === 'number' ? followers : 0;
+      if (followerCount <= 0) {
+        errors['social_media'] = 'Cannot have 0 followers.';
+        break;
+      }
+    }
+  }
+
+  return {
+    valid: Object.keys(errors).length === 0,
+    errors,
+  };
+}
+
+export function validateAudioStep(
+  audioCount: number,
+  hasRecorded: boolean
+): ValidationResult {
+  const errors: Record<string, string> = {};
+
+  if (!hasRecorded || audioCount <= 0) {
+    errors['audio'] = ERROR_MESSAGES.AUDIO_REQUIRED;
+  }
+
+  return {
+    valid: Object.keys(errors).length === 0,
+    errors,
+  };
+}
+
+export function validateSocialHandle(handle: string): string | undefined {
+  const trimmed = (handle || '').trim();
+  if (!trimmed) {
+    return ERROR_MESSAGES.SOCIAL_HANDLE_REQUIRED;
+  }
+  return undefined;
+}
+
+export function parseFollowerCount(value: string): number {
+  const num = Number(value);
+  return Number.isFinite(num) && num >= 0 ? num : 0;
+}

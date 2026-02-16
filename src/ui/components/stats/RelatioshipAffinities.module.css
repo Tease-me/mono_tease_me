@@ -1,0 +1,22 @@
+.container {
+  display: grid;
+  grid-template-columns: 1fr;
+  border-radius: 1rem;
+  border: 1px solid #333;
+  background: #212121;
+  padding: 1.25rem 1rem;
+  gap: 1rem;
+  animation: fade-in-top 0.4s cubic-bezier(0.39, 0.575, 0.565, 1) both;
+  animation-delay: 0.7s;
+}
+
+@keyframes fade-in-top {
+  0% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

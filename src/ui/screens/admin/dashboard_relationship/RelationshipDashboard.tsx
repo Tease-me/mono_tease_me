@@ -57,15 +57,6 @@ type RelPatch = {
   last_interaction_at?: string;
 };
 
-function sentimentLabel(score: number) {
-  if (score <= -60) return "HATE";
-  if (score <= -20) return "DISLIKE";
-  if (score < 20) return "NEUTRAL";
-  if (score < 50) return "FRIENDS";
-  if (score < 75) return "FLIRTY";
-  return "GIRLFRIEND";
-}
-
 function clamp01to100(x: number) {
   const n = Number.isFinite(x) ? x : 0;
   return Math.max(0, Math.min(100, n));
@@ -636,10 +627,6 @@ export default function RelationshipDashboard() {
                       </option>
                     ))}
                   </select>
-
-                  <Pill>
-                    Sentiment: {sentimentLabel(edit.sentiment_score ?? 0)}
-                  </Pill>
 
                   <label className={styles["checkbox"]}>
                     <input
