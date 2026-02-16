@@ -143,10 +143,10 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
       return;
     }
 
-    // Require minimum 100 followers
-    if (parsedFollowers < 100) {
+    // Require at least 1 follower
+    if (parsedFollowers <= 0) {
       removeSelection(openId);
-      onAnswerChange(errorKey(openId), 'Minimum 100 followers required');
+      onAnswerChange(errorKey(openId), 'Must have at least 1 follower');
       return;
     }
 
@@ -178,13 +178,6 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
     if (handleError) {
       removeSelection(openId);
       onAnswerChange(errorKey(openId), ERROR_MESSAGES.SOCIAL_HANDLE_REQUIRED_CONNECT);
-      return;
-    }
-
-    // Validate minimum followers before connecting
-    if (parsedFollowers < 100) {
-      removeSelection(openId);
-      onAnswerChange(errorKey(openId), 'Minimum 100 followers required');
       return;
     }
 

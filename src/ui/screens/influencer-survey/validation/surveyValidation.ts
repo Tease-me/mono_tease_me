@@ -98,11 +98,11 @@ export function validateSocialStep(answers: Record<string, any>): ValidationResu
     const handle = answers[`social_${platform}`];
     const followers = answers[`social_${platform}_followers`];
 
-    // If platform has a handle, verify it has minimum followers
+    // If platform has a handle, verify it has at least 1 follower
     if (handle && typeof handle === 'string' && handle.trim().length > 0) {
       const followerCount = typeof followers === 'number' ? followers : 0;
-      if (followerCount < 100) {
-        errors['social_media'] = 'All social media accounts must have at least 100 followers';
+      if (followerCount <= 0) {
+        errors['social_media'] = 'Cannot have 0 followers.';
         break;
       }
     }

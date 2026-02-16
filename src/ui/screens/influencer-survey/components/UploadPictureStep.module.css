@@ -158,11 +158,12 @@
 @media (max-width: 480px) {
   .previewCard {
     grid-template-columns: 1fr;
-    text-align: left;
+    text-align: center;
   }
 
   .previewLeft {
     width: 100%;
+    display: flex;
     justify-content: center;
   }
 

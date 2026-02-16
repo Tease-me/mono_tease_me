@@ -117,11 +117,26 @@ const ProfileSurveyForm: React.FC = () => {
     const validation = validateCurrentStep();
     if (!validation.valid) {
       actions.setFieldErrors(validation.errors);
+
+      // Map specific errors to their component states
+      if (isPictureStep && validation.errors['profile_picture_key']) {
+        actions.setPictureError(validation.errors['profile_picture_key']);
+      }
+      if (isSocialsStep && validation.errors['social_media']) {
+        actions.setSocialError(validation.errors['social_media']);
+      }
+      if (isAudioStep && validation.errors['audio']) {
+        actions.setAudioError(validation.errors['audio']);
+      }
+
       return;
     }
 
     // Clear errors
     actions.setFieldErrors({});
+    actions.setPictureError(null);
+    actions.setSocialError(null);
+    actions.setAudioError(null);
 
     // Check if last step and terms not accepted
     const isLastStep = state.currentStep === state.totalSteps - 1;
