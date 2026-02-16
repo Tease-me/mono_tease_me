@@ -52,26 +52,24 @@ def adjust_dimensions_for_stage_change(trust: float, closeness: float, attractio
   When stage changes, ensure dimensions make sense for that stage.
   Prevents unrealistic combinations like "FLIRTING with 20 attraction"
   
-  When leveling UP: Boost dimensions to stage minimums
+  When leveling UP: Boost dimensions to stage minimums (from DIMENSION_RANGES)
   When leveling DOWN: Apply small penalty (relationship damaged)
-  """
-  # Define minimum requirements for each stage
-  MINIMUMS = {
-      "HATE": (0, 0, 0, 0),
-      "DISLIKE": (0, 0, 0, 0),
-      "STRANGERS": (0, 0, 0, 0),
-      "FRIENDS": (25, 25, 0, 30),      # Need trust, closeness, safety
-      "FLIRTING": (40, 40, 50, 45),    # Need attraction!
-      "DATING": (65, 65, 65, 65),      # Need all dimensions high
-      "GIRLFRIEND": (80, 80, 75, 80)   # Need very high trust/closeness/safety
-  }
   
+  Uses centralized DIMENSION_RANGES to avoid configuration drift.
+  """
   old_idx = STAGES.index(old_stage) if old_stage in STAGES else 0
   new_idx = STAGES.index(new_stage) if new_stage in STAGES else 0
   
   if new_idx > old_idx:  # Leveling UP
-      # Ensure minimums are met for new stage
-      min_t, min_c, min_a, min_s = MINIMUMS.get(new_stage, (0, 0, 0, 0))
+      # Extract minimums from DIMENSION_RANGES for the new stage
+      if new_stage in DIMENSION_RANGES:
+          stage_dims = DIMENSION_RANGES[new_stage]
+          min_t = stage_dims["trust"][0]
+          min_c = stage_dims["closeness"][0]
+          min_a = stage_dims["attraction"][0]
+          min_s = stage_dims["safety"][0]
+      else:
+          min_t, min_c, min_a, min_s = 0, 0, 0, 0
       trust = max(trust, min_t)
       closeness = max(closeness, min_c)
       attraction = max(attraction, min_a)
@@ -124,12 +122,18 @@ def enforce_stage_dimension_caps(trust: float, closeness: float, attraction: flo
   target_safety = safety_range[0] + (progress * (safety_range[1] - safety_range[0]))
   
   # Apply soft caps - pull dimensions toward targets but allow natural variance
-  # If dimension is way above target, cap it
-  # If dimension is below target, let it grow naturally
+  # Upper bounds: cap slightly above target to allow natural variance
   trust = min(trust, target_trust + 5)  # Allow 5 points above target
   closeness = min(closeness, target_close + 5)
   attraction = min(attraction, target_attr + 5)
   safety = min(safety, target_safety + 5)
+  
+  # Lower bounds: enforce stage minimums to prevent unrealistic values
+  # (e.g., can't have trust=10 at FLIRTING stage where min is 40)
+  trust = max(trust, trust_range[0])
+  closeness = max(closeness, close_range[0])
+  attraction = max(attraction, attr_range[0])
+  safety = max(safety, safety_range[0])
   
   return trust, closeness, attraction, safety
 
@@ -258,7 +262,7 @@ async def process_relationship_turn(
     prev_state = rel.state  # Store before any changes
     
     stage_points_delta = compute_stage_delta(sig)
-    rel.stage_points = max(-40.0, min(100.0, prev_sp + stage_points_delta))  # Allow negative points down to -40
+    rel.stage_points = max(STAGE_POINTS_MIN, min(STAGE_POINTS_MAX, prev_sp + stage_points_delta))
     
     # CHECK girlfriend_confirmed FIRST to preserve relationship status
     if rel.girlfriend_confirmed:
@@ -321,9 +325,9 @@ async def process_relationship_turn(
         sentiment_delta = sentiment_score - prev_sentiment
     else:
         # Stage changed: delta should reflect the stage_points change as progress
-        # Convert stage_points_delta to a percentage of the overall scale (-40 to 100 = 140 range)
-        # Scale to -10 to +10 range for readability
-        sentiment_delta = (stage_points_delta / 140.0) * 100.0
+        # Convert stage_points_delta to a percentage of the overall scale
+        stage_points_range = STAGE_POINTS_MAX - STAGE_POINTS_MIN
+        sentiment_delta = (stage_points_delta / stage_points_range) * 100.0
         # Clamp to reasonable bounds
         sentiment_delta = max(-15.0, min(15.0, sentiment_delta))
     
