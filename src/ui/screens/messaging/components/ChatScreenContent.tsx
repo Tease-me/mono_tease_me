@@ -141,20 +141,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
     }, [adultMode]);
 
     useEffect(() => {
-        clearReconnectTimer();
-        ws.current?.close();
-        setMessages([]);
-        setInputText("");
-        setInputAudio(undefined);
-        setTyping("idle");
-        setError(undefined);
-        setPageNumber(1);
-        setHasMore(true);
-        setIsLoadingMore(false);
-        setIsLoadingMessages(false);
-    }, [adultMode]);
-
-    useEffect(() => {
         storage.set(LocalStorageKeys.PreferredChatMode, mode);
     }, [mode]);
 

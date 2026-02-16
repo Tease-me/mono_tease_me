@@ -36,6 +36,8 @@ export default function LoveScore({
     renderCount.current++;
     const currentValue = sentimentDelta ?? null;
     const hasChanged = prevSentimentDelta.current !== currentValue;
+    const isInitialLoad = prevSentimentDelta.current === null && currentValue !== null;
+
     if (currentValue !== null) {
       hasSeenValue.current = true;
     }
@@ -44,7 +46,7 @@ export default function LoveScore({
 
     prevSentimentDelta.current = currentValue;
 
-    if (!isStable || !hasChanged) {
+    if (!isStable || !hasChanged || isInitialLoad) {
       return;
     }
 
