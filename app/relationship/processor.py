@@ -89,6 +89,39 @@ def adjust_dimensions_for_stage_change(trust: float, closeness: float, attractio
   return trust, closeness, attraction, safety
 
 
+def enforce_stage_dimension_caps(trust: float, closeness: float, attraction: float, safety: float, stage: str):
+  """
+  Enforce maximum dimension values for each stage to keep relationships realistic.
+  
+  Each stage has natural limits on how much trust/closeness/attraction can develop.
+  This prevents unrealistic scenarios like "80 trust with strangers".
+  Sentiment continues to show progress even when dimensions hit their caps.
+  """
+  # Define maximum dimensions for each stage
+  CAPS = {
+      "HATE": (20, 20, 30, 20),           # Minimal connection
+      "DISLIKE": (30, 30, 40, 30),        # Negative relationship
+      "STRANGERS": (40, 40, 60, 50),      # Limited trust/closeness, some attraction possible
+      "FRIENDS": (65, 65, 70, 70),        # Good friendship level
+      "FLIRTING": (80, 80, 85, 75),       # Romantic feelings developing
+      "DATING": (95, 95, 95, 90),         # Deep committed relationship
+      "GIRLFRIEND": (100, 100, 100, 100)  # No caps, can reach maximum
+  }
+  
+  if stage not in CAPS:
+      return trust, closeness, attraction, safety
+  
+  max_t, max_c, max_a, max_s = CAPS[stage]
+  
+  # Cap dimensions to stage maximums
+  trust = min(trust, max_t)
+  closeness = min(closeness, max_c)
+  attraction = min(attraction, max_a)
+  safety = min(safety, max_s)
+  
+  return trust, closeness, attraction, safety
+
+
 def compute_stage_delta(sig) -> float:
   """
   Calculate stage points delta with balanced, gradual progression.
@@ -111,8 +144,13 @@ def compute_stage_delta(sig) -> float:
   delta -= 1.5 * getattr(sig, "rejecting", 0.0) # Was 4.0
   delta -= 1.0 * getattr(sig, "insult", 0.0)    # Was 2.0
 
-  # No free baseline points - users must earn progression
-  baseline = 0.0
+  # Small baseline for engaged conversation (not negative)
+  # Rewards genuine engagement without giving free points for spam
+  is_negative = (sig.rude > 0.15 or sig.boundary_push > 0.15 or 
+                 getattr(sig, "dislike", 0.0) > 0.15 or 
+                 getattr(sig, "hate", 0.0) > 0.1)
+  
+  baseline = 0.0 if is_negative else 0.15  # Small reward for non-negative engagement
   delta += baseline
 
   # Tighter caps for more gradual progression
@@ -239,6 +277,13 @@ async def process_relationship_turn(
             prev_state, rel.state
         )
         log.info("[%s] Stage changed %s → %s, dimensions adjusted", cid, prev_state, rel.state)
+    
+    # Enforce dimension caps for current stage to keep relationships realistic
+    # This prevents scenarios like "80 trust with strangers"
+    rel.trust, rel.closeness, rel.attraction, rel.safety = enforce_stage_dimension_caps(
+        rel.trust, rel.closeness, rel.attraction, rel.safety,
+        rel.state
+    )
 
     # Calculate sentiment as 0-100% progress within current stage
     STAGE_RANGES = {
