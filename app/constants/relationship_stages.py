@@ -82,7 +82,8 @@ DIMENSION_RANGES = {
 
 # Stage point delta calculation constants
 # Controls how quickly relationships progress through stages
-# Follows same pattern as K_UP_BY_STAGE/K_DOWN_BY_STAGE in engine.py
+# Uses a similar stage-keyed multiplier structure to K_UP_BY_STAGE/K_DOWN_BY_STAGE in engine.py,
+# but with different progression logic: these act on stage points (progression speed), not dimension rates.
 
 # Positive signal multipliers (signals are 0.0 to 1.0 range)
 STAGE_DELTA_POSITIVE = {
