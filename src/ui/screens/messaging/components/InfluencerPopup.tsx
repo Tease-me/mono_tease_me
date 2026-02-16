@@ -90,8 +90,7 @@ export default function InfluencerPopup({
             <div className={styles.section02}>
               <h3 className={styles.sectionHeading}>Relationship Statistics</h3>
               {influencerData.stageValue !== undefined &&
-               influencerData.currentStage &&
-               influencerData.nextStage && (
+               influencerData.currentStage && (
                 <RelationshipStageProgress
                   stageValue={influencerData.stageValue}
                   large
