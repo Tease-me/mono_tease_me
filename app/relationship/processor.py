@@ -138,7 +138,7 @@ def enforce_stage_dimension_caps(trust: float, closeness: float, attraction: flo
   return trust, closeness, attraction, safety
 
 
-def compute_stage_delta(sig) -> float:
+def compute_stage_delta(sig: Signals) -> float:
   """
   Calculate stage points delta with balanced, gradual progression.
   Heavily reduced multipliers for realistic, slow-burn relationship development.
