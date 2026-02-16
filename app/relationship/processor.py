@@ -156,6 +156,7 @@ def compute_stage_delta(sig: Signals, current_stage: str) -> float:
   - FRIENDS: Slower (friendship takes time)
   - FLIRTING: Much slower (romantic tension builds gradually)
   - DATING: Very slow (serious relationships are earned)
+  - GIRLFRIEND: Slowest (deepening relationship bond requires consistent effort)
   
   Adjust STAGE_DELTA_* constants in relationship_stages.py to tune per-stage speeds.
   """
