@@ -163,9 +163,12 @@ async def handle_turn(
     from app.services.embeddings import get_embedding
     message_embedding = await get_embedding(message) if (db and user_id) else None
 
+    async def _relationship_with_own_session(**kwargs):
+        async with SessionLocal() as rel_db:
+            return await process_relationship_turn(db=rel_db, **kwargs)
+
     rel_pack_task = asyncio.create_task(
-        process_relationship_turn(
-            db=db,
+        _relationship_with_own_session(
             user_id=int(user_id),
             influencer_id=influencer_id,
             message=message,
@@ -185,7 +188,7 @@ async def handle_turn(
         ) if (db and user_id) else asyncio.sleep(0, result=[])
     )
 
-    # Wait for both to complete in parallel
+    # Wait for both to complete in parallel (each on its own session)
     rel_pack, memories_result = await asyncio.gather(rel_pack_task, memories_task)
    
     rel = rel_pack["rel"]
