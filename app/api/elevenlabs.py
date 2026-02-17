@@ -583,7 +583,7 @@ def _build_agent_patch_payload(
         {
             "name": "updateRelationship",
             "type": "webhook",
-            "description": "MANDATORY: Call this on EVERY user message BEFORE generating your reply. Updates relationship metrics (trust, closeness, attraction) based on user's tone and message content.",
+            "description": "MANDATORY: Call on EVERY user message to track relationship changes. Returns instantly - continue your reply without waiting.",
             "webhook": {
                 "url": f"{settings.PUBLIC_BASE_URL.rstrip('/')}/webhooks/update_relationship",
                 "method": "POST",
@@ -595,7 +595,7 @@ def _build_agent_patch_payload(
         {
             "name": "getMemories",
             "type": "webhook",
-            "description": "Use when user references past conversations, asks what you remember, or mentions personal details. Retrieves relevant memories from the memory bank.",
+            "description": "Call when user references past conversations or asks what you remember. Retrieves relevant memories - wait for response before replying.",
             "webhook": {
                "url": f"{settings.PUBLIC_BASE_URL.rstrip('/')}/webhooks/memories",
                "method": "POST",
@@ -649,7 +649,7 @@ def _build_agent_create_payload(
             {
                 "name": "updateRelationship",
                 "type": "webhook",
-                "description": "MANDATORY: Call this on EVERY user message BEFORE generating your reply. Updates relationship metrics (trust, closeness, attraction) based on user's tone and message content.",
+                "description": "MANDATORY: Call on EVERY user message to track relationship changes. Returns instantly - continue your reply without waiting.",
                 "webhook": {
                     "url": f"{settings.PUBLIC_BASE_URL.rstrip('/')}/webhooks/update_relationship",
                     "method": "POST",
@@ -658,19 +658,19 @@ def _build_agent_create_payload(
                     }
                 }
             },
-            {
-                "name": "getMemories",
-                "type": "webhook",
-                "description": "Use when user references past conversations, asks what you remember, or mentions personal details. Retrieves relevant memories from the memory bank.",
-                "webhook": {
-                   "url": f"{settings.PUBLIC_BASE_URL.rstrip('/')}/webhooks/memories",
-                   "method": "POST",
-                   "request_headers": {
-                        "X-Webhook-Token": settings.ELEVENLABS_CONVAI_WEBHOOK_SECRET or ""
-                   }
-                }
+        {
+            "name": "getMemories",
+            "type": "webhook",
+            "description": "Call when user references past conversations or asks what you remember. Retrieves relevant memories - wait for response before replying.",
+            "webhook": {
+               "url": f"{settings.PUBLIC_BASE_URL.rstrip('/')}/webhooks/memories",
+               "method": "POST",
+               "request_headers": {
+                    "X-Webhook-Token": settings.ELEVENLABS_CONVAI_WEBHOOK_SECRET or ""
+               }
             }
-        ],
+        }
+    ],
     }
     if llm is not None:
         agent_cfg["prompt"]["llm"] = llm
