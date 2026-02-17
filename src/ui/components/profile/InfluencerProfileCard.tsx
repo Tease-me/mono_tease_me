@@ -1,6 +1,7 @@
 import styles from "./InfluencerProfileCard.module.css";
 import SvgPack from "@/utils/SvgPack";
 import PlusBadge from "@/ui/components/badges/PlusBadge";
+import emptyProfile from "@/assets/empty-profile.png";
 
 type InfluencerProfileCardProps = {
   name: string;
@@ -50,7 +51,7 @@ export default function InfluencerProfileCard({
     <div className={styles.section01}>
       <div className={styles.profileCardContainer}>
         <div className={styles.profileimageContainer}>
-          <img src={image} alt={name} className={styles.profileImage} />
+          <img src={image || emptyProfile} alt={name} className={styles.profileImage} />
           {isSubscribed && (
             <div className={styles.hearticon}>
               <PlusBadge />
