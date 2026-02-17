@@ -748,7 +748,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                             {(messages) ? <>
                                 {isLoadingMore && <LoadingSpinner size='small' />}
                                 <div className={styles.adultConvoCardArea}>
-                                    {adultMode && <AdultConvoStarterCard influencerName={influencer?.name} />}
+                                    {adultMode && !isLoadingMessages && <AdultConvoStarterCard influencerName={influencer?.name} />}
                                 </div>
                                 <MessagesList
                                     messages={displayMessages}
@@ -798,7 +798,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                         stopConversation={stopConversation}
                         relationship={relationship}
                         influencer={influencer}
-                        errorMessage={errorMessage || "Something went wrong!"} />
+                        errorMessage={errorMessage || "Something went wrong!"}
+                        onChangeInfluencer={handleChangeInfluencerClicked} />
                     }
                 </> : (
                     <AdultModePage
