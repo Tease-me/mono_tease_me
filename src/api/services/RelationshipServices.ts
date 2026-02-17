@@ -15,7 +15,6 @@ export interface NextStageRequirements {
   attraction: number;
   closeness: number;
   safety: number;
-  stage_points: number;
 }
 
 export interface RelationshipDimensions {
@@ -29,7 +28,6 @@ export interface RelationshipDimensions {
   next_stage: string;
   next_stage_requirements: NextStageRequirements;
   next_stage_description: string;
-  stage_points: number;
   sentiment_score: number;
 }
 

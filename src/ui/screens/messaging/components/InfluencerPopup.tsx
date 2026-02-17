@@ -15,7 +15,7 @@ interface InfluencerPopupProps {
     lastConnected: string;
     followingSince: string;
     isSubscribed?: boolean;
-    stageValue?: number;
+    sentimentScore?: number;
     currentStage?: string;
     nextStage?: string;
     trust?: number;
@@ -89,10 +89,10 @@ export default function InfluencerPopup({
             {/* Stage Progress Section */}
             <div className={styles.section02}>
               <h3 className={styles.sectionHeading}>Relationship Statistics</h3>
-              {influencerData.stageValue !== undefined &&
+              {influencerData.sentimentScore !== undefined &&
                influencerData.currentStage && (
                 <RelationshipStageProgress
-                  stageValue={influencerData.stageValue}
+                  sentimentScore={influencerData.sentimentScore}
                   large
                   currentStage={influencerData.currentStage}
                   nextStage={influencerData.nextStage}

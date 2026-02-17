@@ -3,6 +3,7 @@ import clsx from "clsx";
 import LottieAnimation from "@/ui/components/LottieAnimation";
 import rankUp from "@/assets/lottie/rankUp.json";
 import rankDown from "@/assets/lottie/rankDown.json";
+import lottieHeartDefault from "@/assets/lottie/lottieHeartDefault.json";
 import styles from "./LoveScore.module.css";
 
 export type LoveScoreProps = {
@@ -59,8 +60,12 @@ export default function LoveScore({
     }
   }, [sentimentDelta, shouldShow]);
 
-  const loveScoreClass = isPositive ? styles.loveScoreRankUp : styles.loveScoreRankDown;
-  const rankClass = isPositive ? styles.rankUp : styles.rankDown;
+  const loveScoreClass = !visible
+    ? styles.loveScoreNeutral
+    : isPositive ? styles.loveScoreRankUp : styles.loveScoreRankDown;
+  const rankClass = !visible
+    ? styles.rankNeutral
+    : isPositive ? styles.rankUp : styles.rankDown;
   const sizeClass =
     size === "small" ? styles.loveScoreSmall : size === "large" ? styles.loveScoreLarge : styles.loveScoreMedium;
   const rankSizeClass =
@@ -68,30 +73,43 @@ export default function LoveScore({
 
   return (
     <div
-      className={clsx(styles.loveScore, loveScoreClass, sizeClass, className)}
-      style={{
-        opacity: visible ? 1 : 0,
-        transform: visible ? 'scale(1)' : 'scale(0.9)',
-        pointerEvents: visible ? 'auto' : 'none'
-      }}
+      className={clsx(
+        styles.loveScore,
+        loveScoreClass,
+        sizeClass,
+        className,
+        !visible && styles.centered
+      )}
     >
       {rankPosition === "left" && (
         <div className={clsx(styles.rank, rankClass, rankSizeClass)}>
-          {isPositive ? (
-            <LottieAnimation autoplay loop animationData={rankUp} />
-          ) : (
-            <LottieAnimation autoplay loop animationData={rankDown} />
-          )}
+          <div className={clsx(styles.heartAnimation, !visible && styles.visible)}>
+            <LottieAnimation autoplay loop animationData={lottieHeartDefault} />
+          </div>
+          <div className={clsx(styles.arrowAnimation, visible && styles.visible)}>
+            {isPositive ? (
+              <LottieAnimation autoplay loop animationData={rankUp} />
+            ) : (
+              <LottieAnimation autoplay loop animationData={rankDown} />
+            )}
+          </div>
         </div>
       )}
-      <p className={styles.loveScoreValue}>{displayScore}</p>
+      <p className={clsx(styles.loveScoreValue, visible && styles.visible)}>
+        {displayScore}
+      </p>
       {rankPosition === "right" && (
         <div className={clsx(styles.rank, rankClass, rankSizeClass)}>
-          {isPositive ? (
-            <LottieAnimation autoplay loop animationData={rankUp} />
-          ) : (
-            <LottieAnimation autoplay loop animationData={rankDown} />
-          )}
+          <div className={clsx(styles.heartAnimation, !visible && styles.visible)}>
+            <LottieAnimation autoplay loop animationData={lottieHeartDefault} />
+          </div>
+          <div className={clsx(styles.arrowAnimation, visible && styles.visible)}>
+            {isPositive ? (
+              <LottieAnimation autoplay loop animationData={rankUp} />
+            ) : (
+              <LottieAnimation autoplay loop animationData={rankDown} />
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -16,6 +16,7 @@ import {
 } from "@/utils/relationshipStatusUtils";
 import { apiClient } from "@/api/apis";
 import { RelationshipServices } from "@/api/services/RelationshipServices";
+import { formatDate } from "@/utils/DateTimeUtils";
 
 export type ChatInfluencerBarProps = {
   relationship?: RelationshipResponse
@@ -41,14 +42,10 @@ export default function ChatInfluencerBar({
   isSubscribed = false,
 }: ChatInfluencerBarProps) {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [stageValue, setStageValue] = useState<number>(0);
-  const [currentStage, setCurrentStage] = useState<string>("");
   const [nextStage, setNextStage] = useState<string>("");
 
   useEffect(() => {
     if (!influencer?.id) {
-      setStageValue(0);
-      setCurrentStage("");
       setNextStage("");
       return;
     }
@@ -58,21 +55,17 @@ export default function ChatInfluencerBar({
       try {
         const dims = await relationshipService.getDimensions(influencer.id);
         if (!cancelled) {
-          setStageValue(dims.stage_points);
-          setCurrentStage(dims.current_stage);
           setNextStage(dims.next_stage);
         }
       } catch {
         if (!cancelled) {
-          setStageValue(0);
-          setCurrentStage("");
           setNextStage("");
         }
       }
     })();
 
     return () => { cancelled = true; };
-  }, [influencer?.id]);
+  }, [influencer?.id, relationship?.trust, relationship?.closeness, relationship?.attraction, relationship?.safety]);
 
   const glowClass =
     adultMode ? styles.glowStatusCircleAdult : styles.glowStatusCircleDefault;
@@ -85,20 +78,6 @@ export default function ChatInfluencerBar({
 
   const handleClosePopup = () => {
     setIsPopupOpen(false);
-  };
-
-  const formatDate = (dateString?: string | null): string => {
-    if (!dateString) return "--";
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-    } catch {
-      return "--";
-    }
   };
 
   return (
@@ -140,7 +119,7 @@ export default function ChatInfluencerBar({
           </div>
         </div>
         <div className={styles.profileMidCol}>
-          <div onClick={handleOpenPopup} style={{ cursor: "pointer" }}>
+          <div onClick={adultMode ? undefined : handleOpenPopup} className={clsx(!adultMode && styles.profileImageClick)}>
             <ProfileMedia size="medium" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} />
           </div>
           <button
@@ -176,8 +155,8 @@ export default function ChatInfluencerBar({
               lastConnected: formatDate(relationship?.last_interaction_at),
               followingSince: formatDate(influencer.created_at),
               isSubscribed: isSubscribed,
-              stageValue: stageValue,
-              currentStage: currentStage,
+              sentimentScore: relationship?.sentiment_score ?? 0,
+              currentStage: relationship?.state ?? "",
               nextStage: nextStage,
               trust: relationship?.trust,
               closeness: relationship?.closeness,
