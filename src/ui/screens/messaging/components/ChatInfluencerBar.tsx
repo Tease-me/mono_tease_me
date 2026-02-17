@@ -42,13 +42,13 @@ export default function ChatInfluencerBar({
   isSubscribed = false,
 }: ChatInfluencerBarProps) {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [stageValue, setStageValue] = useState<number>(0);
+  const [sentimentScore, setSentimentScore] = useState<number>(0);
   const [currentStage, setCurrentStage] = useState<string>("");
   const [nextStage, setNextStage] = useState<string>("");
 
   useEffect(() => {
     if (!influencer?.id) {
-      setStageValue(0);
+      setSentimentScore(0);
       setCurrentStage("");
       setNextStage("");
       return;
@@ -59,13 +59,13 @@ export default function ChatInfluencerBar({
       try {
         const dims = await relationshipService.getDimensions(influencer.id);
         if (!cancelled) {
-          setStageValue(dims.stage_points);
+          setSentimentScore(dims.sentiment_score);
           setCurrentStage(dims.current_stage);
           setNextStage(dims.next_stage);
         }
       } catch {
         if (!cancelled) {
-          setStageValue(0);
+          setSentimentScore(0);
           setCurrentStage("");
           setNextStage("");
         }
@@ -163,7 +163,7 @@ export default function ChatInfluencerBar({
               lastConnected: formatDate(relationship?.last_interaction_at),
               followingSince: formatDate(influencer.created_at),
               isSubscribed: isSubscribed,
-              stageValue: stageValue,
+              sentimentScore: sentimentScore,
               currentStage: currentStage,
               nextStage: nextStage,
               trust: relationship?.trust,
