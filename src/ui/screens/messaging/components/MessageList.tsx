@@ -21,6 +21,7 @@ interface MessagesListProps {
   showAudioTranscript?: boolean;
   isAudio?: boolean;
   onCallBack?: () => void;
+  adultMode?: boolean;
 }
 
 const MessagesList = React.memo(
@@ -33,6 +34,7 @@ const MessagesList = React.memo(
     onAudioPlay,
     showAudioTranscript,
     onCallBack,
+    adultMode = false,
   }: MessagesListProps) => {
 
     useEffect(() => {
@@ -52,7 +54,7 @@ const MessagesList = React.memo(
     return (
       <>
         <div className={styles["messages"]}>
-          {messages.length === 0 && typing === "idle" && (
+          {messages.length === 0 && typing === "idle" && !adultMode && (
             <div className={styles["empty-card"]}>
               <div className={styles["empty-title"]}>No messages yet</div>
               <div className={styles["empty-subtitle"]}>

@@ -223,6 +223,10 @@
   z-index: 2;
 }
 
+.profileImageClick {
+  cursor: pointer;
+}
+
 .profileRightCol {
   display: flex;
   flex-direction: row;

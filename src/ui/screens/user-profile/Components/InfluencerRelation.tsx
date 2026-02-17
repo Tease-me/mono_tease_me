@@ -3,17 +3,18 @@ import clsx from "clsx";
 import styles from "./InfluencerRelation.module.css";
 import SvgPack from "@/utils/SvgPack";
 import { apiClient } from "@/api/apis";
-import ProfileMedia from "@/ui/components/ProfileMedia";
 import RelationshipRadar from "@/ui/components/visualizations/RelationshipRadart";
 import UsageView from "@/ui/components/stats/UsageView";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
-import ProgressBar from "@/ui/components/stats/ProgressBar";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import BalanceBadge from "@/ui/components/stats/BalanceBadge";
 import AdultModeToggle from "@/ui/components/adult-mode-toggle/AdultModeToggle";
 import { Modal } from "@/ui/components/modals/Modal";
 import { formatDateTimeRelative, minutesToTime } from "@/utils/DateTimeUtils";
+import RelationshipStageProgress from "@/ui/components/stats/RelationshipStageProgress";
+import RelatioshipAffinities from "@/ui/components/stats/RelatioshipAffinities";
+import InfluencerProfileCard from "@/ui/components/profile/InfluencerProfileCard";
 
 
 import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
@@ -64,13 +65,15 @@ type RelationData = {
   adultBalance?: number;
   adultVoiceMinutes?: number,
   adultMsgRemaining?: number,
-  //Love stats 
+  //Love stats
   trust?: number;
   safety?: number;
   attraction?: number;
   closeness?: number;
-  stageScore?: number;
-  state?: string;
+  sentimentScore?: number;
+  //Stage dimensions
+  currentStage?: string;
+  nextStage?: string;
 };
 
 
@@ -92,7 +95,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
       safety: navPayload.safety,
       attraction: navPayload.attraction,
       closeness: navPayload.closeness,
-      stageScore: navPayload.stageScore,
+      sentimentScore: navPayload.sentimentScore,
       state: navPayload.status
     }),
     [navPayload]
@@ -121,13 +124,14 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
 
     (async () => {
       try {
-        const [rel, bal, sub, u, i, following] = await Promise.all([
+        const [rel, bal, sub, u, i, following, dims] = await Promise.all([
           relationshipService.getRelationship(initial.id!),
           balanceService.getBalance(initial.id!, false).catch(() => null),
           subscriptionService.getMySubscriptionForInfluencer(initial.id!),
           userServices.getUserUsage(initial.id),
           influencerRepo.getInfluencer(initial.id!),
           followingService.list(),
+          relationshipService.getDimensions(initial.id!).catch(() => null),
         ]);
 
         if (cancelled) return;
@@ -140,9 +144,8 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           trust: rel?.trust ?? d.trust,
           safety: rel?.safety ?? d.safety,
           attraction: rel?.attraction ?? d.attraction,
-          state: rel?.state ?? d.state,
           closeness: rel?.closeness ?? d.closeness,
-          stageScore: rel?.stage_points ?? d.stageScore,
+          sentimentScore: rel?.sentiment_score ?? d.sentimentScore,
           lastConnected: rel?.last_interaction_at ?? d.lastConnected,
           balance: bal ? bal.balance_cents / 100 : d.balance,
           hasSubscription: sub?.has_subscription ?? d.hasSubscription,
@@ -153,6 +156,8 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           msgRemaining: u?.normal?.messages?.remaining ?? d.msgRemaining,
           adultVoiceMinutes: u?.adult?.voice?.remaining_minutes ?? d.adultVoiceMinutes,
           adultMsgRemaining: u?.adult?.messages?.remaining ?? d.adultMsgRemaining,
+          currentStage: dims?.current_stage ?? d.currentStage,
+          nextStage: dims?.next_stage ?? d.nextStage,
         }));
       } finally {
         if (!cancelled) setLoading(false);
@@ -290,26 +295,13 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
 
   return (
     <div className={clsx("u-sidebar-page", styles.shell)}>
-      {/* Hero */}
-      <div className={styles.heroRow}>
-        <ProfileMedia imageSrc={data.image} videoSrc={data.video} size="medium" active />
-        <div className={styles.heroInfo}>
-          <div className={isSubscribed ? styles.badges : styles.badgesHide}>
-            <span className={styles.modeText}>
-              <span
-                className={styles.eighteenPlus}
-              >18+</span> Mode
-            </span>
-            <span className={styles.statusBadge}>
-              Subscribed
-            </span>
-          </div>
-          <div className={styles.meta}>
-            <span>Last Connected: <strong>{data.lastConnected ? formatDateTimeRelative(data.lastConnected) : "--"}</strong></span>
-            <span>Following since: {followingDate}</span>
-          </div>
-        </div>
-      </div>
+      <InfluencerProfileCard
+        name={data.name || ""}
+        image={data.image || ""}
+        isSubscribed={isSubscribed}
+        lastConnected={data.lastConnected ? formatDateTimeRelative(data.lastConnected) : "--"}
+        followingSince={followingDate}
+      />
 
       {/* Balance Card */}
       <div className={styles.balanceCard}>
@@ -379,9 +371,9 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         <div className={styles.relationshipHeader}>
           <div className={styles.relationshipTitle}>Relationship Statistics</div>
         </div>
-        <div className={styles.progressBar}>
-          <ProgressBar mutedLabel label="Relationship Stage Progress" value={data.stageScore ?? 0} max={100} /><p>{data.state}</p>
-        </div>
+        {data.currentStage && (
+          <RelationshipStageProgress sentimentScore={data.sentimentScore ?? 0} large currentStage={data.currentStage} nextStage={data.nextStage} />
+        )}
 
         {/*  radar chart */}
         <div className={styles.radarPlaceholder}>
@@ -397,11 +389,8 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
       </div>
 
       <div className={styles.relationshipStatsArea}>
-
-        <ProgressBar icon={<SvgPack.Trust />} compact label="Trust" value={data.trust ?? 0} max={100} showInfoIcon tooltipLabel="Trust" />
-        <ProgressBar icon={<SvgPack.Angles />} compact label="Closeness" value={data.closeness ?? 0} max={100} showInfoIcon tooltipLabel="Closeness" />
-        <ProgressBar icon={<SvgPack.KissGray />} compact label="Attraction" value={data.attraction ?? 0} max={100} showInfoIcon tooltipLabel="Attraction" />
-        <ProgressBar icon={<SvgPack.Shield />} compact label="Safety" value={data.safety ?? 0} max={100} showInfoIcon tooltipLabel="Safety" />
+        <RelatioshipAffinities trust={data.trust ?? 0} closeness={data.closeness ?? 0} attraction={data.attraction ?? 0}
+          safety={data.safety ?? 0} />
       </div>
 
       {/* <div className={styles.unfollow}>

@@ -10,7 +10,7 @@ import IncomeDialogStep01 from "@/ui/screens/landing-page/subscreens/IncomeDialo
 import ProfileSurvey from "@/ui/screens/landing-page/subscreens/ProfileSurvey";
 import ThankYouScreen from "@/ui/screens/landing-page/subscreens/ThankYouScreen";
 import UpdateProfile from "@/ui/screens/register/UpdateProfile";
-import ProfileSurveyForm from "@/ui/screens/survey/ProfileSurveyForm";
+import ProfileSurveyForm from "@/ui/screens/influencer-survey/ProfileSurveyForm";
 import TermsPage from "@/ui/screens/terms/TermsPage";
 import { terms } from "@/ui/screens/terms/termsContent";
 
