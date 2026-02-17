@@ -188,6 +188,122 @@ async def search_similar_messages(db, chat_id: str, embedding: list[float], top_
     return [row[0] for row in result.fetchall()]
 
 
+async def search_similar_memories_and_messages(
+    db, 
+    chat_id: str, 
+    embedding: list[float], 
+    top_k: int = 10, 
+    max_distance: float | None = None,
+    memories_weight: float = 1.0,
+    messages_weight: float = 1.0,
+) -> list[str]:
+    """
+    Search for similar content across BOTH memories and messages using UNION.
+    
+    This combines results from both tables, allowing you to get a richer context
+    by including both curated memories (facts) and actual conversation history.
+    
+    Args:
+        db: Database session
+        chat_id: Chat ID to search within
+        embedding: Query embedding vector
+        top_k: Number of results to return (default: 10)
+        max_distance: Optional maximum cosine distance threshold (default: None = no filtering)
+                     Lower = more similar (0=identical, 1=orthogonal)
+                     Recommended: 0.3-0.7 for filtering
+        memories_weight: Weight multiplier for memory distances (default: 1.0)
+                        Lower = prioritize memories (e.g., 0.8 gives memories 20% boost)
+        messages_weight: Weight multiplier for message distances (default: 1.0)
+                        Lower = prioritize messages (e.g., 0.9 gives messages 10% boost)
+        
+    Returns:
+        List of content strings (both memories and messages) ordered by weighted similarity
+        
+    Example:
+        # Prioritize memories slightly over messages
+        results = await search_similar_memories_and_messages(
+            db, chat_id, embedding, top_k=10, 
+            memories_weight=0.8, messages_weight=1.0
+        )
+    """
+    embedding_str = "[" + ",".join(str(x) for x in embedding) + "]"
+    
+    if max_distance is not None:
+        sql = text("""
+            SELECT content, weighted_distance, source
+            FROM (
+                SELECT 
+                    content,
+                    (embedding <=> :embedding) * :memories_weight AS weighted_distance,
+                    'memory' AS source,
+                    created_at
+                FROM memories
+                WHERE chat_id = :chat_id
+                  AND embedding IS NOT NULL
+                  AND (embedding <=> :embedding) * :memories_weight <= :max_distance
+                
+                UNION ALL
+                
+                SELECT 
+                    content,
+                    (embedding <=> :embedding) * :messages_weight AS weighted_distance,
+                    'message' AS source,
+                    created_at
+                FROM messages
+                WHERE chat_id = :chat_id
+                  AND embedding IS NOT NULL
+                  AND (embedding <=> :embedding) * :messages_weight <= :max_distance
+            ) combined
+            ORDER BY weighted_distance ASC, created_at DESC
+            LIMIT :top_k
+        """)
+        params = {
+            "chat_id": chat_id,
+            "embedding": embedding_str,
+            "top_k": top_k,
+            "max_distance": max_distance,
+            "memories_weight": memories_weight,
+            "messages_weight": messages_weight,
+        }
+    else:
+        sql = text("""
+            SELECT content, weighted_distance, source
+            FROM (
+                SELECT 
+                    content,
+                    (embedding <=> :embedding) * :memories_weight AS weighted_distance,
+                    'memory' AS source,
+                    created_at
+                FROM memories
+                WHERE chat_id = :chat_id
+                  AND embedding IS NOT NULL
+                
+                UNION ALL
+                
+                SELECT 
+                    content,
+                    (embedding <=> :embedding) * :messages_weight AS weighted_distance,
+                    'message' AS source,
+                    created_at
+                FROM messages
+                WHERE chat_id = :chat_id
+                  AND embedding IS NOT NULL
+            ) combined
+            ORDER BY weighted_distance ASC, created_at DESC
+            LIMIT :top_k
+        """)
+        params = {
+            "chat_id": chat_id,
+            "embedding": embedding_str,
+            "top_k": top_k,
+            "memories_weight": memories_weight,
+            "messages_weight": messages_weight,
+        }
+    
+    result = await db.execute(sql, params)
+    return [row[0] for row in result.fetchall()]
+
+
 async def upsert_memory(
     db,
     chat_id: str,

@@ -14,7 +14,7 @@ from app.api.elevenlabs import _extract_total_seconds
 from sqlalchemy import select
 from app.db.models import CallRecord, Chat, Influencer
 from app.agents.turn_handler import  handle_turn, redis_history
-from app.agents.memory import find_similar_memories, find_similar_messages
+from app.agents.memory import find_similar_memories, find_similar_messages, find_similar_memories_and_messages
 
 from app.relationship.processor import process_relationship_turn
 
