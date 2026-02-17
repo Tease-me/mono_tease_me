@@ -42,14 +42,10 @@ export default function ChatInfluencerBar({
   isSubscribed = false,
 }: ChatInfluencerBarProps) {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [sentimentScore, setSentimentScore] = useState<number>(0);
-  const [currentStage, setCurrentStage] = useState<string>("");
   const [nextStage, setNextStage] = useState<string>("");
 
   useEffect(() => {
     if (!influencer?.id) {
-      setSentimentScore(0);
-      setCurrentStage("");
       setNextStage("");
       return;
     }
@@ -59,21 +55,17 @@ export default function ChatInfluencerBar({
       try {
         const dims = await relationshipService.getDimensions(influencer.id);
         if (!cancelled) {
-          setSentimentScore(dims.sentiment_score);
-          setCurrentStage(dims.current_stage);
           setNextStage(dims.next_stage);
         }
       } catch {
         if (!cancelled) {
-          setSentimentScore(0);
-          setCurrentStage("");
           setNextStage("");
         }
       }
     })();
 
     return () => { cancelled = true; };
-  }, [influencer?.id]);
+  }, [influencer?.id, relationship?.trust, relationship?.closeness, relationship?.attraction, relationship?.safety]);
 
   const glowClass =
     adultMode ? styles.glowStatusCircleAdult : styles.glowStatusCircleDefault;
@@ -163,8 +155,8 @@ export default function ChatInfluencerBar({
               lastConnected: formatDate(relationship?.last_interaction_at),
               followingSince: formatDate(influencer.created_at),
               isSubscribed: isSubscribed,
-              sentimentScore: sentimentScore,
-              currentStage: currentStage,
+              sentimentScore: relationship?.sentiment_score ?? 0,
+              currentStage: relationship?.state ?? "",
               nextStage: nextStage,
               trust: relationship?.trust,
               closeness: relationship?.closeness,

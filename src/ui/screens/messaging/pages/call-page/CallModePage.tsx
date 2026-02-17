@@ -40,8 +40,6 @@ type CallModePageProps = {
 const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, callTime, errorMessage, cancelCall, onChangeInfluencer }: CallModePageProps) => {
     const [balance, setBalance] = React.useState<number>(0);
     const [isPopupOpen, setIsPopupOpen] = useState(false);
-    const [sentimentScore, setSentimentScore] = useState<number>(0);
-    const [currentStage, setCurrentStage] = useState<string>("");
     const [nextStage, setNextStage] = useState<string>("");
 
     const handleCallButtonClicked = () => {
@@ -63,8 +61,6 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
 
     useEffect(() => {
         if (!influencer?.id) {
-            setSentimentScore(0);
-            setCurrentStage("");
             setNextStage("");
             return;
         }
@@ -74,14 +70,10 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
             try {
                 const dims = await relationshipService.getDimensions(influencer.id);
                 if (!cancelled) {
-                    setSentimentScore(dims.sentiment_score);
-                    setCurrentStage(dims.current_stage);
                     setNextStage(dims.next_stage);
                 }
             } catch {
                 if (!cancelled) {
-                    setSentimentScore(0);
-                    setCurrentStage("");
                     setNextStage("");
                 }
             }
@@ -108,17 +100,7 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
         }
     };
 
-    const handleOpenPopup = async () => {
-        if (influencer?.id) {
-            try {
-                const dims = await relationshipService.getDimensions(influencer.id);
-                setSentimentScore(dims.sentiment_score);
-                setCurrentStage(dims.current_stage);
-                setNextStage(dims.next_stage);
-            } catch {
-                // Keep existing values on error
-            }
-        }
+    const handleOpenPopup = () => {
         setIsPopupOpen(true);
     };
 
@@ -197,8 +179,8 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                             lastConnected: formatDate(relationship?.last_interaction_at),
                             followingSince: formatDate(influencer.created_at),
                             isSubscribed: false,
-                            sentimentScore: sentimentScore,
-                            currentStage: currentStage,
+                            sentimentScore: relationship?.sentiment_score ?? 0,
+                            currentStage: relationship?.state ?? "",
                             nextStage: nextStage,
                             trust: relationship?.trust,
                             closeness: relationship?.closeness,
