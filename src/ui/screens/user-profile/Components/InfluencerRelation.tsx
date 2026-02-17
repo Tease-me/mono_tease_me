@@ -70,11 +70,10 @@ type RelationData = {
   safety?: number;
   attraction?: number;
   closeness?: number;
-  stageScore?: number;
+  sentimentScore?: number;
   //Stage dimensions
   currentStage?: string;
   nextStage?: string;
-  stagePointsFromDims?: number;
 };
 
 
@@ -96,7 +95,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
       safety: navPayload.safety,
       attraction: navPayload.attraction,
       closeness: navPayload.closeness,
-      stageScore: navPayload.stageScore,
+      sentimentScore: navPayload.sentimentScore,
       state: navPayload.status
     }),
     [navPayload]
@@ -146,7 +145,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           safety: rel?.safety ?? d.safety,
           attraction: rel?.attraction ?? d.attraction,
           closeness: rel?.closeness ?? d.closeness,
-          stageScore: rel?.stage_points ?? d.stageScore,
+          sentimentScore: rel?.sentiment_score ?? d.sentimentScore,
           lastConnected: rel?.last_interaction_at ?? d.lastConnected,
           balance: bal ? bal.balance_cents / 100 : d.balance,
           hasSubscription: sub?.has_subscription ?? d.hasSubscription,
@@ -159,7 +158,6 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           adultMsgRemaining: u?.adult?.messages?.remaining ?? d.adultMsgRemaining,
           currentStage: dims?.current_stage ?? d.currentStage,
           nextStage: dims?.next_stage ?? d.nextStage,
-          stagePointsFromDims: dims?.stage_points ?? d.stagePointsFromDims,
         }));
       } finally {
         if (!cancelled) setLoading(false);
@@ -373,8 +371,8 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         <div className={styles.relationshipHeader}>
           <div className={styles.relationshipTitle}>Relationship Statistics</div>
         </div>
-        {data.currentStage && data.nextStage && (
-          <RelationshipStageProgress stageValue={data.stagePointsFromDims ?? data.stageScore ?? 0} large currentStage={data.currentStage} nextStage={data.nextStage} />
+        {data.currentStage && (
+          <RelationshipStageProgress sentimentScore={data.sentimentScore ?? 0} large currentStage={data.currentStage} nextStage={data.nextStage} />
         )}
 
         {/*  radar chart */}
