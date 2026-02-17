@@ -139,7 +139,7 @@ def get_time_context(user_timezone: str | None) -> str:
     weekend_type = "weekend" if is_weekend else "weekday"
     selected_vibe = random.choice(vibes)
     
-    return f"{now.strftime('%I:%M %p')}, {day_name} {weekend_type} - {selected_vibe}"
+    return f"{now.strftime('%I:%M %p')}, {day_name} {now.strftime('%d %B %Y')} ({weekend_type}) - {selected_vibe}"
 
 
 # Keep old function for backward compatibility during transition

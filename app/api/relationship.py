@@ -9,6 +9,7 @@ from app.services.relationship_dimension_service import (
     get_dimension_descriptions,
     get_stage_requirements
 )
+from app.constants.relationship_stages import STAGE_RANGES
 
 router = APIRouter(prefix="/relationship", tags=["relationship"])
 
@@ -17,31 +18,14 @@ def calculate_stage_progress(stage_points: float, state: str) -> float:
     """
     Calculate percentage progress within the current relationship stage.
     
-    Stage ranges:
-    - HATE: -∞ to -11
-    - DISLIKE: -10 to -1 (10 point range)
-    - STRANGERS: 0 to 24 (24 point range)
-    - FRIENDS: 25 to 49 (24 point range)
-    - FLIRTING: 50 to 74 (24 point range)
-    - DATING: 75 to 89 (14 point range)
-    - GIRLFRIEND: 90 to 100 (10 point range)
+    Uses shared STAGE_RANGES constant to ensure consistency across the system.
     
     Returns percentage (0-100) of progress through current stage.
     """
-    stage_ranges = {
-        "HATE": (-20.0, -11.0),  # Using -20 as lower bound (from code min)
-        "DISLIKE": (-10.0, -1.0),
-        "STRANGERS": (0.0, 24.0),
-        "FRIENDS": (25.0, 49.0),
-        "FLIRTING": (50.0, 74.0),
-        "DATING": (75.0, 89.0),
-        "GIRLFRIEND": (90.0, 100.0),
-    }
-    
-    if state not in stage_ranges:
+    if state not in STAGE_RANGES:
         return 0.0
     
-    min_points, max_points = stage_ranges[state]
+    min_points, max_points = STAGE_RANGES[state]
     range_size = max_points - min_points
     
     if range_size <= 0:
