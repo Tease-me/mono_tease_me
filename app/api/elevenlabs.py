@@ -583,7 +583,7 @@ def _build_agent_patch_payload(
         {
             "name": "updateRelationship",
             "type": "webhook",
-            "description": "Production: Updates and Retrieves the relationship states",
+            "description": "MANDATORY: Call this on EVERY user message BEFORE generating your reply. Updates relationship metrics (trust, closeness, attraction) based on user's tone and message content.",
             "webhook": {
                 "url": f"{settings.PUBLIC_BASE_URL.rstrip('/')}/webhooks/update_relationship",
                 "method": "POST",
@@ -595,7 +595,7 @@ def _build_agent_patch_payload(
         {
             "name": "getMemories",
             "type": "webhook",
-            "description": "Production: Retrieves long-term user-persona memories from the memory bank",
+            "description": "Use when user references past conversations, asks what you remember, or mentions personal details. Retrieves relevant memories from the memory bank.",
             "webhook": {
                "url": f"{settings.PUBLIC_BASE_URL.rstrip('/')}/webhooks/memories",
                "method": "POST",
@@ -649,7 +649,7 @@ def _build_agent_create_payload(
             {
                 "name": "updateRelationship",
                 "type": "webhook",
-                "description": "Production: Updates and Retrieves the relationship states",
+                "description": "MANDATORY: Call this on EVERY user message BEFORE generating your reply. Updates relationship metrics (trust, closeness, attraction) based on user's tone and message content.",
                 "webhook": {
                     "url": f"{settings.PUBLIC_BASE_URL.rstrip('/')}/webhooks/update_relationship",
                     "method": "POST",
@@ -661,7 +661,7 @@ def _build_agent_create_payload(
             {
                 "name": "getMemories",
                 "type": "webhook",
-                "description": "Production: Retrieves long-term user-persona memories from the memory bank",
+                "description": "Use when user references past conversations, asks what you remember, or mentions personal details. Retrieves relevant memories from the memory bank.",
                 "webhook": {
                    "url": f"{settings.PUBLIC_BASE_URL.rstrip('/')}/webhooks/memories",
                    "method": "POST",

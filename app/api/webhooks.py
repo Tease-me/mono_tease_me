@@ -212,12 +212,21 @@ async def update_relationship_api(
     x_webhook_token: str | None = Header(default=None),
 ):
     _verify_token(ELEVENLABS_CONVAI_WEBHOOK_SECRET, x_webhook_token)
+    
+    # Return IMMEDIATELY - parse and process everything in background
+    background_tasks.add_task(_process_relationship_update_from_request, req)
+    
+    return {"status": "received"}
 
+
+async def _process_relationship_update_from_request(req: Request):
+    """Parse payload and process relationship update in background."""
     try:
         payload = await req.json()
     except Exception:
-        return {"status": "received"}
-
+        log.warning("[EL TOOL BG] Invalid JSON payload")
+        return
+    
     try:
         log.info("[EL TOOL] payload(head)=%s", str(payload)[:800])
     except Exception:
@@ -233,14 +242,8 @@ async def update_relationship_api(
     user_text = str(raw_text).strip()
     conversation_id = payload.get("conversation_id")
     
-    # Queue background processing - return immediately without waiting
-    background_tasks.add_task(
-        _process_relationship_update,
-        user_text,
-        conversation_id,
-    )
-    
-    return {"status": "processing"}
+    # Continue with existing processing
+    await _process_relationship_update(user_text, conversation_id)
 
 
 async def _process_relationship_update(user_text: str, conversation_id: str):
