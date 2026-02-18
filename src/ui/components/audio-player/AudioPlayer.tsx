@@ -41,7 +41,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, height, width, progressC
             .then(res => res.arrayBuffer())
             .then(buffer => {
                 const audioCtx = new AudioContext();
-                return audioCtx.decodeAudioData(buffer);
+                return audioCtx.decodeAudioData(buffer).then(decoded => {
+                    audioCtx.close();
+                    return decoded;
+                });
             })
             .then(audioBuffer => {
                 const raw = audioBuffer.getChannelData(0);

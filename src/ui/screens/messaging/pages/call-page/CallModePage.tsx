@@ -116,14 +116,14 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                     <div onClick={handleOpenPopup} className={styles.profileImageClick}>
                         <ProfileMedia active size="xlarge" mediaType="image" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} glow />
                     </div>
-                    <button
+                    {onChangeInfluencer && <button
                         type="button"
                         className={styles.profileSwitch}
                         onClick={onChangeInfluencer}
                         aria-label="Change influencer"
                     >
                         <img src={switchProfileImg} alt="Switch" /> <div className={styles.switchProfileLabel}>Switch Influencer</div>
-                    </button>
+                    </button>}
                 </div>
                 <div className={styles.name}>{influencer?.name}</div>
 
