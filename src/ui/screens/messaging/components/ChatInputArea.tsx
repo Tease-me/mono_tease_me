@@ -163,6 +163,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                             onChange={handleOnChange}
                             onKeyDown={handleKeyDown}
                             disabled={disabled}
+                            maxLength={300}
                         />
                         <RemainingCreditBadge className={styles["credit-badge"]} value={creditsRemaining || 0} />
                     </div>}
