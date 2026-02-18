@@ -14,25 +14,6 @@ const VoiceCall: React.FC<VoiceCallProps> = ({ }) => {
     const [agentId, setAgentId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // useEffect(() => {
-    //     const initAgent = async () => {
-    //         setIsLoading(true);
-    //         try {
-    //             const response = await createWebAgent();
-    //             if (!response.agent?.agent_id) {
-    //                 throw new Error("Failed to create web agent");
-    //             }
-    //             setAgentId(response.agent.agent_id);
-    //         } catch (err) {
-    //             console.error("Agent creation error:", err);
-    //             setError(err instanceof Error ? err.message : "Failed to create agent");
-    //         } finally {
-    //             setIsLoading(false);
-    //         }
-    //     };
-    //     initAgent();
-    // }, []);
-
     useEffect(() => {
         const initAgent = async () => {
             setIsLoading(true);
@@ -50,22 +31,6 @@ const VoiceCall: React.FC<VoiceCallProps> = ({ }) => {
         };
         initAgent();
     }, []);
-
-    // useEffect(() => {
-    //     const initAgent = async () => {
-    //         setIsLoading(true);
-    //         try {
-    //             setAgentId(BLAND_AGENT_LUNA);
-    //         } catch (err) {
-    //             console.error("Agent creation error:", err);
-    //             setError(err instanceof Error ? err.message : "Failed to create agent");
-    //         } finally {
-    //             setIsLoading(false);
-    //         }
-    //     };
-    //     initAgent();
-    // }, []);
-
 
     useEffect(() => {
         const onUnload = () => {

@@ -58,22 +58,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     isAudio = false,
     onCallBack,
 }) => {
-    // const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const [expanded, setExpanded] = useState(false);
     const [transcriptExpanded, setTranscriptExpanded] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const objectUrlMapRef = useRef<Map<Blob, string>>(new Map());
-
-    // useLayoutEffect(() => {
-    //     function updateSize() {
-    //         if (!containerRef.current) return;
-    //         const { width, height } = containerRef.current.getBoundingClientRect();
-    //         // setDimensions({ width: width, height: height });
-    //     }
-    //     updateSize();
-    //     window.addEventListener('resize', updateSize);
-    //     return () => window.removeEventListener('resize', updateSize);
-    // }, [containerRef]);
 
     useLayoutEffect(() => {
         return () => {
