@@ -4,6 +4,11 @@
 COMPOSE ?= docker compose
 SERVICE ?= backend
 
+LINT_PATHS := app
+ifneq ("$(wildcard tests)","")
+LINT_PATHS += tests
+endif
+
 seed-influencers:
 	$(COMPOSE) exec $(SERVICE) poetry run python -m app.scripts.seed_influencers
 
@@ -68,25 +73,25 @@ alembic-local-current:
 	poetry run alembic current
 
 lint:
-	poetry run ruff check app tests
+	poetry run ruff check $(LINT_PATHS)
 
 lint-fix:
-	poetry run ruff check --fix app tests
+	poetry run ruff check --fix $(LINT_PATHS)
 
 format:
-	poetry run ruff format app tests
+	poetry run ruff format $(LINT_PATHS)
 
 format-check:
-	poetry run ruff format --check app tests
+	poetry run ruff format --check $(LINT_PATHS)
 
 lint-docker:
-	$(COMPOSE) exec $(SERVICE) poetry run ruff check app tests
+	$(COMPOSE) exec $(SERVICE) poetry run ruff check $(LINT_PATHS)
 
 lint-docker-fix:
-	$(COMPOSE) exec $(SERVICE) poetry run ruff check --fix app tests
+	$(COMPOSE) exec $(SERVICE) poetry run ruff check --fix $(LINT_PATHS)
 
 format-docker:
-	$(COMPOSE) exec $(SERVICE) poetry run ruff format app tests
+	$(COMPOSE) exec $(SERVICE) poetry run ruff format $(LINT_PATHS)
 
 format-docker-check:
-	$(COMPOSE) exec $(SERVICE) poetry run ruff format --check app tests
+	$(COMPOSE) exec $(SERVICE) poetry run ruff format --check $(LINT_PATHS)
