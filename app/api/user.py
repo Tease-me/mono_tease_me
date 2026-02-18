@@ -1,11 +1,8 @@
-import io
 import logging
 from datetime import date
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import func
-from app.core.config import settings
 from app.db.models import User, InfluencerWallet, DailyUsage, Pricing
 from app.db.session import get_db
 from app.schemas.user import UserOut, UserUpdate, UserAdultPromptUpdate, UserAdultPromptOut

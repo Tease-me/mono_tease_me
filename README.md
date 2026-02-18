@@ -29,12 +29,11 @@ TeaseMe is a multi-persona conversational AI platform with audio, long-term memo
 4. **Talk to the API**
 
 - app/main.py # FastAPI entrypoint
-- app/api/router.py # WebSocket chat endpoint
-- app/db/models.py # SQLAlchemy+pgvector models
-c
-# TeaseMe Backend
+- app/api/chat.py # Chat HTTP + WebSocket endpoint
+- app/db/models/ # SQLAlchemy + pgvector models package
    - REST: `https://localhost:8000`
-   - WebSocket chat: `wss://localhost:8000/ws/chat/<persona>`
+   - WebSocket chat: `wss://localhost:8000/chat/ws/{influencer_id}`
+   - WebSocket chat 18+: `wss://localhost:8000/chat18/ws/{influencer_id}`
 
 Database migrations run automatically in the backend container, so no local tooling is required.
 
@@ -77,10 +76,10 @@ poetry run uvicorn app.main:app \
   --ssl-keyfile=./.cert/key.pem --ssl-certfile=./.cert/cert.pem
 ```
 
-WebSocket endpoint: `ws://localhost:8000/ws/chat/<persona>`
+WebSocket endpoint: `ws://localhost:8000/chat/ws/{influencer_id}`
 
 ## Project structure
 
 - app/main.py — FastAPI entrypoint
-- app/api/router.py — HTTP/WebSocket routes
-- app/db/models.py — SQLAlchemy + pgvector models
+- app/api/ — HTTP/WebSocket route modules
+- app/db/models/ — SQLAlchemy + pgvector models

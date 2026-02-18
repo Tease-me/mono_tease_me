@@ -1,5 +1,4 @@
 import logging
-import random
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select, and_, not_, func

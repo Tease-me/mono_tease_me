@@ -8,10 +8,9 @@ This module provides:
 """
 
 import logging
-from datetime import datetime, timezone
 
 from openai import AsyncOpenAI
-from sqlalchemy import text, func
+from sqlalchemy import text
 
 log = logging.getLogger(__name__)
 

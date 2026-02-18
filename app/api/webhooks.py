@@ -24,9 +24,6 @@ log = logging.getLogger(__name__)
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 
 ELEVENLABS_CONVAI_WEBHOOK_SECRET = settings.ELEVENLABS_CONVAI_WEBHOOK_SECRET
-ELEVEN_BASE_URL = settings.ELEVEN_BASE_URL
-
-log = logging.getLogger(__name__)
 
 
 def _redact(val: Any) -> str:

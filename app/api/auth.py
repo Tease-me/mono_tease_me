@@ -2,7 +2,7 @@ import secrets
 import logging
 
 from datetime import datetime, timedelta
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, Response, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Request, Response, UploadFile, status
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -10,7 +10,6 @@ from jose import jwt, JWTError
 from passlib.context import CryptContext
 from app.db.session import get_db
 from app.db.models import User
-from pydantic import BaseModel
 from app.schemas.auth import RegisterRequest, LoginRequest, Token, PasswordResetRequest
 from app.core.config import settings
 from app.utils.auth.dependencies import get_current_user

@@ -19,8 +19,6 @@ from app.agents.prompt_utils import (
 )
 from app.db.models import Influencer, User
 from app.utils.messaging.tts_sanitizer import sanitize_tts_text
-from app.services.system_prompt_service import get_system_prompt
-from app.constants import prompt_keys
 from app.utils.logging.prompt_logging import log_prompt
 
 from app.relationship.processor import process_relationship_turn
@@ -289,4 +287,3 @@ async def handle_turn(
         return sanitize_tts_text(reply)
 
     return reply
-

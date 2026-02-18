@@ -154,50 +154,6 @@ async def start_subscription(
         "price": f"${price_cents/100:.0f}/month",
         "is_18": is_18,
     }
-    # Use advisory lock to prevent race conditions on subscription state
-    async with advisory_lock(f"subscription:{user.id}:{influencer_id}", timeout=settings.LOCK_TIMEOUT):
-        try:
-            res = await db.execute(
-                select(InfluencerSubscription).where(
-                    InfluencerSubscription.user_id == user.id,
-                    InfluencerSubscription.influencer_id == influencer_id,
-                )
-            )
-            sub = res.scalar_one_or_none()
-
-            now = datetime.now(timezone.utc)
-            next_month = now + timedelta(days=30)
-
-            if sub:
-                sub.status = "active"
-                sub.price_cents = price_cents
-                sub.started_at = now
-                sub.current_period_start = now
-                sub.current_period_end = next_month
-                sub.next_payment_at = next_month
-                await db.commit()
-                return {"status": "reactivated", "subscription_id": sub.id}
-
-            sub = InfluencerSubscription(
-                user_id=user.id,
-                influencer_id=influencer_id,
-                price_cents=price_cents,
-                started_at=now,
-                current_period_start=now,
-                current_period_end=next_month,
-                next_payment_at=next_month,
-            )
-            db.add(sub)
-            await db.commit()
-            await db.refresh(sub)
-
-            return {"status": "created", "subscription_id": sub.id}
-        except HTTPException:
-            raise
-        except Exception as e:
-            await db.rollback()
-            log.exception("Failed to start subscription for user %s: %s", user.id, e)
-            raise HTTPException(status_code=500, detail="Failed to start subscription")
 
 @router.post("/paypal/capture")
 @rate_limit(max_requests=settings.RATE_LIMIT_BILLING_MAX, window_seconds=settings.RATE_LIMIT_BILLING_WINDOW, key_prefix="sub:paypal-capture")
