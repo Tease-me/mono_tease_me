@@ -18,9 +18,15 @@ export default function useCallLanding() {
   } = useMicrophonePermission();
   const [influencerId, setInfluencerId] = useState<string>();
 
-  const ringtoneRef = useRef(
-    new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: true })
-  );
+  const ringtoneRef = useRef<Howl | null>(null);
+
+  const getRingtone = useCallback((): Howl => {
+    if (!ringtoneRef.current) {
+      ringtoneRef.current = new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: true });
+    }
+    return ringtoneRef.current;
+  }, []);
+
   const chatRepo = ChatRepository();
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const { user } = useContext(AuthContext);
@@ -37,22 +43,26 @@ export default function useCallLanding() {
   }, []);
   useEffect(() => {
     return () => {
-      ringtoneRef.current.stop();
-      ringtoneRef.current.unload();
+      if (ringtoneRef.current) {
+        ringtoneRef.current.stop();
+        ringtoneRef.current.unload();
+        ringtoneRef.current = null;
+      }
     };
   }, []);
 
   const ring = useCallback(() => {
-    const ringtone = ringtoneRef.current;
     try {
-      ringtone.play();
+      getRingtone().play();
     } catch (err) {
       console.error("Ringtone playback failed:", err);
     }
-  }, []);
+  }, [getRingtone]);
 
   const stopRing = useCallback(() => {
-    ringtoneRef.current.stop();
+    if (ringtoneRef.current) {
+      ringtoneRef.current.stop();
+    }
   }, []);
 
   const conversation = useConversation({
