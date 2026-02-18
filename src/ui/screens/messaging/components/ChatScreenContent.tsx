@@ -1,4 +1,4 @@
-import React, { memo, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Endpoints, WS_BASE_URL } from "@/api/urls";
 import { AuthContext } from "@/context/AuthContext";
@@ -40,6 +40,7 @@ import UpgradePlanModal from '@/ui/components/modals/subscription/UpgradePlanMod
 import AddCreditsModal from '@/ui/components/modals/payment-modal/AddCreditsModal';
 import AdultTermsModal from '@/ui/components/modals/adult-terms/AdultTermsModal';
 import { useSidebar } from '@/hooks/useSidebar';
+import InfluencerSelector from '@/ui/screens/influencer/InfluencerSelector';
 
 const chatRepository = ChatRepository();
 const influencerRepo = InfluencerRepo();
@@ -48,17 +49,24 @@ const subscriptionsServices = SubscriptionsServices(apiClient);
 const relationshipServices = RelationshipServices(apiClient);
 
 interface ChatScreenContentProps {
-    influencerId?: string;
+    defaultInfluencerId?: string;
     onBackPressed?: () => void;
     menuItems?: DropDownMenuDataModel[];
-    setNeedsSelection?: (needsSelection: boolean) => void;
     onMenuClick?: () => void;
-    showChangeInfluencerButton?: boolean;
     openSubscribe?: boolean;
 }
 export type TypingStatus = "idle" | "typing" | "recording";
 
-const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onMenuClick, setNeedsSelection, showChangeInfluencerButton = false, openSubscribe }) => {
+const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ defaultInfluencerId, onMenuClick, openSubscribe }) => {
+    const [selectedId, setSelectedId] = useState<string | undefined>(() => {
+        const stored = localStorage.getItem("selected_id");
+        return stored || undefined;
+    });
+    const [needsSelection, setNeedsSelection] = useState(false);
+    const [influencers, setInfluencers] = useState<InfluencerDataModel[]>([]);
+    const [hasMultipleInfluencers, setHasMultipleInfluencers] = useState(false);
+    const skipInfluencerResetRef = useRef(false);
+
     const [influencer, setInfluencer] = useState<InfluencerDataModel>();
     const [chatId, setChatId] = useState<string | undefined>();
 
@@ -146,11 +154,38 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
 
     useEffect(() => {
         (async () => {
-            if (!influencerId) return;
-            const localInfluencer = await influencerRepo.getInfluencer(influencerId);
+            if (!selectedId) { setInfluencer(undefined); return; }
+            const localInfluencer = await influencerRepo.getInfluencer(selectedId);
             setInfluencer(localInfluencer);
         })()
-    }, [influencerId]);
+    }, [selectedId]);
+
+    useEffect(() => {
+        localStorage.setItem("selected_id", selectedId?.toString() || "");
+    }, [selectedId]);
+
+    useEffect(() => {
+        influencerRepo.getFollowedInfluencers().then((list: InfluencerDataModel[]) => {
+            if (!skipInfluencerResetRef.current) {
+                if (list.length > 1 && !selectedId) {
+                    setNeedsSelection(true);
+                } else if (list.length === 1) {
+                    setSelectedId(list[0].id);
+                }
+            }
+            setHasMultipleInfluencers(list.length > 1);
+            setInfluencers(list);
+        });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        if (defaultInfluencerId) {
+            skipInfluencerResetRef.current = true;
+            setSelectedId(defaultInfluencerId);
+            setNeedsSelection(false);
+        }
+    }, [defaultInfluencerId]);
 
     useEffect(() => {
         let isMounted = true;
@@ -684,8 +719,15 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
         handleScroll(containerRef.current);
     };
 
+    const handleSelect = useCallback((id: string) => {
+        skipInfluencerResetRef.current = true;
+        setSelectedId(id);
+        setNeedsSelection(false);
+    }, []);
+
     const handleChangeInfluencerClicked = async () => {
-        setNeedsSelection?.(true)
+        setSelectedId(undefined);
+        setNeedsSelection(true);
     };
 
     const handleClearHistory = async () => {
@@ -707,7 +749,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
         }
     };
 
-    if (!influencer) return <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "hsla(0, 0%, 100%, 0.20)" }} /></div>;
+    const isSelectingInfluencer = needsSelection && !selectedId;
 
     return (
         <div className={styles["container"]}>
@@ -715,14 +757,19 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                 <div className={styles["chat-header"]}>
                     <UserNav
                         onMenuClick={onMenuClick}
-                        onCallClick={handleCallModeChange}
+                        title={isSelectingInfluencer ? "Select Influencer" : undefined}
+                        onCallClick={(!isSelectingInfluencer && influencer) ? handleCallModeChange : undefined}
                         callMode={mode === "call"}
                         adultMode={adultModeSwitch}
-                        onAdultModeChange={handleAdultModeChange}
+                        onAdultModeChange={(!isSelectingInfluencer && influencer) ? handleAdultModeChange : undefined}
                         minutesRemaining={adultMinutesRemaining}
                     />
                 </div>
-                {!showSubscriptionPage ? <>
+                {isSelectingInfluencer ? (
+                    <InfluencerSelector influencers={influencers} onItemClick={handleSelect} />
+                ) : !influencer ? (
+                    <div className={styles["empty-chat-screen"]}><TeaseMeLogo size='xlarge' variant='mono-lips-only' style={{ color: "hsla(0, 0%, 100%, 0.20)" }} /></div>
+                ) : !showSubscriptionPage ? <>
                     {mode !== "call" ? <>
                         {isSuperUser && <ChatHeaderInfo
                             isSuperUser={isSuperUser}
@@ -736,7 +783,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                             influencer={influencer}
                             status={isWsConnected ? "Connected" : "Not Connected"}
                             adultMode={adultMode}
-                            showChangeInfluencerButton={showChangeInfluencerButton}
+                            showChangeInfluencerButton={hasMultipleInfluencers}
                             onChangeInfluencer={handleChangeInfluencerClicked}
                             isSubscribed={hasSubscription}
                         />
@@ -799,7 +846,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ influencerId, onM
                         relationship={relationship}
                         influencer={influencer}
                         errorMessage={errorMessage || "Something went wrong!"}
-                        onChangeInfluencer={handleChangeInfluencerClicked} />
+                        onChangeInfluencer={hasMultipleInfluencers ? handleChangeInfluencerClicked : undefined} />
                     }
                 </> : (
                     <AdultModePage
