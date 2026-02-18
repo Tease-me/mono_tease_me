@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
 from datetime import datetime, timedelta, timezone
@@ -18,7 +18,6 @@ from app.db.models import (
 from app.services.influencer_subscriptions import get_valid_subscription
 from app.utils.infrastructure.rate_limiter import rate_limit
 from app.utils.infrastructure.idempotency import idempotent
-from app.utils.infrastructure.concurrency import advisory_lock
 from app.core.config import settings
 
 

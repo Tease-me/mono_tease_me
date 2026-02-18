@@ -1,5 +1,9 @@
 
-import asyncio, time, logging, json, hmac
+import asyncio
+import time
+import logging
+import json
+import hmac
 
 from hashlib import sha256
 from typing import Optional, Any
@@ -14,7 +18,7 @@ from app.api.elevenlabs import _extract_total_seconds
 from sqlalchemy import select
 from app.db.models import CallRecord, Chat, Influencer
 from app.agents.turn_handler import  handle_turn, redis_history
-from app.agents.memory import find_similar_memories, find_similar_messages, find_similar_memories_and_messages
+from app.agents.memory import find_similar_memories
 
 from app.relationship.processor import process_relationship_turn
 
@@ -125,12 +129,7 @@ async def elevenlabs_post_call(request: Request, db: AsyncSession = Depends(get_
     conversation_id = data.get("conversation_id")
     status = (data.get("status") or "done").lower()
     total_seconds = _extract_total_seconds(data)
-    transcript_entries = data.get("transcript") or []
-    full_transcript = " ".join(
-        entry.get("message", "")
-        for entry in transcript_entries
-        if isinstance(entry, dict) and entry.get("message")
-    )
+    # transcript_entries = data.get("transcript") or []
 
     log.info(
         "webhook.parsed type=%s conv_id=%s status=%s seconds=%s ip=%s",

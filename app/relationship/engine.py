@@ -4,11 +4,13 @@ from dataclasses import dataclass
 def clamp(x, a, b): return max(a, min(b, x))
 
 def sat_up(x: float, delta: float, k: float = 0.025) -> float:
-    if delta <= 0: return x
+    if delta <= 0:
+        return x
     return x + (100 - x) * (1 - math.exp(-k * delta))
 
 def sat_down(x: float, delta: float, k: float = 0.03) -> float:
-    if delta <= 0: return x
+    if delta <= 0:
+        return x
     return x - x * (1 - math.exp(-k * delta))
 K_UP_BY_STAGE = {
     "HATE": 0.015,
@@ -34,11 +36,13 @@ K_DOWN_BY_STAGE = {
     "BROKEN": 0.050,
 }
 def sat_up_staged(x: float, delta: float, stage: str) -> float:
-    if delta <= 0: return x
+    if delta <= 0: 
+        return x
     k = K_UP_BY_STAGE.get(stage, 0.025)
     return x + (100 - x) * (1 - math.exp(-k * delta))
 def sat_down_staged(x: float, delta: float, stage: str) -> float:
-    if delta <= 0: return x
+    if delta <= 0: 
+        return x
     k = K_DOWN_BY_STAGE.get(stage, 0.03)
     return x - x * (1 - math.exp(-k * delta))
 
@@ -105,15 +109,23 @@ def update_relationship(trust, closeness, attraction, safety,state, sig: Signals
     def cap(x, max_val): return min(x, max_val)
 
     # Tighter caps for more gradual dimension changes
-    trust_pos  = cap(trust_pos, 0.6); trust_neg  = cap(trust_neg, 1.8)   # Was 1.0/4.0
-    close_pos  = cap(close_pos, 0.6); close_neg  = cap(close_neg, 1.8)   # Was 1.0/4.0
-    attr_pos   = cap(attr_pos, 1.0);  attr_neg   = cap(attr_neg, 2.0)    # Was 1.8/3.5
-    safety_pos = cap(safety_pos, 0.8); safety_neg = cap(safety_neg, 2.0) # Was 1.5/3.5
+    trust_pos = cap(trust_pos, 0.6)  # Was 1.0
+    trust_neg = cap(trust_neg, 1.8)  # Was 4.0
+    close_pos = cap(close_pos, 0.6)  # Was 1.0
+    close_neg = cap(close_neg, 1.8)  # Was 4.0
+    attr_pos = cap(attr_pos, 1.0)  # Was 1.8
+    attr_neg = cap(attr_neg, 2.0)  # Was 3.5
+    safety_pos = cap(safety_pos, 0.8)  # Was 1.5
+    safety_neg = cap(safety_neg, 2.0)  # Was 3.5
 
-    trust = sat_up_staged(trust, trust_pos, state); trust = sat_down_staged(trust, trust_neg, state)
-    closeness = sat_up_staged(closeness, close_pos, state); closeness = sat_down_staged(closeness, close_neg, state)
-    attraction = sat_up_staged(attraction, attr_pos, state); attraction = sat_down_staged(attraction, attr_neg, state)
-    safety = sat_up_staged(safety, safety_pos, state); safety = sat_down_staged(safety, safety_neg, state)
+    trust = sat_up_staged(trust, trust_pos, state)
+    trust = sat_down_staged(trust, trust_neg, state)
+    closeness = sat_up_staged(closeness, close_pos, state)
+    closeness = sat_down_staged(closeness, close_neg, state)
+    attraction = sat_up_staged(attraction, attr_pos, state)
+    attraction = sat_down_staged(attraction, attr_neg, state)
+    safety = sat_up_staged(safety, safety_pos, state)
+    safety = sat_down_staged(safety, safety_neg, state)
 
     trust = clamp(trust, 0, 100)
     closeness = clamp(closeness, 0, 100)

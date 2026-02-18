@@ -1,4 +1,3 @@
-import os
 import json
 from pywebpush import webpush, WebPushException
 from app.db.models import Subscription

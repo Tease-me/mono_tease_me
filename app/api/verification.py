@@ -14,7 +14,7 @@ import hashlib
 import json
 from time import time
 from datetime import datetime, timezone
-from typing import List, Any, Dict
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,7 +29,6 @@ from app.schemas.verification import (
     VerificationSessionCreateRequest,
     VerificationSessionResponse,
     VerificationStatusResponse,
-    VerificationResultResponse,
     UserVerificationStatus,
     VerificationHistoryResponse,
     VerificationHistoryItem,

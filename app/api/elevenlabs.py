@@ -3,7 +3,6 @@ import logging
 import math
 import random
 import json
-from uuid import uuid4
 from app.agents.prompt_utils import build_relationship_prompt, get_global_prompt, get_mbti_rules_for_archetype, get_relationship_stage_prompts, get_time_context
 from app.relationship.dtr import plan_dtr_goal
 from app.relationship.inactivity import apply_inactivity_decay
@@ -25,10 +24,9 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from app.services.billing import can_afford, get_remaining_units
 from app.services.chat_service import get_or_create_chat
-from app.agents.turn_handler import _norm, _build_user_name_block, redis_history
+from app.agents.turn_handler import _build_user_name_block, redis_history
 from langchain_core.prompts import ChatPromptTemplate
 from app.db.session import SessionLocal
-from app.services.embeddings import get_embedding
 from app.services.system_prompt_service import get_system_prompt
 from app.constants import prompt_keys
 from app.agents.prompts import GREETING_GENERATOR

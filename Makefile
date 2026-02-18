@@ -1,4 +1,5 @@
 .PHONY: seed-influencers seed-pricing seed-users seed-all seed-prompts seed-subscription-plans
+.PHONY: lint lint-fix format format-check lint-docker lint-docker-fix format-docker format-docker-check
 
 COMPOSE ?= docker compose
 SERVICE ?= backend
@@ -65,3 +66,27 @@ alembic-local-upgrade:
 alembic-local-current:
 	DATABASE_URL="postgresql+psycopg2://postgres:postgres@localhost:5432/teaseme" \
 	poetry run alembic current
+
+lint:
+	poetry run ruff check app tests
+
+lint-fix:
+	poetry run ruff check --fix app tests
+
+format:
+	poetry run ruff format app tests
+
+format-check:
+	poetry run ruff format --check app tests
+
+lint-docker:
+	$(COMPOSE) exec $(SERVICE) poetry run ruff check app tests
+
+lint-docker-fix:
+	$(COMPOSE) exec $(SERVICE) poetry run ruff check --fix app tests
+
+format-docker:
+	$(COMPOSE) exec $(SERVICE) poetry run ruff format app tests
+
+format-docker-check:
+	$(COMPOSE) exec $(SERVICE) poetry run ruff format --check app tests

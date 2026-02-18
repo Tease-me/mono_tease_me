@@ -5,7 +5,6 @@ from sqlalchemy import select, and_, not_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import (
-    User,
     Influencer,
     InfluencerWallet,
     RelationshipState,
