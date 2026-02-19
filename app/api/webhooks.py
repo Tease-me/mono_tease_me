@@ -109,8 +109,16 @@ async def _resolve_user_for_conversation(db, conversation_id: str):
     res = await db.execute(q)
     row = res.first()
     if not row:
-        log.info("resolver.miss conversation_id=%s", conversation_id)
-        return {"user_id": None, "influencer_id": None, "sid": conversation_id, "chat_id": None}
+        q_chat = select(Chat.user_id, Chat.influencer_id, Chat.id).where(Chat.id == conversation_id)
+        res_chat = await db.execute(q_chat)
+        row_chat = res_chat.first()
+        if not row_chat:
+            log.info("resolver.miss conversation_id=%s", conversation_id)
+            return {"user_id": None, "influencer_id": None, "sid": conversation_id, "chat_id": None}
+        user_id, influencer_id, chat_id = row_chat
+        log.info("resolver.hit.fallback conversation_id(chat_id)=%s user_id=%s chat_id=%s", conversation_id, user_id, chat_id)
+        return {"user_id": user_id, "influencer_id": influencer_id, "sid": conversation_id, "chat_id": chat_id}
+        
     user_id, influencer_id, sid, chat_id = row
     log.info("resolver.hit conversation_id=%s user_id=%s chat_id=%s", conversation_id, user_id, chat_id)
     return {"user_id": user_id, "influencer_id": influencer_id, "sid": sid or conversation_id, "chat_id": chat_id}
@@ -284,13 +292,23 @@ async def _process_relationship_update(user_text: str, conversation_id: str):
             log.exception("[EL TOOL BG] CallRecord lookup failed: %s", e)
             return
 
-        if not call:
-            log.warning("[EL TOOL BG] No CallRecord found for conv=%s", conversation_id)
-            return
+        user_id = None
+        influencer_id = None
+        chat_id = None
 
-        user_id = call.user_id
-        influencer_id = call.influencer_id
-        chat_id = call.chat_id
+        if not call:
+            res_chat = await db.execute(select(Chat).where(Chat.id == conversation_id))
+            chat_record = res_chat.scalar_one_or_none()
+            if not chat_record:
+                log.warning("[EL TOOL BG] No CallRecord or Chat found for conv=%s", conversation_id)
+                return
+            user_id = chat_record.user_id
+            influencer_id = chat_record.influencer_id
+            chat_id = chat_record.id
+        else:
+            user_id = call.user_id
+            influencer_id = call.influencer_id
+            chat_id = call.chat_id
 
         if not user_id or not influencer_id or not chat_id:
             log.warning(
@@ -385,14 +403,28 @@ async def eleven_webhook_get_memories(
         log.warning("[MEMORIES] CallRecord lookup failed: %s", str(e)[:100])
         return {"memories": []}
 
-    if not call or not call.chat_id or not call.influencer_id:
+    chat_id = None
+    influencer_id = None
+    user_id = None
+
+    if call and call.chat_id and call.influencer_id:
+        chat_id = call.chat_id
+        influencer_id = call.influencer_id
+        user_id = call.user_id
+    else:
+        chat_record = await db.scalar(select(Chat).where(Chat.id == conversation_id))
+        if chat_record and chat_record.influencer_id:
+            chat_id = chat_record.id
+            influencer_id = chat_record.influencer_id
+            user_id = chat_record.user_id 
+
+    if not chat_id or not influencer_id:
         log.warning(
-            "[MEMORIES] missing context: call=%s chat_id=%s infl=%s conv=%s",
-            bool(call), getattr(call, "chat_id", None), getattr(call, "influencer_id", None), conversation_id,
+            "[MEMORIES] missing context for conv=%s (call fallback failed)", conversation_id
         )
         return {"memories": []}
     
-    log.info("[MEMORIES] resolved: chat=%s infl=%s user=%s", call.chat_id, call.influencer_id, call.user_id)
+    log.info("[MEMORIES] resolved: chat=%s infl=%s user=%s", chat_id, influencer_id, user_id)
 
     started = time.perf_counter()
     memories = []
@@ -414,8 +446,8 @@ async def eleven_webhook_get_memories(
         memories = await asyncio.wait_for(
             find_similar_memories(
                 message=user_text,
-                chat_id=call.chat_id,
-                influencer_id=call.influencer_id,
+                chat_id=chat_id,
+                influencer_id=influencer_id,
                 db=db,
                 embedding=embedding,
             ),
@@ -441,7 +473,7 @@ async def eleven_webhook_get_memories(
         mem_count = len(memories) if isinstance(memories, list) else 0
         log.info(
             "[MEMORIES] ── done ── total_ms=%d count=%d conv=%s chat=%s infl=%s",
-            total_ms, mem_count, conversation_id, call.chat_id, call.influencer_id,
+            total_ms, mem_count, conversation_id, chat_id, influencer_id,
         )
 
     return {"memories": memories if isinstance(memories, list) else []}
@@ -490,18 +522,28 @@ async def eleven_webhook_reply(
         log.exception("[EL TOOL] CallRecord lookup failed: %s", e)
         return {"text": "I had an internal issue looking up this call. Please try again."}
 
-    if not call:
-        log.warning("[EL TOOL] No CallRecord found for conv=%s", conversation_id)
-        return {
-            "text": (
-                "I lost track of this call on my side. "
-                "Please hang up and start a new one."
-            )
-        }
+    user_id = None
+    influencer_id = None
+    chat_id = None
 
-    user_id = call.user_id
-    influencer_id = call.influencer_id
-    chat_id = call.chat_id
+    if not call:
+        res_chat = await db.execute(select(Chat).where(Chat.id == conversation_id))
+        chat_record = res_chat.scalar_one_or_none()
+        if not chat_record:
+            log.warning("[EL TOOL] No CallRecord or Chat found for conv=%s", conversation_id)
+            return {
+                "text": (
+                    "I lost track of this call on my side. "
+                    "Please hang up and start a new one."
+                )
+            }
+        user_id = chat_record.user_id
+        influencer_id = chat_record.influencer_id
+        chat_id = chat_record.id
+    else:
+        user_id = call.user_id
+        influencer_id = call.influencer_id
+        chat_id = call.chat_id
 
     if not user_id or not influencer_id or not chat_id:
         log.warning(
