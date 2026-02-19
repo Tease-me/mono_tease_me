@@ -273,7 +273,10 @@ async def update_relationship_api(
     except Exception:
         log.warning("Failed to log relationship update details", exc_info=True)
     
-    relationship = await background_tasks.add_task(_process_relationship_update, user_text, conversation_id)
+    relationship = await _process_relationship_update(
+        user_text=user_text,
+        conversation_id=conversation_id,
+    )
     return {"status": "received", "relationship": relationship}
 
 
