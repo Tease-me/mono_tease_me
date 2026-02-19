@@ -95,6 +95,7 @@ async def handle_turn_18(
     user = await db.get(User, user_id) if user_id else None
     user_adult_prompt = user.custom_adult_prompt if user else None
     prompt = prompt.partial(
+        influencer_name=influencer.display_name,
         user_prompt=user_adult_prompt or "", 
         history=recent_ctx, 
         mood=time_context
