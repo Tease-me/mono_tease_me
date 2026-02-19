@@ -2,7 +2,9 @@ import io
 import logging
 from datetime import datetime
 from typing import List, Optional
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Request
+from typing import List, Optional
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Request, BackgroundTasks, Header
+from app.api.webhooks import _process_relationship_update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.db.models import Influencer, User
