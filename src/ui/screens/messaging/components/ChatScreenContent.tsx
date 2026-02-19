@@ -747,6 +747,17 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ defaultInfluencer
         setNeedsSelection(false);
     }, []);
 
+    const handleAudioPlay = useCallback((src: string) => {
+        if (currentAudioRef.current && currentAudioRef.current.src !== src) {
+            currentAudioRef.current.pause();
+            currentAudioRef.current.currentTime = 0;
+        }
+        const audioEl = document.querySelector<HTMLAudioElement>(`audio[src="${src}"]`);
+        if (audioEl) {
+            currentAudioRef.current = audioEl;
+        }
+    }, []);
+
     const handleChangeInfluencerClicked = async () => {
         setSelectedId(undefined);
         setNeedsSelection(true);
@@ -828,18 +839,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ defaultInfluencer
                                     showAudioTranscript={isSuperUser}
                                     isAudio={Boolean(inputAudio)}
                                     adultMode={adultMode}
-                                    onAudioPlay={useCallback((src: string) => {
-                                        // Pause any currently playing audio
-                                        if (currentAudioRef.current && currentAudioRef.current.src !== src) {
-                                            currentAudioRef.current.pause();
-                                            currentAudioRef.current.currentTime = 0;
-                                        }
-                                        // Track the newly started audio element
-                                        const audioEl = document.querySelector<HTMLAudioElement>(`audio[src="${src}"]`);
-                                        if (audioEl) {
-                                            currentAudioRef.current = audioEl;
-                                        }
-                                    }, [])}
+                                    onAudioPlay={handleAudioPlay}
                                     onCallBack={handleCallModeChange}
                                 />
                             </> : <LoadingSpinner />}
