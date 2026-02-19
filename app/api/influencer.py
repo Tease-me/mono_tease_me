@@ -255,6 +255,46 @@ async def update_influencer_profile(
         else None,
     }
 
+@router.post("/relationship_update")
+async def update_relationship_api(
+    req: Request,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+):
+    
+    # Parse JSON immediately (fast operation)
+    try:
+        payload = await req.json()
+    except Exception as e:
+        log.exception("[EL TOOL] Failed to parse JSON payload: %s", e)
+        return {"status": "error", "message": "Invalid JSON"}
+    
+    # Extract data and queue background processing
+    args = payload.get("arguments") or {}
+    raw_text = (
+        payload.get("text")
+        or payload.get("input")
+        or (args.get("text") if isinstance(args, dict) else None)
+        or ""
+    )
+    user_text = str(raw_text).strip()
+    conversation_id = payload.get("conversation_id")
+    
+    # Log for debugging (non-blocking)
+    try:
+        log.info("[EL TOOL] payload(head)=%s", str(payload)[:800])
+    except Exception:
+        pass
+    
+    # Queue background processing - return immediately
+    background_tasks.add_task(
+        _process_relationship_update,
+        user_text,
+        conversation_id,
+    )
+    
+    return {"status": "received"}
+
 
 @router.post("/influencer-audio/{influencer_id}")
 async def upload_influencer_audio(
