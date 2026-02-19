@@ -50,7 +50,7 @@ def sanitize_tts_text(text: str) -> str:
             val = float(t[:-1])
             if 0.1 <= val <= 2.0:
                 return f'<break time="{val:.1f}s"/>'
-        except:
+        except (TypeError, ValueError):
             pass
         return ''
     text = _BREAK_RE.sub(_break_filter, text)

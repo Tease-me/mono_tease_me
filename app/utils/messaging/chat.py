@@ -187,19 +187,10 @@ def _enhance_text_with_v3_tags(text: str) -> str:
         (r'^\s*(yes|yeah|sure|of course|absolutely)\b', '[happy]'),  # Positive responses at start
     ]
     
-    contemplative_patterns = [
-        (r'\b(well|hmm|um|ah|oh)\b', '[sighs]'),
-        (r'\.\.\.', '[thoughtful]'),  # Ellipses suggest thoughtful pause
-    ]
-    
     slow_patterns = [
         (r'\b(remember|back then|once|used to|long ago|think|wonder|consider)\b', '[thoughtful]'),
     ]
-    
-    surprised_patterns = [
-        (r'\b(what|wow|really|seriously|no way|unbelievable)\b', '[surprised]'),
-    ]
-    
+
     for pattern, tag in gentle_patterns:
         if re.search(pattern, enhanced, re.IGNORECASE):
             if not enhanced.strip().startswith('['):
@@ -285,7 +276,7 @@ async def synthesize_audio_with_elevenlabs_V3(text: str, db, influencer_id: str 
         "output_format": "mp3_44100_128"
     }
     
-    logger.info(f"[ELEVENLABS V3] Synthesizing audio with V3 model")
+    logger.info("[ELEVENLABS V3] Synthesizing audio with V3 model")
     logger.info(f"[ELEVENLABS V3] Text (length: {len(text)}): {text}")
     logger.info(f"[ELEVENLABS V3] Voice ID: {voice_id}, Influencer ID: {influencer_id}")
     logger.debug(f"[ELEVENLABS V3] Voice settings: stability={data['voice_settings']['stability']}, similarity_boost={data['voice_settings']['similarity_boost']}, style={data['voice_settings']['style']}")

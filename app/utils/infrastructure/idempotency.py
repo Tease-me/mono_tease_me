@@ -1,15 +1,13 @@
 import json
 import logging
-import hashlib
 from functools import wraps
-from typing import Callable, Optional, Any
+from typing import Callable, Optional
 
 import redis.asyncio as redis
 from fastapi import HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 
-from app.core.config import settings
 from app.utils.infrastructure.redis_pool import get_redis
 
 log = logging.getLogger(__name__)

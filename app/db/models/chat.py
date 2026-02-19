@@ -10,7 +10,6 @@ from pgvector.sqlalchemy import Vector
 from .base import Base
 
 if TYPE_CHECKING:
-    from .user import User
     from .influencer import Influencer
 
 
