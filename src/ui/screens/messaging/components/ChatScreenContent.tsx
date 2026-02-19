@@ -132,8 +132,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ defaultInfluencer
     };
 
     const { status, startConversation, stopConversation, setInfluencerId, micMuted, toggleMute, errorMessage, cancelCall } = useCallWebRTC({
-        onMessage: (message) => {
-            logger.debug("Received WebRTC message on ChatScreenContent:", message);
+        onMessage: (message, conversationId) => {
+            logger.debug("Received WebRTC message on ChatScreenContent:", message, "conversationId:", conversationId);
             fetchRelationship();
         }
     });
