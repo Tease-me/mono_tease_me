@@ -277,9 +277,9 @@ async def synthesize_audio_with_elevenlabs_V3(text: str, db, influencer_id: str 
     }
     
     logger.info("[ELEVENLABS V3] Synthesizing audio with V3 model")
-    logger.info("[ELEVENLABS V3] Text (length: {len(text)}): {text}")
-    logger.info("[ELEVENLABS V3] Voice ID: {voice_id}, Influencer ID: {influencer_id}")
-    logger.debug("[ELEVENLABS V3] Voice settings: stability={data['voice_settings']['stability']}, similarity_boost={data['voice_settings']['similarity_boost']}, style={data['voice_settings']['style']}")
+    logger.info(f"[ELEVENLABS V3] Text (length: {len(text)}): {text}")
+    logger.info(f"[ELEVENLABS V3] Voice ID: {voice_id}, Influencer ID: {influencer_id}")
+    logger.debug(f"[ELEVENLABS V3] Voice settings: stability={data['voice_settings']['stability']}, similarity_boost={data['voice_settings']['similarity_boost']}, style={data['voice_settings']['style']}")
     
     async with httpx.AsyncClient(timeout=120) as client:
         resp = await client.post(url, headers=headers, json=data)

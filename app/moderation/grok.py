@@ -121,8 +121,8 @@ async def verify_with_grok(
                 reasoning="Failed to parse AI response - defaulting to confirmed"
             )
                 
-    except Exception as e:
-        log.exception("Grok API exception", e)
+    except Exception:
+        log.exception("Grok API exception")
         return GrokVerification(
             confirmed=True,
             confidence=0.5,
