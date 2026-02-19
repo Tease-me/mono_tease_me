@@ -11,12 +11,9 @@ from app.services.system_prompt_service import (
     update_system_prompt,
     list_system_prompts,
 )
-
-router = APIRouter(prefix="/admin/system-prompts", tags=["system-prompts"])
-
-
 from enum import Enum
 
+router = APIRouter(prefix="/admin/system-prompts", tags=["system-prompts"])
 
 class PromptType(str, Enum):
     NORMAL = "normal"

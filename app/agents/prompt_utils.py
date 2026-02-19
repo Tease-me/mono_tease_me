@@ -7,7 +7,6 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from langchain_core.prompts import (
     ChatPromptTemplate,
-    MessagesPlaceholder,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models import Influencer

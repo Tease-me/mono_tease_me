@@ -2,7 +2,8 @@ import io
 import logging
 from datetime import datetime
 from typing import List, Optional
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Request
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Request, BackgroundTasks
+from app.api.webhooks import _process_relationship_update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.db.models import Influencer, User
@@ -254,6 +255,29 @@ async def update_influencer_profile(
         if influencer.profile_video_key
         else None,
     }
+
+@router.post("/relationship_update")
+async def update_relationship_api(
+    background_tasks: BackgroundTasks,
+    user_text: Optional[str] = None,
+    conversation_id: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+):  
+    try:
+        log.info(
+            "Received relationship update - user_text: %s, conversation_id: %s, user_id: %s",
+            user_text,
+            conversation_id,
+            current_user.id,
+        )
+    except Exception:
+        log.warning("Failed to log relationship update details", exc_info=True)
+    
+    relationship = await _process_relationship_update(
+        user_text=user_text,
+        conversation_id=conversation_id,
+    )
+    return {"status": "received", "relationship": relationship}
 
 
 @router.post("/influencer-audio/{influencer_id}")

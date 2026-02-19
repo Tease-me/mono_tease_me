@@ -1,5 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, HTTPException, Query
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.db.session import get_db
@@ -146,14 +145,13 @@ async def fetch_followers(service: str, username: str) -> int:
     if service == "instagram":
         return await get_instagram_followers(username)
     elif service == "twitter":
-        import os
         from dotenv import load_dotenv
         load_dotenv()
         bearer_token = settings.TWITTER_BEARER_TOKEN
         if bearer_token:
             try:
                 return await get_twitter_followers_api(username, bearer_token)
-            except:
+            except (ValueError, TypeError, IndexError):
                 pass
         return await get_twitter_followers(username)
     elif service == "tiktok":
@@ -202,7 +200,7 @@ async def get_instagram_followers(username: str) -> int:
                             count = int(interaction_stat['userInteractionCount'])
                             if count > 0:
                                 return count
-                except:
+                except (ValueError, TypeError, KeyError, json.JSONDecodeError):
                     continue
             
             scripts = soup.find_all('script')
@@ -220,7 +218,7 @@ async def get_instagram_followers(username: str) -> int:
                                 count = edge_followed_by.get('count', 0)
                                 if count > 0:
                                     return count
-                    except:
+                    except (ValueError, TypeError, KeyError, json.JSONDecodeError):
                         continue
             
             meta_tags = soup.find_all('meta')
@@ -269,7 +267,7 @@ async def get_instagram_followers(username: str) -> int:
                         count = edge_followed_by.get('count', 0)
                         if count > 0:
                             return count
-            except Exception as api_error:
+            except Exception:
                 pass
             
             raise ValueError(
@@ -319,7 +317,7 @@ async def get_twitter_followers(username: str) -> int:
                                         count = int(stat.get('userInteractionCount', 0))
                                         if count > 0:
                                             return count
-                except:
+                except (ValueError, TypeError, KeyError, json.JSONDecodeError):
                     continue
             
             scripts = soup.find_all('script')
@@ -343,7 +341,7 @@ async def get_twitter_followers(username: str) -> int:
                                         count = user_data.get('followers_count', 0)
                                         if count > 0:
                                             return count
-                    except:
+                    except (ValueError, TypeError, KeyError, json.JSONDecodeError):
                         continue
             
             meta_tags = soup.find_all('meta')
@@ -395,7 +393,7 @@ async def get_twitter_followers(username: str) -> int:
                         counter = Counter(valid_counts)
                         most_common = counter.most_common(1)[0][0]
                         return most_common
-            except:
+            except (ValueError, TypeError, IndexError):
                 pass
             
             raise ValueError(
@@ -460,5 +458,3 @@ async def get_telegram_followers(username: str) -> int:
             return 0
     except Exception as e:
         raise Exception(f"Failed to fetch Telegram data: {str(e)}")
-
-

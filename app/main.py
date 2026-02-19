@@ -30,6 +30,9 @@ from app.api import system_prompts as system_prompts_router
 from .api import health_router
 from app.scheduler import start_scheduler, stop_scheduler
 
+from app.utils.infrastructure.redis_pool import close_redis
+from app.api.elevenlabs import close_elevenlabs_client
+
 log = logging.getLogger("teaseme")
 logging.basicConfig(
     level=logging.INFO,
@@ -38,10 +41,6 @@ logging.basicConfig(
 
 origins_str = os.getenv("CORS_ORIGINS", "")
 origins = [origin.strip() for origin in origins_str.split(",") if origin.strip()]
-
-
-from app.utils.infrastructure.redis_pool import close_redis
-from app.api.elevenlabs import close_elevenlabs_client
 
 
 @asynccontextmanager

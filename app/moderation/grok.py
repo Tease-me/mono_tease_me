@@ -32,7 +32,7 @@ def parse_grok_response(content: str) -> Optional[dict]:
             if part.startswith("{"):
                 try:
                     return json.loads(part)
-                except:
+                except (json.JSONDecodeError, TypeError):
                     continue
     
     start = content.find("{")
@@ -40,12 +40,12 @@ def parse_grok_response(content: str) -> Optional[dict]:
     if start != -1 and end > start:
         try:
             return json.loads(content[start:end])
-        except:
+        except (json.JSONDecodeError, TypeError):
             pass
     
     try:
         return json.loads(content)
-    except:
+    except (json.JSONDecodeError, TypeError):
         pass
     
     return None
@@ -121,11 +121,11 @@ async def verify_with_grok(
                 reasoning="Failed to parse AI response - defaulting to confirmed"
             )
                 
-    except Exception as e:
+    except Exception:
         log.exception("Grok API exception")
         return GrokVerification(
             confirmed=True,
             confidence=0.5,
             category=suspected_category,
-            reasoning=f"AI verification failed - defaulting to confirmed"
+            reasoning="AI verification failed - defaulting to confirmed"
         )

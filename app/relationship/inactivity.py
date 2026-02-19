@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
-    from app.db.models import RelationshipState
 
 log = logging.getLogger("inactivity")
 
@@ -46,7 +45,7 @@ async def check_and_trigger_reengagement(
     if days_idle < REENGAGEMENT_INACTIVE_DAYS:
         return False
 
-    from sqlalchemy import select, and_
+    from sqlalchemy import select
     from app.db.models import InfluencerWallet, ReEngagementLog, Influencer, Subscription
 
     wallet_result = await db.execute(

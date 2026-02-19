@@ -1,6 +1,5 @@
 from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional, Dict, Any, List
-from uuid import UUID
 from typing import Literal
 
 class PreInfluencerRegisterRequest(BaseModel):

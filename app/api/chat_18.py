@@ -83,7 +83,7 @@ async def websocket_chat(
     # Check for valid subscription (18+ requirement)
     try:
         await get_valid_subscription(db, user_id=user_id, influencer_id=influencer_id)
-    except Exception as e:
+    except Exception:
         await ws.send_json({
             "ok": False,
             "type": "subscription_error",
