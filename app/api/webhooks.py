@@ -16,7 +16,7 @@ from app.db.session import get_db, SessionLocal
 from app.services.billing import charge_feature, _get_influencer_id_from_chat
 from app.api.elevenlabs import _extract_total_seconds
 from sqlalchemy import select
-from app.db.models import CallRecord, Chat, Influencer, relationship
+from app.db.models import CallRecord, Chat, Influencer
 from app.agents.turn_handler import  handle_turn, redis_history, _messages_since_session_break
 from app.agents.memory import find_similar_memories
 

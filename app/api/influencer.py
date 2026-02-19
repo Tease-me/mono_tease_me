@@ -263,7 +263,6 @@ async def update_relationship_api(
     conversation_id: Optional[str] = None,
     current_user: User = Depends(get_current_user),
 ):  
-    # Log for debugging (non-blocking)
     try:
         log.info(
             "Received relationship update - user_text: %s, conversation_id: %s, user_id: %s",
