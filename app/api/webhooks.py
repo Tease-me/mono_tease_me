@@ -17,7 +17,7 @@ from app.services.billing import charge_feature, _get_influencer_id_from_chat
 from app.api.elevenlabs import _extract_total_seconds
 from sqlalchemy import select
 from app.db.models import CallRecord, Chat, Influencer
-from app.agents.turn_handler import  handle_turn, redis_history
+from app.agents.turn_handler import  handle_turn, redis_history, _messages_since_session_break
 from app.agents.memory import find_similar_memories
 
 from app.relationship.processor import process_relationship_turn
@@ -243,6 +243,7 @@ async def update_relationship_api(
     return {"status": "received"}
 
 
+
 async def _process_relationship_update(user_text: str, conversation_id: str):
     """Process relationship update in background without blocking webhook response."""
     if not user_text:
@@ -286,7 +287,7 @@ async def _process_relationship_update(user_text: str, conversation_id: str):
             history.clear()
             history.add_messages(trimmed)
 
-        recent_ctx = "\n".join(f"{m.type}: {m.content}" for m in history.messages[-6:])
+        recent_ctx = "\n".join(f"{m.type}: {m.content}" for m in _messages_since_session_break(history.messages)[-6:])
 
         influencer = await db.get(Influencer, influencer_id)
         if not influencer:
