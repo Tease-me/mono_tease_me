@@ -34,6 +34,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
   const startInFlightRef = useRef(false);
   const startAbortControllerRef = useRef<AbortController | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const conversationIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     return () => {
@@ -115,7 +116,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
       logger.error(error)
     },
     onMessage: (message) => {
-      options?.onMessage?.(message, conversationId);
+      options?.onMessage?.(message, conversationIdRef.current);
     },
   });
 
@@ -283,6 +284,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
           return;
         }
         setConversationId(conversationId);
+        conversationIdRef.current = conversationId;
         setTimeRemaining(creditsRemaining);
       } catch (error: any) {
         if (!abortController.signal.aborted) {

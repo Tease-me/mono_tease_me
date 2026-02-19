@@ -41,6 +41,7 @@ import AddCreditsModal from '@/ui/components/modals/payment-modal/AddCreditsModa
 import AdultTermsModal from '@/ui/components/modals/adult-terms/AdultTermsModal';
 import { useSidebar } from '@/hooks/useSidebar';
 import InfluencerSelector from '@/ui/screens/influencer/InfluencerSelector';
+import { InfluencerServices } from '@/api/services/InfluencerService';
 
 const chatRepository = ChatRepository();
 const influencerRepo = InfluencerRepo();
@@ -131,10 +132,31 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ defaultInfluencer
         }).catch((err) => logger.error("Error refreshing relationship", err));
     };
 
+    const influencerSvc = InfluencerServices(apiClient);
+
+    const updateRelationship = async (userText: string | null, conversationId: string | null) => {
+        try {
+            const data = await influencerSvc.relationship_update(userText, conversationId);
+
+            if (data?.relationship) {
+                setRelationship(data.relationship);
+            }
+        }
+        catch (e) {
+            logger.error(e);
+        }
+    }
+
     const { status, startConversation, stopConversation, setInfluencerId, micMuted, toggleMute, errorMessage, cancelCall } = useCallWebRTC({
         onMessage: (message, conversationId) => {
             logger.debug("Received WebRTC message on ChatScreenContent:", message, "conversationId:", conversationId);
-            fetchRelationship();
+            if (message.source === "user") {
+                logger.info("User message:", message.message);
+                if (message.message) {
+                    updateRelationship(message.message, conversationId);
+                }
+                fetchRelationship();
+            }
         }
     });
 
@@ -176,7 +198,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ defaultInfluencer
             setHasMultipleInfluencers(list.length > 1);
             setInfluencers(list);
         });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
