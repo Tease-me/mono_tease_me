@@ -176,7 +176,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ defaultInfluencer
             setHasMultipleInfluencers(list.length > 1);
             setInfluencers(list);
         });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -706,14 +706,14 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ defaultInfluencer
         }
     }, [startConversation]);
 
-    const handleCallModeChange = async () => {
+    const handleCallModeChange = useCallback(async () => {
         if (mode === "call") {
             stopConversation();
             setMode("chat");
             return;
         }
         setMode("call");
-    }
+    }, [mode, stopConversation]);
 
     const handleScrollEvent = () => {
         handleScroll(containerRef.current);
@@ -806,7 +806,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ defaultInfluencer
                                     showAudioTranscript={isSuperUser}
                                     isAudio={Boolean(inputAudio)}
                                     adultMode={adultMode}
-                                    onAudioPlay={(src) => {
+                                    onAudioPlay={useCallback((src: string) => {
                                         // Pause any currently playing audio
                                         if (currentAudioRef.current && currentAudioRef.current.src !== src) {
                                             currentAudioRef.current.pause();
@@ -817,8 +817,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ defaultInfluencer
                                         if (audioEl) {
                                             currentAudioRef.current = audioEl;
                                         }
-                                    }}
-                                    onCallBack={() => handleCallModeChange()}
+                                    }, [])}
+                                    onCallBack={handleCallModeChange}
                                 />
                             </> : <LoadingSpinner />}
                         </div>
