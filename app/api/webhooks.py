@@ -324,6 +324,7 @@ async def _process_relationship_update(user_text: str, conversation_id: str):
         )
 
         log.info("[EL TOOL BG] relationship_metrics conv=%s\n%s", conversation_id, relationship)
+    return relationship
 
 def _verify_token(shared: str, token: str | None) -> None:
     if not shared: 
