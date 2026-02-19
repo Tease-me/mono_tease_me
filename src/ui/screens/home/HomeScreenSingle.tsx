@@ -1,10 +1,7 @@
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SidebarContext } from "@/hooks/useSidebar";
 import { useLocation } from "react-router-dom";
-import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
-import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import ChatScreenContent from "../messaging/components/ChatScreenContent";
-import InfluencerSelector from "../influencer/InfluencerSelector";
 import SlideDrawerLayout from "@/ui/templates/SlideDrawerLayout";
 import clsx from "clsx";
 import styles from "./HomeScreenSingle.module.css"
@@ -85,13 +82,7 @@ const sidebarPages: SidebarPage[] = [
 ];
 
 export default function HomeScreenSingle() {
-  const [id, setId] = useState<string | undefined>(() => {
-    const storedId = localStorage.getItem("selected_id");
-    return storedId ? storedId : undefined;
-  });
-  const [needsSelection, setNeedsSelection] = useState(false);
-  const [influencers, setInfluencers] = useState<InfluencerDataModel[]>([]);
-  const [hasMultipleInfluencers, setHasMultipleInfluencers] = useState(false);
+  const [openSubscribeInfluencerId, setOpenSubscribeInfluencerId] = useState<string | undefined>();
   const [showSidebar, setShowSidebar] = useState(false);
   const [currentPage, setCurrentPage] = useState<SidebarPageId>("home");
 
@@ -103,8 +94,6 @@ export default function HomeScreenSingle() {
 
   const location = useLocation();
   const [openSubscribe, setOpenSubscribe] = useState(false);
-  const skipInfluencerResetRef = useRef(false);
-  const influencerRepo = useMemo(() => InfluencerRepo(), []);
 
   useEffect(() => {
     currentPageRef.current = currentPage;
@@ -181,9 +170,7 @@ export default function HomeScreenSingle() {
       const target = JSON.parse(raw);
       localStorage.removeItem("adultVerificationTarget");
       if (target.influencerId) {
-        skipInfluencerResetRef.current = true;
-        setId(target.influencerId);
-        setNeedsSelection(false);
+        setOpenSubscribeInfluencerId(target.influencerId);
         setOpenSubscribe(true);
       }
     } catch {
@@ -192,51 +179,15 @@ export default function HomeScreenSingle() {
     window.history.replaceState({}, "");
   }, [location.state]);
 
-  useEffect(() => {
-    localStorage.setItem("selected_id", id?.toString() || "");
-  }, [id]);
-
-  useEffect(() => {
-    influencerRepo
-      .getFollowedInfluencers()
-      .then((influencers: InfluencerDataModel[]) => {
-        if (!skipInfluencerResetRef.current) {
-          if (influencers.length > 1) {
-            setNeedsSelection(true);
-            setHasMultipleInfluencers(true);
-          } else if (influencers.length === 1) {
-            setId(influencers[0].id);
-            setHasMultipleInfluencers(false);
-          }
-        }
-        setHasMultipleInfluencers(influencers.length > 1);
-        setInfluencers(influencers);
-      });
-  }, [influencerRepo]);
-
-  const handleSelect = useCallback((selectedId: string) => {
-    setId(selectedId);
-    setNeedsSelection(false);
-  }, []);
-
-  const handleNeedsSelectionChange = useCallback((needs: boolean) => {
-    if (needs) {
-      setId(undefined);
-    }
-    setNeedsSelection(needs);
-  }, []);
-
   const chatContent = useMemo(
     () => (
       <ChatScreenContent
-        influencerId={id}
+        defaultInfluencerId={openSubscribeInfluencerId}
         onMenuClick={toggleSidebar}
-        setNeedsSelection={handleNeedsSelectionChange}
-        showChangeInfluencerButton={hasMultipleInfluencers}
         openSubscribe={openSubscribe}
       />
     ),
-    [handleNeedsSelectionChange, hasMultipleInfluencers, id, toggleSidebar, openSubscribe]
+    [openSubscribeInfluencerId, toggleSidebar, openSubscribe]
   );
 
   return (
@@ -254,11 +205,7 @@ export default function HomeScreenSingle() {
         }
         background={active.background}
       >
-        {needsSelection ? (
-          !id ? <InfluencerSelector onItemClick={handleSelect} influencers={influencers} /> : chatContent
-        ) : (
-          chatContent
-        )}
+        {chatContent}
       </SlideDrawerLayout>
     </SidebarContext.Provider>
   );

@@ -16,10 +16,11 @@ interface UserNavProps extends React.HTMLAttributes<HTMLDivElement> {
   callMode?: boolean;
   onAdultModeChange?: (checked: boolean) => void;
   minutesRemaining?: number;
+  title?: string;
 }
 
 
-const UserNav: React.FC<UserNavProps> = ({ onCallClick, onMenuClick, adultMode, callMode, onAdultModeChange, minutesRemaining }) => {
+const UserNav: React.FC<UserNavProps> = ({ onCallClick, onMenuClick, adultMode, callMode, onAdultModeChange, minutesRemaining, title }) => {
   const isMobile = useIsDesktop() === false;
   const { theme, setTheme } = useTheme();
   useEffect(() => {
@@ -30,29 +31,37 @@ const UserNav: React.FC<UserNavProps> = ({ onCallClick, onMenuClick, adultMode, 
 
   return (
     <div className={styles.bar}>
+      {title && <div className={styles.logoLeft}><TeaseMeLogo variant="full" /></div>}
       <div className={styles.maxWidthSpacer}>
-        {isMobile && (<div
-          onClick={onMenuClick}
-          className={styles.menuButton}
-        >
-          <SvgPack.Menu className={styles.menuButtonIcon} />
-        </div>)}
+        <div className={styles.leftSlot}>
+          {isMobile && (
+            <div onClick={onMenuClick} className={styles.menuButton}>
+              <SvgPack.Menu className={styles.menuButtonIcon} />
+            </div>
+          )}
+          {!isMobile && onAdultModeChange && (
+            <AdultModeToggle
+              checked={theme === 'adult'}
+              onChange={(checked) => { onAdultModeChange(checked); }}
+              minutesLeft={minutesRemaining}
+            />
+          )}
+        </div>
 
-
-        {onAdultModeChange && (
+        {isMobile && onAdultModeChange ? (
           <AdultModeToggle
             checked={theme === 'adult'}
-            onChange={(checked) => {
-              onAdultModeChange(checked);
-            }}
+            onChange={(checked) => { onAdultModeChange(checked); }}
             minutesLeft={minutesRemaining}
           />
+        ) : (
+          title
+            ? <span className={styles.navTitle}>{title}</span>
+            : <div className={styles.logoArea}><TeaseMeLogo variant="full" /></div>
         )}
-        <div className={styles.logoArea}>
-          <TeaseMeLogo variant="full" />
-        </div>
+
         <div className={styles["right-buttons"]}>
-          <IconButton leftIcon={callMode ? <SvgPack.Chat className={clsx(styles.callChatIcon)} /> : <SvgPack.Call className={clsx(styles.callCallIcon)} />} onClick={onCallClick} className={clsx(styles.callButton, adultMode && styles.hidden)} color='black' text={isMobile ? "" : "Mode"} />
+          {onCallClick && <IconButton leftIcon={callMode ? <SvgPack.Chat className={clsx(styles.callChatIcon)} /> : <SvgPack.Call className={clsx(styles.callCallIcon)} />} onClick={onCallClick} className={clsx(styles.callButton, adultMode && styles.hidden)} color='black' text={isMobile ? "" : "Mode"} />}
         </div>
       </div>
     </div>
