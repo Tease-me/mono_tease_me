@@ -1,4 +1,4 @@
-from app.services.embeddings import get_embedding, get_embeddings_batch, search_similar_memories, search_similar_messages, upsert_memory
+from app.services.embeddings import get_embedding, get_embeddings_batch, search_similar_memories, search_similar_messages, search_similar_memories_and_messages, upsert_memory
 from sqlalchemy import select
 from sqlalchemy.sql import func
 from app.db.models import Memory
@@ -68,6 +68,62 @@ async def find_similar_memories(
     chat_memories = await search_similar_memories(db, chat_id, emb, top_k=top_k, max_distance=max_distance)
 
     return chat_memories
+
+
+async def find_similar_memories_and_messages(
+    db,
+    chat_id: str,
+    message: str,
+    influencer_id: str = None,
+    top_k: int = 10,
+    embedding: list[float] | None = None,
+    max_distance: float | None = None,
+    memories_weight: float = 1.0,
+    messages_weight: float = 1.0,
+):
+    """
+    Find similar content from BOTH memories and messages using UNION.
+    
+    This provides richer context by combining:
+    - Curated memories (extracted facts)
+    - Actual conversation history (messages)
+    
+    Args:
+        db: Database session
+        chat_id: ID of the chat
+        message: User message to search for similar content
+        influencer_id: ID of the influencer (optional, for future use)
+        top_k: Number of results to return (default: 10)
+        embedding: Optional precomputed embedding for the message (reuse to avoid duplicate calls)
+        max_distance: Optional maximum cosine distance for relevance (default: None = no filtering)
+        memories_weight: Weight for memory distances (default: 1.0, lower = higher priority)
+        messages_weight: Weight for message distances (default: 1.0, lower = higher priority)
+    
+    Returns:
+        List of similar content strings (both memories and messages) ordered by weighted similarity
+        
+    Example:
+        # Prioritize memories over messages
+        results = await find_similar_memories_and_messages(
+            db, chat_id, "user text", 
+            top_k=10,
+            memories_weight=0.8,  # 20% boost to memories
+            messages_weight=1.0
+        )
+    """
+    emb = embedding or await get_embedding(message)
+    
+    combined_results = await search_similar_memories_and_messages(
+        db, 
+        chat_id, 
+        emb, 
+        top_k=top_k, 
+        max_distance=max_distance,
+        memories_weight=memories_weight,
+        messages_weight=messages_weight,
+    )
+
+    return combined_results
 
 
 def _norm(s: str) -> str:

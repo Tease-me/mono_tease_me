@@ -1,5 +1,6 @@
 import logging
 import asyncio
+from datetime import datetime, timezone
 from uuid import uuid4
 from fastapi import HTTPException
 
@@ -19,13 +20,13 @@ from app.agents.prompt_utils import (
 )
 from app.db.models import Influencer, User
 from app.utils.messaging.tts_sanitizer import sanitize_tts_text
-from app.services.system_prompt_service import get_system_prompt
-from app.constants import prompt_keys
 from app.utils.logging.prompt_logging import log_prompt
 
 from app.relationship.processor import process_relationship_turn
 
 log = logging.getLogger("teaseme-turn")
+
+SESSION_BREAK_TAG = "[SESSION BREAK"
 
 
 def redis_history(chat_id: str):
@@ -34,6 +35,57 @@ def redis_history(chat_id: str):
         url=settings.REDIS_URL,
         ttl=settings.HISTORY_TTL,
     )
+
+
+def inject_session_break(chat_id: str) -> None:
+    """Inject a session boundary marker into Redis history for a new call.
+
+    Prevents the LLM from treating previous call history as the current
+    conversation. Idempotent — skips if the last message is already a marker.
+    """
+    history = redis_history(chat_id)
+    msgs = history.messages
+    if msgs:
+        last_content = getattr(msgs[-1], "content", "")
+        if SESSION_BREAK_TAG in last_content:
+            return  # already marked
+    now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    history.add_ai_message(
+        f"{SESSION_BREAK_TAG} — Prior conversation ended. "
+        f"New call starting at {now_str}. "
+        f"Treat the following as a new interaction. "
+        f"You can reference memories from past conversations, "
+        f"but do NOT continue where you left off.]"
+    )
+
+
+def _messages_since_session_break(messages: list) -> list:
+    """Return only messages after the last SESSION BREAK marker."""
+    for i in range(len(messages) - 1, -1, -1):
+        content = getattr(messages[i], "content", "")
+        if SESSION_BREAK_TAG in content:
+            return messages[i + 1:]
+    return messages  # no marker found, return all
+
+
+class SessionScopedChatMessageHistory:
+    """Wrapper that limits history visibility to the current session."""
+
+    def __init__(self, redis_history):
+        self._redis = redis_history
+
+    @property
+    def messages(self):
+        return _messages_since_session_break(self._redis.messages)
+
+    def add_message(self, message):
+        self._redis.add_message(message)
+    
+    def add_messages(self, messages):
+        self._redis.add_messages(messages)
+    
+    def clear(self):
+        self._redis.clear()
 
 
 def _norm(m):
@@ -144,7 +196,16 @@ async def handle_turn(
         history.clear()
         history.add_messages(trimmed)
 
-    recent_ctx = "\n".join(f"{m.type}: {m.content}" for m in history.messages[-6:])
+    # For audio/call mode, scope context to the current call session only
+    if is_audio:
+        # Wrap history so RunnableWithMessageHistory also respects the session boundary
+        history_for_runnable = SessionScopedChatMessageHistory(history)
+        ctx_messages = history_for_runnable.messages
+    else:
+        history_for_runnable = history
+        ctx_messages = history.messages
+
+    recent_ctx = "\n".join(f"{m.type}: {m.content}" for m in ctx_messages[-6:])
 
     # Phase 1: Fetch cached prompts in parallel (Redis cache, no DB contention)
     prompt_template = await get_global_prompt(db, is_audio)
@@ -163,9 +224,12 @@ async def handle_turn(
     from app.services.embeddings import get_embedding
     message_embedding = await get_embedding(message) if (db and user_id) else None
 
+    async def _relationship_with_own_session(**kwargs):
+        async with SessionLocal() as rel_db:
+            return await process_relationship_turn(db=rel_db, **kwargs)
+
     rel_pack_task = asyncio.create_task(
-        process_relationship_turn(
-            db=db,
+        _relationship_with_own_session(
             user_id=int(user_id),
             influencer_id=influencer_id,
             message=message,
@@ -185,7 +249,7 @@ async def handle_turn(
         ) if (db and user_id) else asyncio.sleep(0, result=[])
     )
 
-    # Wait for both to complete in parallel
+    # Wait for both to complete in parallel (each on its own session)
     rel_pack, memories_result = await asyncio.gather(rel_pack_task, memories_task)
    
     rel = rel_pack["rel"]
@@ -251,7 +315,7 @@ async def handle_turn(
 
     runnable = RunnableWithMessageHistory(
         chain,
-        lambda _: history,
+        lambda _: history_for_runnable,
         input_messages_key="input",
         history_messages_key="history",
     )
@@ -289,4 +353,3 @@ async def handle_turn(
         return sanitize_tts_text(reply)
 
     return reply
-

@@ -12,7 +12,7 @@ Documentation: https://docs.didit.me/
 import logging
 import httpx
 from typing import Dict, Any, Optional
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from app.core.config import settings
 

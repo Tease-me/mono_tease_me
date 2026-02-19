@@ -3,13 +3,12 @@
 from datetime import datetime, timezone
 from typing import Optional, List, TYPE_CHECKING
 
-from sqlalchemy import Integer, String, Boolean, Text, ForeignKey, DateTime
+from sqlalchemy import Integer, String, Boolean, Text, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 
 if TYPE_CHECKING:
-    from .chat import Chat
     from .influencer import InfluencerFollower
 
 

@@ -3,7 +3,6 @@ import logging
 import math
 import random
 import json
-from uuid import uuid4
 from app.agents.prompt_utils import build_relationship_prompt, get_global_prompt, get_mbti_rules_for_archetype, get_relationship_stage_prompts, get_time_context
 from app.relationship.dtr import plan_dtr_goal
 from app.relationship.inactivity import apply_inactivity_decay
@@ -25,10 +24,9 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from app.services.billing import can_afford, get_remaining_units
 from app.services.chat_service import get_or_create_chat
-from app.agents.turn_handler import _norm, _build_user_name_block, redis_history
+from app.agents.turn_handler import _build_user_name_block, redis_history, inject_session_break, _messages_since_session_break
 from langchain_core.prompts import ChatPromptTemplate
 from app.db.session import SessionLocal
-from app.services.embeddings import get_embedding
 from app.services.system_prompt_service import get_system_prompt
 from app.constants import prompt_keys
 from app.agents.prompts import GREETING_GENERATOR
@@ -1351,6 +1349,9 @@ async def get_signed_url(
     agent_id = await get_agent_id_from_influencer(db, influencer_id)
     chat_id = await get_or_create_chat(db, user_id, influencer_id)
 
+    # Mark new call session boundary in Redis history
+    inject_session_break(chat_id)
+
     greeting: Optional[str] = first_message
     if not greeting:
         greeting = await _generate_contextual_greeting(db, chat_id, influencer_id, user_timezone)
@@ -1425,12 +1426,17 @@ async def get_conversation_token(
 
     history = redis_history(chat_id)
 
+    # Mark new call session boundary in Redis history
+    inject_session_break(chat_id)
+
     if len(history.messages) > settings.MAX_HISTORY_WINDOW:
         trimmed = history.messages[-settings.MAX_HISTORY_WINDOW:]
         history.clear()
         history.add_messages(trimmed)
 
-    recent_ctx = "\n".join(f"{m.type}: {m.content}" for m in history.messages[-6:])
+    # Scope recent_ctx to current session only (excludes previous call messages)
+    current_session_msgs = _messages_since_session_break(history.messages)
+    recent_ctx = "\n".join(f"{m.type}: {m.content}" for m in current_session_msgs[-6:])
 
     now = datetime.now(timezone.utc)
     rel = await get_or_create_relationship(db, int(user_id), influencer_id)
@@ -1619,6 +1625,10 @@ async def register_conversation(
             chat_id = row[0] if row else None
         except Exception:
             pass
+
+    # Mark new call session boundary in Redis history (fallback path)
+    if chat_id:
+        inject_session_break(chat_id)
 
     try:
         asyncio.create_task(

@@ -1,5 +1,9 @@
 
-import asyncio, time, logging, json, hmac
+import asyncio
+import time
+import logging
+import json
+import hmac
 
 from hashlib import sha256
 from typing import Optional, Any
@@ -13,8 +17,8 @@ from app.services.billing import charge_feature, _get_influencer_id_from_chat
 from app.api.elevenlabs import _extract_total_seconds
 from sqlalchemy import select
 from app.db.models import CallRecord, Chat, Influencer
-from app.agents.turn_handler import  handle_turn, redis_history
-from app.agents.memory import find_similar_memories, find_similar_messages
+from app.agents.turn_handler import  handle_turn, redis_history, _messages_since_session_break
+from app.agents.memory import find_similar_memories
 
 from app.relationship.processor import process_relationship_turn
 
@@ -24,9 +28,6 @@ log = logging.getLogger(__name__)
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 
 ELEVENLABS_CONVAI_WEBHOOK_SECRET = settings.ELEVENLABS_CONVAI_WEBHOOK_SECRET
-ELEVEN_BASE_URL = settings.ELEVEN_BASE_URL
-
-log = logging.getLogger(__name__)
 
 
 def _redact(val: Any) -> str:
@@ -37,6 +38,25 @@ def _redact(val: Any) -> str:
     if len(s) <= 6:
         return "***"
     return f"{s[:3]}…{s[-2:]}"
+
+
+def _serialize_relationship_data(rel: Any) -> dict[str, Any]:
+    """Serialize relationship fields for API responses."""
+    return {
+        "user_id": rel.user_id,
+        "influencer_id": rel.influencer_id,
+        "trust": rel.trust,
+        "closeness": rel.closeness,
+        "attraction": rel.attraction,
+        "safety": rel.safety,
+        "state": rel.state,
+        "sentiment_score": rel.sentiment_score,
+        "sentiment_delta": rel.sentiment_delta,
+        "exclusive_agreed": rel.exclusive_agreed,
+        "girlfriend_confirmed": rel.girlfriend_confirmed,
+        "last_interaction_at": rel.last_interaction_at.isoformat() if rel.last_interaction_at else None,
+        "updated_at": rel.updated_at.isoformat() if rel.updated_at else None,
+    }
 
 
 def _verify_hmac(raw_body: bytes, signature_header: Optional[str]) -> None:
@@ -128,12 +148,7 @@ async def elevenlabs_post_call(request: Request, db: AsyncSession = Depends(get_
     conversation_id = data.get("conversation_id")
     status = (data.get("status") or "done").lower()
     total_seconds = _extract_total_seconds(data)
-    transcript_entries = data.get("transcript") or []
-    full_transcript = " ".join(
-        entry.get("message", "")
-        for entry in transcript_entries
-        if isinstance(entry, dict) and entry.get("message")
-    )
+    # transcript_entries = data.get("transcript") or []
 
     log.info(
         "webhook.parsed type=%s conv_id=%s status=%s seconds=%s ip=%s",
@@ -247,6 +262,7 @@ async def update_relationship_api(
     return {"status": "received"}
 
 
+
 async def _process_relationship_update(user_text: str, conversation_id: str):
     """Process relationship update in background without blocking webhook response."""
     if not user_text:
@@ -290,7 +306,7 @@ async def _process_relationship_update(user_text: str, conversation_id: str):
             history.clear()
             history.add_messages(trimmed)
 
-        recent_ctx = "\n".join(f"{m.type}: {m.content}" for m in history.messages[-6:])
+        recent_ctx = "\n".join(f"{m.type}: {m.content}" for m in _messages_since_session_break(history.messages)[-6:])
 
         influencer = await db.get(Influencer, influencer_id)
         if not influencer:
@@ -311,22 +327,15 @@ async def _process_relationship_update(user_text: str, conversation_id: str):
         rel = rel_pack["rel"]
         days_idle = rel_pack["days_idle"]
         dtr_goal = rel_pack["dtr_goal"]
-
-        relationship = (
-            "# Relationship Metrics:\n"
-            f"- phase: {rel.state}\n"
-            f"- trust: {rel.trust}/100\n"
-            f"- closeness: {rel.closeness}/100\n"
-            f"- attraction: {rel.attraction}/100\n"
-            f"- safety: {rel.safety}/100\n"
-            f"- exclusive_agreed: {rel.exclusive_agreed}\n"
-            f"- girlfriend_confirmed: {rel.girlfriend_confirmed}\n"
-            f"- sentiment_delta: {rel.sentiment_delta}\n"
-            f"- days_idle_before_message: {days_idle}\n"
-            f"- dtr_goal: {dtr_goal}\n"
+        relationship = _serialize_relationship_data(rel)
+        log.info(
+            "[EL TOOL BG] relationship_metrics conv=%s days_idle=%s dtr_goal=%s payload=%s",
+            conversation_id,
+            days_idle,
+            dtr_goal,
+            relationship,
         )
-
-        log.info("[EL TOOL BG] relationship_metrics conv=%s\n%s", conversation_id, relationship)
+    return relationship
 
 def _verify_token(shared: str, token: str | None) -> None:
     if not shared: 
