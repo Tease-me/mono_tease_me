@@ -20,9 +20,9 @@
     justify-content: space-between;
 }
 
-   .callButton {
-        width: 80%;
-    }
+.callButton {
+    width: 80%;
+}
 
 .pricePill {
     padding: 6px 14px;
@@ -65,18 +65,19 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--space-px-12);
-   
+
 }
 
 .statCard {
     display: flex;
+    flex-direction: column;
     align-items: center;
     padding: 12px;
-    flex-direction: column;
     gap: var(--space-px-8);
     flex: 1 0 0;
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.10);
+    text-align: center;
 }
 
 .statLabel {
@@ -87,12 +88,16 @@
 }
 
 .statValue {
+    flex: 1;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: var(--space-px-8);
     font-size: 18px;
     font-weight: 600;
+    line-height: 1;
 }
+
 
 .statIcon {
     display: inline-flex;
@@ -104,6 +109,7 @@
 .statIcon svg {
     width: 18px;
     height: 18px;
+    display: block;
 }
 
 .metrics {
@@ -198,7 +204,7 @@
 
 
 
- @media (min-width: 32rem) {
+@media (min-width: 32rem) {
 
     .statsRow {
         max-width: calc(var(--max-chat-content-width) - var(--space-px-52));
@@ -229,4 +235,4 @@
         transition: all 200ms ease-out;
         font-size: 14px;
     }
- }
+}

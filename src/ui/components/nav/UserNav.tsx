@@ -39,7 +39,7 @@ const UserNav: React.FC<UserNavProps> = ({ onCallClick, onMenuClick, adultMode, 
               <SvgPack.Menu className={styles.menuButtonIcon} />
             </div>
           )}
-          {onAdultModeChange && (
+          {!isMobile && onAdultModeChange && (
             <AdultModeToggle
               checked={theme === 'adult'}
               onChange={(checked) => { onAdultModeChange(checked); }}
@@ -48,10 +48,17 @@ const UserNav: React.FC<UserNavProps> = ({ onCallClick, onMenuClick, adultMode, 
           )}
         </div>
 
-        {title
-          ? <span className={styles.navTitle}>{title}</span>
-          : <div className={styles.logoArea}><TeaseMeLogo variant="full" /></div>
-        }
+        {isMobile && onAdultModeChange ? (
+          <AdultModeToggle
+            checked={theme === 'adult'}
+            onChange={(checked) => { onAdultModeChange(checked); }}
+            minutesLeft={minutesRemaining}
+          />
+        ) : (
+          title
+            ? <span className={styles.navTitle}>{title}</span>
+            : <div className={styles.logoArea}><TeaseMeLogo variant="full" /></div>
+        )}
 
         <div className={styles["right-buttons"]}>
           {onCallClick && <IconButton leftIcon={callMode ? <SvgPack.Chat className={clsx(styles.callChatIcon)} /> : <SvgPack.Call className={clsx(styles.callCallIcon)} />} onClick={onCallClick} className={clsx(styles.callButton, adultMode && styles.hidden)} color='black' text={isMobile ? "" : "Mode"} />}

@@ -176,7 +176,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ defaultInfluencer
             setHasMultipleInfluencers(list.length > 1);
             setInfluencers(list);
         });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
