@@ -158,4 +158,18 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
             throw error;
         }
     },
+    relationship_update: async (userText: string | null, conversationId: string | null) => {
+        try {
+            const response = await apiClient.post(Endpoints.relationship_update, null, {
+                params: {
+                    user_text: userText,
+                    conversation_id: conversationId
+                }
+            })
+            return response.data;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
 })
