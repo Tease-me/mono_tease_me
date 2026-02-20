@@ -24,6 +24,7 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from app.services.billing import can_afford, get_remaining_units
 from app.services.chat_service import get_or_create_chat
+from app.services.follow import get_follow
 from app.agents.turn_handler import _build_user_name_block, redis_history, inject_session_break, _messages_since_session_break
 from langchain_core.prompts import ChatPromptTemplate
 from app.db.session import SessionLocal
@@ -1346,6 +1347,9 @@ async def get_signed_url(
     user_timezone: str = Query("UTC"),
 ):
     user_id = current_user.id
+    if not await get_follow(db, influencer_id, user_id):
+        raise HTTPException(status_code=403, detail="You must follow the influencer to interact.")
+        
     ok, cost_cents, free_left = await can_afford(
         db, user_id=user_id, influencer_id=influencer_id, feature="live_chat", units=10
     )
@@ -1395,6 +1399,9 @@ async def get_conversation_token(
     db: AsyncSession = Depends(get_db),
 ):
     user_id = current_user.id
+    if not await get_follow(db, influencer_id, user_id):
+        raise HTTPException(status_code=403, detail="You must follow the influencer to interact.")
+        
     ok, cost_cents, free_left = await can_afford(
         db, user_id=user_id, influencer_id=influencer_id, feature="live_chat", units=10
     )
@@ -1629,6 +1636,10 @@ async def register_conversation(
 ):
     if body.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
+
+    if not await get_follow(db, body.influencer_id, body.user_id):
+        raise HTTPException(status_code=403, detail="You must follow the influencer to interact.")
+
     chat_id = await save_pending_conversation(
         db, conversation_id, current_user.id, body.influencer_id, body.sid
     )
