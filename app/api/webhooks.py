@@ -412,15 +412,22 @@ async def eleven_webhook_get_memories(
         influencer_id = call.influencer_id
         user_id = call.user_id
     else:
-        chat_record = await db.scalar(select(Chat).where(Chat.id == conversation_id))
-        if chat_record and chat_record.influencer_id:
-            chat_id = chat_record.id
-            influencer_id = chat_record.influencer_id
-            user_id = chat_record.user_id 
+        # Fallback: Check if there's a Message with this conversation_id
+        from app.db.models import Message
+        q = (
+            select(Chat.id, Chat.influencer_id, Chat.user_id)
+            .join(Message, Message.chat_id == Chat.id)
+            .where(Message.conversation_id == conversation_id)
+            .limit(1)
+        )
+        msg_res = await db.execute(q)
+        msg_row = msg_res.first()
+        if msg_row:
+            chat_id, influencer_id, user_id = msg_row
 
     if not chat_id or not influencer_id:
         log.warning(
-            "[MEMORIES] missing context for conv=%s (call fallback failed)", conversation_id
+            "[MEMORIES] missing context for conv=%s (call AND message fallbacks failed)", conversation_id
         )
         return {"memories": []}
     
