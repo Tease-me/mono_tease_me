@@ -26,7 +26,10 @@ const getFollowedInfluencersCached = async () => {
   return followedInfluencersInFlight;
 };
 
-export function useInfluencerSelection(defaultInfluencerId?: string) {
+export function useInfluencerSelection(
+  blockIfCallActive: () => boolean,
+  defaultInfluencerId?: string,
+) {
   const [selectedId, setSelectedId] = useState<string | undefined>(() => {
     const stored = localStorage.getItem("selected_id");
     return stored || undefined;
@@ -93,13 +96,14 @@ export function useInfluencerSelection(defaultInfluencerId?: string) {
   }, []);
 
   const handleChangeInfluencerClicked = useCallback(() => {
+    if (blockIfCallActive()) return;
     setSelectedId(undefined);
     setNeedsSelection(true);
   }, []);
 
   const isSelectingInfluencer = useMemo(
     () => needsSelection && !selectedId,
-    [needsSelection, selectedId]
+    [needsSelection, selectedId],
   );
 
   return {

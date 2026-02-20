@@ -50,6 +50,7 @@ import {
   loadChatMessages,
   updateRelationshipFromText,
 } from "@/store/chatScreenSlice";
+import { showErrorModal } from "@/utils/errorModal";
 
 interface ChatScreenContentProps {
   defaultInfluencerId?: string;
@@ -64,6 +65,19 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
   openSubscribe,
 }) => {
   const dispatch = useAppDispatch();
+
+  const blockIfCallActive = () => {
+    const isCallActive = status === "connected" || status === "connecting";
+    if (isCallActive) {
+      showErrorModal({
+        title: "Active Call in Progress",
+        message: "End the call before navigating away.",
+      });
+      return true;
+    }
+    return false;
+  };
+
   const {
     influencer,
     influencers,
@@ -71,7 +85,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     isSelectingInfluencer,
     handleSelect,
     handleChangeInfluencerClicked,
-  } = useInfluencerSelection(defaultInfluencerId);
+  } = useInfluencerSelection(blockIfCallActive, defaultInfluencerId);
 
   const {
     chatId,
@@ -103,20 +117,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
 
   const { user } = useContext(AuthContext);
   const { openSidebar } = useSidebar();
-  const {
-    adultMode,
-    adultModeSwitch,
-    setAdultModeSwitch,
-    hasSubscription,
-    showSubscriptionPage,
-    setShowSubscriptionPage,
-    showTermsModal,
-    setShowTermsModal,
-    showErrorAlert,
-    setShowErrorAlert,
-    handleAdultModeChange,
-    handleSubscribePressed,
-  } = useSubscriptionState({ influencer, openSubscribe });
+
   const isSuperUser = user?.id === 1;
 
   const pageSize = 20;
@@ -155,10 +156,26 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     },
   });
 
+  const {
+    adultMode,
+    adultModeSwitch,
+    setAdultModeSwitch,
+    hasSubscription,
+    showSubscriptionPage,
+    setShowSubscriptionPage,
+    showTermsModal,
+    setShowTermsModal,
+    showErrorAlert,
+    setShowErrorAlert,
+    handleAdultModeChange,
+    handleSubscribePressed,
+  } = useSubscriptionState({ influencer, openSubscribe, blockIfCallActive });
+
   const displayMessages = useMemo(
     () => (messages ? mergeCallMessages(messages) : []),
     [messages],
   );
+
   useEffect(() => {
     if (adultMode && mode === "call") {
       dispatch(chatScreenActions.setMode("chat"));
@@ -271,6 +288,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
   }, [dispatch, startConversation]);
 
   const handleCallModeChange = useCallback(async () => {
+    if (blockIfCallActive()) return;
     if (mode === "call") {
       stopConversation();
       dispatch(chatScreenActions.setMode("chat"));
@@ -306,12 +324,17 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     await dispatch(clearChatHistoryThunk({ chatId, adultMode }));
   };
 
+  const handleMenuClick = () => {
+    if (blockIfCallActive()) return;
+    onMenuClick?.();
+  };
+
   return (
     <div className={styles["container"]}>
       <div className={styles["chat-screen-content"]}>
         <div className={styles["chat-header"]}>
           <UserNav
-            onMenuClick={onMenuClick}
+            onMenuClick={handleMenuClick}
             title={isSelectingInfluencer ? "Select Influencer" : undefined}
             onCallClick={
               !isSelectingInfluencer && influencer

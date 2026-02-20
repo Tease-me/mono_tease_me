@@ -11,16 +11,20 @@ import { useCallback, useEffect, useState } from "react";
 interface UseSubscriptionStateProps {
   influencer?: InfluencerDataModel;
   openSubscribe?: boolean;
+  blockIfCallActive: () => boolean;
 }
 
 export function useSubscriptionState({
   influencer,
   openSubscribe,
+  blockIfCallActive,
 }: UseSubscriptionStateProps) {
   const dispatch = useAppDispatch();
   const { isSubscribing } = useAppSelector((state) => state.subscription);
   const subscriptionStatus = useAppSelector((state) =>
-    influencer ? state.subscription.statusByInfluencerId[influencer.id] : undefined
+    influencer
+      ? state.subscription.statusByInfluencerId[influencer.id]
+      : undefined,
   );
   const [adultMode, setAdultMode] = useState(false);
   const [adultModeSwitch, setAdultModeSwitch] = useState(false);
@@ -49,6 +53,8 @@ export function useSubscriptionState({
 
   const handleAdultModeChange = useCallback(
     async (checked: boolean) => {
+      if (blockIfCallActive()) return;
+
       if (!influencer) {
         setAdultModeSwitch(false);
         return;
@@ -61,7 +67,10 @@ export function useSubscriptionState({
         setAdultMode(false);
         try {
           await dispatch(
-            setAdultModeSelection({ influencerId: influencer.id, checked: false })
+            setAdultModeSelection({
+              influencerId: influencer.id,
+              checked: false,
+            }),
           );
         } catch (err) {
           logger.error("Error deactivating adult mode:", err);
@@ -71,12 +80,15 @@ export function useSubscriptionState({
 
       try {
         const status = await dispatch(
-          fetchSubscriptionStatus({ influencerId: influencer.id })
+          fetchSubscriptionStatus({ influencerId: influencer.id }),
         );
         if (status?.isSubscribed) {
           if (!status?.isAdult) {
             const updateResult = await dispatch(
-              setAdultModeSelection({ influencerId: influencer.id, checked: true })
+              setAdultModeSelection({
+                influencerId: influencer.id,
+                checked: true,
+              }),
             );
             if (!updateResult.success) {
               if (updateResult.idVerified === false) {
@@ -85,7 +97,8 @@ export function useSubscriptionState({
                 return;
               }
               setShowErrorAlert(
-                updateResult.message || "Failed to enable adult mode. Please try again."
+                updateResult.message ||
+                  "Failed to enable adult mode. Please try again.",
               );
               setAdultModeSwitch(false);
               return;
@@ -98,7 +111,7 @@ export function useSubscriptionState({
         }
 
         const activateResult = await dispatch(
-          setAdultModeSelection({ influencerId: influencer.id, checked: true })
+          setAdultModeSelection({ influencerId: influencer.id, checked: true }),
         );
         if (!activateResult.success) {
           if (activateResult.idVerified === false) {
@@ -109,7 +122,8 @@ export function useSubscriptionState({
           setAdultModeSwitch(false);
           setShowSubscriptionPage(false);
           setShowErrorAlert(
-            activateResult.message || "Failed to enable adult mode. Please try again."
+            activateResult.message ||
+              "Failed to enable adult mode. Please try again.",
           );
           return;
         }
@@ -117,7 +131,8 @@ export function useSubscriptionState({
         setAdultMode(false);
       } catch (err: any) {
         const idVerified =
-          err?.response?.data?.detail?.verification_status?.is_identity_verified;
+          err?.response?.data?.detail?.verification_status
+            ?.is_identity_verified;
         if (idVerified === false) {
           setShowTermsModal(true);
           setAdultModeSwitch(false);
@@ -128,11 +143,11 @@ export function useSubscriptionState({
         setShowSubscriptionPage(false);
         setShowErrorAlert(
           err?.response?.data?.detail?.message ||
-            "Failed to enable adult mode. Please try again."
+            "Failed to enable adult mode. Please try again.",
         );
       }
     },
-    [dispatch, influencer]
+    [dispatch, influencer],
   );
 
   const handleSubscribePressed = useCallback(async () => {
@@ -143,14 +158,14 @@ export function useSubscriptionState({
           influencerId: influencer.id,
           planId: 1,
           amountCents: 10000,
-        })
+        }),
       );
       if (!result.success) {
         window.alert(result.message);
         return;
       }
       await dispatch(
-        fetchSubscriptionStatus({ influencerId: influencer.id, force: true })
+        fetchSubscriptionStatus({ influencerId: influencer.id, force: true }),
       );
       window.alert(result.message);
       setAdultMode(true);
@@ -162,7 +177,7 @@ export function useSubscriptionState({
       window.alert(
         err?.response?.data?.detail?.message ??
           err?.message ??
-          "Error subscribing. Please try again."
+          "Error subscribing. Please try again.",
       );
     }
   }, [dispatch, influencer, isSubscribing]);
