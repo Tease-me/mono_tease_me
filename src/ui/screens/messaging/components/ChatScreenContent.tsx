@@ -210,17 +210,17 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ defaultInfluencer
         }
     }, [defaultInfluencerId]);
 
-    useEffect(() => {
-        let isMounted = true;
+    const refreshUsage = useCallback(() => {
         UserServices(apiClient).getUserUsage(influencer?.id).then((usage) => {
-            if (isMounted) {
-                adultModeRef.current ? setCreditsRemaining(usage.adult?.messages?.remaining) : setCreditsRemaining(usage.normal?.messages?.remaining);
-                setAdultMinutesRemaining(usage.adult?.live_chat?.remaining_minutes ?? usage.adult?.voice?.remaining_minutes)
-            }
+            adultModeRef.current ? setCreditsRemaining(usage.adult?.messages?.remaining) : setCreditsRemaining(usage.normal?.messages?.remaining);
+            setAdultMinutesRemaining(usage.adult?.live_chat?.remaining_minutes ?? usage.adult?.voice?.remaining_minutes);
         }).catch((err) => {
             logger.error("Error fetching user usage:", err);
         });
-        return () => { isMounted = false; };
+    }, [influencer]);
+
+    useEffect(() => {
+        refreshUsage();
     }, [influencer, adultMode]);
 
     useEffect(() => {
@@ -232,7 +232,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ defaultInfluencer
             }
             try {
                 const subscription = await subscriptionsServices.getMySubscriptionForInfluencer(influencer.id);
-                const isActive = subscription?.has_subscription === true && subscription?.status === 'active';
+                const isActive = subscription?.has_subscription === true;
                 const isAdult = isActive && subscription?.is_18_selected === true;
                 if (isMounted) {
                     setHasSubscription(isActive);
@@ -289,7 +289,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ defaultInfluencer
             if (adultModeSwitch && influencer) {
                 try {
                     const subscription = await subscriptionsServices.getMySubscriptionForInfluencer(influencer.id);
-                    if (subscription?.has_subscription === true && subscription?.status === 'active') {
+                    if (subscription?.has_subscription === true) {
                         if (!subscription?.is_18_selected) {
                             await subscriptionsServices.activateMySubscriptionForInfluencer(influencer.id, true);
                         }
@@ -591,6 +591,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ defaultInfluencer
                 return;
             }
 
+            refreshUsage();
             setTyping("recording");
             setTimeout(() => {
                 if (adultModeRef.current !== capturedMode || chatId !== capturedChatId) {
