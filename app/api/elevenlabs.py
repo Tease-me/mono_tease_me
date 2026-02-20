@@ -31,6 +31,8 @@ from app.services.system_prompt_service import get_system_prompt
 from app.constants import prompt_keys
 from app.agents.prompts import GREETING_GENERATOR
 from app.utils.logging.prompt_logging import log_prompt
+from app.agents.memory import extract_memories_from_transcript
+
 
 router = APIRouter(prefix="/elevenlabs", tags=["elevenlabs"])
 log = logging.getLogger(__name__)
@@ -1317,6 +1319,20 @@ async def _persist_transcript_to_chat(
         conversation_id,
         len(new_messages),
     )
+
+    if transcript and chat_id:
+        asyncio.create_task(
+            extract_memories_from_transcript(
+                chat_id=chat_id,
+                transcript_entries=transcript,
+                conversation_id=conversation_id,
+            )
+        )
+        log.info(
+            "[MEMORY-BG] scheduled from persist_transcript chat=%s conv=%s turns=%d",
+            chat_id, conversation_id, len(transcript),
+        )
+
     return len(new_messages)
 
 
