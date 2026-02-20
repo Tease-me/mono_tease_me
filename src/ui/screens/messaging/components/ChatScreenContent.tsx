@@ -254,6 +254,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
       scrollToBottom();
     }
   }, [messages, pageNumber, scrollToBottom]);
+
   const { connectChat, sendMessage } = useChatRealtime({
     dispatch,
     chatId,

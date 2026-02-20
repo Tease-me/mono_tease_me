@@ -9,7 +9,10 @@ const subscriptionSvc = SubscriptionsServices(apiClient);
 interface SubscriptionState {
   isSubscribing: boolean;
   subscribeError?: string;
-  statusByInfluencerId: Record<string, NormalizedSubscriptionStatus | undefined>;
+  statusByInfluencerId: Record<
+    string,
+    NormalizedSubscriptionStatus | undefined
+  >;
   loadingByInfluencerId: Record<string, boolean | undefined>;
   errorByInfluencerId: Record<string, string | undefined>;
 }
@@ -55,18 +58,21 @@ type SetAdultModeResult = {
   message?: string;
 };
 
-const subscriptionStatusCache = new Map<string, SubscriptionApiResponse | undefined>();
+const subscriptionStatusCache = new Map<
+  string,
+  SubscriptionApiResponse | undefined
+>();
 const subscriptionStatusInFlight = new Map<
   string,
   Promise<SubscriptionApiResponse | undefined>
 >();
 
 const normalizeStatus = (
-  subscription: SubscriptionApiResponse | undefined
+  subscription: SubscriptionApiResponse | undefined,
 ): NormalizedSubscriptionStatus => {
   const hasSubscription = subscription?.has_subscription === true;
   const isSubscribed = hasSubscription && subscription?.status === "active";
-  const isAdult = isSubscribed && subscription?.is_18_selected === true;
+  const isAdult = hasSubscription && subscription?.is_18_selected === true;
   return {
     hasSubscription,
     isSubscribed,
@@ -95,25 +101,27 @@ const subscriptionSlice = createSlice({
     },
     setStatusLoading(
       state,
-      action: PayloadAction<{ influencerId: string; loading: boolean }>
+      action: PayloadAction<{ influencerId: string; loading: boolean }>,
     ) {
       state.loadingByInfluencerId[action.payload.influencerId] =
         action.payload.loading;
     },
     setStatusError(
       state,
-      action: PayloadAction<{ influencerId: string; error?: string }>
+      action: PayloadAction<{ influencerId: string; error?: string }>,
     ) {
-      state.errorByInfluencerId[action.payload.influencerId] = action.payload.error;
+      state.errorByInfluencerId[action.payload.influencerId] =
+        action.payload.error;
     },
     setSubscriptionStatus(
       state,
       action: PayloadAction<{
         influencerId: string;
         status: NormalizedSubscriptionStatus;
-      }>
+      }>,
     ) {
-      state.statusByInfluencerId[action.payload.influencerId] = action.payload.status;
+      state.statusByInfluencerId[action.payload.influencerId] =
+        action.payload.status;
     },
   },
 });
@@ -124,7 +132,7 @@ export const startInfluencerSubscription =
   ({ influencerId, planId, amountCents, orderId }: StartSubscriptionPayload) =>
   async (
     dispatch: AppDispatch,
-    getState: () => RootState
+    getState: () => RootState,
   ): Promise<SubscribeResult> => {
     if (getState().subscription.isSubscribing) {
       return { success: false, message: "Subscription already in progress." };
@@ -134,10 +142,13 @@ export const startInfluencerSubscription =
     dispatch(subscriptionActions.setSubscribeError(undefined));
 
     try {
-      const startRes = await subscriptionSvc.startSubscription(influencerId, planId);
+      const startRes = await subscriptionSvc.startSubscription(
+        influencerId,
+        planId,
+      );
       const resolvedOrderId =
         orderId ??
-        ((typeof crypto !== "undefined" && "randomUUID" in crypto)
+        (typeof crypto !== "undefined" && "randomUUID" in crypto
           ? crypto.randomUUID()
           : `order_${Date.now()}_${Math.random().toString(16).slice(2)}`);
       const subId = startRes?.subscription_id ?? startRes?.subscriptionId;
@@ -145,8 +156,15 @@ export const startInfluencerSubscription =
         throw new Error("Missing subscription ID");
       }
 
-      await subscriptionSvc.captureSubscription(String(subId), resolvedOrderId, amountCents);
-      await subscriptionSvc.activateMySubscriptionForInfluencer(influencerId, true);
+      await subscriptionSvc.captureSubscription(
+        String(subId),
+        resolvedOrderId,
+        amountCents,
+      );
+      await subscriptionSvc.activateMySubscriptionForInfluencer(
+        influencerId,
+        true,
+      );
       return { success: true, message: "Subscription successful!" };
     } catch (err: any) {
       logger.error("Subscription error:", err);
@@ -163,12 +181,16 @@ export const startInfluencerSubscription =
 
 export const fetchSubscriptionStatus =
   ({ influencerId, force = false }: FetchSubscriptionStatusPayload) =>
-  async (dispatch: AppDispatch): Promise<NormalizedSubscriptionStatus | undefined> => {
+  async (
+    dispatch: AppDispatch,
+  ): Promise<NormalizedSubscriptionStatus | undefined> => {
     try {
       dispatch(
-        subscriptionActions.setStatusLoading({ influencerId, loading: true })
+        subscriptionActions.setStatusLoading({ influencerId, loading: true }),
       );
-      dispatch(subscriptionActions.setStatusError({ influencerId, error: undefined }));
+      dispatch(
+        subscriptionActions.setStatusError({ influencerId, error: undefined }),
+      );
 
       let subscription: SubscriptionApiResponse | undefined;
       if (!force && subscriptionStatusCache.has(influencerId)) {
@@ -195,7 +217,7 @@ export const fetchSubscriptionStatus =
         subscriptionActions.setSubscriptionStatus({
           influencerId,
           status: normalized,
-        })
+        }),
       );
       return normalized;
     } catch (err: any) {
@@ -203,11 +225,13 @@ export const fetchSubscriptionStatus =
         err?.response?.data?.detail?.message ??
         err?.message ??
         "Failed to load subscription status.";
-      dispatch(subscriptionActions.setStatusError({ influencerId, error: message }));
+      dispatch(
+        subscriptionActions.setStatusError({ influencerId, error: message }),
+      );
       return undefined;
     } finally {
       dispatch(
-        subscriptionActions.setStatusLoading({ influencerId, loading: false })
+        subscriptionActions.setStatusLoading({ influencerId, loading: false }),
       );
     }
   };
@@ -216,7 +240,10 @@ export const setAdultModeSelection =
   ({ influencerId, checked }: SetAdultModePayload) =>
   async (dispatch: AppDispatch): Promise<SetAdultModeResult> => {
     try {
-      await subscriptionSvc.activateMySubscriptionForInfluencer(influencerId, checked);
+      await subscriptionSvc.activateMySubscriptionForInfluencer(
+        influencerId,
+        checked,
+      );
       subscriptionStatusCache.delete(influencerId);
       await dispatch(fetchSubscriptionStatus({ influencerId, force: true }));
       return { success: true };
@@ -228,7 +255,9 @@ export const setAdultModeSelection =
         err?.response?.data?.detail?.message ??
         err?.message ??
         "Failed to update adult mode.";
-      dispatch(subscriptionActions.setStatusError({ influencerId, error: message }));
+      dispatch(
+        subscriptionActions.setStatusError({ influencerId, error: message }),
+      );
       return { success: false, idVerified, message };
     }
   };

@@ -40,7 +40,7 @@ export function useSubscriptionState({
 
   useEffect(() => {
     if (!subscriptionStatus) return;
-    setHasSubscription(subscriptionStatus.isSubscribed);
+    setHasSubscription(subscriptionStatus.hasSubscription);
     setAdultModeSwitch(subscriptionStatus.isAdult);
     setAdultMode(subscriptionStatus.isAdult);
   }, [subscriptionStatus]);
@@ -82,7 +82,7 @@ export function useSubscriptionState({
         const status = await dispatch(
           fetchSubscriptionStatus({ influencerId: influencer.id }),
         );
-        if (status?.isSubscribed) {
+        if (status?.hasSubscription) {
           if (!status?.isAdult) {
             const updateResult = await dispatch(
               setAdultModeSelection({

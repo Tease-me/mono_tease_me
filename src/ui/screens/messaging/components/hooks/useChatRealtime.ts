@@ -5,7 +5,7 @@ import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { ChatRepository } from "@/data/repositories/ChatRepo";
 import { AdultChatRepo } from "@/data/repositories/AdultChatRepo";
 import logger from "@/utils/logger";
-import { chatScreenActions } from "@/store/chatScreenSlice";
+import { chatScreenActions, fetchChatUsage } from "@/store/chatScreenSlice";
 import type { AppDispatch } from "@/store/store";
 
 const chatRepository = ChatRepository();
@@ -70,14 +70,18 @@ export function useChatRealtime({
   }, []);
 
   const connectChat = useCallback(
-    (targetInfluencerId: string, activeChatId = chatIdRef.current, activeMode = adultModeRef.current) => {
+    (
+      targetInfluencerId: string,
+      activeChatId = chatIdRef.current,
+      activeMode = adultModeRef.current,
+    ) => {
       if (ws.current) {
         manualCloseRef.current = true;
         ws.current.close();
       }
       const accessToken = storage.get(LocalStorageKeys.AccessToken);
       ws.current = new window.WebSocket(
-        `${WS_BASE_URL}${activeMode ? Endpoints.ws.chat18 : Endpoints.ws.chat}/${targetInfluencerId}?token=${accessToken}`
+        `${WS_BASE_URL}${activeMode ? Endpoints.ws.chat18 : Endpoints.ws.chat}/${targetInfluencerId}?token=${accessToken}`,
       );
 
       const connectionChatId = activeChatId;
@@ -89,8 +93,13 @@ export function useChatRealtime({
         reconnectTimer.current = window.setTimeout(() => {
           reconnectTimer.current = null;
           if (modeRef.current !== "chat") return;
-          const latestInfluencerId = influencerIdRef.current ?? targetInfluencerId;
-          connectChat(latestInfluencerId, chatIdRef.current, adultModeRef.current);
+          const latestInfluencerId =
+            influencerIdRef.current ?? targetInfluencerId;
+          connectChat(
+            latestInfluencerId,
+            chatIdRef.current,
+            adultModeRef.current,
+          );
         }, 5000);
       };
 
@@ -110,7 +119,9 @@ export function useChatRealtime({
       };
       ws.current.onerror = () => {
         dispatch(chatScreenActions.setIsWsConnected(false));
-        dispatch(chatScreenActions.setError("Connection error. Reconnecting..."));
+        dispatch(
+          chatScreenActions.setError("Connection error. Reconnecting..."),
+        );
         scheduleReconnect();
       };
       ws.current.onmessage = (event) => {
@@ -123,7 +134,7 @@ export function useChatRealtime({
               chatScreenActions.setUsageFromData({
                 usage: data.usage,
                 adultMode: adultModeRef.current,
-              })
+              }),
             );
           }
 
@@ -146,7 +157,7 @@ export function useChatRealtime({
                   minute: "2-digit",
                 }),
                 timestamp: Date.now(),
-              })
+              }),
             );
             dispatch(chatScreenActions.setTyping("idle"));
             dispatch(chatScreenActions.setError(undefined));
@@ -162,7 +173,11 @@ export function useChatRealtime({
           dispatch(chatScreenActions.setTyping("idle"));
           logger.error("Error in WebSocket message:", data.error);
           if (data.error === "INSUFFICIENT_CREDITS") {
-            dispatch(chatScreenActions.setError("Insufficient credits to send message."));
+            dispatch(
+              chatScreenActions.setError(
+                "Insufficient credits to send message.",
+              ),
+            );
             if (adultModeRef.current) {
               dispatch(chatScreenActions.setShowUpgradeModal(true));
             } else {
@@ -171,12 +186,16 @@ export function useChatRealtime({
           } else if (typeof data.error === "string") {
             dispatch(chatScreenActions.setError(data.error));
           } else {
-            dispatch(chatScreenActions.setError("An error occurred while sending the message."));
+            dispatch(
+              chatScreenActions.setError(
+                "An error occurred while sending the message.",
+              ),
+            );
           }
         }
       };
     },
-    [clearReconnectTimer, dispatch, scrollToBottom]
+    [clearReconnectTimer, dispatch, scrollToBottom],
   );
 
   useEffect(() => {
@@ -194,7 +213,11 @@ export function useChatRealtime({
     }
 
     if (mode === "chat" && chatIdRef.current) {
-      connectChat(influencerIdRef.current, chatIdRef.current, adultModeRef.current);
+      connectChat(
+        influencerIdRef.current,
+        chatIdRef.current,
+        adultModeRef.current,
+      );
     }
   }, [clearReconnectTimer, connectChat, dispatch, mode]);
 
@@ -229,6 +252,8 @@ export function useChatRealtime({
           return;
         }
 
+        dispatch(fetchChatUsage({ influencerId: influencerId, adultMode }));
+
         dispatch(chatScreenActions.setTyping("recording"));
         window.setTimeout(() => {
           if (
@@ -243,7 +268,7 @@ export function useChatRealtime({
               chatScreenActions.updateMessageTranscript({
                 id: sentMessageId,
                 transcript: transcript,
-              })
+              }),
             );
           }
           dispatch(
@@ -265,7 +290,7 @@ export function useChatRealtime({
                   ]
                 : [],
               transcript: isSuperUser ? ai_text : undefined,
-            })
+            }),
           );
           dispatch(chatScreenActions.setTyping("idle"));
           scrollToBottom();
@@ -273,7 +298,11 @@ export function useChatRealtime({
       } catch (err: any) {
         dispatch(chatScreenActions.setTyping("idle"));
         if (err?.response?.status === 402) {
-          dispatch(chatScreenActions.setError("Insufficient credits to send voice message."));
+          dispatch(
+            chatScreenActions.setError(
+              "Insufficient credits to send voice message.",
+            ),
+          );
           dispatch(chatScreenActions.setShowUpgradeModal(true));
         } else {
           dispatch(chatScreenActions.setError("Failed to send voice message."));
@@ -281,7 +310,7 @@ export function useChatRealtime({
         logger.error("Error sending voice message:", err);
       }
     },
-    [dispatch, isSuperUser, scrollToBottom]
+    [dispatch, isSuperUser, scrollToBottom],
   );
 
   const sendMessage = useCallback(
@@ -291,13 +320,17 @@ export function useChatRealtime({
 
       if (inputText.trim()) {
         if (!chatIdRef.current) {
-          dispatch(chatScreenActions.setError("Chat is still loading. Please wait."));
+          dispatch(
+            chatScreenActions.setError("Chat is still loading. Please wait."),
+          );
           dispatch(chatScreenActions.setTyping("idle"));
           return false;
         }
         const socket = ws.current;
         if (!socket || socket.readyState !== WebSocket.OPEN) {
-          dispatch(chatScreenActions.setError("Not connected. Reconnecting..."));
+          dispatch(
+            chatScreenActions.setError("Not connected. Reconnecting..."),
+          );
           dispatch(chatScreenActions.setTyping("idle"));
           return false;
         }
@@ -308,11 +341,13 @@ export function useChatRealtime({
               chat_id: chatIdRef.current,
               message: inputText.trim(),
               timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            })
+            }),
           );
         } catch (err) {
           logger.error("Error sending message:", err);
-          dispatch(chatScreenActions.setError("Failed to send message. Please retry."));
+          dispatch(
+            chatScreenActions.setError("Failed to send message. Please retry."),
+          );
           return false;
         }
         dispatch(
@@ -326,11 +361,13 @@ export function useChatRealtime({
               minute: "2-digit",
             }),
             timestamp: Date.now(),
-          })
+          }),
         );
       } else if (audioToSend) {
         if (!chatIdRef.current) {
-          dispatch(chatScreenActions.setError("Chat is still loading. Please wait."));
+          dispatch(
+            chatScreenActions.setError("Chat is still loading. Please wait."),
+          );
           dispatch(chatScreenActions.setTyping("idle"));
           return false;
         }
@@ -351,7 +388,7 @@ export function useChatRealtime({
                 type: "audio",
               },
             ],
-          })
+          }),
         );
         void sendAndPlay(audioToSend, sentMessageId);
       } else {
@@ -363,7 +400,14 @@ export function useChatRealtime({
       scrollToBottom();
       return true;
     },
-    [dispatch, inputAudio, inputText, scrollToBottom, sendAndPlay, setInputAudio]
+    [
+      dispatch,
+      inputAudio,
+      inputText,
+      scrollToBottom,
+      sendAndPlay,
+      setInputAudio,
+    ],
   );
 
   return {
@@ -371,4 +415,3 @@ export function useChatRealtime({
     sendMessage,
   };
 }
-
