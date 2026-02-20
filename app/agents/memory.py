@@ -3,8 +3,68 @@ from sqlalchemy import select
 from sqlalchemy.sql import func
 from app.db.models import Memory
 import logging
+from app.db.session import SessionLocal
 
 log = logging.getLogger(__name__)
+
+async def extract_memories_from_transcript(
+    chat_id: str,
+    transcript_entries: list,
+    conversation_id: str,
+) -> None:
+  
+    from app.agents.prompts import FACT_EXTRACTOR, get_fact_prompt  
+
+    user_turns = [
+        str(entry.get("text") or entry.get("content") or entry.get("message") or "").strip()
+        for entry in transcript_entries
+        if isinstance(entry, dict)
+        and str(entry.get("sender") or entry.get("role") or "").lower() in ("user", "human")
+        and (entry.get("text") or entry.get("content") or entry.get("message", ""))
+    ]
+
+    if not user_turns:
+        log.info("[MEMORY-BG] no user turns in transcript conv=%s", conversation_id)
+        return
+
+    full_user_text = " ".join(user_turns)
+    full_ctx = "\n".join(
+        f"{str(entry.get('sender') or entry.get('role', 'unknown')).lower()}: "
+        f"{entry.get('text') or entry.get('content') or entry.get('message', '')}"
+        for entry in transcript_entries
+        if isinstance(entry, dict) and (entry.get("text") or entry.get("content") or entry.get("message"))
+    )
+
+    log.info(
+        "[MEMORY-BG] extracting facts from %d user turns conv=%s chat=%s",
+        len(user_turns), conversation_id, chat_id,
+    )
+
+    async with SessionLocal() as db:
+        try:
+            fact_prompt = await get_fact_prompt(db)
+            facts_resp = await FACT_EXTRACTOR.ainvoke(
+                fact_prompt.format(msg=full_user_text, ctx=full_ctx[:2000])
+            )
+            facts_txt = facts_resp.content or ""
+            lines = [ln.strip("- ").strip() for ln in facts_txt.split("\n") if ln.strip()]
+            valid_facts = [line for line in lines[:10] if line.lower() != "no new memories."]
+
+            if valid_facts:
+                stored = await store_facts_batch(db, chat_id, valid_facts)
+                log.info(
+                    "[MEMORY-BG] stored %d/%d facts conv=%s chat=%s",
+                    stored, len(valid_facts), conversation_id, chat_id,
+                )
+            else:
+                log.info("[MEMORY-BG] no new facts extracted conv=%s", conversation_id)
+        except Exception as exc:
+            log.error(
+                "[MEMORY-BG] fact extraction failed conv=%s chat=%s err=%s",
+                conversation_id, chat_id, exc, exc_info=True,
+            )
+
+
 
 
 async def find_similar_messages(
