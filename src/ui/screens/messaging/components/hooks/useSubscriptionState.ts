@@ -98,7 +98,7 @@ export function useSubscriptionState({
               }
               setShowErrorAlert(
                 updateResult.message ||
-                  "Failed to enable adult mode. Please try again.",
+                "Failed to enable adult mode. Please try again.",
               );
               setAdultModeSwitch(false);
               return;
@@ -119,11 +119,18 @@ export function useSubscriptionState({
             setAdultModeSwitch(false);
             return;
           }
+          //If its payment related error then send to subscribe page :(
+          if (activateResult.statusCode === 402) {
+            setAdultModeSwitch(true);
+            setShowSubscriptionPage(true);
+            setAdultMode(false);
+            return;
+          }
           setAdultModeSwitch(false);
           setShowSubscriptionPage(false);
           setShowErrorAlert(
             activateResult.message ||
-              "Failed to enable adult mode. Please try again.",
+            "Failed to enable adult mode. Please try again.",
           );
           return;
         }
@@ -143,7 +150,7 @@ export function useSubscriptionState({
         setShowSubscriptionPage(false);
         setShowErrorAlert(
           err?.response?.data?.detail?.message ||
-            "Failed to enable adult mode. Please try again.",
+          "Failed to enable adult mode. Please try again.",
         );
       }
     },
@@ -176,8 +183,8 @@ export function useSubscriptionState({
       logger.error("Error during subscription process:", err);
       window.alert(
         err?.response?.data?.detail?.message ??
-          err?.message ??
-          "Error subscribing. Please try again.",
+        err?.message ??
+        "Error subscribing. Please try again.",
       );
     }
   }, [dispatch, influencer, isSubscribing]);

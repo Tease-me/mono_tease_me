@@ -56,6 +56,7 @@ type SetAdultModeResult = {
   success: boolean;
   idVerified?: boolean;
   message?: string;
+  statusCode?: number;
 };
 
 const subscriptionStatusCache = new Map<
@@ -255,10 +256,11 @@ export const setAdultModeSelection =
         err?.response?.data?.detail?.message ??
         err?.message ??
         "Failed to update adult mode.";
+      const statusCode = err?.response?.status;
       dispatch(
         subscriptionActions.setStatusError({ influencerId, error: message }),
       );
-      return { success: false, idVerified, message };
+      return { success: false, idVerified, message, statusCode };
     }
   };
 
