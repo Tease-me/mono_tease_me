@@ -41,10 +41,6 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
-    };
-  }, []);
-  useEffect(() => {
-    return () => {
       if (ringtoneRef.current) {
         ringtoneRef.current.stop();
         ringtoneRef.current.unload();

@@ -1,5 +1,6 @@
 import React, {
   memo,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -269,18 +270,31 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     }
   }, [dispatch, startConversation]);
 
-  const handleCallModeChange = async () => {
+  const handleCallModeChange = useCallback(async () => {
     if (mode === "call") {
       stopConversation();
       dispatch(chatScreenActions.setMode("chat"));
       return;
     }
     dispatch(chatScreenActions.setMode("call"));
-  };
+  }, [mode, stopConversation]);
 
   const handleScrollEvent = () => {
     handleScroll(containerRef.current);
   };
+
+  const handleAudioPlay = useCallback((src: string) => {
+    if (currentAudioRef.current && currentAudioRef.current.src !== src) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current.currentTime = 0;
+    }
+    const audioEl = document.querySelector<HTMLAudioElement>(
+      `audio[src="${src}"]`,
+    );
+    if (audioEl) {
+      currentAudioRef.current = audioEl;
+    }
+  }, []);
 
   const handleClearHistory = async () => {
     if (!chatId || !isSuperUser) return;
@@ -376,25 +390,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
                         showAudioTranscript={isSuperUser}
                         isAudio={Boolean(inputAudio)}
                         adultMode={adultMode}
-                        onAudioPlay={(src) => {
-                          // Pause any currently playing audio
-                          if (
-                            currentAudioRef.current &&
-                            currentAudioRef.current.src !== src
-                          ) {
-                            currentAudioRef.current.pause();
-                            currentAudioRef.current.currentTime = 0;
-                          }
-                          // Track the newly started audio element
-                          const audioEl =
-                            document.querySelector<HTMLAudioElement>(
-                              `audio[src="${src}"]`,
-                            );
-                          if (audioEl) {
-                            currentAudioRef.current = audioEl;
-                          }
-                        }}
-                        onCallBack={() => handleCallModeChange()}
+                        onAudioPlay={handleAudioPlay}
+                        onCallBack={handleCallModeChange}
                       />
                     </>
                   ) : (
