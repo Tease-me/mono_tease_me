@@ -49,7 +49,7 @@ const getCallDuration = (group?: CallMessageGroup) => {
     return formatDuration(end - start);
 };
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({
+const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     msg,
     callGroup,
     influencerName,
@@ -205,6 +205,6 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             )}
         </div>
     );
-};
+});
 
 export default MessageBubble;
