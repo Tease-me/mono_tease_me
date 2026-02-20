@@ -776,7 +776,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ defaultInfluencer
         }
     }, []);
 
-    cconst handleChangeInfluencerClicked = () => {
+    const handleChangeInfluencerClicked = () => {
         if (blockIfCallActive()) return;
         setSelectedId(undefined);
         setNeedsSelection(true);
