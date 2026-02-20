@@ -198,6 +198,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ defaultInfluencer
             setHasMultipleInfluencers(list.length > 1);
             setInfluencers(list);
         });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -727,14 +728,14 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ defaultInfluencer
         }
     }, [startConversation]);
 
-    const handleCallModeChange = async () => {
+    const handleCallModeChange = useCallback(async () => {
         if (mode === "call") {
             stopConversation();
             setMode("chat");
             return;
         }
         setMode("call");
-    }
+    }, [mode, stopConversation]);
 
     const handleScrollEvent = () => {
         handleScroll(containerRef.current);
@@ -744,6 +745,17 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ defaultInfluencer
         skipInfluencerResetRef.current = true;
         setSelectedId(id);
         setNeedsSelection(false);
+    }, []);
+
+    const handleAudioPlay = useCallback((src: string) => {
+        if (currentAudioRef.current && currentAudioRef.current.src !== src) {
+            currentAudioRef.current.pause();
+            currentAudioRef.current.currentTime = 0;
+        }
+        const audioEl = document.querySelector<HTMLAudioElement>(`audio[src="${src}"]`);
+        if (audioEl) {
+            currentAudioRef.current = audioEl;
+        }
     }, []);
 
     const handleChangeInfluencerClicked = async () => {
@@ -827,19 +839,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({ defaultInfluencer
                                     showAudioTranscript={isSuperUser}
                                     isAudio={Boolean(inputAudio)}
                                     adultMode={adultMode}
-                                    onAudioPlay={(src) => {
-                                        // Pause any currently playing audio
-                                        if (currentAudioRef.current && currentAudioRef.current.src !== src) {
-                                            currentAudioRef.current.pause();
-                                            currentAudioRef.current.currentTime = 0;
-                                        }
-                                        // Track the newly started audio element
-                                        const audioEl = document.querySelector<HTMLAudioElement>(`audio[src="${src}"]`);
-                                        if (audioEl) {
-                                            currentAudioRef.current = audioEl;
-                                        }
-                                    }}
-                                    onCallBack={() => handleCallModeChange()}
+                                    onAudioPlay={handleAudioPlay}
+                                    onCallBack={handleCallModeChange}
                                 />
                             </> : <LoadingSpinner />}
                         </div>
