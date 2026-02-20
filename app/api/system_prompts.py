@@ -33,6 +33,8 @@ async def list_prompts(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Admin only")
     rows = await list_system_prompts(db)
     return [
         {
@@ -52,6 +54,8 @@ async def get_prompt(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Admin only")
     text = await get_system_prompt(db, key)
     if not text:
         raise HTTPException(404, f"Prompt not found for key={key}")
@@ -65,6 +69,8 @@ async def upsert_prompt(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Admin only")
     row = await update_system_prompt(
         db,
         key=key,
