@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import styles from "./MessageList.module.css";
 import MessageBubble, { CallMessageGroup } from "./MessageBubble";
 import { Message } from "@/data/models/MessageDataModel";
-import { TypingStatus } from "./ChatScreenContent";
+import { TypingStatus } from "@/store/chatScreenSlice";
 
 export type DisplayMessage = Message | CallMessageGroup;
 
@@ -36,7 +36,6 @@ const MessagesList = React.memo(
     onCallBack,
     adultMode = false,
   }: MessagesListProps) => {
-
     useEffect(() => {
       const container = containerRef?.current;
       if (!container) {
@@ -74,12 +73,14 @@ const MessagesList = React.memo(
             />
           ))}
 
-          {typing !== "idle" && <MessageBubble isAudio={typing === "recording"} />}
+          {typing !== "idle" && (
+            <MessageBubble isAudio={typing === "recording"} />
+          )}
         </div>
         <div ref={messagesEndRef} style={{ height: "50px" }} />
       </>
     );
-  }
+  },
 );
 
 export default MessagesList;

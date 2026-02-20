@@ -6,11 +6,8 @@ import SlideDrawerLayout from "@/ui/templates/SlideDrawerLayout";
 import clsx from "clsx";
 import styles from "./HomeScreenSingle.module.css"
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
-import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
-import { apiClient } from "@/api/apis";
-import logger from "@/utils/logger";
-
-const subscriptionSvc = SubscriptionsServices(apiClient);
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { startInfluencerSubscription } from "@/store/subscriptionSlice";
 
 const UserMenu = React.lazy(() => import("../user-profile/UserMenu"));
 const UserProfile = React.lazy(() => import("../user-profile/Components/UserProfile"));
@@ -33,55 +30,9 @@ type SidebarPage = {
   background?: string;
 };
 
-const sidebarPages: SidebarPage[] = [
-  { id: "home", label: "User Menu", render: ({ goTo }) => <UserMenu goTo={goTo} /> },
-  { id: "profile", label: "User Profile", render: ({ goTo }) => <UserProfile goTo={goTo} /> },
-  { id: "payment", label: "Payment Details", render: ({ goTo }) => <PaymentDetails goTo={goTo} /> },
-  { id: "payment-check", label: "Payment", render: () => <PaymentCheck />, background: "#181A20" },
-  {
-    id: "influencers",
-    label: "Topup",
-    render: ({ goTo, navPayload }) =>
-      <ManageInfluencers
-        goTo={goTo}
-        navPayload={navPayload}
-      />
-  },
-  { id: "influencer_profile", label: "Influencer Profile", render: ({ goTo, navPayload, goBack }) => <InfluencerRelation goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
-  { id: "add_credits", label: "Add Credits", render: ({ goTo, navPayload }) => <AddCredits goTo={goTo} navpayload={navPayload} /> },
-  {
-    id: "subscribe", label: "Subscribe", render: ({ navPayload, goBack }) => (
-      <AdultModePage
-        influencerId={navPayload.influencerId}
-        influencerImageUrl={navPayload.influencerImageUrl}
-        influencerName={navPayload.influencerName}
-        onSubscribePressed={async () => {
-          try {
-            const startRes = await subscriptionSvc.startSubscription(navPayload.influencerId, 1);
-            const orderId = typeof crypto !== "undefined" && "randomUUID" in crypto
-              ? crypto.randomUUID()
-              : `order_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-            const subId = startRes?.subscription_id ?? startRes?.subscriptionId;
-            if (!subId) throw new Error("Missing subscription ID");
-            await subscriptionSvc.captureSubscription(String(subId), orderId, 10000);
-            await subscriptionSvc.activateMySubscriptionForInfluencer(navPayload.influencerId, true);
-            window.alert("Subscription successful!");
-          } catch (err: any) {
-            logger.error("Sidebar subscribe error:", err);
-            window.alert(err?.response?.data?.detail?.message ?? err?.message ?? "Error subscribing. Please try again.");
-          }
-          goBack();
-        }}
-        onBackClicked={goBack}
-        nobg
-      />
-    )
-  },
-  { id: "subscription", label: "Subscription", render: ({ goTo, navPayload }) => <Subscription goTo={goTo} navPayload={navPayload} />, background: "linear-gradient(0deg, #131313 0%, #131313 100%), url(<path-to-image>) lightgray -60.714px 0px / 130.206% 89.736% no-repeat" },
-
-];
-
 export default function HomeScreenSingle() {
+  const dispatch = useAppDispatch();
+  const { isSubscribing } = useAppSelector((state) => state.subscription);
   const [openSubscribeInfluencerId, setOpenSubscribeInfluencerId] = useState<string | undefined>();
   const [showSidebar, setShowSidebar] = useState(false);
   const [currentPage, setCurrentPage] = useState<SidebarPageId>("home");
@@ -128,10 +79,56 @@ export default function HomeScreenSingle() {
     });
   }, []);
 
+  const handleSidebarSubscribe = useCallback(async (influencerId?: string, goBack?: () => void) => {
+    if (!influencerId || isSubscribing) {
+      return;
+    }
+    const result = await dispatch(
+      startInfluencerSubscription({
+        influencerId,
+        planId: 1,
+        amountCents: 10000,
+      })
+    );
+    window.alert(result.message);
+    goBack?.();
+  }, [dispatch, isSubscribing]);
+
+  const sidebarPages: SidebarPage[] = useMemo(() => ([
+    { id: "home", label: "User Menu", render: ({ goTo }) => <UserMenu goTo={goTo} /> },
+    { id: "profile", label: "User Profile", render: ({ goTo }) => <UserProfile goTo={goTo} /> },
+    { id: "payment", label: "Payment Details", render: ({ goTo }) => <PaymentDetails goTo={goTo} /> },
+    { id: "payment-check", label: "Payment", render: () => <PaymentCheck />, background: "#181A20" },
+    {
+      id: "influencers",
+      label: "Topup",
+      render: ({ goTo, navPayload }) =>
+        <ManageInfluencers
+          goTo={goTo}
+          navPayload={navPayload}
+        />
+    },
+    { id: "influencer_profile", label: "Influencer Profile", render: ({ goTo, navPayload, goBack }) => <InfluencerRelation goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
+    { id: "add_credits", label: "Add Credits", render: ({ goTo, navPayload }) => <AddCredits goTo={goTo} navpayload={navPayload} /> },
+    {
+      id: "subscribe", label: "Subscribe", render: ({ navPayload, goBack }) => (
+        <AdultModePage
+          influencerId={navPayload.influencerId}
+          influencerImageUrl={navPayload.influencerImageUrl}
+          influencerName={navPayload.influencerName}
+          onSubscribePressed={() => handleSidebarSubscribe(navPayload.influencerId, goBack)}
+          onBackClicked={goBack}
+          nobg
+        />
+      )
+    },
+    { id: "subscription", label: "Subscription", render: ({ goTo, navPayload }) => <Subscription goTo={goTo} navPayload={navPayload} />, background: "linear-gradient(0deg, #131313 0%, #131313 100%), url(<path-to-image>) lightgray -60.714px 0px / 130.206% 89.736% no-repeat" },
+  ]), [handleSidebarSubscribe]);
+
 
   const active = useMemo(
     () => sidebarPages.find((p) => p.id === currentPage)!,
-    [currentPage]
+    [currentPage, sidebarPages]
   );
 
   const toggleSidebar = useCallback(() => {
