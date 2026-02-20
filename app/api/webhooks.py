@@ -109,16 +109,8 @@ async def _resolve_user_for_conversation(db, conversation_id: str):
     res = await db.execute(q)
     row = res.first()
     if not row:
-        q_chat = select(Chat.user_id, Chat.influencer_id, Chat.id).where(Chat.id == conversation_id)
-        res_chat = await db.execute(q_chat)
-        row_chat = res_chat.first()
-        if not row_chat:
-            log.info("resolver.miss conversation_id=%s", conversation_id)
-            return {"user_id": None, "influencer_id": None, "sid": conversation_id, "chat_id": None}
-        user_id, influencer_id, chat_id = row_chat
-        log.info("resolver.hit.fallback conversation_id(chat_id)=%s user_id=%s chat_id=%s", conversation_id, user_id, chat_id)
-        return {"user_id": user_id, "influencer_id": influencer_id, "sid": conversation_id, "chat_id": chat_id}
-        
+        log.info("resolver.miss conversation_id=%s", conversation_id)
+        return {"user_id": None, "influencer_id": None, "sid": conversation_id, "chat_id": None}
     user_id, influencer_id, sid, chat_id = row
     log.info("resolver.hit conversation_id=%s user_id=%s chat_id=%s", conversation_id, user_id, chat_id)
     return {"user_id": user_id, "influencer_id": influencer_id, "sid": sid or conversation_id, "chat_id": chat_id}
@@ -292,23 +284,13 @@ async def _process_relationship_update(user_text: str, conversation_id: str):
             log.exception("[EL TOOL BG] CallRecord lookup failed: %s", e)
             return
 
-        user_id = None
-        influencer_id = None
-        chat_id = None
-
         if not call:
-            res_chat = await db.execute(select(Chat).where(Chat.id == conversation_id))
-            chat_record = res_chat.scalar_one_or_none()
-            if not chat_record:
-                log.warning("[EL TOOL BG] No CallRecord or Chat found for conv=%s", conversation_id)
-                return
-            user_id = chat_record.user_id
-            influencer_id = chat_record.influencer_id
-            chat_id = chat_record.id
-        else:
-            user_id = call.user_id
-            influencer_id = call.influencer_id
-            chat_id = call.chat_id
+            log.warning("[EL TOOL BG] CallRecord not found for conv=%s", conversation_id)
+            return
+
+        user_id = call.user_id
+        influencer_id = call.influencer_id
+        chat_id = call.chat_id
 
         if not user_id or not influencer_id or not chat_id:
             log.warning(
