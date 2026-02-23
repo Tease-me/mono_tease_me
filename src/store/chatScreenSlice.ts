@@ -222,6 +222,21 @@ export const fetchRelationshipForInfluencer =
     }
   };
 
+export const fetchInitialRelationshipForInfluencer =
+  (influencerId: string) => async (dispatch: AppDispatch) => {
+    try {
+      const relationship = await relationshipServices.getRelationship(influencerId);
+      dispatch(
+        chatScreenActions.setRelationship({
+          ...relationship,
+          sentiment_delta: 0,
+        }),
+      );
+    } catch (err) {
+      logger.error("Error refreshing initial relationship", err);
+    }
+  };
+
 export const updateRelationshipFromText =
   ({ userText, conversationId }: { userText: string | null; conversationId: string | null }) =>
   async (dispatch: AppDispatch) => {
@@ -283,7 +298,7 @@ export const initializeChatSession =
     dispatch(chatScreenActions.setHasMore(true));
     dispatch(chatScreenActions.setIsLoadingMore(false));
     await dispatch(loadChatMessages({ chatId, page: 1, pageSize, adultMode }));
-    await dispatch(fetchRelationshipForInfluencer(influencerId));
+    await dispatch(fetchInitialRelationshipForInfluencer(influencerId));
     return chatId;
   };
 
