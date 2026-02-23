@@ -6,7 +6,7 @@
     background-color: var(--color-dark-2);
     border-radius: 12px;
     outline: 1px solid var(--Greyscale-800, #424242);
-    
+
     overflow: hidden;
     transition: outline-color 0.2s ease-in-out;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -27,16 +27,21 @@
     flex: 1;
     padding-top: 18px;
     padding-bottom: 18px;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+    caret-color: var(--color-text);
 }
 
 .text-input-container input::-moz-selection {
-    background-color: transparent;
-    border: none;
+    background-color: var(--color-text-selection-bg);
+    color: inherit;
 }
 
 .text-input-container input::selection {
-    background-color: transparent;
-    border: none;
+    background-color: var(--color-text-selection-bg);
+    color: inherit;
 }
 
 .auth-input {
