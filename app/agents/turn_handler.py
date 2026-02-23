@@ -328,7 +328,7 @@ async def handle_turn(
         reply = result.content
     except Exception as e:
         log.error("[%s] LLM error: %s", cid, e, exc_info=True)
-        return "Sorry, something went wrong. 😔"
+        raise HTTPException(status_code=500, detail="LLM generation failed")
 
     # Schedule background fact extraction (fire-and-forget)
     # Store task reference to prevent premature garbage collection

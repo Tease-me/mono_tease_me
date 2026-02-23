@@ -581,7 +581,7 @@ async def eleven_webhook_reply(
         reply = "One sec… could you say that again?"
     except Exception as e:
         log.exception("[EL TOOL] handle_turn failed: %s", e)
-        reply = "Sorry, something went wrong."
+        raise HTTPException(status_code=500, detail="Internal server error during turn handling")
     finally:
         ms = int((time.perf_counter() - started) * 1000)
         log.info(
