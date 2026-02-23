@@ -195,6 +195,7 @@ const chatScreenSlice = createSlice({
       state.isLoadingMessages = false;
       state.typing = "idle";
       state.error = undefined;
+      state.relationship = undefined;
     },
     setUsageFromData(
       state,
@@ -217,120 +218,112 @@ export const chatScreenActions = chatScreenSlice.actions;
 
 export const fetchChatUsage =
   ({ influencerId, adultMode }: UsagePayload) =>
-  async (dispatch: AppDispatch) => {
-    try {
-      const usage = await UserServices(apiClient).getUserUsage(influencerId);
-      dispatch(chatScreenActions.setUsageFromData({ usage, adultMode }));
-    } catch (err) {
-      logger.error("Error fetching user usage:", err);
-    }
-  };
+    async (dispatch: AppDispatch) => {
+      try {
+        const usage = await UserServices(apiClient).getUserUsage(influencerId);
+        dispatch(chatScreenActions.setUsageFromData({ usage, adultMode }));
+      } catch (err) {
+        logger.error("Error fetching user usage:", err);
+      }
+    };
 
 export const fetchRelationshipForInfluencer =
-  (influencerId: string) => async (dispatch: AppDispatch) => {
+  (influencerId: string, isInitial: boolean = false) => async (dispatch: AppDispatch) => {
     try {
       const relationship = await relationshipServices.getRelationship(influencerId);
-      dispatch(chatScreenActions.setRelationship(relationship));
+      if (isInitial) {
+        dispatch(
+          chatScreenActions.setRelationship({ ...relationship, sentiment_delta: 0 })
+        )
+      }
+      else {
+        dispatch(chatScreenActions.setRelationship(relationship));
+      }
     } catch (err) {
       logger.error("Error refreshing relationship", err);
     }
   };
 
-export const fetchInitialRelationshipForInfluencer =
-  (influencerId: string) => async (dispatch: AppDispatch) => {
-    try {
-      const relationship = await relationshipServices.getRelationship(influencerId);
-      dispatch(
-        chatScreenActions.setRelationship({
-          ...relationship,
-          sentiment_delta: 0,
-        }),
-      );
-    } catch (err) {
-      logger.error("Error refreshing initial relationship", err);
-    }
-  };
-
 export const updateRelationshipFromText =
   ({ userText, conversationId }: { userText: string | null; conversationId: string | null }) =>
-  async (dispatch: AppDispatch) => {
-    try {
-      const data = await influencerServices.relationship_update(userText, conversationId);
-      if (data?.relationship) {
-        dispatch(chatScreenActions.setRelationship(data.relationship));
+    async (dispatch: AppDispatch) => {
+      try {
+        const data = await influencerServices.relationship_update(userText, conversationId);
+        if (data?.relationship) {
+          dispatch(chatScreenActions.setRelationship(data.relationship));
+        }
+      } catch (err) {
+        logger.error(err);
       }
-    } catch (err) {
-      logger.error(err);
-    }
-  };
+    };
 
 export const loadChatMessages =
   ({ chatId, page, pageSize, adultMode }: LoadMessagesPayload) =>
-  async (dispatch: AppDispatch) => {
-    try {
-      if (page === 1) {
-        dispatch(chatScreenActions.setIsLoadingMessages(true));
-      }
+    async (dispatch: AppDispatch) => {
+      try {
+        if (page === 1) {
+          dispatch(chatScreenActions.setIsLoadingMessages(true));
+        }
 
-      const responseMessagesPagination: MessagePagination = await (
-        adultMode ? adultChatRepo.getChatHistory(chatId, page, pageSize) : chatRepository.getChatHistory(chatId, page, pageSize)
-      );
-      const totalPages = Math.ceil(responseMessagesPagination.total / pageSize);
-      const localMessages = responseMessagesPagination.messages ?? [];
+        const responseMessagesPagination: MessagePagination = await (
+          adultMode ? adultChatRepo.getChatHistory(chatId, page, pageSize) : chatRepository.getChatHistory(chatId, page, pageSize)
+        );
+        const totalPages = Math.ceil(responseMessagesPagination.total / pageSize);
+        const localMessages = responseMessagesPagination.messages ?? [];
 
-      if (page === 1) {
-        dispatch(chatScreenActions.setMessages(localMessages));
-      } else {
-        dispatch(chatScreenActions.prependMessages(localMessages));
+        if (page === 1) {
+          dispatch(chatScreenActions.setMessages(localMessages));
+        } else {
+          dispatch(chatScreenActions.prependMessages(localMessages));
+        }
+        dispatch(chatScreenActions.setHasMore(page < totalPages));
+        return { chatId, totalPages };
+      } catch (err) {
+        logger.error("Error loading messages", err);
+        if (page === 1) {
+          dispatch(chatScreenActions.setMessages([]));
+          dispatch(chatScreenActions.setHasMore(false));
+        }
+        return undefined;
+      } finally {
+        if (page === 1) {
+          dispatch(chatScreenActions.setIsLoadingMessages(false));
+        }
       }
-      dispatch(chatScreenActions.setHasMore(page < totalPages));
-      return { chatId, totalPages };
-    } catch (err) {
-      logger.error("Error loading messages", err);
-      if (page === 1) {
-        dispatch(chatScreenActions.setMessages([]));
-        dispatch(chatScreenActions.setHasMore(false));
-      }
-      return undefined;
-    } finally {
-      if (page === 1) {
-        dispatch(chatScreenActions.setIsLoadingMessages(false));
-      }
-    }
-  };
+    };
 
 export const initializeChatSession =
   ({ userId, influencerId, adultMode, pageSize }: InitChatPayload) =>
-  async (dispatch: AppDispatch) => {
-    dispatch(chatScreenActions.resetChatSession());
+    async (dispatch: AppDispatch) => {
+      dispatch(chatScreenActions.resetChatSession());
 
-    const chatId = await (
-      adultMode ? adultChatRepo.getChatId(userId, influencerId) : chatRepository.getChatId(userId, influencerId)
-    );
-    dispatch(chatScreenActions.setChatId(chatId));
-    dispatch(chatScreenActions.setPageNumber(1));
-    dispatch(chatScreenActions.setHasMore(true));
-    dispatch(chatScreenActions.setIsLoadingMore(false));
-    await dispatch(loadChatMessages({ chatId, page: 1, pageSize, adultMode }));
-    await dispatch(fetchInitialRelationshipForInfluencer(influencerId));
-    return chatId;
-  };
+      const chatId = await (
+        adultMode ? adultChatRepo.getChatId(userId, influencerId) : chatRepository.getChatId(userId, influencerId)
+      );
+      dispatch(chatScreenActions.setChatId(chatId));
+      dispatch(chatScreenActions.setPageNumber(1));
+      dispatch(chatScreenActions.setHasMore(true));
+      dispatch(chatScreenActions.setIsLoadingMore(false));
+      await dispatch(loadChatMessages({ chatId, page: 1, pageSize, adultMode }));
+      await dispatch(fetchRelationshipForInfluencer(influencerId, true));
+      return chatId;
+    };
 
 export const clearChatHistoryThunk =
   ({ chatId, adultMode }: ClearHistoryPayload) =>
-  async (dispatch: AppDispatch) => {
-    dispatch(chatScreenActions.setIsClearingHistory(true));
-    try {
-      await chatRepository.clearChatHistory(chatId, adultMode);
-      dispatch(chatScreenActions.setMessages([]));
-      dispatch(chatScreenActions.setHasMore(false));
-      dispatch(chatScreenActions.setPageNumber(1));
-      dispatch(chatScreenActions.setTyping("idle"));
-    } catch (err) {
-      logger.error("Error clearing chat history", err);
-    } finally {
-      dispatch(chatScreenActions.setIsClearingHistory(false));
-    }
-  };
+    async (dispatch: AppDispatch) => {
+      dispatch(chatScreenActions.setIsClearingHistory(true));
+      try {
+        await chatRepository.clearChatHistory(chatId, adultMode);
+        dispatch(chatScreenActions.setMessages([]));
+        dispatch(chatScreenActions.setHasMore(false));
+        dispatch(chatScreenActions.setPageNumber(1));
+        dispatch(chatScreenActions.setTyping("idle"));
+      } catch (err) {
+        logger.error("Error clearing chat history", err);
+      } finally {
+        dispatch(chatScreenActions.setIsClearingHistory(false));
+      }
+    };
 
 export default chatScreenSlice.reducer;
