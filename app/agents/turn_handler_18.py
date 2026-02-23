@@ -120,4 +120,4 @@ async def handle_turn_18(
         return reply
     except Exception as e:
         log.error("[%s] LLM error: %s", cid, e, exc_info=True)
-        return "Sorry, something went wrong. 😔"
+        raise HTTPException(status_code=500, detail="LLM generation failed")
