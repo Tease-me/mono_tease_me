@@ -93,4 +93,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: str | None = None
     LOG_TO_CONSOLE: bool = True
 
+    # LLM configuration
+    DEFAULT_SUMMARIZATION_MODEL: str = "gpt-3.5-turbo"
+
 settings = Settings()

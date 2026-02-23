@@ -3,6 +3,7 @@ import logging
 import math
 import random
 import json
+from app.agents.memory import get_all_memory_list, summarize_memory_list
 from app.agents.prompt_utils import build_relationship_prompt, get_global_prompt, get_mbti_rules_for_archetype, get_relationship_stage_prompts, get_time_context
 from app.relationship.dtr import plan_dtr_goal
 from app.relationship.inactivity import apply_inactivity_decay
@@ -1454,7 +1455,8 @@ async def get_conversation_token(
     time_context = get_time_context(user_timezone)
 
     users_name = await _build_user_name_block(db, user_id)
-
+    memories = await get_all_memory_list(db, user_id, influencer_id)
+    memory = await summarize_memory_list(memories or [], model=settings.DEFAULT_SUMMARIZATION_MODEL)
     prompt = build_relationship_prompt(
         prompt_template,
         rel=rel,
@@ -1465,7 +1467,7 @@ async def get_conversation_token(
         persona_likes=persona_likes,
         persona_dislikes=persona_dislikes,
         mbti_rules=mbti_rules,
-        memories="None",
+        memories=memory,
         daily_context=daily_context,
         last_user_message=recent_ctx,
         mood=time_context,
