@@ -25,7 +25,7 @@ from app.constants.relationship_stages import (
     STAGE_DELTA_CAP_MIN,
 )
 
-log = logging.getLogger("teachme-relationship")
+log = logging.getLogger("teaseme-relationship")
 
 
 def stage_from_signals_and_points(stage_points: float) -> str:

@@ -1,7 +1,9 @@
 from app.services.embeddings import get_embedding, get_embeddings_batch, search_similar_memories, search_similar_messages, search_similar_memories_and_messages, upsert_memory
-from sqlalchemy import select
+from sqlalchemy import select, union_all
 from sqlalchemy.sql import func
-from app.db.models import Memory
+from app.db.models import Memory, Chat, Message
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
 import logging
 from app.db.session import SessionLocal
 
@@ -65,6 +67,134 @@ async def extract_memories_from_transcript(
             )
 
 
+
+
+async def summarize_memory_list(
+    memories: list[str],
+    model: str = "gpt-4o-mini",
+    max_items: int = 400,
+) -> str:
+    """
+    Summarize a list of memory strings with LangChain.
+    """
+    if not memories:
+        return "No memories available to summarize."
+
+
+
+    selected = memories[:max_items]
+    omitted = max(0, len(memories) - len(selected))
+    memory_block = "\n".join(f"- {m}" for m in selected)
+    if omitted:
+        memory_block += f"\n- ... ({omitted} additional memory lines omitted for brevity)"
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                "You summarize relationship/chat memory logs. "
+                "Be concise, factual, and avoid hallucinations.",
+            ),
+            (
+                "human",
+                "Summarize these memories into:\n"
+                "1) Key Facts\n"
+                "2) Preferences/Likes\n"
+                "3) Dislikes/Boundaries\n"
+                "4) Open Threads / Follow-ups\n"
+                "5) One-paragraph Overall Summary\n\n"
+                "Only use information present in the memories.\n\n"
+                "Memories:\n{memory_block}",
+            ),
+        ]
+    )
+    llm = ChatOpenAI(
+        model=model,
+        temperature=0.2,
+        max_tokens=700,
+        store=False,
+    )
+    chain = prompt | llm
+    resp = await chain.ainvoke({"memory_block": memory_block})
+    return (resp.content or "").strip() or "(empty summary)"
+
+
+async def get_summarized_memories(
+    db,
+    user_id: int,
+    influencer_id: str,
+    model: str = "gpt-4o-mini",
+    max_items: int = 400,
+) -> str:
+    """
+    Fetch all memories for a user-influencer pair and return an LLM summary.
+    """
+    memories = await get_all_memory_list(db, user_id, influencer_id)
+    return await summarize_memory_list(memories, model=model, max_items=max_items)
+
+
+async def get_all_memory_list(
+    db,
+    user_id: int,
+    influencer_id: str,
+) -> list[str]:
+    """
+    Return all memory-related text for a user-influencer pair as a plain list[str].
+
+    Combines:
+    - Extracted long-term memories from `memories`
+    - Chat messages from `messages`
+
+    Ordered newest-first across both sources.
+    """
+    chat_ids_res = await db.execute(
+        select(Chat.id).where(
+            Chat.user_id == user_id,
+            Chat.influencer_id == influencer_id,
+        )
+    )
+    chat_ids = list(chat_ids_res.scalars().all())
+    if not chat_ids:
+        return []
+
+    memories_q = (
+        select(
+            Memory.content.label("content"),
+            Memory.created_at.label("created_at"),
+            Memory.id.label("row_id"),
+        )
+        .where(Memory.chat_id.in_(chat_ids))
+    )
+    messages_q = (
+        select(
+            Message.content.label("content"),
+            Message.created_at.label("created_at"),
+            Message.id.label("row_id"),
+        )
+        .where(Message.chat_id.in_(chat_ids))
+    )
+
+    combined = union_all(memories_q, messages_q).subquery("memory_timeline")
+    timeline_q = (
+        select(combined.c.content)
+        .order_by(combined.c.created_at.desc(), combined.c.row_id.desc())
+    )
+
+    rows = await db.execute(timeline_q)
+    result = [
+        content.strip()
+        for (content,) in rows.fetchall()
+        if isinstance(content, str) and content.strip()
+    ]
+
+    log.debug(
+        "get_all_memory_list user=%s influencer=%s chats=%d items=%d",
+        user_id,
+        influencer_id,
+        len(chat_ids),
+        len(result),
+    )
+    return result
 
 
 async def find_similar_messages(
@@ -292,4 +422,3 @@ async def store_facts_batch(
     
     log.info("Stored %d/%d facts for chat=%s", stored, len(new_facts), chat_id)
     return stored
-

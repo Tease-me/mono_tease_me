@@ -26,7 +26,7 @@ from app.relationship.processor import process_relationship_turn
 
 log = logging.getLogger("teaseme-turn")
 
-SESSION_BREAK_TAG = "[SESSION BREAK"
+SESSION_BREAK_TAG = "[SESSION BREAK]"
 
 
 def redis_history(chat_id: str):

@@ -78,6 +78,44 @@ poetry run uvicorn app.main:app \
 
 WebSocket endpoint: `ws://localhost:8000/chat/ws/{influencer_id}`
 
+## Logging
+
+Logging is centrally configured and writes to a rotating file by default, with optional console output.
+
+Environment variables:
+
+- `APP_ENV`: `local` | `staging` | `production` (default: `local`)
+- `LOG_FILE_PATH`: file target for logs (default: `./logs/app.log`)
+- `LOG_LEVEL`: optional explicit override (if unset, defaults by `APP_ENV`)
+- `LOG_TO_CONSOLE`: `true`/`false` (default: `true`)
+
+Defaults by environment when `LOG_LEVEL` is not set:
+
+- `local`: `DEBUG`
+- `staging`: `DEBUG`
+- `production`: `INFO`
+
+File rotation:
+
+- Daily rotation at midnight
+- Keeps last 14 files
+
+Examples:
+
+```bash
+# Staging
+APP_ENV=staging
+LOG_LEVEL=DEBUG
+LOG_FILE_PATH=./logs/staging.log
+LOG_TO_CONSOLE=true
+
+# Production
+APP_ENV=production
+LOG_LEVEL=INFO
+LOG_FILE_PATH=./logs/production.log
+LOG_TO_CONSOLE=true
+```
+
 ## Project structure
 
 - app/main.py — FastAPI entrypoint
