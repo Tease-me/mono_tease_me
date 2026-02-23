@@ -70,6 +70,16 @@ def configure_logging() -> None:
                 "production": {"format": production_format},
             },
             "handlers": handlers,
+            "loggers": {
+                # Quiet noisy third-party debug/info logs while keeping app logs intact.
+                "botocore": {"level": "WARNING", "propagate": True},
+                "boto3": {"level": "WARNING", "propagate": True},
+                "urllib3": {"level": "WARNING", "propagate": True},
+                "s3transfer": {"level": "WARNING", "propagate": True},
+                "httpx": {"level": "WARNING", "propagate": True},
+                "httpcore": {"level": "WARNING", "propagate": True},
+                "openai": {"level": "WARNING", "propagate": True},
+            },
             "root": {"handlers": root_handlers, "level": log_level},
         }
     )
