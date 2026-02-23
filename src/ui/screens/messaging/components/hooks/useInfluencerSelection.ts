@@ -1,6 +1,8 @@
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import type { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { storage } from "@/utils/storage";
+import { LocalStorageKeys } from "@/constants/localStorageKeys";
 
 let followedInfluencersCache: InfluencerDataModel[] | null = null;
 let followedInfluencersInFlight: Promise<InfluencerDataModel[]> | null = null;
@@ -31,7 +33,7 @@ export function useInfluencerSelection(
   defaultInfluencerId?: string,
 ) {
   const [selectedId, setSelectedId] = useState<string | undefined>(() => {
-    const stored = localStorage.getItem("selected_id");
+    const stored = storage.get(LocalStorageKeys.SelectedId);
     return stored || undefined;
   });
   const [needsSelection, setNeedsSelection] = useState(false);
@@ -59,7 +61,7 @@ export function useInfluencerSelection(
   }, [selectedId]);
 
   useEffect(() => {
-    localStorage.setItem("selected_id", selectedId?.toString() || "");
+    storage.set(LocalStorageKeys.SelectedId, selectedId?.toString() || "");
   }, [selectedId]);
 
   useEffect(() => {
