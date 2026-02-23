@@ -1,6 +1,7 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { Message } from "@/data/models/MessageDataModel";
 import type { RelationshipDataModel } from "@/data/models/RelationshipDataModel";
+import type { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import { UserServices } from "@/api/services/UserServices";
 import { apiClient } from "@/api/apis";
 import { secondsToMinutes } from "@/utils/DateTimeUtils";
@@ -59,6 +60,8 @@ interface ChatScreenState {
   showUpgradeModal: boolean;
   showTopupModal: boolean;
   callTime: number;
+  currentInfluencerId?: string;
+  influencerById: Record<string, InfluencerDataModel>;
 }
 
 const getInitialMode = (): ChatMode => {
@@ -88,6 +91,8 @@ const initialState: ChatScreenState = {
   showUpgradeModal: false,
   showTopupModal: false,
   callTime: 0,
+  currentInfluencerId: undefined,
+  influencerById: {},
 };
 
 const chatRepository = ChatRepository();
@@ -171,6 +176,15 @@ const chatScreenSlice = createSlice({
     },
     incrementCallTime(state) {
       state.callTime += 1;
+    },
+    setCurrentInfluencer(
+      state,
+      action: PayloadAction<InfluencerDataModel | undefined>
+    ) {
+      state.currentInfluencerId = action.payload?.id;
+      if (action.payload?.id) {
+        state.influencerById[action.payload.id] = action.payload;
+      }
     },
     resetChatSession(state) {
       state.messages = [];

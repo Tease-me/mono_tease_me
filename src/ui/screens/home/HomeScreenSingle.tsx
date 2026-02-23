@@ -62,6 +62,15 @@ type SidebarPage = {
 export default function HomeScreenSingle() {
   const dispatch = useAppDispatch();
   const { isSubscribing } = useAppSelector((state) => state.subscription);
+  const currentInfluencerId = useAppSelector(
+    (state) => state.chatScreen.currentInfluencerId,
+  );
+  const influencerById = useAppSelector(
+    (state) => state.chatScreen.influencerById,
+  );
+  const currentInfluencerName = currentInfluencerId
+    ? influencerById[currentInfluencerId]?.name
+    : undefined;
   const [openSubscribeInfluencerId, setOpenSubscribeInfluencerId] = useState<
     string | undefined
   >();
@@ -84,6 +93,19 @@ export default function HomeScreenSingle() {
   useEffect(() => {
     navPayloadRef.current = navPayload;
   }, [navPayload]);
+
+  useEffect(() => {
+    if (currentPageRef.current !== "influencer_profile") return;
+    if (!currentInfluencerId) return;
+    if (navPayloadRef.current?.influencerId === currentInfluencerId) return;
+    setNavPayload((p) => ({
+      ...p,
+      influencerId: currentInfluencerId,
+      name: influencerById[currentInfluencerId]?.name,
+      image: influencerById[currentInfluencerId]?.img,
+      video: influencerById[currentInfluencerId]?.videoUrl,
+    }));
+  }, [currentInfluencerId, influencerById]);
 
   const goTo = useCallback((pageId: SidebarPageId, payload?: NavPayload) => {
     if (payload) {
@@ -128,82 +150,37 @@ export default function HomeScreenSingle() {
     [dispatch, isSubscribing],
   );
 
-  const sidebarPages: SidebarPage[] = useMemo(
-    () => [
-      {
-        id: "home",
-        label: "User Menu",
-        render: ({ goTo }) => <UserMenu goTo={goTo} />,
-      },
-      {
-        id: "profile",
-        label: "User Profile",
-        render: ({ goTo }) => <UserProfile goTo={goTo} />,
-      },
-      {
-        id: "payment",
-        label: "Payment Details",
-        render: ({ goTo }) => <PaymentDetails goTo={goTo} />,
-      },
-      {
-        id: "payment-check",
-        label: "Payment",
-        render: () => <PaymentCheck />,
-        background: "#181A20",
-      },
-      {
-        id: "influencers",
-        label: "Topup",
-        render: ({ goTo, navPayload }) => (
-          <ManageInfluencers goTo={goTo} navPayload={navPayload} />
-        ),
-      },
-      {
-        id: "influencer_profile",
-        label: "Influencer Profile",
-        render: ({ goTo, navPayload, goBack }) => (
-          <InfluencerRelation
-            goTo={goTo}
-            navPayload={navPayload}
-            goBack={goBack}
-          />
-        ),
-      },
-      {
-        id: "add_credits",
-        label: "Add Credits",
-        render: ({ goTo, navPayload }) => (
-          <AddCredits goTo={goTo} navpayload={navPayload} />
-        ),
-      },
-      {
-        id: "subscribe",
-        label: "Subscribe",
-        render: ({ navPayload, goBack }) => (
-          <AdultModePage
-            influencerId={navPayload.influencerId}
-            influencerImageUrl={navPayload.influencerImageUrl}
-            influencerName={navPayload.influencerName}
-            onSubscribePressed={() =>
-              handleSidebarSubscribe(navPayload.influencerId, goBack)
-            }
-            onBackClicked={goBack}
-            nobg
-          />
-        ),
-      },
-      {
-        id: "subscription",
-        label: "Subscription",
-        render: ({ goTo, navPayload }) => (
-          <Subscription goTo={goTo} navPayload={navPayload} />
-        ),
-        background:
-          "linear-gradient(0deg, #131313 0%, #131313 100%), url(<path-to-image>) lightgray -60.714px 0px / 130.206% 89.736% no-repeat",
-      },
-    ],
-    [handleSidebarSubscribe],
-  );
+  const sidebarPages: SidebarPage[] = useMemo(() => ([
+    { id: "home", label: "User Menu", render: ({ goTo }) => <UserMenu goTo={goTo} /> },
+    { id: "profile", label: "User Profile", render: ({ goTo }) => <UserProfile goTo={goTo} /> },
+    { id: "payment", label: "Payment Details", render: ({ goTo }) => <PaymentDetails goTo={goTo} /> },
+    { id: "payment-check", label: "Payment", render: () => <PaymentCheck />, background: "#181A20" },
+    {
+      id: "influencers",
+      label: "Topup",
+      render: ({ goTo, navPayload }) =>
+        <ManageInfluencers
+          goTo={goTo}
+          navPayload={navPayload}
+        />
+    },
+    { id: "influencer_profile", label: "Influencer Profile", render: ({ goTo, navPayload, goBack }) => <InfluencerRelation key={navPayload.influencerId} goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
+    { id: "add_credits", label: "Add Credits", render: ({ goTo, navPayload }) => <AddCredits goTo={goTo} navpayload={navPayload} /> },
+    {
+      id: "subscribe", label: "Subscribe", render: ({ navPayload, goBack }) => (
+        <AdultModePage
+          influencerId={navPayload.influencerId}
+          influencerImageUrl={navPayload.influencerImageUrl}
+          influencerName={navPayload.influencerName}
+          onSubscribePressed={() => handleSidebarSubscribe(navPayload.influencerId, goBack)}
+          onBackClicked={goBack}
+          nobg
+        />
+      )
+    },
+    { id: "subscription", label: "Subscription", render: ({ goTo, navPayload }) => <Subscription goTo={goTo} navPayload={navPayload} />, background: "linear-gradient(0deg, #131313 0%, #131313 100%), url(<path-to-image>) lightgray -60.714px 0px / 130.206% 89.736% no-repeat" },
+  ]), [handleSidebarSubscribe]);
+
 
   const active = useMemo(
     () => sidebarPages.find((p) => p.id === currentPage)!,
@@ -283,8 +260,10 @@ export default function HomeScreenSingle() {
         onToggle={toggleSidebar}
         showBack={currentPage !== "home"}
         title={
-          currentPage === "influencer_profile" && navPayload?.name
-            ? navPayload.name
+          currentPage === "influencer_profile"
+            ? currentInfluencerName || navPayload?.name
+              ? `Top Up - ${currentInfluencerName ?? navPayload?.name}`
+              : "Top Up"
             : active.label
         }
         background={active.background}
