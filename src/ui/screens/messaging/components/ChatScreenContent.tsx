@@ -87,6 +87,14 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     handleChangeInfluencerClicked,
   } = useInfluencerSelection(blockIfCallActive, defaultInfluencerId);
 
+  useEffect(() => {
+    if (influencer?.id) {
+      dispatch(chatScreenActions.setCurrentInfluencer(influencer));
+    } else {
+      dispatch(chatScreenActions.setCurrentInfluencer(undefined));
+    }
+  }, [dispatch, influencer]);
+
   const {
     chatId,
     messages,

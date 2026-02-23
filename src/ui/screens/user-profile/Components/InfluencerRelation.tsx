@@ -137,9 +137,10 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         if (cancelled) return;
         setData((d) => ({
           ...d,
-          image: i?.img ?? d.image,
-          video: i?.videoUrl ?? d.video,
-          name: i?.name ?? d.name,
+          id: initial.id,
+          image: i?.img,
+          video: i?.videoUrl,
+          name: i?.name,
           followingSince:
             following.items.find((f) => f.influencer_id === initial.id)
               ?.created_at ?? d.followingSince,
@@ -183,19 +184,17 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
 
   //Navpayload
   useEffect(() => {
+    if (!navPayload.influencerId) return;
+    setLoading(true);
     setData((d) => ({
       ...d,
-      id: navPayload.influencerId ?? d.id,
-      // image: navPayload.image ?? d.image,
-      // video: navPayload.video ?? d.video,
-      // name: navPayload.name ?? d.name,
-      // followingSince: navPayload.followingSince ?? d.followingSince,
+      id: navPayload.influencerId,
+      image: undefined,
+      video: undefined,
+      name: undefined,
     }));
   }, [
-    navPayload.image,
-    navPayload.video,
-    navPayload.name,
-    navPayload.followingSince,
+    navPayload.influencerId,
   ]);
 
   const goToSubPage = () => {
