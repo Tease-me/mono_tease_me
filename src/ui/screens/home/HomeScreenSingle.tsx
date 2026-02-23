@@ -33,6 +33,15 @@ type SidebarPage = {
 export default function HomeScreenSingle() {
   const dispatch = useAppDispatch();
   const { isSubscribing } = useAppSelector((state) => state.subscription);
+  const currentInfluencerId = useAppSelector(
+    (state) => state.chatScreen.currentInfluencerId,
+  );
+  const influencerById = useAppSelector(
+    (state) => state.chatScreen.influencerById,
+  );
+  const currentInfluencerName = currentInfluencerId
+    ? influencerById[currentInfluencerId]?.name
+    : undefined;
   const [openSubscribeInfluencerId, setOpenSubscribeInfluencerId] = useState<string | undefined>();
   const [showSidebar, setShowSidebar] = useState(false);
   const [currentPage, setCurrentPage] = useState<SidebarPageId>("home");
@@ -53,6 +62,19 @@ export default function HomeScreenSingle() {
   useEffect(() => {
     navPayloadRef.current = navPayload;
   }, [navPayload]);
+
+  useEffect(() => {
+    if (currentPageRef.current !== "influencer_profile") return;
+    if (!currentInfluencerId) return;
+    if (navPayloadRef.current?.influencerId === currentInfluencerId) return;
+    setNavPayload((p) => ({
+      ...p,
+      influencerId: currentInfluencerId,
+      name: influencerById[currentInfluencerId]?.name,
+      image: influencerById[currentInfluencerId]?.img,
+      video: influencerById[currentInfluencerId]?.videoUrl,
+    }));
+  }, [currentInfluencerId, influencerById]);
 
   const goTo = useCallback((pageId: SidebarPageId, payload?: NavPayload) => {
     if (payload) {
@@ -108,7 +130,18 @@ export default function HomeScreenSingle() {
           navPayload={navPayload}
         />
     },
-    { id: "influencer_profile", label: "Influencer Profile", render: ({ goTo, navPayload, goBack }) => <InfluencerRelation goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
+    {
+      id: "influencer_profile",
+      label: "Influencer Profile",
+      render: ({ goTo, navPayload, goBack }) => (
+        <InfluencerRelation
+          key={navPayload.influencerId}
+          goTo={goTo}
+          navPayload={navPayload}
+          goBack={goBack}
+        />
+      ),
+    },
     { id: "add_credits", label: "Add Credits", render: ({ goTo, navPayload }) => <AddCredits goTo={goTo} navpayload={navPayload} /> },
     {
       id: "subscribe", label: "Subscribe", render: ({ navPayload, goBack }) => (
@@ -196,8 +229,10 @@ export default function HomeScreenSingle() {
         onToggle={toggleSidebar}
         showBack={currentPage !== "home"}
         title={
-          currentPage === "influencer_profile" && navPayload?.name
-            ? navPayload.name
+          currentPage === "influencer_profile"
+            ? currentInfluencerName || navPayload?.name
+              ? `Top Up - ${currentInfluencerName ?? navPayload?.name}`
+              : "Top Up"
             : active.label
         }
         background={active.background}
