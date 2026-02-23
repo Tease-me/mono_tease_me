@@ -87,4 +87,10 @@ class Settings(BaseSettings):
     DIDIT_WORKFLOW_ID_KYC: str | None = None  # KYC workflow ID from Didit console
     DIDIT_REDIRECT_URL: str | None = None  # Default redirect URL after verification
 
+    # Logging configuration
+    APP_ENV: str = "local"  # local | staging | production
+    LOG_FILE_PATH: str = "./logs/app.log"
+    LOG_LEVEL: str | None = None
+    LOG_TO_CONSOLE: bool = True
+
 settings = Settings()
