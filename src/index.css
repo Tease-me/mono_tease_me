@@ -41,6 +41,7 @@ body,
   --gradient-angle: 270deg;
   --gradient-start-red-start: #FF4D67;
   --gradient-end-red-end: #FF8395;
+  --color-text-selection-bg: color-mix(in srgb, var(--color-primary) 35%, transparent);
 
   --chat-bubble-gradient-angle: 180deg;
   --chat-bubble-gradient-start: hsla(347, 100%, 65%, 0.15);
