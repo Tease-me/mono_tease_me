@@ -17,19 +17,20 @@ async def extract_memories_from_transcript(
   
     from app.agents.prompts import FACT_EXTRACTOR, get_fact_prompt  
 
-    user_turns = [
+    # We no longer bail if there are no user turns, because we want to extract
+    # facts/promises made by the influencer as well.
+    relevant_turns = [
         str(entry.get("text") or entry.get("content") or entry.get("message") or "").strip()
         for entry in transcript_entries
         if isinstance(entry, dict)
-        and str(entry.get("sender") or entry.get("role") or "").lower() in ("user", "human")
         and (entry.get("text") or entry.get("content") or entry.get("message", ""))
     ]
 
-    if not user_turns:
-        log.info("[MEMORY-BG] no user turns in transcript conv=%s", conversation_id)
+    if not relevant_turns:
+        log.info("[MEMORY-BG] no speech in transcript conv=%s", conversation_id)
         return
 
-    full_user_text = " ".join(user_turns)
+    full_user_text = " ".join(relevant_turns)
     full_ctx = "\n".join(
         f"{str(entry.get('sender') or entry.get('role', 'unknown')).lower()}: "
         f"{entry.get('text') or entry.get('content') or entry.get('message', '')}"
@@ -38,15 +39,17 @@ async def extract_memories_from_transcript(
     )
 
     log.info(
-        "[MEMORY-BG] extracting facts from %d user turns conv=%s chat=%s",
-        len(user_turns), conversation_id, chat_id,
+        "[MEMORY-BG] extracting facts from %d turns conv=%s chat=%s",
+        len(relevant_turns), conversation_id, chat_id,
     )
 
     async with SessionLocal() as db:
         try:
             fact_prompt = await get_fact_prompt(db)
+            # We pass full_ctx to the prompt; 
+            # `msg` is still provided empty for safety with older prompts in DB
             facts_resp = await FACT_EXTRACTOR.ainvoke(
-                fact_prompt.format(msg=full_user_text, ctx=full_ctx[:2000])
+                fact_prompt.format(msg="", ctx=full_ctx[-2000:])
             )
             facts_txt = facts_resp.content or ""
             lines = [ln.strip("- ").strip() for ln in facts_txt.split("\n") if ln.strip()]
@@ -236,7 +239,7 @@ async def find_similar_memories(
     top_k: int = 10,
     embedding: list[float] | None = None,
     max_distance: float | None = None,
-):
+) -> dict[str, list[str]]:
     """
     Find similar memories using semantic search with improved accuracy.
     
@@ -251,13 +254,21 @@ async def find_similar_memories(
                      Lower = stricter matching. Recommended: 0.3-0.7 if filtering
     
     Returns:
-        List of similar memory content strings
+        Dict with 'user_memories' and 'ai_memories' lists
     """
     emb = embedding or await get_embedding(message)
     
-    chat_memories = await search_similar_memories(db, chat_id, emb, top_k=top_k, max_distance=max_distance)
+    results = await search_similar_memories(db, chat_id, emb, top_k=top_k, max_distance=max_distance)
 
-    return chat_memories
+    user_memories = []
+    ai_memories = []
+    for content, sender in results:
+        if sender == "system":
+            ai_memories.append(content)
+        else:
+            user_memories.append(content)
+
+    return {"user_memories": user_memories, "ai_memories": ai_memories}
 
 
 async def find_similar_memories_and_messages(
@@ -359,7 +370,7 @@ async def store_facts_batch(
     db,
     chat_id: str,
     facts: list[str],
-    sender: str = "user",
+    sender: str = "system",
 ) -> int:
     """
     Store multiple facts using batch embedding (70-80% faster than sequential).

@@ -75,8 +75,11 @@ USER IDENTITY
 ━━━━━━━━━━━━━━━━━━━━━━
 CONTEXT BLOCKS
 ━━━━━━━━━━━━━━━━━━━━━━
-These past memories may help:
+What you remember about this user:
 {memories}
+
+Your own promises & decisions (stay consistent with these):
+{ai_memories}
 
 Here is the user's latest message for your reference only:
 {last_user_message}
@@ -229,16 +232,17 @@ BASE_AUDIO_SYSTEM = (
 )
 
 # Memory extraction prompt
-FACT_PROMPT = """You pull new, concise facts from the user's latest message and recent context. Facts should help a romantic, teasing AI remember preferences, boundaries, events, and feelings.
+FACT_PROMPT = """You pull new, concise facts from the conversation's latest messages and recent context. 
+Facts should help a romantic, teasing AI remember preferences, boundaries, events, feelings, as well as its own promises or decisions.
 
 Rules:
 - Extract up to 5 crisp facts.
 - Each fact on its own line, no bullets or numbering.
-- Be specific ("User prefers slow teasing over explicit talk", "User's name is ...", "User joked about ...").
+- Be specific ("User prefers slow teasing", "AI promised to send a photo tomorrow", "User joked about...").
+- Include important statements or decisions made by the AI itself (e.g., "AI agreed to be exclusive").
 - Skip small talk or already-known chatter.
 - If nothing useful is new, return exactly: No new memories.
 
-User message: {msg}
 Recent context:
 {ctx}
 """.strip()
