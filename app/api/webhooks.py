@@ -60,7 +60,6 @@ def _serialize_relationship_data(rel: Any) -> dict[str, Any]:
 
 
 def _verify_hmac(raw_body: bytes, signature_header: Optional[str]) -> None:
-    return True
     """
     Verify ElevenLabs HMAC signature.
     Header format: 't=<timestamp>,v0=<hex>' where v0 is HMAC_SHA256(f"{t}.{body}")
