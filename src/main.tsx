@@ -6,7 +6,9 @@ import ErrorModalProvider from "./ui/components/modals/ErrorModalProvider";
 import "./index.css";
 import AppRoutes from "./routes/AppRoutes.jsx";
 import logger from "./utils/logger";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Provider } from "react-redux";
+import { store } from "./store/store";
 
 function registerServiceWorker() {
   if ("serviceWorker" in navigator) {
@@ -29,16 +31,20 @@ const rootElement = document.getElementById("root");
 const queryClient = new QueryClient();
 
 if (rootElement) {
-  registerServiceWorker();
+  if (import.meta.env.PROD) {
+    registerServiceWorker();
+  }
   createRoot(rootElement).render(
     <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <ErrorModalProvider />
-          <AppRoutes />
-        </AuthProvider>
-      </QueryClientProvider>
-    </StrictMode>
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <ErrorModalProvider />
+            <AppRoutes />
+          </AuthProvider>
+        </QueryClientProvider>
+      </Provider>
+    </StrictMode>,
   );
 } else {
   throw new Error("Root element not found");
