@@ -114,6 +114,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const lastChatInitRef = useRef<string | null>(null);
+  const localAudioUrlsRef = useRef<Set<string>>(new Set());
 
   const { user } = useContext(AuthContext);
   const { openSidebar } = useSidebar();
@@ -254,6 +255,26 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
       scrollToBottom();
     }
   }, [messages, pageNumber, scrollToBottom]);
+
+  useEffect(() => {
+    if (!messages) return;
+    messages.forEach((message) => {
+      message.attachments?.forEach((attachment) => {
+        if (attachment.audioUrl?.startsWith("blob:")) {
+          localAudioUrlsRef.current.add(attachment.audioUrl);
+        }
+      });
+    });
+  }, [messages]);
+
+  useEffect(() => {
+    return () => {
+      localAudioUrlsRef.current.forEach((url) => {
+        URL.revokeObjectURL(url);
+      });
+      localAudioUrlsRef.current.clear();
+    };
+  }, [adultMode, chatId, influencer?.id]);
 
   const { connectChat, sendMessage } = useChatRealtime({
     dispatch,

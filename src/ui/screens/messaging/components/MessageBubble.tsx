@@ -73,6 +73,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     }, []);
 
     const getAudioUrl = (attachment: MediaAttachment): string => {
+        if (attachment.audioUrl) {
+            return attachment.audioUrl;
+        }
         if (attachment.blob) {
             const cachedUrl = objectUrlMapRef.current.get(attachment.blob);
             if (cachedUrl) return cachedUrl;
@@ -80,8 +83,6 @@ const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
             objectUrlMapRef.current.set(attachment.blob, url);
             return url;
         }
-        if (attachment.audioUrl)
-            return attachment.audioUrl;
         return "";
     }
 
