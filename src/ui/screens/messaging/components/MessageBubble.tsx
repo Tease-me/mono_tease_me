@@ -49,7 +49,7 @@ const getCallDuration = (group?: CallMessageGroup) => {
     return formatDuration(end - start);
 };
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({
+const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     msg,
     callGroup,
     influencerName,
@@ -73,6 +73,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     }, []);
 
     const getAudioUrl = (attachment: MediaAttachment): string => {
+        if (attachment.audioUrl) {
+            return attachment.audioUrl;
+        }
         if (attachment.blob) {
             const cachedUrl = objectUrlMapRef.current.get(attachment.blob);
             if (cachedUrl) return cachedUrl;
@@ -80,8 +83,6 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             objectUrlMapRef.current.set(attachment.blob, url);
             return url;
         }
-        if (attachment.audioUrl)
-            return attachment.audioUrl;
         return "";
     }
 
@@ -205,6 +206,6 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             )}
         </div>
     );
-};
+});
 
 export default MessageBubble;
