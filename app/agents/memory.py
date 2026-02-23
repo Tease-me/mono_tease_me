@@ -30,7 +30,6 @@ async def extract_memories_from_transcript(
         log.info("[MEMORY-BG] no speech in transcript conv=%s", conversation_id)
         return
 
-    full_user_text = " ".join(relevant_turns)
     full_ctx = "\n".join(
         f"{str(entry.get('sender') or entry.get('role', 'unknown')).lower()}: "
         f"{entry.get('text') or entry.get('content') or entry.get('message', '')}"
