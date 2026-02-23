@@ -372,6 +372,7 @@ export function useChatRealtime({
           return false;
         }
         const sentMessageId = Date.now();
+        const localAudioUrl = URL.createObjectURL(audioToSend);
         dispatch(
           chatScreenActions.appendMessage({
             id: sentMessageId,
@@ -384,7 +385,7 @@ export function useChatRealtime({
             timestamp: Date.now(),
             attachments: [
               {
-                blob: audioToSend,
+                audioUrl: localAudioUrl,
                 type: "audio",
               },
             ],

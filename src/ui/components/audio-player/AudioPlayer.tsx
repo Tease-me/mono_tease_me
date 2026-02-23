@@ -37,16 +37,16 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, height, width, progressC
 
     useEffect(() => {
         if (!src) return;
-        fetch(src)
-            .then(res => res.arrayBuffer())
-            .then(buffer => {
-                const audioCtx = new AudioContext();
-                return audioCtx.decodeAudioData(buffer).then(decoded => {
-                    audioCtx.close();
-                    return decoded;
-                });
-            })
-            .then(audioBuffer => {
+        const controller = new AbortController();
+        const { signal } = controller;
+        let audioCtx: AudioContext | null = null;
+
+        const loadPeaks = async () => {
+            try {
+                const res = await fetch(src, { signal });
+                const buffer = await res.arrayBuffer();
+                audioCtx = new AudioContext();
+                const audioBuffer = await audioCtx.decodeAudioData(buffer);
                 const raw = audioBuffer.getChannelData(0);
                 const samples = 100;
                 const block = Math.floor(raw.length / samples);
@@ -60,8 +60,20 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, height, width, progressC
                 }
                 const max = Math.max(...data);
                 setPeaks(data.map(n => n / max));
-            })
-            .catch(console.error);
+            } catch (error: any) {
+                if (error?.name === "AbortError") return;
+                console.error(error);
+            } finally {
+                if (audioCtx) {
+                    audioCtx.close();
+                }
+            }
+        };
+
+        loadPeaks();
+        return () => {
+            controller.abort();
+        };
     }, [src]);
 
     useEffect(() => {

@@ -25,8 +25,9 @@ export default function UserMenu({ goTo }: UserMenuProps) {
   }
 
   const handlePTopupClick = () => {
+    if (!storedId) return;
     goTo("influencer_profile", {
-      influencerId: storedId || "sophia",
+      influencerId: storedId,
     });
   }
 
@@ -47,7 +48,9 @@ export default function UserMenu({ goTo }: UserMenuProps) {
         <div className={styles.menuArea}>
           <NavigationRow title="User Profile" subtitle='Edit & Update User Details' onClick={handleUserProfileClick} />
           <NavigationRow title="Payment Details" subtitle='Add & Edit Payment Sources' onClick={handlePaymentDetailsClick} />
-          <NavigationRow title="Topup" subtitle='Topup your account' onClick={handlePTopupClick} />
+          {storedId && (
+            <NavigationRow title="Topup" subtitle='Topup your account' onClick={handlePTopupClick} />
+          )}
           {/* <NavigationRow title="Manage Influencer" subtitle='Fund, Manage & View Your Influencers' onClick={handleManageInfluencersClick} /> */}
         </div>
       </div>
