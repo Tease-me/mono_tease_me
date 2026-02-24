@@ -232,29 +232,30 @@ BASE_AUDIO_SYSTEM = (
 )
 
 # Memory extraction prompt
-FACT_PROMPT = """You extract exactly ONE durable memory from the latest messages.
+FACT_PROMPT = """You extract up to TWO durable memories from the latest messages (one for the User, one for the AI).
 
 IMPORTANT:
 You will be given "Recent context" for reference, but you MUST ONLY use the latest exchanges to extract facts.
 If a detail is not explicitly present in the latest messages, do not extract it.
 
 Goal:
-Identify the single most emotionally meaningful, preference-based, boundary-related, or relationship-relevant fact that should influence future behavior for a romantic, teasing AI.
+Identify the most emotionally meaningful, preference-based, boundary-related, or relationship-relevant facts that should influence future behavior for a romantic, teasing AI.
 
 Selection Rules:
-- Choose only 1 memory even if multiple facts exist.
-- Give EQUAL priority to the User and the AI. Look for the single most important detail from EITHER person.
+- Extract up to 2 memories maximum (one for the User, one for the AI) if both parties revealed something highly important.
+- Give EQUAL priority to the User and the AI. If only one party said something important, extract exactly 1 memory.
 - For the User: Prioritize their preferences, strict boundaries, true desires, and strong emotional reactions over neutral facts.
-- For the AI: Extract ONLY its major promises, firm boundaries, or significant relationship decisions (e.g., "AI agreed to be exclusive", "AI promised a photo"). Do NOT extract the AI's general flirting, teasing, or reactions.
+- For the AI: Extract its promises, firm boundaries, or significant relationship decisions (e.g., "AI agreed to be exclusive", "AI promised a photo"). Do NOT extract the AI's general flirting, teasing, or reactions.
 - Do not infer from context. Do not merge with context. Do not “connect dots.”
 - Skip small talk, standard flirting, or already-known chatter.
 - If nothing highly durable or meaningful exists in the latest messages, return exactly:
 No new memories.
 
 Output Rules:
-- Output exactly one sentence.
-- No bullets or numbering.
-- Third person (e.g., "User prefers slow teasing", "AI promised to call later").
+- NEVER combine the User's memory and the AI's memory into a single sentence.
+- Output each memory on a completely separate line.
+- No bullets, no numbering, no hyphen prefixes.
+- Third person (e.g., "User prefers slow teasing\nAI promised to call later").
 - Concise and specific.
 - Do not restate the full sentence.
 - Do not generalize.
