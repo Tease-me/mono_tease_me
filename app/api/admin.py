@@ -11,6 +11,12 @@ from app.utils.auth.dependencies import get_current_user
 
 from sqlalchemy import select, func, desc
 from app.db.models import RelationshipState, Influencer,User
+from app.services.knowledge_rag import (
+    count_knowledge_chunks,
+    delete_influencer_knowledge,
+    get_influencer_knowledge_document,
+    upsert_influencer_knowledge,
+)
 from app.utils.storage.s3 import save_sample_audio_to_s3, generate_presigned_url, delete_file_from_s3
 
 from pydantic import BaseModel, Field
@@ -251,6 +257,10 @@ class RelationshipPatch(BaseModel):
     dtr_stage: Optional[int] = Field(default=None, ge=0)
     dtr_cooldown_until: Optional[datetime] = None
     last_interaction_at: Optional[datetime] = None
+
+
+class InfluencerKnowledgePayload(BaseModel):
+    text: str = Field(min_length=1)
 
 
 @router.patch("/relationships")
@@ -539,3 +549,95 @@ async def get_moderation_dashboard(
             ]
         }
     }
+
+
+@router.put("/influencers/{influencer_id}/knowledge")
+async def upsert_knowledge(
+    influencer_id: str,
+    payload: InfluencerKnowledgePayload,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Admin only")
+
+    influencer = await db.get(Influencer, influencer_id)
+    if not influencer:
+        raise HTTPException(status_code=404, detail="Influencer not found")
+
+    try:
+        document, chunk_count = await upsert_influencer_knowledge(
+            db=db,
+            influencer_id=influencer_id,
+            raw_text=payload.text,
+        )
+    except ValueError as exc:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        await db.rollback()
+        log.error("knowledge_upsert_failed influencer_id=%s err=%s", influencer_id, exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to upsert influencer knowledge")
+
+    return {
+        "ok": True,
+        "influencer_id": influencer_id,
+        "document_id": document.id,
+        "chunk_count": chunk_count,
+        "updated_at": document.updated_at.isoformat() if document.updated_at else None,
+    }
+
+
+@router.get("/influencers/{influencer_id}/knowledge")
+async def get_knowledge(
+    influencer_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Admin only")
+
+    influencer = await db.get(Influencer, influencer_id)
+    if not influencer:
+        raise HTTPException(status_code=404, detail="Influencer not found")
+
+    document = await get_influencer_knowledge_document(db, influencer_id)
+    if not document:
+        raise HTTPException(status_code=404, detail="Knowledge not found for influencer")
+
+    chunk_count = await count_knowledge_chunks(db, influencer_id)
+    return {
+        "ok": True,
+        "influencer_id": influencer_id,
+        "document_id": document.id,
+        "text": document.raw_text,
+        "text_hash": document.text_hash,
+        "chunk_count": chunk_count,
+        "updated_at": document.updated_at.isoformat() if document.updated_at else None,
+    }
+
+
+@router.delete("/influencers/{influencer_id}/knowledge")
+async def delete_knowledge(
+    influencer_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Admin only")
+
+    influencer = await db.get(Influencer, influencer_id)
+    if not influencer:
+        raise HTTPException(status_code=404, detail="Influencer not found")
+
+    try:
+        deleted = await delete_influencer_knowledge(db, influencer_id)
+    except Exception as exc:
+        await db.rollback()
+        log.error("knowledge_delete_failed influencer_id=%s err=%s", influencer_id, exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to delete influencer knowledge")
+
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Knowledge not found for influencer")
+
+    return {"ok": True, "influencer_id": influencer_id, "deleted": True}

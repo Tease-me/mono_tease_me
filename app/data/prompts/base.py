@@ -81,6 +81,9 @@ What you remember about this user:
 Your own promises & decisions (stay consistent with these):
 {ai_memories}
 
+Knowledge context (retrieved):
+{knowledge_context}
+
 Here is the user's latest message for your reference only:
 {last_user_message}
 
