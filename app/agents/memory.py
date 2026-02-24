@@ -59,17 +59,21 @@ async def extract_memories_from_transcript(
                     )
                     txt = (resp.content or "").strip("- ").strip()
                     if txt and txt.lower() != "no new memories.":
-                        return txt
+                        lines = [ln.strip("- ").strip() for ln in txt.split("\n") if ln.strip()]
+                        return [ln for ln in lines if ln.lower() != "no new memories."]
                 except Exception as e:
                     log.warning("Chunk extraction failed: %s", e)
-                return None
+                return []
 
             # Concurrently extract from all chunks (limit concurrency if needed, but 10-20 chunks is fine for asyncio.gather)
             tasks = [extract_chunk(ctx, msg) for ctx, msg in chunks]
             extracted_results = await asyncio.gather(*tasks)
 
-            # Filter valid facts
-            valid_facts = [f for f in extracted_results if f]
+            # Flatten list of valid facts
+            valid_facts = []
+            for res_list in extracted_results:
+                if res_list:
+                    valid_facts.extend(res_list)
 
             if valid_facts:
                 stored = await store_facts_batch(db, chat_id, valid_facts)
