@@ -14,54 +14,72 @@ async def extract_memories_from_transcript(
     transcript_entries: list,
     conversation_id: str,
 ) -> None:
-  
-    from app.agents.prompts import FACT_EXTRACTOR, get_fact_prompt  
+    from app.agents.prompts import FACT_EXTRACTOR, get_fact_prompt
+    import asyncio
 
-    # We no longer bail if there are no user turns, because we want to extract
-    # facts/promises made by the influencer as well.
-    relevant_turns = [
-        str(entry.get("text") or entry.get("content") or entry.get("message") or "").strip()
-        for entry in transcript_entries
-        if isinstance(entry, dict)
-        and (entry.get("text") or entry.get("content") or entry.get("message", ""))
-    ]
+    all_turns = []
+    for entry in transcript_entries:
+        if isinstance(entry, dict):
+            text = (entry.get("text") or entry.get("content") or entry.get("message") or "").strip()
+            if text:
+                sender = str(entry.get("sender") or entry.get("role") or "unknown").lower()
+                all_turns.append({"sender": sender, "text": text})
 
-    if not relevant_turns:
+    if not all_turns:
         log.info("[MEMORY-BG] no speech in transcript conv=%s", conversation_id)
         return
 
-    full_ctx = "\n".join(
-        f"{str(entry.get('sender') or entry.get('role', 'unknown')).lower()}: "
-        f"{entry.get('text') or entry.get('content') or entry.get('message', '')}"
-        for entry in transcript_entries
-        if isinstance(entry, dict) and (entry.get("text") or entry.get("content") or entry.get("message"))
+    log.info(
+        "[MEMORY-BG] chunking transcript of %d turns conv=%s chat=%s",
+        len(all_turns), conversation_id, chat_id,
     )
 
-    log.info(
-        "[MEMORY-BG] extracting facts from %d turns conv=%s chat=%s",
-        len(relevant_turns), conversation_id, chat_id,
-    )
+    chunks = []
+    # Step through conversation in exchange pairs (e.g. every 2 turns)
+    for i in range(0, len(all_turns), 2):
+        chunk_turns = all_turns[:i+2]
+        if not chunk_turns:
+            continue
+        
+        ctx_turns = chunk_turns[-6:-2]  # Up to 4 turns of context
+        msg_turns = chunk_turns[-2:]    # The latest 1-2 turns to evaluate
+
+        ctx_str = "\n".join(f"{t['sender']}: {t['text']}" for t in ctx_turns)
+        msg_str = "\n".join(f"{t['sender']}: {t['text']}" for t in msg_turns)
+        chunks.append((ctx_str, msg_str))
 
     async with SessionLocal() as db:
         try:
             fact_prompt = await get_fact_prompt(db)
-            # We pass full_ctx to the prompt; 
-            # `msg` is still provided empty for safety with older prompts in DB
-            facts_resp = await FACT_EXTRACTOR.ainvoke(
-                fact_prompt.format(msg="", ctx=full_ctx[-2000:])
-            )
-            facts_txt = facts_resp.content or ""
-            lines = [ln.strip("- ").strip() for ln in facts_txt.split("\n") if ln.strip()]
-            valid_facts = [line for line in lines[:10] if line.lower() != "no new memories."]
+            
+            async def extract_chunk(ctx_str: str, msg_str: str):
+                try:
+                    resp = await FACT_EXTRACTOR.ainvoke(
+                        fact_prompt.format(msg=msg_str, ctx=ctx_str)
+                    )
+                    txt = (resp.content or "").strip("- ").strip()
+                    if txt and txt.lower() != "no new memories.":
+                        return txt
+                except Exception as e:
+                    log.warning("Chunk extraction failed: %s", e)
+                return None
+
+            # Concurrently extract from all chunks (limit concurrency if needed, but 10-20 chunks is fine for asyncio.gather)
+            tasks = [extract_chunk(ctx, msg) for ctx, msg in chunks]
+            extracted_results = await asyncio.gather(*tasks)
+
+            # Filter valid facts
+            valid_facts = [f for f in extracted_results if f]
 
             if valid_facts:
                 stored = await store_facts_batch(db, chat_id, valid_facts)
                 log.info(
-                    "[MEMORY-BG] stored %d/%d facts conv=%s chat=%s",
+                    "[MEMORY-BG] stored %d/%d facts from chunks conv=%s chat=%s",
                     stored, len(valid_facts), conversation_id, chat_id,
                 )
             else:
-                log.info("[MEMORY-BG] no new facts extracted conv=%s", conversation_id)
+                log.info("[MEMORY-BG] no new facts extracted from chunks conv=%s", conversation_id)
+
         except Exception as exc:
             log.error(
                 "[MEMORY-BG] fact extraction failed conv=%s chat=%s err=%s",

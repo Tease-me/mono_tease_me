@@ -232,19 +232,39 @@ BASE_AUDIO_SYSTEM = (
 )
 
 # Memory extraction prompt
-FACT_PROMPT = """You pull new, concise facts from the conversation's latest messages and recent context. 
-Facts should help a romantic, teasing AI remember preferences, boundaries, events, feelings, as well as its own promises or decisions.
+FACT_PROMPT = """You extract exactly ONE durable memory from the latest messages.
 
-Rules:
-- Extract up to 5 crisp facts.
-- Each fact on its own line, no bullets or numbering.
-- Be specific ("User prefers slow teasing", "AI promised to send a photo tomorrow", "User joked about...").
-- Include important statements or decisions made by the AI itself (e.g., "AI agreed to be exclusive").
-- Skip small talk or already-known chatter.
-- If nothing useful is new, return exactly: No new memories.
+IMPORTANT:
+You will be given "Recent context" for reference, but you MUST ONLY use the latest exchanges to extract facts.
+If a detail is not explicitly present in the latest messages, do not extract it.
 
-Recent context:
+Goal:
+Identify the single most emotionally meaningful, preference-based, boundary-related, or relationship-relevant fact that should influence future behavior for a romantic, teasing AI.
+
+Selection Rules:
+- Choose only 1 memory even if multiple facts exist.
+- Give EQUAL priority to the User and the AI. Look for the single most important detail from EITHER person.
+- For the User: Prioritize their preferences, strict boundaries, true desires, and strong emotional reactions over neutral facts.
+- For the AI: Extract ONLY its major promises, firm boundaries, or significant relationship decisions (e.g., "AI agreed to be exclusive", "AI promised a photo"). Do NOT extract the AI's general flirting, teasing, or reactions.
+- Do not infer from context. Do not merge with context. Do not “connect dots.”
+- Skip small talk, standard flirting, or already-known chatter.
+- If nothing highly durable or meaningful exists in the latest messages, return exactly:
+No new memories.
+
+Output Rules:
+- Output exactly one sentence.
+- No bullets or numbering.
+- Third person (e.g., "User prefers slow teasing", "AI promised to call later").
+- Concise and specific.
+- Do not restate the full sentence.
+- Do not generalize.
+- Do not interpret beyond what the text clearly supports.
+
+Recent context (for reference only):
 {ctx}
+
+Latest exchange (EXTRACT FROM HERE ONLY):
+{msg}
 """.strip()
 
 # Reengagement notification
