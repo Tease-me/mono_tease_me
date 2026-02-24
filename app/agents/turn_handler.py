@@ -150,6 +150,7 @@ async def _build_user_name_block(db, user_id) -> str:
 
 async def extract_and_store_facts_for_turn(
     message: str,
+    reply: str,
     recent_ctx: str,
     chat_id: str,
     cid: str,
@@ -157,9 +158,11 @@ async def extract_and_store_facts_for_turn(
     async with SessionLocal() as db:
         try:
             fact_prompt = await get_fact_prompt(db)
+            
+            exchange = f"user: {message}\nai: {reply}"
 
             facts_resp = await FACT_EXTRACTOR.ainvoke(
-                fact_prompt.format(msg=message, ctx=recent_ctx)
+                fact_prompt.format(msg=exchange, ctx=recent_ctx)
             )
 
             facts_txt = facts_resp.content or ""
@@ -348,6 +351,7 @@ async def handle_turn(
         fact_task = asyncio.create_task(
             extract_and_store_facts_for_turn(
                 message=message,
+                reply=reply,
                 recent_ctx=recent_ctx,
                 chat_id=chat_id,
                 cid=cid,
