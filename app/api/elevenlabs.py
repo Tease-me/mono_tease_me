@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from itertools import chain
 from typing import Any, Dict, List, Optional
 from app.core.config import settings
-from app.db.models import Influencer, Chat, Message, CallRecord, User, PreInfluencer
+from app.db.models import Influencer, Chat, Message, CallRecord, User, PreInfluencer, Memory
 from app.db.session import get_db
 from app.utils.auth.dependencies import get_current_user
 from app.schemas.elevenlabs import FinalizeConversationBody, RegisterConversationBody, UpdatePromptBody
@@ -1450,6 +1450,20 @@ async def get_conversation_token(
     users_name = await _build_user_name_block(db, user_id)
     memories = await get_all_memory_list(db, user_id, influencer_id)
     memory = await summarize_memory_list(memories or [], model=settings.DEFAULT_SUMMARIZATION_MODEL)
+
+    # Fetch AI decisions/memories
+    ai_mem_query = select(Memory.content).where(
+        Memory.chat_id.in_(
+            select(Chat.id).where(
+                Chat.user_id == user_id, Chat.influencer_id == influencer_id
+            )
+        ),
+        Memory.sender == "system"
+    ).order_by(Memory.created_at.desc()).limit(20)
+    ai_mem_res = await db.execute(ai_mem_query)
+    ai_mem_list = [row[0] for row in ai_mem_res.fetchall()]
+    ai_mem_block = "\n".join(f"- {m}" for m in ai_mem_list)
+
     prompt = build_relationship_prompt(
         prompt_template,
         rel=rel,
@@ -1461,6 +1475,7 @@ async def get_conversation_token(
         persona_dislikes=persona_dislikes,
         mbti_rules=mbti_rules,
         memories=memory,
+        ai_memories=ai_mem_block,
         daily_context=daily_context,
         last_user_message=recent_ctx,
         mood=time_context,
