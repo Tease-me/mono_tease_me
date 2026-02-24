@@ -61,7 +61,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
     if (ringtoneRef.current) {
       ringtoneRef.current.stop();
     }
-  }, []);
+  }, [ringtoneRef]);
 
   const [micMuted, setMicMuted] = useState<boolean>(false);
 
