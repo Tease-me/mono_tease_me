@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-log = logging.getLogger("inactivity")
+log = logging.getLogger(__name__)
 
 REENGAGEMENT_INACTIVE_DAYS = 3
 REENGAGEMENT_MIN_BALANCE_CENTS = 10_000  # $100

@@ -30,12 +30,10 @@ def configure_logging() -> None:
     log_path.parent.mkdir(parents=True, exist_ok=True)
     log_path.touch(exist_ok=True)
 
-    console_format = (
-        f"%(asctime)s %(levelname)s %(name)s env={app_env}: %(message)s"
-    )
+    console_format = "%(asctime)s %(levelname)s %(name)s: %(message)s"
     # Structured key=value format for production without extra dependencies.
     production_format = (
-        f'ts=%(asctime)s level=%(levelname)s logger=%(name)s env={app_env} msg="%(message)s"'
+        'ts=%(asctime)s level=%(levelname)s logger=%(name)s msg="%(message)s"'
     )
     chosen_format = "production" if app_env == "production" else "console"
 
@@ -79,6 +77,8 @@ def configure_logging() -> None:
                 "httpx": {"level": "WARNING", "propagate": True},
                 "httpcore": {"level": "WARNING", "propagate": True},
                 "openai": {"level": "WARNING", "propagate": True},
+                "hpack": {"level": "WARNING", "propagate": True},
+                "hpack.hpack": {"level": "WARNING", "propagate": True},
             },
             "root": {"handlers": root_handlers, "level": log_level},
         }
