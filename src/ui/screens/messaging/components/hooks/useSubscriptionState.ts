@@ -1,23 +1,25 @@
 import type { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
+import type { CallStatus } from "@/hooks/useCallWebRTC";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   fetchSubscriptionStatus,
   setAdultModeSelection,
   startInfluencerSubscription,
 } from "@/store/subscriptionSlice";
+import { showErrorModal } from "@/utils/errorModal";
 import logger from "@/utils/logger";
 import { useCallback, useEffect, useState } from "react";
 
 interface UseSubscriptionStateProps {
   influencer?: InfluencerDataModel;
   openSubscribe?: boolean;
-  blockIfCallActive: () => boolean;
+  callStatus: CallStatus;
 }
 
 export function useSubscriptionState({
   influencer,
   openSubscribe,
-  blockIfCallActive,
+  callStatus,
 }: UseSubscriptionStateProps) {
   const dispatch = useAppDispatch();
   const { isSubscribing } = useAppSelector((state) => state.subscription);
@@ -53,7 +55,13 @@ export function useSubscriptionState({
 
   const handleAdultModeChange = useCallback(
     async (checked: boolean) => {
-      if (blockIfCallActive()) return;
+      if (callStatus === "connected" || callStatus === "connecting") {
+        showErrorModal({
+          title: "Active Call in Progress",
+          message: "End the call before changing mode.",
+        });
+        return;
+      }
 
       if (!influencer) {
         setAdultModeSwitch(false);
@@ -154,7 +162,7 @@ export function useSubscriptionState({
         );
       }
     },
-    [dispatch, influencer],
+    [dispatch, influencer, callStatus],
   );
 
   const handleSubscribePressed = useCallback(async () => {
