@@ -332,17 +332,19 @@ async def upsert_memory(
     try:
         embedding_str = "[" + ",".join(str(x) for x in embedding) + "]"
 
-        # 1. Search for similar memory (prefer most similar, then most recent)
+        # 1. Search for similar memory (prefer most similar, then most recent), restricting search to the same sender type
         sql_find = text("""
             SELECT id, embedding <=> :embedding AS similarity
             FROM memories
             WHERE chat_id = :chat_id
+              AND sender = :sender
               AND embedding IS NOT NULL
             ORDER BY similarity ASC, created_at DESC
             LIMIT 1
         """)
         params_find = {
             "chat_id": chat_id,
+            "sender": sender,
             "embedding": embedding_str,
         }
         result = await db.execute(sql_find, params_find)

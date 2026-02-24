@@ -142,6 +142,53 @@ async def summarize_memory_list(
     resp = await chain.ainvoke({"memory_block": memory_block})
     return (resp.content or "").strip() or "(empty summary)"
 
+async def summarize_ai_memory_list(
+    memories: list[str],
+    model: str = "gpt-4o-mini",
+    max_items: int = 400,
+) -> str:
+    """
+    Summarize a list of AI memory strings into strategic behavioral categories.
+    """
+    if not memories:
+        return "No AI decisions or promises recorded yet."
+
+    selected = memories[:max_items]
+    omitted = max(0, len(memories) - len(selected))
+    memory_block = "\n".join(f"- {m}" for m in selected)
+    if omitted:
+        memory_block += f"\n- ... ({omitted} additional memory lines omitted for brevity)"
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                "You summarize an AI influencer's past actions, boundaries, and relationship decisions based on memory logs. "
+                "Be incredibly concise and factual. Speak in the third person about the AI (e.g. 'The AI promised...').",
+            ),
+            (
+                "human",
+                "Organize the AI's past decisions into the following critical categories:\n"
+                "1) Core Promises & Commitments (What has the AI agreed to do?)\n"
+                "2) Established Boundaries & Refusals (What has the AI strictly said 'no' to?)\n"
+                "3) Current Persona Dynamic (How is the AI currently acting towards the user?)\n"
+                "4) Open Teases / Unresolved Actions (What cliffhangers or games are currently in play?)\n"
+                "5) One-paragraph Overall Stance (A concise summary of how the AI should position itself right now)\n\n"
+                "Only use information present in the memories. If a category lacks info, just say 'None'.\n\n"
+                "AI Memories:\n{memory_block}",
+            ),
+        ]
+    )
+    llm = ChatOpenAI(
+        model=model,
+        temperature=0.2,
+        max_tokens=700,
+        store=False,
+    )
+    chain = prompt | llm
+    resp = await chain.ainvoke({"memory_block": memory_block})
+    return (resp.content or "").strip() or "(empty summary)"
+
 
 async def get_summarized_memories(
     db,
@@ -161,6 +208,7 @@ async def get_all_memory_list(
     db,
     user_id: int,
     influencer_id: str,
+    exclude_sender: str = None,
 ) -> list[str]:
     """
     Return all memory-related text for a user-influencer pair as a plain list[str].
@@ -189,6 +237,9 @@ async def get_all_memory_list(
         )
         .where(Memory.chat_id.in_(chat_ids))
     )
+    if exclude_sender:
+        memories_q = memories_q.where(Memory.sender != exclude_sender)
+
     messages_q = (
         select(
             Message.content.label("content"),
@@ -441,14 +492,25 @@ async def store_facts_batch(
         if not emb:  # Skip failed embeddings
             continue
         try:
-            await upsert_memory(
+            # Dynamically route memory by checking who the fact is about
+            fact_sender = sender
+            if sender == "system":
+                lower_fact = fact.lower().strip()
+                if lower_fact.startswith("user") or lower_fact.startswith("the user"):
+                    fact_sender = "user"
+
+            action = await upsert_memory(
                 db=db,
                 chat_id=chat_id,
                 content=fact,
                 embedding=emb,
-                sender=sender
+                sender=fact_sender
             )
             stored += 1
+            log.info(
+                "[MEMORY] %s fact for chat=%s sender=%s: %s",
+                (action or "unknown").upper(), chat_id, fact_sender, fact[:80],
+            )
         except Exception as exc:
             log.error("Failed to store fact=%r chat=%s: %s", fact, chat_id, exc)
     
