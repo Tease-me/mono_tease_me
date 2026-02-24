@@ -13,7 +13,7 @@ from app.services.re_engagement import (
     DEFAULT_MIN_BALANCE_CENTS,
 )
 
-log = logging.getLogger("re_engagement_api")
+log = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/re-engagement", tags=["re-engagement"])
 

@@ -16,7 +16,7 @@ from app.services.system_prompt_service import get_system_prompt
 from app.constants import prompt_keys
 
 import logging
-log = logging.getLogger("teaseme-script")
+log = logging.getLogger(__name__)
 
 _TIME_RANGE_RE = re.compile(r"^\s*(\d{1,2})\s*(AM|PM)\s*-\s*(\d{1,2})\s*(AM|PM)\s*$", re.IGNORECASE)
 
@@ -264,6 +264,7 @@ def build_relationship_prompt(
     persona_dislikes: list[str] | None = None,
     mbti_rules: str = "",
     memories: str = "",
+    ai_memories: str = "",
     daily_context: str = "",
     last_user_message: str = "",
     tone: str = "",
@@ -298,6 +299,7 @@ def build_relationship_prompt(
         "dislikes": ", ".join(map(str, persona_dislikes or [])),
         "mbti_rules": mbti_rules,
         "memories": memories,
+        "ai_memories": ai_memories,
         "daily_context": daily_context,
         "last_user_message": last_user_message,
         "tone": tone,

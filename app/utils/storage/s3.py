@@ -12,7 +12,7 @@ from app.core.config import settings
 from app.schemas.chat import MessageSchema
 
  
-log = logging.getLogger("s3")
+log = logging.getLogger(__name__)
 
 s3 = boto3.client(
     "s3",

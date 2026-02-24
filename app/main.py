@@ -35,7 +35,7 @@ from app.api.elevenlabs import close_elevenlabs_client
 from app.core.logging import configure_logging
 
 configure_logging()
-log = logging.getLogger("teaseme")
+log = logging.getLogger(__name__)
 
 origins_str = os.getenv("CORS_ORIGINS", "")
 origins = [origin.strip() for origin in origins_str.split(",") if origin.strip()]

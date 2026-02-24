@@ -37,7 +37,7 @@ ALGORITHM = settings.ALGORITHM
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
-log = logging.getLogger("chat")
+log = logging.getLogger(__name__)
 
 # Configure for regular (non-18+) chats
 CHAT_CONFIG = ChatConfig.regular(turn_handler=handle_turn)

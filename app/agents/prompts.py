@@ -6,7 +6,7 @@ from app.core.config import settings
 from app.services.system_prompt_service import get_system_prompt
 from app.constants import prompt_keys
 
-log = logging.getLogger("teaseme-prompts")
+log = logging.getLogger(__name__)
 
 MODEL = ChatOpenAI(
     api_key=settings.OPENAI_API_KEY,

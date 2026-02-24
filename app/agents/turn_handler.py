@@ -24,7 +24,7 @@ from app.utils.logging.prompt_logging import log_prompt
 
 from app.relationship.processor import process_relationship_turn
 
-log = logging.getLogger("teaseme-turn")
+log = logging.getLogger(__name__)
 
 SESSION_BREAK_TAG = "[SESSION BREAK]"
 
@@ -257,7 +257,18 @@ async def handle_turn(
     dtr_goal = rel_pack["dtr_goal"]
 
     memories = memories_result[0] if isinstance(memories_result, tuple) else memories_result
-    mem_block = "\n".join(s for s in (_norm(m) for m in memories or []) if s)
+    
+    # Split memories by sender type
+    if isinstance(memories, dict):
+        user_mems = memories.get("user_memories", [])
+        ai_mems = memories.get("ai_memories", [])
+    else:
+        # Backward compat: if it's a plain list, treat all as user memories
+        user_mems = memories or []
+        ai_mems = []
+    
+    mem_block = "\n".join(s for s in (_norm(m) for m in user_mems) if s)
+    ai_mem_block = "\n".join(s for s in (_norm(m) for m in ai_mems) if s)
 
     bio = influencer.bio_json or {}
 
@@ -300,6 +311,7 @@ async def handle_turn(
         persona_dislikes=persona_dislikes,
         mbti_rules=mbti_rules,
         memories=mem_block,
+        ai_memories=ai_mem_block,
         daily_context=daily_context,
         last_user_message=recent_ctx,
         mood=time_context,
