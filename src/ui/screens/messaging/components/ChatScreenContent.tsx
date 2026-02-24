@@ -66,35 +66,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
 }) => {
   const dispatch = useAppDispatch();
 
-  const blockIfCallActive = () => {
-    const isCallActive = status === "connected" || status === "connecting";
-    if (isCallActive) {
-      showErrorModal({
-        title: "Active Call in Progress",
-        message: "End the call before navigating away.",
-      });
-      return true;
-    }
-    return false;
-  };
-
-  const {
-    influencer,
-    influencers,
-    hasMultipleInfluencers,
-    isSelectingInfluencer,
-    handleSelect,
-    handleChangeInfluencerClicked,
-  } = useInfluencerSelection(blockIfCallActive, defaultInfluencerId);
-
-  useEffect(() => {
-    if (influencer?.id) {
-      dispatch(chatScreenActions.setCurrentInfluencer(influencer));
-    } else {
-      dispatch(chatScreenActions.setCurrentInfluencer(undefined));
-    }
-  }, [dispatch, influencer]);
-
   const {
     chatId,
     messages,
@@ -165,6 +136,27 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     },
   });
 
+  const blockIfCallActive = useCallback(() => {
+    const isCallActive = status === "connected" || status === "connecting";
+    if (isCallActive) {
+      showErrorModal({
+        title: "Active Call in Progress",
+        message: "End the call before navigating away.",
+      });
+      return true;
+    }
+    return false;
+  }, [status]);
+
+  const {
+    influencer,
+    influencers,
+    hasMultipleInfluencers,
+    isSelectingInfluencer,
+    handleSelect,
+    handleChangeInfluencerClicked,
+  } = useInfluencerSelection(status, defaultInfluencerId);
+
   const {
     adultMode,
     adultModeSwitch,
@@ -178,7 +170,15 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     setShowErrorAlert,
     handleAdultModeChange,
     handleSubscribePressed,
-  } = useSubscriptionState({ influencer, openSubscribe, blockIfCallActive });
+  } = useSubscriptionState({ influencer, openSubscribe, callStatus: status });
+
+  useEffect(() => {
+    if (influencer?.id) {
+      dispatch(chatScreenActions.setCurrentInfluencer(influencer));
+    } else {
+      dispatch(chatScreenActions.setCurrentInfluencer(undefined));
+    }
+  }, [dispatch, influencer]);
 
   const displayMessages = useMemo(
     () => (messages ? mergeCallMessages(messages) : []),
