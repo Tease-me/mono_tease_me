@@ -60,8 +60,10 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
   const stopRing = useCallback(() => {
     if (ringtoneRef.current) {
       ringtoneRef.current.stop();
+      ringtoneRef.current.unload();
+      ringtoneRef.current = null;
     }
-  }, [ringtoneRef]);
+  }, []);
 
   const [micMuted, setMicMuted] = useState<boolean>(false);
 

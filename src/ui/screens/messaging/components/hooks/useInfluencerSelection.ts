@@ -1,6 +1,8 @@
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import type { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
+import type { CallStatus } from "@/hooks/useCallWebRTC";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { showErrorModal } from "@/utils/errorModal";
 import { storage } from "@/utils/storage";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 
@@ -29,7 +31,7 @@ const getFollowedInfluencersCached = async () => {
 };
 
 export function useInfluencerSelection(
-  blockIfCallActive: () => boolean,
+  callStatus: CallStatus,
   defaultInfluencerId?: string,
 ) {
   const [selectedId, setSelectedId] = useState<string | undefined>(() => {
@@ -98,10 +100,16 @@ export function useInfluencerSelection(
   }, []);
 
   const handleChangeInfluencerClicked = useCallback(() => {
-    if (blockIfCallActive()) return;
+    if (callStatus === "connected" || callStatus === "connecting") {
+      showErrorModal({
+        title: "Active Call in Progress",
+        message: "End the call before switching influencer.",
+      });
+      return;
+    }
     setSelectedId(undefined);
     setNeedsSelection(true);
-  }, []);
+  }, [callStatus]);
 
   const isSelectingInfluencer = useMemo(
     () => needsSelection && !selectedId,
