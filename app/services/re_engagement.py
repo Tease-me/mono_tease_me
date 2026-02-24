@@ -19,7 +19,7 @@ from app.services.system_prompt_service import get_system_prompt
 from app.constants import prompt_keys
 # from app.utils.s3 import generate_presigned_url  # - text only for now
 
-log = logging.getLogger("re_engagement")
+log = logging.getLogger(__name__)
 
 DEFAULT_INACTIVE_DAYS = 3
 DEFAULT_MIN_BALANCE_CENTS = 50_00  # $50

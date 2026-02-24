@@ -6,7 +6,7 @@ from typing import Tuple
 from fastapi import HTTPException
 from app.agents.prompts import OPENAI_ASSISTANT_LLM, DEFAULT_AGENT_MODEL as PROMPTS_DEFAULT_AGENT_MODEL
 
-log = logging.getLogger("openai.assistants")
+log = logging.getLogger(__name__)
 
 DEFAULT_AGENT_MODEL = PROMPTS_DEFAULT_AGENT_MODEL
 

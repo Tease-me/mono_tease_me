@@ -20,7 +20,7 @@ from typing import Optional
 from app.constants.relationship_stages import STAGE_POINTS_MIN, STAGE_POINTS_MAX
 
 router = APIRouter(prefix="/admin", tags=["admin"])
-log = logging.getLogger("admin")
+log = logging.getLogger(__name__)
 
 @router.delete("/chats/history/{chat_id}")
 async def clear_chat_history_admin(

@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models import User, ContentViolation
 from app.moderation.detector import ModerationResult
 
-log = logging.getLogger("moderation.actions")
+log = logging.getLogger(__name__)
 
 
 async def flag_user(

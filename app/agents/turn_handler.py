@@ -24,7 +24,7 @@ from app.utils.logging.prompt_logging import log_prompt
 
 from app.relationship.processor import process_relationship_turn
 
-log = logging.getLogger("teaseme-turn")
+log = logging.getLogger(__name__)
 
 SESSION_BREAK_TAG = "[SESSION BREAK]"
 

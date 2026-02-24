@@ -16,7 +16,7 @@ from app.services.system_prompt_service import get_system_prompt
 from app.constants import prompt_keys
 
 import logging
-log = logging.getLogger("teaseme-script")
+log = logging.getLogger(__name__)
 
 _TIME_RANGE_RE = re.compile(r"^\s*(\d{1,2})\s*(AM|PM)\s*-\s*(\d{1,2})\s*(AM|PM)\s*$", re.IGNORECASE)
 

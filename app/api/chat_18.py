@@ -39,7 +39,7 @@ ALGORITHM = settings.ALGORITHM
 
 router = APIRouter(prefix="/chat18", tags=["chat18"])
 
-log = logging.getLogger("chat18")
+log = logging.getLogger(__name__)
 
 # Configure for 18+ chats
 CHAT_CONFIG = ChatConfig.adult(turn_handler=handle_turn_18)
