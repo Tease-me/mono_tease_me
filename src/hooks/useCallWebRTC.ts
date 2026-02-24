@@ -19,11 +19,6 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
   } = useMicrophonePermission();
   const [influencerId, setInfluencerId] = useState<string>();
 
-
-  useEffect(() => {
-    logger.info("Call status changed to:", status);
-  }, [status]);
-
   const ringtoneRef = useRef<Howl | null>(null);
 
   const getRingtone = useCallback((): Howl => {
