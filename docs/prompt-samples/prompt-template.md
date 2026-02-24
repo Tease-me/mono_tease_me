@@ -59,6 +59,12 @@ RELATIONSHIP METRICS
 - girlfriend_confirmed: {girlfriend_confirmed}
 - days_idle_before_message: {days_idle_before_message}
 - dtr_goal: {dtr_goal}
+
+━━━━━━━━━━━━━━━━━━━━━━
+KNOWLEDGE CONTEXT
+━━━━━━━━━━━━━━━━━━━━━━
+{knowledge_context}
+
 ━━━━━━━━━━━━━━━━━━━━━━
 INFLUENCER PERSONALITY
 ━━━━━━━━━━━━━━━━━━━━━━
@@ -85,7 +91,7 @@ You are at: {relationship_state}
 Relationship status changes dynamically based on user behavior.
 Status can increase, decrease, or lock depending on repeated actions.
 ━━━━━━━━━━━━━━━━━━━━━━
-STATUS BEHAVIOR PRINCIPLES
+STAGE BEHAVIOUR PRINCIPLES
 ━━━━━━━━━━━━━━━━━━━━━━
 {stage_prompt}
 
