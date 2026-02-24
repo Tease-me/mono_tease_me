@@ -11,11 +11,17 @@ from app.utils.auth.dependencies import get_current_user
 
 from sqlalchemy import select, func, desc
 from app.db.models import RelationshipState, Influencer,User
-from app.services.knowledge_rag import (
-    count_knowledge_chunks,
-    delete_influencer_knowledge,
-    get_influencer_knowledge_document,
-    upsert_influencer_knowledge,
+from app.domain.errors.knowledge_errors import (
+    KnowledgeNotFoundError,
+    KnowledgePersistenceError,
+    KnowledgeSyncError,
+    KnowledgeValidationError,
+)
+from app.schemas.knowledge import KnowledgeUpsertInput
+from app.use_cases.knowledge_sync import (
+    delete_knowledge_remote_first,
+    get_knowledge_for_admin,
+    upsert_knowledge_remote_first,
 )
 from app.utils.storage.s3 import save_sample_audio_to_s3, generate_presigned_url, delete_file_from_s3
 
@@ -566,25 +572,32 @@ async def upsert_knowledge(
         raise HTTPException(status_code=404, detail="Influencer not found")
 
     try:
-        document, chunk_count = await upsert_influencer_knowledge(
+        result = await upsert_knowledge_remote_first(
             db=db,
-            influencer_id=influencer_id,
-            raw_text=payload.text,
+            influencer=influencer,
+            payload=KnowledgeUpsertInput(
+                influencer_id=influencer_id,
+                text=payload.text,
+            ),
         )
-    except ValueError as exc:
-        await db.rollback()
+    except KnowledgeValidationError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
+    except KnowledgeSyncError as exc:
+        log.error("knowledge_sync_failed influencer_id=%s err=%s", influencer_id, exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to sync knowledge with ElevenLabs")
+    except KnowledgePersistenceError as exc:
+        log.error("knowledge_persist_failed influencer_id=%s err=%s", influencer_id, exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to persist influencer knowledge")
     except Exception as exc:
-        await db.rollback()
         log.error("knowledge_upsert_failed influencer_id=%s err=%s", influencer_id, exc, exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to upsert influencer knowledge")
 
     return {
         "ok": True,
         "influencer_id": influencer_id,
-        "document_id": document.id,
-        "chunk_count": chunk_count,
-        "updated_at": document.updated_at.isoformat() if document.updated_at else None,
+        "document_id": result.document_id,
+        "chunk_count": result.chunk_count,
+        "updated_at": result.updated_at,
     }
 
 
@@ -601,19 +614,25 @@ async def get_knowledge(
     if not influencer:
         raise HTTPException(status_code=404, detail="Influencer not found")
 
-    document = await get_influencer_knowledge_document(db, influencer_id)
-    if not document:
-        raise HTTPException(status_code=404, detail="Knowledge not found for influencer")
+    try:
+        document_id, text_value, text_hash, chunk_count, updated_at, _remote_document_id = await get_knowledge_for_admin(
+            db=db,
+            influencer_id=influencer_id,
+        )
+    except KnowledgeNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    except Exception as exc:
+        log.error("knowledge_get_failed influencer_id=%s err=%s", influencer_id, exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to fetch influencer knowledge")
 
-    chunk_count = await count_knowledge_chunks(db, influencer_id)
     return {
         "ok": True,
         "influencer_id": influencer_id,
-        "document_id": document.id,
-        "text": document.raw_text,
-        "text_hash": document.text_hash,
+        "document_id": document_id,
+        "text": text_value,
+        "text_hash": text_hash,
         "chunk_count": chunk_count,
-        "updated_at": document.updated_at.isoformat() if document.updated_at else None,
+        "updated_at": updated_at,
     }
 
 
@@ -631,13 +650,22 @@ async def delete_knowledge(
         raise HTTPException(status_code=404, detail="Influencer not found")
 
     try:
-        deleted = await delete_influencer_knowledge(db, influencer_id)
+        result = await delete_knowledge_remote_first(
+            db=db,
+            influencer=influencer,
+        )
+    except KnowledgeValidationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except KnowledgeNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    except KnowledgeSyncError as exc:
+        log.error("knowledge_delete_sync_failed influencer_id=%s err=%s", influencer_id, exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to sync delete with ElevenLabs")
+    except KnowledgePersistenceError as exc:
+        log.error("knowledge_delete_persist_failed influencer_id=%s err=%s", influencer_id, exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to delete influencer knowledge")
     except Exception as exc:
-        await db.rollback()
         log.error("knowledge_delete_failed influencer_id=%s err=%s", influencer_id, exc, exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to delete influencer knowledge")
 
-    if not deleted:
-        raise HTTPException(status_code=404, detail="Knowledge not found for influencer")
-
-    return {"ok": True, "influencer_id": influencer_id, "deleted": True}
+    return {"ok": True, "influencer_id": influencer_id, "deleted": result.deleted}

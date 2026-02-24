@@ -74,3 +74,29 @@ class InfluencerKnowledgeChunk(Base):
 
     document: Mapped["InfluencerKnowledgeDocument"] = relationship(back_populates="chunks")
     influencer: Mapped["Influencer"] = relationship()
+
+
+class InfluencerKnowledgeSync(Base):
+    """Maps influencer knowledge to ElevenLabs knowledge document ids."""
+
+    __tablename__ = "influencer_knowledge_sync"
+
+    influencer_id: Mapped[str] = mapped_column(
+        ForeignKey("influencers.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    eleven_document_id: Mapped[str] = mapped_column(String, nullable=False)
+    eleven_document_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    eleven_document_type: Mapped[str] = mapped_column(String, nullable=False, default="text")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    influencer: Mapped["Influencer"] = relationship()

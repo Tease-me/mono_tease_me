@@ -24,7 +24,11 @@ from .user import User
 
 # Influencer models
 from .influencer import Influencer, InfluencerFollower, PreInfluencer
-from .knowledge import InfluencerKnowledgeDocument, InfluencerKnowledgeChunk
+from .knowledge import (
+    InfluencerKnowledgeDocument,
+    InfluencerKnowledgeChunk,
+    InfluencerKnowledgeSync,
+)
 
 # Chat and messaging models
 from .chat import Chat, Message, Chat18, Message18, Memory, CallRecord
@@ -67,6 +71,7 @@ __all__ = [
     "PreInfluencer",
     "InfluencerKnowledgeDocument",
     "InfluencerKnowledgeChunk",
+    "InfluencerKnowledgeSync",
     # Chat
     "Chat",
     "Message",
