@@ -81,6 +81,11 @@ export const Endpoints = {
       `admin/relationships?user_id=${user_id}`,
 
     patchRelationship: `admin/relationships`,
+    knowledge: {
+      get:    (influencerId: string) => `admin/influencers/${encodeURIComponent(influencerId)}/knowledge`,
+      upsert: (influencerId: string) => `admin/influencers/${encodeURIComponent(influencerId)}/knowledge`,
+      delete: (influencerId: string) => `admin/influencers/${encodeURIComponent(influencerId)}/knowledge`,
+    },
   },
   subscriptions: {
     start: "/subscriptions/start",
