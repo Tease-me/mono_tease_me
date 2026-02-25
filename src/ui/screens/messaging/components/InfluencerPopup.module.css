@@ -21,7 +21,7 @@
 .popupContainer {
   width: 100%;
   max-width: 72rem;
-  height: 100vh;
+  height: 100dvh;
   background: #181a20;
   border-radius: 0;
   overflow-y: auto;
@@ -151,6 +151,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -160,6 +161,7 @@
   from {
     transform: translateY(-150%);
   }
+
   to {
     transform: translateY(0);
   }
@@ -169,6 +171,7 @@
   from {
     transform: translateY(0);
   }
+
   to {
     transform: translateY(-150%);
   }
@@ -178,6 +181,7 @@
   from {
     opacity: 1;
   }
+
   to {
     opacity: 0;
   }

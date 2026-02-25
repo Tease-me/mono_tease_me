@@ -1,6 +1,6 @@
 .dialog-screen {
   width: 100%;
-  min-height: 100vh;
+  min-height: 100dvh;
   overflow-y: scroll;
   padding: 32px 16px;
   display: flex;
@@ -11,7 +11,7 @@
 
 .dialog-frame {
   width: 100%;
- 
+
   border-radius: 32px;
   padding: 16px;
   background: #b3123d;
@@ -21,12 +21,10 @@
 /* faz o card escuro ficar “encaixado” dentro do frame */
 .dialog-frame .ic-card {
   border-radius: 26px;
-  background: radial-gradient(
-    circle at top,
-    #2a2226 0%,
-    #141214 70%,
-    #141012 100%
-  );
+  background: radial-gradient(circle at top,
+      #2a2226 0%,
+      #141214 70%,
+      #141012 100%);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: none;
 }
