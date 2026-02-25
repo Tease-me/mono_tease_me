@@ -7,6 +7,8 @@ import { apiClient } from "@/api/apis";
 import logger from "@/utils/logger";
 
 import { AdultVerificationSerivces } from "@/api/services/AdultVerificationServices";
+import { LocalStorageKeys } from "@/constants/localStorageKeys";
+import { storage } from "@/utils/storage";
 
 type AdultTermsModalProps = {
   isOpen: boolean;
@@ -26,16 +28,16 @@ export default function AdultTermsModal({
   influencerName,
   influencerImageUrl,
 }: AdultTermsModalProps) {
-
   const verificationService = AdultVerificationSerivces(apiClient);
 
   const handleAgree = async () => {
     try {
-      const verificationSession = await verificationService.startVerificationSession();
+      const verificationSession =
+        await verificationService.startVerificationSession();
       verificationSession?.response?.data?.session_id;
       const url = verificationSession?.verification_url;
       if (!url) {
-        alert("No URL found")
+        alert("No URL found");
         throw new Error("No verification URL returned");
       }
       const targetData = JSON.stringify({
@@ -43,14 +45,12 @@ export default function AdultTermsModal({
         img: influencerImageUrl,
         name: influencerName,
       });
-      localStorage.setItem("adultVerificationTarget", targetData);
-      window.location.href = url
-    }
-
-    catch (err: any) {
+      storage.set(LocalStorageKeys.AdultVerificationTarget, targetData);
+      window.location.href = url;
+    } catch (err: any) {
       logger.error(err);
     }
-  }
+  };
 
   const header = (
     <>
@@ -62,7 +62,10 @@ export default function AdultTermsModal({
       </div>
       <div className={styles.headerTitle}>
         <div className={styles.title}>You need to be 18+ to proceed</div>
-        <p className={styles.subtitle}>Please read the terms and conditions below. If you agree to them we will begin age verification.</p>
+        <p className={styles.subtitle}>
+          Please read the terms and conditions below. If you agree to them we
+          will begin age verification.
+        </p>
       </div>
     </>
   );
@@ -130,10 +133,11 @@ export default function AdultTermsModal({
       <section className={styles.section}>
         <h4>Moderation and Enforcement</h4>
         <p>
-          TeaseMe reserves the right to monitor, restrict, remove, or block adult
-          content and user access where violations of this policy or applicable
-          laws are identified. Violations may result in immediate suspension or
-          termination of access to adult features and/or the platform.
+          TeaseMe reserves the right to monitor, restrict, remove, or block
+          adult content and user access where violations of this policy or
+          applicable laws are identified. Violations may result in immediate
+          suspension or termination of access to adult features and/or the
+          platform.
         </p>
       </section>
 

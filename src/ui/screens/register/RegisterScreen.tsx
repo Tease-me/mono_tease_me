@@ -2,7 +2,6 @@ import { apiClient } from "@/api/apis";
 import { RegisterResponse } from "@/api/models/auth";
 import { AuthServices } from "@/api/services/AuthServices";
 
-
 import { AuthContext } from "@/context/AuthContext";
 import OnBoardingTopNav from "@/ui/components/nav/OnBoardingTopNav";
 import HeadingText from "@/ui/components/typography/HeadingText";
@@ -19,6 +18,8 @@ import { required, validateFields } from "@/utils/validations";
 import RegisterStepForm from "./RegisterStepForm";
 import UpdateProfileStepForm from "./UpdateProfileStepForm";
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
+import { storage } from "@/utils/storage";
+import { LocalStorageKeys } from "@/constants/localStorageKeys";
 
 export default function RegisterScreen() {
   const [step, setStep] = useState<1 | 2>(1);
@@ -64,15 +65,15 @@ export default function RegisterScreen() {
     (async () => {
       if (username) {
         try {
-          const res = await influencerRepo.getInfluencer(username)
-          localStorage.setItem("influencer_referral_id", res.id);
+          const res = await influencerRepo.getInfluencer(username);
+          storage.set(LocalStorageKeys.InfluencerReferralId, res.id);
         } catch (e) {
-          logger.debug(e)
-          navigate(Paths.root)
+          logger.debug(e);
+          navigate(Paths.root);
         }
       }
     })();
-  }, [username])
+  }, [username]);
 
   useEffect(() => {
     logger.debug("Register errors updated", {
@@ -122,9 +123,13 @@ export default function RegisterScreen() {
     return cleanErrors(nextErrors);
   };
 
-  const cleanErrors = <T extends Record<string, string | undefined>>(errors: T) =>
+  const cleanErrors = <T extends Record<string, string | undefined>>(
+    errors: T,
+  ) =>
     Object.fromEntries(
-      Object.entries(errors).filter(([, value]) => value !== undefined && value !== ""),
+      Object.entries(errors).filter(
+        ([, value]) => value !== undefined && value !== "",
+      ),
     ) as Partial<T>;
 
   const isAdult = (isoDate: string, minimumAge = 18) => {
@@ -199,7 +204,7 @@ export default function RegisterScreen() {
     try {
       setIsSubmitting(true);
       const influencerId =
-        localStorage.getItem("influencer_referral_id") || username || "";
+        storage.get(LocalStorageKeys.InfluencerReferralId) || username || "";
       const response: RegisterResponse = await authServices.register(
         account.password,
         account.email.toLowerCase(),
@@ -208,10 +213,12 @@ export default function RegisterScreen() {
         profile.gender,
         profile.userName,
         profile.dateOfBirth,
-        profile.profilePhotoFile
+        profile.profilePhotoFile,
       );
       const detailMessage =
-        typeof (response as any)?.detail === "string" ? (response as any).detail : undefined;
+        typeof (response as any)?.detail === "string"
+          ? (response as any).detail
+          : undefined;
       if (detailMessage) {
         setAccountErrors({ general: detailMessage });
         setProfileErrors((prev) => ({ ...prev, general: detailMessage }));
@@ -219,11 +226,17 @@ export default function RegisterScreen() {
       }
       if (response.ok) {
         navigate(Paths.registerVerify, {
-          state: { email: account.email, password: account.password, influencerId },
+          state: {
+            email: account.email,
+            password: account.password,
+            influencerId,
+          },
         });
         return;
       }
-      setAccountErrors({ general: "Registration Failed. Please Try Again Later" });
+      setAccountErrors({
+        general: "Registration Failed. Please Try Again Later",
+      });
       setProfileErrors((prev) => ({
         ...prev,
         general: "Registration Failed. Please Try Again Later",
@@ -271,14 +284,18 @@ export default function RegisterScreen() {
         error = "You must be at least 18 years old";
       }
     }
-    if (field === "email" || field === "password" || field === "confirmPassword") {
+    if (
+      field === "email" ||
+      field === "password" ||
+      field === "confirmPassword"
+    ) {
       setAccountErrors((prev) => ({ ...prev, [field]: error }));
       return;
     }
     setProfileErrors((prev) => ({ ...prev, [field]: error }));
   };
   const handleEditProfileMediaClicked = () => {
-    console.warn("Edit Clicked")
+    console.warn("Edit Clicked");
   };
   const handleBackClick = () => {
     if (step === 2) {

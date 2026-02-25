@@ -11,6 +11,8 @@ import AddonButton from "@/ui/components/inputs/buttons/AddonButton";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import SvgPack from "@/utils/SvgPack";
 import logger from "@/utils/logger";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { startInfluencerSubscription } from "@/store/subscriptionSlice";
 
 import { Modal } from "@/ui/components/modals/Modal";
 
@@ -22,6 +24,8 @@ type SubscriptionProps = {
 
 
 const Subscription = ({ navPayload }: SubscriptionProps) => {
+  const dispatch = useAppDispatch();
+  const { isSubscribing } = useAppSelector((state) => state.subscription);
 
   const subscriptionPlanSvc = SubscriptionsServices(apiClient);
   const influencerId = navPayload.influencerId;
@@ -38,7 +42,6 @@ const Subscription = ({ navPayload }: SubscriptionProps) => {
   const featuredPlan = recurringPlans.find((p) => p.is_featured)?.id;
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
 
-  const [subscribing, setSubscribing] = useState(false);
   const [alertMsg, setAlertMsg] = useState<string | null>("");
   const [showAlertModal, setShowAlertModal] = useState(false);
 
@@ -76,28 +79,21 @@ const Subscription = ({ navPayload }: SubscriptionProps) => {
       setAlertMsg("Missing plan or influencer.");
       return;
     }
-    setSubscribing(true);
     setAlertMsg(null);
     try {
-      const sub = await subscriptionPlanSvc.startSubscription(influencerId, selectedPlan.id);
-      const subId = sub.subscription_id;
-      try {
-        await subscriptionPlanSvc.captureSubscription(subId, "XXXXXX", selectedPlan.price_cents);
-      }
-      catch (errr: any) {
-        setAlertMsg(errr?.response?.data?.detail ?? "Error capturing subscription");
-        logger.error(errr);
-        return;
-      }
-      await subscriptionPlanSvc.activateMySubscriptionForInfluencer(influencerId, true);
-      setAlertMsg("Subscription successful.")
+      const result = await dispatch(
+        startInfluencerSubscription({
+          influencerId,
+          planId: selectedPlan.id,
+          amountCents: selectedPlan.price_cents,
+        })
+      );
+      setAlertMsg(result.message);
     } catch (err: any) {
       logger.error(err);
       setAlertMsg(err?.response?.data?.detail?.message ?? "Error");
-    } finally {
-      setSubscribing(false);
-      setShowAlertModal(true);
     }
+    setShowAlertModal(true);
   };
 
   function centsToDollar(cents: number) {
@@ -161,13 +157,13 @@ const Subscription = ({ navPayload }: SubscriptionProps) => {
         </span>
         <PrimaryButton
           variant="purple"
-          text={subscribing ? "Processing..." :
+          text={isSubscribing ? "Processing..." :
             selectedPlan
               ? `Subscribe for $${centsToDollar(selectedPlan.price_cents)}`
               : "Subscribe"
           }
           onClick={handleOnSubscribeClick}
-          aria-disabled={subscribing}
+          aria-disabled={isSubscribing}
         />
         <span className={styles.note}>
           You will be charged, your subscription will auto-renew for the same price and package length until you cancel via account settings, and you agree to our Terms.

@@ -5,6 +5,8 @@ import TypingIndicator from './TypingIndicator';
 import { MediaAttachment, Message } from '@/data/models/MessageDataModel';
 import AudioPlayer from '@/ui/components/audio-player/AudioPlayer';
 import callIcon from "@/assets/svg/Call.svg";
+import { useAudioDuration } from '@/hooks/useAudioDuration';
+import { formatAudioDuration } from '@/utils/time';
 
 export interface CallMessageGroup {
     type: 'call-group';
@@ -49,7 +51,7 @@ const getCallDuration = (group?: CallMessageGroup) => {
     return formatDuration(end - start);
 };
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({
+const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({
     msg,
     callGroup,
     influencerName,
@@ -63,6 +65,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     const containerRef = useRef<HTMLDivElement>(null);
     const objectUrlMapRef = useRef<Map<Blob, string>>(new Map());
 
+    const audioAttachment = msg?.attachments?.find(a => a.type === 'audio');
+
     useLayoutEffect(() => {
         return () => {
             objectUrlMapRef.current.forEach((url) => {
@@ -73,6 +77,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     }, []);
 
     const getAudioUrl = (attachment: MediaAttachment): string => {
+        if (attachment.audioUrl) {
+            return attachment.audioUrl;
+        }
         if (attachment.blob) {
             const cachedUrl = objectUrlMapRef.current.get(attachment.blob);
             if (cachedUrl) return cachedUrl;
@@ -80,10 +87,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             objectUrlMapRef.current.set(attachment.blob, url);
             return url;
         }
-        if (attachment.audioUrl)
-            return attachment.audioUrl;
         return "";
     }
+
+    const audioUrl = audioAttachment ? getAudioUrl(audioAttachment) : '';
+    const audioDuration = useAudioDuration(audioUrl);
 
     const renderAttachments = (message?: Message) => {
         if (!message?.attachments) return null;
@@ -198,13 +206,18 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                         {transcriptExpanded ? "Hide transcript" : "Show transcript"}
                     </button>
                 )}
-                {!callGroup && <span className={styles["time"]}>{time}</span>}
+                {!callGroup && audioAttachment ? (
+                    <span className={styles["time"]}>{formatAudioDuration(audioDuration)}</span>
+                ) : (
+                    !callGroup && <span className={styles["time"]}>{time}</span>
+                )}
+                {/* {!callGroup && <span className={styles["time"]}>{time}</span>} */}
             </div>
             {hasTranscript && transcriptExpanded && (
                 <div className={styles["audio-transcript"]}>{msg?.transcript}</div>
             )}
         </div>
     );
-};
+});
 
 export default MessageBubble;

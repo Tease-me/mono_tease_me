@@ -7,7 +7,8 @@ import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 import { BillingServices } from "@/api/services/BillingServices";
 import { apiClient } from "@/api/apis";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
-
+import { storage } from "@/utils/storage";
+import { LocalStorageKeys } from "@/constants/localStorageKeys";
 
 const billing = BillingServices(apiClient);
 
@@ -72,9 +73,9 @@ export default function AddCreditsContent({
       });
 
       // store for return page fallback
-      localStorage.setItem("paypal_topup_order_id", order_id);
-      localStorage.setItem("paypal_topup_influencer_id", influencerId);
-      localStorage.setItem("paypal_topup_amount", String(dollars));
+      storage.set(LocalStorageKeys.PayPalOrderId, order_id);
+      storage.set(LocalStorageKeys.PayPalTopUpInfluencerId, influencerId);
+      storage.set(LocalStorageKeys.PayPalTopUpAmount, String(dollars));
 
       // redirect user to PayPal approval page
       window.location.href = approve_url;
@@ -145,7 +146,9 @@ export default function AddCreditsContent({
           className={styles.confirmBtn}
           onClick={onCancel}
         />
-        {payError && <div className={styles.payError}>{isPaying ? "" : payError}</div>}
+        {payError && (
+          <div className={styles.payError}>{isPaying ? "" : payError}</div>
+        )}
       </div>
     </div>
   );

@@ -28,7 +28,10 @@ export interface WelcomeScreenProps {
   showFollowBtn: boolean;
 }
 
-export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScreenProps) {
+export default function WelcomeScreen({
+  influencer,
+  showFollowBtn,
+}: WelcomeScreenProps) {
   const navigate = useNavigate();
 
   const [isFirstTime, setIsFirstTime] = useState(true);
@@ -37,7 +40,7 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
     useCall();
 
   const audioRef = useRef(
-    new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: true })
+    new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: true }),
   );
 
   const [error, setError] = useState<string | null>(null);
@@ -88,14 +91,15 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
       setWaiting(true);
       await followServices.follow(influencer.id);
       setError(null);
-      localStorage.setItem("selected_id", influencer.id);
+      storage.set(LocalStorageKeys.SelectedId, influencer.id);
+
       navigate("/home");
-      setWaiting(false)
+      setWaiting(false);
     } catch (err: any) {
       setWaiting(false);
       setError(err.message);
     }
-  }
+  };
 
   const incomingCall = status === "idle" && onTryClicked;
 
@@ -107,7 +111,7 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
             <ProfileMedia
               className={clsx(
                 styles["profile-container"],
-                onTryClicked && styles["zoomed"]
+                onTryClicked && styles["zoomed"],
               )}
               imageSrc={influencer.img}
               videoSrc={influencer.videoUrl}
@@ -117,38 +121,57 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
               mediaType="video"
             />
             {!onTryClicked && (
-              <h2 className={styles["join-text"]}>{!showFollowBtn ? 'Join' : 'Follow'} {influencer.name} on</h2>
+              <h2 className={styles["join-text"]}>
+                {!showFollowBtn ? "Join" : "Follow"} {influencer.name} on
+              </h2>
             )}
           </>
         )}
-        {incomingCall ? (<>
-          <div className={styles["incoming-call-text"]}>Incoming Call</div>
-          <div className={styles["influencer-name"]}>{influencer.name}</div>
-          <div className={styles["call-buttons"]}>
-            <IconButton leftIcon={<DropCallIcon color="red" />} onClick={handleHangUpCall} text="Reject" color="black" />
-            <AnimatedButton leftIcon={<CallIcon />} onClick={handlePickUpCall} text="Answer" color="green" />
-          </div>
-        </>) : <div className={styles["welcome-screen-container"]}>
-          <TeaseMeLogo size="xlarge" variant="full-dark" />
-          {!showFollowBtn && <p className={styles["signup-text"]}>
-            Don't have an account?{" "}
-            <span
-              className={styles["signup-link"]}
-              onClick={handleSignUpClick}
-              style={{ cursor: "pointer", color: "#ff4d6d" }}>
-              Sign up
-            </span>
-          </p>}
-          {!showFollowBtn && <DividerWithLabel text="or" />}
-          <div className={styles["buttons-container"]}>
-            {showFollowBtn ? (
-              <PrimaryButton
-                text={waiting ? "Connecting.." : "Follow me now"}
-                onClick={() => { handleFollowMe() }}
-                disabled={waiting}
-              />)
-              :
-              !isFirstTime ? (
+        {incomingCall ? (
+          <>
+            <div className={styles["incoming-call-text"]}>Incoming Call</div>
+            <div className={styles["influencer-name"]}>{influencer.name}</div>
+            <div className={styles["call-buttons"]}>
+              <IconButton
+                leftIcon={<DropCallIcon color="red" />}
+                onClick={handleHangUpCall}
+                text="Reject"
+                color="black"
+              />
+              <AnimatedButton
+                leftIcon={<CallIcon />}
+                onClick={handlePickUpCall}
+                text="Answer"
+                color="green"
+              />
+            </div>
+          </>
+        ) : (
+          <div className={styles["welcome-screen-container"]}>
+            <TeaseMeLogo size="xlarge" variant="full-dark" />
+            {!showFollowBtn && (
+              <p className={styles["signup-text"]}>
+                Don't have an account?{" "}
+                <span
+                  className={styles["signup-link"]}
+                  onClick={handleSignUpClick}
+                  style={{ cursor: "pointer", color: "#ff4d6d" }}
+                >
+                  Sign up
+                </span>
+              </p>
+            )}
+            {!showFollowBtn && <DividerWithLabel text="or" />}
+            <div className={styles["buttons-container"]}>
+              {showFollowBtn ? (
+                <PrimaryButton
+                  text={waiting ? "Connecting.." : "Follow me now"}
+                  onClick={() => {
+                    handleFollowMe();
+                  }}
+                  disabled={waiting}
+                />
+              ) : !isFirstTime ? (
                 <PrimaryButton
                   text="Sign in with email"
                   className={styles["sign-in-button"]}
@@ -163,24 +186,30 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
                   }}
                 />
               )}
-            {!showFollowBtn && <p className={styles["signup-text"]}>
-              Already have an account?{" "}
-              <span
-                className={styles["signup-link"]}
-                onClick={() => {
-                  localStorage.setItem("selected_id", influencer.id);
-                  navigate(`/login`);
-                }}
-                style={{ cursor: "pointer", color: "#ff4d6d" }}
-              >
-                Login
-              </span>
-            </p>}
+              {!showFollowBtn && (
+                <p className={styles["signup-text"]}>
+                  Already have an account?{" "}
+                  <span
+                    className={styles["signup-link"]}
+                    onClick={() => {
+                      storage.set(LocalStorageKeys.SelectedId, influencer.id);
+
+                      navigate(`/login`);
+                    }}
+                    style={{ cursor: "pointer", color: "#ff4d6d" }}
+                  >
+                    Login
+                  </span>
+                </p>
+              )}
+            </div>
+            {error !== null && (
+              <ValidationPill className={styles.errorArea} variant="error">
+                Error: {error}
+              </ValidationPill>
+            )}
           </div>
-          {(error !== null) &&
-            <ValidationPill className={styles.errorArea} variant="error">Error: {error}</ValidationPill>}
-        </div>
-        }
+        )}
         <WelcomeCallModal
           isOpen={onTryClicked || status === "connected"}
           onClose={() => {

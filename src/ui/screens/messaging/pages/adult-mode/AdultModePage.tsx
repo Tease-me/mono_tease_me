@@ -1,5 +1,6 @@
 import styles from "./AdultModePage.module.css";
 import PlayIcon from "@/assets/svg/Play.svg?react";
+import PauseIcon from "@/assets/svg/Pause.svg?react";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import avatarImage from "@/assets/image/avatar.png";
 import clsx from "clsx";
@@ -37,7 +38,7 @@ const AdultModePage = ({
   const [samples, setSamples] = useState<InfluencerSampleModel[]>([]);
   const [samplesError, setSamplesError] = useState<string | null>(null);
   const [isLoadingSamples, setIsLoadingSamples] = useState(false);
-  const [playingId, setPlayingId] = useState<string | number | null>(null);
+  const [playingId, setPlayingId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
 
@@ -77,7 +78,8 @@ const AdultModePage = ({
   const handleTogglePlay = (sample: InfluencerSampleModel) => {
     if (!sample.url) return;
     if (!audioRef.current) return;
-    if (playingId === sample.id) {
+    const key = sample.s3_key;
+    if (playingId === key) {
       audioRef.current.pause();
       setPlayingId(null);
       return;
@@ -88,7 +90,7 @@ const AdultModePage = ({
     audioRef.current.play().catch((error) => {
       console.error("Failed to play sample", error);
     });
-    setPlayingId(sample.id);
+    setPlayingId(key);
   };
 
   const resolvedAvatar = influencerImageUrl?.trim() || avatarImage;
@@ -123,7 +125,7 @@ const AdultModePage = ({
             const label = influencerName;
             // sample.original_filename?.trim() ||
             // `${influencerName || "Influencer"} Sample ${String(index + 1).padStart(2, "0")}`;
-            const isPlaying = playingId === sample.id;
+            const isPlaying = playingId === sample.s3_key;
             return (
               <div className={styles.audioRow} key={sample.s3_key || `${sample.id}-${index}`}>
                 <div className={styles.avatar}>
@@ -139,7 +141,7 @@ const AdultModePage = ({
                       disabled={!sample.url}
                       aria-pressed={isPlaying}
                     >
-                      <PlayIcon />
+                      {isPlaying ? <PauseIcon /> : <PlayIcon />}
                     </button>
                     <div className={styles.waveform} aria-hidden="true">
                       {waveformBars.map((_, waveIndex) => (
