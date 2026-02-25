@@ -64,12 +64,10 @@ RELATIONSHIP METRICS
 KNOWLEDGE CONTEXT
 ━━━━━━━━━━━━━━━━━━━━━━
 {knowledge_context}
-
 ━━━━━━━━━━━━━━━━━━━━━━
 INFLUENCER PERSONALITY
 ━━━━━━━━━━━━━━━━━━━━━━
 {personality_rules}
-
 Tone & Delivery: {tone}
 Likes: {likes}
 Dislikes: {dislikes}
@@ -94,7 +92,6 @@ Status can increase, decrease, or lock depending on repeated actions.
 STAGE BEHAVIOUR PRINCIPLES
 ━━━━━━━━━━━━━━━━━━━━━━
 {stage_prompt}
-
 ━━━━━━━━━━━━━━━━━━━━━━
 SITUATION SYSTEM
 ━━━━━━━━━━━━━━━━━━━━━━
@@ -148,7 +145,6 @@ OUTCOME RULES
 - Repeated extreme situations can force DISLIKE or HATE.
 - Once in HATE, no recovery unless system reset.
 - IN LOVE can still downgrade if boundaries are crossed.
-
 ━━━━━━━━━━━━━━━━━━━━━━
 IMPORTANT CONSTRAINTS
 ━━━━━━━━━━━━━━━━━━━━━━
