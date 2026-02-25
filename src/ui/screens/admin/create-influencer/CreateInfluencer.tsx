@@ -1082,7 +1082,7 @@ const CreateInfluencer: React.FC = () => {
                     )}
                     <button
                       type="button"
-                      className={styles["secondary-button"]}
+                      className={styles["primary-button"]}
                       onClick={() => patchSection("basic-info")}
                       disabled={!!sectionSaving["basic-info"] || !selectedId || selectedId === "new"}
                     >
@@ -1124,7 +1124,7 @@ const CreateInfluencer: React.FC = () => {
                     )}
                     <button
                       type="button"
-                      className={styles["secondary-button"]}
+                      className={styles["primary-button"]}
                       onClick={() => patchSection("prompt-overrides")}
                       disabled={!!sectionSaving["prompt-overrides"] || !selectedId || selectedId === "new"}
                     >
@@ -1274,7 +1274,7 @@ const CreateInfluencer: React.FC = () => {
                     )}
                     <button
                       type="button"
-                      className={styles["secondary-button"]}
+                      className={styles["primary-button"]}
                       onClick={() => patchSection("persona-profile")}
                       disabled={!!sectionSaving["persona-profile"] || !selectedId || selectedId === "new"}
                     >
@@ -1360,7 +1360,7 @@ const CreateInfluencer: React.FC = () => {
                     )}
                     <button
                       type="button"
-                      className={styles["secondary-button"]}
+                      className={styles["primary-button"]}
                       onClick={() => patchSection("relationship-stages")}
                       disabled={!!sectionSaving["relationship-stages"] || !selectedId || selectedId === "new"}
                     >
