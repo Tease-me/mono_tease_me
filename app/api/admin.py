@@ -1,6 +1,8 @@
-import logging
 import io
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
+import logging
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, Depends, HTTPException, File, Query, UploadFile
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -29,10 +31,14 @@ from app.use_cases.admin_history_cleanup import (
     HistoryClearMode,
     clear_pair_history,
 )
+from app.use_cases.admin_chat_info import (
+    AdminChatInfoError,
+    AdminChatInfoValidationError,
+    get_admin_chat_info,
+)
 from app.utils.storage.s3 import save_sample_audio_to_s3, generate_presigned_url, delete_file_from_s3
 
 from pydantic import BaseModel, Field
-from datetime import datetime, timezone
 from typing import Optional
 
 from app.constants.relationship_stages import STAGE_POINTS_MIN, STAGE_POINTS_MAX
@@ -124,6 +130,35 @@ async def clear_chat_history_by_user_influencer(
         raise HTTPException(status_code=500, detail="Failed to clear chat history")
 
     return result.as_dict()
+
+
+@router.get("/chats/info/{influencer_id}/{user_id}")
+async def get_chat_info_by_user_influencer(
+    influencer_id: str,
+    user_id: int,
+    from_: datetime | None = Query(None, alias="from"),
+    to: datetime | None = None,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    try:
+        result = await get_admin_chat_info(
+            db,
+            influencer_id=influencer_id,
+            user_id=user_id,
+            from_dt=from_,
+            to_dt=to,
+        )
+    except AdminChatInfoValidationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except AdminChatInfoError as exc:
+        raise HTTPException(status_code=500, detail="Failed to fetch chat info")
+
+    return result.as_dict()
+
 
 def sentiment_label(score: float) -> str:
     """
