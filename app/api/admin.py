@@ -1,6 +1,8 @@
-import logging
 import io
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
+import logging
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, Depends, HTTPException, File, Query, UploadFile
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,10 +25,20 @@ from app.use_cases.knowledge_sync import (
     get_knowledge_for_admin,
     upsert_knowledge_remote_first,
 )
+from app.use_cases.admin_history_cleanup import (
+    AdminHistoryClearError,
+    AdminHistoryNotFoundError,
+    HistoryClearMode,
+    clear_pair_history,
+)
+from app.use_cases.admin_chat_info import (
+    AdminChatInfoError,
+    AdminChatInfoValidationError,
+    get_admin_chat_info,
+)
 from app.utils.storage.s3 import save_sample_audio_to_s3, generate_presigned_url, delete_file_from_s3
 
 from pydantic import BaseModel, Field
-from datetime import datetime, timezone
 from typing import Optional
 
 from app.constants.relationship_stages import STAGE_POINTS_MIN, STAGE_POINTS_MAX
@@ -98,67 +110,55 @@ async def clear_chat_history_admin(
 async def clear_chat_history_by_user_influencer(
     influencer_id: str,
     user_id: int,
-    is_18: bool = False,
+    mode: HistoryClearMode = "both",
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     if current_user.id != 1:
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    chat_id = f"{influencer_id}_{user_id}"
-
     try:
-        deleted_msg_ids = []
-        deleted_mem_ids = []
-        deleted_call_ids = []
-
-        if is_18:
-            msg_result = await db.execute(
-                delete(Message18).where(Message18.chat_id == chat_id).returning(Message18.id)
-            )
-            deleted_msg_ids = msg_result.scalars().all()
-        else:
-            msg_result = await db.execute(
-                delete(Message).where(Message.chat_id == chat_id).returning(Message.id)
-            )
-            deleted_msg_ids = msg_result.scalars().all()
-
-            mem_result = await db.execute(
-                delete(Memory).where(Memory.chat_id == chat_id).returning(Memory.id)
-            )
-            deleted_mem_ids = mem_result.scalars().all()
-
-            call_result = await db.execute(
-                delete(CallRecord).where(CallRecord.chat_id == chat_id).returning(CallRecord.conversation_id)
-            )
-            deleted_call_ids = call_result.scalars().all()
-
-        try:
-            redis_history(chat_id).clear()
-        except Exception:
-            log.warning("[REDIS] Failed to clear history for chat %s", chat_id)
-
-        if not deleted_msg_ids and not deleted_call_ids and not deleted_mem_ids:
-            await db.rollback()
-            raise HTTPException(status_code=404, detail="Chat not found or empty")
-
-        await db.commit()
-    except HTTPException:
-        raise
-    except Exception:
-        await db.rollback()
+        result = await clear_pair_history(
+            db,
+            influencer_id=influencer_id,
+            user_id=user_id,
+            mode=mode,
+        )
+    except AdminHistoryNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    except AdminHistoryClearError:
         raise HTTPException(status_code=500, detail="Failed to clear chat history")
 
-    return {
-        "ok": True,
-        "chat_id": chat_id,
-        "influencer_id": influencer_id,
-        "user_id": user_id,
-        "is_18": is_18,
-        "messages_deleted": len(deleted_msg_ids),
-        "memories_deleted": len(deleted_mem_ids),
-        "call_records_deleted": len(deleted_call_ids),
-    }
+    return result.as_dict()
+
+
+@router.get("/chats/info/{influencer_id}/{user_id}")
+async def get_chat_info_by_user_influencer(
+    influencer_id: str,
+    user_id: int,
+    from_: datetime | None = Query(None, alias="from"),
+    to: datetime | None = None,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    try:
+        result = await get_admin_chat_info(
+            db,
+            influencer_id=influencer_id,
+            user_id=user_id,
+            from_dt=from_,
+            to_dt=to,
+        )
+    except AdminChatInfoValidationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except AdminChatInfoError:
+        raise HTTPException(status_code=500, detail="Failed to fetch chat info")
+
+    return result.as_dict()
+
 
 def sentiment_label(score: float) -> str:
     """

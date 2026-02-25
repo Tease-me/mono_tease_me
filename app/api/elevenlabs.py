@@ -1465,11 +1465,10 @@ async def get_conversation_token(
     dtr_goal = plan_dtr_goal(rel, can_ask)
     time_context = get_time_context(user_timezone)
 
+    # ── Phase 1: Quick DB fetches (sequential on shared session) ──
     users_name = await _build_user_name_block(db, user_id)
     memories = await get_all_memory_list(db, user_id, influencer_id, exclude_sender="system")
-    memory = await summarize_memory_list(memories or [], model=settings.DEFAULT_SUMMARIZATION_MODEL)
 
-    # Fetch AI decisions/memories
     ai_mem_query = select(Memory.content).where(
         Memory.chat_id.in_(
             select(Chat.id).where(
@@ -1480,7 +1479,45 @@ async def get_conversation_token(
     ).order_by(Memory.created_at.desc()).limit(400)
     ai_mem_res = await db.execute(ai_mem_query)
     ai_mem_list = [row[0] for row in ai_mem_res.fetchall()]
-    ai_mem_block = await summarize_ai_memory_list(ai_mem_list, model=settings.DEFAULT_SUMMARIZATION_MODEL)
+
+    credits_remainder_secs = await get_remaining_units(db, user_id, influencer_id, feature="live_chat")
+
+    # ── Phase 2: All slow I/O in parallel (~2-3s instead of ~8s) ──
+    async def _fetch_token() -> str:
+        try:
+            client = await get_elevenlabs_client()
+            resp = await client.get(
+                "/convai/conversation/token",
+                params={"agent_id": agent_id},
+                headers=_headers(),
+                timeout=15.0,
+            )
+        except httpx.RequestError as exc:
+            log.exception("conversation_token.network_error agent=%s err=%s", agent_id, exc)
+            raise HTTPException(status_code=502, detail="Upstream unavailable")
+
+        if resp.status_code >= 400:
+            log.error(
+                "conversation_token.failed agent=%s status=%s body=%s",
+                agent_id, resp.status_code,
+                resp.text[:500] if resp.text else "",
+            )
+            raise HTTPException(status_code=resp.status_code, detail="Failed to get conversation token")
+
+        t = (resp.json() or {}).get("token")
+        if not t:
+            raise HTTPException(status_code=502, detail="Token not returned by ElevenLabs")
+        return t
+
+    memory, ai_mem_block, greeting, token = await asyncio.gather(
+        summarize_memory_list(memories or []),
+        summarize_ai_memory_list(ai_mem_list),
+        _generate_contextual_greeting(db, chat_id, influencer_id, user_timezone),
+        _fetch_token(),
+    )
+
+    if not greeting:
+        greeting = _pick_greeting(influencer_id, "random")
 
     prompt = build_relationship_prompt(
         prompt_template,
@@ -1503,39 +1540,6 @@ async def get_conversation_token(
     )
     
     log_prompt(log, prompt, cid="", input="")
-
-    try:
-        client = await get_elevenlabs_client()
-        resp = await client.get(
-            "/convai/conversation/token",
-            params={"agent_id": agent_id},
-            headers=_headers(),
-            timeout=15.0,
-        )
-    except httpx.RequestError as exc:
-        log.exception("conversation_token.network_error agent=%s err=%s", agent_id, exc)
-        raise HTTPException(status_code=502, detail="Upstream unavailable")
-
-    if resp.status_code >= 400:
-        log.error(
-            "conversation_token.failed agent=%s status=%s body=%s",
-            agent_id,
-            resp.status_code,
-            resp.text[:500] if resp.text else "",
-        )
-        raise HTTPException(status_code=resp.status_code, detail="Failed to get conversation token")
-
-    token = (resp.json() or {}).get("token")
-    if not token:
-        raise HTTPException(status_code=502, detail="Token not returned by ElevenLabs")
-    
-    # chat_id already obtained at line 1350 - removed duplicate call
-    credits_remainder_secs = await get_remaining_units(db, user_id, influencer_id, feature="live_chat")
-
-    greeting: Optional[str] = await _generate_contextual_greeting(db, chat_id, influencer_id, user_timezone)
-    
-    if not greeting:
-        greeting = _pick_greeting(influencer_id, "random")
 
     return {
         "token": token, 
