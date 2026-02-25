@@ -483,6 +483,10 @@
     user-select: none;
 }
 
+.hidden {
+    display: none;
+}
+
 .persona-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(560px, 1fr));

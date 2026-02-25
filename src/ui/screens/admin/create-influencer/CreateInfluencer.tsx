@@ -1025,7 +1025,7 @@ const CreateInfluencer: React.FC = () => {
                 </div>
                 {!collapsedSections.has("persona-profile") && (
                   <div className={styles["section-card__body"]}>
-                    <div className={styles["field"]}>
+                    <div className={`${styles["field"]} ${styles["hidden"]}`}>
                       <label htmlFor="persona-mbti">MBTI archetype</label>
                       <select
                         id="persona-mbti"
@@ -1040,7 +1040,7 @@ const CreateInfluencer: React.FC = () => {
                         ))}
                       </select>
                     </div>
-                    <div className={styles["field"]}>
+                    <div className={`${styles["field"]} ${styles["hidden"]}`}>
                       <label htmlFor="persona-mbti-rules">MBTI rules</label>
                       <textarea
                         id="persona-mbti-rules"
@@ -1060,7 +1060,7 @@ const CreateInfluencer: React.FC = () => {
                         rows={10}
                       />
                     </div>
-                    <div className={styles["field"]}>
+                    <div className={`${styles["field"]} ${styles["hidden"]}`}>
                       <label htmlFor="persona-tone">Tone</label>
                       <textarea
                         id="persona-tone"
