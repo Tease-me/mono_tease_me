@@ -42,5 +42,7 @@ def log_prompt(
         return
 
     rendered = _redact(rendered, redact_patterns)
-    rendered = _truncate(rendered, max_chars)
+    # Truncation intentionally disabled; keep max_chars in signature for
+    # backward compatibility with existing callers.
+    _ = max_chars
     log.info("[%s] ==== FULL PROMPT ====\n%s", cid, rendered)

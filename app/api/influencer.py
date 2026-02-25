@@ -76,7 +76,12 @@ async def create_influencer(data: InfluencerCreate, current_user: User = Depends
     return influencer
 
 @router.patch("/{id}", response_model=InfluencerOut)
-async def update_influencer(id: str, data: InfluencerUpdate, db: AsyncSession = Depends(get_db)):
+async def update_influencer(
+    id: str, 
+    data: InfluencerUpdate, 
+    current_user: User = Depends(get_current_user), 
+    db: AsyncSession = Depends(get_db)
+):
     influencer = await db.get(Influencer, id)
     if not influencer:
         raise HTTPException(404, "Influencer not found")
@@ -285,6 +290,7 @@ async def upload_influencer_audio(
     influencer_id: str,
     file: UploadFile = File(...),
 ):  
+
     file_bytes = await file.read()
     if not file_bytes:
         raise HTTPException(400, "Empty file")

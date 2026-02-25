@@ -3,6 +3,7 @@ import logging
 import math
 import random
 import json
+from app.agents.memory import get_all_memory_list, summarize_memory_list, summarize_ai_memory_list
 from app.agents.prompt_utils import build_relationship_prompt, get_global_prompt, get_mbti_rules_for_archetype, get_relationship_stage_prompts, get_time_context
 from app.relationship.dtr import plan_dtr_goal
 from app.relationship.inactivity import apply_inactivity_decay
@@ -15,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from itertools import chain
 from typing import Any, Dict, List, Optional
 from app.core.config import settings
-from app.db.models import Influencer, Chat, Message, CallRecord, User, PreInfluencer
+from app.db.models import Influencer, Chat, Message, CallRecord, User, PreInfluencer, Memory
 from app.db.session import get_db
 from app.utils.auth.dependencies import get_current_user
 from app.schemas.elevenlabs import FinalizeConversationBody, RegisterConversationBody, UpdatePromptBody
@@ -24,6 +25,7 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from app.services.billing import can_afford, get_remaining_units
 from app.services.chat_service import get_or_create_chat
+from app.services.follow import get_follow
 from app.agents.turn_handler import _build_user_name_block, redis_history, inject_session_break, _messages_since_session_break
 from langchain_core.prompts import ChatPromptTemplate
 from app.db.session import SessionLocal
@@ -896,36 +898,6 @@ async def _poll_and_persist_conversation(
                 exc,
             )
 
-        if chat_id and normalized_transcript:
-            try:
-                from app.agents.turn_handler import extract_and_store_facts_for_turn
-                user_messages = [t.get("message") or t.get("text") or "" for t in normalized_transcript 
-                                 if (t.get("role") or "").lower() in ("user", "human")]
-                last_user_msg = user_messages[-1] if user_messages else ""
-                ctx_lines = [f"{t.get('role', 'unknown')}: {t.get('message') or t.get('text') or ''}" 
-                             for t in normalized_transcript]
-                recent_ctx = "\n".join(ctx_lines)
-                
-                if last_user_msg:
-                    asyncio.create_task(
-                        extract_and_store_facts_for_turn(
-                            message=last_user_msg,
-                            recent_ctx=recent_ctx,
-                            chat_id=chat_id,
-                            cid=conversation_id,
-                        )
-                    )
-                    log.info(
-                        "background.fact_extraction_scheduled conv=%s chat=%s",
-                        conversation_id,
-                        chat_id,
-                    )
-            except Exception as exc:
-                log.warning(
-                    "background.fact_extraction_schedule_failed conv=%s err=%s",
-                    conversation_id,
-                    exc,
-                )
 
 
 async def _push_prompt_to_elevenlabs(
@@ -1346,6 +1318,9 @@ async def get_signed_url(
     user_timezone: str = Query("UTC"),
 ):
     user_id = current_user.id
+    if not await get_follow(db, influencer_id, user_id):
+        raise HTTPException(status_code=403, detail="You must follow the influencer to interact.")
+        
     ok, cost_cents, free_left = await can_afford(
         db, user_id=user_id, influencer_id=influencer_id, feature="live_chat", units=10
     )
@@ -1395,6 +1370,9 @@ async def get_conversation_token(
     db: AsyncSession = Depends(get_db),
 ):
     user_id = current_user.id
+    if not await get_follow(db, influencer_id, user_id):
+        raise HTTPException(status_code=403, detail="You must follow the influencer to interact.")
+        
     ok, cost_cents, free_left = await can_afford(
         db, user_id=user_id, influencer_id=influencer_id, feature="live_chat", units=10
     )
@@ -1452,7 +1430,25 @@ async def get_conversation_token(
 
     # Scope recent_ctx to current session only (excludes previous call messages)
     current_session_msgs = _messages_since_session_break(history.messages)
-    recent_ctx = "\n".join(f"{m.type}: {m.content}" for m in current_session_msgs[-6:])
+    
+    if current_session_msgs:
+        recent_ctx = "\n".join(
+            f"{m.type}: {m.content}" 
+            for m in current_session_msgs[-6:] 
+            if getattr(m, "type", None) != "system" 
+            and "[SESSION BREAK]" not in getattr(m, "content", "")
+            and getattr(m, "content", "").strip() != "..."
+        )
+    else:
+        # Fallback to the last 4 historical messages if this is a fresh session
+        recent_ctx = "\n".join(
+            f"{m.type}: {m.content}" 
+            for m in history.messages[-4:] 
+            if getattr(m, "type", None) != "system"
+            and "[SESSION BREAK]" not in getattr(m, "content", "")
+            and getattr(m, "content", "").strip() != "..."
+        )
+
 
     now = datetime.now(timezone.utc)
     rel = await get_or_create_relationship(db, int(user_id), influencer_id)
@@ -1470,6 +1466,21 @@ async def get_conversation_token(
     time_context = get_time_context(user_timezone)
 
     users_name = await _build_user_name_block(db, user_id)
+    memories = await get_all_memory_list(db, user_id, influencer_id, exclude_sender="system")
+    memory = await summarize_memory_list(memories or [], model=settings.DEFAULT_SUMMARIZATION_MODEL)
+
+    # Fetch AI decisions/memories
+    ai_mem_query = select(Memory.content).where(
+        Memory.chat_id.in_(
+            select(Chat.id).where(
+                Chat.user_id == user_id, Chat.influencer_id == influencer_id
+            )
+        ),
+        Memory.sender == "system"
+    ).order_by(Memory.created_at.desc()).limit(400)
+    ai_mem_res = await db.execute(ai_mem_query)
+    ai_mem_list = [row[0] for row in ai_mem_res.fetchall()]
+    ai_mem_block = await summarize_ai_memory_list(ai_mem_list, model=settings.DEFAULT_SUMMARIZATION_MODEL)
 
     prompt = build_relationship_prompt(
         prompt_template,
@@ -1481,7 +1492,8 @@ async def get_conversation_token(
         persona_likes=persona_likes,
         persona_dislikes=persona_dislikes,
         mbti_rules=mbti_rules,
-        memories="None",
+        memories=memory,
+        ai_memories=ai_mem_block,
         daily_context=daily_context,
         last_user_message=recent_ctx,
         mood=time_context,
@@ -1629,6 +1641,10 @@ async def register_conversation(
 ):
     if body.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
+
+    if not await get_follow(db, body.influencer_id, body.user_id):
+        raise HTTPException(status_code=403, detail="You must follow the influencer to interact.")
+
     chat_id = await save_pending_conversation(
         db, conversation_id, current_user.id, body.influencer_id, body.sid
     )

@@ -11,6 +11,7 @@ from app.core.config import settings
 from app.agents.memory import find_similar_memories, store_facts_batch
 from app.agents.prompts import MODEL, FACT_EXTRACTOR, CONVO_ANALYZER, get_fact_prompt
 from app.db.session import SessionLocal
+from app.services.knowledge_rag import retrieve_knowledge_chunks
 from app.agents.prompt_utils import (
     get_global_prompt,
     build_relationship_prompt,
@@ -24,9 +25,9 @@ from app.utils.logging.prompt_logging import log_prompt
 
 from app.relationship.processor import process_relationship_turn
 
-log = logging.getLogger("teaseme-turn")
+log = logging.getLogger(__name__)
 
-SESSION_BREAK_TAG = "[SESSION BREAK"
+SESSION_BREAK_TAG = "[SESSION BREAK]"
 
 
 def redis_history(chat_id: str):
@@ -150,6 +151,7 @@ async def _build_user_name_block(db, user_id) -> str:
 
 async def extract_and_store_facts_for_turn(
     message: str,
+    reply: str,
     recent_ctx: str,
     chat_id: str,
     cid: str,
@@ -157,9 +159,11 @@ async def extract_and_store_facts_for_turn(
     async with SessionLocal() as db:
         try:
             fact_prompt = await get_fact_prompt(db)
+            
+            exchange = f"user: {message}\nai: {reply}"
 
             facts_resp = await FACT_EXTRACTOR.ainvoke(
-                fact_prompt.format(msg=message, ctx=recent_ctx)
+                fact_prompt.format(msg=exchange, ctx=recent_ctx)
             )
 
             facts_txt = facts_resp.content or ""
@@ -240,24 +244,73 @@ async def handle_turn(
         )
     )
     
-    memories_task = asyncio.create_task(
-        find_similar_memories(
-            db, 
-            chat_id, 
-            message, 
-            embedding=message_embedding  # Reuse precomputed embedding
-        ) if (db and user_id) else asyncio.sleep(0, result=[])
-    )
+    async def _safe_memories():
+        if not (db and user_id):
+            return {"user_memories": [], "ai_memories": []}
+        try:
+            return await find_similar_memories(
+                db,
+                chat_id,
+                message,
+                embedding=message_embedding,
+            )
+        except Exception as exc:
+            log.warning("[%s] memory retrieval failed: %s", cid, exc)
+            return {"user_memories": [], "ai_memories": []}
 
-    # Wait for both to complete in parallel (each on its own session)
-    rel_pack, memories_result = await asyncio.gather(rel_pack_task, memories_task)
+    async def _safe_knowledge():
+        if not (db and influencer_id and message_embedding):
+            return []
+        try:
+            return await retrieve_knowledge_chunks(
+                db=db,
+                influencer_id=influencer_id,
+                query_embedding=message_embedding,
+                top_k=5,
+            )
+        except Exception as exc:
+            log.warning("[%s] knowledge retrieval failed influencer=%s: %s", cid, influencer_id, exc)
+            return []
+
+    memories_task = asyncio.create_task(_safe_memories())
+    knowledge_task = asyncio.create_task(_safe_knowledge())
+
+    # Wait for all retrieval tasks in parallel (relationship + memory + knowledge)
+    rel_pack, memories_result, knowledge_result = await asyncio.gather(
+        rel_pack_task,
+        memories_task,
+        knowledge_task,
+    )
    
     rel = rel_pack["rel"]
     days_idle = rel_pack["days_idle"]
     dtr_goal = rel_pack["dtr_goal"]
 
     memories = memories_result[0] if isinstance(memories_result, tuple) else memories_result
-    mem_block = "\n".join(s for s in (_norm(m) for m in memories or []) if s)
+    
+    # Split memories by sender type
+    if isinstance(memories, dict):
+        user_mems = memories.get("user_memories", [])
+        ai_mems = memories.get("ai_memories", [])
+    else:
+        # Backward compat: if it's a plain list, treat all as user memories
+        user_mems = memories or []
+        ai_mems = []
+    
+    mem_block = "\n".join(s for s in (_norm(m) for m in user_mems) if s)
+    ai_mem_block = "\n".join(s for s in (_norm(m) for m in ai_mems) if s)
+    knowledge_block = "\n".join(s for s in (_norm(m) for m in knowledge_result or []) if s)
+
+    log.debug(
+        "[%s] rag_context influencer=%s kb_hits=%d mem_hits=%d ai_mem_hits=%d kb_chars=%d mem_chars=%d",
+        cid,
+        influencer_id,
+        len(knowledge_result or []),
+        len(user_mems),
+        len(ai_mems),
+        len(knowledge_block),
+        len(mem_block) + len(ai_mem_block),
+    )
 
     bio = influencer.bio_json or {}
 
@@ -300,6 +353,8 @@ async def handle_turn(
         persona_dislikes=persona_dislikes,
         mbti_rules=mbti_rules,
         memories=mem_block,
+        ai_memories=ai_mem_block,
+        knowledge_context=knowledge_block,
         daily_context=daily_context,
         last_user_message=recent_ctx,
         mood=time_context,
@@ -328,7 +383,7 @@ async def handle_turn(
         reply = result.content
     except Exception as e:
         log.error("[%s] LLM error: %s", cid, e, exc_info=True)
-        return "Sorry, something went wrong. 😔"
+        raise HTTPException(status_code=500, detail="LLM generation failed")
 
     # Schedule background fact extraction (fire-and-forget)
     # Store task reference to prevent premature garbage collection
@@ -336,6 +391,7 @@ async def handle_turn(
         fact_task = asyncio.create_task(
             extract_and_store_facts_for_turn(
                 message=message,
+                reply=reply,
                 recent_ctx=recent_ctx,
                 chat_id=chat_id,
                 cid=cid,

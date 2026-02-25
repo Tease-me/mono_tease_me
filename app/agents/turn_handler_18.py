@@ -13,7 +13,7 @@ from app.utils.logging.prompt_logging import log_prompt
 from app.services.system_prompt_service import get_system_prompt
 from app.constants import prompt_keys
 from langchain_core.prompts import ChatPromptTemplate
-log = logging.getLogger("teaseme-turn-18")
+log = logging.getLogger(__name__)
 
 
 def _render_recent_ctx(rows: list[Message18]) -> list[BaseMessage]:
@@ -120,4 +120,4 @@ async def handle_turn_18(
         return reply
     except Exception as e:
         log.error("[%s] LLM error: %s", cid, e, exc_info=True)
-        return "Sorry, something went wrong. 😔"
+        raise HTTPException(status_code=500, detail="LLM generation failed")

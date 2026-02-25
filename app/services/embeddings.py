@@ -81,7 +81,7 @@ async def get_embeddings_batch(texts: list[str]) -> list[list[float]]:
         return embeddings
 
 
-async def search_similar_memories(db, chat_id: str, embedding: list[float], top_k: int = 10, max_distance: float | None = None) -> list[str]:
+async def search_similar_memories(db, chat_id: str, embedding: list[float], top_k: int = 10, max_distance: float | None = None) -> list[tuple[str, str]]:
     """
     Search for similar memories using vector similarity with cosine distance.
     
@@ -97,11 +97,11 @@ async def search_similar_memories(db, chat_id: str, embedding: list[float], top_
                      Recommended: 0.3-0.7 for filtering
         
     Returns:
-        List of memory content strings ordered by similarity, then recency
+        List of (content, sender) tuples ordered by similarity, then recency
     """
     if max_distance is not None:
         sql = text("""
-            SELECT content, embedding <=> :embedding AS distance
+            SELECT content, sender, embedding <=> :embedding AS distance
             FROM memories
             WHERE chat_id = :chat_id
               AND embedding IS NOT NULL
@@ -117,7 +117,7 @@ async def search_similar_memories(db, chat_id: str, embedding: list[float], top_
         }
     else:
         sql = text("""
-            SELECT content
+            SELECT content, sender
             FROM memories
             WHERE chat_id = :chat_id
               AND embedding IS NOT NULL
@@ -131,7 +131,7 @@ async def search_similar_memories(db, chat_id: str, embedding: list[float], top_
         }
     
     result = await db.execute(sql, params)
-    return [row[0] for row in result.fetchall()]
+    return [(row[0], row[1] or "user") for row in result.fetchall()]
 
 
 async def search_similar_messages(db, chat_id: str, embedding: list[float], top_k: int = 10, max_distance: float | None = None) -> list[str]:
@@ -332,17 +332,19 @@ async def upsert_memory(
     try:
         embedding_str = "[" + ",".join(str(x) for x in embedding) + "]"
 
-        # 1. Search for similar memory (prefer most similar, then most recent)
+        # 1. Search for similar memory (prefer most similar, then most recent), restricting search to the same sender type
         sql_find = text("""
             SELECT id, embedding <=> :embedding AS similarity
             FROM memories
             WHERE chat_id = :chat_id
+              AND sender = :sender
               AND embedding IS NOT NULL
             ORDER BY similarity ASC, created_at DESC
             LIMIT 1
         """)
         params_find = {
             "chat_id": chat_id,
+            "sender": sender,
             "embedding": embedding_str,
         }
         result = await db.execute(sql_find, params_find)

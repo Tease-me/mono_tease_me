@@ -287,7 +287,8 @@ async def flush_buffer(
     except Exception:
         log.exception("[BUF %s] turn handler error", chat_id)
         try:
-            await ws.send_json({"error": "Sorry, something went wrong. 😔"})
+            await ws.send_json({"error": "Internal server error", "status": 500})
+            await ws.close(code=1011, reason="Internal server error")
         except Exception:
             pass
         return
