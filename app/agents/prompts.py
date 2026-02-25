@@ -18,7 +18,7 @@ MODEL = ChatOpenAI(
 
 FACT_EXTRACTOR = ChatXAI(
     xai_api_key=settings.XAI_API_KEY,
-    model="grok-4-1-reasoning",
+    model="grok-4-1-fast-reasoning",
     temperature=0.5,
     max_tokens=512,
 )
