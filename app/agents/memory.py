@@ -4,6 +4,8 @@ from sqlalchemy.sql import func
 from app.db.models import Memory, Chat, Message
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
+from langchain_xai import ChatXAI
+from app.core.config import settings
 import logging
 from app.db.session import SessionLocal
 
@@ -132,11 +134,11 @@ async def summarize_memory_list(
             ),
         ]
     )
-    llm = ChatOpenAI(
-        model=model,
+    llm = ChatXAI(
+        xai_api_key=settings.XAI_API_KEY,
+        model="grok-4.1-fast-non-reasoning",
         temperature=0.2,
         max_tokens=700,
-        store=False,
     )
     chain = prompt | llm
     resp = await chain.ainvoke({"memory_block": memory_block})
@@ -179,11 +181,11 @@ async def summarize_ai_memory_list(
             ),
         ]
     )
-    llm = ChatOpenAI(
-        model=model,
+    llm = ChatXAI(
+        xai_api_key=settings.XAI_API_KEY,
+        model="grok-4.1-fast-non-reasoning",
         temperature=0.2,
         max_tokens=700,
-        store=False,
     )
     chain = prompt | llm
     resp = await chain.ainvoke({"memory_block": memory_block})
