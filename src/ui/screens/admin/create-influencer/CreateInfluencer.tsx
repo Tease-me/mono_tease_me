@@ -387,6 +387,15 @@ const CreateInfluencer: React.FC = () => {
   const [expandedRecords, setExpandedRecords] = useState<Set<number>>(
     () => new Set<number>()
   );
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(
+    () => new Set(["basic-info", "prompt-overrides", "relationship-stages"])
+  );
+  const toggleSection = (id: string) =>
+    setCollapsedSections((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
   const [personaListDrafts, setPersonaListDrafts] = useState<{
     likes: string;
     dislikes: string;
@@ -858,309 +867,357 @@ const CreateInfluencer: React.FC = () => {
                 </div>
               </div>
 
-              <div className={styles["detail-grid"]}>
-                <div className={styles["field"]}>
-                  <label htmlFor="influencer-id">Influencer ID</label>
-                  <input
-                    id="influencer-id"
-                    value={formState.id}
-                    onChange={handleFieldChange("id")}
-                    placeholder="Auto-generated if left blank"
-                  />
-                </div>
-
-                <div className={styles["field"]}>
-                  <label htmlFor="influencer-first-name">First name</label>
-                  <input
-                    id="influencer-first-name"
-                    value={formState.firstName}
-                    onChange={handleFieldChange("firstName")}
-                    placeholder="First name"
-                  />
-                </div>
-
-                <div className={styles["field"]}>
-                  <label htmlFor="influencer-last-name">Last name</label>
-                  <input
-                    id="influencer-last-name"
-                    value={formState.lastName}
-                    onChange={handleFieldChange("lastName")}
-                    placeholder="Last name"
-                  />
-                </div>
-
-                <div className={styles["field"]}>
-                  <label htmlFor="influencer-email">Contact email</label>
-                  <input
-                    id="influencer-email"
-                    type="email"
-                    value={formState.email}
-                    onChange={handleFieldChange("email")}
-                    placeholder="name@example.com"
-                  />
-                </div>
-
-                <div className={styles["field"]}>
-                  <label htmlFor="influencer-phone">Contact phone</label>
-                  <input
-                    id="influencer-phone"
-                    value={formState.phone}
-                    onChange={handleFieldChange("phone")}
-                    placeholder="+1 (555) 000-0000"
-                  />
-                </div>
-
-                <div className={styles["field"]}>
-                  <label htmlFor="influencer-joined-date">Joined date</label>
-                  <input
-                    id="influencer-joined-date"
-                    type="date"
-                    value={formState.created_at}
-                    onChange={handleFieldChange("created_at")}
-                  />
-                </div>
-
-                <div className={styles["field"]}>
-                  <label htmlFor="influencer-avatar">Avatar URL</label>
-                  <input
-                    id="influencer-avatar"
-                    value={formState.avatarUrl}
-                    onChange={handleFieldChange("avatarUrl")}
-                    placeholder="https://"
-                  />
-                </div>
-
-                <div className={styles["field"]}>
-                  <label htmlFor="influencer-voice-id">Voice ID</label>
-                  <input
-                    id="influencer-voice-id"
-                    value={formState.voice_id}
-                    onChange={handleFieldChange("voice_id")}
-                    placeholder="voice_123"
-                  />
-                </div>
-
-                <div className={styles["field"]}>
-                  <label htmlFor="influencer-agent-id">
-                    Elevenlabs Agent ID
-                  </label>
-                  <input
-                    id="influencer-agent-id"
-                    value={formState.influencer_agent_id_third_part}
-                    onChange={handleFieldChange(
-                      "influencer_agent_id_third_part"
-                    )}
-                    placeholder="agent_abc"
-                  />
-                </div>
-              </div>
-
-              <div className={styles["section-heading"]}>
-                <h3>Prompt overrides</h3>
-                <p>Customize prompt text used for adult content workflows.</p>
-              </div>
-              <div className={styles["field"]}>
-                <label htmlFor="influencer-custom-adult-prompt">
-                  Custom adult prompt (For Voice Message 18+ Only)
-                </label>
-                <textarea
-                  id="influencer-custom-adult-prompt"
-                  value={formState.custom_adult_prompt}
-                  onChange={handleFieldChange("custom_adult_prompt")}
-                  placeholder="Provide a custom adult prompt override."
-                  rows={6}
-                />
-              </div>
-
-              <div
-                className={`${styles["section-heading"]} ${styles["section-heading--row"]}`}
-              >
-                <div>
-                  <h3>Persona profile</h3>
-                  <p>
-                    Capture likes, dislikes, MBTI, tone, and stage behaviors for
-                    this influencer.
-                  </p>
-                </div>
-              </div>
-              <div className={styles["field"]}>
-                <label htmlFor="persona-mbti">MBTI archetype</label>
-                <select
-                  id="persona-mbti"
-                  value={formState.bio_json.mbti_architype}
-                  onChange={handlePersonaFieldChange("mbti_architype")}
+              <div className={styles["section-card"]}>
+                <div
+                  className={styles["section-card__header"]}
+                  onClick={() => toggleSection("basic-info")}
                 >
-                  <option value="">Select type</option>
-                  {mbtiPersonalities.map((personality) => (
-                    <option key={personality.code} value={personality.code}>
-                      {personality.name} ({personality.code})
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className={styles["field"]}>
-                <label htmlFor="persona-mbti-rules">MBTI rules</label>
-                <textarea
-                  id="persona-mbti-rules"
-                  value={formState.bio_json.mbti_rules}
-                  onChange={handlePersonaFieldChange("mbti_rules")}
-                  placeholder="Prefers logical decisions, needs solitary recharge, relies on structured plans."
-                  rows={10}
-                />
-              </div>
-              <div className={styles["field"]}>
-                <label htmlFor="persona-rules">Personality rules</label>
-                <textarea
-                  id="persona-rules"
-                  value={formState.bio_json.personality_rules}
-                  onChange={handlePersonaFieldChange("personality_rules")}
-                  placeholder="Strategic, future-oriented, has high standards and boundaries, values long-term connections."
-                  rows={10}
-                />
-              </div>
-              <div className={styles["field"]}>
-                <label htmlFor="persona-tone">Tone</label>
-                <textarea
-                  id="persona-tone"
-                  value={formState.bio_json.tone}
-                  onChange={handlePersonaFieldChange("tone")}
-                  placeholder="Direct and analytical with a hint of dry humor."
-                  rows={5}
-                />
-              </div>
-              <div className={styles["persona-grid"]}>
-                <div className={styles["field"]}>
-                  <label htmlFor="persona-likes">
-                    Likes (press Enter to add)
-                  </label>
-                  <input
-                    id="persona-likes"
-                    value={personaListDrafts.likes}
-                    onChange={handlePersonaListDraftChange("likes")}
-                    onKeyDown={handlePersonaListKeyDown("likes")}
-                    placeholder="Type a like and press Enter"
-                  />
-                  <div className={styles["tag-list"]}>
-                    {formState.bio_json.likes.length === 0 ? (
-                      <span className={styles["tag-placeholder"]}>
-                        No likes added yet
-                      </span>
-                    ) : (
-                      formState.bio_json.likes.map((item) => (
-                        <span key={item} className={styles["tag"]}>
-                          {item}
-                          <button
-                            type="button"
-                            className={styles["tag-remove"]}
-                            onClick={() =>
-                              handleRemovePersonaItem("likes", item)
-                            }
-                            aria-label={`Remove ${item}`}
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))
-                    )}
+                  <div>
+                    <h3>Basic info</h3>
+                    <p>Identity, contact, and avatar details.</p>
                   </div>
+                  <span className={`${styles["section-chevron"]} ${collapsedSections.has("basic-info") ? "" : styles["section-chevron--open"]}`}>▼</span>
                 </div>
-                <div className={styles["field"]}>
-                  <label htmlFor="persona-dislikes">
-                    Dislikes (press Enter to add)
-                  </label>
-                  <input
-                    id="persona-dislikes"
-                    value={personaListDrafts.dislikes}
-                    onChange={handlePersonaListDraftChange("dislikes")}
-                    onKeyDown={handlePersonaListKeyDown("dislikes")}
-                    placeholder="Type a dislike and press Enter"
-                  />
-                  <div className={styles["tag-list"]}>
-                    {formState.bio_json.dislikes.length === 0 ? (
-                      <span className={styles["tag-placeholder"]}>
-                        No dislikes added yet
-                      </span>
-                    ) : (
-                      formState.bio_json.dislikes.map((item) => (
-                        <span key={item} className={styles["tag"]}>
-                          {item}
-                          <button
-                            type="button"
-                            className={styles["tag-remove"]}
-                            onClick={() =>
-                              handleRemovePersonaItem("dislikes", item)
-                            }
-                            aria-label={`Remove ${item}`}
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))
-                    )}
+                {!collapsedSections.has("basic-info") && (
+                  <div className={styles["section-card__body"]}>
+                    <div className={styles["detail-grid"]}>
+                      <div className={styles["field"]}>
+                        <label htmlFor="influencer-id">Influencer ID</label>
+                        <input
+                          id="influencer-id"
+                          value={formState.id}
+                          onChange={handleFieldChange("id")}
+                          placeholder="Auto-generated if left blank"
+                        />
+                      </div>
+
+                      <div className={styles["field"]}>
+                        <label htmlFor="influencer-first-name">First name</label>
+                        <input
+                          id="influencer-first-name"
+                          value={formState.firstName}
+                          onChange={handleFieldChange("firstName")}
+                          placeholder="First name"
+                        />
+                      </div>
+
+                      <div className={styles["field"]}>
+                        <label htmlFor="influencer-last-name">Last name</label>
+                        <input
+                          id="influencer-last-name"
+                          value={formState.lastName}
+                          onChange={handleFieldChange("lastName")}
+                          placeholder="Last name"
+                        />
+                      </div>
+
+                      <div className={styles["field"]}>
+                        <label htmlFor="influencer-email">Contact email</label>
+                        <input
+                          id="influencer-email"
+                          type="email"
+                          value={formState.email}
+                          onChange={handleFieldChange("email")}
+                          placeholder="name@example.com"
+                        />
+                      </div>
+
+                      <div className={styles["field"]}>
+                        <label htmlFor="influencer-phone">Contact phone</label>
+                        <input
+                          id="influencer-phone"
+                          value={formState.phone}
+                          onChange={handleFieldChange("phone")}
+                          placeholder="+1 (555) 000-0000"
+                        />
+                      </div>
+
+                      <div className={styles["field"]}>
+                        <label htmlFor="influencer-joined-date">Joined date</label>
+                        <input
+                          id="influencer-joined-date"
+                          type="date"
+                          value={formState.created_at}
+                          onChange={handleFieldChange("created_at")}
+                        />
+                      </div>
+
+                      <div className={styles["field"]}>
+                        <label htmlFor="influencer-avatar">Avatar URL</label>
+                        <input
+                          id="influencer-avatar"
+                          value={formState.avatarUrl}
+                          onChange={handleFieldChange("avatarUrl")}
+                          placeholder="https://"
+                        />
+                      </div>
+
+                      <div className={styles["field"]}>
+                        <label htmlFor="influencer-voice-id">Voice ID</label>
+                        <input
+                          id="influencer-voice-id"
+                          value={formState.voice_id}
+                          onChange={handleFieldChange("voice_id")}
+                          placeholder="voice_123"
+                        />
+                      </div>
+
+                      <div className={styles["field"]}>
+                        <label htmlFor="influencer-agent-id">
+                          Elevenlabs Agent ID
+                        </label>
+                        <input
+                          id="influencer-agent-id"
+                          value={formState.influencer_agent_id_third_part}
+                          onChange={handleFieldChange(
+                            "influencer_agent_id_third_part"
+                          )}
+                          placeholder="agent_abc"
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
-              <div className={styles["section-heading"]}>
-                <h3>Relationship stages</h3>
-                <p>Select a stage to edit its behavior copy.</p>
-              </div>
-              <div className={styles["field"]}>
-                <label htmlFor="relationship-stages">Relationship stages</label>
-                <select
-                  id="relationship-stages"
-                  value={formState.bio_json.stages_focus ?? ""}
-                  onChange={(event) =>
-                    setFormState((prev) => ({
-                      ...prev,
-                      bio_json: {
-                        ...prev.bio_json,
-                        stages_focus: event.target.value as keyof PersonaStages,
-                      },
-                    }))
-                  }
+              <div className={styles["section-card"]}>
+                <div
+                  className={styles["section-card__header"]}
+                  onClick={() => toggleSection("prompt-overrides")}
                 >
-                  <option value="">Select stage</option>
-                  {STAGE_KEYS.map((type) => (
-                    <option key={type} value={type}>
-                      {type.replace("_", " ").toUpperCase()}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              {formState.bio_json.stages_focus ? (
-                <div className={styles["field"]}>
-                  <label htmlFor="persona-stage-copy">
-                    {formState.bio_json.stages_focus
-                      .replace("_", " ")
-                      .toUpperCase()}
-                  </label>
-                  <textarea
-                    id="persona-stage-copy"
-                    value={
-                      formState.bio_json.stages[
-                      formState.bio_json.stages_focus as keyof PersonaStages
-                      ] || ""
-                    }
-                    onChange={handlePersonaStageChange(
-                      formState.bio_json.stages_focus as keyof PersonaStages
-                    )}
-                    placeholder={
-                      STAGE_PLACEHOLDERS[
-                      formState.bio_json.stages_focus as keyof PersonaStages
-                      ]
-                    }
-                    rows={3}
-                  />
-                </div>
-              ) : (
-                <div className={styles["field"]}>
-                  <label>Stage copy</label>
-                  <div className={styles["list-placeholder"]}>
-                    Select a stage to edit its copy.
+                  <div>
+                    <h3>18+ Prompt overrides</h3>
+                    <p>Customize 18+ prompt text used for adult content workflows.</p>
                   </div>
+                  <span className={`${styles["section-chevron"]} ${collapsedSections.has("prompt-overrides") ? "" : styles["section-chevron--open"]}`}>▼</span>
                 </div>
-              )}
+                {!collapsedSections.has("prompt-overrides") && (
+                  <div className={styles["section-card__body"]}>
+                    <div className={styles["field"]}>
+                      <label htmlFor="influencer-custom-adult-prompt">
+                        Custom adult prompt (For Voice Message 18+ Only)
+                      </label>
+                      <textarea
+                        id="influencer-custom-adult-prompt"
+                        value={formState.custom_adult_prompt}
+                        onChange={handleFieldChange("custom_adult_prompt")}
+                        placeholder="Provide a custom adult prompt override."
+                        rows={6}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className={styles["section-card"]}>
+                <div
+                  className={styles["section-card__header"]}
+                  onClick={() => toggleSection("persona-profile")}
+                >
+                  <div>
+                    <h3>Persona profile</h3>
+                    <p>
+                      Capture likes, dislikes, MBTI, tone, and stage behaviors for
+                      this influencer.
+                    </p>
+                  </div>
+                  <span className={`${styles["section-chevron"]} ${collapsedSections.has("persona-profile") ? "" : styles["section-chevron--open"]}`}>▼</span>
+                </div>
+                {!collapsedSections.has("persona-profile") && (
+                  <div className={styles["section-card__body"]}>
+                    <div className={styles["field"]}>
+                      <label htmlFor="persona-mbti">MBTI archetype</label>
+                      <select
+                        id="persona-mbti"
+                        value={formState.bio_json.mbti_architype}
+                        onChange={handlePersonaFieldChange("mbti_architype")}
+                      >
+                        <option value="">Select type</option>
+                        {mbtiPersonalities.map((personality) => (
+                          <option key={personality.code} value={personality.code}>
+                            {personality.name} ({personality.code})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className={styles["field"]}>
+                      <label htmlFor="persona-mbti-rules">MBTI rules</label>
+                      <textarea
+                        id="persona-mbti-rules"
+                        value={formState.bio_json.mbti_rules}
+                        onChange={handlePersonaFieldChange("mbti_rules")}
+                        placeholder="Prefers logical decisions, needs solitary recharge, relies on structured plans."
+                        rows={10}
+                      />
+                    </div>
+                    <div className={styles["field"]}>
+                      <label htmlFor="persona-rules">Personality rules</label>
+                      <textarea
+                        id="persona-rules"
+                        value={formState.bio_json.personality_rules}
+                        onChange={handlePersonaFieldChange("personality_rules")}
+                        placeholder="Strategic, future-oriented, has high standards and boundaries, values long-term connections."
+                        rows={10}
+                      />
+                    </div>
+                    <div className={styles["field"]}>
+                      <label htmlFor="persona-tone">Tone</label>
+                      <textarea
+                        id="persona-tone"
+                        value={formState.bio_json.tone}
+                        onChange={handlePersonaFieldChange("tone")}
+                        placeholder="Direct and analytical with a hint of dry humor."
+                        rows={5}
+                      />
+                    </div>
+                    <div className={styles["persona-grid"]}>
+                      <div className={styles["field"]}>
+                        <label htmlFor="persona-likes">
+                          Likes (press Enter to add)
+                        </label>
+                        <input
+                          id="persona-likes"
+                          value={personaListDrafts.likes}
+                          onChange={handlePersonaListDraftChange("likes")}
+                          onKeyDown={handlePersonaListKeyDown("likes")}
+                          placeholder="Type a like and press Enter"
+                        />
+                        <div className={styles["tag-list"]}>
+                          {formState.bio_json.likes.length === 0 ? (
+                            <span className={styles["tag-placeholder"]}>
+                              No likes added yet
+                            </span>
+                          ) : (
+                            formState.bio_json.likes.map((item) => (
+                              <span key={item} className={styles["tag"]}>
+                                {item}
+                                <button
+                                  type="button"
+                                  className={styles["tag-remove"]}
+                                  onClick={() =>
+                                    handleRemovePersonaItem("likes", item)
+                                  }
+                                  aria-label={`Remove ${item}`}
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                      <div className={styles["field"]}>
+                        <label htmlFor="persona-dislikes">
+                          Dislikes (press Enter to add)
+                        </label>
+                        <input
+                          id="persona-dislikes"
+                          value={personaListDrafts.dislikes}
+                          onChange={handlePersonaListDraftChange("dislikes")}
+                          onKeyDown={handlePersonaListKeyDown("dislikes")}
+                          placeholder="Type a dislike and press Enter"
+                        />
+                        <div className={styles["tag-list"]}>
+                          {formState.bio_json.dislikes.length === 0 ? (
+                            <span className={styles["tag-placeholder"]}>
+                              No dislikes added yet
+                            </span>
+                          ) : (
+                            formState.bio_json.dislikes.map((item) => (
+                              <span key={item} className={styles["tag"]}>
+                                {item}
+                                <button
+                                  type="button"
+                                  className={styles["tag-remove"]}
+                                  onClick={() =>
+                                    handleRemovePersonaItem("dislikes", item)
+                                  }
+                                  aria-label={`Remove ${item}`}
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className={styles["section-card"]}>
+                <div
+                  className={styles["section-card__header"]}
+                  onClick={() => toggleSection("relationship-stages")}
+                >
+                  <div>
+                    <h3>Relationship stages</h3>
+                    <p>Select a stage to edit its behavior copy.</p>
+                  </div>
+                  <span className={`${styles["section-chevron"]} ${collapsedSections.has("relationship-stages") ? "" : styles["section-chevron--open"]}`}>▼</span>
+                </div>
+                {!collapsedSections.has("relationship-stages") && (
+                  <div className={styles["section-card__body"]}>
+                    <div className={styles["field"]}>
+                      <label htmlFor="relationship-stages">Relationship stages</label>
+                      <select
+                        id="relationship-stages"
+                        value={formState.bio_json.stages_focus ?? ""}
+                        onChange={(event) =>
+                          setFormState((prev) => ({
+                            ...prev,
+                            bio_json: {
+                              ...prev.bio_json,
+                              stages_focus: event.target.value as keyof PersonaStages,
+                            },
+                          }))
+                        }
+                      >
+                        <option value="">Select stage</option>
+                        {STAGE_KEYS.map((type) => (
+                          <option key={type} value={type}>
+                            {type.replace("_", " ").toUpperCase()}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {formState.bio_json.stages_focus ? (
+                      <div className={styles["field"]}>
+                        <label htmlFor="persona-stage-copy">
+                          {formState.bio_json.stages_focus
+                            .replace("_", " ")
+                            .toUpperCase()}
+                        </label>
+                        <textarea
+                          id="persona-stage-copy"
+                          value={
+                            formState.bio_json.stages[
+                            formState.bio_json.stages_focus as keyof PersonaStages
+                            ] || ""
+                          }
+                          onChange={handlePersonaStageChange(
+                            formState.bio_json.stages_focus as keyof PersonaStages
+                          )}
+                          placeholder={
+                            STAGE_PLACEHOLDERS[
+                            formState.bio_json.stages_focus as keyof PersonaStages
+                            ]
+                          }
+                          rows={3}
+                        />
+                      </div>
+                    ) : (
+                      <div className={styles["field"]}>
+                        <label>Stage copy</label>
+                        <div className={styles["list-placeholder"]}>
+                          Select a stage to edit its copy.
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
               <div className={styles["form-footer"]}>
                 {saveState !== "idle" && (
                   <span
