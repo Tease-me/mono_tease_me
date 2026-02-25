@@ -3,7 +3,8 @@ from sqlalchemy import select, union_all
 from sqlalchemy.sql import func
 from app.db.models import Memory, Chat, Message
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
+from langchain_xai import ChatXAI
+from app.core.config import settings
 import logging
 from app.db.session import SessionLocal
 
@@ -95,7 +96,6 @@ async def extract_memories_from_transcript(
 
 async def summarize_memory_list(
     memories: list[str],
-    model: str = "gpt-4o-mini",
     max_items: int = 400,
 ) -> str:
     """
@@ -132,11 +132,11 @@ async def summarize_memory_list(
             ),
         ]
     )
-    llm = ChatOpenAI(
-        model=model,
+    llm = ChatXAI(
+        xai_api_key=settings.XAI_API_KEY,
+        model="grok-4-1-fast-non-reasoning",
         temperature=0.2,
         max_tokens=700,
-        store=False,
     )
     chain = prompt | llm
     resp = await chain.ainvoke({"memory_block": memory_block})
@@ -144,7 +144,6 @@ async def summarize_memory_list(
 
 async def summarize_ai_memory_list(
     memories: list[str],
-    model: str = "gpt-4o-mini",
     max_items: int = 400,
 ) -> str:
     """
@@ -179,11 +178,11 @@ async def summarize_ai_memory_list(
             ),
         ]
     )
-    llm = ChatOpenAI(
-        model=model,
+    llm = ChatXAI(
+        xai_api_key=settings.XAI_API_KEY,
+        model="grok-4-1-fast-non-reasoning",
         temperature=0.2,
         max_tokens=700,
-        store=False,
     )
     chain = prompt | llm
     resp = await chain.ainvoke({"memory_block": memory_block})
@@ -194,14 +193,13 @@ async def get_summarized_memories(
     db,
     user_id: int,
     influencer_id: str,
-    model: str = "gpt-4o-mini",
     max_items: int = 400,
 ) -> str:
     """
     Fetch all memories for a user-influencer pair and return an LLM summary.
     """
     memories = await get_all_memory_list(db, user_id, influencer_id)
-    return await summarize_memory_list(memories, model=model, max_items=max_items)
+    return await summarize_memory_list(memories, max_items=max_items)
 
 
 async def get_all_memory_list(
