@@ -46,6 +46,30 @@ export type AdminRelPatch = {
   last_interaction_at?: string; // ISO string
 };
 
+export interface KnowledgeUpsertResponse {
+  ok: boolean;
+  influencer_id: string;
+  document_id: number;
+  chunk_count: number;
+  updated_at?: string | null;
+}
+
+export interface KnowledgeGetResponse {
+  ok: boolean;
+  influencer_id: string;
+  document_id: number;
+  text: string;
+  text_hash?: string | null;
+  chunk_count: number;
+  updated_at?: string | null;
+}
+
+export interface KnowledgeDeleteResponse {
+  ok: boolean;
+  influencer_id: string;
+  deleted: boolean;
+}
+
 export const AdminServices = (apiClient: AxiosInstance) => ({
   getUsers: async (q?: string): Promise<AdminUserRow[]> => {
     const response = await apiClient.get(Endpoints.admin.users(q));
@@ -69,6 +93,21 @@ export const AdminServices = (apiClient: AxiosInstance) => ({
 
   clearChatHistory: async (chat_id: string): Promise<any> => {
     const response = await apiClient.delete(Endpoints.admin.history(chat_id));
+    return response.data;
+  },
+
+  getKnowledge: async (influencerId: string): Promise<KnowledgeGetResponse> => {
+    const response = await apiClient.get(Endpoints.admin.knowledge.get(influencerId));
+    return response.data;
+  },
+
+  upsertKnowledge: async (influencerId: string, text: string): Promise<KnowledgeUpsertResponse> => {
+    const response = await apiClient.put(Endpoints.admin.knowledge.upsert(influencerId), { text });
+    return response.data;
+  },
+
+  deleteKnowledge: async (influencerId: string): Promise<KnowledgeDeleteResponse> => {
+    const response = await apiClient.delete(Endpoints.admin.knowledge.delete(influencerId));
     return response.data;
   },
 });
