@@ -3,7 +3,6 @@ from sqlalchemy import select, union_all
 from sqlalchemy.sql import func
 from app.db.models import Memory, Chat, Message
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
 from langchain_xai import ChatXAI
 from app.core.config import settings
 import logging
