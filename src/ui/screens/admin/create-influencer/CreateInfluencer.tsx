@@ -8,13 +8,18 @@ import SvgPack from "@/utils/SvgPack";
 import React, {
   ChangeEvent,
   FormEvent,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
+import { apiClient } from "@/api/apis";
+import { AdminServices, KnowledgeGetResponse } from "@/api/services/AdminServices";
 import AdminLayout from "../AdminLayout";
 import styles from "./CreateInfluencer.module.css";
+
+const adminSvc = AdminServices(apiClient);
 
 type InfluencerFormState = {
   id: string;
@@ -388,7 +393,7 @@ const CreateInfluencer: React.FC = () => {
     () => new Set<number>()
   );
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(
-    () => new Set(["basic-info", "prompt-overrides", "relationship-stages"])
+    () => new Set(["basic-info", "prompt-overrides", "relationship-stages", "knowledge"])
   );
   const toggleSection = (id: string) =>
     setCollapsedSections((prev) => {
@@ -405,6 +410,100 @@ const CreateInfluencer: React.FC = () => {
   });
   const influencerRepo = useMemo(() => InfluencerRepo(), []);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // ── Knowledge base state ──────────────────────────────────────
+  const [kbText, setKbText]       = useState("");
+  const [kbData, setKbData]       = useState<KnowledgeGetResponse | null>(null);
+  const [hasKb, setHasKb]         = useState(false);
+  const [loadingKb, setLoadingKb] = useState(false);
+  const [savingKb, setSavingKb]   = useState(false);
+  const [kbError, setKbError]     = useState<string | null>(null);
+  const [kbSuccess, setKbSuccess] = useState<string | null>(null);
+
+  // ── Per-section save state ─────────────────────────────────────
+  const [sectionSaving, setSectionSaving] = useState<Record<string, boolean>>({});
+  const [sectionMsg, setSectionMsg] = useState<Record<string, { type: "success" | "error"; msg: string } | null>>({});
+
+  const loadKb = useCallback(async (influencerId: string) => {
+    setLoadingKb(true);
+    setKbData(null); setHasKb(false); setKbText("");
+    setKbError(null); setKbSuccess(null);
+    try {
+      const data = await adminSvc.getKnowledge(influencerId);
+      setKbData(data); setKbText(data.text); setHasKb(true);
+    } catch (e: any) {
+      if (e?.response?.status !== 404) {
+        setKbError(e instanceof Error ? e.message : "Failed to load knowledge.");
+      }
+    } finally { setLoadingKb(false); }
+  }, []);
+
+  useEffect(() => {
+    if (selectedId && selectedId !== "new") loadKb(selectedId);
+    else { setKbText(""); setKbData(null); setHasKb(false); }
+  }, [selectedId, loadKb]);
+
+  const handleKbSave = async () => {
+    if (!selectedId || selectedId === "new" || !kbText.trim()) {
+      setKbError("Knowledge text is required."); return;
+    }
+    setSavingKb(true); setKbError(null); setKbSuccess(null);
+    try {
+      const result = await adminSvc.upsertKnowledge(selectedId, kbText);
+      setKbData({ ...result, text: kbText });
+      setHasKb(true);
+      setKbSuccess(`Saved — ${result.chunk_count} chunk${result.chunk_count !== 1 ? "s" : ""} indexed.`);
+    } catch (e: any) {
+      setKbError(e?.response?.status === 400 ? "Knowledge text is required." : "Save failed. Retry.");
+    } finally { setSavingKb(false); }
+  };
+
+  const patchSection = async (sectionId: string) => {
+    const existing = influencers.find((inf) => inf.id === selectedId);
+    if (!selectedId || selectedId === "new" || !existing) return;
+    const nameFromFields = `${formState.firstName} ${formState.lastName}`.trim();
+    const fullName = nameFromFields || existing.name || "New Influencer";
+    const base: InfluencerDataModel = {
+      id: existing.id,
+      name: fullName,
+      username: existing.username,
+      img: resolveAvatarSrc(formState.avatarUrl),
+      created_at: formState.created_at || existing.created_at,
+      earnings: existing.earnings ?? 0,
+      isSelected: false,
+      voice_id: formState.voice_id || existing.voice_id || "",
+      custom_adult_prompt: formState.custom_adult_prompt || existing.custom_adult_prompt || "",
+      prompt_template: formState.prompt_template || existing.prompt_template || "",
+      influencer_agent_id_third_part: formState.influencer_agent_id_third_part || existing.influencer_agent_id_third_part || "",
+      bio_json: personaProfileToJson(formState.bio_json),
+      daily_scripts: existing.daily_scripts ?? [],
+    };
+    setSectionSaving((prev) => ({ ...prev, [sectionId]: true }));
+    setSectionMsg((prev) => ({ ...prev, [sectionId]: null }));
+    try {
+      const serverInfluencer = await influencerRepo.patchInfluencer(
+        base,
+        base.prompt_template,
+        existing.daily_scripts || [],
+        base.influencer_agent_id_third_part,
+        base.bio_json,
+        base.voice_id,
+        base.custom_adult_prompt
+      );
+      const merged = {
+        ...base,
+        ...serverInfluencer,
+        custom_adult_prompt: serverInfluencer.custom_adult_prompt ?? base.custom_adult_prompt,
+      };
+      setInfluencers((prev) => prev.map((inf) => inf.id === merged.id ? merged : inf));
+      setSectionMsg((prev) => ({ ...prev, [sectionId]: { type: "success", msg: "Saved" } }));
+      setTimeout(() => setSectionMsg((prev) => ({ ...prev, [sectionId]: null })), 3000);
+    } catch {
+      setSectionMsg((prev) => ({ ...prev, [sectionId]: { type: "error", msg: "Save failed. Retry." } }));
+    } finally {
+      setSectionSaving((prev) => ({ ...prev, [sectionId]: false }));
+    }
+  };
 
   const getRecordLabel = (record: UploadRecord, index: number) => {
     const candidateKeys: Array<keyof UploadRecord> = [
@@ -867,7 +966,7 @@ const CreateInfluencer: React.FC = () => {
                 </div>
               </div>
 
-              <div className={styles["section-card"]}>
+              <div className={`${styles["section-card"]} ${styles["hidden"]}`}>
                 <div
                   className={styles["section-card__header"]}
                   onClick={() => toggleSection("basic-info")}
@@ -976,11 +1075,24 @@ const CreateInfluencer: React.FC = () => {
                         />
                       </div>
                     </div>
+                    {sectionMsg["basic-info"] && (
+                      <div className={`${styles["save-status"]} ${styles[`save-status--${sectionMsg["basic-info"]!.type}`]}`}>
+                        {sectionMsg["basic-info"]!.msg}
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      className={styles["secondary-button"]}
+                      onClick={() => patchSection("basic-info")}
+                      disabled={!!sectionSaving["basic-info"] || !selectedId || selectedId === "new"}
+                    >
+                      {sectionSaving["basic-info"] ? "Saving…" : "Save"}
+                    </button>
                   </div>
                 )}
               </div>
 
-              <div className={styles["section-card"]}>
+              <div className={`${styles["section-card"]} ${styles["hidden"]}`}>
                 <div
                   className={styles["section-card__header"]}
                   onClick={() => toggleSection("prompt-overrides")}
@@ -1005,6 +1117,19 @@ const CreateInfluencer: React.FC = () => {
                         rows={6}
                       />
                     </div>
+                    {sectionMsg["prompt-overrides"] && (
+                      <div className={`${styles["save-status"]} ${styles[`save-status--${sectionMsg["prompt-overrides"]!.type}`]}`}>
+                        {sectionMsg["prompt-overrides"]!.msg}
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      className={styles["secondary-button"]}
+                      onClick={() => patchSection("prompt-overrides")}
+                      disabled={!!sectionSaving["prompt-overrides"] || !selectedId || selectedId === "new"}
+                    >
+                      {sectionSaving["prompt-overrides"] ? "Saving…" : "Save"}
+                    </button>
                   </div>
                 )}
               </div>
@@ -1142,11 +1267,24 @@ const CreateInfluencer: React.FC = () => {
                         </div>
                       </div>
                     </div>
+                    {sectionMsg["persona-profile"] && (
+                      <div className={`${styles["save-status"]} ${styles[`save-status--${sectionMsg["persona-profile"]!.type}`]}`}>
+                        {sectionMsg["persona-profile"]!.msg}
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      className={styles["secondary-button"]}
+                      onClick={() => patchSection("persona-profile")}
+                      disabled={!!sectionSaving["persona-profile"] || !selectedId || selectedId === "new"}
+                    >
+                      {sectionSaving["persona-profile"] ? "Saving…" : "Save"}
+                    </button>
                   </div>
                 )}
               </div>
 
-              <div className={styles["section-card"]}>
+              <div className={`${styles["section-card"]} ${styles["hidden"]}`}>
                 <div
                   className={styles["section-card__header"]}
                   onClick={() => toggleSection("relationship-stages")}
@@ -1215,39 +1353,112 @@ const CreateInfluencer: React.FC = () => {
                         </div>
                       </div>
                     )}
+                    {sectionMsg["relationship-stages"] && (
+                      <div className={`${styles["save-status"]} ${styles[`save-status--${sectionMsg["relationship-stages"]!.type}`]}`}>
+                        {sectionMsg["relationship-stages"]!.msg}
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      className={styles["secondary-button"]}
+                      onClick={() => patchSection("relationship-stages")}
+                      disabled={!!sectionSaving["relationship-stages"] || !selectedId || selectedId === "new"}
+                    >
+                      {sectionSaving["relationship-stages"] ? "Saving…" : "Save"}
+                    </button>
                   </div>
                 )}
               </div>
-              <div className={styles["form-footer"]}>
-                {saveState !== "idle" && (
-                  <span
-                    className={`${styles["save-status"]} ${saveState === "success"
-                      ? styles["save-status--success"]
-                      : ""
-                      } ${saveState === "error" ? styles["save-status--error"] : ""
-                      }`}
-                  >
-                    {saveState === "success" && "Changes saved"}
-                    {saveState === "error" &&
-                      (saveError || "Failed to save changes")}
-                    {saveState === "saving" && "Saving…"}
-                  </span>
+
+              {/* ── Knowledge base ── */}
+              <div className={styles["section-card"]}>
+                <div
+                  className={styles["section-card__header"]}
+                  onClick={() => toggleSection("knowledge")}
+                >
+                  <div>
+                    <h3>Knowledge base</h3>
+                    <p>Long-form knowledge text indexed for AI retrieval.</p>
+                  </div>
+                  <span className={`${styles["section-chevron"]} ${collapsedSections.has("knowledge") ? "" : styles["section-chevron--open"]}`}>▼</span>
+                </div>
+                {!collapsedSections.has("knowledge") && (
+                  <div className={styles["section-card__body"]}>
+                    {loadingKb && (
+                      <div style={{ opacity: 0.55, fontSize: 13 }}>Loading knowledge…</div>
+                    )}
+                    {!loadingKb && !hasKb && (
+                      <div style={{ fontSize: 13, opacity: 0.6 }}>No knowledge yet — enter text below and save.</div>
+                    )}
+                    {!loadingKb && hasKb && kbData && (
+                      <div style={{ fontSize: 12, opacity: 0.65 }}>
+                        {kbData.chunk_count} chunk{kbData.chunk_count !== 1 ? "s" : ""}
+                        {kbData.updated_at && ` · Updated ${new Date(kbData.updated_at).toLocaleString()}`}
+                      </div>
+                    )}
+                    {!loadingKb && (
+                      <div className={styles["field"]}>
+                        <textarea
+                          value={kbText}
+                          onChange={(e) => setKbText(e.target.value)}
+                          placeholder="Enter long-form knowledge text for this influencer…"
+                          rows={10}
+                          disabled={savingKb}
+                        />
+                      </div>
+                    )}
+                    {kbSuccess && (
+                      <div className={`${styles["save-status"]} ${styles["save-status--success"]}`}>{kbSuccess}</div>
+                    )}
+                    {kbError && (
+                      <div className={`${styles["save-status"]} ${styles["save-status--error"]}`}>{kbError}</div>
+                    )}
+                    {!loadingKb && (
+                      <button
+                        type="button"
+                        className={styles["primary-button"]}
+                        onClick={handleKbSave}
+                        disabled={savingKb || !kbText.trim() || !selectedId || selectedId === "new"}
+                      >
+                        {savingKb ? "Saving…" : "Save knowledge"}
+                      </button>
+                    )}
+                  </div>
                 )}
-                <button
-                  type="button"
-                  className={styles["secondary-button"]}
-                  onClick={handleReset}
-                >
-                  Reset
-                </button>
-                <button
-                  type="submit"
-                  className={styles["primary-button"]}
-                  disabled={saveState === "saving"}
-                >
-                  {saveState === "saving" ? "Saving…" : "Save changes"}
-                </button>
               </div>
+
+              {(selectedId === "new" || !influencers.find((inf) => inf.id === selectedId)) && (
+                <div className={styles["form-footer"]}>
+                  {saveState !== "idle" && (
+                    <span
+                      className={`${styles["save-status"]} ${saveState === "success"
+                        ? styles["save-status--success"]
+                        : ""
+                        } ${saveState === "error" ? styles["save-status--error"] : ""
+                        }`}
+                    >
+                      {saveState === "success" && "Changes saved"}
+                      {saveState === "error" &&
+                        (saveError || "Failed to save changes")}
+                      {saveState === "saving" && "Saving…"}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    className={styles["secondary-button"]}
+                    onClick={handleReset}
+                  >
+                    Reset
+                  </button>
+                  <button
+                    type="submit"
+                    className={styles["primary-button"]}
+                    disabled={saveState === "saving"}
+                  >
+                    {saveState === "saving" ? "Saving…" : "Create influencer"}
+                  </button>
+                </div>
+              )}
             </form>
           </section>
         </div>
