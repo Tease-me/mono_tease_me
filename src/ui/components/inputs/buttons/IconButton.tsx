@@ -16,7 +16,7 @@ export interface IconButtonProps extends React.HTMLAttributes<HTMLDivElement> {
     redText?: boolean;
 }
 
-const IconButton: React.FC<IconButtonProps> = ({ type = "pill", color = "pink", leftIcon, redText = false, orientation = "horizontal", text, disabled, selected, ...rest }) => {
+const IconButton: React.FC<IconButtonProps> = ({ type = "pill", color = "pink", leftIcon, redText = false, orientation = "horizontal", text, disabled, selected, onClick, ...rest }) => {
     const [hovered, setHovered] = useState(false);
     const [pressed, setPressed] = useState(false);
     const outerStyle: Record<IconButtonType, string> = {
@@ -30,6 +30,10 @@ const IconButton: React.FC<IconButtonProps> = ({ type = "pill", color = "pink", 
     };
 
     const handleMouseEnter = (event: React.MouseEvent<HTMLDivElement>) => {
+        if (disabled) {
+            rest.onMouseEnter?.(event);
+            return;
+        }
         setHovered(true);
         rest.onMouseEnter?.(event);
     }
@@ -41,6 +45,10 @@ const IconButton: React.FC<IconButtonProps> = ({ type = "pill", color = "pink", 
     }
 
     const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+        if (disabled) {
+            rest.onMouseDown?.(event);
+            return;
+        }
         setPressed(true);
         rest.onMouseDown?.(event);
     }
@@ -51,6 +59,10 @@ const IconButton: React.FC<IconButtonProps> = ({ type = "pill", color = "pink", 
     }
 
     const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+        if (disabled) {
+            rest.onTouchStart?.(event);
+            return;
+        }
         setPressed(true);
         rest.onTouchStart?.(event);
     }
@@ -60,9 +72,19 @@ const IconButton: React.FC<IconButtonProps> = ({ type = "pill", color = "pink", 
         rest.onTouchEnd?.(event);
     }
 
+    const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (disabled) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+        onClick?.(e);
+    }
+
     return (
         <div
             {...rest}
+            onClick={handleClick}
             className={clsx(
                 outerStyle[type],
                 disabled && styles["disabled"],
