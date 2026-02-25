@@ -26,6 +26,7 @@ class Settings(BaseSettings):
 
     ELEVENLABS_API_KEY: str
     ELEVEN_BASE_URL: str 
+    ELEVENLABS_AGENT_BRANCH_ID: str | None = None
     ELEVENLABS_VOICE_ID: str
     ELEVENLABS_CONVAI_WEBHOOK_SECRET: str | None = None
     

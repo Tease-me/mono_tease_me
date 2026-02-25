@@ -85,8 +85,6 @@ async def update_influencer(
     influencer = await db.get(Influencer, id)
     if not influencer:
         raise HTTPException(404, "Influencer not found")
-    if getattr(influencer, "owner_id", None) != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to update this influencer")
     update_payload = data.model_dump(exclude_unset=True)
     for key, value in update_payload.items():
         setattr(influencer, key, value)
@@ -100,8 +98,6 @@ async def delete_influencer(id: str, current_user: User = Depends(get_current_us
     influencer = await db.get(Influencer, id)
     if not influencer:
         raise HTTPException(404, "Influencer not found")
-    if getattr(influencer, "owner_id", None) != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to delete this influencer")
     await db.delete(influencer)
     await db.commit()
     return {"ok": True}
@@ -137,8 +133,6 @@ async def update_influencer_profile(
     influencer = await db.get(Influencer, influencer_id)
     if not influencer:
         raise HTTPException(status_code=404, detail="Influencer not found")
-    if getattr(influencer, "owner_id", None) != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to update this influencer profile")
 
     form = await request.form()
     about = form.get("about")
@@ -295,12 +289,7 @@ async def update_relationship_api(
 async def upload_influencer_audio(
     influencer_id: str,
     file: UploadFile = File(...),
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
 ):  
-    influencer = await db.get(Influencer, influencer_id)
-    if not influencer or getattr(influencer, "owner_id", None) != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized")
 
     file_bytes = await file.read()
     if not file_bytes:
