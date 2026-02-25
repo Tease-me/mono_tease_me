@@ -70,6 +70,43 @@ export interface KnowledgeDeleteResponse {
   deleted: boolean;
 }
 
+export type ChatInfoStats = {
+  chats_count: number;
+  messages_count: number;
+  memories_count: number;
+  calls_count: number;
+};
+
+export type AdminChatInfoResponse = {
+  ok: boolean;
+  influencer_id: string;
+  user_id: number;
+  from?: string | null;
+  to?: string | null;
+  normal: ChatInfoStats;
+  adult: ChatInfoStats;
+  total: ChatInfoStats;
+};
+
+export type AdminClearHistoryResponse = {
+  ok: boolean;
+  influencer_id: string;
+  user_id: number;
+  mode: string;
+  chat_ids_targeted: string[];
+  chat_18_ids_targeted: string[];
+  messages_deleted: number;
+  messages_18_deleted: number;
+  memories_deleted: number;
+  call_records_deleted: number;
+  chats_deleted: number;
+  chats_18_deleted: number;
+  redis_keys_cleared: string[];
+  redis_clear_failures: string[];
+};
+
+export type HistoryClearMode = "normal" | "adult" | "both";
+
 export const AdminServices = (apiClient: AxiosInstance) => ({
   getUsers: async (q?: string): Promise<AdminUserRow[]> => {
     const response = await apiClient.get(Endpoints.admin.users(q));
@@ -108,6 +145,34 @@ export const AdminServices = (apiClient: AxiosInstance) => ({
 
   deleteKnowledge: async (influencerId: string): Promise<KnowledgeDeleteResponse> => {
     const response = await apiClient.delete(Endpoints.admin.knowledge.delete(influencerId));
+    return response.data;
+  },
+
+  getChatInfo: async (
+    influencerId: string,
+    userId: number,
+    from?: string,
+    to?: string
+  ): Promise<AdminChatInfoResponse> => {
+    const params = new URLSearchParams();
+    if (from) params.set("from", from);
+    if (to) params.set("to", to);
+    const qs = params.toString() ? `?${params}` : "";
+    const response = await apiClient.get(
+      Endpoints.admin.chatInfo(influencerId, userId) + qs
+    );
+    return response.data;
+  },
+
+  clearPairHistory: async (
+    influencerId: string,
+    userId: number,
+    mode: HistoryClearMode = "both"
+  ): Promise<AdminClearHistoryResponse> => {
+    const response = await apiClient.delete(
+      Endpoints.admin.pairHistory(influencerId, userId),
+      { params: { mode } }
+    );
     return response.data;
   },
 });

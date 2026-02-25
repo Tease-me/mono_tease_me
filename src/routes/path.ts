@@ -29,6 +29,7 @@ export const Paths = {
         preInfluencerDetail: (id = ":pre_influencer_id") =>
             `/admin/pre-influencers/${id}`,
         knowledge: "/admin/knowledge",
+        chatHistory: "/admin/chat-history",
     },
     mjDashboard: "/mj/dashboard",
 
