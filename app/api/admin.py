@@ -126,7 +126,7 @@ async def clear_chat_history_by_user_influencer(
         )
     except AdminHistoryNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
-    except AdminHistoryClearError as exc:
+    except AdminHistoryClearError:
         raise HTTPException(status_code=500, detail="Failed to clear chat history")
 
     return result.as_dict()
@@ -154,7 +154,7 @@ async def get_chat_info_by_user_influencer(
         )
     except AdminChatInfoValidationError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
-    except AdminChatInfoError as exc:
+    except AdminChatInfoError:
         raise HTTPException(status_code=500, detail="Failed to fetch chat info")
 
     return result.as_dict()
