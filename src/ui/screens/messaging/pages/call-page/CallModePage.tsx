@@ -19,6 +19,7 @@ import { formatDateTimeRelative, formatDate } from "@/utils/DateTimeUtils";
 import switchProfileImg from "@/assets/svg/switchProfile.svg";
 import InfluencerPopup from "../../components/InfluencerPopup";
 import { RelationshipServices } from "@/api/services/RelationshipServices";
+import { useIsMobile } from "@/utils/hooks/useIsDesktop";
 
 const balanceSvc = BalanceServices(apiClient);
 const relationshipService = RelationshipServices(apiClient);
@@ -108,13 +109,15 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
         setIsPopupOpen(false);
     };
 
+    const isMobile = useIsMobile();
+
     return (
         <div className={styles.page}>
             <div className={styles.cardCaller}>
                 <BalanceBadge balance={balance} />
                 <div className={styles.profileWrap}>
                     <div onClick={handleOpenPopup} className={styles.profileImageClick}>
-                        <ProfileMedia active size="xlarge" mediaType="image" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} glow />
+                        <ProfileMedia active size={isMobile ? "large" : "xlarge"} mediaType="image" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} glow />
                     </div>
                     {onChangeInfluencer && <button
                         type="button"

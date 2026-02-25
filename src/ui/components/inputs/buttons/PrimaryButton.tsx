@@ -17,6 +17,7 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({
     disabled,
     selected,
     variant = "pink",
+    onClick,
     ...rest
 }) => {
     const [hovered, setHovered] = useState(false);
@@ -44,9 +45,19 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({
         setPressed(false);
     }
 
+    const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (disabled) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+        onClick?.(e);
+    }
+
     return (
         <div
             {...rest}
+            onClick={handleClick}
             className={clsx(
                 styles["pill-button"],
                 styles["button-cta-outer"],

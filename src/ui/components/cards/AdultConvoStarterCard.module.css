@@ -36,3 +36,9 @@
 .highlight {
   color: #9D28AC;
 }
+
+@media (max-width: 767px) {
+  .card {
+    min-width: auto;
+  }
+}

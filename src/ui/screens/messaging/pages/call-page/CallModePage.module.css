@@ -1,9 +1,10 @@
 .page {
-    height: 100%;
     display: flex;
     align-items: center;
     flex-direction: column;
     justify-content: space-around;
+    flex: 1;
+    min-height: 0;
 }
 
 
@@ -201,8 +202,15 @@
     pointer-events: none;
 }
 
+@media (max-width: 767px) {
+    .statCard {
+        padding: 8px;
+    }
 
-
+    .statLabel {
+        font-size: 10px;
+    }
+}
 
 @media (min-width: 32rem) {
 
