@@ -11,6 +11,7 @@ from app.core.config import settings
 from app.agents.memory import find_similar_memories, store_facts_batch
 from app.agents.prompts import MODEL, FACT_EXTRACTOR, CONVO_ANALYZER, get_fact_prompt
 from app.db.session import SessionLocal
+from app.services.knowledge_rag import retrieve_knowledge_chunks
 from app.agents.prompt_utils import (
     get_global_prompt,
     build_relationship_prompt,
@@ -243,17 +244,43 @@ async def handle_turn(
         )
     )
     
-    memories_task = asyncio.create_task(
-        find_similar_memories(
-            db, 
-            chat_id, 
-            message, 
-            embedding=message_embedding  # Reuse precomputed embedding
-        ) if (db and user_id) else asyncio.sleep(0, result=[])
-    )
+    async def _safe_memories():
+        if not (db and user_id):
+            return {"user_memories": [], "ai_memories": []}
+        try:
+            return await find_similar_memories(
+                db,
+                chat_id,
+                message,
+                embedding=message_embedding,
+            )
+        except Exception as exc:
+            log.warning("[%s] memory retrieval failed: %s", cid, exc)
+            return {"user_memories": [], "ai_memories": []}
 
-    # Wait for both to complete in parallel (each on its own session)
-    rel_pack, memories_result = await asyncio.gather(rel_pack_task, memories_task)
+    async def _safe_knowledge():
+        if not (db and influencer_id and message_embedding):
+            return []
+        try:
+            return await retrieve_knowledge_chunks(
+                db=db,
+                influencer_id=influencer_id,
+                query_embedding=message_embedding,
+                top_k=5,
+            )
+        except Exception as exc:
+            log.warning("[%s] knowledge retrieval failed influencer=%s: %s", cid, influencer_id, exc)
+            return []
+
+    memories_task = asyncio.create_task(_safe_memories())
+    knowledge_task = asyncio.create_task(_safe_knowledge())
+
+    # Wait for all retrieval tasks in parallel (relationship + memory + knowledge)
+    rel_pack, memories_result, knowledge_result = await asyncio.gather(
+        rel_pack_task,
+        memories_task,
+        knowledge_task,
+    )
    
     rel = rel_pack["rel"]
     days_idle = rel_pack["days_idle"]
@@ -272,6 +299,18 @@ async def handle_turn(
     
     mem_block = "\n".join(s for s in (_norm(m) for m in user_mems) if s)
     ai_mem_block = "\n".join(s for s in (_norm(m) for m in ai_mems) if s)
+    knowledge_block = "\n".join(s for s in (_norm(m) for m in knowledge_result or []) if s)
+
+    log.debug(
+        "[%s] rag_context influencer=%s kb_hits=%d mem_hits=%d ai_mem_hits=%d kb_chars=%d mem_chars=%d",
+        cid,
+        influencer_id,
+        len(knowledge_result or []),
+        len(user_mems),
+        len(ai_mems),
+        len(knowledge_block),
+        len(mem_block) + len(ai_mem_block),
+    )
 
     bio = influencer.bio_json or {}
 
@@ -315,6 +354,7 @@ async def handle_turn(
         mbti_rules=mbti_rules,
         memories=mem_block,
         ai_memories=ai_mem_block,
+        knowledge_context=knowledge_block,
         daily_context=daily_context,
         last_user_message=recent_ctx,
         mood=time_context,

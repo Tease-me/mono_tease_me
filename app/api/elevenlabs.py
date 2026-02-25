@@ -3,7 +3,7 @@ import logging
 import math
 import random
 import json
-from app.agents.memory import get_all_memory_list, summarize_memory_list
+from app.agents.memory import get_all_memory_list, summarize_memory_list, summarize_ai_memory_list
 from app.agents.prompt_utils import build_relationship_prompt, get_global_prompt, get_mbti_rules_for_archetype, get_relationship_stage_prompts, get_time_context
 from app.relationship.dtr import plan_dtr_goal
 from app.relationship.inactivity import apply_inactivity_decay
@@ -1430,7 +1430,25 @@ async def get_conversation_token(
 
     # Scope recent_ctx to current session only (excludes previous call messages)
     current_session_msgs = _messages_since_session_break(history.messages)
-    recent_ctx = "\n".join(f"{m.type}: {m.content}" for m in current_session_msgs[-6:])
+    
+    if current_session_msgs:
+        recent_ctx = "\n".join(
+            f"{m.type}: {m.content}" 
+            for m in current_session_msgs[-6:] 
+            if getattr(m, "type", None) != "system" 
+            and "[SESSION BREAK]" not in getattr(m, "content", "")
+            and getattr(m, "content", "").strip() != "..."
+        )
+    else:
+        # Fallback to the last 4 historical messages if this is a fresh session
+        recent_ctx = "\n".join(
+            f"{m.type}: {m.content}" 
+            for m in history.messages[-4:] 
+            if getattr(m, "type", None) != "system"
+            and "[SESSION BREAK]" not in getattr(m, "content", "")
+            and getattr(m, "content", "").strip() != "..."
+        )
+
 
     now = datetime.now(timezone.utc)
     rel = await get_or_create_relationship(db, int(user_id), influencer_id)
@@ -1448,7 +1466,7 @@ async def get_conversation_token(
     time_context = get_time_context(user_timezone)
 
     users_name = await _build_user_name_block(db, user_id)
-    memories = await get_all_memory_list(db, user_id, influencer_id)
+    memories = await get_all_memory_list(db, user_id, influencer_id, exclude_sender="system")
     memory = await summarize_memory_list(memories or [], model=settings.DEFAULT_SUMMARIZATION_MODEL)
 
     # Fetch AI decisions/memories
@@ -1459,10 +1477,10 @@ async def get_conversation_token(
             )
         ),
         Memory.sender == "system"
-    ).order_by(Memory.created_at.desc()).limit(20)
+    ).order_by(Memory.created_at.desc()).limit(400)
     ai_mem_res = await db.execute(ai_mem_query)
     ai_mem_list = [row[0] for row in ai_mem_res.fetchall()]
-    ai_mem_block = "\n".join(f"- {m}" for m in ai_mem_list)
+    ai_mem_block = await summarize_ai_memory_list(ai_mem_list, model=settings.DEFAULT_SUMMARIZATION_MODEL)
 
     prompt = build_relationship_prompt(
         prompt_template,
