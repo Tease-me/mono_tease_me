@@ -6,6 +6,7 @@ import MetricRing from "../stats/MetricRing";
 import { formatDateTimeRelative } from "@/utils/DateTimeUtils";
 import BalanceBadge from "../stats/BalanceBadge";
 import { getRelationshipStatusIcon } from "@/utils/relationshipStatusUtils";
+import { useIsMobile } from "@/utils/hooks/useIsDesktop";
 
 type InfleuncerRelationCardProps = {
   name: string;
@@ -48,7 +49,8 @@ const InfluencerRelationCard: React.FC<InfleuncerRelationCardProps> = ({
   })();
   const lastConnectedLabel = formatDateTimeRelative(lastConnected);
   const spanClass = `${styles.lastConnected} ${isActive ? styles.lastConnectedActive : ''}`;
-
+  ` `
+  const isMobile = useIsMobile();
 
 
   return (
@@ -62,7 +64,7 @@ const InfluencerRelationCard: React.FC<InfleuncerRelationCardProps> = ({
           <p className={styles.lastConnectedArea}>Last Connected: <span className={spanClass} >{lastConnected ? (isActive ? "Just Now" : lastConnectedLabel) : "--"} </span></p>
         </div>
         <div className={styles.avatarContainer}>
-          <ProfileMedia size={'xlarge'} imageSrc={image} videoSrc={video} active glow />
+          <ProfileMedia size={isMobile ? 'large' : 'xlarge'} imageSrc={image} videoSrc={video} active glow />
         </div>
         <div className={styles.metricsContainer}>
           <div className={styles.metricsBridge}>
