@@ -97,7 +97,6 @@ async def extract_memories_from_transcript(
 
 async def summarize_memory_list(
     memories: list[str],
-    model: str = "gpt-4o-mini",
     max_items: int = 400,
 ) -> str:
     """
@@ -146,7 +145,6 @@ async def summarize_memory_list(
 
 async def summarize_ai_memory_list(
     memories: list[str],
-    model: str = "gpt-4o-mini",
     max_items: int = 400,
 ) -> str:
     """
@@ -196,14 +194,13 @@ async def get_summarized_memories(
     db,
     user_id: int,
     influencer_id: str,
-    model: str = "gpt-4o-mini",
     max_items: int = 400,
 ) -> str:
     """
     Fetch all memories for a user-influencer pair and return an LLM summary.
     """
     memories = await get_all_memory_list(db, user_id, influencer_id)
-    return await summarize_memory_list(memories, model=model, max_items=max_items)
+    return await summarize_memory_list(memories, max_items=max_items)
 
 
 async def get_all_memory_list(
