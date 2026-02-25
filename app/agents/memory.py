@@ -136,7 +136,7 @@ async def summarize_memory_list(
     )
     llm = ChatXAI(
         xai_api_key=settings.XAI_API_KEY,
-        model="grok-4.1-fast-non-reasoning",
+        model="grok-4-1-fast-non-reasoning",
         temperature=0.2,
         max_tokens=700,
     )
@@ -183,7 +183,7 @@ async def summarize_ai_memory_list(
     )
     llm = ChatXAI(
         xai_api_key=settings.XAI_API_KEY,
-        model="grok-4.1-fast-non-reasoning",
+        model="grok-4-1-fast-non-reasoning",
         temperature=0.2,
         max_tokens=700,
     )
