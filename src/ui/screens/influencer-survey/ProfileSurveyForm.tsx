@@ -57,11 +57,10 @@ const ProfileSurveyForm: React.FC = () => {
   }, [state.isLoading, state.loadError, state.surveySteps.length, actions]);
 
   const scrollToTop = useCallback(() => {
-    if (contentRef.current) {
-      contentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const screenElement = document.querySelector(`.${styles.screen}`);
+    if (screenElement) {
+      screenElement.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    const root = document.scrollingElement || document.documentElement;
-    root.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
   useEffect(() => {
@@ -127,6 +126,28 @@ const ProfileSurveyForm: React.FC = () => {
       }
       if (isAudioStep && validation.errors['audio']) {
         actions.setAudioError(validation.errors['audio']);
+      }
+
+      // Scroll to first error field for survey question steps
+      const isSurveyStep = state.currentStep < state.surveyStepsCount;
+      if (isSurveyStep) {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            const errorElement = document.querySelector('[class*="error"]');
+            if (errorElement) {
+              const fieldContainer = errorElement.closest('[class*="field"]');
+              const scrollTarget = fieldContainer || errorElement;
+
+              const screenElement = document.querySelector(`.${styles.screen}`);
+              if (screenElement) {
+                const targetRect = scrollTarget.getBoundingClientRect();
+                const screenRect = screenElement.getBoundingClientRect();
+                const scrollPosition = targetRect.top - screenRect.top + screenElement.scrollTop - 80;
+                screenElement.scrollTo({ top: scrollPosition, behavior: 'smooth' });
+              }
+            }
+          });
+        });
       }
 
       return;
