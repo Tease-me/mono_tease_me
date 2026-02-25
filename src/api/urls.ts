@@ -86,6 +86,10 @@ export const Endpoints = {
       upsert: (influencerId: string) => `admin/influencers/${encodeURIComponent(influencerId)}/knowledge`,
       delete: (influencerId: string) => `admin/influencers/${encodeURIComponent(influencerId)}/knowledge`,
     },
+    chatInfo: (influencerId: string, userId: number) =>
+      `admin/chats/info/${encodeURIComponent(influencerId)}/${userId}`,
+    pairHistory: (influencerId: string, userId: number) =>
+      `admin/chats/history/${encodeURIComponent(influencerId)}/${userId}`,
   },
   subscriptions: {
     start: "/subscriptions/start",

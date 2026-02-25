@@ -12,6 +12,7 @@ const links = [
   },
   { to: "/admin/pre-influencers", label: "Pre-Influencers" },
   { to: "/admin/knowledge", label: "Knowledge" },
+  { to: "/admin/chat-history", label: "Chat History" },
 ];
 
 const AdminNav: React.FC = () => {
