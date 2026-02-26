@@ -90,7 +90,7 @@ export const Endpoints = {
       topUsers: (period: string = "24h") => `admin/api-usage/top-users?period=${period}`,
       topInfluencers: (period: string = "24h") => `admin/api-usage/top-influencers?period=${period}`,
       errors: (period: string = "24h") => `admin/api-usage/errors?period=${period}`,
-    }
+    },
     knowledge: {
       get:    (influencerId: string) => `admin/influencers/${encodeURIComponent(influencerId)}/knowledge`,
       upsert: (influencerId: string) => `admin/influencers/${encodeURIComponent(influencerId)}/knowledge`,

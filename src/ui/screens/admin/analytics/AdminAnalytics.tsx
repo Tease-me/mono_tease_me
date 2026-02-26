@@ -141,11 +141,11 @@ const AdminAnalytics: React.FC = () => {
                 admin.getTopApiInfluencers(period),
                 admin.getApiErrors(period),
             ]);
-            setSummary(sumRes);
-            setTopUsers(usersRes.users);
-            setTopInfluencers(inflRes.influencers);
-            setErrors(errRes.errors);
-            setTotalErrors(errRes.total_errors);
+            setSummary(sumRes || null);
+            setTopUsers(usersRes?.users || []);
+            setTopInfluencers(inflRes?.influencers || []);
+            setErrors(errRes?.errors || []);
+            setTotalErrors(errRes?.total_errors || 0);
         } catch (e: any) {
             setError(e?.response?.data?.detail || e?.message || "Failed to load analytics data");
         } finally {
