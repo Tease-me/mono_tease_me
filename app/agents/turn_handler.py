@@ -1,6 +1,6 @@
 import logging
 import asyncio
-import time
+from datetime import datetime, timezone
 from uuid import uuid4
 from fastapi import HTTPException
 
@@ -11,6 +11,7 @@ from app.core.config import settings
 from app.agents.memory import find_similar_memories, store_facts_batch
 from app.agents.prompts import MODEL, FACT_EXTRACTOR, CONVO_ANALYZER, get_fact_prompt
 from app.db.session import SessionLocal
+from app.services.knowledge_rag import retrieve_knowledge_chunks
 from app.agents.prompt_utils import (
     get_global_prompt,
     build_relationship_prompt,
@@ -20,14 +21,13 @@ from app.agents.prompt_utils import (
 )
 from app.db.models import Influencer, User
 from app.utils.messaging.tts_sanitizer import sanitize_tts_text
-from app.services.system_prompt_service import get_system_prompt
-from app.constants import prompt_keys
 from app.utils.logging.prompt_logging import log_prompt
 
 from app.relationship.processor import process_relationship_turn
-from app.services.token_tracker import track_usage_bg, UsageTimer
 
-log = logging.getLogger("teaseme-turn")
+log = logging.getLogger(__name__)
+
+SESSION_BREAK_TAG = "[SESSION BREAK]"
 
 
 def redis_history(chat_id: str):
@@ -36,6 +36,57 @@ def redis_history(chat_id: str):
         url=settings.REDIS_URL,
         ttl=settings.HISTORY_TTL,
     )
+
+
+def inject_session_break(chat_id: str) -> None:
+    """Inject a session boundary marker into Redis history for a new call.
+
+    Prevents the LLM from treating previous call history as the current
+    conversation. Idempotent — skips if the last message is already a marker.
+    """
+    history = redis_history(chat_id)
+    msgs = history.messages
+    if msgs:
+        last_content = getattr(msgs[-1], "content", "")
+        if SESSION_BREAK_TAG in last_content:
+            return  # already marked
+    now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    history.add_ai_message(
+        f"{SESSION_BREAK_TAG} — Prior conversation ended. "
+        f"New call starting at {now_str}. "
+        f"Treat the following as a new interaction. "
+        f"You can reference memories from past conversations, "
+        f"but do NOT continue where you left off.]"
+    )
+
+
+def _messages_since_session_break(messages: list) -> list:
+    """Return only messages after the last SESSION BREAK marker."""
+    for i in range(len(messages) - 1, -1, -1):
+        content = getattr(messages[i], "content", "")
+        if SESSION_BREAK_TAG in content:
+            return messages[i + 1:]
+    return messages  # no marker found, return all
+
+
+class SessionScopedChatMessageHistory:
+    """Wrapper that limits history visibility to the current session."""
+
+    def __init__(self, redis_history):
+        self._redis = redis_history
+
+    @property
+    def messages(self):
+        return _messages_since_session_break(self._redis.messages)
+
+    def add_message(self, message):
+        self._redis.add_message(message)
+    
+    def add_messages(self, messages):
+        self._redis.add_messages(messages)
+    
+    def clear(self):
+        self._redis.clear()
 
 
 def _norm(m):
@@ -100,38 +151,24 @@ async def _build_user_name_block(db, user_id) -> str:
 
 async def extract_and_store_facts_for_turn(
     message: str,
+    reply: str,
     recent_ctx: str,
     chat_id: str,
     cid: str,
-    user_id: str | int | None = None,
-    influencer_id: str | None = None,
 ) -> None:
     async with SessionLocal() as db:
         try:
             fact_prompt = await get_fact_prompt(db)
+            
+            exchange = f"user: {message}\nai: {reply}"
 
-            t = time.perf_counter()
             facts_resp = await FACT_EXTRACTOR.ainvoke(
-                fact_prompt.format(msg=message, ctx=recent_ctx)
+                fact_prompt.format(msg=exchange, ctx=recent_ctx)
             )
-            fact_ms = int((time.perf_counter() - t) * 1000)
 
             facts_txt = facts_resp.content or ""
             lines = [ln.strip("- ").strip() for ln in facts_txt.split("\n") if ln.strip()]
             
-            # Track fact extraction usage
-            usage = getattr(facts_resp, "usage_metadata", None) or {}
-            track_usage_bg(
-                "extraction", "openai", "gpt-4o-mini", "fact_extraction",
-                input_tokens=usage.get("input_tokens"),
-                output_tokens=usage.get("output_tokens"),
-                total_tokens=usage.get("total_tokens"),
-                latency_ms=fact_ms,
-                user_id=int(user_id) if user_id else None,
-                influencer_id=influencer_id,
-                chat_id=chat_id,
-            )
-
             # Filter out empty/skip lines
             valid_facts = [line for line in lines[:5] if line.lower() != "no new memories."]
             
@@ -163,7 +200,16 @@ async def handle_turn(
         history.clear()
         history.add_messages(trimmed)
 
-    recent_ctx = "\n".join(f"{m.type}: {m.content}" for m in history.messages[-6:])
+    # For audio/call mode, scope context to the current call session only
+    if is_audio:
+        # Wrap history so RunnableWithMessageHistory also respects the session boundary
+        history_for_runnable = SessionScopedChatMessageHistory(history)
+        ctx_messages = history_for_runnable.messages
+    else:
+        history_for_runnable = history
+        ctx_messages = history.messages
+
+    recent_ctx = "\n".join(f"{m.type}: {m.content}" for m in ctx_messages[-6:])
 
     # Phase 1: Fetch cached prompts in parallel (Redis cache, no DB contention)
     prompt_template = await get_global_prompt(db, is_audio)
@@ -182,36 +228,58 @@ async def handle_turn(
     from app.services.embeddings import get_embedding
     message_embedding = await get_embedding(message) if (db and user_id) else None
 
-    # Run in parallel with separate DB sessions for optimal performance
-    # Each task gets its own session to avoid SQLAlchemy concurrency issues
-    async def _rel_pack_with_session():
-        async with SessionLocal() as db_rel:
-            return await process_relationship_turn(
-                db=db_rel,
-                user_id=int(user_id),
-                influencer_id=influencer_id,
-                message=message,
-                recent_ctx=recent_ctx,
-                cid=cid,
-                convo_analyzer=CONVO_ANALYZER,
-                influencer=influencer,
-            )
+    async def _relationship_with_own_session(**kwargs):
+        async with SessionLocal() as rel_db:
+            return await process_relationship_turn(db=rel_db, **kwargs)
 
-    async def _memories_with_session():
+    rel_pack_task = asyncio.create_task(
+        _relationship_with_own_session(
+            user_id=int(user_id),
+            influencer_id=influencer_id,
+            message=message,
+            recent_ctx=recent_ctx,
+            cid=cid,
+            convo_analyzer=CONVO_ANALYZER,
+            influencer=influencer,
+        )
+    )
+    
+    async def _safe_memories():
         if not (db and user_id):
-            return []
-        async with SessionLocal() as db_mem:
+            return {"user_memories": [], "ai_memories": []}
+        try:
             return await find_similar_memories(
-                db_mem,
+                db,
                 chat_id,
                 message,
-                embedding=message_embedding  # Reuse precomputed embedding
+                embedding=message_embedding,
             )
+        except Exception as exc:
+            log.warning("[%s] memory retrieval failed: %s", cid, exc)
+            return {"user_memories": [], "ai_memories": []}
 
-    # Execute both in parallel - each with independent DB session
-    rel_pack, memories_result = await asyncio.gather(
-        _rel_pack_with_session(),
-        _memories_with_session()
+    async def _safe_knowledge():
+        if not (db and influencer_id and message_embedding):
+            return []
+        try:
+            return await retrieve_knowledge_chunks(
+                db=db,
+                influencer_id=influencer_id,
+                query_embedding=message_embedding,
+                top_k=5,
+            )
+        except Exception as exc:
+            log.warning("[%s] knowledge retrieval failed influencer=%s: %s", cid, influencer_id, exc)
+            return []
+
+    memories_task = asyncio.create_task(_safe_memories())
+    knowledge_task = asyncio.create_task(_safe_knowledge())
+
+    # Wait for all retrieval tasks in parallel (relationship + memory + knowledge)
+    rel_pack, memories_result, knowledge_result = await asyncio.gather(
+        rel_pack_task,
+        memories_task,
+        knowledge_task,
     )
    
     rel = rel_pack["rel"]
@@ -219,7 +287,30 @@ async def handle_turn(
     dtr_goal = rel_pack["dtr_goal"]
 
     memories = memories_result[0] if isinstance(memories_result, tuple) else memories_result
-    mem_block = "\n".join(s for s in (_norm(m) for m in memories or []) if s)
+    
+    # Split memories by sender type
+    if isinstance(memories, dict):
+        user_mems = memories.get("user_memories", [])
+        ai_mems = memories.get("ai_memories", [])
+    else:
+        # Backward compat: if it's a plain list, treat all as user memories
+        user_mems = memories or []
+        ai_mems = []
+    
+    mem_block = "\n".join(s for s in (_norm(m) for m in user_mems) if s)
+    ai_mem_block = "\n".join(s for s in (_norm(m) for m in ai_mems) if s)
+    knowledge_block = "\n".join(s for s in (_norm(m) for m in knowledge_result or []) if s)
+
+    log.debug(
+        "[%s] rag_context influencer=%s kb_hits=%d mem_hits=%d ai_mem_hits=%d kb_chars=%d mem_chars=%d",
+        cid,
+        influencer_id,
+        len(knowledge_result or []),
+        len(user_mems),
+        len(ai_mems),
+        len(knowledge_block),
+        len(mem_block) + len(ai_mem_block),
+    )
 
     bio = influencer.bio_json or {}
 
@@ -262,6 +353,8 @@ async def handle_turn(
         persona_dislikes=persona_dislikes,
         mbti_rules=mbti_rules,
         memories=mem_block,
+        ai_memories=ai_mem_block,
+        knowledge_context=knowledge_block,
         daily_context=daily_context,
         last_user_message=recent_ctx,
         mood=time_context,
@@ -277,43 +370,20 @@ async def handle_turn(
 
     runnable = RunnableWithMessageHistory(
         chain,
-        lambda _: history,
+        lambda _: history_for_runnable,
         input_messages_key="input",
         history_messages_key="history",
     )
 
     try:
-        t0 = time.perf_counter()
         result = await runnable.ainvoke(
             {"input": message},
             config={"configurable": {"session_id": chat_id}},
         )
-        main_ms = int((time.perf_counter() - t0) * 1000)
         reply = result.content
-
-        # Track main reply usage
-        usage = getattr(result, "usage_metadata", None) or {}
-        track_usage_bg(
-            "text", "openai", "gpt-5.2", "main_reply",
-            input_tokens=usage.get("input_tokens"),
-            output_tokens=usage.get("output_tokens"),
-            total_tokens=usage.get("total_tokens"),
-            latency_ms=main_ms,
-            user_id=int(user_id) if user_id else None,
-            influencer_id=influencer_id,
-            chat_id=chat_id,
-        )
     except Exception as e:
         log.error("[%s] LLM error: %s", cid, e, exc_info=True)
-        track_usage_bg(
-            "text", "openai", "gpt-5.2", "main_reply",
-            user_id=int(user_id) if user_id else None,
-            influencer_id=influencer_id,
-            chat_id=chat_id,
-            success=False,
-            error_message=str(e)[:400],
-        )
-        return "Sorry, something went wrong. 😔"
+        raise HTTPException(status_code=500, detail="LLM generation failed")
 
     # Schedule background fact extraction (fire-and-forget)
     # Store task reference to prevent premature garbage collection
@@ -321,11 +391,10 @@ async def handle_turn(
         fact_task = asyncio.create_task(
             extract_and_store_facts_for_turn(
                 message=message,
+                reply=reply,
                 recent_ctx=recent_ctx,
                 chat_id=chat_id,
                 cid=cid,
-                user_id=user_id,
-                influencer_id=influencer_id,
             )
         )
         # Add done callback to log any exceptions
@@ -340,4 +409,3 @@ async def handle_turn(
         return sanitize_tts_text(reply)
 
     return reply
-

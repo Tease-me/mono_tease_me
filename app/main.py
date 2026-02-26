@@ -30,18 +30,15 @@ from app.api import system_prompts as system_prompts_router
 from .api import health_router
 from app.scheduler import start_scheduler, stop_scheduler
 
-log = logging.getLogger("teaseme")
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(name)s: %(message)s"
-)
+from app.utils.infrastructure.redis_pool import close_redis
+from app.api.elevenlabs import close_elevenlabs_client
+from app.core.logging import configure_logging
+
+configure_logging()
+log = logging.getLogger(__name__)
 
 origins_str = os.getenv("CORS_ORIGINS", "")
 origins = [origin.strip() for origin in origins_str.split(",") if origin.strip()]
-
-
-from app.utils.infrastructure.redis_pool import close_redis
-from app.api.elevenlabs import close_elevenlabs_client
 
 
 @asynccontextmanager

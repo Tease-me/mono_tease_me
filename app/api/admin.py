@@ -1,24 +1,50 @@
-import logging
 import io
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
+import logging
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, Depends, HTTPException, File, Query, UploadFile
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.turn_handler import redis_history
 from app.db.models import CallRecord, Message, Memory, Message18, ContentViolation
 from app.db.session import get_db
-from app.utils.auth.dependencies import get_current_user, get_current_pre_influencer
+from app.utils.auth.dependencies import get_current_user
 
 from sqlalchemy import select, func, desc
 from app.db.models import RelationshipState, Influencer,User
+from app.domain.errors.knowledge_errors import (
+    KnowledgeNotFoundError,
+    KnowledgePersistenceError,
+    KnowledgeSyncError,
+    KnowledgeValidationError,
+)
+from app.schemas.knowledge import KnowledgeUpsertInput
+from app.use_cases.knowledge_sync import (
+    delete_knowledge_remote_first,
+    get_knowledge_for_admin,
+    upsert_knowledge_remote_first,
+)
+from app.use_cases.admin_history_cleanup import (
+    AdminHistoryClearError,
+    AdminHistoryNotFoundError,
+    HistoryClearMode,
+    clear_pair_history,
+)
+from app.use_cases.admin_chat_info import (
+    AdminChatInfoError,
+    AdminChatInfoValidationError,
+    get_admin_chat_info,
+)
 from app.utils.storage.s3 import save_sample_audio_to_s3, generate_presigned_url, delete_file_from_s3
 
 from pydantic import BaseModel, Field
-from datetime import datetime, timezone
 from typing import Optional
 
+from app.constants.relationship_stages import STAGE_POINTS_MIN, STAGE_POINTS_MAX
+
 router = APIRouter(prefix="/admin", tags=["admin"])
-log = logging.getLogger("admin")
+log = logging.getLogger(__name__)
 
 @router.delete("/chats/history/{chat_id}")
 async def clear_chat_history_admin(
@@ -84,81 +110,71 @@ async def clear_chat_history_admin(
 async def clear_chat_history_by_user_influencer(
     influencer_id: str,
     user_id: int,
-    is_18: bool = False,
+    mode: HistoryClearMode = "both",
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     if current_user.id != 1:
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    chat_id = f"{influencer_id}_{user_id}"
-
     try:
-        deleted_msg_ids = []
-        deleted_mem_ids = []
-        deleted_call_ids = []
-
-        if is_18:
-            msg_result = await db.execute(
-                delete(Message18).where(Message18.chat_id == chat_id).returning(Message18.id)
-            )
-            deleted_msg_ids = msg_result.scalars().all()
-        else:
-            msg_result = await db.execute(
-                delete(Message).where(Message.chat_id == chat_id).returning(Message.id)
-            )
-            deleted_msg_ids = msg_result.scalars().all()
-
-            mem_result = await db.execute(
-                delete(Memory).where(Memory.chat_id == chat_id).returning(Memory.id)
-            )
-            deleted_mem_ids = mem_result.scalars().all()
-
-            call_result = await db.execute(
-                delete(CallRecord).where(CallRecord.chat_id == chat_id).returning(CallRecord.conversation_id)
-            )
-            deleted_call_ids = call_result.scalars().all()
-
-        try:
-            redis_history(chat_id).clear()
-        except Exception:
-            log.warning("[REDIS] Failed to clear history for chat %s", chat_id)
-
-        if not deleted_msg_ids and not deleted_call_ids and not deleted_mem_ids:
-            await db.rollback()
-            raise HTTPException(status_code=404, detail="Chat not found or empty")
-
-        await db.commit()
-    except HTTPException:
-        raise
-    except Exception:
-        await db.rollback()
+        result = await clear_pair_history(
+            db,
+            influencer_id=influencer_id,
+            user_id=user_id,
+            mode=mode,
+        )
+    except AdminHistoryNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    except AdminHistoryClearError:
         raise HTTPException(status_code=500, detail="Failed to clear chat history")
 
-    return {
-        "ok": True,
-        "chat_id": chat_id,
-        "influencer_id": influencer_id,
-        "user_id": user_id,
-        "is_18": is_18,
-        "messages_deleted": len(deleted_msg_ids),
-        "memories_deleted": len(deleted_mem_ids),
-        "call_records_deleted": len(deleted_call_ids),
-    }
+    return result.as_dict()
+
+
+@router.get("/chats/info/{influencer_id}/{user_id}")
+async def get_chat_info_by_user_influencer(
+    influencer_id: str,
+    user_id: int,
+    from_: datetime | None = Query(None, alias="from"),
+    to: datetime | None = None,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    try:
+        result = await get_admin_chat_info(
+            db,
+            influencer_id=influencer_id,
+            user_id=user_id,
+            from_dt=from_,
+            to_dt=to,
+        )
+    except AdminChatInfoValidationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except AdminChatInfoError:
+        raise HTTPException(status_code=500, detail="Failed to fetch chat info")
+
+    return result.as_dict()
+
 
 def sentiment_label(score: float) -> str:
-    if score <= -60:
-        return "HATE"
-    elif score <= -20:
-        return "DISLIKE"
-    elif score < 20:
-        return "NEUTRAL"
+    """
+    Legacy function - now provides a progress label within the current stage.
+    Since sentiment_score is now 0-100% progress within current stage,
+    this returns a progress descriptor rather than an emotional state.
+    The actual relationship level is captured by 'state' (STRANGERS, FRIENDS, etc.)
+    """
+    if score < 25:
+        return "EARLY"
     elif score < 50:
-        return "FRIENDLY"
+        return "DEVELOPING"
     elif score < 75:
-        return "FLIRTY"
+        return "PROGRESSING"
     else:
-        return "IN_LOVE"
+        return "ADVANCED"
     
 @router.get("/relationships")
 async def list_relationships(
@@ -237,9 +253,9 @@ class RelationshipPatch(BaseModel):
 
     state: Optional[str] = None
 
-    stage_points: Optional[float] = Field(default=None, ge=0, le=100)
-    sentiment_score: Optional[float] = Field(default=None, ge=-100, le=100)
-    sentiment_delta: Optional[float] = Field(default=None, ge=-10, le=5)
+    stage_points: Optional[float] = Field(default=None, ge=STAGE_POINTS_MIN, le=STAGE_POINTS_MAX)
+    sentiment_score: Optional[float] = Field(default=None, ge=0, le=100)  # 0-100% progress within stage
+    sentiment_delta: Optional[float] = Field(default=None, ge=-15, le=15)  # Progress change per turn
 
     exclusive_agreed: Optional[bool] = None
     girlfriend_confirmed: Optional[bool] = None
@@ -247,6 +263,10 @@ class RelationshipPatch(BaseModel):
     dtr_stage: Optional[int] = Field(default=None, ge=0)
     dtr_cooldown_until: Optional[datetime] = None
     last_interaction_at: Optional[datetime] = None
+
+
+class InfluencerKnowledgePayload(BaseModel):
+    text: str = Field(min_length=1)
 
 
 @router.patch("/relationships")
@@ -537,238 +557,115 @@ async def get_moderation_dashboard(
     }
 
 
-# ── API Usage Analytics ──────────────────────────────────────────
-from app.db.models.api_usage import ApiUsageLog
-from datetime import timedelta
-
-
-@router.get("/api-usage/summary")
-async def get_api_usage_summary(
-    period: str = "24h",
-    group_by: str = "category",
+@router.put("/influencers/{influencer_id}/knowledge")
+async def upsert_knowledge(
+    influencer_id: str,
+    payload: InfluencerKnowledgePayload,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Aggregated API usage analytics.
-
-    Query params:
-        period: "1h" | "24h" | "7d" | "30d" | "90d"
-        group_by: "category" | "model" | "provider" | "purpose" | "user" | "influencer"
-    """
     if current_user.id != 1:
         raise HTTPException(status_code=403, detail="Admin only")
 
-    period_map = {
-        "1h": timedelta(hours=1),
-        "24h": timedelta(hours=24),
-        "7d": timedelta(days=7),
-        "30d": timedelta(days=30),
-        "90d": timedelta(days=90),
-    }
-    delta = period_map.get(period)
-    if not delta:
-        raise HTTPException(400, f"Invalid period. Use: {', '.join(period_map.keys())}")
+    influencer = await db.get(Influencer, influencer_id)
+    if not influencer:
+        raise HTTPException(status_code=404, detail="Influencer not found")
 
-    cutoff = datetime.now(timezone.utc) - delta
-
-    group_col_map = {
-        "category": ApiUsageLog.category,
-        "model": ApiUsageLog.model,
-        "provider": ApiUsageLog.provider,
-        "purpose": ApiUsageLog.purpose,
-        "user": ApiUsageLog.user_id,
-        "influencer": ApiUsageLog.influencer_id,
-    }
-    group_col = group_col_map.get(group_by)
-    if not group_col:
-        raise HTTPException(400, f"Invalid group_by. Use: {', '.join(group_col_map.keys())}")
-
-    stmt = (
-        select(
-            group_col.label("group_key"),
-            func.count().label("total_calls"),
-            func.sum(ApiUsageLog.input_tokens).label("total_input_tokens"),
-            func.sum(ApiUsageLog.output_tokens).label("total_output_tokens"),
-            func.sum(ApiUsageLog.total_tokens).label("total_tokens"),
-            func.sum(ApiUsageLog.estimated_cost_micros).label("total_cost_micros"),
-            func.avg(ApiUsageLog.latency_ms).label("avg_latency_ms"),
-            func.max(ApiUsageLog.latency_ms).label("max_latency_ms"),
-            func.sum(ApiUsageLog.duration_secs).label("total_duration_secs"),
-            func.count().filter(ApiUsageLog.success == False).label("error_count"),
+    try:
+        result = await upsert_knowledge_remote_first(
+            db=db,
+            influencer=influencer,
+            payload=KnowledgeUpsertInput(
+                influencer_id=influencer_id,
+                text=payload.text,
+            ),
         )
-        .where(ApiUsageLog.created_at >= cutoff)
-        .group_by(group_col)
-        .order_by(func.count().desc())
-    )
-
-    result = await db.execute(stmt)
-    rows = result.all()
+    except KnowledgeValidationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except KnowledgeSyncError as exc:
+        log.error("knowledge_sync_failed influencer_id=%s err=%s", influencer_id, exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to sync knowledge with ElevenLabs")
+    except KnowledgePersistenceError as exc:
+        log.error("knowledge_persist_failed influencer_id=%s err=%s", influencer_id, exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to persist influencer knowledge")
+    except Exception as exc:
+        log.error("knowledge_upsert_failed influencer_id=%s err=%s", influencer_id, exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to upsert influencer knowledge")
 
     return {
-        "period": period,
-        "group_by": group_by,
-        "cutoff": cutoff.isoformat(),
-        "groups": [
-            {
-                "key": str(r.group_key) if r.group_key is not None else "unknown",
-                "total_calls": r.total_calls,
-                "total_input_tokens": r.total_input_tokens or 0,
-                "total_output_tokens": r.total_output_tokens or 0,
-                "total_tokens": r.total_tokens or 0,
-                # estimated_cost_micros stores raw units (1M units = 1 microdollar)
-                "total_cost_micros": round((r.total_cost_micros or 0) / 1_000_000, 2) if r.total_cost_micros else 0,
-                "estimated_cost_usd": round((r.total_cost_micros or 0) / 1_000_000_000_000, 9),
-                "avg_latency_ms": round(r.avg_latency_ms, 1) if r.avg_latency_ms else None,
-                "max_latency_ms": r.max_latency_ms,
-                "total_duration_secs": round(r.total_duration_secs, 1) if r.total_duration_secs else None,
-                "error_count": r.error_count or 0,
-                "error_rate": round((r.error_count or 0) / r.total_calls * 100, 2) if r.total_calls > 0 else 0,
-            }
-            for r in rows
-        ],
+        "ok": True,
+        "influencer_id": influencer_id,
+        "document_id": result.document_id,
+        "chunk_count": result.chunk_count,
+        "updated_at": result.updated_at,
     }
 
 
-@router.get("/api-usage/top-users")
-async def get_top_api_users(
-    period: str = "24h",
-    limit: int = 20,
+@router.get("/influencers/{influencer_id}/knowledge")
+async def get_knowledge(
+    influencer_id: str,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Top users by API consumption."""
     if current_user.id != 1:
         raise HTTPException(status_code=403, detail="Admin only")
 
-    period_map = {"1h": 1, "24h": 24, "7d": 168, "30d": 720, "90d": 2160}
-    hours = period_map.get(period, 24)
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
+    influencer = await db.get(Influencer, influencer_id)
+    if not influencer:
+        raise HTTPException(status_code=404, detail="Influencer not found")
 
-    stmt = (
-        select(
-            ApiUsageLog.user_id,
-            func.count().label("total_calls"),
-            func.sum(ApiUsageLog.total_tokens).label("total_tokens"),
-            func.sum(ApiUsageLog.estimated_cost_micros).label("total_cost_micros"),
+    try:
+        document_id, text_value, text_hash, chunk_count, updated_at, _remote_document_id = await get_knowledge_for_admin(
+            db=db,
+            influencer_id=influencer_id,
         )
-        .where(ApiUsageLog.created_at >= cutoff, ApiUsageLog.user_id.isnot(None))
-        .group_by(ApiUsageLog.user_id)
-        .order_by(func.sum(ApiUsageLog.estimated_cost_micros).desc())
-        .limit(limit)
-    )
-
-    result = await db.execute(stmt)
-    rows = result.all()
+    except KnowledgeNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    except Exception as exc:
+        log.error("knowledge_get_failed influencer_id=%s err=%s", influencer_id, exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to fetch influencer knowledge")
 
     return {
-        "period": period,
-        "users": [
-            {
-                "user_id": r.user_id,
-                "total_calls": r.total_calls,
-                "total_tokens": r.total_tokens or 0,
-                # estimated_cost_micros stores raw units (1M units = 1 microdollar)
-                "total_cost_micros": round((r.total_cost_micros or 0) / 1_000_000, 2) if r.total_cost_micros else 0,
-                "estimated_cost_usd": round((r.total_cost_micros or 0) / 1_000_000_000_000, 9),
-            }
-            for r in rows
-        ],
+        "ok": True,
+        "influencer_id": influencer_id,
+        "document_id": document_id,
+        "text": text_value,
+        "text_hash": text_hash,
+        "chunk_count": chunk_count,
+        "updated_at": updated_at,
     }
 
 
-@router.get("/api-usage/top-influencers")
-async def get_top_api_influencers(
-    period: str = "24h",
-    limit: int = 20,
+@router.delete("/influencers/{influencer_id}/knowledge")
+async def delete_knowledge(
+    influencer_id: str,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Top influencers by API usage they drive."""
     if current_user.id != 1:
         raise HTTPException(status_code=403, detail="Admin only")
 
-    period_map = {"1h": 1, "24h": 24, "7d": 168, "30d": 720, "90d": 2160}
-    hours = period_map.get(period, 24)
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
+    influencer = await db.get(Influencer, influencer_id)
+    if not influencer:
+        raise HTTPException(status_code=404, detail="Influencer not found")
 
-    stmt = (
-        select(
-            ApiUsageLog.influencer_id,
-            func.count().label("total_calls"),
-            func.sum(ApiUsageLog.total_tokens).label("total_tokens"),
-            func.sum(ApiUsageLog.estimated_cost_micros).label("total_cost_micros"),
-            func.sum(ApiUsageLog.duration_secs).label("total_call_secs"),
+    try:
+        result = await delete_knowledge_remote_first(
+            db=db,
+            influencer=influencer,
         )
-        .where(ApiUsageLog.created_at >= cutoff, ApiUsageLog.influencer_id.isnot(None))
-        .group_by(ApiUsageLog.influencer_id)
-        .order_by(func.sum(ApiUsageLog.estimated_cost_micros).desc())
-        .limit(limit)
-    )
+    except KnowledgeValidationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except KnowledgeNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    except KnowledgeSyncError as exc:
+        log.error("knowledge_delete_sync_failed influencer_id=%s err=%s", influencer_id, exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to sync delete with ElevenLabs")
+    except KnowledgePersistenceError as exc:
+        log.error("knowledge_delete_persist_failed influencer_id=%s err=%s", influencer_id, exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to delete influencer knowledge")
+    except Exception as exc:
+        log.error("knowledge_delete_failed influencer_id=%s err=%s", influencer_id, exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to delete influencer knowledge")
 
-    result = await db.execute(stmt)
-    rows = result.all()
-
-    return {
-        "period": period,
-        "influencers": [
-            {
-                "influencer_id": r.influencer_id,
-                "total_calls": r.total_calls,
-                "total_tokens": r.total_tokens or 0,
-                # estimated_cost_micros stores raw units (1M units = 1 microdollar)
-                "total_cost_micros": round((r.total_cost_micros or 0) / 1_000_000, 2) if r.total_cost_micros else 0,
-                "estimated_cost_usd": round((r.total_cost_micros or 0) / 1_000_000_000_000, 9),
-                "total_call_secs": round(r.total_call_secs, 1) if r.total_call_secs else 0,
-            }
-            for r in rows
-        ],
-    }
-
-
-@router.get("/api-usage/errors")
-async def get_api_errors(
-    period: str = "24h",
-    limit: int = 50,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """Recent API errors for debugging."""
-    if current_user.id != 1:
-        raise HTTPException(status_code=403, detail="Admin only")
-
-    period_map = {"1h": 1, "24h": 24, "7d": 168, "30d": 720, "90d": 2160}
-    hours = period_map.get(period, 24)
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
-
-    stmt = (
-        select(ApiUsageLog)
-        .where(ApiUsageLog.created_at >= cutoff, ApiUsageLog.success == False)
-        .order_by(ApiUsageLog.created_at.desc())
-        .limit(limit)
-    )
-
-    result = await db.execute(stmt)
-    errors = result.scalars().all()
-
-    return {
-        "period": period,
-        "total_errors": len(errors),
-        "errors": [
-            {
-                "id": e.id,
-                "created_at": e.created_at.isoformat(),
-                "category": e.category,
-                "provider": e.provider,
-                "model": e.model,
-                "purpose": e.purpose,
-                "user_id": e.user_id,
-                "influencer_id": e.influencer_id,
-                "error_message": e.error_message,
-            }
-            for e in errors
-        ],
-    }
-
-
-
+    return {"ok": True, "influencer_id": influencer_id, "deleted": result.deleted}

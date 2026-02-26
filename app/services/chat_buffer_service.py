@@ -124,7 +124,10 @@ async def get_message_context(
     context_lines = []
     for msg in recent:
         speaker = "User" if msg.sender == "user" else "AI"
-        context_lines.append(f"{speaker}: {msg.content or ''}")
+        ts = ""
+        if hasattr(msg, "created_at") and msg.created_at:
+            ts = f"[{msg.created_at.strftime('%b %d, %-I:%M %p')}] "
+        context_lines.append(f"{ts}{speaker}: {msg.content or ''}")
     return "\n".join(context_lines)
 
 
@@ -284,7 +287,8 @@ async def flush_buffer(
     except Exception:
         log.exception("[BUF %s] turn handler error", chat_id)
         try:
-            await ws.send_json({"error": "Sorry, something went wrong. 😔"})
+            await ws.send_json({"error": "Internal server error", "status": 500})
+            await ws.close(code=1011, reason="Internal server error")
         except Exception:
             pass
         return

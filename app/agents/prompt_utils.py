@@ -7,7 +7,6 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from langchain_core.prompts import (
     ChatPromptTemplate,
-    MessagesPlaceholder,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models import Influencer
@@ -17,7 +16,7 @@ from app.services.system_prompt_service import get_system_prompt
 from app.constants import prompt_keys
 
 import logging
-log = logging.getLogger("teaseme-script")
+log = logging.getLogger(__name__)
 
 _TIME_RANGE_RE = re.compile(r"^\s*(\d{1,2})\s*(AM|PM)\s*-\s*(\d{1,2})\s*(AM|PM)\s*$", re.IGNORECASE)
 
@@ -139,7 +138,7 @@ def get_time_context(user_timezone: str | None) -> str:
     weekend_type = "weekend" if is_weekend else "weekday"
     selected_vibe = random.choice(vibes)
     
-    return f"{now.strftime('%I:%M %p')}, {day_name} {weekend_type} - {selected_vibe}"
+    return f"{now.strftime('%I:%M %p')}, {day_name} {now.strftime('%d %B %Y')} ({weekend_type}) - {selected_vibe}"
 
 
 # Keep old function for backward compatibility during transition
@@ -265,6 +264,8 @@ def build_relationship_prompt(
     persona_dislikes: list[str] | None = None,
     mbti_rules: str = "",
     memories: str = "",
+    ai_memories: str = "",
+    knowledge_context: str = "",
     daily_context: str = "",
     last_user_message: str = "",
     tone: str = "",
@@ -299,6 +300,8 @@ def build_relationship_prompt(
         "dislikes": ", ".join(map(str, persona_dislikes or [])),
         "mbti_rules": mbti_rules,
         "memories": memories,
+        "ai_memories": ai_memories,
+        "knowledge_context": knowledge_context,
         "daily_context": daily_context,
         "last_user_message": last_user_message,
         "tone": tone,

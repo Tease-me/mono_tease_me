@@ -30,7 +30,8 @@ from app.services.token_tracker import track_usage_bg
 from app.constants import prompt_keys
 
 from app.db.session import get_db
-from app.db.models import PreInfluencer, Influencer
+from app.db.models import PreInfluencer, Influencer, User
+from app.utils.auth.dependencies import get_current_user
 from app.schemas.pre_influencer import (
     PreInfluencerRegisterRequest,
     PreInfluencerRegisterResponse,
@@ -762,7 +763,13 @@ def _pre_influencer_with_profile_picture_url(pre: PreInfluencer) -> dict:
     return data
 
 @router.get("")
-async def list_pre_influencers(status: str | None = None, db: AsyncSession = Depends(get_db)):
+async def list_pre_influencers(
+    status: str | None = None,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Admin only")
     q = select(PreInfluencer)
     if status:
         q = q.where(PreInfluencer.status == status)
@@ -773,8 +780,11 @@ async def list_pre_influencers(status: str | None = None, db: AsyncSession = Dep
 @router.get("/{pre_id}")
 async def get_pre_influencer(
     pre_id: int,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Admin only")
     q = select(PreInfluencer).where(PreInfluencer.id == pre_id)
     row = (await db.execute(q)).scalar_one_or_none()
     if not row:
@@ -782,7 +792,13 @@ async def get_pre_influencer(
     return _pre_influencer_with_profile_picture_url(row)
 
 @router.post("/{pre_id}/approve")
-async def approve_pre_influencer(pre_id: int, db: AsyncSession = Depends(get_db)):
+async def approve_pre_influencer(
+    pre_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Admin only")
     pre = await db.get(PreInfluencer, pre_id)
     if not pre:
         raise HTTPException(404, "PreInfluencer not found")
@@ -853,8 +869,6 @@ async def approve_pre_influencer(pre_id: int, db: AsyncSession = Depends(get_db)
 
     reply_text = "/ reply: For every user message, call this tool with the full transcript in the text field before speaking. Do not answer without calling this tool first."
     prompt_for_eleven = f"{prompt}{reply_text}"
-    DEFAULT_VOICE_ID = "YKG78i9n8ybMZ42crVbJ"
-    DEFAULT_PROMPT_TEMPLATE = json.dumps(prompt, ensure_ascii=False)
     
     agent_id = await _push_prompt_to_elevenlabs(
         agent_id=agent_id,

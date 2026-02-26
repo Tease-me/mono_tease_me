@@ -8,7 +8,7 @@ from fastapi import HTTPException
 from app.agents.prompts import OPENAI_ASSISTANT_LLM, DEFAULT_AGENT_MODEL as PROMPTS_DEFAULT_AGENT_MODEL
 from app.services.token_tracker import track_usage_bg
 
-log = logging.getLogger("openai.assistants")
+log = logging.getLogger(__name__)
 
 DEFAULT_AGENT_MODEL = PROMPTS_DEFAULT_AGENT_MODEL
 

@@ -15,6 +15,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.services.chat_service import get_or_create_chat18
 from app.schemas.chat import ChatCreateRequest, PaginatedMessages
+from app.services.follow import get_follow
 from app.utils.auth.dependencies import get_current_user
 
 from app.core.config import settings
@@ -38,7 +39,7 @@ ALGORITHM = settings.ALGORITHM
 
 router = APIRouter(prefix="/chat18", tags=["chat18"])
 
-log = logging.getLogger("chat18")
+log = logging.getLogger(__name__)
 
 # Configure for 18+ chats
 CHAT_CONFIG = ChatConfig.adult(turn_handler=handle_turn_18)
@@ -52,6 +53,8 @@ async def start_chat(
 ):
     if data.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
+    if not await get_follow(db, data.influencer_id, current_user.id):
+        raise HTTPException(status_code=403, detail="You must follow the influencer to interact.")
     chat_id = await get_or_create_chat18(db, current_user.id, data.influencer_id)
     return {"chat_id": chat_id}
 
@@ -80,10 +83,20 @@ async def websocket_chat(
         log.error("[WS] JWT decode error: %s", e)
         return
 
+    if not await get_follow(db, influencer_id, user_id):
+        await ws.send_json({
+            "ok": False,
+            "type": "auth_error",
+            "error": "FOLLOW_REQUIRED",
+            "message": "You must follow the influencer to interact.",
+        })
+        await ws.close(code=4403)
+        return
+
     # Check for valid subscription (18+ requirement)
     try:
         await get_valid_subscription(db, user_id=user_id, influencer_id=influencer_id)
-    except Exception as e:
+    except Exception:
         await ws.send_json({
             "ok": False,
             "type": "subscription_error",
@@ -242,6 +255,9 @@ async def chat_audio(
             user_id = int(payload.get("sub"))
         except Exception:
             raise HTTPException(status_code=401, detail="Invalid token")
+
+        if not await get_follow(db, influencer_id, user_id):
+            raise HTTPException(status_code=403, detail="You must follow the influencer to interact.")
 
         file_bytes = await file.read()
         if not file_bytes:

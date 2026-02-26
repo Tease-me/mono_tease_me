@@ -6,7 +6,7 @@ from app.core.config import settings
 from app.services.system_prompt_service import get_system_prompt
 from app.constants import prompt_keys
 
-log = logging.getLogger("teaseme-prompts")
+log = logging.getLogger(__name__)
 
 MODEL = ChatOpenAI(
     api_key=settings.OPENAI_API_KEY,
@@ -16,12 +16,11 @@ MODEL = ChatOpenAI(
     store=False
 )
 
-FACT_EXTRACTOR = ChatOpenAI(
-    openai_api_key=settings.OPENAI_API_KEY,
-    model="gpt-4o-mini",
+FACT_EXTRACTOR = ChatXAI(
+    xai_api_key=settings.XAI_API_KEY,
+    model="grok-4-1-fast-reasoning",
     temperature=0.5,
     max_tokens=512,
-    store=False
 )
 
 CONVO_ANALYZER = ChatOpenAI(
@@ -59,7 +58,7 @@ OPENAI_ASSISTANT_LLM = ChatOpenAI(
 try:
     GREETING_GENERATOR: ChatOpenAI | None = ChatOpenAI(
         api_key=settings.OPENAI_API_KEY,
-        model="gpt-4.1",
+        model="gpt-4.1-mini",
         temperature=0.7,
         max_tokens=120,
         store=False

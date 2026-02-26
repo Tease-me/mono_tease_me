@@ -3,8 +3,7 @@ import logging
 import math
 import random
 import json
-import time
-from uuid import uuid4
+from app.agents.memory import get_all_memory_list, summarize_memory_list, summarize_ai_memory_list
 from app.agents.prompt_utils import build_relationship_prompt, get_global_prompt, get_mbti_rules_for_archetype, get_relationship_stage_prompts, get_time_context
 from app.relationship.dtr import plan_dtr_goal
 from app.relationship.inactivity import apply_inactivity_decay
@@ -17,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from itertools import chain
 from typing import Any, Dict, List, Optional
 from app.core.config import settings
-from app.db.models import Influencer, Chat, Message, CallRecord, User, PreInfluencer
+from app.db.models import Influencer, Chat, Message, CallRecord, User, PreInfluencer, Memory
 from app.db.session import get_db
 from app.utils.auth.dependencies import get_current_user
 from app.schemas.elevenlabs import FinalizeConversationBody, RegisterConversationBody, UpdatePromptBody
@@ -26,14 +25,16 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from app.services.billing import can_afford, get_remaining_units
 from app.services.chat_service import get_or_create_chat
-from app.agents.turn_handler import _norm, _build_user_name_block, redis_history
+from app.services.follow import get_follow
+from app.agents.turn_handler import _build_user_name_block, redis_history, inject_session_break, _messages_since_session_break
 from langchain_core.prompts import ChatPromptTemplate
 from app.db.session import SessionLocal
-from app.services.embeddings import get_embedding
 from app.services.system_prompt_service import get_system_prompt
 from app.constants import prompt_keys
 from app.agents.prompts import GREETING_GENERATOR
 from app.utils.logging.prompt_logging import log_prompt
+from app.agents.memory import extract_memories_from_transcript
+
 
 router = APIRouter(prefix="/elevenlabs", tags=["elevenlabs"])
 log = logging.getLogger(__name__)
@@ -238,7 +239,10 @@ def _format_history(messages: List[Message]) -> str:
         content = (msg.content or "").strip().replace("\n", " ")
         if not content:
             continue
-        lines.append(f"{speaker}: {content}")
+        ts = ""
+        if hasattr(msg, "created_at") and msg.created_at:
+            ts = f"[{msg.created_at.strftime('%b %d, %-I:%M %p')}] "
+        lines.append(f"{ts}{speaker}: {content}")
     return "\n".join(lines)
 
 
@@ -351,13 +355,6 @@ def _extract_last_message(db_messages: List[Message], transcript: Optional[str])
 
 async def _get_contextual_first_message_prompt(db: AsyncSession) -> ChatPromptTemplate:
     system_prompt = await get_system_prompt(db, prompt_keys.CONTEXTUAL_FIRST_MESSAGE)
-    if not system_prompt:
-        system_prompt = (
-            "You are {influencer_name}, an affectionate companion. "
-            "Generate a warm, natural greeting for a call. Gap category: {gap_category}. "
-            "Last message: {last_message}. Keep it to 8-14 words with a natural pause."
-        )
-    
     return ChatPromptTemplate.from_messages([
         ("system", system_prompt),
         ("human", "Generate the greeting now. Output only the greeting text."),
@@ -365,7 +362,8 @@ async def _get_contextual_first_message_prompt(db: AsyncSession) -> ChatPromptTe
 
 
 async def _generate_contextual_greeting(
-    db: AsyncSession, chat_id: str, influencer_id: str
+    db: AsyncSession, chat_id: str, influencer_id: str,
+    user_timezone: str | None = None,
 ) -> Optional[str]:
     """
     Generate a contextual greeting using parallel DB lookups for speed.
@@ -497,7 +495,7 @@ async def _generate_contextual_greeting(
     call_ending_type = _classify_call_ending(last_call)
     last_call_duration = last_call.call_duration_secs if last_call else 0
     last_message = _extract_last_message(db_messages, transcript)
-
+    time_context = get_time_context(user_timezone)
     persona_name = (
         influencer.display_name if influencer and influencer.display_name else influencer_id
     )
@@ -518,26 +516,11 @@ async def _generate_contextual_greeting(
             last_call_duration_secs=str(int(last_call_duration or 0)),
             last_message=last_message or "(no recent message)",
             history=transcript or "(no recent history)",
+            mood=time_context,
         ) | GREETING_GENERATOR
 
-        t0 = time.perf_counter()
         llm_response = await chain.ainvoke({})
-        greet_ms = int((time.perf_counter() - t0) * 1000)
         greeting = _add_natural_pause((llm_response.content or "").strip())
-
-        # Track greeting generation usage
-        from app.services.token_tracker import track_usage_bg
-        usage = getattr(llm_response, "usage_metadata", None) or {}
-        track_usage_bg(
-            "call", "openai", "gpt-4.1", "greeting",
-            input_tokens=usage.get("input_tokens"),
-            output_tokens=usage.get("output_tokens"),
-            total_tokens=usage.get("total_tokens"),
-            latency_ms=greet_ms,
-            user_id=user_id,
-            chat_id=chat_id,
-            influencer_id=influencer_id,
-        )
         
         if greeting.startswith('"') and greeting.endswith('"'):
             greeting = greeting[1:-1]
@@ -602,7 +585,7 @@ def _build_agent_patch_payload(
         {
             "name": "updateRelationship",
             "type": "webhook",
-            "description": "Production: Updates and Retrieves the relationship states",
+            "description": "MANDATORY: Call on EVERY user message to track relationship changes. Returns instantly - continue your reply without waiting.",
             "webhook": {
                 "url": f"{settings.PUBLIC_BASE_URL.rstrip('/')}/webhooks/update_relationship",
                 "method": "POST",
@@ -614,7 +597,7 @@ def _build_agent_patch_payload(
         {
             "name": "getMemories",
             "type": "webhook",
-            "description": "Production: Retrieves long-term user-persona memories from the memory bank",
+            "description": "Call when user references past conversations or asks what you remember. Retrieves relevant memories - wait for response before replying.",
             "webhook": {
                "url": f"{settings.PUBLIC_BASE_URL.rstrip('/')}/webhooks/memories",
                "method": "POST",
@@ -668,7 +651,7 @@ def _build_agent_create_payload(
             {
                 "name": "updateRelationship",
                 "type": "webhook",
-                "description": "Production: Updates and Retrieves the relationship states",
+                "description": "MANDATORY: Call on EVERY user message to track relationship changes. Returns instantly - continue your reply without waiting.",
                 "webhook": {
                     "url": f"{settings.PUBLIC_BASE_URL.rstrip('/')}/webhooks/update_relationship",
                     "method": "POST",
@@ -677,19 +660,19 @@ def _build_agent_create_payload(
                     }
                 }
             },
-            {
-                "name": "getMemories",
-                "type": "webhook",
-                "description": "Production: Retrieves long-term user-persona memories from the memory bank",
-                "webhook": {
-                   "url": f"{settings.PUBLIC_BASE_URL.rstrip('/')}/webhooks/memories",
-                   "method": "POST",
-                   "request_headers": {
-                        "X-Webhook-Token": settings.ELEVENLABS_CONVAI_WEBHOOK_SECRET or ""
-                   }
-                }
+        {
+            "name": "getMemories",
+            "type": "webhook",
+            "description": "Call when user references past conversations or asks what you remember. Retrieves relevant memories - wait for response before replying.",
+            "webhook": {
+               "url": f"{settings.PUBLIC_BASE_URL.rstrip('/')}/webhooks/memories",
+               "method": "POST",
+               "request_headers": {
+                    "X-Webhook-Token": settings.ELEVENLABS_CONVAI_WEBHOOK_SECRET or ""
+               }
             }
-        ],
+        }
+    ],
     }
     if llm is not None:
         agent_cfg["prompt"]["llm"] = llm
@@ -908,18 +891,6 @@ async def _poll_and_persist_conversation(
                 call_record.chat_id = chat_id
             db.add(call_record)
             await db.commit()
-
-            # Track ElevenLabs ConvAI call usage with conversation_id for billing cross-ref
-            from app.services.token_tracker import track_usage_bg
-            track_usage_bg(
-                "call", "elevenlabs", "elevenlabs-convai", "call_conversation",
-                duration_secs=total_seconds,
-                user_id=user_id,
-                influencer_id=influencer_id,
-                chat_id=chat_id,
-                conversation_id=conversation_id,
-                success=status in ("done", "completed"),
-            )
         except Exception as exc:  
             log.warning(
                 "background.update_call_record_failed conv=%s err=%s",
@@ -927,38 +898,6 @@ async def _poll_and_persist_conversation(
                 exc,
             )
 
-        if chat_id and normalized_transcript:
-            try:
-                from app.agents.turn_handler import extract_and_store_facts_for_turn
-                user_messages = [t.get("message") or t.get("text") or "" for t in normalized_transcript 
-                                 if (t.get("role") or "").lower() in ("user", "human")]
-                last_user_msg = user_messages[-1] if user_messages else ""
-                ctx_lines = [f"{t.get('role', 'unknown')}: {t.get('message') or t.get('text') or ''}" 
-                             for t in normalized_transcript]
-                recent_ctx = "\n".join(ctx_lines)
-                
-                if last_user_msg:
-                    asyncio.create_task(
-                        extract_and_store_facts_for_turn(
-                            message=last_user_msg,
-                            recent_ctx=recent_ctx,
-                            chat_id=chat_id,
-                            cid=conversation_id,
-                            user_id=user_id,
-                            influencer_id=influencer_id,
-                        )
-                    )
-                    log.info(
-                        "background.fact_extraction_scheduled conv=%s chat=%s",
-                        conversation_id,
-                        chat_id,
-                    )
-            except Exception as exc:
-                log.warning(
-                    "background.fact_extraction_schedule_failed conv=%s err=%s",
-                    conversation_id,
-                    exc,
-                )
 
 
 async def _push_prompt_to_elevenlabs(
@@ -1303,7 +1242,7 @@ async def _persist_transcript_to_chat(
     embeddings: List[Optional[List[float]]] = []
     try:
         from app.services.embeddings import get_embeddings_batch
-        embeddings = await get_embeddings_batch(texts_to_embed, source="call")
+        embeddings = await get_embeddings_batch(texts_to_embed)
     except Exception as exc:
         log.warning("persist_transcript.batch_embed_failed chat=%s err=%s", chat_id, exc)
         embeddings = [None] * len(pending_entries)
@@ -1352,6 +1291,20 @@ async def _persist_transcript_to_chat(
         conversation_id,
         len(new_messages),
     )
+
+    if transcript and chat_id:
+        asyncio.create_task(
+            extract_memories_from_transcript(
+                chat_id=chat_id,
+                transcript_entries=transcript,
+                conversation_id=conversation_id,
+            )
+        )
+        log.info(
+            "[MEMORY-BG] scheduled from persist_transcript chat=%s conv=%s turns=%d",
+            chat_id, conversation_id, len(transcript),
+        )
+
     return len(new_messages)
 
 
@@ -1362,8 +1315,12 @@ async def get_signed_url(
     db: AsyncSession = Depends(get_db),
     first_message: Optional[str] = Query(None),
     greeting_mode: str = Query("random", pattern="^(random|rr)$"),
+    user_timezone: str = Query("UTC"),
 ):
     user_id = current_user.id
+    if not await get_follow(db, influencer_id, user_id):
+        raise HTTPException(status_code=403, detail="You must follow the influencer to interact.")
+        
     ok, cost_cents, free_left = await can_afford(
         db, user_id=user_id, influencer_id=influencer_id, feature="live_chat", units=10
     )
@@ -1383,9 +1340,12 @@ async def get_signed_url(
     agent_id = await get_agent_id_from_influencer(db, influencer_id)
     chat_id = await get_or_create_chat(db, user_id, influencer_id)
 
+    # Mark new call session boundary in Redis history
+    inject_session_break(chat_id)
+
     greeting: Optional[str] = first_message
     if not greeting:
-        greeting = await _generate_contextual_greeting(db, chat_id, influencer_id)
+        greeting = await _generate_contextual_greeting(db, chat_id, influencer_id, user_timezone)
     if not greeting:
         greeting = _pick_greeting(influencer_id, greeting_mode)
 
@@ -1410,6 +1370,9 @@ async def get_conversation_token(
     db: AsyncSession = Depends(get_db),
 ):
     user_id = current_user.id
+    if not await get_follow(db, influencer_id, user_id):
+        raise HTTPException(status_code=403, detail="You must follow the influencer to interact.")
+        
     ok, cost_cents, free_left = await can_afford(
         db, user_id=user_id, influencer_id=influencer_id, feature="live_chat", units=10
     )
@@ -1457,12 +1420,35 @@ async def get_conversation_token(
 
     history = redis_history(chat_id)
 
+    # Mark new call session boundary in Redis history
+    inject_session_break(chat_id)
+
     if len(history.messages) > settings.MAX_HISTORY_WINDOW:
         trimmed = history.messages[-settings.MAX_HISTORY_WINDOW:]
         history.clear()
         history.add_messages(trimmed)
 
-    recent_ctx = "\n".join(f"{m.type}: {m.content}" for m in history.messages[-6:])
+    # Scope recent_ctx to current session only (excludes previous call messages)
+    current_session_msgs = _messages_since_session_break(history.messages)
+    
+    if current_session_msgs:
+        recent_ctx = "\n".join(
+            f"{m.type}: {m.content}" 
+            for m in current_session_msgs[-6:] 
+            if getattr(m, "type", None) != "system" 
+            and "[SESSION BREAK]" not in getattr(m, "content", "")
+            and getattr(m, "content", "").strip() != "..."
+        )
+    else:
+        # Fallback to the last 4 historical messages if this is a fresh session
+        recent_ctx = "\n".join(
+            f"{m.type}: {m.content}" 
+            for m in history.messages[-4:] 
+            if getattr(m, "type", None) != "system"
+            and "[SESSION BREAK]" not in getattr(m, "content", "")
+            and getattr(m, "content", "").strip() != "..."
+        )
+
 
     now = datetime.now(timezone.utc)
     rel = await get_or_create_relationship(db, int(user_id), influencer_id)
@@ -1479,7 +1465,59 @@ async def get_conversation_token(
     dtr_goal = plan_dtr_goal(rel, can_ask)
     time_context = get_time_context(user_timezone)
 
+    # ── Phase 1: Quick DB fetches (sequential on shared session) ──
     users_name = await _build_user_name_block(db, user_id)
+    memories = await get_all_memory_list(db, user_id, influencer_id, exclude_sender="system")
+
+    ai_mem_query = select(Memory.content).where(
+        Memory.chat_id.in_(
+            select(Chat.id).where(
+                Chat.user_id == user_id, Chat.influencer_id == influencer_id
+            )
+        ),
+        Memory.sender == "system"
+    ).order_by(Memory.created_at.desc()).limit(400)
+    ai_mem_res = await db.execute(ai_mem_query)
+    ai_mem_list = [row[0] for row in ai_mem_res.fetchall()]
+
+    credits_remainder_secs = await get_remaining_units(db, user_id, influencer_id, feature="live_chat")
+
+    # ── Phase 2: All slow I/O in parallel (~2-3s instead of ~8s) ──
+    async def _fetch_token() -> str:
+        try:
+            client = await get_elevenlabs_client()
+            resp = await client.get(
+                "/convai/conversation/token",
+                params={"agent_id": agent_id},
+                headers=_headers(),
+                timeout=15.0,
+            )
+        except httpx.RequestError as exc:
+            log.exception("conversation_token.network_error agent=%s err=%s", agent_id, exc)
+            raise HTTPException(status_code=502, detail="Upstream unavailable")
+
+        if resp.status_code >= 400:
+            log.error(
+                "conversation_token.failed agent=%s status=%s body=%s",
+                agent_id, resp.status_code,
+                resp.text[:500] if resp.text else "",
+            )
+            raise HTTPException(status_code=resp.status_code, detail="Failed to get conversation token")
+
+        t = (resp.json() or {}).get("token")
+        if not t:
+            raise HTTPException(status_code=502, detail="Token not returned by ElevenLabs")
+        return t
+
+    memory, ai_mem_block, greeting, token = await asyncio.gather(
+        summarize_memory_list(memories or []),
+        summarize_ai_memory_list(ai_mem_list),
+        _generate_contextual_greeting(db, chat_id, influencer_id, user_timezone),
+        _fetch_token(),
+    )
+
+    if not greeting:
+        greeting = _pick_greeting(influencer_id, "random")
 
     prompt = build_relationship_prompt(
         prompt_template,
@@ -1491,7 +1529,8 @@ async def get_conversation_token(
         persona_likes=persona_likes,
         persona_dislikes=persona_dislikes,
         mbti_rules=mbti_rules,
-        memories="None",
+        memories=memory,
+        ai_memories=ai_mem_block,
         daily_context=daily_context,
         last_user_message=recent_ctx,
         mood=time_context,
@@ -1501,39 +1540,6 @@ async def get_conversation_token(
     )
     
     log_prompt(log, prompt, cid="", input="")
-
-    try:
-        client = await get_elevenlabs_client()
-        resp = await client.get(
-            "/convai/conversation/token",
-            params={"agent_id": agent_id},
-            headers=_headers(),
-            timeout=15.0,
-        )
-    except httpx.RequestError as exc:
-        log.exception("conversation_token.network_error agent=%s err=%s", agent_id, exc)
-        raise HTTPException(status_code=502, detail="Upstream unavailable")
-
-    if resp.status_code >= 400:
-        log.error(
-            "conversation_token.failed agent=%s status=%s body=%s",
-            agent_id,
-            resp.status_code,
-            resp.text[:500] if resp.text else "",
-        )
-        raise HTTPException(status_code=resp.status_code, detail="Failed to get conversation token")
-
-    token = (resp.json() or {}).get("token")
-    if not token:
-        raise HTTPException(status_code=502, detail="Token not returned by ElevenLabs")
-    
-    # chat_id already obtained at line 1350 - removed duplicate call
-    credits_remainder_secs = await get_remaining_units(db, user_id, influencer_id, feature="live_chat")
-
-    greeting: Optional[str] = await _generate_contextual_greeting(db, chat_id, influencer_id)
-    
-    if not greeting:
-        greeting = _pick_greeting(influencer_id, "random")
 
     return {
         "token": token, 
@@ -1639,6 +1645,10 @@ async def register_conversation(
 ):
     if body.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
+
+    if not await get_follow(db, body.influencer_id, body.user_id):
+        raise HTTPException(status_code=403, detail="You must follow the influencer to interact.")
+
     chat_id = await save_pending_conversation(
         db, conversation_id, current_user.id, body.influencer_id, body.sid
     )
@@ -1651,6 +1661,10 @@ async def register_conversation(
             chat_id = row[0] if row else None
         except Exception:
             pass
+
+    # Mark new call session boundary in Redis history (fallback path)
+    if chat_id:
+        inject_session_break(chat_id)
 
     try:
         asyncio.create_task(

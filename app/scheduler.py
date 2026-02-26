@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from app.db.session import SessionLocal
 from app.services.re_engagement import run_reengagement_job
 
-log = logging.getLogger("scheduler")
+log = logging.getLogger(__name__)
 
 REENGAGEMENT_ENABLED = os.getenv("REENGAGEMENT_ENABLED", "true").lower() == "true"
 REENGAGEMENT_INTERVAL_HOURS = int(os.getenv("REENGAGEMENT_INTERVAL_HOURS", "24"))

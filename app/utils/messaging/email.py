@@ -4,13 +4,11 @@ from botocore.exceptions import ClientError
 from app.core.config import settings
 from datetime import datetime
 from app.db.models import Influencer
-import base64
 import io
 import uuid
 import urllib.request
 from PIL import Image
 from app.utils.storage.s3 import generate_user_presigned_url, s3
-from app.core.config import settings
 
 
 log = logging.getLogger(__name__)

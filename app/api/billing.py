@@ -4,7 +4,6 @@ from app.db.session import get_db
 from app.services.billing import topup_wallet
 from app.db.models import InfluencerWallet
 from app.schemas.billing import TopUpRequest
-from app.db.session import get_db
 from app.utils.auth.dependencies import get_current_user
 
 import httpx
@@ -15,7 +14,6 @@ from app.services.paypal import paypal_access_token
 from app.services.firstpromoter import fp_track_sale_v2
 from app.db.models import PayPalTopUp, Influencer, InfluencerCreditTransaction
 from app.core.config import settings
-from datetime import date
 from sqlalchemy import and_
 import traceback
 from fastapi.responses import JSONResponse
@@ -65,7 +63,7 @@ async def topup(
         select(InfluencerWallet).where(
             InfluencerWallet.user_id == user.id,
             InfluencerWallet.influencer_id == req.influencer_id,
-            InfluencerWallet.is_18 == False,
+            InfluencerWallet.is_18.is_(False),
         )
     )
 
@@ -157,7 +155,7 @@ async def paypal_create_order(request: Request, req: PayPalCreateReq, db: AsyncS
             raise HTTPException(status_code=502, detail="PayPal request failed") from e
 
     order_id = data["id"]
-    approve_url = next((l["href"] for l in data.get("links", []) if l.get("rel") == "approve"), None)
+    approve_url = next((link["href"] for link in data.get("links", []) if link.get("rel") == "approve"), None)
     if not approve_url:
         raise HTTPException(500, "PayPal approve url missing")
 

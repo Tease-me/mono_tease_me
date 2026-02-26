@@ -26,6 +26,7 @@ class Settings(BaseSettings):
 
     ELEVENLABS_API_KEY: str
     ELEVEN_BASE_URL: str 
+    ELEVENLABS_AGENT_BRANCH_ID: str | None = None
     ELEVENLABS_VOICE_ID: str
     ELEVENLABS_CONVAI_WEBHOOK_SECRET: str | None = None
     
@@ -86,5 +87,14 @@ class Settings(BaseSettings):
     DIDIT_WEBHOOK_SECRET: str | None = None  # Webhook secret key from Didit console
     DIDIT_WORKFLOW_ID_KYC: str | None = None  # KYC workflow ID from Didit console
     DIDIT_REDIRECT_URL: str | None = None  # Default redirect URL after verification
+
+    # Logging configuration
+    APP_ENV: str = "local"  # local | staging | production
+    LOG_FILE_PATH: str = "./logs/app.log"
+    LOG_LEVEL: str | None = None
+    LOG_TO_CONSOLE: bool = True
+
+    # LLM configuration
+    DEFAULT_SUMMARIZATION_MODEL: str = "gpt-3.5-turbo"
 
 settings = Settings()

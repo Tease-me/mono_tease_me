@@ -75,8 +75,14 @@ USER IDENTITY
 ━━━━━━━━━━━━━━━━━━━━━━
 CONTEXT BLOCKS
 ━━━━━━━━━━━━━━━━━━━━━━
-These past memories may help:
+What you remember about this user:
 {memories}
+
+Your own promises & decisions (stay consistent with these):
+{ai_memories}
+
+Knowledge context (retrieved):
+{knowledge_context}
 
 Here is the user's latest message for your reference only:
 {last_user_message}
@@ -229,18 +235,40 @@ BASE_AUDIO_SYSTEM = (
 )
 
 # Memory extraction prompt
-FACT_PROMPT = """You pull new, concise facts from the user's latest message and recent context. Facts should help a romantic, teasing AI remember preferences, boundaries, events, and feelings.
+FACT_PROMPT = """You extract up to TWO durable memories from the latest messages (one for the User, one for the AI).
 
-Rules:
-- Extract up to 5 crisp facts.
-- Each fact on its own line, no bullets or numbering.
-- Be specific ("User prefers slow teasing over explicit talk", "User's name is ...", "User joked about ...").
-- Skip small talk or already-known chatter.
-- If nothing useful is new, return exactly: No new memories.
+IMPORTANT:
+You will be given "Recent context" for reference, but you MUST ONLY use the latest exchanges to extract facts.
+If a detail is not explicitly present in the latest messages, do not extract it.
 
-User message: {msg}
-Recent context:
+Goal:
+Identify the most emotionally meaningful, preference-based, boundary-related, or relationship-relevant facts that should influence future behavior for a romantic, teasing AI.
+
+Selection Rules:
+- Extract up to 2 memories maximum (one for the User, one for the AI) if both parties revealed something highly important.
+- Give EQUAL priority to the User and the AI. If only one party said something important, extract exactly 1 memory.
+- For the User: Prioritize their preferences, strict boundaries, true desires, and strong emotional reactions over neutral facts.
+- For the AI: Extract its promises, firm boundaries, or significant relationship decisions (e.g., "AI agreed to be exclusive", "AI promised a photo"). Do NOT extract the AI's general flirting, teasing, or reactions.
+- Do not infer from context. Do not merge with context. Do not “connect dots.”
+- Skip small talk, standard flirting, or already-known chatter.
+- If nothing highly durable or meaningful exists in the latest messages, return exactly:
+No new memories.
+
+Output Rules:
+- NEVER combine the User's memory and the AI's memory into a single sentence.
+- Output each memory on a completely separate line.
+- No bullets, no numbering, no hyphen prefixes.
+- Third person (e.g., "User prefers slow teasing\nAI promised to call later").
+- Concise and specific.
+- Do not restate the full sentence.
+- Do not generalize.
+- Do not interpret beyond what the text clearly supports.
+
+Recent context (for reference only):
 {ctx}
+
+Latest exchange (EXTRACT FROM HERE ONLY):
+{msg}
 """.strip()
 
 # Reengagement notification
@@ -252,7 +280,7 @@ Don't mention specific days or numbers - just express that you've missed them.]"
 # Contextual first message for calls
 CONTEXTUAL_FIRST_MESSAGE = """You are {influencer_name}, an affectionate AI companion on a live voice call.
 Generate the perfect opening line for this call based on the context provided.
-
+ 
 USER IDENTITY:
 {users_name}
 
@@ -262,6 +290,7 @@ CONTEXT SIGNALS:
 - call_ending_type: {call_ending_type} (abrupt=call ended suddenly or was very short, normal=natural ending, lengthy=long conversation)
 - last_call_duration_secs: {last_call_duration_secs} seconds
 - last_message: "{last_message}"
+- current mood: {mood}
 
 BEHAVIOR BY SCENARIO:
 

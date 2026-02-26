@@ -8,11 +8,9 @@ This module provides:
 """
 
 import logging
-import time
-from datetime import datetime, timezone
 
 from openai import AsyncOpenAI
-from sqlalchemy import text, func
+from sqlalchemy import text
 
 log = logging.getLogger(__name__)
 
@@ -21,38 +19,24 @@ log = logging.getLogger(__name__)
 client = AsyncOpenAI()
 
 
-async def get_embedding(text_input: str, source: str = "txt") -> list[float]:
+async def get_embedding(text: str) -> list[float]:
     """
     Get embedding for a single text (non-blocking).
     
     Args:
-        text_input: Text to embed
-        source: "txt" or "call" — determines tracked category
+        text: Text to embed
         
     Returns:
         Embedding vector as list of floats
     """
-    from app.services.token_tracker import track_usage_bg
-
-    category = f"embedding_{source}"
-    t0 = time.perf_counter()
     response = await client.embeddings.create(
-        input=text_input,
+        input=text,
         model="text-embedding-3-small"
     )
-    emb_ms = int((time.perf_counter() - t0) * 1000)
-
-    usage = response.usage
-    track_usage_bg(
-        category, "openai", "text-embedding-3-small", "embedding",
-        input_tokens=getattr(usage, "total_tokens", None),
-        latency_ms=emb_ms,
-    )
-
     return response.data[0].embedding
 
 
-async def get_embeddings_batch(texts: list[str], source: str = "txt") -> list[list[float]]:
+async def get_embeddings_batch(texts: list[str]) -> list[list[float]]:
     """
     Get embeddings for multiple texts in a single API call.
     
@@ -63,7 +47,6 @@ async def get_embeddings_batch(texts: list[str], source: str = "txt") -> list[li
     
     Args:
         texts: List of texts to embed (max ~2000 recommended per batch)
-        source: "txt" or "call" — determines tracked category
         
     Returns:
         List of embeddings in the same order as input texts
@@ -73,26 +56,13 @@ async def get_embeddings_batch(texts: list[str], source: str = "txt") -> list[li
     
     if len(texts) == 1:
         # Single text - use regular function
-        return [await get_embedding(texts[0], source=source)]
+        return [await get_embedding(texts[0])]
     
     try:
-        category = f"embedding_{source}"
-        t0 = time.perf_counter()
         response = await client.embeddings.create(
             input=texts,
             model="text-embedding-3-small"
         )
-        emb_ms = int((time.perf_counter() - t0) * 1000)
-
-        # Track batch embedding usage
-        from app.services.token_tracker import track_usage_bg
-        usage = response.usage
-        track_usage_bg(
-            category, "openai", "text-embedding-3-small", "embedding_batch",
-            input_tokens=getattr(usage, "total_tokens", None),
-            latency_ms=emb_ms,
-        )
-
         # API returns embeddings in order, but let's be safe
         # Sort by index to ensure order matches input
         sorted_data = sorted(response.data, key=lambda x: x.index)
@@ -103,7 +73,7 @@ async def get_embeddings_batch(texts: list[str], source: str = "txt") -> list[li
         embeddings = []
         for text in texts:
             try:
-                emb = await get_embedding(text, source=source)
+                emb = await get_embedding(text)
                 embeddings.append(emb)
             except Exception as inner_e:
                 log.error("Single embedding fallback failed for text: %s", inner_e)
@@ -111,7 +81,7 @@ async def get_embeddings_batch(texts: list[str], source: str = "txt") -> list[li
         return embeddings
 
 
-async def search_similar_memories(db, chat_id: str, embedding: list[float], top_k: int = 10, max_distance: float | None = None) -> list[str]:
+async def search_similar_memories(db, chat_id: str, embedding: list[float], top_k: int = 10, max_distance: float | None = None) -> list[tuple[str, str]]:
     """
     Search for similar memories using vector similarity with cosine distance.
     
@@ -127,11 +97,11 @@ async def search_similar_memories(db, chat_id: str, embedding: list[float], top_
                      Recommended: 0.3-0.7 for filtering
         
     Returns:
-        List of memory content strings ordered by similarity, then recency
+        List of (content, sender) tuples ordered by similarity, then recency
     """
     if max_distance is not None:
         sql = text("""
-            SELECT content, embedding <=> :embedding AS distance
+            SELECT content, sender, embedding <=> :embedding AS distance
             FROM memories
             WHERE chat_id = :chat_id
               AND embedding IS NOT NULL
@@ -147,7 +117,7 @@ async def search_similar_memories(db, chat_id: str, embedding: list[float], top_
         }
     else:
         sql = text("""
-            SELECT content
+            SELECT content, sender
             FROM memories
             WHERE chat_id = :chat_id
               AND embedding IS NOT NULL
@@ -161,7 +131,7 @@ async def search_similar_memories(db, chat_id: str, embedding: list[float], top_
         }
     
     result = await db.execute(sql, params)
-    return [row[0] for row in result.fetchall()]
+    return [(row[0], row[1] or "user") for row in result.fetchall()]
 
 
 async def search_similar_messages(db, chat_id: str, embedding: list[float], top_k: int = 10, max_distance: float | None = None) -> list[str]:
@@ -217,6 +187,122 @@ async def search_similar_messages(db, chat_id: str, embedding: list[float], top_
     return [row[0] for row in result.fetchall()]
 
 
+async def search_similar_memories_and_messages(
+    db, 
+    chat_id: str, 
+    embedding: list[float], 
+    top_k: int = 10, 
+    max_distance: float | None = None,
+    memories_weight: float = 1.0,
+    messages_weight: float = 1.0,
+) -> list[str]:
+    """
+    Search for similar content across BOTH memories and messages using UNION.
+    
+    This combines results from both tables, allowing you to get a richer context
+    by including both curated memories (facts) and actual conversation history.
+    
+    Args:
+        db: Database session
+        chat_id: Chat ID to search within
+        embedding: Query embedding vector
+        top_k: Number of results to return (default: 10)
+        max_distance: Optional maximum cosine distance threshold (default: None = no filtering)
+                     Lower = more similar (0=identical, 1=orthogonal)
+                     Recommended: 0.3-0.7 for filtering
+        memories_weight: Weight multiplier for memory distances (default: 1.0)
+                        Lower = prioritize memories (e.g., 0.8 gives memories 20% boost)
+        messages_weight: Weight multiplier for message distances (default: 1.0)
+                        Lower = prioritize messages (e.g., 0.9 gives messages 10% boost)
+        
+    Returns:
+        List of content strings (both memories and messages) ordered by weighted similarity
+        
+    Example:
+        # Prioritize memories slightly over messages
+        results = await search_similar_memories_and_messages(
+            db, chat_id, embedding, top_k=10, 
+            memories_weight=0.8, messages_weight=1.0
+        )
+    """
+    embedding_str = "[" + ",".join(str(x) for x in embedding) + "]"
+    
+    if max_distance is not None:
+        sql = text("""
+            SELECT content, weighted_distance, source
+            FROM (
+                SELECT 
+                    content,
+                    (embedding <=> :embedding) * :memories_weight AS weighted_distance,
+                    'memory' AS source,
+                    created_at
+                FROM memories
+                WHERE chat_id = :chat_id
+                  AND embedding IS NOT NULL
+                  AND (embedding <=> :embedding) * :memories_weight <= :max_distance
+                
+                UNION ALL
+                
+                SELECT 
+                    content,
+                    (embedding <=> :embedding) * :messages_weight AS weighted_distance,
+                    'message' AS source,
+                    created_at
+                FROM messages
+                WHERE chat_id = :chat_id
+                  AND embedding IS NOT NULL
+                  AND (embedding <=> :embedding) * :messages_weight <= :max_distance
+            ) combined
+            ORDER BY weighted_distance ASC, created_at DESC
+            LIMIT :top_k
+        """)
+        params = {
+            "chat_id": chat_id,
+            "embedding": embedding_str,
+            "top_k": top_k,
+            "max_distance": max_distance,
+            "memories_weight": memories_weight,
+            "messages_weight": messages_weight,
+        }
+    else:
+        sql = text("""
+            SELECT content, weighted_distance, source
+            FROM (
+                SELECT 
+                    content,
+                    (embedding <=> :embedding) * :memories_weight AS weighted_distance,
+                    'memory' AS source,
+                    created_at
+                FROM memories
+                WHERE chat_id = :chat_id
+                  AND embedding IS NOT NULL
+                
+                UNION ALL
+                
+                SELECT 
+                    content,
+                    (embedding <=> :embedding) * :messages_weight AS weighted_distance,
+                    'message' AS source,
+                    created_at
+                FROM messages
+                WHERE chat_id = :chat_id
+                  AND embedding IS NOT NULL
+            ) combined
+            ORDER BY weighted_distance ASC, created_at DESC
+            LIMIT :top_k
+        """)
+        params = {
+            "chat_id": chat_id,
+            "embedding": embedding_str,
+            "top_k": top_k,
+            "memories_weight": memories_weight,
+            "messages_weight": messages_weight,
+        }
+    
+    result = await db.execute(sql, params)
+    return [row[0] for row in result.fetchall()]
+
+
 async def upsert_memory(
     db,
     chat_id: str,
@@ -246,17 +332,19 @@ async def upsert_memory(
     try:
         embedding_str = "[" + ",".join(str(x) for x in embedding) + "]"
 
-        # 1. Search for similar memory (prefer most similar, then most recent)
+        # 1. Search for similar memory (prefer most similar, then most recent), restricting search to the same sender type
         sql_find = text("""
             SELECT id, embedding <=> :embedding AS similarity
             FROM memories
             WHERE chat_id = :chat_id
+              AND sender = :sender
               AND embedding IS NOT NULL
             ORDER BY similarity ASC, created_at DESC
             LIMIT 1
         """)
         params_find = {
             "chat_id": chat_id,
+            "sender": sender,
             "embedding": embedding_str,
         }
         result = await db.execute(sql_find, params_find)

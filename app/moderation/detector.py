@@ -4,10 +4,10 @@ from typing import Literal, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.moderation.keywords import check_keywords, KeywordMatch
+from app.moderation.keywords import check_keywords
 from app.moderation.grok import verify_with_grok
 
-log = logging.getLogger("moderation.detector")
+log = logging.getLogger(__name__)
 
 
 @dataclass

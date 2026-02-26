@@ -1,7 +1,13 @@
 .PHONY: seed-influencers seed-pricing seed-users seed-all seed-prompts seed-subscription-plans
+.PHONY: lint lint-fix format format-check lint-docker lint-docker-fix format-docker format-docker-check
 
 COMPOSE ?= docker compose
 SERVICE ?= backend
+
+LINT_PATHS := app
+ifneq ("$(wildcard tests)","")
+LINT_PATHS += tests
+endif
 
 seed-influencers:
 	$(COMPOSE) exec $(SERVICE) poetry run python -m app.scripts.seed_influencers
@@ -65,3 +71,27 @@ alembic-local-upgrade:
 alembic-local-current:
 	DATABASE_URL="postgresql+psycopg2://postgres:postgres@localhost:5432/teaseme" \
 	poetry run alembic current
+
+lint:
+	poetry run ruff check $(LINT_PATHS)
+
+lint-fix:
+	poetry run ruff check --fix $(LINT_PATHS)
+
+format:
+	poetry run ruff format $(LINT_PATHS)
+
+format-check:
+	poetry run ruff format --check $(LINT_PATHS)
+
+lint-docker:
+	$(COMPOSE) exec $(SERVICE) poetry run ruff check $(LINT_PATHS)
+
+lint-docker-fix:
+	$(COMPOSE) exec $(SERVICE) poetry run ruff check --fix $(LINT_PATHS)
+
+format-docker:
+	$(COMPOSE) exec $(SERVICE) poetry run ruff format $(LINT_PATHS)
+
+format-docker-check:
+	$(COMPOSE) exec $(SERVICE) poetry run ruff format --check $(LINT_PATHS)

@@ -1,5 +1,9 @@
 
-import asyncio, time, logging, json, hmac
+import asyncio
+import time
+import logging
+import json
+import hmac
 
 from hashlib import sha256
 from typing import Optional, Any
@@ -8,13 +12,13 @@ from app.agents.prompts import CONVO_ANALYZER
 from fastapi import APIRouter, Depends, HTTPException, Request, Header, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
-from app.db.session import get_db
+from app.db.session import get_db, SessionLocal
 from app.services.billing import charge_feature, _get_influencer_id_from_chat
 from app.api.elevenlabs import _extract_total_seconds
 from sqlalchemy import select
 from app.db.models import CallRecord, Chat, Influencer
-from app.agents.turn_handler import  handle_turn, redis_history
-from app.agents.memory import find_similar_memories, find_similar_messages
+from app.agents.turn_handler import  handle_turn, redis_history, _messages_since_session_break
+from app.agents.memory import find_similar_memories
 
 from app.relationship.processor import process_relationship_turn
 
@@ -24,9 +28,6 @@ log = logging.getLogger(__name__)
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 
 ELEVENLABS_CONVAI_WEBHOOK_SECRET = settings.ELEVENLABS_CONVAI_WEBHOOK_SECRET
-ELEVEN_BASE_URL = settings.ELEVEN_BASE_URL
-
-log = logging.getLogger(__name__)
 
 
 def _redact(val: Any) -> str:
@@ -37,6 +38,25 @@ def _redact(val: Any) -> str:
     if len(s) <= 6:
         return "***"
     return f"{s[:3]}…{s[-2:]}"
+
+
+def _serialize_relationship_data(rel: Any) -> dict[str, Any]:
+    """Serialize relationship fields for API responses."""
+    return {
+        "user_id": rel.user_id,
+        "influencer_id": rel.influencer_id,
+        "trust": rel.trust,
+        "closeness": rel.closeness,
+        "attraction": rel.attraction,
+        "safety": rel.safety,
+        "state": rel.state,
+        "sentiment_score": rel.sentiment_score,
+        "sentiment_delta": rel.sentiment_delta,
+        "exclusive_agreed": rel.exclusive_agreed,
+        "girlfriend_confirmed": rel.girlfriend_confirmed,
+        "last_interaction_at": rel.last_interaction_at.isoformat() if rel.last_interaction_at else None,
+        "updated_at": rel.updated_at.isoformat() if rel.updated_at else None,
+    }
 
 
 def _verify_hmac(raw_body: bytes, signature_header: Optional[str]) -> None:
@@ -128,12 +148,7 @@ async def elevenlabs_post_call(request: Request, db: AsyncSession = Depends(get_
     conversation_id = data.get("conversation_id")
     status = (data.get("status") or "done").lower()
     total_seconds = _extract_total_seconds(data)
-    transcript_entries = data.get("transcript") or []
-    full_transcript = " ".join(
-        entry.get("message", "")
-        for entry in transcript_entries
-        if isinstance(entry, dict) and entry.get("message")
-    )
+    # transcript_entries = data.get("transcript") or []
 
     log.info(
         "webhook.parsed type=%s conv_id=%s status=%s seconds=%s ip=%s",
@@ -167,7 +182,6 @@ async def elevenlabs_post_call(request: Request, db: AsyncSession = Depends(get_
             _redact(user_id), _redact(conversation_id), total_seconds
         )
         try:
-            chat_id = meta.get("chat_id") if isinstance(meta, dict) else None
             if not chat_id:
                 raise HTTPException(400, "Missing chat_id in meta for billing")
 
@@ -209,21 +223,18 @@ async def elevenlabs_post_call(request: Request, db: AsyncSession = Depends(get_
 async def update_relationship_api(
     req: Request,
     background_tasks: BackgroundTasks,
-    db: AsyncSession = Depends(get_db),
     x_webhook_token: str | None = Header(default=None),
 ):
     _verify_token(ELEVENLABS_CONVAI_WEBHOOK_SECRET, x_webhook_token)
-
+    
+    # Parse JSON immediately (fast operation)
     try:
         payload = await req.json()
-    except Exception:
-        return {"status": "received"}
-
-    try:
-        log.info("[EL TOOL] payload(head)=%s", str(payload)[:800])
-    except Exception:
-        pass
-
+    except Exception as e:
+        log.exception("[EL TOOL] Failed to parse JSON payload: %s", e)
+        return {"status": "error", "message": "Invalid JSON"}
+    
+    # Extract data and queue background processing
     args = payload.get("arguments") or {}
     raw_text = (
         payload.get("text")
@@ -234,18 +245,24 @@ async def update_relationship_api(
     user_text = str(raw_text).strip()
     conversation_id = payload.get("conversation_id")
     
-    # Queue background processing - return immediately without waiting
+    # Log for debugging (non-blocking)
+    try:
+        log.info("[EL TOOL] payload(head)=%s", str(payload)[:800])
+    except Exception:
+        pass
+    
+    # Queue background processing - return immediately
     background_tasks.add_task(
         _process_relationship_update,
         user_text,
         conversation_id,
-        db
     )
     
-    return {"status": "processing"}
+    return {"status": "received"}
 
 
-async def _process_relationship_update(user_text: str, conversation_id: str, db: AsyncSession):
+
+async def _process_relationship_update(user_text: str, conversation_id: str):
     """Process relationship update in background without blocking webhook response."""
     if not user_text:
         log.warning("[EL TOOL BG] empty user_text")
@@ -255,72 +272,69 @@ async def _process_relationship_update(user_text: str, conversation_id: str, db:
         log.warning("[EL TOOL BG] missing conversation_id")
         return
 
-    try:
-        res = await db.execute(select(CallRecord).where(CallRecord.conversation_id == conversation_id))
-        call = res.scalar_one_or_none()
-    except Exception as e:
-        log.exception("[EL TOOL BG] CallRecord lookup failed: %s", e)
-        return
+    # Create a dedicated session for this background task.
+    # The request-scoped session from get_db() is closed before background tasks run,
+    # which causes connection pool leaks.
+    async with SessionLocal() as db:
+        try:
+            res = await db.execute(select(CallRecord).where(CallRecord.conversation_id == conversation_id))
+            call = res.scalar_one_or_none()
+        except Exception as e:
+            log.exception("[EL TOOL BG] CallRecord lookup failed: %s", e)
+            return
 
-    if not call:
-        log.warning("[EL TOOL BG] No CallRecord found for conv=%s", conversation_id)
-        return
+        if not call:
+            log.warning("[EL TOOL BG] CallRecord not found for conv=%s", conversation_id)
+            return
 
-    user_id = call.user_id
-    influencer_id = call.influencer_id
-    chat_id = call.chat_id
+        user_id = call.user_id
+        influencer_id = call.influencer_id
+        chat_id = call.chat_id
 
-    if not user_id or not influencer_id or not chat_id:
-        log.warning(
-            "[EL TOOL BG] incomplete CallRecord context conv=%s user=%s infl=%s chat=%s",
-            conversation_id, user_id, influencer_id, chat_id
+        if not user_id or not influencer_id or not chat_id:
+            log.warning(
+                "[EL TOOL BG] incomplete CallRecord context conv=%s user=%s infl=%s chat=%s",
+                conversation_id, user_id, influencer_id, chat_id
+            )
+            return
+
+        history = redis_history(chat_id)
+
+        if len(history.messages) > settings.MAX_HISTORY_WINDOW:
+            trimmed = history.messages[-settings.MAX_HISTORY_WINDOW:]
+            history.clear()
+            history.add_messages(trimmed)
+
+        recent_ctx = "\n".join(f"{m.type}: {m.content}" for m in _messages_since_session_break(history.messages)[-6:])
+
+        influencer = await db.get(Influencer, influencer_id)
+        if not influencer:
+            log.warning("[EL TOOL BG] Influencer not found infl=%s conv=%s", influencer_id, conversation_id)
+            return
+
+        rel_pack = await process_relationship_turn(
+            db=db,
+            user_id=int(user_id),
+            influencer_id=influencer_id,
+            message=user_text,
+            recent_ctx=recent_ctx,
+            cid=f"el_{conversation_id}"[:16],
+            convo_analyzer=CONVO_ANALYZER,
+            influencer=influencer,
         )
-        return
 
-    history = redis_history(chat_id)
-
-    if len(history.messages) > settings.MAX_HISTORY_WINDOW:
-        trimmed = history.messages[-settings.MAX_HISTORY_WINDOW:]
-        history.clear()
-        history.add_messages(trimmed)
-
-    recent_ctx = "\n".join(f"{m.type}: {m.content}" for m in history.messages[-6:])
-
-    influencer = await db.get(Influencer, influencer_id)
-    if not influencer:
-        log.warning("[EL TOOL BG] Influencer not found infl=%s conv=%s", influencer_id, conversation_id)
-        return
-
-    rel_pack = await process_relationship_turn(
-        db=db,
-        user_id=int(user_id),
-        influencer_id=influencer_id,
-        message=user_text,
-        recent_ctx=recent_ctx,
-        cid=f"el_{conversation_id}"[:16],
-        convo_analyzer=CONVO_ANALYZER,
-        influencer=influencer,
-    )
-
-    rel = rel_pack["rel"]
-    days_idle = rel_pack["days_idle"]
-    dtr_goal = rel_pack["dtr_goal"]
-
-    relationship = (
-        "# Relationship Metrics:\n"
-        f"- phase: {rel.state}\n"
-        f"- trust: {rel.trust}/100\n"
-        f"- closeness: {rel.closeness}/100\n"
-        f"- attraction: {rel.attraction}/100\n"
-        f"- safety: {rel.safety}/100\n"
-        f"- exclusive_agreed: {rel.exclusive_agreed}\n"
-        f"- girlfriend_confirmed: {rel.girlfriend_confirmed}\n"
-        f"- sentiment_delta: {rel.sentiment_delta}\n"
-        f"- days_idle_before_message: {days_idle}\n"
-        f"- dtr_goal: {dtr_goal}\n"
-    )
-
-    log.info("[EL TOOL BG] relationship_metrics conv=%s\n%s", conversation_id, relationship)
+        rel = rel_pack["rel"]
+        days_idle = rel_pack["days_idle"]
+        dtr_goal = rel_pack["dtr_goal"]
+        relationship = _serialize_relationship_data(rel)
+        log.info(
+            "[EL TOOL BG] relationship_metrics conv=%s days_idle=%s dtr_goal=%s payload=%s",
+            conversation_id,
+            days_idle,
+            dtr_goal,
+            relationship,
+        )
+    return relationship
 
 def _verify_token(shared: str, token: str | None) -> None:
     if not shared: 
@@ -337,16 +351,15 @@ async def eleven_webhook_get_memories(
     x_webhook_token: str | None = Header(default=None),
 ):
     _verify_token(ELEVENLABS_CONVAI_WEBHOOK_SECRET, x_webhook_token)
+    log.info("[MEMORIES] ── webhook hit ──")
 
     try:
         payload = await req.json()
-    except Exception:
+    except Exception as e:
+        log.warning("[MEMORIES] JSON parse failed: %s", e)
         return {"memories": []}
 
-    try:
-        log.info("[EL TOOL] payload(head)=%s", str(payload)[:800])
-    except Exception:
-        pass
+    log.info("[MEMORIES] payload(head)=%s", str(payload)[:800])
 
     # Simplified payload parsing
     user_text = str(
@@ -356,8 +369,10 @@ async def eleven_webhook_get_memories(
     ).strip()
     
     conversation_id = payload.get("conversation_id")
+    log.info("[MEMORIES] user_text=%r conv=%s", user_text[:120] if user_text else "", conversation_id)
     
     if not user_text or not conversation_id:
+        log.warning("[MEMORIES] early exit: user_text=%s conv=%s", bool(user_text), bool(conversation_id))
         return {"memories": []}
 
     # Quick lookup - fail fast
@@ -366,12 +381,39 @@ async def eleven_webhook_get_memories(
             select(CallRecord).where(CallRecord.conversation_id == conversation_id)
         )
     except Exception as e:
-        log.warning("[EL TOOL] CallRecord lookup failed: %s", str(e)[:100])
+        log.warning("[MEMORIES] CallRecord lookup failed: %s", str(e)[:100])
         return {"memories": []}
 
-    if not call or not call.chat_id or not call.influencer_id:
+    chat_id = None
+    influencer_id = None
+    user_id = None
+
+    if call and call.chat_id and call.influencer_id:
+        chat_id = call.chat_id
+        influencer_id = call.influencer_id
+        user_id = call.user_id
+    else:
+        # Fallback: Check if there's a Message with this conversation_id
+        from app.db.models import Message
+        q = (
+            select(Chat.id, Chat.influencer_id, Chat.user_id)
+            .join(Message, Message.chat_id == Chat.id)
+            .where(Message.conversation_id == conversation_id)
+            .limit(1)
+        )
+        msg_res = await db.execute(q)
+        msg_row = msg_res.first()
+        if msg_row:
+            chat_id, influencer_id, user_id = msg_row
+
+    if not chat_id or not influencer_id:
+        log.warning(
+            "[MEMORIES] missing context for conv=%s (call AND message fallbacks failed)", conversation_id
+        )
         return {"memories": []}
     
+    log.info("[MEMORIES] resolved: chat=%s infl=%s user=%s", chat_id, influencer_id, user_id)
+
     started = time.perf_counter()
     memories = []
     
@@ -379,33 +421,47 @@ async def eleven_webhook_get_memories(
         from app.services.embeddings import get_embedding
         
         # Tighter embedding timeout
+        emb_start = time.perf_counter()
         embedding = await asyncio.wait_for(
             get_embedding(user_text, source="call"),
             timeout=0.5,
         )
+        emb_ms = int((time.perf_counter() - emb_start) * 1000)
+        log.info("[MEMORIES] embedding ok ms=%d", emb_ms)
         
         # Query ONLY memories (not messages) - faster, single query
+        mem_start = time.perf_counter()
         memories = await asyncio.wait_for(
             find_similar_memories(
                 message=user_text,
-                chat_id=call.chat_id,
-                influencer_id=call.influencer_id,
+                chat_id=chat_id,
+                influencer_id=influencer_id,
                 db=db,
                 embedding=embedding,
             ),
             timeout=1.5,
         )
+        mem_ms = int((time.perf_counter() - mem_start) * 1000)
+        mem_count = len(memories) if isinstance(memories, list) else 0
+        log.info("[MEMORIES] query ok ms=%d count=%d", mem_ms, mem_count)
+
+        # Log the actual memories returned for debugging
+        if isinstance(memories, list):
+            for i, mem in enumerate(memories[:5]):
+                preview = str(mem)[:120] if mem else "(empty)"
+                log.info("[MEMORIES]   [%d] %s", i, preview)
             
     except asyncio.TimeoutError:
-        log.warning("[EL TOOL] memory timeout conv=%s", conversation_id)
+        phase_ms = int((time.perf_counter() - started) * 1000)
+        log.warning("[MEMORIES] TIMEOUT at %dms conv=%s", phase_ms, conversation_id)
     except Exception as e:
-        log.warning("[EL TOOL] memory failed conv=%s: %s", conversation_id, str(e)[:100])
+        log.warning("[MEMORIES] FAILED conv=%s: %s", conversation_id, str(e)[:200])
     finally:
-        ms = int((time.perf_counter() - started) * 1000)
+        total_ms = int((time.perf_counter() - started) * 1000)
+        mem_count = len(memories) if isinstance(memories, list) else 0
         log.info(
-            "[EL TOOL] memories ms=%d count=%d conv=%s chat=%s infl=%s",
-            ms, len(memories) if isinstance(memories, list) else 0, 
-            conversation_id, call.chat_id, call.influencer_id
+            "[MEMORIES] ── done ── total_ms=%d count=%d conv=%s chat=%s infl=%s",
+            total_ms, mem_count, conversation_id, chat_id, influencer_id,
         )
 
     return {"memories": memories if isinstance(memories, list) else []}
@@ -454,18 +510,28 @@ async def eleven_webhook_reply(
         log.exception("[EL TOOL] CallRecord lookup failed: %s", e)
         return {"text": "I had an internal issue looking up this call. Please try again."}
 
-    if not call:
-        log.warning("[EL TOOL] No CallRecord found for conv=%s", conversation_id)
-        return {
-            "text": (
-                "I lost track of this call on my side. "
-                "Please hang up and start a new one."
-            )
-        }
+    user_id = None
+    influencer_id = None
+    chat_id = None
 
-    user_id = call.user_id
-    influencer_id = call.influencer_id
-    chat_id = call.chat_id
+    if not call:
+        res_chat = await db.execute(select(Chat).where(Chat.id == conversation_id))
+        chat_record = res_chat.scalar_one_or_none()
+        if not chat_record:
+            log.warning("[EL TOOL] No CallRecord or Chat found for conv=%s", conversation_id)
+            return {
+                "text": (
+                    "I lost track of this call on my side. "
+                    "Please hang up and start a new one."
+                )
+            }
+        user_id = chat_record.user_id
+        influencer_id = chat_record.influencer_id
+        chat_id = chat_record.id
+    else:
+        user_id = call.user_id
+        influencer_id = call.influencer_id
+        chat_id = call.chat_id
 
     if not user_id or not influencer_id or not chat_id:
         log.warning(
@@ -515,7 +581,7 @@ async def eleven_webhook_reply(
         reply = "One sec… could you say that again?"
     except Exception as e:
         log.exception("[EL TOOL] handle_turn failed: %s", e)
-        reply = "Sorry, something went wrong."
+        raise HTTPException(status_code=500, detail="Internal server error during turn handling")
     finally:
         ms = int((time.perf_counter() - started) * 1000)
         log.info(
