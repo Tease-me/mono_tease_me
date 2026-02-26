@@ -705,7 +705,7 @@ async def get_api_usage_summary(
             func.avg(ApiUsageLog.latency_ms).label("avg_latency_ms"),
             func.max(ApiUsageLog.latency_ms).label("max_latency_ms"),
             func.sum(ApiUsageLog.duration_secs).label("total_duration_secs"),
-            func.sum(func.cast(ApiUsageLog.success == False, Integer)).label("errors")
+            func.sum(func.cast(ApiUsageLog.success.is_(False), Integer)).label("errors")
         )
         .where(ApiUsageLog.created_at >= start_time)
         .group_by(group_col)
@@ -830,7 +830,7 @@ async def get_api_usage_errors(
     stmt = (
         select(ApiUsageLog)
         .where(ApiUsageLog.created_at >= start_time)
-        .where(ApiUsageLog.success == False)
+        .where(ApiUsageLog.success.is_(False))
         .order_by(desc(ApiUsageLog.created_at))
         .limit(50)
     )

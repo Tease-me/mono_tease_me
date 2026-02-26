@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy import (
     Integer, BigInteger, String, Boolean, Text, Float, ForeignKey, DateTime,
-    Index, Date,
+    Index,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
