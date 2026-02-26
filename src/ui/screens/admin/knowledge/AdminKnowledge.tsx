@@ -4,6 +4,7 @@ import { AdminServices, KnowledgeGetResponse } from "@/api/services/AdminService
 import { InfluencerServices } from "@/api/services/InfluencerService";
 import { InfluencerResponse } from "@/api/models/influencers";
 import AdminLayout from "@/ui/screens/admin/AdminLayout";
+import AdminTwoColumn from "@/ui/screens/admin/AdminTwoColumn";
 import styles from "./AdminKnowledge.module.css";
 
 const admin = AdminServices(apiClient);
@@ -154,9 +155,7 @@ const AdminKnowledge: React.FC = () => {
 
   return (
     <AdminLayout title="Knowledge Base" subtitle="Manage influencer knowledge text and indexing.">
-      <div className={styles["layout"]}>
-        {/* ── Influencer sidebar ── */}
-        <aside className={styles["sidebar"]}>
+      <AdminTwoColumn sidebar={<aside className={styles["sidebar"]}>
           <div className={styles["sidebar-header"]}>Influencers</div>
           <div className={styles["sidebar-list"]}>
             {loadingList && <div className={styles["sidebar-empty"]}>Loading…</div>}
@@ -174,9 +173,7 @@ const AdminKnowledge: React.FC = () => {
               </button>
             ))}
           </div>
-        </aside>
-
-        {/* ── KB editor panel ── */}
+        </aside>} sidebarWidth={280}>
         <section className={styles["main"]}>
           {!selectedId && (
             <div className={styles["panel-placeholder"]}>Select an influencer from the list.</div>
@@ -274,7 +271,7 @@ const AdminKnowledge: React.FC = () => {
             </>
           )}
         </section>
-      </div>
+      </AdminTwoColumn>
     </AdminLayout>
   );
 };

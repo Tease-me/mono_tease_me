@@ -44,21 +44,12 @@
     border: 1px solid rgba(239, 68, 68, 0.35);
 }
 
-.create-ai__layout {
-    display: grid;
-    grid-template-columns: 400px 1fr;
-    gap: var(--space-px-24);
-}
-
 .sidebar {
     display: flex;
     flex-direction: column;
     gap: var(--space-px-20);
-    border-radius: 24px;
     padding: 24px;
-    background: linear-gradient(140deg, rgba(37, 42, 56, 0.95), rgba(18, 20, 30, 0.94));
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
 }
 
 .sidebar-top {
@@ -819,10 +810,6 @@
 }
 
 @media (max-width: 1200px) {
-    .create-ai__layout {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
     .sidebar {
         flex-direction: column;
         max-height: none;

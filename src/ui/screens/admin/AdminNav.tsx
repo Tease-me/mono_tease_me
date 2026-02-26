@@ -10,7 +10,7 @@ type NavGroup = { label?: string; items: NavItem[] };
 const NAV_GROUPS: NavGroup[] = [
     {
         items: [
-            { to: "/admin/relationship", label: "Dashboard", icon: <SvgPack.Dashboard /> },
+            { to: "/admin/relationship", label: "Relationship", icon: <SvgPack.Dashboard /> },
         ],
     },
     {

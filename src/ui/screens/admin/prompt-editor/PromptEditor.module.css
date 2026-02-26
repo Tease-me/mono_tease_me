@@ -1,20 +1,10 @@
-.prompt-editor {
-    display: grid;
-    grid-template-columns: 320px 1fr;
-    gap: var(--space-px-20);
-    height: 100%;
-    min-height: 0;
-}
-
 .node-rail {
-    border-radius: 18px;
-    background: linear-gradient(160deg, rgba(35, 39, 52, 0.95), rgba(16, 18, 26, 0.92));
-    border: 1px solid rgba(255, 255, 255, 0.06);
     padding: 18px;
     display: flex;
     flex-direction: column;
     gap: var(--space-px-16);
     min-height: 0;
+    overflow: hidden;
 }
 
 .rail-header {
@@ -185,14 +175,12 @@
 }
 
 .editor-pane {
-    border-radius: 18px;
-    background: linear-gradient(150deg, rgba(31, 34, 44, 0.95), rgba(17, 19, 26, 0.92));
-    border: 1px solid rgba(255, 255, 255, 0.06);
     padding: 20px;
     display: flex;
     flex-direction: column;
     gap: var(--space-px-16);
     min-height: 0;
+    overflow-y: auto;
     overflow-y: auto;
 }
 

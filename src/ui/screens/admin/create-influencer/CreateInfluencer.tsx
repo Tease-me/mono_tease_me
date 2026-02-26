@@ -17,6 +17,7 @@ import React, {
 import { apiClient } from "@/api/apis";
 import { AdminServices, KnowledgeGetResponse } from "@/api/services/AdminServices";
 import AdminLayout from "../AdminLayout";
+import AdminTwoColumn from "../AdminTwoColumn";
 import styles from "./CreateInfluencer.module.css";
 
 const adminSvc = AdminServices(apiClient);
@@ -852,8 +853,7 @@ const CreateInfluencer: React.FC = () => {
       }
     >
       <div className={styles["create-ai"]}>
-        <div className={styles["create-ai__layout"]}>
-          <aside className={styles["sidebar"]}>
+        <AdminTwoColumn sidebar={<aside className={styles["sidebar"]}>
             <div className={styles["sidebar-top"]}>
               <div>
                 <h2 className={styles["sidebar-title"]}>Influencers</h2>
@@ -941,8 +941,7 @@ const CreateInfluencer: React.FC = () => {
                 })
               )}
             </div>
-          </aside>
-
+          </aside>} sidebarWidth={400} gap="var(--space-px-24)" mainStyled={false}>
           <section className={styles["detail-panel"]}>
             <form className={styles["detail-card"]} onSubmit={handleSubmit}>
               <div className={styles["detail-header"]}>
@@ -1461,7 +1460,7 @@ const CreateInfluencer: React.FC = () => {
               )}
             </form>
           </section>
-        </div>
+        </AdminTwoColumn>
         <Modal
           isOpen={isUploadModalOpen}
           onClose={closeUploadModal}
