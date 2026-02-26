@@ -47,9 +47,14 @@ def configure_logging() -> None:
             "interval": 1,
             "backupCount": 14,
             "encoding": "utf-8",
-        }
+        },
+        "live_stream": {
+            "class": "app.core.live_logs.LiveLogHandler",
+            "level": log_level,
+            "formatter": chosen_format,
+        },
     }
-    root_handlers = ["file"]
+    root_handlers = ["file", "live_stream"]
     if log_to_console:
         handlers["console"] = {
             "class": "logging.StreamHandler",
