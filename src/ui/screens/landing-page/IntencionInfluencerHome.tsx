@@ -1,6 +1,7 @@
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 
 import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
+import { Paths } from "@/routes/path";
 import SvgPack from "@/utils/SvgPack";
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -9,7 +10,7 @@ import imageHPHero from "@/assets/image/creator-collage.jpg";
 import heartFloat from "@/assets/lottie/heartFloat.json"
 import hpImageRequestBg from "@/assets/image/hpImageRequestBg@2x.jpg"
 import imageTeaseMeLight from "@/assets/image/iconTeaseMeLight.png";
-import "./HomePage.css";
+import "./LandingPage.css";
 
 const IntencionInfluencerHome: React.FC = () => {
   const navigate = useNavigate();
@@ -189,7 +190,7 @@ const IntencionInfluencerHome: React.FC = () => {
         <PrimaryButton
           text="Search New Influencer"
           rightIcon={<SvgPack.ArrowRight />}
-          onClick={() => navigate("/home-page")}
+          onClick={() => navigate(Paths.root)}
           className="intencion-discover-button"
         /></div>
       </div>

@@ -1,5 +1,6 @@
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
+import { Paths } from "@/routes/path";
 import SvgPack from "@/utils/SvgPack";
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -14,7 +15,7 @@ import iconWhatYouGet022x from "@/assets/image/icon3dLightning@2x.png";
 import iconWhatYouGet03 from "@/assets/image/icon3dLocks.png";
 import iconWhatYouGet032x from "@/assets/image/icon3dLock@2x.png";
 import CallIcon from "@/assets/Call.svg?react";
-import "./HomePage.css";
+import "./LandingPage.css";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
 
 const InfluencerHome: React.FC = () => {
@@ -158,7 +159,7 @@ const InfluencerHome: React.FC = () => {
           <PrimaryButton
             text="Search New Influencer"
             rightIcon={<SvgPack.ArrowRight />}
-            onClick={() => navigate("/home-page")}
+            onClick={() => navigate(Paths.root)}
             className="influencer-discover-button"
           />
         </div>

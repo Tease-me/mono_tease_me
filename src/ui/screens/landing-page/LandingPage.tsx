@@ -12,9 +12,9 @@ import { useNavigate } from "react-router-dom";
 import imageHPHero from "@/assets/image/creator-collage.jpg";
 import imageTeaseMeLight from "@/assets/image/iconTeaseMeLight.png";
 import PlusBadge from "@/ui/components/badges/PlusBadge";
-import "./HomePage.css";
+import "./LandingPage.css";
 
-const HomePage: React.FC = () => {
+const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   //const { isSignedIn } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
@@ -156,4 +156,4 @@ const HomePage: React.FC = () => {
   );
 };
 
-export default HomePage;
+export default LandingPage;

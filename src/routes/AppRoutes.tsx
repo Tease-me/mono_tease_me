@@ -64,18 +64,18 @@ const AdminLogs = lazy(() => import("@/ui/screens/admin/logs/AdminLogs"));
 const AdultModePage = lazy(
   () => import("@/ui/screens/messaging/pages/adult-mode/AdultModePage")
 );
-const HomePage = lazy(() => import("@/ui/screens/home-page/HomePage"));
+const LandingPage = lazy(() => import("@/ui/screens/landing-page/LandingPage"));
 const InfluencerHome = lazy(
-  () => import("@/ui/screens/home-page/InfluencerHome")
+  () => import("@/ui/screens/landing-page/InfluencerHome")
 );
 const InfluencerHomeTrialExpired = lazy(
-  () => import("@/ui/screens/home-page/InfluencerHomeTrialExpired")
+  () => import("@/ui/screens/landing-page/InfluencerHomeTrialExpired")
 );
 const RecordTerms = lazy(
   () => import("@/ui/screens/survey/components/TermsConditions")
 );
 const IntencionInfluencerHome = lazy(
-  () => import("@/ui/screens/home-page/IntencionInfluencerHome")
+  () => import("@/ui/screens/landing-page/IntencionInfluencerHome")
 );
 
 function AdultModeRoute() {
@@ -100,7 +100,7 @@ function AdultModeRoute() {
 
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
-    { path: Paths.all, element: <HomePage /> },
+    { path: Paths.all, element: <LandingPage /> },
     { path: Paths.influencerProfile(), element: <InfluencerProfileScreen /> },
     { path: Paths.updateProfile, element: <UpdateProfile /> },
     { path: Paths.join, element: <JoinPage /> },
