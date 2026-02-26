@@ -1284,7 +1284,7 @@ const CreateInfluencer: React.FC = () => {
                 )}
               </div>
 
-              <div className={`${styles["section-card"]} ${styles["hidden"]}`}>
+              <div className={styles["section-card"]}>
                 <div
                   className={styles["section-card__header"]}
                   onClick={() => toggleSection("relationship-stages")}
