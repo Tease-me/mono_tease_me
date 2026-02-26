@@ -23,16 +23,10 @@ import SuperRoute from "./components/SuperRoute";
 import { ThemeProvider } from "@/theme/ThemeProvider";
 import TestPage from "@/ui/screens/test/TestPage";
 
-// Fixed: Removed duplicate non-lazy DisclaimerScreen import
-// Keep only the lazy version below
-
 const AdminPreInfluencers = lazy(
   () => import("@/ui/screens/admin/pre-influencers/AdminPreInfluencers")
 );
 
-const DisclaimerScreen = lazy(
-  () => import("@/ui/screens/disclaimer/DisclaimerScreen")
-);
 const UnderageRedirectScreen = lazy(
   () => import("@/ui/screens/disclaimer/UnderageRedirectScreen")
 );
