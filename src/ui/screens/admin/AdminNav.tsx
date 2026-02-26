@@ -16,9 +16,9 @@ const NAV_GROUPS: NavGroup[] = [
     {
         label: "Manage",
         items: [
-            { to: "/admin/influencer",     label: "Influencers",    icon: <SvgPack.Users /> },
+            { to: "/admin/influencer", label: "Influencers", icon: <SvgPack.Users /> },
             { to: "/admin/pre-influencers", label: "Pre-Influencers", icon: <SvgPack.Star /> },
-            { to: "/admin/knowledge",       label: "Knowledge",      icon: <SvgPack.InfoCircle /> },
+            { to: "/admin/knowledge", label: "Knowledge", icon: <SvgPack.InfoCircle /> },
         ],
     },
     {
@@ -31,8 +31,9 @@ const NAV_GROUPS: NavGroup[] = [
         label: "History",
         items: [
             { to: "/admin/chat-history", label: "Chat History", icon: <SvgPack.ChatRound /> },
+            { to: "/admin/logs", label: "Logs", icon: <SvgPack.Female /> },
         ],
-    },
+    }
 ];
 
 type AdminNavProps = {
