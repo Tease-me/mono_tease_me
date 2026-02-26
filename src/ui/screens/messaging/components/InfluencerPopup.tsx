@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import { createPortal } from "react-dom";
 import styles from "./InfluencerPopup.module.css";
 import InfluencerProfileCard from "@/ui/components/profile/InfluencerProfileCard";
@@ -70,20 +70,22 @@ export default function InfluencerPopup({
           <div className={styles.profileDetails}>
             {/* Profile Section */}
             <div className={styles.section01}>
-              <InfluencerProfileCard
-                name={influencerData.name}
-                image={influencerData.image}
-                lastConnected={influencerData.lastConnected}
-                followingSince={influencerData.followingSince}
-                isSubscribed={influencerData.isSubscribed}
-                onlyFansUrl={influencerData.onlyFansUrl}
-                instagramUrl={influencerData.instagramUrl}
-                tiktokUrl={influencerData.tiktokUrl}
-                snapchatUrl={influencerData.snapchatUrl}
-                telegramUrl={influencerData.telegramUrl}
-                xUrl={influencerData.xUrl}
-                whatsappUrl={influencerData.whatsappUrl}
-              />
+              <Suspense fallback={null}>
+                <InfluencerProfileCard
+                  name={influencerData.name}
+                  image={influencerData.image}
+                  lastConnected={influencerData.lastConnected}
+                  followingSince={influencerData.followingSince}
+                  isSubscribed={influencerData.isSubscribed}
+                  onlyFansUrl={influencerData.onlyFansUrl}
+                  instagramUrl={influencerData.instagramUrl}
+                  tiktokUrl={influencerData.tiktokUrl}
+                  snapchatUrl={influencerData.snapchatUrl}
+                  telegramUrl={influencerData.telegramUrl}
+                  xUrl={influencerData.xUrl}
+                  whatsappUrl={influencerData.whatsappUrl}
+                />
+              </Suspense>
             </div>
 
             {/* Stage Progress Section */}
@@ -126,13 +128,15 @@ export default function InfluencerPopup({
                 influencerData.closeness !== undefined ||
                 influencerData.attraction !== undefined ||
                 influencerData.safety !== undefined) && (
-                  <RelatioshipAffinities
-                    trust={influencerData.trust ?? 0}
-                    closeness={influencerData.closeness ?? 0}
-                    attraction={influencerData.attraction ?? 0}
-                    safety={influencerData.safety ?? 0}
-                    large
-                  />
+                  <Suspense fallback={null}>
+                    <RelatioshipAffinities
+                      trust={influencerData.trust ?? 0}
+                      closeness={influencerData.closeness ?? 0}
+                      attraction={influencerData.attraction ?? 0}
+                      safety={influencerData.safety ?? 0}
+                      large
+                    />
+                  </Suspense>
                 )}
             </div>
           </div>
