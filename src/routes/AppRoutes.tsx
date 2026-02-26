@@ -4,7 +4,6 @@ import PayPalReturn from "@/ui/components/modals/payment-modal/PayPalReturn";
 import DiditReturn from "@/ui/components/modals/verification/DiditReturn";
 import RelationshipDashboard from "@/ui/screens/admin/dashboard_relationship/RelationshipDashboard";
 import InfluencerAudioManagerRoute from "@/ui/screens/influencer-audio-manager/InfluencerAudioManagerRoute";
-import InfluencerWelcome from "@/ui/screens/landing-page/InfluencerWelcome";
 import LandingPage from "@/ui/screens/landing-page/LandingPage";
 import IncomeDialogStep01 from "@/ui/screens/landing-page/subscreens/IncomeDialogStep01";
 import ProfileSurvey from "@/ui/screens/landing-page/subscreens/ProfileSurvey";
@@ -21,10 +20,6 @@ import GuestRoute from "./components/GuestRoute";
 import PrivateRoute from "./components/PrivateRoute";
 import SuperRoute from "./components/SuperRoute";
 import { ThemeProvider } from "@/theme/ThemeProvider";
-import TestPage from "@/ui/screens/test/TestPage";
-
-// Fixed: Removed duplicate non-lazy DisclaimerScreen import
-// Keep only the lazy version below
 
 const AdminPreInfluencers = lazy(
   () => import("@/ui/screens/admin/pre-influencers/AdminPreInfluencers")
@@ -55,13 +50,7 @@ const ForgotPassword = lazy(
   () => import("@/ui/screens/forgot-password/ForgotPassword")
 );
 const VerifyEmail = lazy(() => import("@/ui/screens/verify-email/VerifyEmail"));
-const VoiceCallEleven = lazy(
-  () => import("@/ui/screens/messaging/VoiceCallEleven")
-);
 const HomeScreenSingle = lazy(() => import("@/ui/screens/home/HomeScreenSingle"));
-const ChatScreen = lazy(() => import("@/ui/screens/messaging/ChatScreen"));
-const CallScreen = lazy(() => import("@/ui/screens/CallScreen"));
-const MJDashboard = lazy(() => import("@/mj-dashboard/ui/Dashboard"));
 const CreateInfluencer = lazy(
   () => import("@/ui/screens/admin/create-influencer/CreateInfluencer")
 );
@@ -114,13 +103,10 @@ function AdultModeRoute() {
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.all, element: <HomePage /> },
-    // Fixed: Now uses the lazy-loaded DisclaimerScreen consistently
     { path: Paths.disclaimer, element: <DisclaimerScreen /> },
     { path: Paths.influencerProfile(), element: <InfluencerProfileScreen /> },
-    { path: Paths.testButtons, element: <TestPage /> },
     { path: Paths.updateProfile, element: <UpdateProfile /> },
     { path: Paths.join, element: <LandingPage /> },
-    { path: Paths.welcome, element: <InfluencerWelcome /> },
     { path: Paths.incomeDialog, element: <IncomeDialogStep01 /> },
     { path: Paths.profileSurvey, element: <ProfileSurvey /> },
     {
@@ -166,7 +152,7 @@ function AppRoutes() {
   ];
 
   const superRoutes: { path: string; element: JSX.Element }[] = [
-    { path: Paths.mjDashboard, element: <MJDashboard /> },
+    // { path: Paths.mjDashboard, element: <MJDashboard /> },
     { path: Paths.admin.influencer, element: <CreateInfluencer /> },
     { path: Paths.admin.prompts, element: <PromptEditorAdmin /> },
     { path: Paths.admin.relationship, element: <RelationshipDashboard /> },
@@ -180,11 +166,8 @@ function AppRoutes() {
   ];
 
   const privateRoutes: { path: string; element: JSX.Element }[] = [
-    { path: Paths.voice, element: <VoiceCallEleven /> },
     { path: Paths.home, element: <HomeScreenSingle /> },
     { path: Paths.adultMode, element: <AdultModeRoute /> },
-    { path: Paths.chat(), element: <ChatScreen /> },
-    { path: Paths.call(), element: <CallScreen /> },
     { path: Paths.paypalReturn, element: <PayPalReturn /> },
     { path: Paths.paypalCancel, element: <PayPalCancel /> },
     { path: Paths.diditReturn, element: <DiditReturn /> },

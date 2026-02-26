@@ -5,7 +5,6 @@ export const Paths = {
     disclaimer: "/disclaimer",
     updateProfile: "/update-profile",
     join: "/join",
-    welcome: "/welcome",
     incomeDialog: "/income-dialog",
     profileSurvey: "/profile-survey",
     thankYou: "/thank-you",
