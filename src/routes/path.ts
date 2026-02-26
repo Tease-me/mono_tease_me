@@ -30,6 +30,7 @@ export const Paths = {
             `/admin/pre-influencers/${id}`,
         knowledge: "/admin/knowledge",
         chatHistory: "/admin/chat-history",
+        logs: "/admin/logs",
     },
     mjDashboard: "/mj/dashboard",
 
