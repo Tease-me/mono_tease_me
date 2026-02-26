@@ -51,8 +51,10 @@ async def classify_signals(
         # Track convo analysis usage
         from app.services.token_tracker import track_usage_bg
         usage = getattr(r, "usage_metadata", None) or {}
+        model_name = getattr(r, "response_metadata", {}).get("model_name", "gpt-4o-mini")
+        provider = "alibaba" if "qwen" in model_name.lower() else "openai"
         track_usage_bg(
-            "analysis", "openai", "gpt-4o-mini", "convo_analysis",
+            "analysis", provider, model_name, "convo_analysis",
             input_tokens=usage.get("input_tokens"),
             output_tokens=usage.get("output_tokens"),
             total_tokens=usage.get("total_tokens"),

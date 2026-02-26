@@ -64,22 +64,36 @@ _PRICING_INPUT = {
     # OpenAI
     "gpt-5.2":                  2_500,   # $2.50 / 1M input tokens
     "gpt-4.1":                  2_000,   # $2.00 / 1M input tokens
+    "gpt-4.1-mini":               150,   # $0.15 / 1M input tokens
     "gpt-4o":                   2_500,   # $2.50 / 1M input tokens
     "gpt-4o-mini":                150,   # $0.15 / 1M input tokens
     "text-embedding-3-small":      20,   # $0.02 / 1M input tokens
+    "text-embedding-v3":           20,   # $0.02 / 1M input tokens
+    "text-embedding-v2":           20,   # $0.02 / 1M input tokens
     # XAI
-    "grok-4-1-fast-reasoning":  3_000,   # $3.00 / 1M input tokens (estimated)
+    "grok-4-1-fast-reasoning":    200,   # $0.20 / 1M input tokens
+    # Alibaba / Qwen
+    "qwen-max":                 1_200,   # $1.20 / 1M input tokens
+    "qwen-plus":                  400,   # $0.40 / 1M input tokens
+    "qwen-turbo":                  50,   # $0.05 / 1M input tokens
 }
 
 _PRICING_OUTPUT = {
     # OpenAI
     "gpt-5.2":                 10_000,   # $10.00 / 1M output tokens
     "gpt-4.1":                  8_000,   # $8.00 / 1M output tokens
+    "gpt-4.1-mini":               600,   # $0.60 / 1M output tokens
     "gpt-4o":                  10_000,   # $10.00 / 1M output tokens 
     "gpt-4o-mini":                600,   # $0.60 / 1M output tokens
     "text-embedding-3-small":       0,   # embeddings have no output tokens
+    "text-embedding-v3":            0,   # embeddings have no output tokens
+    "text-embedding-v2":            0,   # embeddings have no output tokens
     # XAI
-    "grok-4-1-fast-reasoning": 15_000,   # $15.00 / 1M output tokens (estimated)
+    "grok-4-1-fast-reasoning":    500,   # $0.50 / 1M output tokens
+    # Alibaba / Qwen
+    "qwen-max":                 6_000,   # $6.00 / 1M output tokens
+    "qwen-plus":                1_200,   # $1.20 / 1M output tokens
+    "qwen-turbo":                 200,   # $0.20 / 1M output tokens
 }
 
 # ElevenLabs: charged per character or per minute for ConvAI
@@ -100,14 +114,12 @@ def _estimate_cost(
     purpose: str,
 ) -> Optional[int]:
     """
-    Estimate cost in raw units (not micro-dollars despite column name).
+    Estimate cost in micro-dollars.
 
-    Returns raw cost value where:
-    - 1,000,000 units = 1 micro-dollar
-    - 1,000,000,000,000 units = 1 USD
+    Returns cost value where:
+    - 1,000,000 units = 1 USD
 
-    This preserves precision for small API calls that would otherwise round to zero.
-    Convert to USD at display time by dividing by 1 trillion.
+    Convert to USD at display time by dividing by 1 million.
     """
     # Handle ElevenLabs time-based pricing
     if provider == "elevenlabs" and duration_secs is not None:
@@ -124,14 +136,15 @@ def _estimate_cost(
         return int(duration_mins * _WHISPER_COST_PER_MINUTE)
 
     # Handle token-based pricing
-    # Pricing constants store microdollars per token (before division)
-    # Calculation: accumulate (tokens × rate), then divide once at the end
-    cost = 0
+    # Pricing constants store nano-dollars per token (i.e. micro-dollars per 1000 tokens).
+    # We accumulate in nano-dollars, then divide by 1000 to return micro-dollars.
+    cost = 0.0
     has_pricing = False
+    token_cost_nano = 0
 
     if input_tokens:
         if model in _PRICING_INPUT:
-            cost += input_tokens * _PRICING_INPUT[model]
+            token_cost_nano += input_tokens * _PRICING_INPUT[model]
             has_pricing = True
         else:
             log.warning(
@@ -142,7 +155,7 @@ def _estimate_cost(
 
     if output_tokens:
         if model in _PRICING_OUTPUT:
-            cost += output_tokens * _PRICING_OUTPUT[model]
+            token_cost_nano += output_tokens * _PRICING_OUTPUT[model]
             has_pricing = True
         else:
             log.warning(
@@ -151,10 +164,10 @@ def _estimate_cost(
                 model, provider
             )
 
-    # Return raw cost value (don't divide yet to preserve precision for small calls)
-    # The column name is estimated_cost_micros but it stores raw units where 1M units = 1 microdollar
-    # Division by 1M happens at display time to convert to microdollars
-    return cost if has_pricing else None
+    if has_pricing:
+        cost += token_cost_nano / 1000.0
+
+    return int(cost) if has_pricing else None
 
 
 async def track_usage(
@@ -181,8 +194,7 @@ async def track_usage(
     This function NEVER raises — all errors are logged and swallowed
     so it can't disrupt the main request flow.
 
-    Note: estimated_cost_micros stores raw cost units (1 trillion units = 1 USD)
-    to preserve precision for small API calls. Convert to USD at display time.
+    Note: estimated_cost_micros stores micro-dollars (1 million units = 1 USD).
 
     Args:
         category: "text" | "call" | "18_chat" | "18_voice" | "embedding" | "moderation" | "transcription" | "analysis" | "extraction" | "assistant"
