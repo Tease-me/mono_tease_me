@@ -23,16 +23,10 @@ import SuperRoute from "./components/SuperRoute";
 import { ThemeProvider } from "@/theme/ThemeProvider";
 import TestPage from "@/ui/screens/test/TestPage";
 
-// Fixed: Removed duplicate non-lazy DisclaimerScreen import
-// Keep only the lazy version below
-
 const AdminPreInfluencers = lazy(
   () => import("@/ui/screens/admin/pre-influencers/AdminPreInfluencers")
 );
 
-const DisclaimerScreen = lazy(
-  () => import("@/ui/screens/disclaimer/DisclaimerScreen")
-);
 const UnderageRedirectScreen = lazy(
   () => import("@/ui/screens/disclaimer/UnderageRedirectScreen")
 );
@@ -77,6 +71,7 @@ const AdminKnowledge = lazy(
 const AdminChatHistory = lazy(
   () => import("@/ui/screens/admin/chat-history/AdminChatHistory")
 );
+const AdminLogs = lazy(() => import("@/ui/screens/admin/logs/AdminLogs"));
 const AdultModePage = lazy(
   () => import("@/ui/screens/messaging/pages/adult-mode/AdultModePage")
 );
@@ -117,8 +112,6 @@ function AdultModeRoute() {
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.all, element: <HomePage /> },
-    // Fixed: Now uses the lazy-loaded DisclaimerScreen consistently
-    { path: Paths.disclaimer, element: <DisclaimerScreen /> },
     { path: Paths.influencerProfile(), element: <InfluencerProfileScreen /> },
     { path: Paths.testButtons, element: <TestPage /> },
     { path: Paths.updateProfile, element: <UpdateProfile /> },
@@ -181,6 +174,7 @@ function AppRoutes() {
     { path: Paths.admin.analytics, element: <AdminAnalytics /> },
     { path: Paths.admin.knowledge, element: <AdminKnowledge /> },
     { path: Paths.admin.chatHistory, element: <AdminChatHistory /> },
+    { path: Paths.admin.logs, element: <AdminLogs /> },
   ];
 
   const privateRoutes: { path: string; element: JSX.Element }[] = [

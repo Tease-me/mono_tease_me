@@ -14,6 +14,7 @@ const links = [
   { to: "/admin/analytics", label: "Analytics" },
   { to: "/admin/knowledge", label: "Knowledge" },
   { to: "/admin/chat-history", label: "Chat History" },
+  { to: "/admin/logs", label: "Logs" },
 ];
 
 const AdminNav: React.FC = () => {
