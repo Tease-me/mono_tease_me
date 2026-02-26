@@ -2,7 +2,6 @@ export const Paths = {
     all: "*",
     root: "/",
     influencerProfile: (username = ":username") => `/${username}`,
-    disclaimer: "/disclaimer",
     updateProfile: "/update-profile",
     join: "/join",
     incomeDialog: "/income-dialog",
@@ -29,6 +28,7 @@ export const Paths = {
             `/admin/pre-influencers/${id}`,
         knowledge: "/admin/knowledge",
         chatHistory: "/admin/chat-history",
+        logs: "/admin/logs",
     },
     mjDashboard: "/mj/dashboard",
 
