@@ -90,6 +90,10 @@ export const Endpoints = {
       `admin/chats/info/${encodeURIComponent(influencerId)}/${userId}`,
     pairHistory: (influencerId: string, userId: number) =>
       `admin/chats/history/${encodeURIComponent(influencerId)}/${userId}`,
+    logs: `admin/logs`,
+    logFiles: `admin/logs/files`,
+    logDownload: `admin/logs/download`,
+    logStream: `admin/logs/stream`,
   },
   subscriptions: {
     start: "/subscriptions/start",
