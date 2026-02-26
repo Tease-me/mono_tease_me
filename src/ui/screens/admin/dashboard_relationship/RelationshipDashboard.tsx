@@ -552,7 +552,7 @@ export default function RelationshipDashboard() {
         </button>
       }
     >
-      <AdminTwoColumn sidebar={Sidebar} sidebarWidth={320}>
+      <AdminTwoColumn sidebar={Sidebar}>
         <main className={styles["main"]}>
           <div className={styles["header"]}>
             <div>

@@ -249,7 +249,7 @@ const AdminChatHistory: React.FC = () => {
               </button>
             ))}
           </div>
-        </aside>} sidebarWidth={280}>
+        </aside>}>
         <section className={styles["main"]}>
           {!pairReady && (
             <div className={styles["panel-placeholder"]}>

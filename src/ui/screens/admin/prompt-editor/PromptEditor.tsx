@@ -328,7 +328,7 @@ const PromptEditor: React.FC = () => {
                             ))
                         )}
                     </div>
-                </aside>} sidebarWidth={320} gap="var(--space-px-20)">
+                </aside>}>
                 <section className={styles["editor-pane"]}>
                     {selectedNode ? (
                         <>

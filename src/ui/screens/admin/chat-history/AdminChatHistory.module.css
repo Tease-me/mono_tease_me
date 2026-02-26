@@ -7,13 +7,12 @@
 }
 
 .sidebar-section-header {
-    padding: 12px 14px 8px;
-    font-weight: 900;
+    padding: 12px 14px 6px;
+    font-weight: 700;
     font-size: 11px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    opacity: 0.55;
-    color: #fff;
+    color: rgba(255, 255, 255, 0.5);
 }
 
 .sidebar-search-wrap {
@@ -103,7 +102,6 @@
 
 /* ── Main panel ───────────────────────────── */
 .main {
-    padding: 24px;
     display: flex;
     flex-direction: column;
     gap: 20px;

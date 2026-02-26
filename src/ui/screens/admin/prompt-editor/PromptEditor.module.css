@@ -1,5 +1,4 @@
 .node-rail {
-    padding: 18px;
     display: flex;
     flex-direction: column;
     gap: var(--space-px-16);
@@ -12,6 +11,7 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--space-px-12);
+    padding: 12px 14px 6px;
 }
 
 .rail-title {
@@ -40,9 +40,11 @@
 }
 
 .rail-heading {
-    font-size: 18px;
+    font-size: 11px;
     font-weight: 700;
-    color: var(--color-text);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.5);
 }
 
 .ghost-button {
@@ -74,7 +76,7 @@
     flex-direction: column;
     gap: var(--space-px-12);
     overflow-y: auto;
-    padding-right: 2px;
+    padding: 0 12px 12px;
     flex: 1;
     min-height: 0;
 }
@@ -92,14 +94,13 @@
 }
 
 .node-card--active {
-    border-color: rgba(0, 169, 241, 0.7);
-    box-shadow: 0 10px 22px rgba(0, 169, 241, 0.12);
-    background: linear-gradient(135deg, rgba(24, 27, 36, 0.95), rgba(33, 36, 45, 0.92));
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.09);
 }
 
 .node-card:hover {
-    transform: translateY(-1px);
-    border-color: rgba(0, 169, 241, 0.4);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.14);
 }
 
 .list-placeholder {
@@ -175,12 +176,10 @@
 }
 
 .editor-pane {
-    padding: 20px;
     display: flex;
     flex-direction: column;
     gap: var(--space-px-16);
     min-height: 0;
-    overflow-y: auto;
     overflow-y: auto;
 }
 

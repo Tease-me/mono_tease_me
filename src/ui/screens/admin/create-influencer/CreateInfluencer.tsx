@@ -941,7 +941,7 @@ const CreateInfluencer: React.FC = () => {
                 })
               )}
             </div>
-          </aside>} sidebarWidth={400} gap="var(--space-px-24)" mainStyled={false}>
+          </aside>} mainStyled={false}>
           <section className={styles["detail-panel"]}>
             <form className={styles["detail-card"]} onSubmit={handleSubmit}>
               <div className={styles["detail-header"]}>

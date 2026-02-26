@@ -173,7 +173,7 @@ const AdminKnowledge: React.FC = () => {
               </button>
             ))}
           </div>
-        </aside>} sidebarWidth={280}>
+        </aside>}>
         <section className={styles["main"]}>
           {!selectedId && (
             <div className={styles["panel-placeholder"]}>Select an influencer from the list.</div>
