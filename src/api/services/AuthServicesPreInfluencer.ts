@@ -6,6 +6,8 @@ import {
   TokenResponse,
 } from "../models/auth";
 import { Endpoints } from "../urls";
+import { storage } from "@/utils/storage";
+import { LocalStorageKeys } from "@/constants/localStorageKeys";
 
 export const AuthServicesPreInfluencer = (apiClient: AxiosInstance) => ({
   login: async (email: string, password: string): Promise<TokenResponse> => {
@@ -30,17 +32,17 @@ export const AuthServicesPreInfluencer = (apiClient: AxiosInstance) => ({
     try {
       const parent_ref_id =
         new URLSearchParams(window.location.search).get("fpr") ??
-        localStorage.getItem("parent_ref_id");
+        storage.get(LocalStorageKeys.ParentRefId);
 
       if (parent_ref_id) {
-        localStorage.setItem("parent_ref_id", parent_ref_id);
+        storage.set(LocalStorageKeys.ParentRefId, parent_ref_id);
       }
       const response = await apiClient.post(
         Endpoints.pre_influencers.register,
         {
           ...payload,
           parent_ref_id,
-        }
+        },
       );
       return response.data;
     } catch (error) {
@@ -56,7 +58,7 @@ export const AuthServicesPreInfluencer = (apiClient: AxiosInstance) => ({
           params: {
             refresh_token: refreshToken,
           },
-        }
+        },
       );
       return response.data;
     } catch (error) {
@@ -73,7 +75,7 @@ export const AuthServicesPreInfluencer = (apiClient: AxiosInstance) => ({
           params: {
             email: email,
           },
-        }
+        },
       );
 
       return data;
@@ -91,7 +93,7 @@ export const AuthServicesPreInfluencer = (apiClient: AxiosInstance) => ({
           params: {
             identifier,
           },
-        }
+        },
       );
 
       return data;

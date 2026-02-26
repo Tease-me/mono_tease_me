@@ -1,8 +1,9 @@
+/* MAIN SCREEN CONTAINER */
 .screen {
   min-height: 100dvh;
+  height: 100dvh;
   width: 100%;
   display: flex;
-  overflow-y: auto;
   align-items: flex-start;
   justify-content: center;
   padding: 24px 16px;
@@ -12,11 +13,34 @@
       rgb(247, 8, 72) 65%,
       black 65%,
       black);
-
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-.audioWrapper {
-  margin-top: 8px;
+/* OUTER FRAME - GLASS CONTAINER */
+.outerframe {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 900px;
+  padding: 1rem;
+  border-radius: 2rem;
+  background: rgba(30, 25, 28, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  z-index: 2;
+}
+
+.outerframe > div {
+  width: 100%;
+}
+
+/* INNER FRAME */
+.frame {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* CARD BASE */
@@ -29,35 +53,16 @@
   box-sizing: border-box;
 }
 
-.outerframe {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0.7rem;
-  border-radius: 2rem;
-  background: rgba(30, 25, 28, 0.35);
-  border: 1px solid rgb(255 255 255 / 15%);
-  backdrop-filter: blur(10px);
-  z-index: 2;
-  width: 60rem;
-  padding: 1rem;
-  display: flex;
-}
-
-.outerframe>div {
-  width: 100%;
-}
-
+/* FORM CARD - MAIN CONTENT AREA */
 .formCard {
+  position: relative;
   width: 100%;
-  padding: 3rem 1.7rem;
+  padding: 2rem 1.2rem;
   border-radius: 25px;
   background: linear-gradient(180deg, rgba(3, 3, 3, 0.6), rgba(33, 3, 3, 1));
   border: 1px solid rgba(79, 71, 71, 0.8);
   backdrop-filter: blur(20px);
-  max-height: 90dvh;
-  overflow-y: auto;
-  mask-image: linear-gradient(180deg, black 94%, rgba(0, 0, 0, 0.5) 100%);
+  box-sizing: border-box;
 }
 
 .formCard:before {
@@ -76,6 +81,7 @@
   background-color: #000000;
   border-radius: 25px;
   opacity: 0.5;
+  pointer-events: none;
   mask-image: linear-gradient(0deg, black 0%, transparent 90%);
 }
 
@@ -85,17 +91,17 @@
   flex-direction: column-reverse;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--space-px-12);
-  margin-bottom: 2rem;
+  gap: 12px;
+  margin-bottom: 1.5rem;
 }
 
 .title {
   font-family: "Abril Fatface", serif;
   font-weight: 400;
   letter-spacing: 1px;
-  font-size: 2.125rem;
+  font-size: 2rem;
   line-height: 1.15;
-  margin: 0 0 12px;
+  margin: 0 0 8px;
   color: white;
 }
 
@@ -111,7 +117,7 @@
 
 /* SAVING PILL */
 .saving {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   padding: 4px 10px;
   border-radius: 999px;
   border: 1px solid hsl(145, 100%, 59%);
@@ -119,44 +125,28 @@
   color: hsl(145, 100%, 59%);
   display: inline-flex;
   align-items: center;
-  gap: var(--space-px-8);
-  align-self: end;
+  gap: 8px;
+  align-self: flex-end;
 }
 
-/* SCROLLABLE CONTENT */
+/* CONTENT AREA */
 .content {
-  flex: 1;
-  padding-right: 4px;
-  margin-top: 8px;
-  --auto-grid-min-size: 20rem;
-  display: grid;
-  grid-template-columns: repeat(auto-fill,
-      minmax(var(--auto-grid-min-size), 1fr));
-  grid-gap: 0rem;
-}
-
-@media (min-width: 782px) {
-  .content {
-    grid-template-columns: 1fr 1fr;
-    max-width: 980px;
-    margin-left: auto;
-    margin-right: auto;
-    gap: 302px;
-  }
+  padding: 0;
+  margin: 1rem 0;
 }
 
 /* FIELDS */
 .field {
-  margin-bottom: 0.5rem;
-  padding-left: 3px;
+  margin-bottom: 1rem;
+  padding: 0 2px;
 }
 
 .label {
   font-size: 1rem;
   font-weight: 500;
   color: #e5e7eb;
-  margin-bottom: 1rem;
-  display: flex;
+  margin-bottom: 8px;
+  display: block;
 }
 
 .required {
@@ -176,6 +166,8 @@
   color: white;
   min-height: 3.5rem;
   font-size: 1rem;
+  box-sizing: border-box;
+  font-family: inherit;
 }
 
 .input:focus,
@@ -199,32 +191,32 @@ textarea.input {
 .radioGroup {
   display: flex;
   flex-direction: column;
- gap: var(--space-px-8);
-  padding: 1.2rem 1.5rem;
+  gap: 8px;
+  padding: 1rem 1.2rem;
   border-radius: 14px;
   background: hsla(222, 0%, 11%, 0.3);
-  border: 1px solid #ffffff1c;
-  box-shadow: 4px -5px 1px -5.5px hsl(0deg 0% 100% / 15%) inset,
-    10px -6px 11px -5.5px hsl(0deg 0% 58% / 17%) inset,
-    hsl(0deg 0% 98% / 40%) -3px 3px 1px -3.4px inset;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  box-shadow: 4px -5px 1px -5.5px rgba(255, 255, 255, 0.15) inset,
+    10px -6px 11px -5.5px rgba(255, 255, 255, 0.17) inset,
+    rgba(255, 255, 255, 0.4) -3px 3px 1px -3.4px inset;
 }
 
 .radioGroup label {
   display: flex;
-  align-items: center;
-  gap: var(--space-px-8);
+  align-items: flex-start;
+  gap: 8px;
   font-size: 1rem;
   line-height: 130%;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
-  align-items: flex-start;
 }
 
 .radioGroup input[type="radio"] {
   accent-color: var(--color-primary);
-  translate: 0px 2px;
-  width: 2rem;
-  height: 1rem;
+  margin-top: 2px;
+  width: 1.2rem;
+  height: 1.2rem;
+  flex-shrink: 0;
 }
 
 /* ERRORS */
@@ -232,34 +224,35 @@ textarea.input {
   color: #ff5f5f;
   font-size: 13px;
   margin-top: 4px;
-  background-color: #ff00002c;
+  background-color: rgba(255, 0, 0, 0.17);
   min-height: 2rem;
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 1rem;
+  border-radius: 10px;
   margin-bottom: 0.25rem;
-
-  box-shadow: -3px 4px 0px -3px #ff97973b inset;
+  padding: 8px 12px;
+  box-shadow: -3px 4px 0px -3px rgba(255, 151, 151, 0.23) inset;
 }
 
 .errorGeneral {
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.6);
-  padding: 8px 10px;
+  padding: 10px 12px;
   border-radius: 10px;
   margin-bottom: 14px;
 }
 
-/* BOTTOM BAR FIXA DENTRO DO CARD */
+/* BOTTOM BAR */
 .bottomBar {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: stretch;
   justify-content: space-between;
- gap: var(--space-px-24);
-  padding-top: 12px;
+  gap: 16px;
+  padding-top: 16px;
   margin-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .stepInfo {
@@ -279,189 +272,41 @@ textarea.input {
 /* BUTTON ROW */
 .buttonRow {
   display: flex;
-  justify-content: flex-end;
-  gap: var(--space-px-8);
-}
-
-
-
-/* BUTTONS */
-.btnPrimary,
-.btnOutline {
-  border-radius: 999px;
-  padding: 8px 18px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  border: none;
-  outline: none;
-  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--space-px-8);
-  transition: background 130ms ease, color 130ms ease, border-color 130ms ease,
-    transform 80ms ease, box-shadow 130ms ease;
+  width: 100%;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-/* PRIMARY */
-.btnPrimary {
-  background: linear-gradient(135deg, #f97373, #fb7185);
-  color: #111827;
-}
-
-.btnPrimary:hover {
-  background: linear-gradient(135deg, #fb7185, #f97373);
-  transform: translateY(-1px);
-}
-
-.btnOutline {
-  background: transparent;
-  color: #e5e7eb;
-  border: 1px solid rgba(148, 163, 184, 0.7);
-}
-
-.btnOutline:hover:not(:disabled) {
-  background: rgba(15, 23, 42, 0.9);
-  border-color: #e5e7eb;
-}
-
-.btnOutline:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-.spacerSurvey {
+.buttonRow > div {
+  flex: 1;
   display: flex;
-  min-height: 6rem;
 }
 
-
-@media (min-width: 32rem) {
-  .content {
-    grid-gap: var(--space-px-16);
-  }
-
-  .headerRow {
-    flex-direction: row;
-  }
-
-  .saving {
-    align-self: unset;
-  }
-
-  .field {
-    margin-bottom: 2rem;
-    padding-left: 1px;
-  }
-
-  .bottomBar {
-    flex-direction: row;
-    align-items: center;
-  }
-
-  .formCard {
-    mask-image: unset;
-  }
-
-  .stepInfo {
-    padding: 6px 16px;
-    border-radius: 999px;
-    border: 1px solid var(--color-primary);
-    background: rgba(255, 79, 129, 0.08);
-    font-size: 13px;
-    color: var(--color-primary);
-    width: max-content;
-    display: flex;
-    min-height: unset;
-  }
-
-  .spacerSurvey {
-    display: flex;
-    min-height: 0rem;
-  }
+.buttonRow > div:first-child {
+  justify-content: flex-start;
 }
 
-/* RESPONSIVE */
-@media (max-width: 768px) {
-  .card {
-    border-radius: 1.4rem;
-    padding: 2rem 1.5rem;
-  }
-
-  .buttonRow {
-    width: 100%;
-    justify-content: stretch;
-    gap: var(--space-px-8);
-  }
-
-  .btnPrimary,
-  .btnOutline {
-    flex: 1;
-    justify-content: center;
-  }
+.buttonRow > div:last-child {
+  justify-content: flex-end;
 }
 
-@media (min-width: 782px) {
-  .bottomBar {
-    width: 100%;
-    align-items: flex-end;
-  }
-
-  .buttonRow {
-    width: 100%;
-    justify-content: stretch;
-    gap: var(--space-px-12);
-  }
-
-  .buttonRow>div {
-    flex: 1;
-  }
+/* SPACER */
+.spacerSurvey {
+  display: none;
 }
 
-.picturePreviewWrapper {
-  margin-top: 10px;
-}
-
-.picturePreview {
-  display: block;
-  max-width: 220px;
-  max-height: 220px;
-  border-radius: 18px;
-  border: 1px solid rgba(148, 163, 184, 0.6);
-  object-fit: cover;
-}
-
-.audioWrapper {
-  margin-top: 8px;
-}
-
-.connectButton {
-  padding: 10px 16px;
-  background: #ff2e74;
-  border: none;
-  border-radius: 6px;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 6px;
-  display: inline-block;
-}
-
-.connectButton:hover {
-  background: #ff4788;
-}
-
+/* SURVEY SUBTITLE */
 .surveySubtitle {
   font-size: 15px;
   line-height: 1.55;
-  color: gray;
-  /* light, readable on dark bg */
+  color: #b0b0b0;
   font-weight: 400;
   letter-spacing: 0.01em;
   margin: 4px 0 14px;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
 }
 
+/* GLASS EFFECTS */
 .glassButton {
   background: rgba(18, 18, 18, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -477,15 +322,16 @@ textarea.input {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-px-12);
+  gap: 12px;
   text-align: center;
   margin-bottom: 16px;
 }
 
+/* MODAL STYLES */
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 1);
+  background: rgba(0, 0, 0, 0.95);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -494,16 +340,16 @@ textarea.input {
 }
 
 .modalCard {
-
   background: linear-gradient(180deg, rgba(20, 20, 24, 0.98), rgba(12, 6, 10, 0.9));
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   max-width: 960px;
   width: 100%;
-  max-height: 80vh;
+  max-height: 85vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 18px 38px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
 }
 
 .modalHeader {
@@ -513,6 +359,7 @@ textarea.input {
   padding: 16px 18px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   color: #fff;
+  flex-shrink: 0;
 }
 
 .closeButton {
@@ -521,12 +368,12 @@ textarea.input {
   color: #fff;
   font-size: 22px;
   cursor: pointer;
+  padding: 4px;
 }
 
 .modalBody {
-
   padding: 12px 18px;
-  overflow: auto;
+  overflow-y: auto;
   flex: 1;
 }
 
@@ -535,45 +382,71 @@ textarea.input {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   flex-direction: column;
-  gap: var(--space-px-12);
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .checkboxRow {
   display: flex;
   align-items: center;
-  gap: var(--space-px-8);
+  gap: 8px;
   color: rgba(255, 255, 255, 0.9);
 }
 
 .modalActions {
   display: flex;
-  gap: var(--space-px-12);
+  gap: 12px;
   justify-content: flex-end;
 }
 
-@media (max-width: 768px) {
+/* MEDIA QUERIES */
+
+/* Tablet and up */
+@media (min-width: 768px) {
+  .formCard {
+    padding: 3rem 2rem;
+  }
+
+  .headerRow {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .saving {
+    align-self: unset;
+  }
+
+  .field {
+    margin-bottom: 1.5rem;
+  }
+
   .bottomBar {
     flex-direction: row;
-    justify-content: center;
     align-items: center;
+  }
+
+  .stepInfo {
+    width: max-content;
+    min-height: auto;
   }
 
   .buttonRow {
     width: 100%;
-    display: flex;
-    justify-content: space;
-    gap: var(--space-px-8);
+    min-width: 0;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .outerframe {
+    max-width: 1000px;
   }
 
-  .buttonRow>div {
-    flex: 1;
+  .title {
+    font-size: 2.5rem;
   }
 
-  .buttonRow>div:first-child {
-    flex: 0.8;
-  }
-
-  .buttonRow>div:last-child {
-    flex: 1.2;
+  .content {
+    margin: 1.5rem 0;
   }
 }

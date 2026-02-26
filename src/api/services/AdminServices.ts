@@ -94,6 +94,67 @@ export type ApiErrorRow = {
   influencer_id?: string | null;
 };
 
+export interface KnowledgeUpsertResponse {
+  ok: boolean;
+  influencer_id: string;
+  document_id: number;
+  chunk_count: number;
+  updated_at?: string | null;
+}
+
+export interface KnowledgeGetResponse {
+  ok: boolean;
+  influencer_id: string;
+  document_id: number;
+  text: string;
+  text_hash?: string | null;
+  chunk_count: number;
+  updated_at?: string | null;
+}
+
+export interface KnowledgeDeleteResponse {
+  ok: boolean;
+  influencer_id: string;
+  deleted: boolean;
+}
+
+export type ChatInfoStats = {
+  chats_count: number;
+  messages_count: number;
+  memories_count: number;
+  calls_count: number;
+};
+
+export type AdminChatInfoResponse = {
+  ok: boolean;
+  influencer_id: string;
+  user_id: number;
+  from?: string | null;
+  to?: string | null;
+  normal: ChatInfoStats;
+  adult: ChatInfoStats;
+  total: ChatInfoStats;
+};
+
+export type AdminClearHistoryResponse = {
+  ok: boolean;
+  influencer_id: string;
+  user_id: number;
+  mode: string;
+  chat_ids_targeted: string[];
+  chat_18_ids_targeted: string[];
+  messages_deleted: number;
+  messages_18_deleted: number;
+  memories_deleted: number;
+  call_records_deleted: number;
+  chats_deleted: number;
+  chats_18_deleted: number;
+  redis_keys_cleared: string[];
+  redis_clear_failures: string[];
+};
+
+export type HistoryClearMode = "normal" | "adult" | "both";
+
 export const AdminServices = (apiClient: AxiosInstance) => ({
   getUsers: async (q?: string): Promise<AdminUserRow[]> => {
     const response = await apiClient.get(Endpoints.admin.users(q));
@@ -117,6 +178,49 @@ export const AdminServices = (apiClient: AxiosInstance) => ({
 
   clearChatHistory: async (chat_id: string): Promise<any> => {
     const response = await apiClient.delete(Endpoints.admin.history(chat_id));
+    return response.data;
+  },
+
+  getKnowledge: async (influencerId: string): Promise<KnowledgeGetResponse> => {
+    const response = await apiClient.get(Endpoints.admin.knowledge.get(influencerId));
+    return response.data;
+  },
+
+  upsertKnowledge: async (influencerId: string, text: string): Promise<KnowledgeUpsertResponse> => {
+    const response = await apiClient.put(Endpoints.admin.knowledge.upsert(influencerId), { text });
+    return response.data;
+  },
+
+  deleteKnowledge: async (influencerId: string): Promise<KnowledgeDeleteResponse> => {
+    const response = await apiClient.delete(Endpoints.admin.knowledge.delete(influencerId));
+    return response.data;
+  },
+
+  getChatInfo: async (
+    influencerId: string,
+    userId: number,
+    from?: string,
+    to?: string
+  ): Promise<AdminChatInfoResponse> => {
+    const params = new URLSearchParams();
+    if (from) params.set("from", from);
+    if (to) params.set("to", to);
+    const qs = params.toString() ? `?${params}` : "";
+    const response = await apiClient.get(
+      Endpoints.admin.chatInfo(influencerId, userId) + qs
+    );
+    return response.data;
+  },
+
+  clearPairHistory: async (
+    influencerId: string,
+    userId: number,
+    mode: HistoryClearMode = "both"
+  ): Promise<AdminClearHistoryResponse> => {
+    const response = await apiClient.delete(
+      Endpoints.admin.pairHistory(influencerId, userId),
+      { params: { mode } }
+    );
     return response.data;
   },
 

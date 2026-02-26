@@ -10,7 +10,7 @@ import IncomeDialogStep01 from "@/ui/screens/landing-page/subscreens/IncomeDialo
 import ProfileSurvey from "@/ui/screens/landing-page/subscreens/ProfileSurvey";
 import ThankYouScreen from "@/ui/screens/landing-page/subscreens/ThankYouScreen";
 import UpdateProfile from "@/ui/screens/register/UpdateProfile";
-import ProfileSurveyForm from "@/ui/screens/survey/ProfileSurveyForm";
+import ProfileSurveyForm from "@/ui/screens/influencer-survey/ProfileSurveyForm";
 import TermsPage from "@/ui/screens/terms/TermsPage";
 import { terms } from "@/ui/screens/terms/termsContent";
 
@@ -70,6 +70,12 @@ const CreateInfluencer = lazy(
 );
 const PromptEditorAdmin = lazy(
   () => import("@/ui/screens/admin/PromptEditorAdmin")
+);
+const AdminKnowledge = lazy(
+  () => import("@/ui/screens/admin/knowledge/AdminKnowledge")
+);
+const AdminChatHistory = lazy(
+  () => import("@/ui/screens/admin/chat-history/AdminChatHistory")
 );
 const AdultModePage = lazy(
   () => import("@/ui/screens/messaging/pages/adult-mode/AdultModePage")
@@ -173,6 +179,8 @@ function AppRoutes() {
     },
     { path: Paths.admin.preInfluencers, element: <AdminPreInfluencers /> },
     { path: Paths.admin.analytics, element: <AdminAnalytics /> },
+    { path: Paths.admin.knowledge, element: <AdminKnowledge /> },
+    { path: Paths.admin.chatHistory, element: <AdminChatHistory /> },
   ];
 
   const privateRoutes: { path: string; element: JSX.Element }[] = [

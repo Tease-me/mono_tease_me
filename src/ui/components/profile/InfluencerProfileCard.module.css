@@ -1,0 +1,174 @@
+.section01 {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.profileCardContainer {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  border-radius: 1rem;
+  border: 1px solid #333;
+  background: #212121;
+  padding: 1.25rem 1rem;
+  gap: 1rem;
+  animation: fade-in-top 0.4s cubic-bezier(0.39, 0.575, 0.565, 1) both;
+}
+
+.profileImage {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 5px solid #404040;
+}
+
+.profileimageContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hearticon {
+  position: absolute;
+  top: 50%;
+  left: calc(50% + 50px);
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  opacity: 0.8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+}
+
+.textDetails {
+  display: flex;
+  flex-direction: column;
+  color: white;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.textDetails span {
+  color: #b85cff;
+  font-weight: 700;
+}
+
+.textRow01 {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.plusmodeStatus {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.badge {
+  border-radius: 6.25rem;
+  border: 1px solid #ad4ade;
+  background: rgba(176, 18, 255, 0.1);
+  padding: 0.35rem 1rem;
+  color: #ad4ade;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 140%;
+  letter-spacing: 0.0125rem;
+}
+
+.textRow02 {
+  display: flex;
+  flex-direction: column;
+  font-weight: 400;
+  color: #757575;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.textRow02 p {
+  margin: 0;
+  color: #757575;
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+.textRow02 span {
+  color: #f54336;
+  font-weight: 400;
+}
+
+.profileSociallinks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  justify-items: center;
+  gap: 1rem;
+}
+
+.socialContainer {
+  display: flex;
+  width: 100%;
+  height: 4rem;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid #333;
+  background: #212121;
+  animation: fade-in-left 0.5s ease both;
+}
+
+.socialContainer:nth-child(1) {
+  animation-delay: 0.099s;
+}
+
+.socialContainer:nth-child(2) {
+  animation-delay: 0.135s;
+}
+
+.socialContainer:nth-child(3) {
+  animation-delay: 0.171s;
+}
+
+.socialIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
+.socialContainer svg {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
+@keyframes fade-in-top {
+  0% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-left {
+  0% {
+    transform: translateX(-10px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

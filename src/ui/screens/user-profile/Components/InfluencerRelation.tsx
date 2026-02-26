@@ -3,18 +3,18 @@ import clsx from "clsx";
 import styles from "./InfluencerRelation.module.css";
 import SvgPack from "@/utils/SvgPack";
 import { apiClient } from "@/api/apis";
-import ProfileMedia from "@/ui/components/ProfileMedia";
 import RelationshipRadar from "@/ui/components/visualizations/RelationshipRadart";
 import UsageView from "@/ui/components/stats/UsageView";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
-import ProgressBar from "@/ui/components/stats/ProgressBar";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import BalanceBadge from "@/ui/components/stats/BalanceBadge";
 import AdultModeToggle from "@/ui/components/adult-mode-toggle/AdultModeToggle";
 import { Modal } from "@/ui/components/modals/Modal";
 import { formatDateTimeRelative, minutesToTime } from "@/utils/DateTimeUtils";
-
+import RelationshipStageProgress from "@/ui/components/stats/RelationshipStageProgress";
+import RelatioshipAffinities from "@/ui/components/stats/RelatioshipAffinities";
+import InfluencerProfileCard from "@/ui/components/profile/InfluencerProfileCard";
 
 import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
 import { RelationshipServices } from "@/api/services/RelationshipServices";
@@ -59,20 +59,21 @@ type RelationData = {
   //Normal Balance
   balance?: number;
   voiceMinutes?: number;
-  msgRemaining?: number,
+  msgRemaining?: number;
   //18+ Data
   adultBalance?: number;
-  adultVoiceMinutes?: number,
-  adultMsgRemaining?: number,
-  //Love stats 
+  adultVoiceMinutes?: number;
+  adultMsgRemaining?: number;
+  //Love stats
   trust?: number;
   safety?: number;
   attraction?: number;
   closeness?: number;
-  stageScore?: number;
-  state?: string;
+  sentimentScore?: number;
+  //Stage dimensions
+  currentStage?: string;
+  nextStage?: string;
 };
-
 
 export default function InfluencerRelation({ navPayload, goTo }: Props) {
   const initial: RelationData = useMemo(
@@ -92,10 +93,10 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
       safety: navPayload.safety,
       attraction: navPayload.attraction,
       closeness: navPayload.closeness,
-      stageScore: navPayload.stageScore,
-      state: navPayload.status
+      sentimentScore: navPayload.sentimentScore,
+      state: navPayload.status,
     }),
-    [navPayload]
+    [navPayload],
   );
 
   const [data, setData] = useState<RelationData>(initial);
@@ -103,7 +104,9 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
 
   const [showBalanceDetails, setShowBalanceDetails] = useState(false);
   const [showAdultBalanceDetails, setShowAdultBalanceDetails] = useState(false);
-  const [adultModeChecked, setAdultModeChecked] = useState(!!data.hasSubscription && data.subscriptionStatus === 'active');
+  const [adultModeChecked, setAdultModeChecked] = useState(
+    !!data.hasSubscription && data.subscriptionStatus === "active",
+  );
 
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
@@ -121,132 +124,114 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
 
     (async () => {
       try {
-        const [rel, bal, sub, u, i, following] = await Promise.all([
+        const [rel, bal, sub, u, i, following, dims] = await Promise.all([
           relationshipService.getRelationship(initial.id!),
           balanceService.getBalance(initial.id!, false).catch(() => null),
           subscriptionService.getMySubscriptionForInfluencer(initial.id!),
           userServices.getUserUsage(initial.id),
           influencerRepo.getInfluencer(initial.id!),
           followingService.list(),
+          relationshipService.getDimensions(initial.id!).catch(() => null),
         ]);
 
         if (cancelled) return;
         setData((d) => ({
           ...d,
-          image: i?.img ?? d.image,
-          video: i?.videoUrl ?? d.video,
-          name: i?.name ?? d.name,
-          followingSince: (following.items.find(f => f.influencer_id === initial.id)?.created_at) ?? d.followingSince,
+          id: initial.id,
+          image: i?.img,
+          video: i?.videoUrl,
+          name: i?.name,
+          followingSince:
+            following.items.find((f) => f.influencer_id === initial.id)
+              ?.created_at ?? d.followingSince,
           trust: rel?.trust ?? d.trust,
           safety: rel?.safety ?? d.safety,
           attraction: rel?.attraction ?? d.attraction,
-          state: rel?.state ?? d.state,
           closeness: rel?.closeness ?? d.closeness,
-          stageScore: rel?.stage_points ?? d.stageScore,
+          sentimentScore: rel?.sentiment_score ?? d.sentimentScore,
           lastConnected: rel?.last_interaction_at ?? d.lastConnected,
           balance: bal ? bal.balance_cents / 100 : d.balance,
           hasSubscription: sub?.has_subscription ?? d.hasSubscription,
           subscriptionStatus: sub?.status ?? d.subscriptionStatus,
           is18: sub?.is_18_selected ?? d.is18,
           expiresAt: sub?.current_period_end ?? d.expiresAt,
-          voiceMinutes: u?.normal?.live_chat?.remaining_minutes ?? d.voiceMinutes,
+          voiceMinutes:
+            u?.normal?.live_chat?.remaining_minutes ?? d.voiceMinutes,
           msgRemaining: u?.normal?.messages?.remaining ?? d.msgRemaining,
-          adultVoiceMinutes: u?.adult?.voice?.remaining_minutes ?? d.adultVoiceMinutes,
-          adultMsgRemaining: u?.adult?.messages?.remaining ?? d.adultMsgRemaining,
+          adultVoiceMinutes:
+            u?.adult?.voice?.remaining_minutes ?? d.adultVoiceMinutes,
+          adultMsgRemaining:
+            u?.adult?.messages?.remaining ?? d.adultMsgRemaining,
+          currentStage: dims?.current_stage ?? d.currentStage,
+          nextStage: dims?.next_stage ?? d.nextStage,
         }));
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [initial.id]);
 
-
-  const isSubscribed = !!data.hasSubscription && data.subscriptionStatus === 'active';
+  const isSubscribed =
+    !!data.hasSubscription && data.subscriptionStatus === "active";
 
   useEffect(() => {
     setAdultModeChecked(isSubscribed);
   }, [isSubscribed]);
 
-  //Navpayload 
+  //Navpayload
   useEffect(() => {
+    if (!navPayload.influencerId) return;
+    setLoading(true);
     setData((d) => ({
       ...d,
-      id: navPayload.influencerId ?? d.id,
-      // image: navPayload.image ?? d.image,
-      // video: navPayload.video ?? d.video,
-      // name: navPayload.name ?? d.name,
-      // followingSince: navPayload.followingSince ?? d.followingSince,
+      id: navPayload.influencerId,
+      image: undefined,
+      video: undefined,
+      name: undefined,
     }));
-  }, [navPayload.image, navPayload.video, navPayload.name, navPayload.followingSince]);
-
-
-  // const onSubscribe = async () => {
-  //   if (!data.id) {
-  //     return;
-  //   }
-  //   setLoading(true);
-  //   try {
-  //     await subscriptionService.startSubscription(data.id, 1);
-  //     const sub = await subscriptionService.getMySubscriptionForInfluencer(data.id);
-  //     setData((d) => ({
-  //       ...d,
-  //       hasSubscription: sub?.has_subscription ?? true,
-  //       // is18: sub?.is_18_selected ?? true,
-  //       expiresAt: sub?.current_period_end ?? d.expiresAt,
-  //       voiceMinutes: sub?.voice_minutes ?? d.voiceMinutes,
-  //       msgRemaining: sub?.text_messages ?? d.msgRemaining,
-  //       adultVoiceMinutes: sub?.voice_minutes ?? d.adultVoiceMinutes,
-  //       adultMsgRemaining: sub?.text_messages ?? d.adultMsgRemaining,
-  //     }));
-
-  //     setAdultModeChecked(true);
-  //     alert('You are now subscribed tot 18+ mode');
-  //     // goTo("influencer_profile", { influencerId: data.id });
-  //     goBack();
-  //   }
-  //   catch (e) {
-  //     alert(`Error ${e}`);
-  //   }
-  //   finally {
-  //     setLoading(false);
-  //   }
-  // };
+  }, [
+    navPayload.influencerId,
+  ]);
 
   const goToSubPage = () => {
-    goTo('subscribe', {
+    goTo("subscribe", {
       influencerId: data.id,
       influencerImageUrl: data.image,
       influencerName: data.name,
-      onSubscribe: () => goTo("subscription", {
-        influencerId: data.id,
-      }),
+      onSubscribe: () =>
+        goTo("subscription", {
+          influencerId: data.id,
+        }),
     });
-
-  }
+  };
 
   const handleAdultToggleChange = async () => {
     if (!isSubscribed) {
       //Check if verified
       try {
-        await subscriptionService.activateMySubscriptionForInfluencer(data.id, true);
+        await subscriptionService.activateMySubscriptionForInfluencer(
+          data.id,
+          true,
+        );
         goToSubPage();
-      }
-      catch (err: any) {
-        const idVerified = err?.response?.data?.detail?.verification_status?.is_identity_verified;
+      } catch (err: any) {
+        const idVerified =
+          err?.response?.data?.detail?.verification_status
+            ?.is_identity_verified;
         if (idVerified === false) {
           setShowTermsModal(true);
           return;
         }
         goToSubPage();
       }
-    }
-    else {
+    } else {
       setShowCancelModal(true);
     }
-  }
-
+  };
 
   const handleCancelSubscription = async () => {
     if (!data.id) {
@@ -259,7 +244,11 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
     try {
       await subscriptionService.cancelSubscription(data.id, cancelReason);
       setCancelSuccess(true);
-      setData((d) => ({ ...d, hasSubscription: false, subscriptionStatus: 'cancelled' }));
+      setData((d) => ({
+        ...d,
+        hasSubscription: false,
+        subscriptionStatus: "cancelled",
+      }));
       setAdultModeChecked(false);
       setShowAdultBalanceDetails(false);
     } catch (e: any) {
@@ -273,43 +262,35 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
 
   const handleAddCredits = () => {
     goTo("add_credits", { id: data.id, image: data.image, video: data.video });
-  }
+  };
 
-  const followingDate = data.followingSince && !Number.isNaN(Date.parse(data.followingSince))
-    ? new Date(data.followingSince).toLocaleDateString()
-    : "--";
+  const followingDate =
+    data.followingSince && !Number.isNaN(Date.parse(data.followingSince))
+      ? new Date(data.followingSince).toLocaleDateString()
+      : "--";
 
-  const onAdultTermsAgreed = () => {
-
-  }
+  const onAdultTermsAgreed = () => {};
 
   if (loading) {
-    return <div className={styles.loading}> <LoadingSpinner /></div>
+    return (
+      <div className={styles.loading}>
+        {" "}
+        <LoadingSpinner />
+      </div>
+    );
   }
-
 
   return (
     <div className={clsx("u-sidebar-page", styles.shell)}>
-      {/* Hero */}
-      <div className={styles.heroRow}>
-        <ProfileMedia imageSrc={data.image} videoSrc={data.video} size="medium" active />
-        <div className={styles.heroInfo}>
-          <div className={isSubscribed ? styles.badges : styles.badgesHide}>
-            <span className={styles.modeText}>
-              <span
-                className={styles.eighteenPlus}
-              >18+</span> Mode
-            </span>
-            <span className={styles.statusBadge}>
-              Subscribed
-            </span>
-          </div>
-          <div className={styles.meta}>
-            <span>Last Connected: <strong>{data.lastConnected ? formatDateTimeRelative(data.lastConnected) : "--"}</strong></span>
-            <span>Following since: {followingDate}</span>
-          </div>
-        </div>
-      </div>
+      <InfluencerProfileCard
+        name={data.name || ""}
+        image={data.image || ""}
+        isSubscribed={isSubscribed}
+        lastConnected={
+          data.lastConnected ? formatDateTimeRelative(data.lastConnected) : "--"
+        }
+        followingSince={followingDate}
+      />
 
       {/* Balance Card */}
       <div className={styles.balanceCard}>
@@ -317,21 +298,34 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           <div className={styles.balanceBadge}>
             <BalanceBadge balance={data.balance ? data.balance : 0} />
           </div>
-          <NormalButton type="nobg" className={styles.grayBtn}
+          <NormalButton
+            type="nobg"
+            className={styles.grayBtn}
             text={!showBalanceDetails ? "View Details" : "Hide Details"}
-            onClick={() => setShowBalanceDetails((prev) => !prev)} />
-          {showBalanceDetails && (<div className={styles.balanceStats}>
-            <UsageView
-              label="Voice Minutes"
-              tone="green"
-              value={data.voiceMinutes != null ? minutesToTime(data.voiceMinutes) : "--"}
-            />
-            <UsageView
-              label="Text Msgs"
-              tone="green"
-              value={data.msgRemaining != null ? data.msgRemaining.toString() : "--"}
-            />
-          </div>)}
+            onClick={() => setShowBalanceDetails((prev) => !prev)}
+          />
+          {showBalanceDetails && (
+            <div className={styles.balanceStats}>
+              <UsageView
+                label="Voice Minutes"
+                tone="green"
+                value={
+                  data.voiceMinutes != null
+                    ? minutesToTime(data.voiceMinutes)
+                    : "--"
+                }
+              />
+              <UsageView
+                label="Text Msgs"
+                tone="green"
+                value={
+                  data.msgRemaining != null
+                    ? data.msgRemaining.toString()
+                    : "--"
+                }
+              />
+            </div>
+          )}
           <PrimaryButton
             leftIcon={<SvgPack.PlusBox />}
             text="Add Credit"
@@ -346,30 +340,55 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
             text={!showAdultBalanceDetails ? "View Details" : "Hide Details"}
             onClick={() => setShowAdultBalanceDetails((prev) => !prev)}
           />
-          {showAdultBalanceDetails && (<div className={styles.adultBalanceStats}>
-            <UsageView
-              label="Voice Minutes"
-              tone="purple"
-              value={data.adultVoiceMinutes != null ? minutesToTime(data.adultVoiceMinutes) : "--"}
-            />
-            <UsageView
-              label="Text Msg"
-              tone="purple"
-              value={data.adultMsgRemaining != null ? data.adultMsgRemaining.toString() : "--"}
-            />
-          </div>)}
+          {showAdultBalanceDetails && (
+            <div className={styles.adultBalanceStats}>
+              <UsageView
+                label="Voice Minutes"
+                tone="purple"
+                value={
+                  data.adultVoiceMinutes != null
+                    ? minutesToTime(data.adultVoiceMinutes)
+                    : "--"
+                }
+              />
+              <UsageView
+                label="Text Msg"
+                tone="purple"
+                value={
+                  data.adultMsgRemaining != null
+                    ? data.adultMsgRemaining.toString()
+                    : "--"
+                }
+              />
+            </div>
+          )}
           {isSubscribed && showAdultBalanceDetails && (
-            <button className={styles.cancelSub} type="button" onClick={() => { setShowCancelModal(true); }}>
+            <button
+              className={styles.cancelSub}
+              type="button"
+              onClick={() => {
+                setShowCancelModal(true);
+              }}
+            >
               Cancel Subscription
             </button>
           )}
           <div className={styles.adultToggleArea}>
             <button type="button" className={styles.adultToggleBtn}>
-              <AdultModeToggle checked={adultModeChecked} onChange={handleAdultToggleChange} minutesLeft={data.adultVoiceMinutes} />
+              <AdultModeToggle
+                checked={adultModeChecked}
+                onChange={handleAdultToggleChange}
+                minutesLeft={data.adultVoiceMinutes}
+              />
             </button>
-            {isSubscribed && <p>
-              Until: {data.expiresAt ? new Date(data.expiresAt).toLocaleDateString() : "--"}
-            </p>}
+            {isSubscribed && (
+              <p>
+                Until:{" "}
+                {data.expiresAt
+                  ? new Date(data.expiresAt).toLocaleDateString()
+                  : "--"}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -377,11 +396,18 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
       {/* Relationship stats area */}
       <div className={styles.relationshipArea}>
         <div className={styles.relationshipHeader}>
-          <div className={styles.relationshipTitle}>Relationship Statistics</div>
+          <div className={styles.relationshipTitle}>
+            Relationship Statistics
+          </div>
         </div>
-        <div className={styles.progressBar}>
-          <ProgressBar mutedLabel label="Relationship Stage Progress" value={data.stageScore ?? 0} max={100} /><p>{data.state}</p>
-        </div>
+        {data.currentStage && (
+          <RelationshipStageProgress
+            sentimentScore={data.sentimentScore ?? 0}
+            large
+            currentStage={data.currentStage}
+            nextStage={data.nextStage}
+          />
+        )}
 
         {/*  radar chart */}
         <div className={styles.radarPlaceholder}>
@@ -397,11 +423,12 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
       </div>
 
       <div className={styles.relationshipStatsArea}>
-
-        <ProgressBar icon={<SvgPack.Trust />} compact label="Trust" value={data.trust ?? 0} max={100} showInfoIcon tooltipLabel="Trust" />
-        <ProgressBar icon={<SvgPack.Angles />} compact label="Closeness" value={data.closeness ?? 0} max={100} showInfoIcon tooltipLabel="Closeness" />
-        <ProgressBar icon={<SvgPack.KissGray />} compact label="Attraction" value={data.attraction ?? 0} max={100} showInfoIcon tooltipLabel="Attraction" />
-        <ProgressBar icon={<SvgPack.Shield />} compact label="Safety" value={data.safety ?? 0} max={100} showInfoIcon tooltipLabel="Safety" />
+        <RelatioshipAffinities
+          trust={data.trust ?? 0}
+          closeness={data.closeness ?? 0}
+          attraction={data.attraction ?? 0}
+          safety={data.safety ?? 0}
+        />
       </div>
 
       {/* <div className={styles.unfollow}>
@@ -409,28 +436,46 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
       </div> */}
 
       {showCancelModal && (
-        <Modal isOpen={showCancelModal} onClose={() => {
-          setCancelError("");
-          setShowCancelModal(false);
-          setCancelSuccess(false);
-          setCancelError(null);
-        }}
-          className={styles.cancelModal}>
+        <Modal
+          isOpen={showCancelModal}
+          onClose={() => {
+            setCancelError("");
+            setShowCancelModal(false);
+            setCancelSuccess(false);
+            setCancelError(null);
+          }}
+          className={styles.cancelModal}
+        >
           <div className={styles.modalCard}>
             {!cancelSuccess ? (
               <>
                 <h3>Cancel 18+ subscription?</h3>
-                <p>Upon cancelling, you will no longer be able to have explicit conversation with {data.name}.</p>
-                <TextInput type="text" placeholder="Reason for canceling" value={cancelReason} onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setCancelReason(e.target.value)} />
-                {cancelError && <div className={styles.modalError}>{cancelError}</div>}
+                <p>
+                  Upon cancelling, you will no longer be able to have explicit
+                  conversation with {data.name}.
+                </p>
+                <TextInput
+                  type="text"
+                  placeholder="Reason for canceling"
+                  value={cancelReason}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setCancelReason(e.target.value)
+                  }
+                />
+                {cancelError && (
+                  <div className={styles.modalError}>{cancelError}</div>
+                )}
                 <div className={styles.modalActions}>
-                  <NormalButton type="nobg" onClick={() => {
-                    setCancelError("");
-                    setShowCancelModal(false);
-                    setCancelSuccess(false);
-                    setCancelError(null);
-                  }} text="Cancel" />
+                  <NormalButton
+                    type="nobg"
+                    onClick={() => {
+                      setCancelError("");
+                      setShowCancelModal(false);
+                      setCancelSuccess(false);
+                      setCancelError(null);
+                    }}
+                    text="Cancel"
+                  />
                   <IconButton
                     leftIcon={<SvgPack.Danger />}
                     disabled={cancelLoading}
@@ -456,7 +501,6 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
             )}
           </div>
         </Modal>
-
       )}
       <AdultTermsModal
         isOpen={showTermsModal}
@@ -466,7 +510,6 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         influencerName={data.name}
         influencerImageUrl={data.image}
       />
-
     </div>
   );
 }

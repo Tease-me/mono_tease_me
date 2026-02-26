@@ -3,8 +3,9 @@
   align-items: center;
   justify-content: center;
   padding: 16px 28px 12px 25px;
-  background: linear-gradient(hsl(0, 0%, 5%) 67.79%, hsl(0, 0%, 7%) 96.63%, hsl(0, 0%, 13%));
+  background: linear-gradient(180deg, #212121 67.79%, #131313 96.63%, #212121 100%);
   min-height: 11dvh;
+  position: relative;
 }
 
 .maxWidthSpacer {
@@ -48,6 +49,32 @@
   user-select: none;
 }
 
+.leftSlot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
+}
+
+.logoLeft {
+  display: none;
+}
+
+@media (min-width: 769px) {
+  .logoLeft {
+    display: flex;
+    align-items: center;
+    position: absolute;
+    left: 25px;
+  }
+}
+
 @media (max-width: 768px) {
   .bar {
     padding: var(--space-px-12) var(--space-px-16);
@@ -58,14 +85,23 @@
   }
 }
 
-
-
 /*** media query Desktop ***/
 @media (min-width: 32rem) {
   .maxWidthSpacer {
     display: grid;
-    grid-template-columns: 211px 211px 211px;
-    justify-items: center;
+    grid-template-columns: 1fr auto 1fr;
   }
 
+  .leftSlot {
+    justify-self: start;
+  }
+
+  .logoArea,
+  .navTitle {
+    justify-self: center;
+  }
+
+  .right-buttons {
+    justify-self: end;
+  }
 }

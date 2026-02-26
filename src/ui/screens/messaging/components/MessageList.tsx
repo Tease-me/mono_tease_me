@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import styles from "./MessageList.module.css";
 import MessageBubble, { CallMessageGroup } from "./MessageBubble";
 import { Message } from "@/data/models/MessageDataModel";
-import { TypingStatus } from "./ChatScreenContent";
+import { TypingStatus } from "@/store/chatScreenSlice";
 
 export type DisplayMessage = Message | CallMessageGroup;
 
@@ -21,6 +21,7 @@ interface MessagesListProps {
   showAudioTranscript?: boolean;
   isAudio?: boolean;
   onCallBack?: () => void;
+  adultMode?: boolean;
 }
 
 const MessagesList = React.memo(
@@ -33,8 +34,8 @@ const MessagesList = React.memo(
     onAudioPlay,
     showAudioTranscript,
     onCallBack,
+    adultMode = false,
   }: MessagesListProps) => {
-
     useEffect(() => {
       const container = containerRef?.current;
       if (!container) {
@@ -52,7 +53,7 @@ const MessagesList = React.memo(
     return (
       <>
         <div className={styles["messages"]}>
-          {messages.length === 0 && typing === "idle" && (
+          {messages.length === 0 && typing === "idle" && !adultMode && (
             <div className={styles["empty-card"]}>
               <div className={styles["empty-title"]}>No messages yet</div>
               <div className={styles["empty-subtitle"]}>
@@ -72,12 +73,14 @@ const MessagesList = React.memo(
             />
           ))}
 
-          {typing !== "idle" && <MessageBubble isAudio={typing === "recording"} />}
+          {typing !== "idle" && (
+            <MessageBubble isAudio={typing === "recording"} />
+          )}
         </div>
         <div ref={messagesEndRef} style={{ height: "50px" }} />
       </>
     );
-  }
+  },
 );
 
 export default MessagesList;

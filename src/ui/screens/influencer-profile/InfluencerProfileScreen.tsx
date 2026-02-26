@@ -8,7 +8,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import WelcomeScreen from "./welcome/WelcomeScreen";
 import logger from "@/utils/logger";
 
-
 import { FollowServices } from "@/api/services/FollowServices";
 import { apiClient } from "@/api/apis";
 import DisclaimerModal from "@/ui/components/modals/DisclaimerModal";
@@ -16,20 +15,20 @@ import { Paths } from "@/routes/path";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { storage } from "@/utils/storage";
 
-interface InfluencerProfileScreenProps { }
+interface InfluencerProfileScreenProps {}
 
 const InfluencerProfileScreen: React.FC<
   InfluencerProfileScreenProps
-> = ({ }) => {
+> = ({}) => {
   const { username } = useParams<{ username: string }>();
   const { isSignedIn } = useContext(AuthContext);
 
   const [influencer, setInfluencer] = useState<InfluencerDataModel>();
 
-  const influencerRepo = useMemo(() => (InfluencerRepo()), []);
+  const influencerRepo = useMemo(() => InfluencerRepo(), []);
   const navigate = useNavigate();
 
-  const followServices = useMemo(() => (FollowServices(apiClient)), []);
+  const followServices = useMemo(() => FollowServices(apiClient), []);
 
   const [showDisclaimer, setShowDisclaimer] = useState(false);
 
@@ -71,9 +70,8 @@ const InfluencerProfileScreen: React.FC<
       .list()
       .then(({ items }) => {
         const following = items.some(
-          f => f.influencer_id === influencer.id && f.following !== false
+          (f) => f.influencer_id === influencer.id && f.following !== false,
         );
-
 
         if (following) {
           setScreenState("redirecting");
@@ -93,10 +91,11 @@ const InfluencerProfileScreen: React.FC<
     }
   }, [screenState, username]);
 
-  //Redirect if signed in and following 
+  //Redirect if signed in and following
   useEffect(() => {
     if (screenState === "redirecting" && influencer?.id) {
-      localStorage.setItem("selected_id", influencer.id.toString());
+      storage.set(LocalStorageKeys.SelectedId, influencer.id.toString());
+
       navigate("/home");
     }
   }, [screenState, influencer?.id, navigate]);
@@ -116,13 +115,10 @@ const InfluencerProfileScreen: React.FC<
         }}
         onExit={() => {
           setScreenState("loading");
-          navigate(Paths.underage)
+          navigate(Paths.underage);
         }}
       />
-      <WelcomeScreen
-        influencer={influencer!}
-        showFollowBtn={isSignedIn}
-      />
+      <WelcomeScreen influencer={influencer!} showFollowBtn={isSignedIn} />
     </>
   );
 };

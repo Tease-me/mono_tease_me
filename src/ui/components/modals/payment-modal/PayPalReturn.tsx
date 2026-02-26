@@ -6,21 +6,25 @@ import { useNavigate } from "react-router-dom";
 import PaymentResult from "@/ui/components/payment/PaymentResult";
 import styles from "./PayPalReturn.module.css";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
+import { storage } from "@/utils/storage";
+import { LocalStorageKeys } from "@/constants/localStorageKeys";
 
 const billing = BillingServices(apiClient);
 
 export default function PayPalReturn() {
-  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const [status, setStatus] = useState<"loading" | "success" | "error">(
+    "loading",
+  );
   const [amount, setAmount] = useState<number | undefined>();
   const [influencerName, setInfluencerName] = useState<string | undefined>();
   const navigate = useNavigate();
   const fallbackAmount = useMemo(() => {
-    const raw = localStorage.getItem("paypal_topup_amount");
+    const raw = storage.get(LocalStorageKeys.PayPalTopUpAmount);
     const parsed = raw ? Number(raw) : NaN;
     return Number.isFinite(parsed) ? parsed : undefined;
   }, []);
   const fallbackInfluencerName = useMemo(() => {
-    const raw = localStorage.getItem("paypal_topup_influencer_name");
+    const raw = storage.get(LocalStorageKeys.PayPalTopUpInfluencerName);
     return raw?.trim() || undefined;
   }, []);
 
@@ -29,9 +33,10 @@ export default function PayPalReturn() {
       const params = new URLSearchParams(window.location.search);
       const tokenOrderId = params.get("token");
       const order_id =
-        tokenOrderId || localStorage.getItem("paypal_topup_order_id");
+        tokenOrderId || storage.get(LocalStorageKeys.PayPalOrderId);
       const influencer_id =
-        localStorage.getItem("paypal_topup_influencer_id") || "";
+        storage.get(LocalStorageKeys.PayPalTopUpInfluencerId)?.trim() ||
+        undefined;
 
       if (!order_id) {
         setStatus("error");
@@ -39,13 +44,17 @@ export default function PayPalReturn() {
       }
 
       try {
-        const res = await billing.paypalCapture({ order_id, influencer_id });
+        const res = await billing.paypalCapture({
+          order_id,
+          ...(influencer_id ? { influencer_id } : {}),
+        });
 
         if (res?.ok) {
-          localStorage.removeItem("paypal_topup_order_id");
-          localStorage.removeItem("paypal_topup_influencer_id");
-          localStorage.removeItem("paypal_topup_amount");
-          localStorage.removeItem("paypal_topup_influencer_name");
+          storage.remove(LocalStorageKeys.PayPalOrderId);
+          storage.remove(LocalStorageKeys.PayPalTopUpInfluencerId);
+          storage.remove(LocalStorageKeys.PayPalTopUpAmount);
+          storage.remove(LocalStorageKeys.PayPalTopUpInfluencerName);
+
           setStatus("success");
           setTimeout(() => navigate(Paths.home), 2000);
         } else {

@@ -13,7 +13,7 @@ interface ButtonNormalProps extends React.HTMLAttributes<HTMLDivElement> {
     selected?: boolean;
 }
 
-const NormalButton: React.FC<ButtonNormalProps> = ({ type = "pill", leftIcon, rightIcon, text, disabled, selected, ...rest }) => {
+const NormalButton: React.FC<ButtonNormalProps> = ({ type = "pill", leftIcon, rightIcon, text, disabled, selected, onClick, ...rest }) => {
     const [hovered, setHovered] = useState(false);
     const [pressed, setPressed] = useState(false);
     const outerStyle: Record<NormalButtonType, string> = {
@@ -22,6 +22,7 @@ const NormalButton: React.FC<ButtonNormalProps> = ({ type = "pill", leftIcon, ri
         nobg: clsx(styles["smooth-button"], styles["button-normal-outer"], styles["nobg"])
     };
     const handleMouseEnter = () => {
+        if (disabled) return;
         setHovered(true);
     }
 
@@ -31,6 +32,7 @@ const NormalButton: React.FC<ButtonNormalProps> = ({ type = "pill", leftIcon, ri
     }
 
     const handleMouseDown = () => {
+        if (disabled) return;
         setPressed(true);
     }
 
@@ -39,6 +41,7 @@ const NormalButton: React.FC<ButtonNormalProps> = ({ type = "pill", leftIcon, ri
     }
 
     const handleTouchStart = () => {
+        if (disabled) return;
         setPressed(true);
     }
 
@@ -46,9 +49,19 @@ const NormalButton: React.FC<ButtonNormalProps> = ({ type = "pill", leftIcon, ri
         setPressed(false);
     }
 
+    const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (disabled) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+        onClick?.(e);
+    }
+
     return (
         <div
             {...rest}
+            onClick={handleClick}
             className={clsx(
                 outerStyle[type],
                 disabled && styles["disabled"],

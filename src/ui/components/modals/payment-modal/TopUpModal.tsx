@@ -12,7 +12,8 @@ import styles from "./TopUpModal.module.css";
 
 import { apiClient } from "@/api/apis";
 import { BillingServices } from "@/api/services/BillingServices";
-
+import { storage } from "@/utils/storage";
+import { LocalStorageKeys } from "@/constants/localStorageKeys";
 
 //MAKE SURE TO PASS INFLUENCER
 const influencerTEMPORARY = "";
@@ -25,13 +26,10 @@ interface TopUpModalProps {
 }
 
 export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
-  //type Step = "amount" | "card" | "low" | "success" | "error";
-  //const tabs: Step[] = ["amount", "card", "low"];
   type Step = "amount" | "low" | "success" | "error";
   const tabs: Step[] = ["amount", "low"];
   const stepLabels: Record<Step, string> = {
     amount: "Amount Select",
-    //card: "Card Details",
     low: "Low Credit",
     success: "Success",
     error: "Error",
@@ -78,12 +76,15 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
       const { approve_url, order_id } = await billing.paypalCreateOrder({
         cents,
         currency: "AUD",
-        influencer_id: influencerTEMPORARY
+        influencer_id: influencerTEMPORARY,
       });
 
       // store for return page fallback
-      localStorage.setItem("paypal_topup_order_id", order_id);
-      localStorage.setItem("paypal_topup_amount", String(dollars));
+      storage.set(LocalStorageKeys.PayPalOrderId, order_id);
+      storage.set(LocalStorageKeys.PayPalTopUpAmount, String(dollars));
+
+      // localStorage.setItem("paypal_topup_order_id", order_id);
+      // localStorage.setItem("paypal_topup_amount", String(dollars));
 
       // redirect user to PayPal approval page
       window.location.href = approve_url;
@@ -165,48 +166,6 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
       </div>
     );
   };
-
-  // Card Form (kept as UI only)
-  {
-    /* const renderCardForm = () => {
-    return (
-      <div>
-        <form className={styles.form}>
-          <TextInput
-            className={styles.fullWidthInput}
-            leftIcon={<SvgPack.Profile />}
-            placeholder="Card Holder Name"
-            aria-label="Card holder name"
-          />
-
-          <TextInput
-            className={styles.fullWidthInput}
-            leftIcon={<SvgPack.Bill />}
-            placeholder="0000 0000 0000 0000"
-            inputMode="numeric"
-            aria-label="Card number"
-          />
-
-          <div className={styles.inlineFields}>
-            <TextInput
-              className={clsx(styles.fullWidthInput, styles.inlineFieldInput)}
-              leftIcon={<SvgPack.Lock />}
-              placeholder="0000"
-              inputMode="numeric"
-              aria-label="Security code"
-            />
-            <TextInput
-              className={clsx(styles.fullWidthInput, styles.inlineFieldInput)}
-              leftIcon={<SvgPack.Chat />}
-              placeholder="MM/YY"
-              aria-label="Expiry date"
-            />
-          </div>
-        </form>
-      </div>
-    );
-  }; */
-  }
 
   // Low auto-topup
   const lowCreditOptions = [5, 10, 15, 20];
@@ -295,8 +254,6 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
     switch (topUpState) {
       case "amount":
         return renderAmountForm();
-      //case "card":
-      //return renderCardForm();
       case "low":
         return renderLowForm();
       case "success":
@@ -318,7 +275,6 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
   };
 
   const isFormPage = topUpState === "amount" || topUpState === "low";
-  //topUpState === "amount" || topUpState === "card" || topUpState === "low";
 
   return (
     <Modal
@@ -333,7 +289,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
           <TabsLayout
             tabs={tabItems}
             activeTab={activeTab}
-            setActiveTab={() => { }}
+            setActiveTab={() => {}}
           />
         </div>
       )}
@@ -368,11 +324,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
                 onClick={() => {
                   if (isPaying) return;
                   switch (topUpState) {
-                    //case "card":
-                    //setTopUpState("amount");
-                    //break;
                     case "low":
-                      //setTopUpState("card");
                       setTopUpState("amount");
                       break;
                     default:
@@ -394,12 +346,8 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
                   if (isPaying) return;
                   switch (topUpState) {
                     case "amount":
-                      //setTopUpState("card");
                       setTopUpState("low");
                       break;
-                    //case "card":
-                    //setTopUpState("low");
-                    //break;
                     case "low":
                       startPayPalTopUp();
                       break;

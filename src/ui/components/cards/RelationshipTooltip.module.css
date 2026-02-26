@@ -108,3 +108,9 @@
     align-self: flex-start;
     margin-top: 1px;
 }
+
+@media (min-width: 768px) {
+    .card {
+        width: 550px;
+    }
+}

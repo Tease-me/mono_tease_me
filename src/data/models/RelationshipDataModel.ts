@@ -6,7 +6,6 @@ export interface RelationshipDataModel {
     attraction: number;
     safety: number;
     state: string;
-    stage_points: number;
     sentiment_score: number;
     sentiment_delta: number;
     exclusive_agreed: boolean;

@@ -9,7 +9,7 @@ import { showErrorModal } from "@/utils/errorModal";
 
 export type CallStatus = "connecting" | "connected" | "disconnected" | "idle" | "error";
 
-export default function useCallWebRTC(options?: { onMessage?: (message: any) => void }) {
+export default function useCallWebRTC(options?: { onMessage?: (message: any, conversationId: string | null) => void }) {
   const [status, setStatus] = useState<CallStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const {
@@ -19,41 +19,50 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any) => 
   } = useMicrophonePermission();
   const [influencerId, setInfluencerId] = useState<string>();
 
-  const ringtoneRef = useRef(
-    new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: true })
-  );
+  const ringtoneRef = useRef<Howl | null>(null);
+
+  const getRingtone = useCallback((): Howl => {
+    if (!ringtoneRef.current) {
+      ringtoneRef.current = new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: true });
+    }
+    return ringtoneRef.current;
+  }, []);
   const chatRepo = ChatRepository();
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const { user } = useContext(AuthContext);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const startInFlightRef = useRef(false);
   const startAbortControllerRef = useRef<AbortController | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const conversationIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
-    };
-  }, []);
-  useEffect(() => {
-    return () => {
-      ringtoneRef.current.stop();
-      ringtoneRef.current.unload();
+      if (ringtoneRef.current) {
+        ringtoneRef.current.stop();
+        ringtoneRef.current.unload();
+        ringtoneRef.current = null;
+      }
     };
   }, []);
 
   const ring = useCallback(() => {
-    const ringtone = ringtoneRef.current;
     try {
-      ringtone.play();
+      getRingtone().play();
     } catch (err) {
       console.error("Ringtone playback failed:", err);
     }
-  }, []);
+  }, [getRingtone]);
 
   const stopRing = useCallback(() => {
-    ringtoneRef.current.stop();
+    if (ringtoneRef.current) {
+      ringtoneRef.current.stop();
+      ringtoneRef.current.unload();
+      ringtoneRef.current = null;
+    }
   }, []);
 
   const [micMuted, setMicMuted] = useState<boolean>(false);
@@ -105,8 +114,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any) => 
       logger.error(error)
     },
     onMessage: (message) => {
-      logger.debug(message);
-      options?.onMessage?.(message);
+      options?.onMessage?.(message, conversationIdRef.current);
     },
   });
 
@@ -273,7 +281,8 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any) => 
           await conversation.endSession();
           return;
         }
-
+        setConversationId(conversationId);
+        conversationIdRef.current = conversationId;
         setTimeRemaining(creditsRemaining);
       } catch (error: any) {
         if (!abortController.signal.aborted) {
@@ -381,5 +390,6 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any) => 
     toggleMute,
     setMicMuted,
     cancelCall,
+    conversationId,
   };
 }

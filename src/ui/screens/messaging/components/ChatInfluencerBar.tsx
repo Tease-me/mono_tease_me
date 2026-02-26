@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import switchProfileImg from "@/assets/svg/switchProfile.svg";
 import clsx from "clsx";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
@@ -7,12 +7,16 @@ import { RelationshipResponse } from "@/api/models/relationship";
 import MetricRing from "@/ui/components/stats/MetricRing";
 import SvgPack from "@/utils/SvgPack";
 import LoveScore from "./LoveScore";
+import InfluencerPopup from "../components/InfluencerPopup";
 import styles from "./ChatInfluencerBar.module.css";
 import {
   getRelationshipStatusIcon,
   getRelationshipStatusLabel,
   RelationshipStatus,
 } from "@/utils/relationshipStatusUtils";
+import { apiClient } from "@/api/apis";
+import { RelationshipServices } from "@/api/services/RelationshipServices";
+import { formatDate } from "@/utils/DateTimeUtils";
 
 export type ChatInfluencerBarProps = {
   relationship?: RelationshipResponse
@@ -23,7 +27,10 @@ export type ChatInfluencerBarProps = {
   adultMode?: boolean;
   status?: string;
   onChangeInfluencer?: () => void;
+  isSubscribed?: boolean;
 };
+
+const relationshipService = RelationshipServices(apiClient);
 
 export default function ChatInfluencerBar({
   relationship,
@@ -32,11 +39,46 @@ export default function ChatInfluencerBar({
   adultMode = false,
   showChangeInfluencerButton = false,
   onChangeInfluencer,
+  isSubscribed = false,
 }: ChatInfluencerBarProps) {
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [nextStage, setNextStage] = useState<string>("");
+
+  useEffect(() => {
+    if (!influencer?.id) {
+      setNextStage("");
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const dims = await relationshipService.getDimensions(influencer.id);
+        if (!cancelled) {
+          setNextStage(dims.next_stage);
+        }
+      } catch {
+        if (!cancelled) {
+          setNextStage("");
+        }
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [influencer?.id, relationship?.trust, relationship?.closeness, relationship?.attraction, relationship?.safety]);
+
   const glowClass =
     adultMode ? styles.glowStatusCircleAdult : styles.glowStatusCircleDefault;
 
   const profileSwitch = adultMode ? styles.profileSwitchAdult : "";
+
+  const handleOpenPopup = () => {
+    setIsPopupOpen(true);
+  };
+
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
+  };
 
   return (
     <div className={styles.chatInfluencerBar}>
@@ -77,7 +119,9 @@ export default function ChatInfluencerBar({
           </div>
         </div>
         <div className={styles.profileMidCol}>
-          <ProfileMedia size="medium" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} />
+          <div onClick={adultMode ? undefined : handleOpenPopup} className={clsx(!adultMode && styles.profileImageClick)}>
+            <ProfileMedia size="medium" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} />
+          </div>
           <button
             type="button"
             className={clsx(styles.profileSwitch, profileSwitch, !showChangeInfluencerButton && styles.hidden)}
@@ -99,6 +143,29 @@ export default function ChatInfluencerBar({
           </div>
         </div>
       </div>
+
+      <InfluencerPopup
+        isOpen={isPopupOpen}
+        onClose={handleClosePopup}
+        influencerData={
+          influencer
+            ? {
+              name: influencer.name || "",
+              image: influencer.img || "",
+              lastConnected: formatDate(relationship?.last_interaction_at),
+              followingSince: formatDate(influencer.created_at),
+              isSubscribed: isSubscribed,
+              sentimentScore: relationship?.sentiment_score ?? 0,
+              currentStage: relationship?.state ?? "",
+              nextStage: nextStage,
+              trust: relationship?.trust,
+              closeness: relationship?.closeness,
+              attraction: relationship?.attraction,
+              safety: relationship?.safety,
+            }
+            : undefined
+        }
+      />
     </div>
   );
 }

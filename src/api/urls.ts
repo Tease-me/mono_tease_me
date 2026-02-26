@@ -64,6 +64,7 @@ export const Endpoints = {
   },
   influencers: "/influencer",
   influencer: (id: string) => `/influencer/${id}`,
+  relationship_update: `influencer/relationship_update`,
   uploadCsv: "persona/import-csv",
   admin: {
     systemPrompts: {
@@ -90,6 +91,15 @@ export const Endpoints = {
       topInfluencers: (period: string = "24h") => `admin/api-usage/top-influencers?period=${period}`,
       errors: (period: string = "24h") => `admin/api-usage/errors?period=${period}`,
     }
+    knowledge: {
+      get:    (influencerId: string) => `admin/influencers/${encodeURIComponent(influencerId)}/knowledge`,
+      upsert: (influencerId: string) => `admin/influencers/${encodeURIComponent(influencerId)}/knowledge`,
+      delete: (influencerId: string) => `admin/influencers/${encodeURIComponent(influencerId)}/knowledge`,
+    },
+    chatInfo: (influencerId: string, userId: number) =>
+      `admin/chats/info/${encodeURIComponent(influencerId)}/${userId}`,
+    pairHistory: (influencerId: string, userId: number) =>
+      `admin/chats/history/${encodeURIComponent(influencerId)}/${userId}`,
   },
   subscriptions: {
     start: "/subscriptions/start",
