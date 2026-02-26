@@ -1,5 +1,6 @@
 .PHONY: seed-influencers seed-pricing seed-users seed-all seed-prompts seed-subscription-plans
 .PHONY: lint lint-fix format format-check lint-docker lint-docker-fix format-docker format-docker-check
+.PHONY: db-backup db-restore db-backup-list
 
 COMPOSE ?= docker compose
 SERVICE ?= backend
@@ -29,6 +30,20 @@ seed-all: seed-influencers seed-pricing seed-users seed-prompts seed-subscriptio
 .PHONY: db-wipe-conversations
 db-wipe-conversations:
 	$(COMPOSE) exec db psql -U postgres -d teaseme -c "TRUNCATE messages, memories, chats, calls CASCADE;"
+
+db-backup:
+	COMPOSE_CMD="$(COMPOSE)" bash scripts/db_backup.sh
+
+db-restore:
+	@if [ -z "$(FILE)" ]; then \
+		echo "Usage: make db-restore FILE=backups/db/<backup>.sql.gz [CONFIRM_RESTORE=yes]"; \
+		exit 1; \
+	fi
+	COMPOSE_CMD="$(COMPOSE)" FILE="$(FILE)" CONFIRM_RESTORE="$(CONFIRM_RESTORE)" bash scripts/db_restore.sh
+
+db-backup-list:
+	@mkdir -p backups/db
+	@ls -lh backups/db | tail -n +2 || true
 
 .PHONY: alembic-revision alembic-upgrade alembic-downgrade alembic-current alembic-history alembic-stamp-production
 alembic-revision:

@@ -2,6 +2,8 @@
 
 Use these targets to run common tasks inside the backend container. Targets assume the project runs under Docker Compose; override variables as needed.
 
+Architecture and documentation standards are defined in `docs/ARCHITECTURE.md`.
+
 ## Variables
 - `COMPOSE` (default: `docker compose`) — set to `docker-compose` on servers that require the hyphenated CLI.
 - `SERVICE` (default: `backend`) — container name where commands run.
@@ -20,6 +22,23 @@ COMPOSE="docker-compose" make seed-all
 
 ## Database cleanup
 - `make db-wipe-conversations` — truncates messages, memories, chats, and calls tables. **Destructive**.
+
+## Database backup and restore
+- `make db-backup` — creates compressed SQL backup in `./backups/db` (default keeps last 10 files).
+- `make db-backup-list` — lists local backup files.
+- `make db-restore FILE=backups/db/<backup>.sql.gz` — restores backup into DB (**destructive**).
+  - Non-interactive restore:
+    ```sh
+    make db-restore FILE=backups/db/teaseme_YYYYmmdd_HHMMSS.sql.gz CONFIRM_RESTORE=yes
+    ```
+
+Optional overrides (for backup/restore):
+- `COMPOSE_CMD` (passed from `COMPOSE`, defaults to `docker compose`)
+- `DB_SERVICE` (default `db`)
+- `DB_USER` (default `postgres`)
+- `DB_NAME` (default `teaseme`)
+- `BACKUP_DIR` (default `./backups/db`, backup only)
+- `KEEP_LAST` (default `10`, backup only)
 
 ## Alembic migrations
 
