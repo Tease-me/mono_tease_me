@@ -1,8 +1,8 @@
 import React from "react";
 import TeaseMeIncomeCalculator from "../sections/TeaseMeIncomeCalculator";
-import "./IncomeDialogStep01.css";
+import "./IncomeCalculatorScreen.css";
 
-const IncomeDialogStep01: React.FC = () => {
+const IncomeCalculatorScreen: React.FC = () => {
   return (
     <div className="dialog-screen">
       <div className="dialog-frame">
@@ -12,4 +12,4 @@ const IncomeDialogStep01: React.FC = () => {
   );
 };
 
-export default IncomeDialogStep01;
+export default IncomeCalculatorScreen;

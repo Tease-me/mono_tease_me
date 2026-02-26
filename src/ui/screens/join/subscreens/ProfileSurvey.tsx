@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 import { apiClient } from "@/api/apis";
 import { AuthServicesPreInfluencer } from "@/api/services/AuthServicesPreInfluencer";
-import ResendEmailModal from "@/ui/screens/landing-page/components/ResendEmailModal";
+import ResendEmailModal from "@/ui/screens/join/components/ResendEmailModal";
 import SvgPack from "@/utils/SvgPack";
 import "./ProfileSurvey.css";
 

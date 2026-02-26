@@ -4,7 +4,7 @@ import landingBullets from "@/assets/svg/LandingBullets.svg";
 import React, { useEffect, useState } from "react";
 import RotatingPill from "../components/RotatingPill";
 import { BENEFITS } from "../data/benefits";
-import "./TeaseMeLanding.css";
+import "./TeaseMeJoin.css";
 import iconInstagram from "@/assets/logos/instagram.svg"
 import iconWhatsapp from "@/assets/logos/whatsapp.svg"
 import iconTikTok from "@/assets/logos/tiktok.svg"
@@ -17,13 +17,14 @@ import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import useCallLanding from "@/hooks/useCallLanding";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { storage } from "@/utils/storage";
+import { Paths } from "@/routes/path";
 import { useNavigate } from "react-router-dom";
 import LottieAnimation from "@/ui/components/LottieAnimation";
 import ScrollDownMouse from '@/assets/lottie/scrollDownMouse.json'
 import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
 
 
-const TeaseMeLanding: React.FC = () => {
+const TeaseMeJoin: React.FC = () => {
   const [openModal, setOpenModal] = React.useState(false);
   const { startConversation, status, stopConversation, timeRemaining } = useCallLanding();
 
@@ -55,7 +56,7 @@ const TeaseMeLanding: React.FC = () => {
     }
 
     if (status === "disconnected" && hasConnected) {
-      navigate("/income-dialog");
+      navigate(Paths.incomeCalculator);
     }
   }, [status, hasConnected, navigate]);
 
@@ -141,4 +142,4 @@ const TeaseMeLanding: React.FC = () => {
   );
 };
 
-export default TeaseMeLanding;
+export default TeaseMeJoin;

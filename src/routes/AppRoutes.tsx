@@ -4,10 +4,10 @@ import PayPalReturn from "@/ui/components/modals/payment-modal/PayPalReturn";
 import DiditReturn from "@/ui/components/modals/verification/DiditReturn";
 import RelationshipDashboard from "@/ui/screens/admin/dashboard_relationship/RelationshipDashboard";
 import InfluencerAudioManagerRoute from "@/ui/screens/influencer-audio-manager/InfluencerAudioManagerRoute";
-import LandingPage from "@/ui/screens/landing-page/LandingPage";
-import IncomeDialogStep01 from "@/ui/screens/landing-page/subscreens/IncomeDialogStep01";
-import ProfileSurvey from "@/ui/screens/landing-page/subscreens/ProfileSurvey";
-import ThankYouScreen from "@/ui/screens/landing-page/subscreens/ThankYouScreen";
+import JoinPage from "@/ui/screens/join/JoinPage";
+import IncomeCalculatorScreen from "@/ui/screens/join/subscreens/IncomeCalculatorScreen";
+import ProfileSurvey from "@/ui/screens/join/subscreens/ProfileSurvey";
+import ThankYouScreen from "@/ui/screens/join/subscreens/ThankYouScreen";
 import UpdateProfile from "@/ui/screens/register/UpdateProfile";
 import ProfileSurveyForm from "@/ui/screens/influencer-survey/ProfileSurveyForm";
 import TermsPage from "@/ui/screens/terms/TermsPage";
@@ -103,8 +103,8 @@ function AppRoutes() {
     { path: Paths.all, element: <HomePage /> },
     { path: Paths.influencerProfile(), element: <InfluencerProfileScreen /> },
     { path: Paths.updateProfile, element: <UpdateProfile /> },
-    { path: Paths.join, element: <LandingPage /> },
-    { path: Paths.incomeDialog, element: <IncomeDialogStep01 /> },
+    { path: Paths.join, element: <JoinPage /> },
+    { path: Paths.incomeCalculator, element: <IncomeCalculatorScreen /> },
     { path: Paths.profileSurvey, element: <ProfileSurvey /> },
     {
       path: Paths.influencerAudioManager(),

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import "./RotatingPill.css"; // ou reutilizar TeaseMeLanding.css se já tiver as classes
+import "./RotatingPill.css"; // ou reutilizar TeaseMeJoin.css se já tiver as classes
 
 type RotatingPillProps = {
   phrases: string[];

@@ -4,7 +4,7 @@ export const Paths = {
     influencerProfile: (username = ":username") => `/${username}`,
     updateProfile: "/update-profile",
     join: "/join",
-    incomeDialog: "/income-dialog",
+    incomeCalculator: "/income-calculator",
     profileSurvey: "/profile-survey",
     thankYou: "/thank-you",
     profileSurveyForm: "/profile-survey-form",
