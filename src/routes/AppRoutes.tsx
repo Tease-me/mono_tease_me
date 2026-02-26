@@ -115,8 +115,6 @@ function AdultModeRoute() {
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.all, element: <HomePage /> },
-    // Fixed: Now uses the lazy-loaded DisclaimerScreen consistently
-    { path: Paths.disclaimer, element: <DisclaimerScreen /> },
     { path: Paths.influencerProfile(), element: <InfluencerProfileScreen /> },
     { path: Paths.testButtons, element: <TestPage /> },
     { path: Paths.updateProfile, element: <UpdateProfile /> },

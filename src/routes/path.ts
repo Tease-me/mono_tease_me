@@ -2,7 +2,6 @@ export const Paths = {
     all: "*",
     root: "/",
     influencerProfile: (username = ":username") => `/${username}`,
-    disclaimer: "/disclaimer",
     updateProfile: "/update-profile",
     join: "/join",
     welcome: "/welcome",
