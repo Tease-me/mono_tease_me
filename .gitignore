@@ -22,3 +22,7 @@ Thumbs.db
 /logs
 *.log
 *.log.*
+
+# Database backups
+backups/db/*
+!backups/db/.gitkeep

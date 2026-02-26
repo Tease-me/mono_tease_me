@@ -16,6 +16,8 @@ from app.services.system_prompt_service import get_system_prompt
 from app.constants import prompt_keys
 
 import logging
+
+from app.shared.prompting.influencer_bio import InfluencerBioContext
 log = logging.getLogger(__name__)
 
 _TIME_RANGE_RE = re.compile(r"^\s*(\d{1,2})\s*(AM|PM)\s*-\s*(\d{1,2})\s*(AM|PM)\s*$", re.IGNORECASE)
@@ -273,20 +275,25 @@ def build_relationship_prompt(
     analysis: str | None = None,
     influencer_name: str = "",
     users_name: str = "",
+    influencer_stages: InfluencerBioContext | None = None,
 ):
     stages = stages or {}
     rel_state = (getattr(rel, "state", "") or "").strip().upper()
     stage_prompt = ""
+    influencer_stage_prompt = ""
 
     if stages:
         # Try uppercase key first (DB format), then lowercase (bio_json format)
         stage_prompt = stages.get(rel_state, "") or stages.get(rel_state.lower(), "")
+    if influencer_stages:
+        influencer_stage_prompt = influencer_stages.stages.get(rel_state, "") or influencer_stages.stages.get(rel_state.lower(), "")
 
     partial_vars = {
         "relationship_state": rel.state,
         "influencer_name": influencer_name,
         "users_name": users_name,
         "stage_prompt": stage_prompt,
+        "influencer_stage_prompt": influencer_stage_prompt,
         "trust": int(rel.trust or 0),
         "closeness": int(rel.closeness or 0),
         "attraction": int(rel.attraction or 0),
