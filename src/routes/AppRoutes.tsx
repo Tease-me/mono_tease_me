@@ -101,7 +101,6 @@ function AdultModeRoute() {
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.all, element: <HomePage /> },
-    { path: Paths.disclaimer, element: <DisclaimerScreen /> },
     { path: Paths.influencerProfile(), element: <InfluencerProfileScreen /> },
     { path: Paths.updateProfile, element: <UpdateProfile /> },
     { path: Paths.join, element: <LandingPage /> },
