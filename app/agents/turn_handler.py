@@ -317,8 +317,6 @@ async def handle_turn(
     persona_likes = bio_ctx.likes
     persona_dislikes = bio_ctx.dislikes
     
-    # OPTIMIZATION: Parallelize system prompt fetches
-    # These are independent Redis/DB lookups that can run concurrently
     mbti_archetype = bio_ctx.mbti_archetype
     mbti_addon = bio_ctx.mbti_rules_addon
     
@@ -327,7 +325,7 @@ async def handle_turn(
         get_mbti_rules_for_archetype(db, mbti_archetype, mbti_addon)
     )
     
-    for key, val in bio_ctx.stages.items():
+    for key, val in stages.items():
         stages[key] = val
 
     personality_rules = bio_ctx.personality_rules
@@ -354,6 +352,7 @@ async def handle_turn(
         tone=tone,
         influencer_name=influencer.display_name,
         users_name=users_name,
+        influencer_stages=bio_ctx.stages,
     )
 
     hist_msgs = history.messages
