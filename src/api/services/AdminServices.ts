@@ -301,6 +301,7 @@ export const AdminServices = (apiClient: AxiosInstance) => ({
       Endpoints.admin.analytics.errors(period)
     );
     return response.data;
+  },
   getLogs: async (params: AdminLogsParams): Promise<AdminLogsResponse> => {
     const cleanParams: Record<string, string | number> = {};
     if (params.q) cleanParams.q = params.q;
