@@ -1,19 +1,20 @@
 import React from "react";
+import { Paths } from "@/routes/path";
 import { Link, useLocation } from "react-router-dom";
 import styles from "./AdminNav.module.css";
 
 const links = [
-  { to: "/admin/prompts", label: "Prompts" },
-  { to: "/admin/influencer", label: "Influencers" },
+  { to: Paths.admin.prompts, label: "Prompts" },
+  { to: Paths.admin.influencer, label: "Influencers" },
   {
-    to: "/admin/relationship",
+    to: Paths.admin.relationship,
     label: "Relationship Dashboard",
     external: false,
   },
-  { to: "/admin/pre-influencers", label: "Pre-Influencers" },
-  { to: "/admin/knowledge", label: "Knowledge" },
-  { to: "/admin/chat-history", label: "Chat History" },
-  { to: "/admin/logs", label: "Logs" },
+  { to: Paths.admin.preInfluencers, label: "Pre-Influencers" },
+  { to: Paths.admin.knowledge, label: "Knowledge" },
+  { to: Paths.admin.chatHistory, label: "Chat History" },
+  { to: Paths.admin.logs, label: "Logs" },
 ];
 
 const AdminNav: React.FC = () => {

@@ -1,4 +1,5 @@
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
+import { Paths } from "@/routes/path";
 import SvgPack from "@/utils/SvgPack";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -135,7 +136,7 @@ const TeaseMeIncomeCalculator: React.FC = () => {
 
         <div className="tm-income-button-container">
           <PrimaryButton
-            onClick={() => navigate("/profile-survey")}
+            onClick={() => navigate(Paths.profileSurvey)}
             text="Start Building Persona"
             rightIcon={<SvgPack.ArrowRight />}
           />

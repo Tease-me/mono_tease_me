@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 import { apiClient } from "@/api/apis";
 import { AuthServicesPreInfluencer } from "@/api/services/AuthServicesPreInfluencer";
+import { Paths } from "@/routes/path";
 import ResendEmailModal from "@/ui/screens/join/components/ResendEmailModal";
 import SvgPack from "@/utils/SvgPack";
 import "./ProfileSurvey.css";
@@ -79,7 +80,7 @@ const ProfileSurvey: React.FC = () => {
       });
 
       if (response.ok) {
-        navigate("/thank-you");
+        navigate(Paths.thankYou);
         return;
       }
 

@@ -6,6 +6,7 @@ import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
 import { useNavigate } from "react-router-dom";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { storage } from "@/utils/storage";
+import { Paths } from "@/routes/path";
 
 type DisclaimerScreenProps = {
   onEnter?: () => void;
@@ -25,7 +26,7 @@ const DisclaimerScreen: React.FC<DisclaimerScreenProps> = ({
     }
     storage.set(LocalStorageKeys.AdultConfirmed, "true");
 
-    navigate("/signup");
+    navigate(Paths.signup);
   };
 
   const handleExit = () => {
@@ -33,7 +34,7 @@ const DisclaimerScreen: React.FC<DisclaimerScreenProps> = ({
       onExit();
       return;
     }
-    navigate("/underage");
+    navigate(Paths.underage);
   };
 
   return (

@@ -35,7 +35,6 @@ const ProfileSurvey = lazy(
 const ThankYouScreen = lazy(
   () => import("@/ui/screens/join/subscreens/ThankYouScreen")
 );
-const UpdateProfile = lazy(() => import("@/ui/screens/register/UpdateProfile"));
 const ProfileSurveyForm = lazy(
   () => import("@/ui/screens/influencer-survey/ProfileSurveyForm")
 );
@@ -122,7 +121,6 @@ function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.all, element: <LandingPage /> },
     { path: Paths.influencerProfile(), element: <InfluencerProfileScreen /> },
-    { path: Paths.updateProfile, element: <UpdateProfile /> },
     { path: Paths.join, element: <JoinPage /> },
     { path: Paths.incomeCalculator, element: <IncomeCalculatorScreen /> },
     { path: Paths.profileSurvey, element: <ProfileSurvey /> },
@@ -144,18 +142,42 @@ function AppRoutes() {
     },
     { path: Paths.underage, element: <UnderageRedirectScreen /> },
     // --- Public Legal & Compliance Pages ---
-    { path: "/terms", element: <TermsPage {...terms.terms} /> },
-    { path: "/privacy", element: <TermsPage {...terms.privacy} /> },
-    { path: "/refunds", element: <TermsPage {...terms.refunds} /> },
-    { path: "/subscriptions", element: <TermsPage {...terms.subscriptions} /> },
-    { path: "/acceptable-use", element: <TermsPage {...terms.acceptableUse} /> },
-    { path: "/adult-content", element: <TermsPage {...terms.adultContent} /> },
-    { path: "/ai-disclosure", element: <TermsPage {...terms.aiDisclosure} /> },
-    { path: "/content-moderation", element: <TermsPage {...terms.contentModeration} /> },
-    { path: "/data-retention", element: <TermsPage {...terms.dataRetention} /> },
-    { path: "/age-verification", element: <TermsPage {...terms.ageVerification} /> },
-    { path: "/cookies", element: <TermsPage {...terms.cookies} /> },
-    { path: "/prohibited-content", element: <TermsPage {...terms.prohibitedContent} /> },
+    { path: Paths.legal.terms, element: <TermsPage {...terms.terms} /> },
+    { path: Paths.legal.privacy, element: <TermsPage {...terms.privacy} /> },
+    { path: Paths.legal.refunds, element: <TermsPage {...terms.refunds} /> },
+    {
+      path: Paths.legal.subscriptions,
+      element: <TermsPage {...terms.subscriptions} />,
+    },
+    {
+      path: Paths.legal.acceptableUse,
+      element: <TermsPage {...terms.acceptableUse} />,
+    },
+    {
+      path: Paths.legal.adultContent,
+      element: <TermsPage {...terms.adultContent} />,
+    },
+    {
+      path: Paths.legal.aiDisclosure,
+      element: <TermsPage {...terms.aiDisclosure} />,
+    },
+    {
+      path: Paths.legal.contentModeration,
+      element: <TermsPage {...terms.contentModeration} />,
+    },
+    {
+      path: Paths.legal.dataRetention,
+      element: <TermsPage {...terms.dataRetention} />,
+    },
+    {
+      path: Paths.legal.ageVerification,
+      element: <TermsPage {...terms.ageVerification} />,
+    },
+    { path: Paths.legal.cookies, element: <TermsPage {...terms.cookies} /> },
+    {
+      path: Paths.legal.prohibitedContent,
+      element: <TermsPage {...terms.prohibitedContent} />,
+    },
   ];
 
 

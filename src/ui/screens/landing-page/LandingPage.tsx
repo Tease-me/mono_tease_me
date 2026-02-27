@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import imageHPHero from "@/assets/image/creator-collage.jpg";
 import imageTeaseMeLight from "@/assets/image/iconTeaseMeLight.png";
 import PlusBadge from "@/ui/components/badges/PlusBadge";
+import { Paths } from "@/routes/path";
 import "./LandingPage.css";
 
 const LandingPage: React.FC = () => {
@@ -36,10 +37,10 @@ const LandingPage: React.FC = () => {
           // You can adjust this logic based on your API response structure
           if (preInfluencer.id) {
             // User has influencer account - navigate to InfluencerHome
-            navigate("/influencer-home");
+            navigate(Paths.influencerHome);
           } else {
             // User has intention to be influencer - navigate to IntencionInfluencerHome
-            navigate("/intencion-influencer-home");
+            navigate(Paths.intencionInfluencerHome);
           }
           return;
         }
@@ -61,15 +62,15 @@ const LandingPage: React.FC = () => {
       // Try to find influencer by username
       const influencer = await influencerRepo.getInfluencer("");
       if (influencer) {
-        navigate("/influencer-home");
+        navigate(Paths.influencerHome);
       } else {
         // If not found, navigate to IntencionInfluencerHome
-        navigate("/intencion-influencer-home");
+        navigate(Paths.intencionInfluencerHome);
       }
     } catch (error) {
       logger.error("Error searching influencer:", error);
       // On error, navigate to IntencionInfluencerHome
-      navigate("/intencion-influencer-home");
+      navigate(Paths.intencionInfluencerHome);
     } finally {
       setSearching(false);
     }

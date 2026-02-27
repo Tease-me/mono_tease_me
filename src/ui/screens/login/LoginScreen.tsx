@@ -41,7 +41,7 @@ export default function LoginScreen() {
 
   const navigate = useNavigate();
 
-  useEffect(() => { if (isSignedIn) navigate("/home"); }, [isSignedIn, navigate]);
+  useEffect(() => { if (isSignedIn) navigate(Paths.home); }, [isSignedIn, navigate]);
 
   useEffect(() => {
     if (authErrors) {
@@ -141,7 +141,7 @@ export default function LoginScreen() {
   }
 
   const handleBackClick = () => {
-    navigate("/")
+    navigate(Paths.root)
   }
 
   return (
@@ -202,7 +202,7 @@ export default function LoginScreen() {
               />
             </div>
             <p className={styles["auth-footer"]}>
-              <span onClick={() => navigate("/forgot-password")}>Forgot your password?</span>
+              <span onClick={() => navigate(Paths.forgotPassword)}>Forgot your password?</span>
             </p>
           </div>
         </form>

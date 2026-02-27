@@ -2,7 +2,6 @@ export const Paths = {
     all: "*",
     root: "/",
     influencerProfile: (username = ":username") => `/${username}`,
-    updateProfile: "/update-profile",
     join: "/join",
     incomeCalculator: "/income-calculator",
     profileSurvey: "/profile-survey",
@@ -15,6 +14,7 @@ export const Paths = {
 
     login: "/login",
     register: (username = ":username") => `/${username}/register`,
+    registerPlain: "/register",
     registerVerify: "/register/verify",
     resetPassword: "/reset-password",
     forgotPassword: "/forgot-password",
@@ -30,6 +30,20 @@ export const Paths = {
         chatHistory: "/admin/chat-history",
         logs: "/admin/logs",
     },
+    legal: {
+        terms: "/terms",
+        privacy: "/privacy",
+        refunds: "/refunds",
+        subscriptions: "/subscriptions",
+        acceptableUse: "/acceptable-use",
+        adultContent: "/adult-content",
+        aiDisclosure: "/ai-disclosure",
+        contentModeration: "/content-moderation",
+        dataRetention: "/data-retention",
+        ageVerification: "/age-verification",
+        cookies: "/cookies",
+        prohibitedContent: "/prohibited-content",
+    },
     mjDashboard: "/mj/dashboard",
 
     voice: "/voice",
@@ -43,6 +57,7 @@ export const Paths = {
     profileSelector: "/profile-selector",
     adultMode: "/adult-mode",
     underage: "/underage",
+    signup: "/signup",
 
     influencerAudioManager: (influencerId = ":influencer_id") =>
         `/influencer/${influencerId}/audio-manager`,
