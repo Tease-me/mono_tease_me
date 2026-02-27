@@ -7,6 +7,7 @@ from langchain_xai import ChatXAI
 from app.core.config import settings
 import logging
 from app.db.session import SessionLocal
+from app.agents.callbacks import UsageTrackingCallback
 
 log = logging.getLogger(__name__)
 
@@ -55,9 +56,17 @@ async def extract_memories_from_transcript(
             
             async def extract_chunk(ctx_str: str, msg_str: str):
                 try:
-                    resp = await FACT_EXTRACTOR.ainvoke(
-                        fact_prompt.format(msg=msg_str, ctx=ctx_str)
+                    tracker = UsageTrackingCallback(
+                        category="extraction",
+                        purpose="fact_extraction",
+                        chat_id=chat_id,
+                        conversation_id=conversation_id,
                     )
+                    resp = await FACT_EXTRACTOR.ainvoke(
+                        fact_prompt.format(msg=msg_str, ctx=ctx_str),
+                        config={"callbacks": [tracker]}
+                    )
+
                     txt = (resp.content or "").strip("- ").strip()
                     if txt and txt.lower() != "no new memories.":
                         lines = [ln.strip("- ").strip() for ln in txt.split("\n") if ln.strip()]
@@ -139,7 +148,15 @@ async def summarize_memory_list(
         max_tokens=700,
     )
     chain = prompt | llm
-    resp = await chain.ainvoke({"memory_block": memory_block})
+    tracker = UsageTrackingCallback(
+        category="analysis",
+        purpose="summarize_memory",
+    )
+    resp = await chain.ainvoke(
+        {"memory_block": memory_block},
+        config={"callbacks": [tracker]}
+    )
+
     return (resp.content or "").strip() or "(empty summary)"
 
 async def summarize_ai_memory_list(
@@ -185,7 +202,15 @@ async def summarize_ai_memory_list(
         max_tokens=700,
     )
     chain = prompt | llm
-    resp = await chain.ainvoke({"memory_block": memory_block})
+    tracker = UsageTrackingCallback(
+        category="analysis",
+        purpose="summarize_ai_memory",
+    )
+    resp = await chain.ainvoke(
+        {"memory_block": memory_block},
+        config={"callbacks": [tracker]}
+    )
+
     return (resp.content or "").strip() or "(empty summary)"
 
 

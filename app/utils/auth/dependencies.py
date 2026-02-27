@@ -1,8 +1,8 @@
 from jose import JWTError, jwt
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, HTTPException, Request, status, Query
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.models import User
+from app.db.models import User, PreInfluencer
 from app.db.session import get_db
 from app.core.config import settings
 
@@ -71,3 +71,37 @@ async def require_age_verification(
         )
     
     return user
+
+
+async def get_current_pre_influencer(
+    token: str = Query(...),
+    temp_password: str = Query(...),
+    db: AsyncSession = Depends(get_db),
+) -> PreInfluencer:
+    from app.db.models import PreInfluencer
+    from sqlalchemy import select
+    import secrets
+    
+    result = await db.execute(
+        select(PreInfluencer).where(PreInfluencer.survey_token == token)
+    )
+    pre = result.scalar_one_or_none()
+    
+    if not pre:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Invalid survey token",
+        )
+        
+    if (
+        not pre.password
+        or not temp_password
+        or not secrets.compare_digest(pre.password, temp_password)
+    ):
+         raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid password",
+        )
+
+    return pre
+
