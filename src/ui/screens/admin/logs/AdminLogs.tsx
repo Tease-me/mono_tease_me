@@ -9,6 +9,7 @@ import {
 } from "@/api/services/AdminServices";
 import { API_BASE_URL } from "@/api/urls";
 import AdminLayout from "@/ui/screens/admin/AdminLayout";
+import AdminTwoColumn from "@/ui/screens/admin/AdminTwoColumn";
 import styles from "./AdminLogs.module.css";
 
 const admin = AdminServices(apiClient);
@@ -302,9 +303,7 @@ const AdminLogs: React.FC = () => {
 
   return (
     <AdminLayout title="Logs" subtitle="Browse, stream, and download backend application logs.">
-      <div className={styles["layout"]}>
-        {/* ── Sidebar ── */}
-        <aside className={styles["sidebar"]}>
+      <AdminTwoColumn sidebar={<aside className={styles["sidebar"]}>
           <div className={styles["sidebar-header"]}>Log Files</div>
           <div className={styles["sidebar-list"]}>
             {loadingFiles && (
@@ -350,7 +349,7 @@ const AdminLogs: React.FC = () => {
               </button>
             ))}
           </div>
-        </aside>
+        </aside>}>
 
         {/* ── Main panel ── */}
         <section className={styles["main"]}>
@@ -473,7 +472,7 @@ const AdminLogs: React.FC = () => {
             )}
           </div>
         </section>
-      </div>
+      </AdminTwoColumn>
     </AdminLayout>
   );
 };

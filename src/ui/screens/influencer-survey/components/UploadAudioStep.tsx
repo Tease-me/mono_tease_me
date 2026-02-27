@@ -11,7 +11,7 @@ import {
   isMediaRecorderSupported,
   isGetUserMediaSupported,
 } from '../utils/fileUploadHelpers';
-import { useFileUpload } from '../hooks/useFileUpload';
+import { useFileUpload } from '@/hooks/survey/useFileUpload';
 import {
   MIN_RECORDING_SECONDS,
   RECORDING_COUNTDOWN_SECONDS,

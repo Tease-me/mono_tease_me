@@ -1,17 +1,4 @@
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
-import PayPalCancel from "@/ui/components/modals/payment-modal/PayPalCancel";
-import PayPalReturn from "@/ui/components/modals/payment-modal/PayPalReturn";
-import DiditReturn from "@/ui/components/modals/verification/DiditReturn";
-import RelationshipDashboard from "@/ui/screens/admin/dashboard_relationship/RelationshipDashboard";
-import InfluencerAudioManagerRoute from "@/ui/screens/influencer-audio-manager/InfluencerAudioManagerRoute";
-import InfluencerWelcome from "@/ui/screens/landing-page/InfluencerWelcome";
-import LandingPage from "@/ui/screens/landing-page/LandingPage";
-import IncomeDialogStep01 from "@/ui/screens/landing-page/subscreens/IncomeDialogStep01";
-import ProfileSurvey from "@/ui/screens/landing-page/subscreens/ProfileSurvey";
-import ThankYouScreen from "@/ui/screens/landing-page/subscreens/ThankYouScreen";
-import UpdateProfile from "@/ui/screens/register/UpdateProfile";
-import ProfileSurveyForm from "@/ui/screens/influencer-survey/ProfileSurveyForm";
-import TermsPage from "@/ui/screens/terms/TermsPage";
 import { terms } from "@/ui/screens/terms/termsContent";
 
 import { JSX, Suspense, lazy } from "react";
@@ -21,7 +8,37 @@ import GuestRoute from "./components/GuestRoute";
 import PrivateRoute from "./components/PrivateRoute";
 import SuperRoute from "./components/SuperRoute";
 import { ThemeProvider } from "@/theme/ThemeProvider";
-import TestPage from "@/ui/screens/test/TestPage";
+
+const PayPalCancel = lazy(
+  () => import("@/ui/components/modals/payment-modal/PayPalCancel")
+);
+const PayPalReturn = lazy(
+  () => import("@/ui/components/modals/payment-modal/PayPalReturn")
+);
+const DiditReturn = lazy(
+  () => import("@/ui/components/modals/verification/DiditReturn")
+);
+const RelationshipDashboard = lazy(
+  () =>
+    import("@/ui/screens/admin/dashboard_relationship/RelationshipDashboard")
+);
+const InfluencerAudioManagerRoute = lazy(
+  () => import("@/ui/screens/influencer-audio-manager/InfluencerAudioManagerRoute")
+);
+const JoinPage = lazy(() => import("@/ui/screens/join/JoinPage"));
+const IncomeCalculatorScreen = lazy(
+  () => import("@/ui/screens/join/subscreens/IncomeCalculatorScreen")
+);
+const ProfileSurvey = lazy(
+  () => import("@/ui/screens/join/subscreens/ProfileSurvey")
+);
+const ThankYouScreen = lazy(
+  () => import("@/ui/screens/join/subscreens/ThankYouScreen")
+);
+const ProfileSurveyForm = lazy(
+  () => import("@/ui/screens/influencer-survey/ProfileSurveyForm")
+);
+const TermsPage = lazy(() => import("@/ui/screens/terms/TermsPage"));
 
 const AdminPreInfluencers = lazy(
   () => import("@/ui/screens/admin/pre-influencers/AdminPreInfluencers")
@@ -33,6 +50,9 @@ const UnderageRedirectScreen = lazy(
 const AdminPreInfluencerDetail = lazy(
   () =>
     import("@/ui/screens/admin/pre-influencers/AdminPreInfluencerDetail")
+);
+const AdminAnalytics = lazy(
+  () => import("@/ui/screens/admin/analytics/AdminAnalytics")
 );
 const InfluencerProfileScreen = lazy(
   () => import("@/ui/screens/influencer-profile/InfluencerProfileScreen")
@@ -49,13 +69,7 @@ const ForgotPassword = lazy(
   () => import("@/ui/screens/forgot-password/ForgotPassword")
 );
 const VerifyEmail = lazy(() => import("@/ui/screens/verify-email/VerifyEmail"));
-const VoiceCallEleven = lazy(
-  () => import("@/ui/screens/messaging/VoiceCallEleven")
-);
 const HomeScreenSingle = lazy(() => import("@/ui/screens/home/HomeScreenSingle"));
-const ChatScreen = lazy(() => import("@/ui/screens/messaging/ChatScreen"));
-const CallScreen = lazy(() => import("@/ui/screens/CallScreen"));
-const MJDashboard = lazy(() => import("@/mj-dashboard/ui/Dashboard"));
 const CreateInfluencer = lazy(
   () => import("@/ui/screens/admin/create-influencer/CreateInfluencer")
 );
@@ -72,18 +86,18 @@ const AdminLogs = lazy(() => import("@/ui/screens/admin/logs/AdminLogs"));
 const AdultModePage = lazy(
   () => import("@/ui/screens/messaging/pages/adult-mode/AdultModePage")
 );
-const HomePage = lazy(() => import("@/ui/screens/home-page/HomePage"));
+const LandingPage = lazy(() => import("@/ui/screens/landing-page/LandingPage"));
 const InfluencerHome = lazy(
-  () => import("@/ui/screens/home-page/InfluencerHome")
+  () => import("@/ui/screens/landing-page/InfluencerHome")
 );
 const InfluencerHomeTrialExpired = lazy(
-  () => import("@/ui/screens/home-page/InfluencerHomeTrialExpired")
+  () => import("@/ui/screens/landing-page/InfluencerHomeTrialExpired")
 );
 const RecordTerms = lazy(
   () => import("@/ui/screens/survey/components/TermsConditions")
 );
 const IntencionInfluencerHome = lazy(
-  () => import("@/ui/screens/home-page/IntencionInfluencerHome")
+  () => import("@/ui/screens/landing-page/IntencionInfluencerHome")
 );
 
 function AdultModeRoute() {
@@ -108,13 +122,10 @@ function AdultModeRoute() {
 
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
-    { path: Paths.all, element: <HomePage /> },
+    { path: Paths.all, element: <LandingPage /> },
     { path: Paths.influencerProfile(), element: <InfluencerProfileScreen /> },
-    { path: Paths.testButtons, element: <TestPage /> },
-    { path: Paths.updateProfile, element: <UpdateProfile /> },
-    { path: Paths.join, element: <LandingPage /> },
-    { path: Paths.welcome, element: <InfluencerWelcome /> },
-    { path: Paths.incomeDialog, element: <IncomeDialogStep01 /> },
+    { path: Paths.join, element: <JoinPage /> },
+    { path: Paths.incomeCalculator, element: <IncomeCalculatorScreen /> },
     { path: Paths.profileSurvey, element: <ProfileSurvey /> },
     {
       path: Paths.influencerAudioManager(),
@@ -134,18 +145,42 @@ function AppRoutes() {
     },
     { path: Paths.underage, element: <UnderageRedirectScreen /> },
     // --- Public Legal & Compliance Pages ---
-    { path: "/terms", element: <TermsPage {...terms.terms} /> },
-    { path: "/privacy", element: <TermsPage {...terms.privacy} /> },
-    { path: "/refunds", element: <TermsPage {...terms.refunds} /> },
-    { path: "/subscriptions", element: <TermsPage {...terms.subscriptions} /> },
-    { path: "/acceptable-use", element: <TermsPage {...terms.acceptableUse} /> },
-    { path: "/adult-content", element: <TermsPage {...terms.adultContent} /> },
-    { path: "/ai-disclosure", element: <TermsPage {...terms.aiDisclosure} /> },
-    { path: "/content-moderation", element: <TermsPage {...terms.contentModeration} /> },
-    { path: "/data-retention", element: <TermsPage {...terms.dataRetention} /> },
-    { path: "/age-verification", element: <TermsPage {...terms.ageVerification} /> },
-    { path: "/cookies", element: <TermsPage {...terms.cookies} /> },
-    { path: "/prohibited-content", element: <TermsPage {...terms.prohibitedContent} /> },
+    { path: Paths.legal.terms, element: <TermsPage {...terms.terms} /> },
+    { path: Paths.legal.privacy, element: <TermsPage {...terms.privacy} /> },
+    { path: Paths.legal.refunds, element: <TermsPage {...terms.refunds} /> },
+    {
+      path: Paths.legal.subscriptions,
+      element: <TermsPage {...terms.subscriptions} />,
+    },
+    {
+      path: Paths.legal.acceptableUse,
+      element: <TermsPage {...terms.acceptableUse} />,
+    },
+    {
+      path: Paths.legal.adultContent,
+      element: <TermsPage {...terms.adultContent} />,
+    },
+    {
+      path: Paths.legal.aiDisclosure,
+      element: <TermsPage {...terms.aiDisclosure} />,
+    },
+    {
+      path: Paths.legal.contentModeration,
+      element: <TermsPage {...terms.contentModeration} />,
+    },
+    {
+      path: Paths.legal.dataRetention,
+      element: <TermsPage {...terms.dataRetention} />,
+    },
+    {
+      path: Paths.legal.ageVerification,
+      element: <TermsPage {...terms.ageVerification} />,
+    },
+    { path: Paths.legal.cookies, element: <TermsPage {...terms.cookies} /> },
+    {
+      path: Paths.legal.prohibitedContent,
+      element: <TermsPage {...terms.prohibitedContent} />,
+    },
   ];
 
 
@@ -159,7 +194,11 @@ function AppRoutes() {
   ];
 
   const superRoutes: { path: string; element: JSX.Element }[] = [
-    { path: Paths.mjDashboard, element: <MJDashboard /> },
+    // { path: Paths.mjDashboard, element: <MJDashboard /> },
+    {
+      path: Paths.admin.root,
+      element: <Navigate to={Paths.admin.analytics} replace />,
+    },
     { path: Paths.admin.influencer, element: <CreateInfluencer /> },
     { path: Paths.admin.prompts, element: <PromptEditorAdmin /> },
     { path: Paths.admin.relationship, element: <RelationshipDashboard /> },
@@ -168,17 +207,15 @@ function AppRoutes() {
       element: <AdminPreInfluencerDetail />,
     },
     { path: Paths.admin.preInfluencers, element: <AdminPreInfluencers /> },
+    { path: Paths.admin.analytics, element: <AdminAnalytics /> },
     { path: Paths.admin.knowledge, element: <AdminKnowledge /> },
     { path: Paths.admin.chatHistory, element: <AdminChatHistory /> },
     { path: Paths.admin.logs, element: <AdminLogs /> },
   ];
 
   const privateRoutes: { path: string; element: JSX.Element }[] = [
-    { path: Paths.voice, element: <VoiceCallEleven /> },
     { path: Paths.home, element: <HomeScreenSingle /> },
     { path: Paths.adultMode, element: <AdultModeRoute /> },
-    { path: Paths.chat(), element: <ChatScreen /> },
-    { path: Paths.call(), element: <CallScreen /> },
     { path: Paths.paypalReturn, element: <PayPalReturn /> },
     { path: Paths.paypalCancel, element: <PayPalCancel /> },
     { path: Paths.diditReturn, element: <DiditReturn /> },

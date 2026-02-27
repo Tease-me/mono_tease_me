@@ -2,6 +2,7 @@ import { AuthContext } from "@/context/AuthContext";
 import React, { ReactNode, useContext } from "react";
 import { Navigate } from "react-router-dom";
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
+import { Paths } from "@/routes/path";
 
 interface PrivateRouteProps {
   children: ReactNode;
@@ -17,7 +18,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
   }
 
   if (!isSignedIn) {
-    return <Navigate to="/login" />;
+    return <Navigate to={Paths.login} />;
   }
 
   return <>{children}</>;

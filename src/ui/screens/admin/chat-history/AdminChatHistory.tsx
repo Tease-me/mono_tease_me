@@ -11,6 +11,7 @@ import {
 import { InfluencerServices } from "@/api/services/InfluencerService";
 import { InfluencerResponse } from "@/api/models/influencers";
 import AdminLayout from "@/ui/screens/admin/AdminLayout";
+import AdminTwoColumn from "@/ui/screens/admin/AdminTwoColumn";
 import styles from "./AdminChatHistory.module.css";
 
 const admin = AdminServices(apiClient);
@@ -189,9 +190,7 @@ const AdminChatHistory: React.FC = () => {
       title="Chat History"
       subtitle="View pair stats and clear chat history for a user–influencer pair."
     >
-      <div className={styles["layout"]}>
-        {/* ── Sidebar ── */}
-        <aside className={styles["sidebar"]}>
+      <AdminTwoColumn sidebar={<aside className={styles["sidebar"]}>
           {/* Users section */}
           <div className={styles["sidebar-section-header"]}>Users</div>
           <div className={styles["sidebar-search-wrap"]}>
@@ -250,9 +249,7 @@ const AdminChatHistory: React.FC = () => {
               </button>
             ))}
           </div>
-        </aside>
-
-        {/* ── Main panel ── */}
+        </aside>}>
         <section className={styles["main"]}>
           {!pairReady && (
             <div className={styles["panel-placeholder"]}>
@@ -470,7 +467,7 @@ const AdminChatHistory: React.FC = () => {
             </>
           )}
         </section>
-      </div>
+      </AdminTwoColumn>
     </AdminLayout>
   );
 };

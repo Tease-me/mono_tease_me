@@ -12,6 +12,7 @@ import ButtonRow from '@/ui/templates/ButtonRow';
 import logger from '@/utils/logger';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
+import { Paths } from '@/routes/path';
 
 interface ForgotPasswordProps { }
 
@@ -44,7 +45,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ }) => {
             setStatus("If an account with that email exists, you will receive an email with instructions to reset your password.");
             setIsSuccess(true);
             setTimeout(() => {
-                navigate("/login")
+                navigate(Paths.login)
             }, 5000);
         } catch (err: any) {
             logger.error(err);
@@ -73,7 +74,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ }) => {
                         {status && <span className={styles[isSuccess ? "success" : "error"]}>{status}</span>}
                         <div className={styles["user-action-section"]}>
                             <ButtonRow>
-                                <NormalButton className={styles["btn-back"]} onClick={() => navigate("/login")} text="Back to Login" color='black' />
+                                <NormalButton className={styles["btn-back"]} onClick={() => navigate(Paths.login)} text="Back to Login" color='black' />
                                 <PrimaryButton className={styles["btn-primary"]} text={isLoading ? "Sending..." : "Send Reset Link"} onClick={() => handleSubmit()} disabled={isLoading} />
                             </ButtonRow>
                         </div>

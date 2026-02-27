@@ -6,7 +6,7 @@ import MetricRing from "../stats/MetricRing";
 import { formatDateTimeRelative } from "@/utils/DateTimeUtils";
 import BalanceBadge from "../stats/BalanceBadge";
 import { getRelationshipStatusIcon } from "@/utils/relationshipStatusUtils";
-import { useIsMobile } from "@/utils/hooks/useIsDesktop";
+import { useIsMobile } from "@/hooks/layout/useIsDesktop";
 
 type InfleuncerRelationCardProps = {
   name: string;

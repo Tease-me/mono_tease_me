@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Paths } from "@/routes/path";
 import AdminLayout from "../AdminLayout";
+import AdminTwoColumn from "../AdminTwoColumn";
 import styles from "./AdminPreInfluencers.module.css";
 
 type PreInfluencer = {
@@ -118,8 +119,21 @@ export default function AdminPreInfluencers() {
         </button>
       }
     >
-      <div className={styles["page"]}>
+      <AdminTwoColumn sidebar={<aside className={styles["sidebar"]}>
+        <div className={styles["sidebar-section"]}>
+          <div className={styles["sidebar-title"]}>Queue</div>
+          <div className={styles["sidebar-value"]}>{rows.length} pending</div>
+        </div>
+        <div className={styles["sidebar-section"]}>
+          <div className={styles["sidebar-title"]}>Status</div>
+          <div className={styles["sidebar-value"]}>
+            {loading ? "Loading…" : actingId !== null ? "Approving…" : "Ready"}
+          </div>
+        </div>
         {msg ? <pre className={styles["message"]}>{msg}</pre> : null}
+      </aside>}>
+        <section className={styles["main"]}>
+          <div className={styles["page"]}>
 
         {loading ? (
           <div className={styles["state-card"]}>Loading...</div>
@@ -255,7 +269,9 @@ export default function AdminPreInfluencers() {
             </div>
           </div>
         )}
-      </div>
+          </div>
+        </section>
+      </AdminTwoColumn>
     </AdminLayout>
   );
 }

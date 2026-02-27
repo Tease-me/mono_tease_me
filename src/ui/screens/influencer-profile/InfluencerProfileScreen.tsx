@@ -42,17 +42,17 @@ const InfluencerProfileScreen: React.FC<
         try {
           const localInfluencer = await influencerRepo.getInfluencer(username);
           if (!localInfluencer) {
-            navigate("/");
+            navigate(Paths.root);
             return;
           }
           setInfluencer(localInfluencer);
         } catch (err: any) {
           logger.error(err);
-          navigate("/");
+          navigate(Paths.root);
           return;
         }
       } else {
-        navigate("/");
+        navigate(Paths.root);
       }
     })();
   }, [username, influencerRepo, navigate]);
@@ -96,7 +96,7 @@ const InfluencerProfileScreen: React.FC<
     if (screenState === "redirecting" && influencer?.id) {
       storage.set(LocalStorageKeys.SelectedId, influencer.id.toString());
 
-      navigate("/home");
+      navigate(Paths.home);
     }
   }, [screenState, influencer?.id, navigate]);
 

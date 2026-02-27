@@ -1,11 +1,12 @@
 import React, { lazy, Suspense, useCallback, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { apiClient } from '@/api/apis';
+import { Paths } from '@/routes/path';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
 import SvgPack from '@/utils/SvgPack';
-import { useSurveyForm } from './hooks/useSurveyForm';
-import { useStepValidation } from './hooks/useStepValidation';
+import { useSurveyForm } from '@/hooks/survey/useSurveyForm';
+import { useStepValidation } from '@/hooks/survey/useStepValidation';
 import SurveyQuestionStep from './components/SurveyQuestionStep';
 import styles from './ProfileSurvey.module.css';
 import { TermsModal } from '../survey/components/TermsConditions';
@@ -95,7 +96,7 @@ const ProfileSurveyForm: React.FC = () => {
       }
 
       actions.setShowTermsModal(false);
-      navigate('/thank-you');
+      navigate(Paths.thankYou);
     } catch (error) {
       console.error('Error accepting terms:', error);
       actions.setTermsError('Failed to record acceptance. Please try again.');
@@ -179,7 +180,7 @@ const ProfileSurveyForm: React.FC = () => {
       actions.goToNextStep();
       requestAnimationFrame(scrollToTop);
     } else {
-      navigate('/thank-you');
+      navigate(Paths.thankYou);
     }
   }, [
     validateCurrentStep,
@@ -415,10 +416,7 @@ const ProfileSurveyForm: React.FC = () => {
                   <PrimaryButton
                     onClick={handleNext}
                     text={isLastStep ? 'Finish' : 'Next'}
-                    disabled={
-                      state.audioIsRecording ||
-                      (isAudioStep && (!state.audioHasRecorded || state.audioCount === 0))
-                    }
+                    disabled={state.audioIsRecording || !validateCurrentStep().valid}
                     rightIcon={<SvgPack.ArrowRight />}
                   />
                 </div>

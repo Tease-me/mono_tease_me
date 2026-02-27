@@ -22,6 +22,7 @@ import { Howl } from "howler";
 
 import { FollowServices } from "@/api/services/FollowServices";
 import { apiClient } from "@/api/apis";
+import { Paths } from "@/routes/path";
 
 export interface WelcomeScreenProps {
   influencer: InfluencerDataModel;
@@ -65,12 +66,12 @@ export default function WelcomeScreen({
   }, [influencer]);
 
   const handleSignInClick = () => {
-    navigate(`/login`);
+    navigate(Paths.login);
   };
 
   const handleSignUpClick = () => {
     if (!influencer?.id) return;
-    navigate(`/${influencer.id}/register`);
+    navigate(Paths.register(influencer.id));
   };
 
   const handlePickUpCall = () => {
@@ -93,7 +94,7 @@ export default function WelcomeScreen({
       setError(null);
       storage.set(LocalStorageKeys.SelectedId, influencer.id);
 
-      navigate("/home");
+      navigate(Paths.home);
       setWaiting(false);
     } catch (err: any) {
       setWaiting(false);
@@ -194,7 +195,7 @@ export default function WelcomeScreen({
                     onClick={() => {
                       storage.set(LocalStorageKeys.SelectedId, influencer.id);
 
-                      navigate(`/login`);
+                      navigate(Paths.login);
                     }}
                     style={{ cursor: "pointer", color: "#ff4d6d" }}
                   >

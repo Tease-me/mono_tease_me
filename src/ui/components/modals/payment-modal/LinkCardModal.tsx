@@ -8,6 +8,7 @@ import CheckBox from "@/ui/components/inputs/check-boxes/CheckBox";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 import SvgPack from "@/utils/SvgPack";
+import { Paths } from "@/routes/path";
 
 import styles from "./LinkCardModal.module.css";
 
@@ -32,7 +33,7 @@ const LinkCardModal: React.FC<LinkCardModalProps> = ({
     onClose,
     onSubmit,
     initialValues,
-    termsHref = "/terms-and-conditions",
+    termsHref = Paths.legal.terms,
 }) => {
     const [cardHolderName, setCardHolderName] = useState(initialValues?.cardHolderName ?? "");
     const [cardNumber, setCardNumber] = useState(initialValues?.cardNumber ?? "");
