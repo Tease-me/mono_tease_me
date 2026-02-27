@@ -28,6 +28,7 @@ export const Paths = {
             `/admin/pre-influencers/${id}`,
         knowledge: "/admin/knowledge",
         chatHistory: "/admin/chat-history",
+        analytics: "/admin/analytics",
         logs: "/admin/logs",
     },
     legal: {

@@ -12,6 +12,7 @@ import {
 import { apiClient } from "@/api/apis";
 import { AdminServices } from "@/api/services/AdminServices";
 import AdminLayout from "../AdminLayout";
+import AdminTwoColumn from "../AdminTwoColumn";
 import styles from "./RelationshipDashboard.module.css";
 
 const admin = AdminServices(apiClient);
@@ -221,8 +222,7 @@ function useBreakpoints() {
 }
 
 export default function RelationshipDashboard() {
-  const { isMobile, isTablet } = useBreakpoints();
-  const [showSidebarMobile, setShowSidebarMobile] = useState(false);
+  const { isMobile } = useBreakpoints();
 
   const [users, setUsers] = useState<UserRow[]>([]);
   const [userQuery, setUserQuery] = useState("");
@@ -421,8 +421,7 @@ export default function RelationshipDashboard() {
 
   const badge = stateBadge(selectedRel?.state);
 
-  const rootGridCols = isTablet ? "1fr" : "320px 1fr";
-  const cardsCols = isMobile ? "1fr" : isTablet ? "1fr 1fr" : "repeat(4, 1fr)";
+  const cardsCols = isMobile ? "1fr" : "repeat(4, 1fr)";
   const panelsCols = isMobile ? "1fr" : "1fr 1fr";
   const radarHeight = isMobile ? 240 : 300;
 
@@ -475,7 +474,6 @@ export default function RelationshipDashboard() {
               key={u.id}
               onClick={() => {
                 setSelectedUserId(u.id);
-                if (isMobile) setShowSidebarMobile(false);
               }}
               className={`${styles["list-item"]} ${active ? styles["list-item--active"] : ""
                 }`}
@@ -515,8 +513,7 @@ export default function RelationshipDashboard() {
                 key={r.influencer_id}
                 onClick={() => {
                   setSelectedInfluencer(r.influencer_id);
-                  if (isMobile) setShowSidebarMobile(false);
-                }}
+                  }}
                 className={`${styles["influencer"]} ${active ? styles["influencer--active"] : ""
                   }`}
               >
@@ -555,28 +552,7 @@ export default function RelationshipDashboard() {
         </button>
       }
     >
-      <div
-        className={styles["layout"]}
-        style={{ gridTemplateColumns: rootGridCols }}
-      >
-        {isMobile && (
-          <div className={styles["mobile-bar"]}>
-            <button
-              onClick={() => setShowSidebarMobile((v) => !v)}
-              className={styles["toggle-sidebar"]}
-            >
-              ☰ Select User / Influencer
-            </button>
-
-            <Pill tone={selectedRel ? badge : undefined}>
-              {selectedRel?.state || "—"}
-            </Pill>
-          </div>
-        )}
-
-        {!isMobile && Sidebar}
-        {isMobile && showSidebarMobile && Sidebar}
-
+      <AdminTwoColumn sidebar={Sidebar}>
         <main className={styles["main"]}>
           <div className={styles["header"]}>
             <div>
@@ -815,7 +791,7 @@ export default function RelationshipDashboard() {
             </Panel>
           </div>
         </main>
-      </div>
+      </AdminTwoColumn>
     </AdminLayout>
   );
 }
