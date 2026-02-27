@@ -19,6 +19,7 @@ import {
     TopApiUser,
 } from "@/api/services/AdminServices";
 import AdminLayout from "../AdminLayout";
+import AdminTwoColumn from "../AdminTwoColumn";
 import styles from "./AdminAnalytics.module.css";
 
 const admin = AdminServices(apiClient);
@@ -214,7 +215,47 @@ const AdminAnalytics: React.FC = () => {
             title="Analytics"
             subtitle="API usage, costs, and error tracking across the platform."
         >
-            <div className={styles["page"]}>
+            <AdminTwoColumn sidebar={<aside className={styles["sidebar"]}>
+                <div className={styles["sidebar-section"]}>
+                    <div className={styles["sidebar-title"]}>Current Window</div>
+                    <div className={styles["sidebar-value"]}>{period}</div>
+                </div>
+
+                <div className={styles["sidebar-section"]}>
+                    <div className={styles["sidebar-title"]}>Grouped By</div>
+                    <div className={styles["sidebar-value"]}>{groupBy}</div>
+                </div>
+
+                <div className={styles["sidebar-section"]}>
+                    <div className={styles["sidebar-title"]}>Snapshot</div>
+                    <div className={styles["sidebar-metric"]}>
+                        <span>Calls</span>
+                        <strong>{fmtNum(heroMetrics.calls)}</strong>
+                    </div>
+                    <div className={styles["sidebar-metric"]}>
+                        <span>Tokens</span>
+                        <strong>{fmtNum(heroMetrics.tokens)}</strong>
+                    </div>
+                    <div className={styles["sidebar-metric"]}>
+                        <span>Cost</span>
+                        <strong>{fmtCost(heroMetrics.cost)}</strong>
+                    </div>
+                    <div className={styles["sidebar-metric"]}>
+                        <span>Error Rate</span>
+                        <strong>{heroMetrics.errorRate.toFixed(1)}%</strong>
+                    </div>
+                    <div className={styles["sidebar-metric"]}>
+                        <span>Avg Latency</span>
+                        <strong>{fmtLatency(heroMetrics.avgLatency)}</strong>
+                    </div>
+                    <div className={styles["sidebar-metric"]}>
+                        <span>Total Errors</span>
+                        <strong>{fmtNum(totalErrors)}</strong>
+                    </div>
+                </div>
+            </aside>}>
+                <section className={styles["main"]}>
+                    <div className={styles["page"]}>
 
                 <div className={styles["toolbar"]}>
                     <div className={styles["toolbar-left"]}>
@@ -568,7 +609,9 @@ const AdminAnalytics: React.FC = () => {
                         </div>
                     </>
                 )}
-            </div>
+                    </div>
+                </section>
+            </AdminTwoColumn>
         </AdminLayout>
     );
 };

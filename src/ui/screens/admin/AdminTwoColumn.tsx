@@ -7,7 +7,7 @@ const MIN_WIDTH = 180;
 const MAX_WIDTH = 600;
 
 type AdminTwoColumnProps = {
-    sidebar: ReactNode;
+    sidebar?: ReactNode;
     children: ReactNode;
     sidebarStyled?: boolean;
     mainStyled?: boolean;
@@ -19,6 +19,7 @@ const AdminTwoColumn: React.FC<AdminTwoColumnProps> = ({
     sidebarStyled = true,
     mainStyled = true,
 }) => {
+    const hasSidebar = sidebar !== undefined && sidebar !== null;
     const [width, setWidth] = useState(() => {
         const stored = localStorage.getItem(STORAGE_KEY);
         return stored ? Number(stored) : DEFAULT_WIDTH;
@@ -64,16 +65,20 @@ const AdminTwoColumn: React.FC<AdminTwoColumnProps> = ({
 
     return (
         <div
-            className={`${styles["layout"]} ${isDragging ? styles["layout--dragging"] : ""}`}
-            style={{ "--sidebar-width": `${width}px` } as CSSProperties}
+            className={`${styles["layout"]} ${hasSidebar ? "" : styles["layout--single"]} ${isDragging ? styles["layout--dragging"] : ""}`}
+            style={hasSidebar ? ({ "--sidebar-width": `${width}px` } as CSSProperties) : undefined}
         >
-            <div className={`${styles["sidebar"]} ${sidebarStyled ? styles["sidebar--card"] : ""}`}>
-                {sidebar}
-            </div>
-            <div
-                className={`${styles["handle"]} ${isDragging ? styles["handle--dragging"] : ""}`}
-                onMouseDown={onMouseDown}
-            />
+            {hasSidebar ? (
+                <div className={`${styles["sidebar"]} ${sidebarStyled ? styles["sidebar--card"] : ""}`}>
+                    {sidebar}
+                </div>
+            ) : null}
+            {hasSidebar ? (
+                <div
+                    className={`${styles["handle"]} ${isDragging ? styles["handle--dragging"] : ""}`}
+                    onMouseDown={onMouseDown}
+                />
+            ) : null}
             <div className={`${styles["main"]} ${mainStyled ? styles["main--card"] : ""}`}>
                 {children}
             </div>

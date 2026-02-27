@@ -11,6 +11,10 @@
     overflow: hidden;
 }
 
+.layout--single {
+    grid-template-columns: 1fr;
+}
+
 .layout--dragging {
     cursor: col-resize;
     user-select: none;
@@ -84,6 +88,10 @@
         grid-template-columns: 1fr;
         grid-template-rows: auto auto;
         overflow-y: auto;
+    }
+
+    .layout--single {
+        grid-template-rows: 1fr;
     }
 
     .handle {
