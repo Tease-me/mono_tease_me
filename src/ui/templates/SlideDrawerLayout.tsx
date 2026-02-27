@@ -1,4 +1,4 @@
-import React, { memo, useEffect } from 'react';
+import React, { memo, useEffect, Suspense } from 'react';
 import styles from './SlideDrawerLayout.module.css';
 import clsx from "clsx"
 import SvgPack from '@/utils/SvgPack';
@@ -67,7 +67,7 @@ const SlideDrawerLayout: React.FC<SlideDrawerLayoutProps> = ({
               className={styles.backIconButton}
               onClick={onBack ?? onToggle}
             >
-              <SvgPack.ArrowLeft />
+              <Suspense fallback={null}><SvgPack.ArrowLeft /></Suspense>
             </button>
             <TeaseMeLogo size="small" variant="full" className={styles.logo} />
             <div className={styles.title}>{title}</div>
@@ -78,7 +78,9 @@ const SlideDrawerLayout: React.FC<SlideDrawerLayoutProps> = ({
               className={clsx(!showSidebar && styles.menuButton)}
             >
               <div className={styles.menuButtonIcon}>
-                {showSidebar ? <SvgPack.Cross /> : <SvgPack.Menu />}
+                <Suspense fallback={null}>
+                  {showSidebar ? <SvgPack.Cross /> : <SvgPack.Menu />}
+                </Suspense>
               </div>
             </div>
           </div>
