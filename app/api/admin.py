@@ -2,7 +2,8 @@ import io
 import logging
 from datetime import datetime, timezone, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, File, Query, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, File, Query, Request, UploadFile
+from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -36,10 +37,18 @@ from app.use_cases.admin_chat_info import (
     AdminChatInfoValidationError,
     get_admin_chat_info,
 )
+from app.use_cases.admin_logs import (
+    AdminLogsAccessError,
+    AdminLogsValidationError,
+    get_log_download,
+    get_log_files,
+    get_logs_page,
+    stream_logs_sse,
+)
 from app.utils.storage.s3 import save_sample_audio_to_s3, generate_presigned_url, delete_file_from_s3
 
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Literal, Optional
 
 from app.constants.relationship_stages import STAGE_POINTS_MIN, STAGE_POINTS_MAX
 
@@ -158,6 +167,123 @@ async def get_chat_info_by_user_influencer(
         raise HTTPException(status_code=500, detail="Failed to fetch chat info")
 
     return result.as_dict()
+
+
+@router.get("/logs")
+async def get_admin_logs(
+    q: str | None = None,
+    level: str | None = None,
+    file: str | None = None,
+    limit: int = 200,
+    cursor: str | None = None,
+    direction: Literal["backward", "forward"] = "backward",
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    try:
+        result = get_logs_page(
+            q=q,
+            level=level,
+            file=file,
+            limit=limit,
+            cursor=cursor,
+            direction=direction,
+        )
+    except AdminLogsValidationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except AdminLogsAccessError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to fetch logs")
+
+    return result.as_dict()
+
+
+@router.get("/logs/files")
+async def get_admin_logs_files(
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    try:
+        result = get_log_files()
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to fetch log files")
+
+    return result.as_dict()
+
+
+@router.get("/logs/download")
+async def download_admin_log_file(
+    file: str,
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    try:
+        result = get_log_download(file)
+    except AdminLogsValidationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except AdminLogsAccessError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to download log file")
+
+    return FileResponse(
+        path=str(result.file_path),
+        filename=result.file_name,
+        media_type="text/plain; charset=utf-8",
+    )
+
+
+@router.get("/logs/stream")
+async def stream_admin_logs(
+    request: Request,
+    q: str | None = None,
+    level: str | None = None,
+    file: str | None = None,
+    poll_interval_ms: int = 1500,
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    try:
+        source = stream_logs_sse(
+            q=q,
+            level=level,
+            file=file,
+            poll_interval_ms=poll_interval_ms,
+        )
+    except AdminLogsValidationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except AdminLogsAccessError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to stream logs")
+
+    async def event_stream():
+        try:
+            async for chunk in source:
+                if await request.is_disconnected():
+                    break
+                yield chunk
+        finally:
+            await source.aclose()
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 def sentiment_label(score: float) -> str:

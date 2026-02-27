@@ -1,8 +1,9 @@
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from app.db.models import Influencer
+from app.shared.prompting.influencer_bio import extract_influencer_bio_context
 from app.relationship.repo import get_or_create_relationship
 from app.relationship.inactivity import apply_inactivity_decay, check_and_trigger_reengagement
 from app.relationship.signals import classify_signals
@@ -228,15 +229,9 @@ async def process_relationship_turn(
     if influencer is None:
         raise ValueError(f"Influencer not found: {influencer_id}")
 
-    bio = influencer.bio_json or {}
-
-    persona_likes: List[str] = bio.get("likes", []) or []
-    persona_dislikes: List[str] = bio.get("dislikes", []) or []
-
-    if not isinstance(persona_likes, list):
-        persona_likes = []
-    if not isinstance(persona_dislikes, list):
-        persona_dislikes = []
+    bio_ctx = extract_influencer_bio_context(influencer)
+    persona_likes = bio_ctx.likes
+    persona_dislikes = bio_ctx.dislikes
 
     sig_dict = await classify_signals(
         db, message, recent_ctx, persona_likes, persona_dislikes, convo_analyzer,

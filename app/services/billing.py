@@ -2,13 +2,32 @@ import subprocess
 import tempfile
 import os
 import math
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.dialects.postgresql import insert
 
 from fastapi import HTTPException
 from app.db.models import InfluencerWallet, InfluencerCreditTransaction, DailyUsage, Pricing, User, Chat, Influencer
 from datetime import datetime, date
+
+async def _get_lifetime_used_units(db: AsyncSession, user_id: int, is_18: bool, feature: str) -> int:
+    field_map = {
+        "text": DailyUsage.text_count,
+        "voice": DailyUsage.voice_secs,
+        "live_chat": DailyUsage.live_secs,
+        "text_18": DailyUsage.text_count,
+        "voice_18": DailyUsage.voice_secs,
+    }
+    field = field_map.get(feature)
+    if not field:
+        return 0
+    
+    stmt = select(func.sum(field)).where(
+        DailyUsage.user_id == user_id,
+        DailyUsage.is_18 == is_18
+    )
+    res = await db.scalar(stmt)
+    return int(res or 0)
 
 async def charge_feature(
     db: AsyncSession,
@@ -36,13 +55,7 @@ async def charge_feature(
     if not price:
         raise HTTPException(500, "Pricing not configured")
 
-    used = {
-        "text": usage.text_count or 0,
-        "voice": usage.voice_secs or 0,
-        "live_chat": usage.live_secs or 0,
-        "text_18": usage.text_count or 0,
-        "voice_18": usage.voice_secs or 0,
-    }[feature]
+    used = await _get_lifetime_used_units(db, user_id, is_18, feature)
 
     free_left = max((price.free_allowance or 0) - used, 0)
     billable = max(units - free_left, 0)
@@ -291,15 +304,7 @@ def get_duration_seconds(file_bytes: bytes, mime: str | None = None) -> int:
     return max(1, math.ceil(duration))
 
 
-def _used_units_for_feature(usage: DailyUsage | None, feature: str) -> int:
-    if not usage:
-        return 0
 
-    if "text" in feature:
-        return int(usage.text_count or 0)
-    if "voice" in feature:
-        return int(usage.voice_secs or 0)
-    return int(usage.live_secs or 0)
 
 
 async def can_afford(
@@ -327,10 +332,7 @@ async def can_afford(
             },
         )
 
-    today = date.today()
-    usage = await db.get(DailyUsage, (user_id, today, is_18))
-
-    used = _used_units_for_feature(usage, feature)
+    used = await _get_lifetime_used_units(db, user_id, is_18, feature)
 
     free_left = max((price.free_allowance or 0) - used, 0)
     billable = max(int(units) - free_left, 0)
@@ -372,23 +374,7 @@ async def get_remaining_units(
     unit_price_cents = int(price.price_cents or 0)
     free_allowance = int(price.free_allowance or 0)
 
-    today_dt = _today_midnight_naive()
-
-    usage: DailyUsage | None = await db.scalar(
-        select(DailyUsage).where(
-            and_(
-                DailyUsage.user_id == user_id,
-                DailyUsage.date == today_dt,
-            )
-        )
-    )
-
-    if "text" in feature:
-        used = int(getattr(usage, "text_count", 0) if usage else 0)
-    elif "voice" in feature:
-        used = int(getattr(usage, "voice_secs", 0) if usage else 0)
-    else:
-        used = int(getattr(usage, "live_secs", 0) if usage else 0)
+    used = await _get_lifetime_used_units(db, user_id, is_18, feature)
 
     free_left = max(free_allowance - used, 0)
 
