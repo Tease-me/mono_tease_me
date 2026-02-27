@@ -941,7 +941,7 @@ const CreateInfluencer: React.FC = () => {
                 })
               )}
             </div>
-          </aside>} mainStyled={false}>
+          </aside>}>
           <section className={styles["detail-panel"]}>
             <form className={styles["detail-card"]} onSubmit={handleSubmit}>
               <div className={styles["detail-header"]}>
