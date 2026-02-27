@@ -28,7 +28,7 @@
 /* BOTTOM RED GRADIENT BLOCK */
 .tm-income-footer {
   width: 100%;
-  height: 56rem;
+  height: 100%;
   position: relative;
   bottom: 0;
   margin-top: -45rem;
@@ -45,6 +45,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding-bottom: calc(8rem + env(safe-area-inset-bottom));
 }
 
 .tm-income-footer img {
@@ -58,22 +59,26 @@
 }
 
 .tm-income-links {
+
   margin-top: 1rem;
+  margin-bottom: 5rem;
   opacity: 0.6;
-  display: flex;
+  display: grid;
   width: 100%;
-  flex-direction: row;
-  justify-content: space-between;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem 1rem;
 }
 
-.tm-income-links button {
-  background: none;
-  border: none;
+.tm-income-links a {
   color: white;
   font-size: 14px;
   opacity: 0.9;
+  text-decoration: none;
 }
 
+.tm-income-links a:hover {
+  text-decoration: underline;
+}
 
 /* DESKTOP TWEAKS */
 @media (min-width: 32rem) {
@@ -82,7 +87,11 @@
   }
 
   .footer-content-container {
+    padding-bottom: 120px;
     max-width: 80rem;
   }
 
+  .tm-income-links {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
