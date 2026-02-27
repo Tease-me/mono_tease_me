@@ -43,13 +43,14 @@ Usage Example:
 
 import asyncio
 import logging
+import re
 import time
 from typing import Optional
 
 from app.db.models.api_usage import ApiUsageLog
 from app.db.session import SessionLocal
 
-log = logging.getLogger("token-tracker")
+log = logging.getLogger(__name__)
 
 
 # ── Model Pricing (micro-dollars per token) ──────────────────────
@@ -96,6 +97,11 @@ _PRICING_OUTPUT = {
     "qwen-turbo":                 200,   # $0.20 / 1M output tokens
 }
 
+# Optional exact snapshot overrides (nano-dollars per token).
+# Keep empty by default and add entries if a specific snapshot diverges.
+_OPENAI_SNAPSHOT_OVERRIDES_INPUT: dict[str, int] = {}
+_OPENAI_SNAPSHOT_OVERRIDES_OUTPUT: dict[str, int] = {}
+
 # ElevenLabs: charged per character or per minute for ConvAI
 # Official: $0.10/min for ConvAI, ~$0.18/1000 chars for TTS
 _ELEVENLABS_CONVAI_COST_PER_SEC = 1_667    # $0.001667/sec = $0.10/min in microdollars
@@ -103,6 +109,41 @@ _ELEVENLABS_TTS_COST_PER_SEC    = 3_000    # ~$0.003/sec estimate for TTS
 
 # Whisper: charged per minute of audio
 _WHISPER_COST_PER_MINUTE = 6_000  # $0.006/min in microdollars
+_DATE_SUFFIX_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def _is_date_suffix(text: str) -> bool:
+    return bool(_DATE_SUFFIX_RE.fullmatch(text))
+
+
+def _canonicalize_model_for_pricing(model: str, provider: str) -> str:
+    """
+    Canonicalize runtime model IDs for pricing lookups.
+
+    OpenAI can return snapshot IDs like "gpt-4o-mini-2024-07-18".
+    We map those to canonical family IDs ("gpt-4o-mini") unless
+    an explicit snapshot override is configured.
+    """
+    normalized_model = (model or "").strip().lower()
+    normalized_provider = (provider or "").strip().lower()
+
+    if normalized_provider != "openai":
+        return normalized_model
+
+    if (
+        normalized_model in _OPENAI_SNAPSHOT_OVERRIDES_INPUT
+        or normalized_model in _OPENAI_SNAPSHOT_OVERRIDES_OUTPUT
+    ):
+        return normalized_model
+
+    if (
+        len(normalized_model) > 11
+        and normalized_model[-11] == "-"
+        and _is_date_suffix(normalized_model[-10:])
+    ):
+        return normalized_model[:-11]
+
+    return normalized_model
 
 
 def _estimate_cost(
@@ -121,8 +162,12 @@ def _estimate_cost(
 
     Convert to USD at display time by dividing by 1 million.
     """
+    raw_model = (model or "").strip()
+    normalized_provider = (provider or "").strip().lower()
+    pricing_model = _canonicalize_model_for_pricing(raw_model, normalized_provider)
+
     # Handle ElevenLabs time-based pricing
-    if provider == "elevenlabs" and duration_secs is not None:
+    if normalized_provider == "elevenlabs" and duration_secs is not None:
         rate = (
             _ELEVENLABS_CONVAI_COST_PER_SEC
             if purpose == "call_conversation"
@@ -131,7 +176,7 @@ def _estimate_cost(
         return int(duration_secs * rate)
 
     # Handle Whisper time-based pricing
-    if model == "whisper-1" and duration_secs is not None:
+    if pricing_model == "whisper-1" and duration_secs is not None:
         duration_mins = duration_secs / 60.0
         return int(duration_mins * _WHISPER_COST_PER_MINUTE)
 
@@ -143,25 +188,37 @@ def _estimate_cost(
     token_cost_nano = 0
 
     if input_tokens:
-        if model in _PRICING_INPUT:
-            token_cost_nano += input_tokens * _PRICING_INPUT[model]
+        input_rate = None
+        if normalized_provider == "openai":
+            input_rate = _OPENAI_SNAPSHOT_OVERRIDES_INPUT.get(pricing_model)
+        if input_rate is None:
+            input_rate = _PRICING_INPUT.get(pricing_model)
+
+        if input_rate is not None:
+            token_cost_nano += input_tokens * input_rate
             has_pricing = True
         else:
             log.warning(
-                "Unknown model '%s' (provider=%s) - no input pricing available. "
+                "Unknown model '%s' (pricing key='%s', provider=%s) - no input pricing available. "
                 "Add pricing to _PRICING_INPUT in token_tracker.py",
-                model, provider
+                raw_model, pricing_model, provider
             )
 
     if output_tokens:
-        if model in _PRICING_OUTPUT:
-            token_cost_nano += output_tokens * _PRICING_OUTPUT[model]
+        output_rate = None
+        if normalized_provider == "openai":
+            output_rate = _OPENAI_SNAPSHOT_OVERRIDES_OUTPUT.get(pricing_model)
+        if output_rate is None:
+            output_rate = _PRICING_OUTPUT.get(pricing_model)
+
+        if output_rate is not None:
+            token_cost_nano += output_tokens * output_rate
             has_pricing = True
         else:
             log.warning(
-                "Unknown model '%s' (provider=%s) - no output pricing available. "
+                "Unknown model '%s' (pricing key='%s', provider=%s) - no output pricing available. "
                 "Add pricing to _PRICING_OUTPUT in token_tracker.py",
-                model, provider
+                raw_model, pricing_model, provider
             )
 
     if has_pricing:
