@@ -1,16 +1,4 @@
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
-import PayPalCancel from "@/ui/components/modals/payment-modal/PayPalCancel";
-import PayPalReturn from "@/ui/components/modals/payment-modal/PayPalReturn";
-import DiditReturn from "@/ui/components/modals/verification/DiditReturn";
-import RelationshipDashboard from "@/ui/screens/admin/dashboard_relationship/RelationshipDashboard";
-import InfluencerAudioManagerRoute from "@/ui/screens/influencer-audio-manager/InfluencerAudioManagerRoute";
-import JoinPage from "@/ui/screens/join/JoinPage";
-import IncomeCalculatorScreen from "@/ui/screens/join/subscreens/IncomeCalculatorScreen";
-import ProfileSurvey from "@/ui/screens/join/subscreens/ProfileSurvey";
-import ThankYouScreen from "@/ui/screens/join/subscreens/ThankYouScreen";
-import UpdateProfile from "@/ui/screens/register/UpdateProfile";
-import ProfileSurveyForm from "@/ui/screens/influencer-survey/ProfileSurveyForm";
-import TermsPage from "@/ui/screens/terms/TermsPage";
 import { terms } from "@/ui/screens/terms/termsContent";
 
 import { JSX, Suspense, lazy } from "react";
@@ -20,6 +8,38 @@ import GuestRoute from "./components/GuestRoute";
 import PrivateRoute from "./components/PrivateRoute";
 import SuperRoute from "./components/SuperRoute";
 import { ThemeProvider } from "@/theme/ThemeProvider";
+
+const PayPalCancel = lazy(
+  () => import("@/ui/components/modals/payment-modal/PayPalCancel")
+);
+const PayPalReturn = lazy(
+  () => import("@/ui/components/modals/payment-modal/PayPalReturn")
+);
+const DiditReturn = lazy(
+  () => import("@/ui/components/modals/verification/DiditReturn")
+);
+const RelationshipDashboard = lazy(
+  () =>
+    import("@/ui/screens/admin/dashboard_relationship/RelationshipDashboard")
+);
+const InfluencerAudioManagerRoute = lazy(
+  () => import("@/ui/screens/influencer-audio-manager/InfluencerAudioManagerRoute")
+);
+const JoinPage = lazy(() => import("@/ui/screens/join/JoinPage"));
+const IncomeCalculatorScreen = lazy(
+  () => import("@/ui/screens/join/subscreens/IncomeCalculatorScreen")
+);
+const ProfileSurvey = lazy(
+  () => import("@/ui/screens/join/subscreens/ProfileSurvey")
+);
+const ThankYouScreen = lazy(
+  () => import("@/ui/screens/join/subscreens/ThankYouScreen")
+);
+const UpdateProfile = lazy(() => import("@/ui/screens/register/UpdateProfile"));
+const ProfileSurveyForm = lazy(
+  () => import("@/ui/screens/influencer-survey/ProfileSurveyForm")
+);
+const TermsPage = lazy(() => import("@/ui/screens/terms/TermsPage"));
 
 const AdminPreInfluencers = lazy(
   () => import("@/ui/screens/admin/pre-influencers/AdminPreInfluencers")
