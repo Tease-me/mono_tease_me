@@ -3,8 +3,11 @@ import { ERROR_MESSAGES, SOCIAL_PLATFORMS } from '../utils/constants';
 export interface SurveyQuestion {
   id: string;
   label: string;
-  type: 'text' | 'textarea' | 'radio';
+  type: 'text' | 'textarea' | 'radio' | 'checkbox';
   required?: boolean;
+  min?: number;
+  max?: number;
+  placeholder?: string;
   options?: { value: string | number; label: string }[];
 }
 
@@ -26,11 +29,24 @@ export function validateSurveyStep(
   const errors: Record<string, string> = {};
 
   step.questions.forEach((question) => {
-    if (!question.required) return;
-
     const value = answers[question.id];
 
-    // Check if value is empty
+    if (question.type === 'checkbox') {
+      const selectedCount = Array.isArray(value) ? value.length : 0;
+
+      if (question.required && selectedCount === 0) {
+        errors[question.id] = 'This field is required';
+      } else if (question.min && selectedCount < question.min) {
+        errors[question.id] = `Please select at least ${question.min} options`;
+      } else if (question.max && selectedCount > question.max) {
+        errors[question.id] = `Please select no more than ${question.max} options`;
+      }
+      return;
+    }
+
+    if (!question.required) return;
+
+    // Check if value is empty for text/radio
     const isEmpty =
       value === undefined ||
       value === null ||
