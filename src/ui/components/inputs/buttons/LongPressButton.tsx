@@ -23,6 +23,7 @@ const LongPressButton: React.FC<LongPressButtonProps> = ({
     onLongPressEnd,
     onShortPress,
     onLongPress,
+    disabled,
     ...props
 }) => {
     const timerRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -32,12 +33,18 @@ const LongPressButton: React.FC<LongPressButtonProps> = ({
     const movementThreshold = 20;
 
     const handleMouseDown = (event: React.MouseEvent) => {
+        if (disabled) return;
         startPosition.current = { x: event.clientX, y: event.clientY };
         isDragging.current = false;
         startPressTimer();
     };
 
     const handleMouseUp = () => {
+        if (disabled) {
+            isLongPress.current = false;
+            isDragging.current = false;
+            return;
+        }
         if (isDragging.current) {
             props.onDragEnd?.();
             isDragging.current = false;
@@ -54,6 +61,7 @@ const LongPressButton: React.FC<LongPressButtonProps> = ({
     };
 
     const handleTouchStart = (event: React.TouchEvent) => {
+        if (disabled) return;
         const touch = event.touches[0];
         startPosition.current = { x: touch.clientX, y: touch.clientY };
         isDragging.current = false;
@@ -61,6 +69,11 @@ const LongPressButton: React.FC<LongPressButtonProps> = ({
     };
 
     const handleTouchEnd = () => {
+        if (disabled) {
+            isLongPress.current = false;
+            isDragging.current = false;
+            return;
+        }
         if (isDragging.current) {
             props.onDragEnd?.();
             isDragging.current = false;
@@ -85,6 +98,7 @@ const LongPressButton: React.FC<LongPressButtonProps> = ({
     }
 
     const handleMouseMove = (event: React.MouseEvent) => {
+        if (disabled) return;
         if (startPosition.current && !isDragging.current) {
             const dx = Math.abs(event.clientX - startPosition.current.x);
             const dy = Math.abs(event.clientY - startPosition.current.y);
@@ -111,6 +125,7 @@ const LongPressButton: React.FC<LongPressButtonProps> = ({
     };
 
     const handleTouchMove = (event: React.TouchEvent) => {
+        if (disabled) return;
         const touch = event.touches[0];
         if (startPosition.current && !isDragging.current) {
             const dx = Math.abs(touch.clientX - startPosition.current.x);
@@ -139,6 +154,7 @@ const LongPressButton: React.FC<LongPressButtonProps> = ({
     return (
         <IconButton draggable={false}
             {...props}
+            disabled={disabled}
             color='yellow'
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}

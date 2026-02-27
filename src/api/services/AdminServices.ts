@@ -107,6 +107,54 @@ export type AdminClearHistoryResponse = {
 
 export type HistoryClearMode = "normal" | "adult" | "both";
 
+export type LogLevel = "DEBUG" | "INFO" | "WARNING" | "ERROR" | "CRITICAL";
+
+export type LogLine = {
+  ts: string;
+  level: LogLevel;
+  logger: string;
+  message: string;
+  raw: string;
+  file: string;
+  line_no: number;
+};
+
+export type AdminLogsResponse = {
+  ok: boolean;
+  items: LogLine[];
+  next_cursor: string | null;
+  prev_cursor: string | null;
+  applied_filters: {
+    q?: string;
+    level?: LogLevel;
+    file?: string;
+    limit: number;
+    direction: string;
+  };
+  redaction_applied: boolean;
+};
+
+export type LogFileInfo = {
+  name: string;
+  size_bytes: number;
+  modified_at: string;
+  is_current: boolean;
+};
+
+export type AdminLogFilesResponse = {
+  ok: boolean;
+  files: LogFileInfo[];
+};
+
+export type AdminLogsParams = {
+  q?: string;
+  level?: LogLevel | "";
+  file?: string;
+  limit?: number;
+  cursor?: string;
+  direction?: "backward" | "forward";
+};
+
 export const AdminServices = (apiClient: AxiosInstance) => ({
   getUsers: async (q?: string): Promise<AdminUserRow[]> => {
     const response = await apiClient.get(Endpoints.admin.users(q));
@@ -174,5 +222,36 @@ export const AdminServices = (apiClient: AxiosInstance) => ({
       { params: { mode } }
     );
     return response.data;
+  },
+
+  getLogs: async (params: AdminLogsParams): Promise<AdminLogsResponse> => {
+    const cleanParams: Record<string, string | number> = {};
+    if (params.q) cleanParams.q = params.q;
+    if (params.level) cleanParams.level = params.level;
+    if (params.file) cleanParams.file = params.file;
+    if (params.limit) cleanParams.limit = params.limit;
+    if (params.cursor) cleanParams.cursor = params.cursor;
+    if (params.direction) cleanParams.direction = params.direction;
+    const response = await apiClient.get(Endpoints.admin.logs, { params: cleanParams });
+    return response.data;
+  },
+
+  getLogFiles: async (): Promise<AdminLogFilesResponse> => {
+    const response = await apiClient.get(Endpoints.admin.logFiles);
+    return response.data;
+  },
+
+  downloadLogFile: async (fileName: string): Promise<void> => {
+    const response = await apiClient.get(Endpoints.admin.logDownload, {
+      params: { file: fileName },
+      responseType: "blob",
+    });
+    const blob = new Blob([response.data], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
   },
 });
