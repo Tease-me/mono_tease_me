@@ -195,6 +195,10 @@ function AppRoutes() {
 
   const superRoutes: { path: string; element: JSX.Element }[] = [
     // { path: Paths.mjDashboard, element: <MJDashboard /> },
+    {
+      path: Paths.admin.root,
+      element: <Navigate to={Paths.admin.analytics} replace />,
+    },
     { path: Paths.admin.influencer, element: <CreateInfluencer /> },
     { path: Paths.admin.prompts, element: <PromptEditorAdmin /> },
     { path: Paths.admin.relationship, element: <RelationshipDashboard /> },

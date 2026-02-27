@@ -20,6 +20,7 @@ export const Paths = {
     forgotPassword: "/forgot-password",
     verifyEmail: "/verify-email",
     admin: {
+        root: "/admin",
         influencer: "/admin/influencer",
         prompts: "/admin/prompts",
         relationship: "/admin/relationship",
