@@ -19,7 +19,7 @@ import { formatDateTimeRelative, formatDate } from "@/utils/DateTimeUtils";
 import switchProfileImg from "@/assets/svg/switchProfile.svg";
 import InfluencerPopup from "../../components/InfluencerPopup";
 import { RelationshipServices } from "@/api/services/RelationshipServices";
-import { useIsMobile } from "@/utils/hooks/useIsDesktop";
+import { useIsMobile } from "@/hooks/layout/useIsDesktop";
 
 const balanceSvc = BalanceServices(apiClient);
 const relationshipService = RelationshipServices(apiClient);

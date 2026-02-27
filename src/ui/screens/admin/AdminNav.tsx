@@ -1,4 +1,5 @@
 import React, { Suspense } from "react";
+import { Paths } from "@/routes/path";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import SvgPack from "@/utils/SvgPack";
 import logo from "@/assets/logos/3D-IconTeaseMe-Dark.svg";
@@ -7,14 +8,14 @@ import styles from "./AdminNav.module.css";
 type NavItem = { to: string; label: string; icon: React.ReactNode };
 
 const NAV_ITEMS: NavItem[] = [
-    { to: "/admin/analytics", label: "Analytics", icon: <SvgPack.Dashboard /> },
-    { to: "/admin/relationship", label: "Relationship", icon: <SvgPack.Trust /> },
-    { to: "/admin/influencer", label: "Influencers", icon: <SvgPack.Users /> },
-    { to: "/admin/pre-influencers", label: "Pre-Influencers", icon: <SvgPack.StarHollow /> },
-    { to: "/admin/knowledge", label: "Knowledge", icon: <SvgPack.InfoCircle /> },
-    { to: "/admin/prompts", label: "Prompts", icon: <SvgPack.Ai /> },
-    { to: "/admin/chat-history", label: "Chat History", icon: <SvgPack.ChatRound /> },
-    { to: "/admin/logs", label: "Logs", icon: <SvgPack.Bill /> },
+    { to: Paths.admin.analytics, label: "Analytics", icon: <SvgPack.Dashboard /> },
+    { to: Paths.admin.relationship, label: "Relationship", icon: <SvgPack.Trust /> },
+    { to: Paths.admin.influencer, label: "Influencers", icon: <SvgPack.Users /> },
+    { to: Paths.admin.preInfluencers, label: "Pre-Influencers", icon: <SvgPack.StarHollow /> },
+    { to: Paths.admin.knowledge, label: "Knowledge", icon: <SvgPack.InfoCircle /> },
+    { to: Paths.admin.prompts, label: "Prompts", icon: <SvgPack.Ai /> },
+    { to: Paths.admin.chatHistory, label: "Chat History", icon: <SvgPack.ChatRound /> },
+    { to: Paths.admin.logs, label: "Logs", icon: <SvgPack.Bill /> },
 ];
 
 type AdminNavProps = {

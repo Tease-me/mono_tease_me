@@ -9,7 +9,7 @@ import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import clsx from 'clsx';
 import IconButton from '@/ui/components/inputs/buttons/IconButton';
 import SvgPack from '@/utils/SvgPack';
-import useIsDesktop from '@/utils/hooks/useIsDesktop';
+import useIsDesktop from '@/hooks/layout/useIsDesktop';
 import RemainingCreditBadge from '@/ui/components/badges/RemainingCreditBadge';
 import { showErrorModal } from '@/utils/errorModal';
 

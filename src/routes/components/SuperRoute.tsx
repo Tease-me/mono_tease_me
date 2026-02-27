@@ -2,6 +2,7 @@ import { AuthContext } from "@/context/AuthContext";
 import React, { ReactNode, useContext } from "react";
 import { Navigate } from "react-router-dom";
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
+import { Paths } from "@/routes/path";
 
 interface SuperRouteProps {
     children: ReactNode;
@@ -17,7 +18,7 @@ const SuperRoute: React.FC<SuperRouteProps> = ({ children }) => {
     }
 
     if (!isSignedIn || user !== undefined && user.id !== 1) {
-        return <Navigate to="/home" />;
+        return <Navigate to={Paths.home} />;
     }
 
     return <>{children}</>;

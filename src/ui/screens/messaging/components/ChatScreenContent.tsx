@@ -37,9 +37,9 @@ import AddCreditsModal from "@/ui/components/modals/payment-modal/AddCreditsModa
 import AdultTermsModal from "@/ui/components/modals/adult-terms/AdultTermsModal";
 import { useSidebar } from "@/hooks/useSidebar";
 import InfluencerSelector from "@/ui/screens/influencer/InfluencerSelector";
-import { useInfluencerSelection } from "./hooks/useInfluencerSelection";
-import { useSubscriptionState } from "./hooks/useSubscriptionState";
-import { useChatRealtime } from "./hooks/useChatRealtime";
+import { useInfluencerSelection } from "@/hooks/messaging/useInfluencerSelection";
+import { useSubscriptionState } from "@/hooks/messaging/useSubscriptionState";
+import { useChatRealtime } from "@/hooks/messaging/useChatRealtime";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   chatScreenActions,
