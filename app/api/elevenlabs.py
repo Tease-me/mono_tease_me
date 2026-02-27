@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Optional
 from app.core.config import settings
 from app.db.models import Influencer, Chat, Message, CallRecord, User, PreInfluencer, Memory
 from app.db.session import get_db
+from app.shared.prompting.influencer_bio import extract_influencer_bio_context
 from app.utils.auth.dependencies import get_current_user
 from app.schemas.elevenlabs import FinalizeConversationBody, RegisterConversationBody, UpdatePromptBody
 from app.services.billing import charge_feature,_get_influencer_id_from_chat
@@ -1396,25 +1397,16 @@ async def get_conversation_token(
     if not influencer:
         raise HTTPException(404, "Influencer not found")
     
-    bio = influencer.bio_json or {}
-    persona_likes = bio.get("likes", [])
-    persona_dislikes = bio.get("dislikes", [])
-    if not isinstance(persona_likes, list):
-        persona_likes = []
-    if not isinstance(persona_dislikes, list):
-        persona_dislikes = []
-    
+    bio_ctx = extract_influencer_bio_context(influencer)
+    persona_likes = bio_ctx.likes
+    persona_dislikes = bio_ctx.dislikes
+    influencer_stages = bio_ctx.stages
     # Get stage prompts from DB, with potential bio_json override
     stages = await get_relationship_stage_prompts(db)
-    bio_stages = bio.get("stages", {})
-    if isinstance(bio_stages, dict) and bio_stages:
-        for key, val in bio_stages.items():
-            if val:  # Only override if value is non-empty
-                stages[key.upper()] = val
-    personality_rules = bio.get("personality_rules", "")
-    tone = bio.get("tone", "")
-    mbti_archetype = bio.get("mbti_architype", "")
-    mbti_addon = bio.get("mbti_rules", "")
+    personality_rules = bio_ctx.personality_rules
+    tone = bio_ctx.tone
+    mbti_archetype = bio_ctx.mbti_archetype
+    mbti_addon = bio_ctx.mbti_rules_addon
     mbti_rules = await get_mbti_rules_for_archetype(db, mbti_archetype, mbti_addon)
     daily_context = ""
 
@@ -1537,6 +1529,7 @@ async def get_conversation_token(
         tone=tone,
         influencer_name=influencer.display_name,
         users_name=users_name,
+        influencer_stages=influencer_stages,
     )
     
     log_prompt(log, prompt, cid="", input="")

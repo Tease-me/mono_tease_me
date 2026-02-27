@@ -5,6 +5,7 @@ from datetime import date, datetime, timezone
 from typing import Optional
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+from app.shared.prompting.influencer_bio import InfluencerBioContext
 from langchain_core.prompts import (
     ChatPromptTemplate,
 )
@@ -273,20 +274,26 @@ def build_relationship_prompt(
     analysis: str | None = None,
     influencer_name: str = "",
     users_name: str = "",
+    influencer_stages: InfluencerBioContext | None = None,
 ):
     stages = stages or {}
     rel_state = (getattr(rel, "state", "") or "").strip().upper()
     stage_prompt = ""
+    influencer_stage_prompt = ""
 
     if stages:
         # Try uppercase key first (DB format), then lowercase (bio_json format)
         stage_prompt = stages.get(rel_state, "") or stages.get(rel_state.lower(), "")
+        
+    if influencer_stages:
+        influencer_stage_prompt = influencer_stages.get(rel_state, "") or influencer_stages.get(rel_state.lower(), "")
 
     partial_vars = {
         "relationship_state": rel.state,
         "influencer_name": influencer_name,
         "users_name": users_name,
         "stage_prompt": stage_prompt,
+        "influencer_stage_prompt": influencer_stage_prompt,
         "trust": int(rel.trust or 0),
         "closeness": int(rel.closeness or 0),
         "attraction": int(rel.attraction or 0),

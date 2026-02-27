@@ -20,6 +20,7 @@ from app.agents.prompt_utils import (
     get_relationship_stage_prompts,
 )
 from app.db.models import Influencer, User
+from app.shared.prompting.influencer_bio import extract_influencer_bio_context
 from app.utils.messaging.tts_sanitizer import sanitize_tts_text
 from app.utils.logging.prompt_logging import log_prompt
 
@@ -312,33 +313,23 @@ async def handle_turn(
         len(mem_block) + len(ai_mem_block),
     )
 
-    bio = influencer.bio_json or {}
-
-    persona_likes = bio.get("likes", [])
-    persona_dislikes = bio.get("dislikes", [])
-    if not isinstance(persona_likes, list):
-        persona_likes = []
-    if not isinstance(persona_dislikes, list):
-        persona_dislikes = []
+    bio_ctx = extract_influencer_bio_context(influencer)
+    persona_likes = bio_ctx.likes
+    persona_dislikes = bio_ctx.dislikes
     
-    # OPTIMIZATION: Parallelize system prompt fetches
-    # These are independent Redis/DB lookups that can run concurrently
-    mbti_archetype = bio.get("mbti_architype", "")  
-    mbti_addon = bio.get("mbti_rules", "")
+    mbti_archetype = bio_ctx.mbti_archetype
+    mbti_addon = bio_ctx.mbti_rules_addon
     
     stages, mbti_rules = await asyncio.gather(
         get_relationship_stage_prompts(db),
         get_mbti_rules_for_archetype(db, mbti_archetype, mbti_addon)
     )
     
-    bio_stages = bio.get("stages", {})
-    if isinstance(bio_stages, dict) and bio_stages:
-        for key, val in bio_stages.items():
-            if val: 
-                stages[key.upper()] = val
+    for key, val in stages.items():
+        stages[key] = val
 
-    personality_rules = bio.get("personality_rules", "")
-    tone = bio.get("tone", "")
+    personality_rules = bio_ctx.personality_rules
+    tone = bio_ctx.tone
     daily_context = ""  
     users_name = await _build_user_name_block(db, user_id)
 
@@ -361,6 +352,7 @@ async def handle_turn(
         tone=tone,
         influencer_name=influencer.display_name,
         users_name=users_name,
+        influencer_stages=bio_ctx.stages,
     )
 
     hist_msgs = history.messages
