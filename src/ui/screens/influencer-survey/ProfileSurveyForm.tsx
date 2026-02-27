@@ -416,10 +416,7 @@ const ProfileSurveyForm: React.FC = () => {
                   <PrimaryButton
                     onClick={handleNext}
                     text={isLastStep ? 'Finish' : 'Next'}
-                    disabled={
-                      state.audioIsRecording ||
-                      (isAudioStep && (!state.audioHasRecorded || state.audioCount === 0))
-                    }
+                    disabled={state.audioIsRecording || !validateCurrentStep().valid}
                     rightIcon={<SvgPack.ArrowRight />}
                   />
                 </div>
