@@ -1400,7 +1400,7 @@ async def get_conversation_token(
     bio_ctx = extract_influencer_bio_context(influencer)
     persona_likes = bio_ctx.likes
     persona_dislikes = bio_ctx.dislikes
-    influencer_stages= bio_ctx.stages
+    influencer_stages = bio_ctx.stages
     # Get stage prompts from DB, with potential bio_json override
     stages = await get_relationship_stage_prompts(db)
     personality_rules = bio_ctx.personality_rules
@@ -1529,7 +1529,7 @@ async def get_conversation_token(
         tone=tone,
         influencer_name=influencer.display_name,
         users_name=users_name,
-        influencer_stage_prompt=influencer_stages,
+        influencer_stages=influencer_stages,
     )
     
     log_prompt(log, prompt, cid="", input="")
