@@ -1,7 +1,10 @@
 .create-ai {
     display: flex;
     flex-direction: column;
+    flex: 1;
+    min-height: 0;
     gap: var(--space-px-24);
+    overflow: hidden;
     background: radial-gradient(160% 120% at 50% 0%, rgba(30, 34, 45, 0.4), rgba(14, 16, 24, 0.9));
 }
 
@@ -44,34 +47,27 @@
     border: 1px solid rgba(239, 68, 68, 0.35);
 }
 
-.create-ai__layout {
-    display: grid;
-    grid-template-columns: 400px 1fr;
-    gap: var(--space-px-24);
-}
-
 .sidebar {
     display: flex;
     flex-direction: column;
     gap: var(--space-px-20);
-    border-radius: 24px;
-    padding: 24px;
-    background: linear-gradient(140deg, rgba(37, 42, 56, 0.95), rgba(18, 20, 30, 0.94));
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
 }
 
 .sidebar-top {
     display: flex;
     flex-direction: column;
     gap: var(--space-px-16);
+    padding: 12px 14px 0;
 }
 
 .sidebar-title {
     margin: 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--color-text);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.5);
 }
 
 .sidebar-subtitle {
@@ -105,6 +101,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-px-16);
+    padding: 0 14px 14px;
 }
 
 .new-button {
@@ -143,9 +140,11 @@
 .influencer-list {
     display: flex;
     flex-direction: column;
+    flex: 1;
+    min-height: 0;
     gap: var(--space-px-12);
     overflow-y: auto;
-    max-height: calc(100vh - 320px);
+    max-height: none;
     padding-right: 6px;
 }
 
@@ -175,13 +174,13 @@
 }
 
 .influencer-item:hover {
-    transform: translateY(-1px);
-    border-color: rgba(0, 169, 241, 0.4);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.14);
 }
 
 .influencer-item--active {
-    border-color: rgba(0, 169, 241, 0.6);
-    background: linear-gradient(135deg, rgba(0, 169, 241, 0.22), rgba(0, 169, 241, 0.05));
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.09);
 }
 
 .influencer-item__avatar {
@@ -265,17 +264,15 @@
 .detail-panel {
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
 }
 
 .detail-card {
     display: flex;
     flex-direction: column;
     gap: var(--space-px-24);
-    padding: 28px 32px;
-    border-radius: 24px;
-    background: linear-gradient(145deg, rgba(33, 37, 51, 0.95), rgba(18, 20, 28, 0.92));
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
 }
 
 .detail-header {
@@ -819,10 +816,6 @@
 }
 
 @media (max-width: 1200px) {
-    .create-ai__layout {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
     .sidebar {
         flex-direction: column;
         max-height: none;

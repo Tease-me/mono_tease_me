@@ -34,6 +34,9 @@ const AdminPreInfluencerDetail = lazy(
   () =>
     import("@/ui/screens/admin/pre-influencers/AdminPreInfluencerDetail")
 );
+const AdminAnalytics = lazy(
+  () => import("@/ui/screens/admin/analytics/AdminAnalytics")
+);
 const InfluencerProfileScreen = lazy(
   () => import("@/ui/screens/influencer-profile/InfluencerProfileScreen")
 );
@@ -168,6 +171,7 @@ function AppRoutes() {
       element: <AdminPreInfluencerDetail />,
     },
     { path: Paths.admin.preInfluencers, element: <AdminPreInfluencers /> },
+    { path: Paths.admin.analytics, element: <AdminAnalytics /> },
     { path: Paths.admin.knowledge, element: <AdminKnowledge /> },
     { path: Paths.admin.chatHistory, element: <AdminChatHistory /> },
     { path: Paths.admin.logs, element: <AdminLogs /> },
