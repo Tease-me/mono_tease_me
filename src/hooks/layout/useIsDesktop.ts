@@ -1,5 +1,5 @@
 import useMediaQuery from "@/hooks/useMediaQuery";
-import { constants } from "../constants";
+import { constants } from "@/utils/constants";
 
 const useIsDesktop = () =>
   useMediaQuery(`(min-width: ${constants.DESKTOP_TABLET_BREAKPOINT}px)`);

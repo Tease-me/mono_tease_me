@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { apiClient } from '@/api/apis';
-import { SurveyStep } from '../validation/surveyValidation';
+import { SurveyStep } from '@/ui/screens/influencer-survey/validation/surveyValidation';
 import { useAutoSave } from './useAutoSave';
-import { ERROR_MESSAGES } from '../utils/constants';
+import { ERROR_MESSAGES } from '@/ui/screens/influencer-survey/utils/constants';
 
 interface SurveyState {
   pre_influencer_id: number;

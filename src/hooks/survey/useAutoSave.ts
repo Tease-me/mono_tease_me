@@ -3,7 +3,7 @@
 
 import { useEffect, useRef } from 'react';
 import { apiClient } from '@/api/apis';
-import { AUTO_SAVE_DEBOUNCE_MS } from '../utils/constants';
+import { AUTO_SAVE_DEBOUNCE_MS } from '@/ui/screens/influencer-survey/utils/constants';
 
 interface UseAutoSaveProps {
   preInfluencerId: number | null;

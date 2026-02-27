@@ -9,7 +9,7 @@ import {
   validateSocialStep,
   validateAudioStep,
   ValidationResult,
-} from '../validation/surveyValidation';
+} from '@/ui/screens/influencer-survey/validation/surveyValidation';
 
 interface UseStepValidationProps {
   stepIndex: number;

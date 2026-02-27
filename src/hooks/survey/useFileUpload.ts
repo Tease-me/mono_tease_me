@@ -7,8 +7,8 @@ import {
   validateImageFile,
   validateAudioFile,
   createObjectURL,
-} from '../utils/fileUploadHelpers';
-import { ERROR_MESSAGES } from '../utils/constants';
+} from '@/ui/screens/influencer-survey/utils/fileUploadHelpers';
+import { ERROR_MESSAGES } from '@/ui/screens/influencer-survey/utils/constants';
 
 interface UploadImageParams {
   file: File;
