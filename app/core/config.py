@@ -6,6 +6,8 @@ class Settings(BaseSettings):
     DB_URL: str
     OPENAI_API_KEY: str
     XAI_API_KEY: str
+    QWEN_API_KEY: str | None = None
+    QWEN_BASE_URL: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
     REDIS_URL: str 
     MAX_HISTORY_WINDOW: int
     SCORE_TTL: int

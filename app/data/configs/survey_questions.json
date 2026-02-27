@@ -4,18 +4,6 @@
     "title": "Basic Info",
     "questions": [
       {
-        "id": "q1_name",
-        "label": "Name",
-        "type": "text",
-        "required": true
-      },
-      {
-        "id": "q2_email",
-        "label": "Email",
-        "type": "text",
-        "required": true
-      },
-      {
         "id": "q3_social_name",
         "label": "Social Name / Stage Name",
         "type": "text",
@@ -37,423 +25,951 @@
         "id": "q6_secondary_language",
         "label": "Secondary Language",
         "type": "text"
+      },
+      {
+        "id": "q_about_me",
+        "label": "Tell us about yourself (e.g. Where you come from, any siblings, etc.)",
+        "type": "textarea",
+        "required": true,
+        "placeholder": "Example: I'm 23, originally from Texas but living in LA for school. I'm the youngest of three, so I can be a bit spoiled, but I'm super independent! I spend my weekends exploring new coffee shops and vintage stores, though secretly I'm a huge homebody who loves binge-watching reality TV. I can be a little shy at first, but once I'm comfortable, I'll talk your ear off and tease you constantly. I value loyalty above everything and I'm totally the \"mom friend\" who makes sure everyone is doing okay."
       }
     ]
   },
   {
-    "id": "personality-1",
-    "title": "Personality & Social",
+    "id": "persona-vibes",
+    "title": "Vibes & Lifestyle",
     "questions": [
       {
-        "id": "q7_at_parties",
-        "label": "At Parties, You Usually?",
-        "type": "radio",
+        "id": "q_main_vibes",
+        "label": "Main Vibes (Pick 2-4)",
+        "type": "checkbox",
         "required": true,
+        "min": 2,
+        "max": 4,
         "options": [
           {
-            "value": "talk_many",
-            "label": "Talk to many people"
+            "value": "sweetheart",
+            "label": "sweetheart"
           },
           {
-            "value": "quiet_few",
-            "label": "Stay quiet or talk to 1–2 friends"
+            "value": "smartass",
+            "label": "smartass"
+          },
+          {
+            "value": "shy_one",
+            "label": "shy_one"
+          },
+          {
+            "value": "confident_one",
+            "label": "confident_one"
+          },
+          {
+            "value": "tease",
+            "label": "tease"
+          },
+          {
+            "value": "nerd",
+            "label": "nerd"
+          },
+          {
+            "value": "romantic",
+            "label": "romantic"
+          },
+          {
+            "value": "hot_cold",
+            "label": "hot_cold"
+          },
+          {
+            "value": "flirt",
+            "label": "flirt"
+          },
+          {
+            "value": "boss_babe",
+            "label": "boss_babe"
+          },
+          {
+            "value": "mom_friend",
+            "label": "mom_friend"
+          },
+          {
+            "value": "damaged_one",
+            "label": "damaged_one"
+          },
+          {
+            "value": "rebel",
+            "label": "rebel"
+          },
+          {
+            "value": "bubbly_one",
+            "label": "bubbly_one"
+          },
+          {
+            "value": "mystery_girl",
+            "label": "mystery_girl"
+          },
+          {
+            "value": "overthinker",
+            "label": "overthinker"
+          },
+          {
+            "value": "tomboy",
+            "label": "tomboy"
+          },
+          {
+            "value": "drama_queen",
+            "label": "drama_queen"
+          },
+          {
+            "value": "realist",
+            "label": "realist"
+          },
+          {
+            "value": "spiritual_one",
+            "label": "spiritual_one"
+          },
+          {
+            "value": "wild_one",
+            "label": "wild_one"
+          },
+          {
+            "value": "protector",
+            "label": "protector"
+          },
+          {
+            "value": "naughty_one",
+            "label": "naughty_one"
+          },
+          {
+            "value": "silly_one",
+            "label": "silly_one"
+          },
+          {
+            "value": "perfectionist",
+            "label": "perfectionist"
           }
         ]
       },
       {
-        "id": "q8_after_talking",
-        "label": "After talking to people all day, you feel?",
+        "id": "q_energy_type",
+        "label": "Energy Type (Pick 1)",
         "type": "radio",
         "required": true,
         "options": [
           {
-            "value": "energised",
-            "label": "More energised"
+            "value": "firecracker",
+            "label": "firecracker \ud83e\udde8"
           },
           {
-            "value": "tired",
-            "label": "Very tired, want alone time"
+            "value": "softie",
+            "label": "softie \ud83e\udd7a"
+          },
+          {
+            "value": "savage",
+            "label": "savage \ud83d\udc85"
+          },
+          {
+            "value": "princess",
+            "label": "princess \ud83d\udc51\u2728"
+          },
+          {
+            "value": "ride_or_die",
+            "label": "ride_or_die \ud83c\udfce\ufe0f\ud83e\udd1d"
+          },
+          {
+            "value": "hot_mess",
+            "label": "hot_mess \ud83c\udf2a\ufe0f\ud83c\udf77"
+          },
+          {
+            "value": "free_spirit",
+            "label": "free_spirit \ud83d\udd4a\ufe0f\ud83c\udf3f"
+          },
+          {
+            "value": "ice_queen",
+            "label": "ice_queen \ud83e\uddca\u2744\ufe0f"
           }
         ]
       },
       {
-        "id": "q9_make_friends",
-        "label": "You make friends",
-        "type": "radio",
+        "id": "q_social_life",
+        "label": "Social Life (Pick 1-2)",
+        "type": "checkbox",
         "required": true,
+        "min": 1,
+        "max": 2,
         "options": [
           {
-            "value": "very_fast",
-            "label": "Very fast"
+            "value": "party_girl",
+            "label": "Party Girl"
           },
           {
-            "value": "slow_real",
-            "label": "Slowly, only real ones"
+            "value": "selective",
+            "label": "Selective"
+          },
+          {
+            "value": "one_of_the_guys",
+            "label": "One of The Guys"
+          },
+          {
+            "value": "girls_girl",
+            "label": "Girls' Girl"
+          },
+          {
+            "value": "loner",
+            "label": "loner \ud83d\udc3a"
+          },
+          {
+            "value": "social_butterfly",
+            "label": "Social Butterfly"
+          },
+          {
+            "value": "homebody",
+            "label": "Homebody"
+          },
+          {
+            "value": "always_busy",
+            "label": "Always Busy"
+          },
+          {
+            "value": "girl_next_door",
+            "label": "girl_next_door \ud83c\udfe1\u2728"
+          },
+          {
+            "value": "people_pleaser",
+            "label": "people_pleaser \ud83e\udd7a\ud83e\udd1d"
+          },
+          {
+            "value": "superstar",
+            "label": "superstar \u2b50\u2728"
+          },
+          {
+            "value": "tribe_leader",
+            "label": "tribe_leader \ud83d\udc51\ud83d\udc3a"
           }
         ]
       },
       {
-        "id": "q10_focus_more_on",
-        "label": "You focus more on?",
-        "type": "radio",
+        "id": "q_her_thing",
+        "label": "Her Thing (Pick 1-3)",
+        "type": "checkbox",
         "required": true,
+        "min": 1,
+        "max": 3,
         "options": [
           {
-            "value": "now",
-            "label": "What is happening now"
+            "value": "gamer_girl",
+            "label": "Gamer Girl"
           },
           {
-            "value": "future",
-            "label": "Future dream"
+            "value": "bookworm",
+            "label": "Bookworm"
           },
           {
-            "value": "past",
-            "label": "Live in the past"
-          }
-        ]
-      },
-      {
-        "id": "q11_like_to_talk_about",
-        "label": "You like to talk about?",
-        "type": "radio",
-        "required": true,
-        "options": [
-          {
-            "value": "real_daily",
-            "label": "Real daily things"
+            "value": "gym_rat",
+            "label": "Gym Rat"
           },
           {
-            "value": "imagination",
-            "label": "Imagination / \"what if\""
-          }
-        ]
-      },
-      {
-        "id": "q12_first_remember",
-        "label": "When you remember something, you first remember?",
-        "type": "radio",
-        "required": true,
-        "options": [
-          {
-            "value": "details",
-            "label": "Details"
+            "value": "artsy_type",
+            "label": "Artsy Type"
           },
           {
-            "value": "feelings",
-            "label": "Feeling / Big Picture"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "personality-2",
-    "title": "Personality & Decisions",
-    "questions": [
-      {
-        "id": "q13_when_someone_cries",
-        "label": "When someone cries, you first?",
-        "type": "radio",
-        "required": true,
-        "options": [
-          {
-            "value": "fix_problem",
-            "label": "Want to fix the problem"
+            "value": "music_lover",
+            "label": "Music Lover"
           },
           {
-            "value": "hug_comfort",
-            "label": "Want to hug and comfort"
-          }
-        ]
-      },
-      {
-        "id": "q14_decisions_with",
-        "label": "You make decisions with?",
-        "type": "radio",
-        "required": true,
-        "options": [
-          {
-            "value": "logic",
-            "label": "Logic"
+            "value": "foodie",
+            "label": "Foodie"
           },
           {
-            "value": "feelings",
-            "label": "Feelings"
-          }
-        ]
-      },
-      {
-        "id": "q15_if_partner_wrong",
-        "label": "If your partner does wrong, you?",
-        "type": "radio",
-        "required": true,
-        "options": [
-          {
-            "value": "tell_directly",
-            "label": "Tell him/her directly"
+            "value": "travel_junkie",
+            "label": "Travel Junkie"
           },
           {
-            "value": "hurt_inside",
-            "label": "Feel hurt inside and wait till he/she realised"
-          }
-        ]
-      },
-      {
-        "id": "q16_daily_life_is",
-        "label": "Your daily life is?",
-        "type": "radio",
-        "required": true,
-        "options": [
-          {
-            "value": "planned",
-            "label": "Planned, same routine"
+            "value": "fashion_girl",
+            "label": "Fashion Girl"
           },
           {
-            "value": "flexible",
-            "label": "Flexible, go with flow"
-          }
-        ]
-      },
-      {
-        "id": "q17_you_like",
-        "label": "You like?",
-        "type": "radio",
-        "required": true,
-        "options": [
-          {
-            "value": "clean",
-            "label": "Everything clean & organized"
+            "value": "animal_lover",
+            "label": "Animal Lover"
           },
           {
-            "value": "messy",
-            "label": "A little messy okay"
-          }
-        ]
-      },
-      {
-        "id": "q18_plan_date",
-        "label": "When planning a date, you?",
-        "type": "radio",
-        "required": true,
-        "options": [
-          {
-            "value": "decide_exact",
-            "label": "Decide time & place exactly"
+            "value": "nature_girl",
+            "label": "Nature Girl"
           },
           {
-            "value": "let_see",
-            "label": "Just \"let's meet and see\""
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "personality-3",
-    "title": "Social Style & Rules",
-    "questions": [
-      {
-        "id": "q19_you_are_more",
-        "label": "You are more?",
-        "type": "radio",
-        "required": true,
-        "options": [
-          {
-            "value": "quiet",
-            "label": "Quiet/reserved"
+            "value": "it_girl",
+            "label": "it_girl \ud83d\udcf8\u2728"
           },
           {
-            "value": "talkative",
-            "label": "Talkative/energetic"
-          }
-        ]
-      },
-      {
-        "id": "q20_care_more_about",
-        "label": "You care more about?",
-        "type": "radio",
-        "required": true,
-        "options": [
-          {
-            "value": "facts",
-            "label": "Facts & truth"
+            "value": "activist",
+            "label": "activist \u270a"
           },
           {
-            "value": "feelings",
-            "label": "People's feelings"
-          }
-        ]
-      },
-      {
-        "id": "q21_weekend_prefer",
-        "label": "Weekend you prefer?",
-        "type": "radio",
-        "required": true,
-        "options": [
-          {
-            "value": "stay_home",
-            "label": "Stay at home relax"
-          },
-          {
-            "value": "go_out",
-            "label": "Go out have fun"
-          }
-        ]
-      },
-      {
-        "id": "q22_rules_are",
-        "label": "Rules are?",
-        "type": "radio",
-        "required": true,
-        "options": [
-          {
-            "value": "important",
-            "label": "Important to follow"
-          },
-          {
-            "value": "can_bend",
-            "label": "Can bend sometimes"
-          },
-          {
-            "value": "to_break",
-            "label": "To break"
-          }
-        ]
-      },
-      {
-        "id": "q23_my_future",
-        "label": "My future",
-        "type": "radio",
-        "required": true,
-        "options": [
-          {
-            "value": "clear_plan",
-            "label": "I have clear plan"
-          },
-          {
-            "value": "see_what_happens",
-            "label": "I will see what happens"
-          }
-        ]
-      },
-      {
-        "id": "q24_compliments_make_you",
-        "label": "Compliments make you?",
-        "type": "radio",
-        "required": true,
-        "options": [
-          {
-            "value": "shy",
-            "label": "Shy"
-          },
-          {
-            "value": "happy_loud",
-            "label": "Very happy and loud"
+            "value": "influencer",
+            "label": "influencer \ud83d\udcf1"
           }
         ]
       }
     ]
   },
   {
-    "id": "personality-4",
-    "title": "Love & Secrets",
+    "id": "persona-relationships",
+    "title": "Relationships & Emotion",
     "questions": [
       {
-        "id": "q25_when_friend_telling",
-        "label": "When a close friend trying to tell you something",
-        "type": "radio",
+        "id": "q_relationship_style",
+        "label": "Relationship Style (Pick 2-5)",
+        "type": "checkbox",
         "required": true,
+        "min": 2,
+        "max": 5,
         "options": [
           {
-            "value": "listen_story",
-            "label": "I will listen to the whole story first"
+            "value": "hopeless_romantic",
+            "label": "hopeless_romantic \ud83e\udd7a\ud83d\udc8d"
           },
           {
-            "value": "give_suggestions",
-            "label": "I will keep giving him/her suggestions"
+            "value": "jealous_type",
+            "label": "jealous_type \ud83d\udc40\ud83d\ude24"
+          },
+          {
+            "value": "cool_girl",
+            "label": "cool_girl \ud83d\ude0e\u270c\ufe0f"
+          },
+          {
+            "value": "anxious_attachment",
+            "label": "anxious_attachment \ud83e\udd7a\ud83d\udcf1"
+          },
+          {
+            "value": "avoidant_attachment",
+            "label": "avoidant_attachment \ud83c\udfc3\u200d\u2640\ufe0f\ud83d\udca8"
+          },
+          {
+            "value": "wifey_material",
+            "label": "wifey_material \ud83d\udc8d\ud83c\udfe1"
+          },
+          {
+            "value": "commitment_phobe",
+            "label": "commitment_phobe \ud83d\udeab\ud83d\udc8d"
+          },
+          {
+            "value": "all_or_nothing",
+            "label": "all_or_nothing \ud83d\udcaf\ud83c\udfb2"
+          },
+          {
+            "value": "independent_woman",
+            "label": "independent_woman \ud83d\udcaa\ud83d\udcbc"
+          },
+          {
+            "value": "clingy_one",
+            "label": "clingy_one \ud83e\udec2\ud83e\udd7a"
+          },
+          {
+            "value": "space_needer",
+            "label": "space_needer \ud83e\ude90\ud83e\uddd8\u200d\u2640\ufe0f"
+          },
+          {
+            "value": "fixer",
+            "label": "fixer \ud83d\udee0\ufe0f"
+          },
+          {
+            "value": "ride_or_die_rel",
+            "label": "ride_or_die_rel \ud83e\ude78\ud83e\udd1d"
+          },
+          {
+            "value": "tester",
+            "label": "tester \ud83e\uddd0"
+          },
+          {
+            "value": "secure_one",
+            "label": "secure_one \ud83e\uddd8\u200d\u2640\ufe0f\u2705"
+          },
+          {
+            "value": "passionate_one",
+            "label": "passionate_one \ud83d\udd25\u2764\ufe0f"
+          },
+          {
+            "value": "forgiver",
+            "label": "forgiver \ud83d\udd4a\ufe0f"
+          },
+          {
+            "value": "one_strike_rule",
+            "label": "one_strike_rule \u26be\ud83d\udeab"
+          },
+          {
+            "value": "label_needer",
+            "label": "label_needer \ud83c\udff7\ufe0f\ud83d\udcdd"
+          },
+          {
+            "value": "friends_first",
+            "label": "friends_first \ud83d\udc6f\u200d\u2640\ufe0f\u27a1\ufe0f\u2764\ufe0f"
+          },
+          {
+            "value": "heartbreaker",
+            "label": "heartbreaker \ud83d\udc94"
+          },
+          {
+            "value": "serial_monogamist",
+            "label": "serial_monogamist \ud83d\udc8d\u27a1\ufe0f\ud83d\udc8d"
+          },
+          {
+            "value": "slow_burn",
+            "label": "slow_burn \ud83d\udd6f\ufe0f\u23f3"
+          },
+          {
+            "value": "runner",
+            "label": "runner \ud83c\udfc3\u200d\u2640\ufe0f"
+          },
+          {
+            "value": "jaded_ex",
+            "label": "jaded_ex \ud83d\ude12\ud83d\udc94"
+          },
+          {
+            "value": "secret_romantic",
+            "label": "secret_romantic \ud83e\udd10\u2764\ufe0f"
+          },
+          {
+            "value": "private_one",
+            "label": "private_one \ud83d\udd12\ud83e\udd2b"
+          },
+          {
+            "value": "open_book",
+            "label": "open_book \ud83d\udcd6\ud83d\udde3\ufe0f"
+          },
+          {
+            "value": "stability_craver",
+            "label": "stability_craver \ud83c\udfe1\u2693"
+          },
+          {
+            "value": "realist_in_love",
+            "label": "realist_in_love \ud83e\udde0\ud83d\udcca"
+          },
+          {
+            "value": "codependent",
+            "label": "codependent \ud83d\udd17"
+          },
+          {
+            "value": "self_preserving",
+            "label": "self_preserving \ud83d\udee1\ufe0f\ud83d\uded1"
+          },
+          {
+            "value": "love_addict",
+            "label": "love_addict \ud83e\udd24\u2764\ufe0f"
+          },
+          {
+            "value": "love_skeptic",
+            "label": "love_skeptic \ud83e\udd28\ud83d\udc94"
+          },
+          {
+            "value": "equal_partner",
+            "label": "equal_partner \u2696\ufe0f\ud83e\udd1d"
           }
         ]
       },
       {
-        "id": "q26_secrets",
-        "label": "Secrets",
-        "type": "radio",
+        "id": "q_how_she_loves",
+        "label": "How She Loves (Pick 2-3)",
+        "type": "checkbox",
         "required": true,
+        "min": 2,
+        "max": 3,
         "options": [
           {
-            "value": "keep_inside",
-            "label": "I keep inside"
+            "value": "touchy",
+            "label": "touchy \ud83e\udec2"
           },
           {
-            "value": "share_close",
-            "label": "I will share with people close to me"
+            "value": "needs_words",
+            "label": "needs_words \ud83d\udde3\ufe0f"
+          },
+          {
+            "value": "likes_actions",
+            "label": "likes_actions \ud83c\udfac"
+          },
+          {
+            "value": "quality_time",
+            "label": "quality_time \u23f3"
+          },
+          {
+            "value": "loves_gifts",
+            "label": "loves_gifts \ud83c\udf81"
+          },
+          {
+            "value": "through_loyalty",
+            "label": "through_loyalty \ud83d\udee1\ufe0f"
+          },
+          {
+            "value": "through_jealousy",
+            "label": "through_jealousy \ud83d\udc40"
+          },
+          {
+            "value": "through_worry",
+            "label": "through_worry \ud83d\ude1f"
+          },
+          {
+            "value": "through_teasing",
+            "label": "through_teasing \ud83d\ude1c"
+          },
+          {
+            "value": "through_sacrifice",
+            "label": "through_sacrifice \ud83e\ude78"
+          },
+          {
+            "value": "through_support",
+            "label": "through_support \ud83d\udce3"
+          },
+          {
+            "value": "through_cooking_care",
+            "label": "through_cooking_care \ud83c\udf73\ud83e\ude79"
+          },
+          {
+            "value": "through_listening",
+            "label": "through_listening \ud83d\udc42"
+          },
+          {
+            "value": "through_planning",
+            "label": "through_planning \ud83d\udcc5"
+          },
+          {
+            "value": "through_vulnerability",
+            "label": "through_vulnerability \ud83d\udd13"
+          },
+          {
+            "value": "through_intimacy",
+            "label": "through_intimacy \ud83d\udd25"
+          },
+          {
+            "value": "through_space",
+            "label": "through_space \ud83e\ude90"
+          },
+          {
+            "value": "through_fixing_you",
+            "label": "through_fixing_you \ud83d\udee0\ufe0f"
+          },
+          {
+            "value": "through_presence",
+            "label": "through_presence \ud83e\uddcd\u200d\u2640\ufe0f"
+          },
+          {
+            "value": "through_little_things",
+            "label": "through_little_things \u2615"
+          },
+          {
+            "value": "through_pride",
+            "label": "through_pride \ud83e\udd9a"
+          },
+          {
+            "value": "through_challenges",
+            "label": "through_challenges \ud83e\uddd7\u200d\u2640\ufe0f"
+          },
+          {
+            "value": "through_forgiveness",
+            "label": "through_forgiveness \ud83d\udd4a\ufe0f"
+          },
+          {
+            "value": "through_understanding",
+            "label": "through_understanding \ud83e\udde0"
+          },
+          {
+            "value": "through_adventure",
+            "label": "through_adventure \u2708\ufe0f"
           }
         ]
       },
       {
-        "id": "q27_love_style",
-        "label": "My love style?",
+        "id": "q_when_fighting",
+        "label": "When Fighting (Pick 1)",
         "type": "radio",
         "required": true,
         "options": [
           {
-            "value": "actions",
-            "label": "Show by actions (care, cook, etc.)"
+            "value": "in_your_face",
+            "label": "In Your Face"
           },
           {
-            "value": "sweet_words",
-            "label": "Say sweet words a lot"
+            "value": "runs_away",
+            "label": "Runs Away"
           },
           {
-            "value": "keep_inside",
-            "label": "Keep it inside"
+            "value": "petty_queen",
+            "label": "Petty Queen"
+          },
+          {
+            "value": "problem_solver",
+            "label": "Problem Solver"
+          },
+          {
+            "value": "needs_space",
+            "label": "Needs Space"
+          },
+          {
+            "value": "grudge_holder",
+            "label": "Grudge Holder"
+          },
+          {
+            "value": "forgives_fast",
+            "label": "Forgives Fast"
+          },
+          {
+            "value": "brings_up_everything",
+            "label": "Brings Up Everything"
           }
         ]
       },
       {
-        "id": "q28_when_annoying",
-        "label": "When you find someone annoying",
-        "type": "radio",
+        "id": "q_her_insecurities",
+        "label": "Her Insecurities (Pick 1-3)",
+        "type": "checkbox",
         "required": true,
+        "min": 1,
+        "max": 3,
         "options": [
           {
-            "value": "be_straight",
-            "label": "Be straight and tell the person to stop"
+            "value": "body_issues",
+            "label": "Body Issues"
           },
           {
-            "value": "stay_quiet",
-            "label": "You will stay quiet and not talk at all"
+            "value": "compares_to_others",
+            "label": "Compares to Others"
+          },
+          {
+            "value": "abandonment_issues",
+            "label": "Abandonment Issues"
+          },
+          {
+            "value": "feels_dumb",
+            "label": "Feels Dumb"
+          },
+          {
+            "value": "too_much_fear",
+            "label": "\"Too Much\" Fear"
+          },
+          {
+            "value": "not_enough_fear",
+            "label": "\"Not Enough\" Fear"
+          },
+          {
+            "value": "jealous_of_past",
+            "label": "jealous_of_past \ud83d\udc40\ud83d\udd70\ufe0f"
           }
         ]
       }
     ]
   },
   {
-    "id": "routine",
-    "title": "Catchphrases & Topics to Avoid",
+    "id": "persona-communication",
+    "title": "Communication & Traits",
     "questions": [
       {
-        "id": "q29_catchphrases",
-        "label": "What's your catch phrase? (OMG, You're funny, Really?... 1–5 catchphrases)",
+        "id": "q_talk_style",
+        "label": "Talk Style (Pick 1-2)",
+        "type": "checkbox",
+        "required": true,
+        "min": 1,
+        "max": 2,
+        "options": [
+          {
+            "value": "sweet_gentle",
+            "label": "sweet_gentle \ud83c\udf6f\ud83c\udf38"
+          },
+          {
+            "value": "teasing_playful",
+            "label": "teasing_playful \ud83d\ude1c\ud83c\udfad"
+          },
+          {
+            "value": "flirty_seductive",
+            "label": "flirty_seductive \ud83d\ude0f\ud83d\udc8b"
+          },
+          {
+            "value": "bratty_sassy",
+            "label": "bratty_sassy \ud83d\ude44\ud83d\udc85"
+          },
+          {
+            "value": "chill_relaxed",
+            "label": "chill_relaxed \ud83d\ude0e\ud83d\udecb\ufe0f"
+          },
+          {
+            "value": "soft_obedient",
+            "label": "soft_obedient \ud83e\udd7a\ud83d\udc3e"
+          },
+          {
+            "value": "sarcastic_sharp",
+            "label": "sarcastic_sharp \ud83d\udd2a\ud83d\ude0f"
+          },
+          {
+            "value": "supportive_hyping",
+            "label": "supportive_hyping \ud83d\udce3\ud83d\ude4c"
+          },
+          {
+            "value": "mean_then_sweet",
+            "label": "mean_then_sweet \ud83c\udfad"
+          },
+          {
+            "value": "bossy_in_charge",
+            "label": "bossy_in_charge \ud83d\udccb\u261d\ufe0f"
+          }
+        ]
+      },
+      {
+        "id": "q_her_moods",
+        "label": "Her Moods (Pick 1)",
+        "type": "radio",
+        "required": true,
+        "options": [
+          {
+            "value": "mood_swings",
+            "label": "Mood Swings"
+          },
+          {
+            "value": "always_stable",
+            "label": "Always Stable"
+          },
+          {
+            "value": "wears_heart_on_sleeve",
+            "label": "Wears Heart on Sleeve"
+          },
+          {
+            "value": "bottles_it_up",
+            "label": "Bottles It Up"
+          },
+          {
+            "value": "explosive_one",
+            "label": "explosive_one \ud83e\udde8\ud83d\udca5"
+          },
+          {
+            "value": "silent_treatment_expert",
+            "label": "Silent Treatment Expert"
+          },
+          {
+            "value": "cries_easy",
+            "label": "Cries Easy"
+          },
+          {
+            "value": "never_cracks",
+            "label": "Never Cracks"
+          }
+        ]
+      },
+      {
+        "id": "q_her_humor",
+        "label": "Her Humor (Pick 1-2)",
+        "type": "checkbox",
+        "required": true,
+        "min": 1,
+        "max": 2,
+        "options": [
+          {
+            "value": "dark_humor",
+            "label": "Dark Humor"
+          },
+          {
+            "value": "class_clown",
+            "label": "Class Clown"
+          },
+          {
+            "value": "self_roaster",
+            "label": "self_roaster \ud83d\udd25\ud83e\udd26\u200d\u2640\ufe0f"
+          },
+          {
+            "value": "intellectual",
+            "label": "intellectual \ud83e\udde0\ud83d\udcda"
+          },
+          {
+            "value": "wholesome_punny",
+            "label": "wholesome_punny \ud83e\udd70\ud83c\udfad"
+          },
+          {
+            "value": "roast_master",
+            "label": "Roast Master"
+          },
+          {
+            "value": "doesnt_get_jokes",
+            "label": "Doesn't Get Jokes"
+          }
+        ]
+      },
+      {
+        "id": "q_maturity",
+        "label": "Maturity (Pick 1)",
+        "type": "radio",
+        "required": true,
+        "options": [
+          {
+            "value": "old_soul",
+            "label": "Old Soul"
+          },
+          {
+            "value": "forever_young",
+            "label": "Forever Young"
+          },
+          {
+            "value": "wise_beyond_years",
+            "label": "Wise Beyond Years"
+          },
+          {
+            "value": "chaotic_energy",
+            "label": "Chaotic Energy"
+          },
+          {
+            "value": "tired_adult",
+            "label": "Tired Adult"
+          }
+        ]
+      },
+      {
+        "id": "q_red_flags",
+        "label": "Red Flags (Pick 0-2 for realism)",
+        "type": "checkbox",
+        "required": false,
+        "min": 0,
+        "max": 2,
+        "options": [
+          {
+            "value": "plays_mind_games",
+            "label": "Plays Mind Games"
+          },
+          {
+            "value": "tests_you",
+            "label": "Tests You"
+          },
+          {
+            "value": "attention_seeker",
+            "label": "Attention Seeker"
+          },
+          {
+            "value": "drama_magnet",
+            "label": "Drama Magnet"
+          },
+          {
+            "value": "scared_of_commitment",
+            "label": "Scared of Commitment"
+          },
+          {
+            "value": "brings_up_exes",
+            "label": "Brings Up Exes"
+          }
+        ]
+      },
+      {
+        "id": "q_green_flags",
+        "label": "Green Flags (Pick 2-4)",
+        "type": "checkbox",
+        "required": true,
+        "min": 2,
+        "max": 4,
+        "options": [
+          {
+            "value": "great_communicator",
+            "label": "Great Communicator"
+          },
+          {
+            "value": "respects_space",
+            "label": "Respects Space"
+          },
+          {
+            "value": "your_biggest_fan",
+            "label": "Your Biggest Fan"
+          },
+          {
+            "value": "self_aware",
+            "label": "Self Aware"
+          },
+          {
+            "value": "consistent_effort",
+            "label": "Consistent Effort"
+          },
+          {
+            "value": "celebrates_you",
+            "label": "Celebrates You"
+          }
+        ]
+      },
+      {
+        "id": "q_random_quirks",
+        "label": "Random Quirks (Pick 2-4)",
+        "type": "checkbox",
+        "required": true,
+        "min": 2,
+        "max": 4,
+        "options": [
+          {
+            "value": "always_freezing",
+            "label": "Always Freezing"
+          },
+          {
+            "value": "night_owl",
+            "label": "Night Owl"
+          },
+          {
+            "value": "morning_person",
+            "label": "Morning Person"
+          },
+          {
+            "value": "bad_at_texting_back",
+            "label": "Bad at Texting Back"
+          },
+          {
+            "value": "overshares",
+            "label": "Overshares"
+          },
+          {
+            "value": "competitive_af",
+            "label": "Competitive AF"
+          },
+          {
+            "value": "superstitious",
+            "label": "Superstitious"
+          },
+          {
+            "value": "super_organized",
+            "label": "Super Organized"
+          },
+          {
+            "value": "total_mess",
+            "label": "Total Mess"
+          },
+          {
+            "value": "comfort_show_addict",
+            "label": "Comfort Show Addict"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "details-boundaries",
+    "title": "Details & Boundaries",
+    "questions": [
+      {
+        "id": "q_catchphrases",
+        "label": "What's your catch phrase? (OMG, You're funny, Really?... 1-5 catchphrases)",
         "type": "textarea",
         "required": true
       },
       {
-        "id": "q30_call_loved_ones",
+        "id": "q_call_loved_ones",
         "label": "How would you call your loved ones? (babe, hubby, honey...)",
         "type": "text",
         "required": true
       },
       {
-        "id": "q31_topics_to_avoid",
-        "label": "What topic would you like to avoid.",
-        "type": "text",
+        "id": "q_topics_to_avoid",
+        "label": "What topics would you like to avoid?",
+        "type": "textarea",
+        "placeholder": "Enter topics here... (e.g. Politics, Exes...)",
         "required": true
       },
       {
-        "id": "q32_talking_style",
-        "label": "What talking style you like to use when talking to the followers? (e.g., flirty, rude, sarcastic, sweet, etc.)",
-        "type": "text",
+        "id": "q_likes",
+        "label": "Like Collection",
+        "type": "textarea",
+        "placeholder": "What do you enjoy? (e.g. Coffee, Beach walks... list as many as you want)",
+        "required": true
+      },
+      {
+        "id": "q_dislikes",
+        "label": "Dislike Collection",
+        "type": "textarea",
+        "placeholder": "What turns you off? (e.g. Arrogance, Bad texters... list as many as you want)",
         "required": true
       }
     ]

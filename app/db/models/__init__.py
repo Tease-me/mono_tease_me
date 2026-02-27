@@ -59,6 +59,9 @@ from .system import SystemPrompt
 # Verification models
 from .verification import IdentityVerification
 
+# API usage tracking
+from .api_usage import ApiUsageLog
+
 # Export all models
 __all__ = [
     # Base
@@ -99,4 +102,7 @@ __all__ = [
     "SystemPrompt",
     # Verification
     "IdentityVerification",
+    # API Usage
+    "ApiUsageLog",
+    "ApiUsageMonthly",
 ]

@@ -13,6 +13,7 @@ from app.utils.logging.prompt_logging import log_prompt
 from app.services.system_prompt_service import get_system_prompt
 from app.constants import prompt_keys
 from langchain_core.prompts import ChatPromptTemplate
+from app.agents.callbacks import UsageTrackingCallback
 log = logging.getLogger(__name__)
 
 
@@ -102,8 +103,19 @@ async def handle_turn_18(
     )
     chain = prompt | XAI_MODEL
 
+    tracker = UsageTrackingCallback(
+        category="18_voice" if is_audio else "18_chat",
+        purpose="main_reply",
+        user_id=user_id,
+        influencer_id=influencer_id,
+        chat_id=chat_id,
+    )
+
     try:
-        result = await chain.ainvoke({"input": message})
+        result = await chain.ainvoke(
+            {"input": message},
+            config={"callbacks": [tracker]}
+        )
         log_prompt(
             log,
             prompt,
