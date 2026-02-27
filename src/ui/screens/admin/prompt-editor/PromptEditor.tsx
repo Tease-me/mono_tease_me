@@ -1,4 +1,5 @@
 import React, { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
+import AdminTwoColumn from "../AdminTwoColumn";
 import styles from "./PromptEditor.module.css";
 import SvgPack from "@/utils/SvgPack";
 import { apiClient } from "@/api/apis";
@@ -294,8 +295,7 @@ const PromptEditor: React.FC = () => {
     return (
         <>
             <TabsLayout tabs={promptTabs} activeTab={activeTab} setActiveTab={(tab) => setActiveTabId(tab.id)} />
-            <div className={styles["prompt-editor"]}>
-                <aside className={styles["node-rail"]}>
+            <AdminTwoColumn sidebar={<aside className={styles["node-rail"]}>
                     <div className={styles["rail-header"]}>
                         <div className={styles["rail-title"]}>
                             <div className={styles["rail-heading"]}>Prompt Nodes</div>
@@ -328,8 +328,7 @@ const PromptEditor: React.FC = () => {
                             ))
                         )}
                     </div>
-                </aside>
-
+                </aside>}>
                 <section className={styles["editor-pane"]}>
                     {selectedNode ? (
                         <>
@@ -456,7 +455,7 @@ const PromptEditor: React.FC = () => {
                         </div>
                     )}
                 </section>
-            </div>
+            </AdminTwoColumn>
         </>
     );
 };

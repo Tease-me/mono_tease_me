@@ -1,0 +1,105 @@
+/* ── Grid container ── */
+.layout {
+    display: grid;
+    grid-template-columns: var(--sidebar-width, 350px) 8px 1fr;
+    grid-template-rows: 1fr;
+    flex: 1;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.layout--dragging {
+    cursor: col-resize;
+    user-select: none;
+}
+
+/* ── Base slots — always flex column ── */
+.sidebar,
+.main {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* ── Card styling — sidebar ── */
+.sidebar--card {
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 16px;
+    background: linear-gradient(160deg, rgba(24, 27, 36, 0.93), rgba(17, 20, 28, 0.95));
+    box-shadow: 0 18px 32px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+}
+
+/* ── Card styling — main ── */
+.main--card {
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 16px;
+    background: linear-gradient(160deg, rgba(26, 29, 40, 0.94), rgba(15, 18, 26, 0.95));
+    box-shadow: 0 18px 32px rgba(0, 0, 0, 0.35);
+    overflow-y: auto;
+    padding: 20px;
+}
+
+/* ── Drag handle ── */
+.handle {
+    cursor: col-resize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 10;
+}
+
+.layout:hover .handle {
+    opacity: 1;
+}
+
+.handle::after {
+    content: "";
+    width: 2px;
+    height: 40px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.2);
+    transition: height 0.2s ease, background 0.2s ease;
+}
+
+.handle:hover::after,
+.handle--dragging::after {
+    background: rgba(255, 255, 255, 0.5);
+    height: 60px;
+}
+
+.handle--dragging {
+    opacity: 1;
+}
+
+/* ── Responsive: single column at ≤ 900px ── */
+@media (max-width: 900px) {
+    .layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+        overflow-y: auto;
+    }
+
+    .handle {
+        display: none;
+    }
+
+    .sidebar {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .main {
+        overflow: visible;
+    }
+
+    .main--card {
+        padding: 16px;
+    }
+}
