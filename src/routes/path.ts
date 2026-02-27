@@ -49,8 +49,6 @@ export const Paths = {
     voice: "/voice",
     home: "/home",
     profile: "/profile",
-    chat: (userId = ":user_id") => `/chat/${userId}`,
-    call: (conversationId = ":conversation_id") => `/call/${conversationId}`,
     paypalReturn: "/paypal/return",
     paypalCancel: "/paypal/cancel",
     diditReturn: "/didit/return",
