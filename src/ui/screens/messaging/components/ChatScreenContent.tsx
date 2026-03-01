@@ -461,7 +461,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
                       dispatch(chatScreenActions.setInputText(text))
                     }
                     setInputAudio={setInputAudio}
-                    disabled={error ? true : false}
+                    // disabled={error ? true : false}
                     error={error}
                     creditsRemaining={creditsRemaining}
                     inputAudio={inputAudio}
