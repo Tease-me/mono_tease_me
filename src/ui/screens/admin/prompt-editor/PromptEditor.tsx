@@ -16,6 +16,27 @@ type PromptNode = {
 };
 
 type PromptTabKey = SystemPromptType;
+type TimeVibeRange = {
+    start_hour: number;
+    end_hour: number;
+    vibes: string[];
+};
+type TimeVibeConfig = {
+    ranges: TimeVibeRange[];
+};
+
+const TIME_VIBE_CONFIG_KEY = "TIME_VIBE_CONFIG_JSON";
+const DEFAULT_TIME_VIBE_CONFIG: TimeVibeConfig = {
+    ranges: [
+        { start_hour: 0, end_hour: 5, vibes: ["late night hours", "quiet hours"] },
+        { start_hour: 6, end_hour: 8, vibes: ["early morning", "fresh start"] },
+        { start_hour: 9, end_hour: 11, vibes: ["morning energy", "productive focus"] },
+        { start_hour: 12, end_hour: 14, vibes: ["midday", "active hours"] },
+        { start_hour: 15, end_hour: 17, vibes: ["afternoon", "steady flow"] },
+        { start_hour: 18, end_hour: 20, vibes: ["evening", "wind down"] },
+        { start_hour: 21, end_hour: 23, vibes: ["late evening", "night vibes"] },
+    ],
+};
 
 const nowLabel = () => new Date().toLocaleString("en-US", { month: "short", day: "numeric" });
 
@@ -40,6 +61,12 @@ const DEFAULT_PROMPTS: Record<string, { name: string; description: string; defau
         defaultPrompt: "Extract concise facts and attributes only. Avoid speculation; prefer verbatim, sourced details. Flag uncertainty explicitly.",
         type: "others",
     },
+    [TIME_VIBE_CONFIG_KEY]: {
+        name: "Time Vibe Config JSON",
+        description: "Admin-editable hour ranges and vibe labels used by get_time_context().",
+        defaultPrompt: JSON.stringify(DEFAULT_TIME_VIBE_CONFIG),
+        type: "others",
+    },
 };
 
 const formatUpdatedAt = (value?: string) => {
@@ -60,6 +87,76 @@ const createSeedNodes = (): PromptNode[] =>
         type: meta.type,
         updatedAt: nowLabel(),
     }));
+
+const parseTimeVibeConfig = (rawPrompt: string): TimeVibeConfig => {
+    try {
+        const parsed = JSON.parse(rawPrompt) as TimeVibeConfig;
+        if (!parsed || !Array.isArray(parsed.ranges)) return DEFAULT_TIME_VIBE_CONFIG;
+        return {
+            ranges: parsed.ranges.map((range) => ({
+                start_hour: Number.isFinite(range.start_hour) ? Math.trunc(range.start_hour) : 0,
+                end_hour: Number.isFinite(range.end_hour) ? Math.trunc(range.end_hour) : 0,
+                vibes: Array.isArray(range.vibes)
+                    ? range.vibes.map((v) => String(v).trim()).filter(Boolean)
+                    : [],
+            })),
+        };
+    } catch {
+        return DEFAULT_TIME_VIBE_CONFIG;
+    }
+};
+
+const validateTimeVibeConfig = (config: TimeVibeConfig): string[] => {
+    const errors: string[] = [];
+    if (!Array.isArray(config.ranges) || config.ranges.length === 0) {
+        errors.push("At least one range is required.");
+        return errors;
+    }
+
+    const coverage = Array.from({ length: 24 }, () => 0);
+    config.ranges.forEach((range, idx) => {
+        if (!Number.isInteger(range.start_hour) || range.start_hour < 0 || range.start_hour > 23) {
+            errors.push(`Range ${idx + 1}: start hour must be an integer in 0..23.`);
+        }
+        if (!Number.isInteger(range.end_hour) || range.end_hour < 0 || range.end_hour > 23) {
+            errors.push(`Range ${idx + 1}: end hour must be an integer in 0..23.`);
+        }
+        if (range.start_hour > range.end_hour) {
+            errors.push(`Range ${idx + 1}: start hour cannot be greater than end hour.`);
+        }
+        if (!Array.isArray(range.vibes) || range.vibes.length === 0) {
+            errors.push(`Range ${idx + 1}: add at least one vibe.`);
+        }
+        if (Array.isArray(range.vibes) && range.vibes.some((v) => !String(v).trim())) {
+            errors.push(`Range ${idx + 1}: vibes cannot be empty.`);
+        }
+        if (Number.isInteger(range.start_hour) && Number.isInteger(range.end_hour) && range.start_hour <= range.end_hour) {
+            for (let hour = range.start_hour; hour <= range.end_hour; hour += 1) {
+                coverage[hour] += 1;
+            }
+        }
+    });
+
+    const uncovered = coverage
+        .map((count, hour) => (count === 0 ? hour : -1))
+        .filter((hour) => hour >= 0);
+    const overlaps = coverage
+        .map((count, hour) => (count > 1 ? hour : -1))
+        .filter((hour) => hour >= 0);
+    if (uncovered.length > 0) {
+        errors.push(`Missing hour coverage: ${uncovered.join(", ")}.`);
+    }
+    if (overlaps.length > 0) {
+        errors.push(`Overlapping hour coverage: ${overlaps.join(", ")}.`);
+    }
+    return errors;
+};
+
+const fmtHourLabel = (hour: number): string => `${String(hour).padStart(2, "0")}:00`;
+const HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) => ({
+    value: hour,
+    label: fmtHourLabel(hour),
+}));
 
 const mapListItemToNode = (item: SystemPromptListItem): PromptNode => {
     const meta = DEFAULT_PROMPTS[item.key];
@@ -95,6 +192,8 @@ const PromptEditor: React.FC = () => {
     const [activeTabId, setActiveTabId] = useState<number>(promptTabs[0]?.id ?? 0);
     const [activeStage, setActiveStage] = useState<string>("HATE");
     const [relationshipStagePrompts, setRelationshipStagePrompts] = useState<Record<string, string[]>>({});
+    const [timeVibeConfig, setTimeVibeConfig] = useState<TimeVibeConfig | null>(null);
+    const [timeVibeDrafts, setTimeVibeDrafts] = useState<Record<number, string>>({});
 
 
     const activeTab = useMemo(
@@ -124,11 +223,40 @@ const PromptEditor: React.FC = () => {
         () => selectedNode?.id === "BASE_SYSTEM",
         [selectedNode],
     );
+    const timeVibePromptPreview = useMemo(() => {
+        if (!timeVibeConfig) return selectedNode?.defaultPrompt ?? "";
+        return JSON.stringify({ ranges: timeVibeConfig.ranges });
+    }, [selectedNode, timeVibeConfig]);
 
     const activeStagePrompts = useMemo(
         () => relationshipStagePrompts[activeStage] ?? [],
         [activeStage, relationshipStagePrompts],
     );
+    const showTimeVibeConfigEditor = useMemo(
+        () => selectedNode?.id === TIME_VIBE_CONFIG_KEY,
+        [selectedNode],
+    );
+    const timeVibeErrors = useMemo(() => {
+        if (!showTimeVibeConfigEditor || !timeVibeConfig) return [];
+        return validateTimeVibeConfig(timeVibeConfig);
+    }, [showTimeVibeConfigEditor, timeVibeConfig]);
+    const timeVibeRangeErrors = useMemo(
+        () => timeVibeErrors.filter((error) => error.startsWith("Range ")),
+        [timeVibeErrors],
+    );
+    const timeVibeCoverageErrors = useMemo(
+        () => timeVibeErrors.filter((error) => !error.startsWith("Range ")),
+        [timeVibeErrors],
+    );
+    const hasTimeVibeCoverageIssues = useMemo(
+        () => timeVibeCoverageErrors.length > 0,
+        [timeVibeCoverageErrors],
+    );
+    const timeVibeTotalVibes = useMemo(
+        () => (timeVibeConfig?.ranges ?? []).reduce((sum, range) => sum + range.vibes.length, 0),
+        [timeVibeConfig],
+    );
+    const disableSaveForTimeVibe = showTimeVibeConfigEditor && timeVibeErrors.length > 0;
 
     const handleFieldChange = (field: "defaultPrompt" | "name" | "description") => {
         return (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -153,12 +281,14 @@ const PromptEditor: React.FC = () => {
         setListError(null);
         try {
             const items = await systemPromptService.list();
-            const mapped =
-                items.length > 0
-                    ? items.map(mapListItemToNode)
-                    : seedNodes;
-            setNodes(mapped);
-            setSelectedId(mapped[0]?.id ?? "");
+            const mapped = items.length > 0 ? items.map(mapListItemToNode) : seedNodes;
+            const existingKeys = new Set(mapped.map((node) => node.id));
+            const merged = [
+                ...mapped,
+                ...seedNodes.filter((node) => !existingKeys.has(node.id)),
+            ];
+            setNodes(merged);
+            setSelectedId(merged[0]?.id ?? "");
             setFetchedKeys(new Set());
         } catch (error) {
             console.error("Failed to load prompts", error);
@@ -226,6 +356,16 @@ const PromptEditor: React.FC = () => {
     }, [fetchedKeys, loadPromptText, selectedId]);
 
     useEffect(() => {
+        if (!showTimeVibeConfigEditor || !selectedNode) {
+            setTimeVibeConfig(null);
+            setTimeVibeDrafts({});
+            return;
+        }
+        setTimeVibeConfig(parseTimeVibeConfig(selectedNode.defaultPrompt));
+        setTimeVibeDrafts({});
+    }, [selectedNode, showTimeVibeConfigEditor]);
+
+    useEffect(() => {
         if (visibleNodes.length === 0) {
             if (selectedId !== "") {
                 setSelectedId("");
@@ -242,8 +382,25 @@ const PromptEditor: React.FC = () => {
         setSaveError(null);
         setSaveState("saving");
         try {
+            let promptToSave = selectedNode.defaultPrompt;
+            if (selectedNode.id === TIME_VIBE_CONFIG_KEY) {
+                const nextConfig = timeVibeConfig ?? DEFAULT_TIME_VIBE_CONFIG;
+                const errors = timeVibeErrors;
+                if (errors.length > 0) {
+                    setSaveError(errors.join(" "));
+                    setSaveState("error");
+                    return;
+                }
+                promptToSave = JSON.stringify({
+                    ranges: nextConfig.ranges.map((range) => ({
+                        start_hour: Math.trunc(range.start_hour),
+                        end_hour: Math.trunc(range.end_hour),
+                        vibes: range.vibes.map((v) => v.trim()).filter(Boolean),
+                    })),
+                });
+            }
             const response = await systemPromptService.upsert(selectedNode.id, {
-                prompt: selectedNode.defaultPrompt,
+                prompt: promptToSave,
                 name: selectedNode.name,
                 type: selectedNode.type,
                 description: selectedNode.description,
@@ -253,6 +410,7 @@ const PromptEditor: React.FC = () => {
                     node.id === selectedNode.id
                         ? {
                             ...node,
+                            defaultPrompt: promptToSave,
                             description: response.description ?? node.description,
                             updatedAt: formatUpdatedAt(response.updated_at),
                         }
@@ -271,7 +429,93 @@ const PromptEditor: React.FC = () => {
             setSaveError(error instanceof Error ? error.message : "Failed to save prompt");
             setSaveState("error");
         }
-    }, [selectedNode]);
+    }, [selectedNode, timeVibeConfig, timeVibeErrors]);
+
+    const updateRangeHour = useCallback((rangeIndex: number, field: "start_hour" | "end_hour", value: number) => {
+        setTimeVibeConfig((prev) => {
+            if (!prev) return prev;
+            const ranges = prev.ranges.map((range, idx) =>
+                idx === rangeIndex ? { ...range, [field]: value } : range,
+            );
+            return { ranges };
+        });
+        setSaveState("idle");
+    }, []);
+
+    const addRange = useCallback(() => {
+        setTimeVibeConfig((prev) => ({
+            ranges: [...(prev?.ranges ?? []), { start_hour: 0, end_hour: 0, vibes: [] }],
+        }));
+        setSaveState("idle");
+    }, []);
+
+    const resetTimeVibeDefaults = useCallback(() => {
+        setTimeVibeConfig(DEFAULT_TIME_VIBE_CONFIG);
+        setTimeVibeDrafts({});
+        setSaveState("idle");
+    }, []);
+
+    const removeRange = useCallback((rangeIndex: number) => {
+        setTimeVibeConfig((prev) => {
+            if (!prev || prev.ranges.length <= 1) return prev;
+            return { ranges: prev.ranges.filter((_, idx) => idx !== rangeIndex) };
+        });
+        setTimeVibeDrafts((prev) => {
+            const next: Record<number, string> = {};
+            Object.entries(prev).forEach(([key, val]) => {
+                const idx = Number(key);
+                if (idx < rangeIndex) next[idx] = val;
+                if (idx > rangeIndex) next[idx - 1] = val;
+            });
+            return next;
+        });
+        setSaveState("idle");
+    }, []);
+
+    const addVibeChip = useCallback((rangeIndex: number) => {
+        const draft = (timeVibeDrafts[rangeIndex] ?? "").trim();
+        if (!draft) return;
+        const candidates = draft
+            .split(",")
+            .map((v) => v.trim().replace(/\s+/g, " "))
+            .filter(Boolean);
+        if (candidates.length === 0) return;
+        setTimeVibeConfig((prev) => {
+            if (!prev) return prev;
+            const ranges = prev.ranges.map((range, idx) =>
+                idx === rangeIndex
+                    ? {
+                        ...range,
+                        vibes: [
+                            ...range.vibes,
+                            ...candidates.filter(
+                                (candidate) =>
+                                    !range.vibes.some(
+                                        (existing) => existing.toLowerCase() === candidate.toLowerCase(),
+                                    ),
+                            ),
+                        ],
+                    }
+                    : range,
+            );
+            return { ranges };
+        });
+        setTimeVibeDrafts((prev) => ({ ...prev, [rangeIndex]: "" }));
+        setSaveState("idle");
+    }, [timeVibeDrafts]);
+
+    const removeVibeChip = useCallback((rangeIndex: number, vibeIndex: number) => {
+        setTimeVibeConfig((prev) => {
+            if (!prev) return prev;
+            const ranges = prev.ranges.map((range, idx) =>
+                idx === rangeIndex
+                    ? { ...range, vibes: range.vibes.filter((_, vIdx) => vIdx !== vibeIndex) }
+                    : range,
+            );
+            return { ranges };
+        });
+        setSaveState("idle");
+    }, []);
 
     const handleRelationshipSave = useCallback(async () => {
         if (!selectedNode) return;
@@ -352,10 +596,13 @@ const PromptEditor: React.FC = () => {
                                         type="button"
                                         className={`${styles["primary-button"]} ${saveState === "saved" ? styles["primary-button--saved"] : ""}`}
                                         onClick={handleSave}
-                                        disabled={listLoading || promptLoading || saveState === "saving"}
+                                        disabled={listLoading || promptLoading || saveState === "saving" || disableSaveForTimeVibe}
                                     >
                                         {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : "Save prompt"}
                                     </button>
+                                    {disableSaveForTimeVibe && (
+                                        <span className={styles["save-hint"]}>Fix validation issues to save</span>
+                                    )}
                                 </div>
                             </header>
 
@@ -364,19 +611,165 @@ const PromptEditor: React.FC = () => {
                             )}
 
                             <div className={styles["fields-grid"]}>
-                                <div className={styles["field-card"]}>
-                                    <div className={styles["field-label-row"]}>
-                                        <span className={styles["field-label"]}>Prompt</span>
-                                        <span className={styles["field-helper"]}>Single text used for this node</span>
+                                {showTimeVibeConfigEditor ? (
+                                    <div className={styles["field-card"]}>
+                                        <div className={styles["field-label-row"]}>
+                                            <span className={styles["field-label"]}>Time Vibe Ranges</span>
+                                            <span className={styles["field-helper"]}>Edit intervals and add vibe chips</span>
+                                        </div>
+                                        <div className={styles["time-vibe-toolbar"]}>
+                                            <div className={styles["time-vibe-status"]}>
+                                                <span className={`${styles["status-pill"]} ${timeVibeErrors.length === 0 ? styles["status-pill--ok"] : styles["status-pill--warn"]}`}>
+                                                    {timeVibeErrors.length === 0 ? "Valid" : `${timeVibeErrors.length} issue${timeVibeErrors.length === 1 ? "" : "s"}`}
+                                                </span>
+                                                <span className={styles["time-vibe-meta"]}>
+                                                    {(timeVibeConfig?.ranges.length ?? 0)} ranges · {timeVibeTotalVibes} vibes
+                                                </span>
+                                            </div>
+                                            <div className={styles["time-vibe-actions"]}>
+                                                <button type="button" className={styles["ghost-button"]} onClick={addRange}>
+                                                    + Add Range
+                                                </button>
+                                                <button type="button" className={styles["ghost-button"]} onClick={resetTimeVibeDefaults}>
+                                                    Reset Defaults
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className={styles["time-vibe-coverage"]}>
+                                            <span className={styles["time-vibe-coverage__label"]}>24h coverage</span>
+                                            <span className={`${styles["time-vibe-coverage__value"]} ${hasTimeVibeCoverageIssues ? styles["time-vibe-coverage__value--warn"] : styles["time-vibe-coverage__value--ok"]}`}>
+                                                {hasTimeVibeCoverageIssues ? "Missing/Overlapping hours" : "Complete"}
+                                            </span>
+                                        </div>
+                                        {timeVibeErrors.length > 0 && (
+                                            <div className={styles["time-vibe-errors"]}>
+                                                {timeVibeRangeErrors.map((error) => (
+                                                    <span key={error} className={styles["time-vibe-error-chip"]}>{error}</span>
+                                                ))}
+                                                {timeVibeCoverageErrors.map((error) => (
+                                                    <span key={error} className={styles["time-vibe-error-chip"]}>{error}</span>
+                                                ))}
+                                            </div>
+                                        )}
+                                        <div className={styles["time-vibe-section-label"]}>Time Ranges</div>
+                                        <div className={styles["time-vibe-list"]}>
+                                            {(timeVibeConfig?.ranges ?? []).map((range, rangeIndex) => (
+                                                <div key={`${rangeIndex}-${range.start_hour}-${range.end_hour}`} className={styles["time-vibe-row"]}>
+                                                    <div className={styles["time-vibe-row-head"]}>
+                                                        <span className={styles["time-vibe-row-title"]}>Range {rangeIndex + 1}</span>
+                                                        <span className={styles["time-vibe-row-window"]}>
+                                                            {fmtHourLabel(range.start_hour)} - {fmtHourLabel(range.end_hour)}
+                                                        </span>
+                                                    </div>
+                                                    <div className={styles["time-vibe-hours"]}>
+                                                        <label>Start</label>
+                                                        <select
+                                                            className={styles["time-vibe-input"]}
+                                                            value={range.start_hour}
+                                                            onChange={(event) =>
+                                                                updateRangeHour(
+                                                                    rangeIndex,
+                                                                    "start_hour",
+                                                                    Number(event.target.value),
+                                                                )
+                                                            }
+                                                        >
+                                                            {HOUR_OPTIONS.map((hour) => (
+                                                                <option key={hour.value} value={hour.value}>
+                                                                    {hour.label}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        <label>End</label>
+                                                        <select
+                                                            className={styles["time-vibe-input"]}
+                                                            value={range.end_hour}
+                                                            onChange={(event) =>
+                                                                updateRangeHour(
+                                                                    rangeIndex,
+                                                                    "end_hour",
+                                                                    Number(event.target.value),
+                                                                )
+                                                            }
+                                                        >
+                                                            {HOUR_OPTIONS.map((hour) => (
+                                                                <option key={hour.value} value={hour.value}>
+                                                                    {hour.label}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        <button
+                                                            type="button"
+                                                            className={styles["time-vibe-remove"]}
+                                                            onClick={() => removeRange(rangeIndex)}
+                                                            disabled={(timeVibeConfig?.ranges.length ?? 0) <= 1}
+                                                        >
+                                                            Remove
+                                                        </button>
+                                                    </div>
+                                                    <div className={styles["time-vibe-section-label"]}>Vibes</div>
+                                                    <div className={styles["chip-wrap"]}>
+                                                        {range.vibes.map((vibe, vibeIndex) => (
+                                                            <span key={`${rangeIndex}-${vibeIndex}-${vibe}`} className={styles["chip"]}>
+                                                                <span>{vibe}</span>
+                                                                <button
+                                                                    type="button"
+                                                                    className={styles["chip-remove"]}
+                                                                    onClick={() => removeVibeChip(rangeIndex, vibeIndex)}
+                                                                    title="Remove vibe"
+                                                                >
+                                                                    ×
+                                                                </button>
+                                                            </span>
+                                                        ))}
+                                                        {range.vibes.length === 0 && (
+                                                            <span className={styles["time-vibe-empty"]}>No vibes yet</span>
+                                                        )}
+                                                        <input
+                                                            className={styles["chip-input"]}
+                                                            value={timeVibeDrafts[rangeIndex] ?? ""}
+                                                            onChange={(event) =>
+                                                                setTimeVibeDrafts((prev) => ({
+                                                                    ...prev,
+                                                                    [rangeIndex]: event.target.value,
+                                                                }))
+                                                            }
+                                                            onKeyDown={(event) => {
+                                                                if (event.key === "Enter" || event.key === ",") {
+                                                                    event.preventDefault();
+                                                                    addVibeChip(rangeIndex);
+                                                                }
+                                                            }}
+                                                            placeholder="Add vibe"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            className={styles["chip-add"]}
+                                                            onClick={() => addVibeChip(rangeIndex)}
+                                                        >
+                                                            Add
+                                                        </button>
+                                                        <span className={styles["chip-helper"]}>Press Enter or comma to add</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
-                                    <textarea
-                                        className={styles["textarea"]}
-                                        value={selectedNode.defaultPrompt}
-                                        onChange={handleFieldChange("defaultPrompt")}
-                                        placeholder="Write the base prompt for this node..."
-                                        rows={16}
-                                    />
-                                </div>
+                                ) : (
+                                    <div className={styles["field-card"]}>
+                                        <div className={styles["field-label-row"]}>
+                                            <span className={styles["field-label"]}>Prompt</span>
+                                            <span className={styles["field-helper"]}>Single text used for this node</span>
+                                        </div>
+                                        <textarea
+                                            className={styles["textarea"]}
+                                            value={selectedNode.defaultPrompt}
+                                            onChange={handleFieldChange("defaultPrompt")}
+                                            placeholder="Write the base prompt for this node..."
+                                            rows={16}
+                                        />
+                                    </div>
+                                )}
                             </div>
 
                             <div className={styles["preview-bar"]}>
@@ -386,7 +779,7 @@ const PromptEditor: React.FC = () => {
                                 </div>
                                 <div className={styles["preview-chip"]}>
                                     <span className={styles["preview-chip__label"]}>Characters</span>
-                                    <span className={styles["preview-chip__value"]}>{selectedNode.defaultPrompt.length}</span>
+                                    <span className={styles["preview-chip__value"]}>{timeVibePromptPreview.length}</span>
                                 </div>
                                 <div className={styles["preview-chip"]}>
                                     <span className={styles["preview-chip__label"]}>Last touched</span>
