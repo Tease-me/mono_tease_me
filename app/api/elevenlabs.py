@@ -947,7 +947,7 @@ async def get_conversation_token(
     )
 
     dtr_goal = plan_dtr_goal(rel, can_ask)
-    time_context = get_time_context(user_timezone)
+    time_context = await get_time_context(db, user_timezone)
 
     # ── Phase 1: Quick DB fetches (sequential on shared session) ──
     users_name = await _build_user_name_block(db, user_id)

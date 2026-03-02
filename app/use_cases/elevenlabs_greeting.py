@@ -365,7 +365,7 @@ async def _generate_contextual_greeting(
     call_ending_type = _classify_call_ending(last_call)
     last_call_duration = last_call.call_duration_secs if last_call else 0
     last_message = _extract_last_message(db_messages, transcript)
-    time_context = get_time_context(user_timezone)
+    time_context = await get_time_context(db, user_timezone)
     persona_name = influencer.display_name if influencer and influencer.display_name else influencer_id
 
     if not transcript and not last_message:

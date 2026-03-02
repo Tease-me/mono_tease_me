@@ -2,7 +2,7 @@ import json
 import random
 import re
 from datetime import date, datetime, timezone
-from typing import Optional
+from typing import Any, Optional
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from app.shared.prompting.influencer_bio import InfluencerBioContext
@@ -66,7 +66,144 @@ def _parse_time_range(label: str):
     return (start, end)
 
 
-def get_time_context(user_timezone: str | None) -> str:
+def _default_time_vibe_ranges() -> list[dict[str, Any]]:
+    return [
+        {
+            "start_hour": 0,
+            "end_hour": 5,
+            "vibes": [
+                "late night hours",
+                "deep night, most people asleep",
+                "quiet hours",
+                "very late, winding down",
+                "after-hours calm",
+            ],
+        },
+        {
+            "start_hour": 6,
+            "end_hour": 8,
+            "vibes": [
+                "early morning, just waking up",
+                "morning starting",
+                "beginning of the day",
+                "fresh morning energy",
+                "sunrise hours",
+            ],
+        },
+        {
+            "start_hour": 9,
+            "end_hour": 11,
+            "vibes": [
+                "mid-morning",
+                "morning in full swing",
+                "active morning hours",
+                "getting things done",
+                "busy morning time",
+            ],
+        },
+        {
+            "start_hour": 12,
+            "end_hour": 14,
+            "vibes": [
+                "midday",
+                "afternoon starting",
+                "middle of the day",
+                "lunch time hours",
+                "afternoon energy",
+            ],
+        },
+        {
+            "start_hour": 15,
+            "end_hour": 17,
+            "vibes": [
+                "late afternoon",
+                "afternoon winding down",
+                "transitioning to evening",
+                "end of afternoon",
+                "golden hour time",
+            ],
+        },
+        {
+            "start_hour": 18,
+            "end_hour": 20,
+            "vibes": [
+                "evening",
+                "night beginning",
+                "relaxed evening hours",
+                "dinner time vibe",
+                "early night",
+            ],
+        },
+        {
+            "start_hour": 21,
+            "end_hour": 23,
+            "vibes": [
+                "night time",
+                "late evening hours",
+                "late night vibe",
+                "nighttime energy",
+                "after dark",
+            ],
+        },
+    ]
+
+
+def _validate_and_normalize_time_vibe_config(raw: Any) -> list[dict[str, Any]]:
+    if not isinstance(raw, dict):
+        raise ValueError("config must be an object")
+
+    ranges = raw.get("ranges")
+    if not isinstance(ranges, list) or not ranges:
+        raise ValueError("ranges must be a non-empty list")
+
+    normalized: list[dict[str, Any]] = []
+    covered_hours: set[int] = set()
+
+    for idx, item in enumerate(ranges):
+        if not isinstance(item, dict):
+            raise ValueError(f"ranges[{idx}] must be an object")
+
+        start = item.get("start_hour")
+        end = item.get("end_hour")
+        vibes = item.get("vibes")
+
+        if not isinstance(start, int) or not isinstance(end, int):
+            raise ValueError(f"ranges[{idx}] start_hour/end_hour must be integers")
+        if start < 0 or start > 23 or end < 0 or end > 23:
+            raise ValueError(f"ranges[{idx}] hour values must be between 0 and 23")
+        if start > end:
+            raise ValueError(f"ranges[{idx}] start_hour must be <= end_hour")
+        if not isinstance(vibes, list) or not vibes:
+            raise ValueError(f"ranges[{idx}] vibes must be a non-empty list")
+
+        cleaned_vibes = [str(v).strip() for v in vibes if str(v).strip()]
+        if not cleaned_vibes:
+            raise ValueError(f"ranges[{idx}] vibes must contain non-empty strings")
+
+        for hour in range(start, end + 1):
+            if hour in covered_hours:
+                raise ValueError(f"hour overlap detected at {hour}")
+            covered_hours.add(hour)
+
+        normalized.append(
+            {"start_hour": start, "end_hour": end, "vibes": cleaned_vibes}
+        )
+
+    missing = [h for h in range(24) if h not in covered_hours]
+    if missing:
+        raise ValueError(f"hours not covered: {missing}")
+
+    return normalized
+
+
+def _pick_vibes_for_hour(hour: int, ranges: list[dict[str, Any]]) -> list[str]:
+    for item in ranges:
+        if item["start_hour"] <= hour <= item["end_hour"]:
+            return item["vibes"]
+    return _default_time_vibe_ranges()[-1]["vibes"]
+
+
+async def get_time_context(db: AsyncSession, user_timezone: str | None) -> str:
     """
     Generate simple time context for AI to naturally incorporate.
     Returns a concise time description instead of pre-written mood scripts.
@@ -78,63 +215,16 @@ def get_time_context(user_timezone: str | None) -> str:
     day_name = now.strftime("%A")
     is_weekend = _is_weekend(user_timezone)
     
-    # Multiple variations for each time period - randomly selected for variety
-    if 0 <= hour < 6:
-        vibes = [
-            "late night hours",
-            "deep night, most people asleep",
-            "quiet hours",
-            "very late, winding down",
-            "after-hours calm"
-        ]
-    elif 6 <= hour < 9:
-        vibes = [
-            "early morning, just waking up",
-            "morning starting",
-            "beginning of the day",
-            "fresh morning energy",
-            "sunrise hours"
-        ]
-    elif 9 <= hour < 12:
-        vibes = [
-            "mid-morning",
-            "morning in full swing",
-            "active morning hours",
-            "getting things done",
-            "busy morning time"
-        ]
-    elif 12 <= hour < 15:
-        vibes = [
-            "midday",
-            "afternoon starting",
-            "middle of the day",
-            "lunch time hours",
-            "afternoon energy"
-        ]
-    elif 15 <= hour < 18:
-        vibes = [
-            "late afternoon",
-            "afternoon winding down",
-            "transitioning to evening",
-            "end of afternoon",
-            "golden hour time"
-        ]
-    elif 18 <= hour < 21:
-        vibes = [
-            "evening",
-            "night beginning",
-            "relaxed evening hours",
-            "dinner time vibe",
-            "early night"
-        ]
-    else:
-        vibes = [
-            "night time",
-            "late evening hours",
-            "late night vibe",
-            "nighttime energy",
-            "after dark"
-        ]
+    vibe_ranges = _default_time_vibe_ranges()
+    cfg = await get_system_prompt(db, prompt_keys.TIME_VIBE_CONFIG_JSON)
+    if cfg:
+        try:
+            parsed = json.loads(cfg)
+            vibe_ranges = _validate_and_normalize_time_vibe_config(parsed)
+        except Exception as exc:
+            log.warning("Invalid TIME_VIBE_CONFIG_JSON, falling back to defaults: %s", exc)
+
+    vibes = _pick_vibes_for_hour(hour, vibe_ranges)
     
     weekend_type = "weekend" if is_weekend else "weekday"
     selected_vibe = random.choice(vibes)

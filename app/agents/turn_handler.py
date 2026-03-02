@@ -225,7 +225,7 @@ async def handle_turn(
     influencer = await db.get(Influencer, influencer_id)
     
     # Generate simple time context instead of picking from mood arrays
-    time_context = get_time_context(user_timezone)
+    time_context = await get_time_context(db, user_timezone)
 
     if not influencer:
         raise HTTPException(404, "Influencer not found")
