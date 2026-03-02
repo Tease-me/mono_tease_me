@@ -4,7 +4,7 @@ import styles from "./UserMenu.module.css";
 import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
 import FadingDivider from "@/ui/components/dividers/FadingDivider";
 import SvgPack from "@/utils/SvgPack";
-import useIsDesktop from "@/utils/hooks/useIsDesktop";
+import useIsDesktop from "@/hooks/layout/useIsDesktop";
 import { AuthContext } from "@/context/AuthContext";
 import clsx from "clsx";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";

@@ -14,6 +14,7 @@ import { FollowServices } from "@/api/services/FollowServices";
 import { apiClient } from "@/api/apis";
 import { storage } from "@/utils/storage";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
+import { Paths } from "@/routes/path";
 
 interface ConfirmationProps {}
 
@@ -29,7 +30,7 @@ const Confirmation: React.FC<ConfirmationProps> = () => {
 
   useEffect(() => {
     if (isSignedIn) {
-      navigate("/home");
+      navigate(Paths.home);
       return;
     }
     const registrationState = state as {
@@ -38,7 +39,7 @@ const Confirmation: React.FC<ConfirmationProps> = () => {
       influencerId?: string;
     } | null;
     if (!registrationState?.email || !registrationState?.password) {
-      navigate("/register");
+      navigate(Paths.registerPlain);
       return;
     }
     const { email, password, influencerId: referralId } = registrationState;
@@ -65,7 +66,7 @@ const Confirmation: React.FC<ConfirmationProps> = () => {
             );
           }
         }
-        navigate("/home");
+        navigate(Paths.home);
         ws.close();
       }
     };
@@ -103,7 +104,7 @@ const Confirmation: React.FC<ConfirmationProps> = () => {
             <NormalButton
               text="Resend Verification"
               onClick={() => {
-                navigate("/login");
+                navigate(Paths.login);
               }}
             />
           </div>

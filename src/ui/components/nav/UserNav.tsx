@@ -4,7 +4,7 @@ import styles from './UserNav.module.css'
 import TeaseMeLogo from '../logos/TeaseMeLogo'
 import SvgPack from '@/utils/SvgPack'
 import IconButton from '../inputs/buttons/IconButton'
-import useIsDesktop from '@/utils/hooks/useIsDesktop'
+import useIsDesktop from '@/hooks/layout/useIsDesktop'
 import { useTheme } from '@/theme/ThemeProvider'
 import AdultModeToggle from "@/ui/components/adult-mode-toggle/AdultModeToggle";
 import clsx from 'clsx'

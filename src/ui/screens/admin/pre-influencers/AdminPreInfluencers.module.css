@@ -1,3 +1,37 @@
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-px-12);
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.sidebar-section {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 12px;
+}
+
+.sidebar-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-secondary);
+    margin-bottom: 8px;
+}
+
+.sidebar-value {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.main {
+    min-height: 0;
+    overflow-y: auto;
+}
+
 .page {
     display: flex;
     flex-direction: column;

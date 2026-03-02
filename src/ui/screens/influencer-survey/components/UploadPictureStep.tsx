@@ -9,7 +9,7 @@ import IconButton from '@/ui/components/inputs/buttons/IconButton';
 import SvgPack from '@/utils/SvgPack';
 import ImageCropModal from '@/ui/components/modals/image-crop-modal/ImageCropModal';
 import { validateImageFile } from '../utils/fileUploadHelpers';
-import { useFileUpload } from '../hooks/useFileUpload';
+import { useFileUpload } from '@/hooks/survey/useFileUpload';
 import { apiClient } from '@/api/apis';
 
 interface UploadPictureStepProps {

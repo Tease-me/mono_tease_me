@@ -60,7 +60,7 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ }) => {
 
             setStatus(data.message);
             setTimeout(() => {
-                navigate("/login")
+                navigate(Paths.login)
             }, 5000);
         } catch (err: any) {
             logger.error(err)

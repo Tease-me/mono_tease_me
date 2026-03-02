@@ -7,6 +7,7 @@ import CenteredLayout from '@/ui/templates/CenteredLayout';
 import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import { Endpoints } from '@/api/urls';
+import { Paths } from '@/routes/path';
 
 interface VerifyEmailProps {
 }
@@ -26,7 +27,7 @@ const VerifyEmail: React.FC<VerifyEmailProps> = () => {
 
     useEffect(() => {
         if (!token) {
-            navigate("/")
+            navigate(Paths.root)
             return
         };
         const verifyEmail = async () => {
@@ -60,7 +61,7 @@ const VerifyEmail: React.FC<VerifyEmailProps> = () => {
                     </p>
                     {error && <p className={styles.error}>Error: {error}</p>}
                     <div className={styles["buttons-container"]}>
-                        <NormalButton text='Back to Login' color='black' onClick={() => { navigate("/login") }} />
+                        <NormalButton text='Back to Login' color='black' onClick={() => { navigate(Paths.login) }} />
                     </div>
                 </div>
             </CenteredLayout>
