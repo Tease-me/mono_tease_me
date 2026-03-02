@@ -91,7 +91,7 @@ async def handle_turn_18(
     )
     
     # Generate simple time context instead of picking from mood arrays
-    time_context = get_time_context(user_timezone)
+    time_context = await get_time_context(db, user_timezone)
 
     user = await db.get(User, user_id) if user_id else None
     user_adult_prompt = user.custom_adult_prompt if user else None

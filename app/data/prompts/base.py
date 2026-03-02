@@ -1,5 +1,7 @@
 """Base system prompts for core chat functionality."""
 
+import json
+
 from app.constants import prompt_keys
 
 # Core system prompt with relationship metrics
@@ -333,6 +335,90 @@ Output ONLY the greeting text, nothing else.
 # Survey to MBTI conversion
 SURVEY_PROMPT_JSON_SCHEMA = """You are a prompt engineer. Read the survey markdown and output only JSON matching this schema exactly: { likes: string[], dislikes: string[], mbti_architype: string, mbti_rules: string, personality_rules: string, tone: string, stages: { hate: string, dislike: string, strangers: string, friends: string, flirting: string, dating: string, girlfriend: string } }.Fill likes/dislikes from foods, hobbies, entertainment, routines, and anything the user enjoys or hates. mbti_architype should select one of: ISTJ, ISFJ, INFJ, INTJ, ISTP, ISFP, INFP, INTP, ESTP, ESFP, ENFP, ENTP, ESTJ, ESFJ, ENFJ, ENTJ. mbti_rules should use mbti_architype to summarize decision style, social energy, planning habits. personality_rules should use mbti_architype to summarize overall personality, humor, boundaries, relationship vibe. tone should use mbti_architype to describe speaking style in a short sentence. Each stage string should describe how the persona behaves toward the user at that relationship stage. These should be influenced by mbti_architype.Keep strings concise (1-2 sentences). If unclear, use an empty string. No extra keys, no prose."""
 
+TIME_VIBE_CONFIG_JSON = json.dumps(
+    {
+        "ranges": [
+            {
+                "start_hour": 0,
+                "end_hour": 5,
+                "vibes": [
+                    "late night hours",
+                    "deep night, most people asleep",
+                    "quiet hours",
+                    "very late, winding down",
+                    "after-hours calm",
+                ],
+            },
+            {
+                "start_hour": 6,
+                "end_hour": 8,
+                "vibes": [
+                    "early morning, just waking up",
+                    "morning starting",
+                    "beginning of the day",
+                    "fresh morning energy",
+                    "sunrise hours",
+                ],
+            },
+            {
+                "start_hour": 9,
+                "end_hour": 11,
+                "vibes": [
+                    "mid-morning",
+                    "morning in full swing",
+                    "active morning hours",
+                    "getting things done",
+                    "busy morning time",
+                ],
+            },
+            {
+                "start_hour": 12,
+                "end_hour": 14,
+                "vibes": [
+                    "midday",
+                    "afternoon starting",
+                    "middle of the day",
+                    "lunch time hours",
+                    "afternoon energy",
+                ],
+            },
+            {
+                "start_hour": 15,
+                "end_hour": 17,
+                "vibes": [
+                    "late afternoon",
+                    "afternoon winding down",
+                    "transitioning to evening",
+                    "end of afternoon",
+                    "golden hour time",
+                ],
+            },
+            {
+                "start_hour": 18,
+                "end_hour": 20,
+                "vibes": [
+                    "evening",
+                    "night beginning",
+                    "relaxed evening hours",
+                    "dinner time vibe",
+                    "early night",
+                ],
+            },
+            {
+                "start_hour": 21,
+                "end_hour": 23,
+                "vibes": [
+                    "night time",
+                    "late evening hours",
+                    "late night vibe",
+                    "nighttime energy",
+                    "after dark",
+                ],
+            },
+        ]
+    }
+)
+
 # Prompt registry for base prompts
 PROMPTS = {
     prompt_keys.BASE_SYSTEM: {
@@ -370,5 +456,11 @@ PROMPTS = {
         "description": "Prompt to generate JSON survey responses.",
         "prompt": SURVEY_PROMPT_JSON_SCHEMA,
         "type": "normal"
+    },
+    prompt_keys.TIME_VIBE_CONFIG_JSON: {
+        "name": "Time Vibe Config JSON",
+        "description": "Admin-editable hour ranges and vibe labels used by get_time_context().",
+        "prompt": TIME_VIBE_CONFIG_JSON,
+        "type": "others",
     },
 }
