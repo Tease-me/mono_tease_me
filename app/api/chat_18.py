@@ -30,6 +30,7 @@ from app.services.chat_buffer_service import (
     ChatConfig,
     queue_message,
     flush_buffer,
+    cleanup_buffer,
     get_message_context,
     save_user_message,
 )
@@ -185,8 +186,10 @@ async def websocket_chat(
             await flush_buffer(chat_id, ws, influencer_id, user_id, db, CHAT_CONFIG)
         except Exception:
             pass
+        cleanup_buffer(f"{user_id}_{influencer_id}")
     except Exception:
         log.exception("[WS] Unexpected error")
+        cleanup_buffer(f"{user_id}_{influencer_id}")
         try:
             await ws.close(code=4003)
         except Exception:

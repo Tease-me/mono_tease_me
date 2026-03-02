@@ -80,6 +80,17 @@ class _Buf:
 _buffers: Dict[str, _Buf] = {}
 
 
+def cleanup_buffer(chat_id: str) -> None:
+    """Remove the buffer for a chat_id and cancel any pending flush timer.
+
+    Call this on WebSocket disconnect (after the final flush) to prevent
+    the _buffers dict from growing unboundedly over the server's lifetime.
+    """
+    buf = _buffers.pop(chat_id, None)
+    if buf and buf.timer and not buf.timer.done():
+        buf.timer.cancel()
+
+
 def _ends_thought(msg: str) -> bool:
     """
     Check if a message represents a complete thought.
