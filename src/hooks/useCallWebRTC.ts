@@ -23,7 +23,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
 
   const getRingtone = useCallback((): Howl => {
     if (!ringtoneRef.current) {
-      ringtoneRef.current = new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: true });
+      ringtoneRef.current = new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: false });
     }
     return ringtoneRef.current;
   }, []);

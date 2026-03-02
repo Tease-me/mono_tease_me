@@ -22,7 +22,7 @@ export default function useCall() {
 
   const getRingtone = useCallback((): Howl => {
     if (!ringtoneRef.current) {
-      ringtoneRef.current = new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: true });
+      ringtoneRef.current = new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: false });
     }
     return ringtoneRef.current;
   }, []);
