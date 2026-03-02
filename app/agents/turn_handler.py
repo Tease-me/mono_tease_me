@@ -23,6 +23,7 @@ from app.db.models import Influencer, User
 from app.shared.prompting.influencer_bio import extract_influencer_bio_context
 from app.utils.messaging.tts_sanitizer import sanitize_tts_text
 from app.utils.logging.prompt_logging import log_prompt
+from app.agents.callbacks import UsageTrackingCallback
 
 from app.relationship.processor import process_relationship_turn
 
@@ -163,8 +164,14 @@ async def extract_and_store_facts_for_turn(
             
             exchange = f"user: {message}\nai: {reply}"
 
+            tracker = UsageTrackingCallback(
+                category="extraction",
+                purpose="fact_extraction",
+                chat_id=chat_id,
+            )
             facts_resp = await FACT_EXTRACTOR.ainvoke(
-                fact_prompt.format(msg=exchange, ctx=recent_ctx)
+                fact_prompt.format(msg=exchange, ctx=recent_ctx),
+                config={"callbacks": [tracker]}
             )
 
             facts_txt = facts_resp.content or ""
@@ -367,10 +374,20 @@ async def handle_turn(
         history_messages_key="history",
     )
 
+    tracker = UsageTrackingCallback(
+        category="call" if is_audio else "text",
+        purpose="main_reply",
+        user_id=int(user_id) if user_id else None,
+        influencer_id=influencer_id,
+        chat_id=chat_id,
+    )
     try:
         result = await runnable.ainvoke(
             {"input": message},
-            config={"configurable": {"session_id": chat_id}},
+            config={
+                "configurable": {"session_id": chat_id},
+                "callbacks": [tracker]
+            },
         )
         reply = result.content
     except Exception as e:

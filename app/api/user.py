@@ -1,8 +1,9 @@
 import logging
-from datetime import date
+
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import func
 from app.db.models import User, InfluencerWallet, DailyUsage, Pricing
 from app.db.session import get_db
 from app.schemas.user import UserOut, UserUpdate, UserAdultPromptUpdate, UserAdultPromptOut
@@ -28,8 +29,6 @@ async def get_user_usage(
     if id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    today = date.today()
-
     if influencer_id:
         wallets_result = await db.execute(
             select(InfluencerWallet).where(
@@ -43,8 +42,27 @@ async def get_user_usage(
         )
     wallets = wallets_result.scalars().all()
 
-    normal_usage = await db.get(DailyUsage, (id, today, False))
-    adult_usage = await db.get(DailyUsage, (id, today, True))
+    usage_stmt = select(
+        DailyUsage.is_18,
+        func.sum(DailyUsage.text_count).label('total_text'),
+        func.sum(DailyUsage.voice_secs).label('total_voice'),
+        func.sum(DailyUsage.live_secs).label('total_live')
+    ).where(DailyUsage.user_id == id).group_by(DailyUsage.is_18)
+    
+    usage_rows = (await db.execute(usage_stmt)).all()
+    
+    normal_usage_totals = {"text": 0, "voice": 0, "live": 0}
+    adult_usage_totals = {"text": 0, "voice": 0, "live": 0}
+    
+    for row in usage_rows:
+        if row.is_18:
+            adult_usage_totals["text"] = row.total_text or 0
+            adult_usage_totals["voice"] = row.total_voice or 0
+            adult_usage_totals["live"] = row.total_live or 0
+        else:
+            normal_usage_totals["text"] = row.total_text or 0
+            normal_usage_totals["voice"] = row.total_voice or 0
+            normal_usage_totals["live"] = row.total_live or 0
 
     pricing_result = await db.execute(
         select(Pricing).where(Pricing.is_active.is_(True))
@@ -57,11 +75,6 @@ async def get_user_usage(
             return (0, 0)
         return (price.price_cents or 0, price.free_allowance or 0)
 
-    def get_used_today(usage, usage_field: str) -> int:
-        if not usage:
-            return 0
-        return getattr(usage, usage_field, 0) or 0
-
     def calc_remaining(balance: int, unit_price: int, free_left: int) -> int:
         paid_units = balance // unit_price if unit_price > 0 else 0
         return free_left + paid_units
@@ -71,10 +84,10 @@ async def get_user_usage(
     text_18_price, text_18_free = get_price_info("text_18")
     voice_18_price, voice_18_free = get_price_info("voice_18")
 
-    normal_text_used = get_used_today(normal_usage, "text_count")
-    normal_live_used = get_used_today(normal_usage, "live_secs")
-    adult_text_used = get_used_today(adult_usage, "text_count")
-    adult_voice_used = get_used_today(adult_usage, "voice_secs")
+    normal_text_used = normal_usage_totals["text"]
+    normal_live_used = normal_usage_totals["live"]
+    adult_text_used = adult_usage_totals["text"]
+    adult_voice_used = adult_usage_totals["voice"]
 
     normal_text_free_left = max(text_free - normal_text_used, 0)
     normal_live_free_left = max(live_free - normal_live_used, 0)

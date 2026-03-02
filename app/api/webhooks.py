@@ -195,6 +195,20 @@ async def elevenlabs_post_call(request: Request, db: AsyncSession = Depends(get_
                 units=int(total_seconds),
                 meta=meta,
             )
+            
+            from app.services.token_tracker import track_usage_bg
+            track_usage_bg(
+                category="voice",
+                provider="elevenlabs",
+                model="elevenlabs_convai",
+                purpose="call_conversation",
+                user_id=user_id,
+                influencer_id=influencer_id,
+                chat_id=chat_id,
+                duration_secs=float(total_seconds),
+                latency_ms=0,
+            )
+
             log.info(
                 "webhook.billing.success user=%s conv_id=%s seconds=%s",
                 _redact(user_id), _redact(conversation_id), total_seconds
@@ -423,7 +437,7 @@ async def eleven_webhook_get_memories(
         # Tighter embedding timeout
         emb_start = time.perf_counter()
         embedding = await asyncio.wait_for(
-            get_embedding(user_text),
+            get_embedding(user_text, source="call"),
             timeout=0.5,
         )
         emb_ms = int((time.perf_counter() - emb_start) * 1000)

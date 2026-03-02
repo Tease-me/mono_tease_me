@@ -8,15 +8,22 @@ This module provides:
 """
 
 import logging
+import time
 
 from openai import AsyncOpenAI
 from sqlalchemy import text
+from app.core.config import settings
 
 log = logging.getLogger(__name__)
 
 # Use AsyncOpenAI for non-blocking API calls
 # This prevents blocking the event loop during embedding requests
 client = AsyncOpenAI()
+
+backup_client = AsyncOpenAI(
+    api_key=settings.QWEN_API_KEY,
+    base_url=settings.QWEN_BASE_URL
+) if settings.QWEN_API_KEY else None
 
 
 async def get_embedding(text: str) -> list[float]:
@@ -29,11 +36,40 @@ async def get_embedding(text: str) -> list[float]:
     Returns:
         Embedding vector as list of floats
     """
-    response = await client.embeddings.create(
-        input=text,
-        model="text-embedding-3-small"
-    )
-    return response.data[0].embedding
+    try:
+        t0 = time.perf_counter()
+        response = await client.embeddings.create(
+            input=text,
+            model="text-embedding-3-small"
+        )
+        emb_ms = int((time.perf_counter() - t0) * 1000)
+        tokens_used = getattr(response, 'usage', None)
+        from app.services.token_tracker import track_usage_bg
+        track_usage_bg(
+            "embedding", "openai", "text-embedding-3-small", "embedding",
+            input_tokens=getattr(tokens_used, 'total_tokens', None) if tokens_used else None,
+            latency_ms=emb_ms,
+        )
+        return response.data[0].embedding
+    except Exception as e:
+        log.warning("Primary embedding failed, trying fallback: %s", e)
+        if backup_client:
+            t0 = time.perf_counter()
+            response = await backup_client.embeddings.create(
+                input=text,
+                model="text-embedding-v3",
+                dimensions=1536
+            )
+            emb_ms = int((time.perf_counter() - t0) * 1000)
+            tokens_used = getattr(response, 'usage', None)
+            from app.services.token_tracker import track_usage_bg
+            track_usage_bg(
+                "embedding", "alibaba", "text-embedding-v3", "embedding",
+                input_tokens=getattr(tokens_used, 'total_tokens', None) if tokens_used else None,
+                latency_ms=emb_ms,
+            )
+            return response.data[0].embedding
+        raise
 
 
 async def get_embeddings_batch(texts: list[str]) -> list[list[float]]:
@@ -59,16 +95,46 @@ async def get_embeddings_batch(texts: list[str]) -> list[list[float]]:
         return [await get_embedding(texts[0])]
     
     try:
+        t0 = time.perf_counter()
         response = await client.embeddings.create(
             input=texts,
             model="text-embedding-3-small"
+        )
+        emb_ms = int((time.perf_counter() - t0) * 1000)
+        tokens_used = getattr(response, 'usage', None)
+        from app.services.token_tracker import track_usage_bg
+        track_usage_bg(
+            "embedding", "openai", "text-embedding-3-small", "embedding_batch",
+            input_tokens=getattr(tokens_used, 'total_tokens', None) if tokens_used else None,
+            latency_ms=emb_ms,
         )
         # API returns embeddings in order, but let's be safe
         # Sort by index to ensure order matches input
         sorted_data = sorted(response.data, key=lambda x: x.index)
         return [item.embedding for item in sorted_data]
     except Exception as e:
-        log.error("Batch embedding failed: %s", e, exc_info=True)
+        log.error("Batch embedding failed: %s", e)
+        if backup_client:
+            try:
+                t0 = time.perf_counter()
+                response = await backup_client.embeddings.create(
+                    input=texts,
+                    model="text-embedding-v3",
+                    dimensions=1536
+                )
+                emb_ms = int((time.perf_counter() - t0) * 1000)
+                tokens_used = getattr(response, 'usage', None)
+                from app.services.token_tracker import track_usage_bg
+                track_usage_bg(
+                    "embedding", "alibaba", "text-embedding-v3", "embedding_batch",
+                    input_tokens=getattr(tokens_used, 'total_tokens', None) if tokens_used else None,
+                    latency_ms=emb_ms,
+                )
+                sorted_data = sorted(response.data, key=lambda x: x.index)
+                return [item.embedding for item in sorted_data]
+            except Exception as backup_e:
+                log.error("Backup batch embedding failed: %s", backup_e)
+        
         # Fallback: try one at a time
         embeddings = []
         for text in texts:
