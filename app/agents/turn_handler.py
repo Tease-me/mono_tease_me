@@ -394,6 +394,17 @@ async def handle_turn(
         log.error("[%s] LLM error: %s", cid, e, exc_info=True)
         raise HTTPException(status_code=500, detail="LLM generation failed")
 
+    # Trim Redis history after reply to prevent unbounded growth mid-session.
+    # RunnableWithMessageHistory already added the user msg + AI reply above,
+    # so history may now exceed MAX_HISTORY_WINDOW.
+    try:
+        if len(history.messages) > settings.MAX_HISTORY_WINDOW:
+            trimmed = history.messages[-settings.MAX_HISTORY_WINDOW:]
+            history.clear()
+            history.add_messages(trimmed)
+    except Exception as exc:
+        log.warning("[%s] post-reply history trim failed: %s", cid, exc)
+
     # Schedule background fact extraction (fire-and-forget)
     # Store task reference to prevent premature garbage collection
     try:
