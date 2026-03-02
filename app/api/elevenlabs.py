@@ -3,7 +3,7 @@ import logging
 import math
 import random
 import json
-from app.agents.memory import get_all_memory_list, summarize_memory_list, summarize_ai_memory_list
+from app.agents.memory import get_memory_only_list, summarize_memory_list, summarize_ai_memory_list
 from app.agents.prompt_utils import build_relationship_prompt, get_global_prompt, get_mbti_rules_for_archetype, get_relationship_stage_prompts, get_time_context
 from app.relationship.dtr import plan_dtr_goal
 from app.relationship.inactivity import apply_inactivity_decay
@@ -1459,8 +1459,10 @@ async def get_conversation_token(
 
     # ── Phase 1: Quick DB fetches (sequential on shared session) ──
     users_name = await _build_user_name_block(db, user_id)
-    memories = await get_all_memory_list(db, user_id, influencer_id, exclude_sender="system")
+    # Use curated memories only (not raw messages) — much smaller, higher-quality dataset
+    memories = await get_memory_only_list(db, user_id, influencer_id, exclude_sender="system")
 
+    # Fetch AI memories directly (sender="system") with LIMIT
     ai_mem_query = select(Memory.content).where(
         Memory.chat_id.in_(
             select(Chat.id).where(
@@ -1468,13 +1470,22 @@ async def get_conversation_token(
             )
         ),
         Memory.sender == "system"
-    ).order_by(Memory.created_at.desc()).limit(400)
+    ).order_by(Memory.created_at.desc()).limit(200)
     ai_mem_res = await db.execute(ai_mem_query)
     ai_mem_list = [row[0] for row in ai_mem_res.fetchall()]
 
     credits_remainder_secs = await get_remaining_units(db, user_id, influencer_id, feature="live_chat")
 
     # ── Phase 2: All slow I/O in parallel (~2-3s instead of ~8s) ──
+    # Check Redis cache for summaries first (5 min TTL avoids redundant LLM calls on reconnects)
+    import redis as _redis
+    _rclient = _redis.from_url(settings.REDIS_URL, decode_responses=True)
+    _MEM_SUMMARY_TTL = 60  # 1 minute
+    _mem_cache_key = f"mem_summary:{chat_id}"
+    _ai_mem_cache_key = f"ai_mem_summary:{chat_id}"
+    cached_mem = _rclient.get(_mem_cache_key)
+    cached_ai_mem = _rclient.get(_ai_mem_cache_key)
+
     async def _fetch_token() -> str:
         try:
             client = await get_elevenlabs_client()
@@ -1501,12 +1512,29 @@ async def get_conversation_token(
             raise HTTPException(status_code=502, detail="Token not returned by ElevenLabs")
         return t
 
-    memory, ai_mem_block, greeting, token = await asyncio.gather(
-        summarize_memory_list(memories or []),
-        summarize_ai_memory_list(ai_mem_list),
-        _generate_contextual_greeting(db, chat_id, influencer_id, user_timezone),
-        _fetch_token(),
-    )
+    if cached_mem and cached_ai_mem:
+        # Cache hit — skip LLM summarization entirely
+        memory = cached_mem
+        ai_mem_block = cached_ai_mem
+        greeting, token = await asyncio.gather(
+            _generate_contextual_greeting(db, chat_id, influencer_id, user_timezone),
+            _fetch_token(),
+        )
+        log.info("get_conversation_token.cache_hit chat=%s", chat_id)
+    else:
+        # Cache miss — run LLM summarization and cache results
+        memory, ai_mem_block, greeting, token = await asyncio.gather(
+            summarize_memory_list(memories or []),
+            summarize_ai_memory_list(ai_mem_list),
+            _generate_contextual_greeting(db, chat_id, influencer_id, user_timezone),
+            _fetch_token(),
+        )
+        try:
+            _rclient.setex(_mem_cache_key, _MEM_SUMMARY_TTL, memory)
+            _rclient.setex(_ai_mem_cache_key, _MEM_SUMMARY_TTL, ai_mem_block)
+            log.info("get_conversation_token.cache_set chat=%s ttl=%d", chat_id, _MEM_SUMMARY_TTL)
+        except Exception as exc:
+            log.warning("get_conversation_token.cache_set_failed chat=%s err=%s", chat_id, exc)
 
     if not greeting:
         greeting = _pick_greeting(influencer_id, "random")
