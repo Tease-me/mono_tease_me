@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tease-me-cache-v1.0.1';
+const CACHE_NAME = 'tease-me-cache-v1.0.2';
 const URLS_TO_CACHE = [
     '/',
     '/index.html',
@@ -45,9 +45,12 @@ self.addEventListener('push', event => {
     const payload = event.data ? event.data.json() : {};
     const title = payload.title || "New Notification";
     const options = {
-        body: payload.body || payload.body || "",
+        body: payload.body || payload.message || "",
         icon: payload.icon || "/apple-touch-icon.png",
-        data: payload.data || {}
+        badge: payload.badge || undefined,
+        image: payload.image || undefined,
+        tag: payload.tag || undefined,
+        data: { url: payload.url || "/" },
     };
     event.waitUntil(
         self.registration.showNotification(title, options)
@@ -57,6 +60,6 @@ self.addEventListener('push', event => {
 self.addEventListener('notificationclick', event => {
     event.notification.close();
     event.waitUntil(
-        clients.openWindow(event.notification.data.url || "/")
+        clients.openWindow(event.notification.data?.url || "/")
     );
 });
