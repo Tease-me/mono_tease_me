@@ -141,18 +141,6 @@ def get_time_context(user_timezone: str | None) -> str:
     
     return f"{now.strftime('%I:%M %p')}, {day_name} {now.strftime('%d %B %Y')} ({weekend_type}) - {selected_vibe}"
 
-
-# Keep old function for backward compatibility during transition
-def pick_time_mood(
-    weekday_prompt: str | None,
-    weekend_prompt: str | None,
-    user_timezone: str | None,
-) -> str:
-    """
-    DEPRECATED: Use get_time_context() instead.
-    This function is kept for backward compatibility.
-    """
-    return get_time_context(user_timezone)
  
 
 _mbti_cache: Optional[dict] = None

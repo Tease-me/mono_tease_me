@@ -16,6 +16,7 @@ from app.constants import prompt_keys
 from app.db.models import CallRecord, Chat, Influencer, Message, User
 from app.db.session import SessionLocal
 from app.services.system_prompt_service import get_system_prompt
+from app.utils.logging.prompt_logging import log_prompt
 
 log = logging.getLogger(__name__)
 
@@ -209,11 +210,57 @@ async def _get_contextual_first_message_prompt(db: AsyncSession) -> ChatPromptTe
     )
 
 
+def _build_relationship_partial_vars(rel: Any | None) -> dict[str, Any]:
+    if rel is None:
+        return {}
+    return {
+        "relationship_state": getattr(rel, "state", ""),
+        "trust": int(getattr(rel, "trust", 0) or 0),
+        "closeness": int(getattr(rel, "closeness", 0) or 0),
+        "attraction": int(getattr(rel, "attraction", 0) or 0),
+        "safety": int(getattr(rel, "safety", 0) or 0),
+        "exclusive_agreed": bool(getattr(rel, "exclusive_agreed", False)),
+        "girlfriend_confirmed": bool(getattr(rel, "girlfriend_confirmed", False)),
+    }
+
+
+def _build_stage_partial_vars(
+    rel: Any | None,
+    stages: dict | None,
+    influencer_stages: Any | None,
+) -> dict[str, Any]:
+    if rel is None:
+        return {}
+    rel_state = (getattr(rel, "state", "") or "").strip().upper()
+    if not rel_state:
+        return {}
+
+    stage_prompt = ""
+    influencer_stage_prompt = ""
+
+    if stages:
+        stage_prompt = stages.get(rel_state, "") or stages.get(rel_state.lower(), "")
+
+    if influencer_stages:
+        influencer_stage_prompt = (
+            influencer_stages.get(rel_state, "")
+            or influencer_stages.get(rel_state.lower(), "")
+        )
+
+    return {
+        "stage_prompt": stage_prompt,
+        "influencer_stage_prompt": influencer_stage_prompt,
+    }
+
+
 async def _generate_contextual_greeting(
     db: AsyncSession,
     chat_id: str,
     influencer_id: str,
     user_timezone: str | None = None,
+    rel: Any | None = None,
+    stages: dict | None = None,
+    influencer_stages: Any | None = None,
 ) -> Optional[str]:
     if GREETING_GENERATOR is None:
         return None
@@ -328,17 +375,23 @@ async def _generate_contextual_greeting(
         async with SessionLocal() as session:
             users_name = await _build_user_name_block(session, user_id)
         prompt = await _get_contextual_first_message_prompt(db)
-        chain = prompt.partial(
-            influencer_name=persona_name,
-            users_name=users_name,
-            gap_category=gap_category,
-            gap_minutes=str(round(gap_minutes, 1)),
-            call_ending_type=call_ending_type,
-            last_call_duration_secs=str(int(last_call_duration or 0)),
-            last_message=last_message or "(no recent message)",
-            history=transcript or "(no recent history)",
-            mood=time_context,
-        ) | GREETING_GENERATOR
+        partial_vars = {
+            "influencer_name": persona_name,
+            "users_name": users_name,
+            "gap_category": gap_category,
+            "gap_minutes": str(round(gap_minutes, 1)),
+            "call_ending_type": call_ending_type,
+            "last_call_duration_secs": str(int(last_call_duration or 0)),
+            "last_message": last_message or "(no recent message)",
+            "history": transcript or "(no recent history)",
+            "mood": time_context,
+        }
+        partial_vars.update(_build_relationship_partial_vars(rel))
+        partial_vars.update(_build_stage_partial_vars(rel, stages, influencer_stages))
+        expected = set(getattr(prompt, "input_variables", []) or [])
+        filtered = {k: v for k, v in partial_vars.items() if k in expected}
+        log_prompt(log, prompt, cid=f"first_msg:{chat_id}", **filtered)
+        chain = prompt.partial(**filtered) | GREETING_GENERATOR
 
         llm_response = await chain.ainvoke({})
         greeting = _add_natural_pause((llm_response.content or "").strip())
@@ -349,10 +402,11 @@ async def _generate_contextual_greeting(
             greeting = greeting[1:-1]
 
         log.info(
-            "contextual_greeting.generated chat=%s gap=%s ending=%s greeting=%r",
+            "contextual_greeting.generated chat=%s gap=%s ending=%s rel_included=%s greeting=%r",
             chat_id,
             gap_category,
             call_ending_type,
+            rel is not None,
             greeting[:50] if greeting else None,
         )
         return greeting if greeting else None
@@ -369,8 +423,19 @@ async def build_call_greeting(
     user_timezone: str | None,
     greeting_mode: str,
     persona_name: str | None = None,
+    rel: Any | None = None,
+    stages: dict | None = None,
+    influencer_stages: Any | None = None,
 ) -> str | None:
-    greeting = await _generate_contextual_greeting(db, chat_id, influencer_id, user_timezone)
+    greeting = await _generate_contextual_greeting(
+        db,
+        chat_id,
+        influencer_id,
+        user_timezone,
+        rel,
+        stages,
+        influencer_stages,
+    )
     if greeting:
         return greeting
 

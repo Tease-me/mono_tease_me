@@ -34,6 +34,7 @@ from app.agents.turn_handler import (
 from app.db.session import SessionLocal
 from app.utils.logging.prompt_logging import log_prompt
 from app.agents.memory import extract_memories_from_transcript
+from app.gateways.elevenlabs_agents_gateway import ElevenLabsAgentsGateway
 from app.use_cases.elevenlabs_greeting import build_call_greeting
 
 
@@ -257,83 +258,6 @@ def _build_agent_patch_payload(
     }
 
 
-def _build_agent_create_payload(
-    *, 
-    name: Optional[str],
-    voice_id: str,
-    prompt_text: str,
-    language: str = "en",
-    llm: Optional[str] = None,
-    temperature: Optional[float] = None,
-    max_tokens: Optional[int] = None,
-) -> Dict[str, Any]:
-    if not voice_id:
-        raise HTTPException(400, "voice_id is required to create an ElevenLabs agent.")
-
-    agent_cfg: Dict[str, Any] = {
-        "language": language,
-        "prompt": {
-            "prompt": prompt_text or "",
-        },
-        "tools": [
-            {
-                "name": "updateRelationship",
-                "type": "webhook",
-                "description": "MANDATORY: Call on EVERY user message to track relationship changes. Returns instantly - continue your reply without waiting.",
-                "webhook": {
-                    "url": f"{settings.PUBLIC_BASE_URL.rstrip('/')}/webhooks/update_relationship",
-                    "method": "POST",
-                    "request_headers": {
-                         "X-Webhook-Token": settings.ELEVENLABS_CONVAI_WEBHOOK_SECRET or ""
-                    }
-                }
-            },
-        {
-            "name": "getMemories",
-            "type": "webhook",
-            "description": "Call when user references past conversations or asks what you remember. Retrieves relevant memories - wait for response before replying.",
-            "webhook": {
-               "url": f"{settings.PUBLIC_BASE_URL.rstrip('/')}/webhooks/memories",
-               "method": "POST",
-               "request_headers": {
-                    "X-Webhook-Token": settings.ELEVENLABS_CONVAI_WEBHOOK_SECRET or ""
-               }
-            }
-        }
-    ],
-    }
-    if llm is not None:
-        agent_cfg["prompt"]["llm"] = llm
-    if temperature is not None:
-        agent_cfg["prompt"]["temperature"] = temperature
-    if max_tokens is not None:
-        agent_cfg["prompt"]["max_tokens"] = max_tokens
-
-    return {
-        "name": name,
-        "conversation_config": {
-            "agent": agent_cfg,
-            "tts": {
-                "voice_id": voice_id,
-            },
-            "client": {
-                "overrides": {
-                    "agent": {
-                        "first_message": True,
-                        "language": True, 
-                        "prompt": {
-                            "prompt": True,
-                        },
-                    },
-                    "tts": {
-                        "voice_id": True,
-                    }
-                }
-            }
-        },
-    }
-
-
 async def _patch_agent_config(
     client: httpx.AsyncClient,
     agent_id: str,
@@ -380,70 +304,6 @@ async def _patch_agent_config(
             pass
         
         raise HTTPException(status_code=resp.status_code, detail=error_detail)
-
-async def _create_agent(
-    client: httpx.AsyncClient,
-    *,
-    name: Optional[str],
-    voice_id: str,
-    prompt_text: str,
-    language: str = "en",
-    llm: Optional[str] = None,
-    temperature: Optional[float] = None,
-    max_tokens: Optional[int] = None,
-) -> str:
-    webhook_id = await _get_or_create_post_call_webhook(client)
-    
-    payload = _build_agent_create_payload(
-        name=_apply_env_suffix(name) if name else None,
-        voice_id=voice_id,
-        prompt_text=prompt_text,
-        language=language,
-        llm=llm,
-        temperature=temperature,
-        max_tokens=max_tokens,
-    )
-    
-    if webhook_id:
-        payload["platform_settings"] = {
-            "post_call_webhook_ids": [webhook_id],
-        }
-
-    try:
-        resp = await client.post(
-            "/convai/agents/create",
-            headers=_headers(),
-            json=payload,
-            timeout=20.0,
-        )
-    except httpx.RequestError as e:
-        log.exception("Network error creating ElevenLabs agent: %s", e)
-        raise HTTPException(status_code=502, detail="Upstream unavailable")
-
-    if resp.status_code >= 400:
-        error_text = resp.text[:500] if resp.text else "No error details"
-        log.error("ElevenLabs agent creation failed: %s %s", resp.status_code, error_text)
-        error_detail = f"Failed to create ElevenLabs agent: {resp.status_code}"
-        try:
-            error_json = resp.json()
-            if isinstance(error_json, dict) and "detail" in error_json:
-                error_detail = f"ElevenLabs API error: {error_json['detail']}"
-            elif isinstance(error_json, dict) and "message" in error_json:
-                error_detail = f"ElevenLabs API error: {error_json['message']}"
-        except Exception:
-            pass
-        raise HTTPException(status_code=resp.status_code, detail=error_detail)
-
-    data = resp.json()
-    new_agent_id = data.get("agent_id")
-    if not new_agent_id:
-        log.error("ElevenLabs agent creation response missing agent_id: %s", data)
-        raise HTTPException(
-            status_code=502,
-            detail="ElevenLabs agent creation succeeded but returned no agent_id.",
-        )
-    return new_agent_id
-
 
 async def _poll_and_persist_conversation(
     conversation_id: str,
@@ -584,8 +444,8 @@ async def _push_prompt_to_elevenlabs(
             detail="voice_id is required to create a new ElevenLabs agent.",
         )
 
-    new_agent_id = await _create_agent(
-        client,
+    webhook_id = await _get_or_create_post_call_webhook(client)
+    new_agent_id = await ElevenLabsAgentsGateway().create_agent(
         name=agent_name,
         voice_id=resolved_voice_id,
         prompt_text=prompt_text,
@@ -593,6 +453,7 @@ async def _push_prompt_to_elevenlabs(
         llm=llm,
         temperature=temperature,
         max_tokens=max_tokens,
+        post_call_webhook_id=webhook_id,
     )
     log.info(
         "Created new ElevenLabs agent %s for influencer=%s voice=%s",
@@ -1142,6 +1003,9 @@ async def get_conversation_token(
             user_timezone=user_timezone,
             greeting_mode="random",
             persona_name=influencer.display_name if influencer else influencer_id,
+            rel=rel,
+            stages=stages,
+            influencer_stages=influencer_stages,
         ),
         _fetch_token(),
     )
