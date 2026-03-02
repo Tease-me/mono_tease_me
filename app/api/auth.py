@@ -96,13 +96,15 @@ async def register(
     if data.influencer_id:
         await ensure_influencer(db, data.influencer_id)
 
-    verify_token = secrets.token_urlsafe(32)           
+    verify_token = secrets.token_urlsafe(32)
+    token_expires = datetime.utcnow() + timedelta(hours=24)
 
     user = User(
         password_hash=pwd_context.hash(data.password),
         email=data.email,
         is_verified=False,
         email_token=verify_token,
+        email_token_expires_at=token_expires,
         full_name=data.full_name,
         username=data.user_name,
         gender=data.gender,
@@ -173,8 +175,11 @@ async def confirm_email(token: str, db: AsyncSession = Depends(get_db)):
     user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="Invalid or expired token")
+    if user.email_token_expires_at and user.email_token_expires_at < datetime.utcnow():
+        raise HTTPException(status_code=410, detail="Verification link has expired. Please request a new one.")
     user.is_verified = True
     user.email_token = None
+    user.email_token_expires_at = None
     await db.commit()
    
     await notify_email_verified(user.email)
@@ -264,8 +269,11 @@ async def verify_email(token: str, db: AsyncSession = Depends(get_db)):
     user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=400, detail="Invalid or expired token")
+    if user.email_token_expires_at and user.email_token_expires_at < datetime.utcnow():
+        raise HTTPException(status_code=410, detail="Verification link has expired. Please request a new one.")
     user.is_verified = True
     user.email_token = None
+    user.email_token_expires_at = None
     await db.commit()
     return {"ok": True, "message": "Email verified! You can now login."}
 
@@ -283,6 +291,7 @@ async def resend_verification_email(request: Request, email: str, db: AsyncSessi
 
     verify_token = secrets.token_urlsafe(32)
     user.email_token = verify_token
+    user.email_token_expires_at = datetime.utcnow() + timedelta(hours=24)
     await db.commit()
 
     send_verification_email(user.email, verify_token)
