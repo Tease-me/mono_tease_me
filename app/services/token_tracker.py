@@ -233,6 +233,7 @@ async def track_usage(
     model: str,
     purpose: str,
     *,
+    exact_cost_micros: Optional[int] = None,
     input_tokens: Optional[int] = None,
     output_tokens: Optional[int] = None,
     total_tokens: Optional[int] = None,
@@ -258,6 +259,7 @@ async def track_usage(
         provider: "openai" | "xai" | "elevenlabs"
         model: Model name (e.g. "gpt-5.2", "grok-4-1-fast-reasoning", "whisper-1")
         purpose: Purpose of call (e.g. "main_reply", "moderation", "tts", "transcription")
+        exact_cost_micros: Exact cost in micro-dollars from provider (overrides _estimate_cost when set)
         input_tokens: Number of input tokens (for LLMs)
         output_tokens: Number of output tokens (for LLMs)
         total_tokens: Total tokens (input + output)
@@ -275,9 +277,12 @@ async def track_usage(
         if total_tokens is None and input_tokens is not None:
             total_tokens = (input_tokens or 0) + (output_tokens or 0)
 
-        estimated_cost = _estimate_cost(
-            model, provider, input_tokens, output_tokens, duration_secs, purpose,
-        )
+        if exact_cost_micros is not None:
+            estimated_cost = exact_cost_micros
+        else:
+            estimated_cost = _estimate_cost(
+                model, provider, input_tokens, output_tokens, duration_secs, purpose,
+            )
 
         row = ApiUsageLog(
             category=category,
