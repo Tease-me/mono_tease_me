@@ -78,6 +78,10 @@ async def websocket_chat(
     except WebSocketDisconnect:
         log.info("[WS] Client disconnected before auth (persona=%s)", influencer_id)
         return
+    except jwt.ExpiredSignatureError:
+        await ws.close(code=4401)
+        log.warning("[WS] Token expired for persona=%s", influencer_id)
+        return
     except Exception as e:
         await ws.close(code=4002)
         log.error("[WS] JWT decode error: %s", e)
