@@ -29,6 +29,24 @@ router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 
 ELEVENLABS_CONVAI_WEBHOOK_SECRET = settings.ELEVENLABS_CONVAI_WEBHOOK_SECRET
 
+# ElevenLabs credit → micro-dollar conversion
+# Scale plan: ~$12.50 per 100k credits = $0.000125/credit = 0.125 microdollars/credit
+# Adjust this constant if your plan pricing differs.
+_ELEVENLABS_MICRODOLLARS_PER_CREDIT = 0.125
+
+
+def _extract_cost_micros(data: dict) -> int | None:
+    """Extract call cost from ElevenLabs webhook metadata and convert to micro-dollars."""
+    md = data.get("metadata") or {}
+    cost_credits = md.get("cost")
+    if cost_credits is not None:
+        try:
+            credits = int(cost_credits)
+            return int(credits * _ELEVENLABS_MICRODOLLARS_PER_CREDIT)
+        except (ValueError, TypeError):
+            pass
+    return None
+
 
 def _redact(val: Any) -> str:
     """Redact potentially sensitive IDs in logs; works for int/str/None."""
@@ -197,6 +215,13 @@ async def elevenlabs_post_call(request: Request, db: AsyncSession = Depends(get_
             )
             
             from app.services.token_tracker import track_usage_bg
+            cost_micros = _extract_cost_micros(data)
+            log.info(
+                "webhook.cost raw_credits=%s micros=%s conv_id=%s",
+                (data.get("metadata") or {}).get("cost"),
+                cost_micros,
+                _redact(conversation_id),
+            )
             track_usage_bg(
                 category="voice",
                 provider="elevenlabs",
@@ -207,6 +232,7 @@ async def elevenlabs_post_call(request: Request, db: AsyncSession = Depends(get_
                 chat_id=chat_id,
                 duration_secs=float(total_seconds),
                 latency_ms=0,
+                exact_cost_micros=cost_micros,
             )
 
             log.info(
