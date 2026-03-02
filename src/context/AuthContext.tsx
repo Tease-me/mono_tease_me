@@ -126,7 +126,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const logout = async (callback?: () => void) => {
         setIsSignedIn(false);
+        const disclaimerSeen = storage.get(LocalStorageKeys.DisclaimerSeen);
         storage.clear();
+        if (disclaimerSeen) storage.set(LocalStorageKeys.DisclaimerSeen, disclaimerSeen);
         callback?.();
     }
 

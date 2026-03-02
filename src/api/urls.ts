@@ -10,6 +10,7 @@ export const Endpoints = {
     refreshToken: "/auth/refresh",
     forgotPassword: "/auth/forgot-password",
     confirmEmail: "/auth/confirm-email",
+    resendVerificationEmail: "/auth/resend-verification-email",
     me: "/auth/me",
     resetPassword: "/auth/reset-password"
   },
@@ -92,7 +93,7 @@ export const Endpoints = {
       errors: (period: string = "24h") => `admin/api-usage/errors?period=${period}`,
     },
     knowledge: {
-      get:    (influencerId: string) => `admin/influencers/${encodeURIComponent(influencerId)}/knowledge`,
+      get: (influencerId: string) => `admin/influencers/${encodeURIComponent(influencerId)}/knowledge`,
       upsert: (influencerId: string) => `admin/influencers/${encodeURIComponent(influencerId)}/knowledge`,
       delete: (influencerId: string) => `admin/influencers/${encodeURIComponent(influencerId)}/knowledge`,
     },

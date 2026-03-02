@@ -29,7 +29,7 @@ const UsersContent: React.FC<UsersContentProps> = ({ }) => {
                     User ID
                 </div>
                 <div className={styles["table-header-col"]}>
-                    Username
+                    Nickname
                 </div>
                 <div className={styles["table-header-col"]}>
                     Join Date
