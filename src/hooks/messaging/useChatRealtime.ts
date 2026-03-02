@@ -7,6 +7,8 @@ import { AdultChatRepo } from "@/data/repositories/AdultChatRepo";
 import logger from "@/utils/logger";
 import { chatScreenActions, fetchChatUsage } from "@/store/chatScreenSlice";
 import type { AppDispatch } from "@/store/store";
+import { apiClient } from "@/api/apis";
+import { AuthServices } from "@/api/services/AuthServices";
 
 const chatRepository = ChatRepository();
 const adultChatRepo = AdultChatRepo();
@@ -79,121 +81,160 @@ export function useChatRealtime({
         manualCloseRef.current = true;
         ws.current.close();
       }
-      const accessToken = storage.get(LocalStorageKeys.AccessToken);
-      ws.current = new window.WebSocket(
-        `${WS_BASE_URL}${activeMode ? Endpoints.ws.chat18 : Endpoints.ws.chat}/${targetInfluencerId}?token=${accessToken}`,
-      );
 
-      const connectionChatId = activeChatId;
-      const connectionAdultMode = activeMode;
+      const authServices = AuthServices(apiClient);
 
-      const scheduleReconnect = () => {
-        if (modeRef.current !== "chat") return;
-        if (reconnectTimer.current) return;
-        reconnectTimer.current = window.setTimeout(() => {
-          reconnectTimer.current = null;
-          if (modeRef.current !== "chat") return;
-          const latestInfluencerId =
-            influencerIdRef.current ?? targetInfluencerId;
-          connectChat(
-            latestInfluencerId,
-            chatIdRef.current,
-            adultModeRef.current,
-          );
-        }, 5000);
-      };
+      // Refresh token before connecting to avoid expired-token errors
+      const refreshAndConnect = async () => {
+        let accessToken = storage.get(LocalStorageKeys.AccessToken);
+        try {
+          const refreshToken = storage.get(LocalStorageKeys.RefreshToken);
+          if (refreshToken) {
+            const tokens = await authServices.refreshToken(refreshToken);
+            storage.set(LocalStorageKeys.AccessToken, tokens.access_token);
+            storage.set(LocalStorageKeys.RefreshToken, tokens.refresh_token);
+            accessToken = tokens.access_token;
+          }
+        } catch (err) {
+          logger.warn("Token refresh before WS connect failed, using existing token", err);
+        }
 
-      ws.current.onopen = () => {
-        dispatch(chatScreenActions.setIsWsConnected(true));
-        dispatch(chatScreenActions.setError(undefined));
-        clearReconnectTimer();
-      };
-      ws.current.onclose = () => {
-        if (manualCloseRef.current) {
-          manualCloseRef.current = false;
+        if (!accessToken) {
+          dispatch(chatScreenActions.setError("Not authenticated. Please log in."));
           return;
         }
-        dispatch(chatScreenActions.setIsWsConnected(false));
-        dispatch(chatScreenActions.setError("Disconnected. Reconnecting..."));
-        scheduleReconnect();
-      };
-      ws.current.onerror = () => {
-        dispatch(chatScreenActions.setIsWsConnected(false));
-        dispatch(
-          chatScreenActions.setError("Connection error. Reconnecting..."),
+
+        ws.current = new window.WebSocket(
+          `${WS_BASE_URL}${activeMode ? Endpoints.ws.chat18 : Endpoints.ws.chat}/${targetInfluencerId}?token=${accessToken}`,
         );
-        scheduleReconnect();
-      };
-      ws.current.onmessage = (event) => {
-        dispatch(chatScreenActions.setTyping("idle"));
-        const data = JSON.parse(event.data);
-        if (data.reply) {
-          dispatch(chatScreenActions.setTyping("typing"));
-          if (data.usage) {
-            dispatch(
-              chatScreenActions.setUsageFromData({
-                usage: data.usage,
-                adultMode: adultModeRef.current,
-              }),
+
+        const connectionChatId = activeChatId;
+        const connectionAdultMode = activeMode;
+
+        const scheduleReconnect = (refreshFirst = false) => {
+          if (modeRef.current !== "chat") return;
+          if (reconnectTimer.current) return;
+          reconnectTimer.current = window.setTimeout(() => {
+            reconnectTimer.current = null;
+            if (modeRef.current !== "chat") return;
+            const latestInfluencerId =
+              influencerIdRef.current ?? targetInfluencerId;
+            connectChat(
+              latestInfluencerId,
+              chatIdRef.current,
+              adultModeRef.current,
             );
+          }, refreshFirst ? 1000 : 5000);
+        };
+
+        ws.current.onopen = () => {
+          dispatch(chatScreenActions.setIsWsConnected(true));
+          dispatch(chatScreenActions.setError(undefined));
+          clearReconnectTimer();
+        };
+        ws.current.onclose = (event) => {
+          if (manualCloseRef.current) {
+            manualCloseRef.current = false;
+            return;
+          }
+          dispatch(chatScreenActions.setIsWsConnected(false));
+
+          // 4401 = token expired — refresh and reconnect quickly
+          if (event.code === 4401) {
+            dispatch(chatScreenActions.setError("Session expired. Reconnecting..."));
+            scheduleReconnect(true);
+            return;
           }
 
-          window.setTimeout(() => {
-            if (
-              chatIdRef.current !== connectionChatId ||
-              adultModeRef.current !== connectionAdultMode
-            ) {
-              return;
-            }
+          // 4002 = generic auth error — don't reconnect
+          if (event.code === 4002) {
+            dispatch(chatScreenActions.setError("Authentication failed. Please log in again."));
+            return;
+          }
 
-            dispatch(
-              chatScreenActions.appendMessage({
-                id: Date.now(),
-                sender: "received",
-                text: data.reply,
-                channel: data.channel ?? "chat",
-                time: new Date().toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }),
-                timestamp: Date.now(),
-              }),
-            );
-            dispatch(chatScreenActions.setTyping("idle"));
-            dispatch(chatScreenActions.setError(undefined));
-            if (data.relationship) {
-              dispatch(chatScreenActions.setRelationship(data.relationship));
-            }
-            scrollToBottom();
-          }, calculateReplyTime(data.reply));
-          return;
-        }
-
-        if (data.error) {
+          dispatch(chatScreenActions.setError("Disconnected. Reconnecting..."));
+          scheduleReconnect();
+        };
+        ws.current.onerror = () => {
+          dispatch(chatScreenActions.setIsWsConnected(false));
+          dispatch(
+            chatScreenActions.setError("Connection error. Reconnecting..."),
+          );
+          scheduleReconnect();
+        };
+        ws.current.onmessage = (event) => {
           dispatch(chatScreenActions.setTyping("idle"));
-          logger.error("Error in WebSocket message:", data.error);
-          if (data.error === "INSUFFICIENT_CREDITS") {
-            dispatch(
-              chatScreenActions.setError(
-                "Insufficient credits to send message.",
-              ),
-            );
-            if (adultModeRef.current) {
-              dispatch(chatScreenActions.setShowUpgradeModal(true));
-            } else {
-              dispatch(chatScreenActions.setShowTopupModal(true));
+          const data = JSON.parse(event.data);
+          if (data.reply) {
+            dispatch(chatScreenActions.setTyping("typing"));
+            if (data.usage) {
+              dispatch(
+                chatScreenActions.setUsageFromData({
+                  usage: data.usage,
+                  adultMode: adultModeRef.current,
+                }),
+              );
             }
-          } else if (typeof data.error === "string") {
-            dispatch(chatScreenActions.setError(data.error));
-          } else {
-            dispatch(
-              chatScreenActions.setError(
-                "An error occurred while sending the message.",
-              ),
-            );
+
+            window.setTimeout(() => {
+              if (
+                chatIdRef.current !== connectionChatId ||
+                adultModeRef.current !== connectionAdultMode
+              ) {
+                return;
+              }
+
+              dispatch(
+                chatScreenActions.appendMessage({
+                  id: Date.now(),
+                  sender: "received",
+                  text: data.reply,
+                  channel: data.channel ?? "chat",
+                  time: new Date().toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }),
+                  timestamp: Date.now(),
+                }),
+              );
+              dispatch(chatScreenActions.setTyping("idle"));
+              dispatch(chatScreenActions.setError(undefined));
+              if (data.relationship) {
+                dispatch(chatScreenActions.setRelationship(data.relationship));
+              }
+              scrollToBottom();
+            }, calculateReplyTime(data.reply));
+            return;
           }
-        }
+
+          if (data.error) {
+            dispatch(chatScreenActions.setTyping("idle"));
+            logger.error("Error in WebSocket message:", data.error);
+            if (data.error === "INSUFFICIENT_CREDITS") {
+              dispatch(
+                chatScreenActions.setError(
+                  "Insufficient credits to send message.",
+                ),
+              );
+              if (adultModeRef.current) {
+                dispatch(chatScreenActions.setShowUpgradeModal(true));
+              } else {
+                dispatch(chatScreenActions.setShowTopupModal(true));
+              }
+            } else if (typeof data.error === "string") {
+              dispatch(chatScreenActions.setError(data.error));
+            } else {
+              dispatch(
+                chatScreenActions.setError(
+                  "An error occurred while sending the message.",
+                ),
+              );
+            }
+          }
+        };
       };
+
+      refreshAndConnect();
     },
     [clearReconnectTimer, dispatch, scrollToBottom],
   );
@@ -283,11 +324,11 @@ export function useChatRealtime({
               timestamp: Date.now(),
               attachments: audio_url
                 ? [
-                    {
-                      audioUrl: audio_url,
-                      type: "audio",
-                    },
-                  ]
+                  {
+                    audioUrl: audio_url,
+                    type: "audio",
+                  },
+                ]
                 : [],
               transcript: isSuperUser ? ai_text : undefined,
             }),
