@@ -35,7 +35,7 @@ from app.db.session import SessionLocal
 from app.utils.logging.prompt_logging import log_prompt
 from app.agents.memory import extract_memories_from_transcript
 from app.gateways.elevenlabs_agents_gateway import ElevenLabsAgentsGateway
-from app.use_cases.elevenlabs_greeting import build_call_greeting
+from app.use_cases.elevenlabs_greeting import _generate_contextual_greeting, build_call_greeting
 
 
 router = APIRouter(prefix="/elevenlabs", tags=["elevenlabs"])
