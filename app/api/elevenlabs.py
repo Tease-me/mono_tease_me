@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import math
-import random
 import json
 from app.agents.memory import get_memory_only_list, summarize_memory_list, summarize_ai_memory_list
 from app.agents.prompt_utils import build_relationship_prompt, get_global_prompt, get_mbti_rules_for_archetype, get_relationship_stage_prompts, get_time_context
@@ -13,7 +12,6 @@ from datetime import datetime, timedelta, timezone
 from app.moderation import moderate_message, handle_violation
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from itertools import chain
 from typing import Any, Dict, List, Optional
 from app.core.config import settings
 from app.db.models import Influencer, Chat, Message, CallRecord, User, PreInfluencer, Memory
@@ -27,14 +25,17 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from app.services.billing import can_afford, get_remaining_units
 from app.services.chat_service import get_or_create_chat
 from app.services.follow import get_follow
-from app.agents.turn_handler import _build_user_name_block, redis_history, inject_session_break, _messages_since_session_break
-from langchain_core.prompts import ChatPromptTemplate
+from app.agents.turn_handler import (
+    _build_user_name_block,
+    _messages_since_session_break,
+    inject_session_break,
+    redis_history,
+)
 from app.db.session import SessionLocal
-from app.services.system_prompt_service import get_system_prompt
-from app.constants import prompt_keys
-from app.agents.prompts import GREETING_GENERATOR
 from app.utils.logging.prompt_logging import log_prompt
 from app.agents.memory import extract_memories_from_transcript
+from app.gateways.elevenlabs_agents_gateway import ElevenLabsAgentsGateway
+from app.use_cases.elevenlabs_greeting import _generate_contextual_greeting, build_call_greeting
 
 
 router = APIRouter(prefix="/elevenlabs", tags=["elevenlabs"])
@@ -85,48 +86,6 @@ def _get_env_suffix() -> str:
 def _apply_env_suffix(name: str) -> str:
     suffix = _get_env_suffix()
     return f"{name}{suffix}"
-
-_GREETINGS: Dict[str, List[str]] = {
-    "playful": [
-        "Well, look who finally decided to show up.",
-        "Oh hey! You actually have perfect timing.",
-        "There you are. I was about to start talking to myself.",
-        "Hey! Save me from boredom, will you?",
-    ],
-    "anna": [
-        "Hiii! ✨ I was literally just checking my phone!",
-        "Omg hi!! How is your day going??",
-        "Yay! You're actually here! 👋",
-    ],
-    "bella": [
-        "Hey... it's really nice to see you.",
-        "Hi. I was hoping to catch you today.",
-        "There you are. How have you been?",
-    ],
-}
-
-_rr_index: Dict[str, int] = {}
-
-_DOPAMINE_OPENERS: Dict[str, List[str]] = {
-    "anna": [
-        "Okay, you won't believe what just happened to me!",
-        "I was just about to message you! telepathy?? ✨",
-    ],
-    "bella": [
-        "My phone buzzed and I actually hoped it was you.",
-        "I saw something today that totally reminded me of you.",
-    ],
-    "playful": [
-        "I have a question, and I feel like only you would know the answer.",
-        "Warning: I'm in a mood to distract you from whatever you're doing.",
-    ],
-}
-
-_RANDOM_FIRST_GREETINGS: List[str] = [
-    "Hello?",
-    "Hello, this is {persona_name}. Who’s calling?",
-    "Hi, who am I speaking with?",
-]
 
 def _headers() -> Dict[str, str]:
     """Return ElevenLabs auth headers. Fail fast when misconfigured."""
@@ -218,337 +177,6 @@ async def _validate_voice_exists(voice_id: str) -> bool:
         return False
 
 
-def _pick_greeting(influencer_id: str, mode: str) -> str:
-    """Pick a greeting: random or round-robin for that influencer id."""
-    options = _GREETINGS.get(influencer_id)
-    if not options:
-        all_opts = list(chain.from_iterable(_GREETINGS.values()))
-        choice = random.choice(all_opts) if all_opts else "Hello!"
-        return _add_natural_pause(choice)
-    if mode == "rr":
-        i = _rr_index.get(influencer_id, -1) + 1
-        i %= len(options)
-        _rr_index[influencer_id] = i
-        return _add_natural_pause(options[i])
-    return _add_natural_pause(random.choice(options))
-
-
-def _format_history(messages: List[Message]) -> str:
-    lines: List[str] = []
-    for msg in messages:
-        speaker = "User" if msg.sender == "user" else "AI"
-        content = (msg.content or "").strip().replace("\n", " ")
-        if not content:
-            continue
-        ts = ""
-        if hasattr(msg, "created_at") and msg.created_at:
-            ts = f"[{msg.created_at.strftime('%b %d, %-I:%M %p')}] "
-        lines.append(f"{ts}{speaker}: {content}")
-    return "\n".join(lines)
-
-
-def _format_transcript_entries(transcript: List[Dict[str, Any]]) -> str:
-    """
-    Convert ElevenLabs transcript entries into "User: ..." / "AI: ..." lines.
-    """
-    lines: List[str] = []
-    for entry in transcript:
-        text = str(
-            entry.get("text") or entry.get("content") or entry.get("message") or ""
-        ).strip()
-        if not text:
-            continue
-        role_raw = str(entry.get("sender") or entry.get("role") or "").lower()
-        is_user_flag = entry.get("is_user") or entry.get("from_user")
-        if role_raw in {"user", "human"} or is_user_flag:
-            speaker = "User"
-        else:
-            speaker = "AI"
-        lines.append(f"{speaker}: {text}")
-    return "\n".join(lines)
-
-def _format_redis_history(chat_id: str, influencer_id: str, limit: int = 12) -> Optional[str]:
-    try:
-        history = redis_history(chat_id)
-    except Exception as exc:
-        log.warning("redis_history.fetch_failed chat=%s err=%s", chat_id, exc)
-        return None
-    if not history or not history.messages:
-        return None
-
-    lines: List[str] = []
-    for msg in history.messages[-limit:]:
-        role = getattr(msg, "type", "") or getattr(msg, "role", "")
-        speaker = "User" if role in {"human", "user"} else "AI"
-        content = getattr(msg, "content", "")
-        if isinstance(content, list):
-            parts: List[str] = []
-            for part in content:
-                if isinstance(part, dict):
-                    parts.append(str(part.get("text", "")))
-                else:
-                    parts.append(str(part))
-            content = " ".join(parts)
-        content = str(content or "").strip()
-        if content:
-            lines.append(f"{speaker}: {content}")
-    return "\n".join(lines) if lines else None
-
-
-def _add_natural_pause(text: Optional[str]) -> Optional[str]:
-    """
-    Ensure there's a gentle pause via comma or ellipsis to avoid rushed delivery.
-    """
-    if not text:
-        return text
-    if any(p in text for p in [",", "...", "…"]):
-        return text
-    words = text.split()
-    if len(words) < 5:
-        return text
-    mid = max(2, len(words) // 2)
-    words.insert(mid, ",")
-    return " ".join(words)
-
-
-def _classify_gap(minutes: float) -> str:
-    if minutes < 2:
-        return "immediate"
-    elif minutes < 15:
-        return "short"
-    elif minutes < 120: 
-        return "medium"
-    elif minutes < 1440: 
-        return "long"
-    else:
-        return "extended"
-
-
-def _classify_call_ending(call: Optional[CallRecord]) -> str:
-    if not call:
-        return "normal"
-    duration = call.call_duration_secs or 0
-    if duration < 30:
-        return "abrupt"
-    elif duration > 300:
-        return "lengthy"
-    else:
-        return "normal"
-
-
-def _extract_last_message(db_messages: List[Message], transcript: Optional[str]) -> str:
-    if db_messages:
-        for msg in db_messages:
-            content = (msg.content or "").strip()
-            if content and len(content) > 5:
-                return content[:100]  
-    
-    if transcript:
-        lines = transcript.strip().split("\n")
-        for line in reversed(lines):
-            if ":" in line:
-                text = line.split(":", 1)[-1].strip()
-                if text and len(text) > 5:
-                    return text[:100]
-    
-    return ""
-
-
-async def _get_contextual_first_message_prompt(db: AsyncSession) -> ChatPromptTemplate:
-    system_prompt = await get_system_prompt(db, prompt_keys.CONTEXTUAL_FIRST_MESSAGE)
-    return ChatPromptTemplate.from_messages([
-        ("system", system_prompt),
-        ("human", "Generate the greeting now. Output only the greeting text."),
-    ])
-
-
-async def _generate_contextual_greeting(
-    db: AsyncSession, chat_id: str, influencer_id: str,
-    user_timezone: str | None = None,
-) -> Optional[str]:
-    """
-    Generate a contextual greeting using parallel DB lookups for speed.
-    Uses dedicated sessions to avoid AsyncSession concurrency issues.
-    Performance: ~100-200ms faster than sequential approach.
-    """
-    if GREETING_GENERATOR is None:
-        return None
-
-    # ============================================================
-    # PHASE 1: Parallel fetches with dedicated sessions
-    # Each helper uses its own SessionLocal() to avoid concurrent access
-    # ============================================================
-    
-    async def _fetch_messages_standalone() -> List[Message]:
-        """Fetch last 8 messages using dedicated session."""
-        async with SessionLocal() as session:
-            result = await session.execute(
-                select(Message)
-                .where(Message.chat_id == chat_id)
-                .order_by(Message.created_at.desc())
-                .limit(8)
-            )
-            return list(result.scalars().all())
-    
-    async def _fetch_chat_standalone() -> Optional[Chat]:
-        """Fetch chat using dedicated session."""
-        async with SessionLocal() as session:
-            return await session.get(Chat, chat_id)
-    
-    async def _fetch_influencer_standalone() -> Optional[Influencer]:
-        """Fetch influencer using dedicated session."""
-        async with SessionLocal() as session:
-            return await session.get(Influencer, influencer_id)
-    
-    async def _fetch_last_call_standalone(user_id: int) -> Optional[CallRecord]:
-        """Fetch last call record using dedicated session."""
-        async with SessionLocal() as session:
-            result = await session.execute(
-                select(CallRecord)
-                .where(
-                    CallRecord.user_id == user_id,
-                    CallRecord.influencer_id == influencer_id,
-                )
-                .order_by(CallRecord.created_at.desc())
-                .limit(1)
-            )
-            return result.scalar_one_or_none()
-    
-    # First wave: messages, chat, influencer (no dependencies)
-    try:
-        db_messages, chat, influencer = await asyncio.gather(
-            _fetch_messages_standalone(),
-            _fetch_chat_standalone(),
-            _fetch_influencer_standalone(),
-        )
-    except Exception as exc:
-        log.warning("contextual_greeting.parallel_fetch_failed chat=%s err=%s", chat_id, exc)
-        db_messages, chat, influencer = [], None, None
-
-    # Second wave: last call + user (depends on user_id from chat)
-    user_id = chat.user_id if chat else None
-    last_call: Optional[CallRecord] = None
-    user_obj = None
-    
-    if user_id:
-        async def _fetch_user_standalone() -> Optional[User]:
-            async with SessionLocal() as session:
-                return await session.get(User, user_id)
-        
-        try:
-            last_call, user_obj = await asyncio.gather(
-                _fetch_last_call_standalone(user_id),
-                _fetch_user_standalone(),
-            )
-        except Exception as exc:
-            log.warning(
-                "contextual_greeting.call_user_fetch_failed chat=%s user=%s infl=%s err=%s",
-                chat_id, user_id, influencer_id, exc,
-            )
-
-    # ============================================================
-    # PHASE 2: Process fetched data (same logic as before)
-    # ============================================================
-    
-    last_interaction: Optional[datetime] = None
-    transcript: Optional[str] = None
-
-    if not db_messages:
-        try:
-            redis_ctx = _format_redis_history(chat_id, influencer_id)
-            if redis_ctx:
-                transcript = redis_ctx
-        except Exception as exc:
-            log.warning("contextual_greeting.redis_fallback_failed chat=%s err=%s", chat_id, exc)
-
-    if db_messages:
-        last_interaction = getattr(db_messages[0], "created_at", None) or last_interaction
-        db_messages.reverse()
-        transcript = _format_history(db_messages)
-
-    if last_call and last_call.created_at:
-        call_time = last_call.created_at
-        
-        if call_time.tzinfo is None:
-            call_time = call_time.replace(tzinfo=timezone.utc)
-        
-        if last_interaction:
-            if last_interaction.tzinfo is None:
-                last_interaction = last_interaction.replace(tzinfo=timezone.utc)
-        
-        if last_interaction is None:
-            last_interaction = call_time
-        elif call_time > last_interaction:
-            last_interaction = call_time
-            
-        if not transcript and last_call.transcript:
-            transcript = _format_transcript_entries(last_call.transcript)
-
-    gap_minutes: float = 0
-    if last_interaction:
-        if last_interaction.tzinfo is not None:
-            now = datetime.now(timezone.utc)
-        else:
-            now = datetime.utcnow()
-        gap_minutes = (now - last_interaction).total_seconds() / 60
-
-    gap_category = _classify_gap(gap_minutes)
-    call_ending_type = _classify_call_ending(last_call)
-    last_call_duration = last_call.call_duration_secs if last_call else 0
-    last_message = _extract_last_message(db_messages, transcript)
-    time_context = get_time_context(user_timezone)
-    persona_name = (
-        influencer.display_name if influencer and influencer.display_name else influencer_id
-    )
-
-    if not transcript and not last_message:
-        return _pick_random_first_greeting(persona_name)
-
-    try:
-        async with SessionLocal() as session:
-            users_name = await _build_user_name_block(session, user_id)
-        prompt = await _get_contextual_first_message_prompt(db)
-        chain = prompt.partial(
-            influencer_name=persona_name,
-            users_name=users_name,
-            gap_category=gap_category,
-            gap_minutes=str(round(gap_minutes, 1)),
-            call_ending_type=call_ending_type,
-            last_call_duration_secs=str(int(last_call_duration or 0)),
-            last_message=last_message or "(no recent message)",
-            history=transcript or "(no recent history)",
-            mood=time_context,
-        ) | GREETING_GENERATOR
-
-        llm_response = await chain.ainvoke({})
-        greeting = _add_natural_pause((llm_response.content or "").strip())
-        
-        if greeting.startswith('"') and greeting.endswith('"'):
-            greeting = greeting[1:-1]
-        if greeting.startswith("'") and greeting.endswith("'"):
-            greeting = greeting[1:-1]
-            
-        log.info(
-            "contextual_greeting.generated chat=%s gap=%s ending=%s greeting=%r",
-            chat_id, gap_category, call_ending_type, greeting[:50] if greeting else None
-        )
-        return greeting if greeting else None
-        
-    except Exception as exc:
-        log.warning("Failed to generate contextual greeting for %s: %s", chat_id, exc)
-        return _pick_dopamine_greeting(influencer_id)
-
-
-def _pick_dopamine_greeting(influencer_id: str) -> Optional[str]:
-    options = _DOPAMINE_OPENERS.get(influencer_id) or _DOPAMINE_OPENERS.get("playful")
-    if not options:
-        return None
-    return _add_natural_pause(random.choice(options))
-
-def _pick_random_first_greeting(persona_name: str) -> str:
-    choice = random.choice(_RANDOM_FIRST_GREETINGS) if _RANDOM_FIRST_GREETINGS else None
-    return choice.format(persona_name=persona_name)
-
 async def get_agent_id_from_influencer(db: AsyncSession, influencer_id: str) -> str:
     """
     Looks up the ElevenLabs agent id stored on the Influencer row.
@@ -630,83 +258,6 @@ def _build_agent_patch_payload(
     }
 
 
-def _build_agent_create_payload(
-    *, 
-    name: Optional[str],
-    voice_id: str,
-    prompt_text: str,
-    language: str = "en",
-    llm: Optional[str] = None,
-    temperature: Optional[float] = None,
-    max_tokens: Optional[int] = None,
-) -> Dict[str, Any]:
-    if not voice_id:
-        raise HTTPException(400, "voice_id is required to create an ElevenLabs agent.")
-
-    agent_cfg: Dict[str, Any] = {
-        "language": language,
-        "prompt": {
-            "prompt": prompt_text or "",
-        },
-        "tools": [
-            {
-                "name": "updateRelationship",
-                "type": "webhook",
-                "description": "MANDATORY: Call on EVERY user message to track relationship changes. Returns instantly - continue your reply without waiting.",
-                "webhook": {
-                    "url": f"{settings.PUBLIC_BASE_URL.rstrip('/')}/webhooks/update_relationship",
-                    "method": "POST",
-                    "request_headers": {
-                         "X-Webhook-Token": settings.ELEVENLABS_CONVAI_WEBHOOK_SECRET or ""
-                    }
-                }
-            },
-        {
-            "name": "getMemories",
-            "type": "webhook",
-            "description": "Call when user references past conversations or asks what you remember. Retrieves relevant memories - wait for response before replying.",
-            "webhook": {
-               "url": f"{settings.PUBLIC_BASE_URL.rstrip('/')}/webhooks/memories",
-               "method": "POST",
-               "request_headers": {
-                    "X-Webhook-Token": settings.ELEVENLABS_CONVAI_WEBHOOK_SECRET or ""
-               }
-            }
-        }
-    ],
-    }
-    if llm is not None:
-        agent_cfg["prompt"]["llm"] = llm
-    if temperature is not None:
-        agent_cfg["prompt"]["temperature"] = temperature
-    if max_tokens is not None:
-        agent_cfg["prompt"]["max_tokens"] = max_tokens
-
-    return {
-        "name": name,
-        "conversation_config": {
-            "agent": agent_cfg,
-            "tts": {
-                "voice_id": voice_id,
-            },
-            "client": {
-                "overrides": {
-                    "agent": {
-                        "first_message": True,
-                        "language": True, 
-                        "prompt": {
-                            "prompt": True,
-                        },
-                    },
-                    "tts": {
-                        "voice_id": True,
-                    }
-                }
-            }
-        },
-    }
-
-
 async def _patch_agent_config(
     client: httpx.AsyncClient,
     agent_id: str,
@@ -753,70 +304,6 @@ async def _patch_agent_config(
             pass
         
         raise HTTPException(status_code=resp.status_code, detail=error_detail)
-
-async def _create_agent(
-    client: httpx.AsyncClient,
-    *,
-    name: Optional[str],
-    voice_id: str,
-    prompt_text: str,
-    language: str = "en",
-    llm: Optional[str] = None,
-    temperature: Optional[float] = None,
-    max_tokens: Optional[int] = None,
-) -> str:
-    webhook_id = await _get_or_create_post_call_webhook(client)
-    
-    payload = _build_agent_create_payload(
-        name=_apply_env_suffix(name) if name else None,
-        voice_id=voice_id,
-        prompt_text=prompt_text,
-        language=language,
-        llm=llm,
-        temperature=temperature,
-        max_tokens=max_tokens,
-    )
-    
-    if webhook_id:
-        payload["platform_settings"] = {
-            "post_call_webhook_ids": [webhook_id],
-        }
-
-    try:
-        resp = await client.post(
-            "/convai/agents/create",
-            headers=_headers(),
-            json=payload,
-            timeout=20.0,
-        )
-    except httpx.RequestError as e:
-        log.exception("Network error creating ElevenLabs agent: %s", e)
-        raise HTTPException(status_code=502, detail="Upstream unavailable")
-
-    if resp.status_code >= 400:
-        error_text = resp.text[:500] if resp.text else "No error details"
-        log.error("ElevenLabs agent creation failed: %s %s", resp.status_code, error_text)
-        error_detail = f"Failed to create ElevenLabs agent: {resp.status_code}"
-        try:
-            error_json = resp.json()
-            if isinstance(error_json, dict) and "detail" in error_json:
-                error_detail = f"ElevenLabs API error: {error_json['detail']}"
-            elif isinstance(error_json, dict) and "message" in error_json:
-                error_detail = f"ElevenLabs API error: {error_json['message']}"
-        except Exception:
-            pass
-        raise HTTPException(status_code=resp.status_code, detail=error_detail)
-
-    data = resp.json()
-    new_agent_id = data.get("agent_id")
-    if not new_agent_id:
-        log.error("ElevenLabs agent creation response missing agent_id: %s", data)
-        raise HTTPException(
-            status_code=502,
-            detail="ElevenLabs agent creation succeeded but returned no agent_id.",
-        )
-    return new_agent_id
-
 
 async def _poll_and_persist_conversation(
     conversation_id: str,
@@ -957,8 +444,8 @@ async def _push_prompt_to_elevenlabs(
             detail="voice_id is required to create a new ElevenLabs agent.",
         )
 
-    new_agent_id = await _create_agent(
-        client,
+    webhook_id = await _get_or_create_post_call_webhook(client)
+    new_agent_id = await ElevenLabsAgentsGateway().create_agent(
         name=agent_name,
         voice_id=resolved_voice_id,
         prompt_text=prompt_text,
@@ -966,6 +453,7 @@ async def _push_prompt_to_elevenlabs(
         llm=llm,
         temperature=temperature,
         max_tokens=max_tokens,
+        post_call_webhook_id=webhook_id,
     )
     log.info(
         "Created new ElevenLabs agent %s for influencer=%s voice=%s",
@@ -1346,9 +834,13 @@ async def get_signed_url(
 
     greeting: Optional[str] = first_message
     if not greeting:
-        greeting = await _generate_contextual_greeting(db, chat_id, influencer_id, user_timezone)
-    if not greeting:
-        greeting = _pick_greeting(influencer_id, greeting_mode)
+        greeting = await build_call_greeting(
+            db=db,
+            chat_id=chat_id,
+            influencer_id=influencer_id,
+            user_timezone=user_timezone,
+            greeting_mode=greeting_mode,
+        )
 
     client = await get_elevenlabs_client()
     signed_url = await _get_conversation_signed_url(client, agent_id)
@@ -1455,7 +947,7 @@ async def get_conversation_token(
     )
 
     dtr_goal = plan_dtr_goal(rel, can_ask)
-    time_context = get_time_context(user_timezone)
+    time_context = await get_time_context(db, user_timezone)
 
     # ── Phase 1: Quick DB fetches (sequential on shared session) ──
     users_name = await _build_user_name_block(db, user_id)
@@ -1526,7 +1018,17 @@ async def get_conversation_token(
         memory, ai_mem_block, greeting, token = await asyncio.gather(
             summarize_memory_list(memories or []),
             summarize_ai_memory_list(ai_mem_list),
-            _generate_contextual_greeting(db, chat_id, influencer_id, user_timezone),
+            build_call_greeting(
+            db=db,
+            chat_id=chat_id,
+            influencer_id=influencer_id,
+            user_timezone=user_timezone,
+            greeting_mode="random",
+            persona_name=influencer.display_name if influencer else influencer_id,
+            rel=rel,
+            stages=stages,
+            influencer_stages=influencer_stages,
+        ),
             _fetch_token(),
         )
         try:
@@ -1535,9 +1037,6 @@ async def get_conversation_token(
             log.info("get_conversation_token.cache_set chat=%s ttl=%d", chat_id, _MEM_SUMMARY_TTL)
         except Exception as exc:
             log.warning("get_conversation_token.cache_set_failed chat=%s err=%s", chat_id, exc)
-
-    if not greeting:
-        greeting = _pick_greeting(influencer_id, "random")
 
     prompt = build_relationship_prompt(
         prompt_template,
