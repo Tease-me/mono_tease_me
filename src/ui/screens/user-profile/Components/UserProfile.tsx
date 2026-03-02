@@ -93,8 +93,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ goTo }) => {
       <div className={styles.form}>
         <div className={styles.inpArea}>
           <TextInput
-            placeholder="Username"
-            value={localUser?.username ?? "Username not found"}
+            placeholder="Nickname"
+            value={localUser?.username ?? "Nickname not found"}
             readOnly
             className={styles.input}
           />
