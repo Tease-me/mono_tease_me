@@ -799,10 +799,14 @@ async def delete_knowledge(
 
 def _parse_period(period: str) -> datetime:
     now = datetime.now(timezone.utc)
+    if period == "1h":
+        return now - timedelta(hours=1)
     if period == "7d":
         return now - timedelta(days=7)
     if period == "30d":
         return now - timedelta(days=30)
+    if period == "90d":
+        return now - timedelta(days=90)
     # default 24h
     return now - timedelta(hours=24)
 

@@ -232,15 +232,16 @@ async def get_all_memory_list(
     user_id: int,
     influencer_id: str,
     exclude_sender: str = None,
+    limit: int = 200,
 ) -> list[str]:
     """
-    Return all memory-related text for a user-influencer pair as a plain list[str].
+    Return memory-related text for a user-influencer pair as a plain list[str].
 
     Combines:
     - Extracted long-term memories from `memories`
     - Chat messages from `messages`
 
-    Ordered newest-first across both sources.
+    Ordered newest-first across both sources. Capped at `limit` rows.
     """
     chat_ids_res = await db.execute(
         select(Chat.id).where(
@@ -276,6 +277,7 @@ async def get_all_memory_list(
     timeline_q = (
         select(combined.c.content)
         .order_by(combined.c.created_at.desc(), combined.c.row_id.desc())
+        .limit(limit)
     )
 
     rows = await db.execute(timeline_q)
@@ -287,6 +289,59 @@ async def get_all_memory_list(
 
     log.debug(
         "get_all_memory_list user=%s influencer=%s chats=%d items=%d",
+        user_id,
+        influencer_id,
+        len(chat_ids),
+        len(result),
+    )
+    return result
+
+
+async def get_memory_only_list(
+    db,
+    user_id: int,
+    influencer_id: str,
+    exclude_sender: str = None,
+    limit: int = 200,
+) -> list[str]:
+    """
+    Return only curated memories (no raw messages) for a user-influencer pair.
+
+    This is faster than `get_all_memory_list` because it skips the messages
+    table entirely.  Since `upsert_memory` already deduplicates semantically
+    similar facts, the memories table is a compact, high-quality dataset
+    ideal for LLM summarization at call start.
+
+    Ordered newest-first.  Capped at `limit` rows.
+    """
+    chat_ids_res = await db.execute(
+        select(Chat.id).where(
+            Chat.user_id == user_id,
+            Chat.influencer_id == influencer_id,
+        )
+    )
+    chat_ids = list(chat_ids_res.scalars().all())
+    if not chat_ids:
+        return []
+
+    q = (
+        select(Memory.content)
+        .where(Memory.chat_id.in_(chat_ids))
+        .order_by(Memory.created_at.desc())
+        .limit(limit)
+    )
+    if exclude_sender:
+        q = q.where(Memory.sender != exclude_sender)
+
+    rows = await db.execute(q)
+    result = [
+        content.strip()
+        for (content,) in rows.fetchall()
+        if isinstance(content, str) and content.strip()
+    ]
+
+    log.debug(
+        "get_memory_only_list user=%s influencer=%s chats=%d items=%d",
         user_id,
         influencer_id,
         len(chat_ids),

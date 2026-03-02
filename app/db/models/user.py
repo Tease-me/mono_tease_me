@@ -26,6 +26,7 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     email_token: Mapped[str] = mapped_column(String, nullable=True)
+    email_token_expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     password_reset_token: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     password_reset_token_expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     profile_photo_key: Mapped[str | None] = mapped_column(String, nullable=True)

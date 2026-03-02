@@ -11,19 +11,19 @@ LINT_PATHS += tests
 endif
 
 seed-influencers:
-	$(COMPOSE) exec $(SERVICE) poetry run python -m app.scripts.seed_influencers
+	$(COMPOSE) exec $(SERVICE) python -m app.scripts.seed_influencers
 
 seed-pricing:
-	$(COMPOSE) exec $(SERVICE) poetry run python -m app.scripts.seed_pricing
+	$(COMPOSE) exec $(SERVICE) python -m app.scripts.seed_pricing
 
 seed-users:
-	$(COMPOSE) exec $(SERVICE) poetry run python -m app.scripts.seed_users
+	$(COMPOSE) exec $(SERVICE) python -m app.scripts.seed_users
 
 seed-prompts:
-	$(COMPOSE) exec $(SERVICE) poetry run python -m app.scripts.seed_prompts
+	$(COMPOSE) exec $(SERVICE) python -m app.scripts.seed_prompts
 
 seed-subscription-plans:
-	$(COMPOSE) exec $(SERVICE) poetry run python -m app.scripts.seed_subscription_plans
+	$(COMPOSE) exec $(SERVICE) python -m app.scripts.seed_subscription_plans
 
 seed-all: seed-influencers seed-pricing seed-users seed-prompts seed-subscription-plans
 
@@ -47,19 +47,19 @@ db-backup-list:
 
 .PHONY: alembic-revision alembic-upgrade alembic-downgrade alembic-current alembic-history alembic-stamp-production
 alembic-revision:
-	$(COMPOSE) exec $(SERVICE) poetry run alembic revision --autogenerate -m "$(MESSAGE)"
+	$(COMPOSE) exec $(SERVICE) alembic revision --autogenerate -m "$(MESSAGE)"
 
 alembic-upgrade:
-	$(COMPOSE) exec $(SERVICE) poetry run alembic upgrade head
+	$(COMPOSE) exec $(SERVICE) alembic upgrade head
 
 alembic-downgrade:
-	$(COMPOSE) exec $(SERVICE) poetry run alembic downgrade -1
+	$(COMPOSE) exec $(SERVICE) alembic downgrade -1
 
 alembic-current:
-	$(COMPOSE) exec $(SERVICE) poetry run alembic current
+	$(COMPOSE) exec $(SERVICE) alembic current
 
 alembic-history:
-	$(COMPOSE) exec $(SERVICE) poetry run alembic history
+	$(COMPOSE) exec $(SERVICE) alembic history
 
 # IMPORTANTE: Use este comando em produção após o primeiro deploy
 alembic-stamp-production:
@@ -67,7 +67,7 @@ alembic-stamp-production:
 	@echo "📋 Use apenas na primeira vez após limpar as migrações antigas"
 	@read -p "Você tem certeza? (yes/no): " confirm; \
 	if [ "$$confirm" = "yes" ]; then \
-		$(COMPOSE) exec $(SERVICE) poetry run alembic stamp head; \
+		$(COMPOSE) exec $(SERVICE) alembic stamp head; \
 		echo "✅ Banco marcado como versão inicial"; \
 	else \
 		echo "❌ Operação cancelada"; \
@@ -100,13 +100,17 @@ format-check:
 	poetry run ruff format --check $(LINT_PATHS)
 
 lint-docker:
-	$(COMPOSE) exec $(SERVICE) poetry run ruff check $(LINT_PATHS)
+	$(COMPOSE) exec $(SERVICE) ruff check $(LINT_PATHS)
 
 lint-docker-fix:
-	$(COMPOSE) exec $(SERVICE) poetry run ruff check --fix $(LINT_PATHS)
+	$(COMPOSE) exec $(SERVICE) ruff check --fix $(LINT_PATHS)
 
 format-docker:
-	$(COMPOSE) exec $(SERVICE) poetry run ruff format $(LINT_PATHS)
+	$(COMPOSE) exec $(SERVICE) ruff format $(LINT_PATHS)
 
 format-docker-check:
-	$(COMPOSE) exec $(SERVICE) poetry run ruff format --check $(LINT_PATHS)
+	$(COMPOSE) exec $(SERVICE) ruff format --check $(LINT_PATHS)
+
+.PHONY: doctor-python-env
+doctor-python-env:
+	$(COMPOSE) exec $(SERVICE) python -c "import sqlalchemy,fastapi,httpx; print('ok')"

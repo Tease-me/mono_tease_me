@@ -28,6 +28,7 @@ from app.services.chat_buffer_service import (
     ChatConfig,
     queue_message,
     flush_buffer,
+    cleanup_buffer,
     get_message_context,
     save_user_message,
 )
@@ -75,6 +76,10 @@ async def websocket_chat(
         user_id = int(payload.get("sub"))
     except WebSocketDisconnect:
         log.info("[WS] Client disconnected before auth (persona=%s)", influencer_id)
+        return
+    except jwt.ExpiredSignatureError:
+        await ws.close(code=4401)
+        log.warning("[WS] Token expired for persona=%s", influencer_id)
         return
     except Exception as e:
         await ws.close(code=4002)
@@ -168,8 +173,10 @@ async def websocket_chat(
             await flush_buffer(chat_id, ws, influencer_id, user_id, db, CHAT_CONFIG)
         except Exception:
             pass
+        cleanup_buffer(f"{user_id}_{influencer_id}")
     except Exception:
         log.exception("[WS] Unexpected error")
+        cleanup_buffer(f"{user_id}_{influencer_id}")
         try:
             await ws.close(code=4003)
         except Exception:

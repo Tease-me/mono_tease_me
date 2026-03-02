@@ -1,11 +1,30 @@
 import json
 from pywebpush import webpush, WebPushException
+from sqlalchemy import delete
+
 from app.db.models import Subscription
+from app.db.session import SessionLocal
 from app.core.config import settings
 
 VAPID_PUBLIC_KEY = settings.VAPID_PUBLIC_KEY
 VAPID_PRIVATE_KEY = settings.VAPID_PRIVATE_KEY
 VAPID_EMAIL = settings.VAPID_EMAIL or "mailto:admin@example.com"
+
+async def _handle_push_error(e: WebPushException, subscription: Subscription):
+    status = getattr(e.response, "status_code", None)
+    if status in (403, 404, 410):
+        print(f"[push] ❌ Subscription {subscription.id} invalid (status {status}), removing...")
+        try:
+            async with SessionLocal() as db:
+                stmt = delete(Subscription).where(Subscription.id == subscription.id)
+                await db.execute(stmt)
+                await db.commit()
+            print(f"[push] ✅ Invalid subscription {subscription.id} removed.")
+        except Exception as db_err:
+            print(f"[push] ❌ Failed to remove subscription {subscription.id}: {db_err}")
+    else:
+        print(f"[push] ❌ Error sending notification: {e}")
+
 
 async def send_push(subscription: Subscription, message: str = "Oi! 🥰"):
     try:
@@ -17,7 +36,7 @@ async def send_push(subscription: Subscription, message: str = "Oi! 🥰"):
         )
         print("[push] ✅ Notification sent successfully.")
     except WebPushException as e:
-        print(f"[push] ❌ Error sending notification: {e}")
+        await _handle_push_error(e, subscription)
 
 
 async def send_push_rich(
@@ -29,7 +48,6 @@ async def send_push_rich(
     influencer_id: str | None = None,
     badge_url: str | None = None,
 ):
-
     payload = {
         "title": title,
         "body": body,
@@ -56,5 +74,7 @@ async def send_push_rich(
         )
         print(f"[push] ✅ Rich notification sent: {title}")
     except WebPushException as e:
-        print(f"[push] ❌ Error sending rich notification: {e}")
+        await _handle_push_error(e, subscription)
+        # We also raise it here since it originally did, though we may reconsider
+        # if the caller fails, it's better to let them know
         raise

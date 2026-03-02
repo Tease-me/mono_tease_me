@@ -225,7 +225,7 @@ async def handle_turn(
     influencer = await db.get(Influencer, influencer_id)
     
     # Generate simple time context instead of picking from mood arrays
-    time_context = get_time_context(user_timezone)
+    time_context = await get_time_context(db, user_timezone)
 
     if not influencer:
         raise HTTPException(404, "Influencer not found")
@@ -393,6 +393,17 @@ async def handle_turn(
     except Exception as e:
         log.error("[%s] LLM error: %s", cid, e, exc_info=True)
         raise HTTPException(status_code=500, detail="LLM generation failed")
+
+    # Trim Redis history after reply to prevent unbounded growth mid-session.
+    # RunnableWithMessageHistory already added the user msg + AI reply above,
+    # so history may now exceed MAX_HISTORY_WINDOW.
+    try:
+        if len(history.messages) > settings.MAX_HISTORY_WINDOW:
+            trimmed = history.messages[-settings.MAX_HISTORY_WINDOW:]
+            history.clear()
+            history.add_messages(trimmed)
+    except Exception as exc:
+        log.warning("[%s] post-reply history trim failed: %s", cid, exc)
 
     # Schedule background fact extraction (fire-and-forget)
     # Store task reference to prevent premature garbage collection
