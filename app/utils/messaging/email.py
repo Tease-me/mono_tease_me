@@ -68,6 +68,7 @@ def send_verification_email(to_email: str, token: str):
                 Confirm Email
               </a>
               <p style="margin:24px 0 0 0; font-size:14px; color:#bbb;">
+                This link will expire in 24 hours.<br/>
                 If you didn't sign up for TeaseMe, please ignore this message.<br/>
                 Can't wait to talk to you!
               </p>
