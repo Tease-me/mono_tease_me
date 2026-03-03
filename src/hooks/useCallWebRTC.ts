@@ -111,6 +111,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
     onError: (error: any) => {
       setStatus("error");
       setErrorMessage(error instanceof Error ? error.message : "Call failed");
+      stopRing();
       logger.error(error)
     },
     onMessage: (message) => {
@@ -228,6 +229,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
       if (!abortController.signal.aborted) {
         setStatus("error");
         setErrorMessage(error.response?.data?.detail?.error || "Call failed");
+        stopRing();
         logger.error(error);
         errorStatus = error.response?.status ?? null;
       }
@@ -288,6 +290,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
         if (!abortController.signal.aborted) {
           setStatus("error");
           setErrorMessage(error.response?.data?.detail?.error || "Call failed");
+          stopRing();
           logger.error(error);
         }
       } finally {
@@ -297,7 +300,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
         startInFlightRef.current = false;
       }
     })();
-  }, [agentSettings, chatRepo, conversation, influencerId, user]);
+  }, [agentSettings, chatRepo, conversation, influencerId, stopRing, user]);
 
   const stopConversation = useCallback(async () => {
     if (startAbortControllerRef.current) {
