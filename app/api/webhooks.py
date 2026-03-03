@@ -1,5 +1,6 @@
 
 import asyncio
+import math
 import time
 import logging
 import json
@@ -13,10 +14,11 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Header, Backgrou
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.db.session import get_db, SessionLocal
-from app.services.billing import charge_feature, _get_influencer_id_from_chat
+from app.services.billing import charge_feature, _get_influencer_id_from_chat, resolve_voice_billing_mode
+from app.api.elevenlabs import was_already_billed
 from app.api.elevenlabs import _extract_total_seconds
 from sqlalchemy import select
-from app.db.models import CallRecord, Chat, Influencer, InfluencerSubscription
+from app.db.models import CallRecord, Chat, Influencer
 from app.agents.turn_handler import  handle_turn, redis_history, _messages_since_session_break
 from app.agents.memory import find_similar_memories
 
@@ -203,27 +205,32 @@ async def elevenlabs_post_call(request: Request, db: AsyncSession = Depends(get_
             if not chat_id:
                 raise HTTPException(400, "Missing chat_id in meta for billing")
 
-            influencer_id = await _get_influencer_id_from_chat(db, chat_id)
-
-            sub = await db.scalar(
-                select(InfluencerSubscription)
-                .where(
-                    InfluencerSubscription.user_id == user_id,
-                    InfluencerSubscription.influencer_id == influencer_id
+            if await was_already_billed(db, conversation_id):
+                log.info(
+                    "webhook.billing.skipped already_billed conv_id=%s",
+                    _redact(conversation_id),
                 )
-            )
-            is_18 = sub.is_18_selected if sub else False
-            feature = "voice_18" if is_18 else "live_chat"
+            else:
+                influencer_id = await _get_influencer_id_from_chat(db, chat_id)
+                feature, is_18 = await resolve_voice_billing_mode(db, user_id, influencer_id)
 
-            await charge_feature(
-                db,
-                user_id=user_id,
-                influencer_id=influencer_id,
-                feature=feature,
-                units=int(total_seconds),
-                is_18=is_18,
-                meta=meta,
-            )
+                await charge_feature(
+                    db,
+                    user_id=user_id,
+                    influencer_id=influencer_id,
+                    feature=feature,
+                    units=math.ceil(total_seconds),
+                    is_18=is_18,
+                    meta=meta,
+                    allow_partial=True,
+                )
+
+                # Mark as billed to prevent double-billing from finalize
+                call_record = await db.get(CallRecord, conversation_id)
+                if call_record:
+                    call_record.status = "billed"
+                    db.add(call_record)
+                    await db.commit()
             
             from app.services.token_tracker import track_usage_bg
             cost_micros = _extract_cost_micros(data)
@@ -645,30 +652,31 @@ async def eleven_webhook_reply(
 
     return {"text": reply}
 
-@router.post("/current-time")
-async def eleven_webhook_current_time(
-    req: Request,
-    db: AsyncSession = Depends(get_db),
-    x_webhook_token: str | None = Header(default=None),
-):
-    """
-    ElevenLabs Tool Webhook to fetch the current server time mid-call.
-    Allows the AI to realize how much time has passed since the call started.
-    """
-    _verify_token(ELEVENLABS_CONVAI_WEBHOOK_SECRET, x_webhook_token)
-    from datetime import datetime, timezone
-    
-    try:
-        payload = await req.json()
-    except Exception:
-        payload = {}
-        
-    conversation_id = payload.get("conversation_id", "unknown")
-    now_utc = datetime.now(timezone.utc)
-    
-    log.info("[EL TOOL] /current-time called conv=%s", conversation_id)
-    
-    return {
-        "current_time_utc": now_utc.strftime("%Y-%m-%d %H:%M:%S UTC"),
-        "hint": "This is the true current time. Use this to orient yourself during the active call."
-    }
+# --- Future: uncomment when registered as an ElevenLabs Tool ---
+# @router.post("/current-time")
+# async def eleven_webhook_current_time(
+#     req: Request,
+#     db: AsyncSession = Depends(get_db),
+#     x_webhook_token: str | None = Header(default=None),
+# ):
+#     """
+#     ElevenLabs Tool Webhook to fetch the current server time mid-call.
+#     Allows the AI to realize how much time has passed since the call started.
+#     """
+#     _verify_token(ELEVENLABS_CONVAI_WEBHOOK_SECRET, x_webhook_token)
+#     from datetime import datetime, timezone
+#
+#     try:
+#         payload = await req.json()
+#     except Exception:
+#         payload = {}
+#
+#     conversation_id = payload.get("conversation_id", "unknown")
+#     now_utc = datetime.now(timezone.utc)
+#
+#     log.info("[EL TOOL] /current-time called conv=%s", conversation_id)
+#
+#     return {
+#         "current_time_utc": now_utc.strftime("%Y-%m-%d %H:%M:%S UTC"),
+#         "hint": "This is the true current time. Use this to orient yourself during the active call."
+#     }

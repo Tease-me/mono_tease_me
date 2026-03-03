@@ -38,6 +38,7 @@ async def charge_feature(
     units: int,
     is_18: bool = False,
     meta: dict | None = None,
+    allow_partial: bool = False,
 ) -> int:
     today = date.today()
 
@@ -92,7 +93,10 @@ async def charge_feature(
 
         old_balance = wallet.balance_cents or 0
         if old_balance < cost:
-            raise HTTPException(402, "Insufficient credits")
+            if allow_partial:
+                cost = old_balance
+            else:
+                raise HTTPException(402, "Insufficient credits")
 
         wallet.balance_cents = old_balance - cost
         db.add(wallet)
@@ -398,3 +402,24 @@ async def _get_influencer_id_from_chat(db: AsyncSession, chat_id: str) -> str:
     if not chat or not chat.influencer_id:
         raise HTTPException(400, "Missing chat/influencer context")
     return chat.influencer_id
+
+
+async def resolve_voice_billing_mode(
+    db: AsyncSession,
+    user_id: int,
+    influencer_id: str,
+) -> tuple[str, bool]:
+    """Return (feature, is_18) for a voice call between user and influencer.
+
+    Centralises the subscription lookup so every billing path uses identical logic.
+    """
+    from app.db.models import InfluencerSubscription
+    sub = await db.scalar(
+        select(InfluencerSubscription).where(
+            InfluencerSubscription.user_id == user_id,
+            InfluencerSubscription.influencer_id == influencer_id,
+        )
+    )
+    is_18 = sub.is_18_selected if sub else False
+    feature = "voice_18" if is_18 else "live_chat"
+    return feature, is_18

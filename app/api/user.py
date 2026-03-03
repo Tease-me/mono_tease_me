@@ -105,18 +105,24 @@ async def get_user_usage(
                 "remaining": text_paid,
                 "unit_price_cents": text_price,
                 "used_total": normal_text_used,
+                "used_today": normal_text_used,  # backward compat
+                "free_left": normal_text_free_left,  # backward compat
             },
             "voice_notes": {
                 "remaining": voice_paid,
                 "remaining_minutes": round(voice_paid / 60, 2),
                 "unit_price_cents": voice_price,
                 "used_total": normal_voice_used,
+                "used_today": normal_voice_used,  # backward compat
+                "free_left": normal_voice_free_left,  # backward compat
             },
             "live_chat": {
                 "remaining": live_paid,
                 "remaining_minutes": round(live_paid / 60, 2),
                 "unit_price_cents": live_price,
                 "used_total": normal_live_used,
+                "used_today": normal_live_used,  # backward compat
+                "free_left": normal_live_free_left,  # backward compat
             },
         }
 
@@ -129,12 +135,16 @@ async def get_user_usage(
                 "remaining": text_paid,
                 "unit_price_cents": text_18_price,
                 "used_total": adult_text_used,
+                "used_today": adult_text_used,  # backward compat
+                "free_left": adult_text_free_left,  # backward compat
             },
             "voice": {
                 "remaining": voice_paid,
                 "remaining_minutes": round(voice_paid / 60, 2),
                 "unit_price_cents": voice_18_price,
                 "used_total": adult_voice_used,
+                "used_today": adult_voice_used,  # backward compat
+                "free_left": adult_voice_free_left,  # backward compat
             },
         }
 

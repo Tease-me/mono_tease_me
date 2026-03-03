@@ -14,12 +14,12 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, Q
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Any, Dict, List, Optional
 from app.core.config import settings
-from app.db.models import Influencer, Chat, Message, CallRecord, User, PreInfluencer, Memory, InfluencerSubscription
+from app.db.models import Influencer, Chat, Message, CallRecord, User, PreInfluencer, Memory
 from app.db.session import get_db
 from app.shared.prompting.influencer_bio import extract_influencer_bio_context
 from app.utils.auth.dependencies import get_current_user
 from app.schemas.elevenlabs import FinalizeConversationBody, RegisterConversationBody, UpdatePromptBody
-from app.services.billing import charge_feature,_get_influencer_id_from_chat
+from app.services.billing import charge_feature,_get_influencer_id_from_chat, resolve_voice_billing_mode
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from app.services.billing import can_afford, get_remaining_units
@@ -810,15 +810,7 @@ async def get_signed_url(
     if not await get_follow(db, influencer_id, user_id):
         raise HTTPException(status_code=403, detail="You must follow the influencer to interact.")
         
-    sub = await db.scalar(
-        select(InfluencerSubscription)
-        .where(
-            InfluencerSubscription.user_id == user_id,
-            InfluencerSubscription.influencer_id == influencer_id
-        )
-    )
-    is_18 = sub.is_18_selected if sub else False
-    feature = "voice_18" if is_18 else "live_chat"
+    feature, is_18 = await resolve_voice_billing_mode(db, user_id, influencer_id)
 
     ok, cost_cents, free_left = await can_afford(
         db, user_id=user_id, influencer_id=influencer_id, feature=feature, units=10, is_18=is_18
@@ -876,15 +868,7 @@ async def get_conversation_token(
     if not await get_follow(db, influencer_id, user_id):
         raise HTTPException(status_code=403, detail="You must follow the influencer to interact.")
         
-    sub = await db.scalar(
-        select(InfluencerSubscription)
-        .where(
-            InfluencerSubscription.user_id == user_id,
-            InfluencerSubscription.influencer_id == influencer_id
-        )
-    )
-    is_18 = sub.is_18_selected if sub else False
-    feature = "voice_18" if is_18 else "live_chat"
+    feature, is_18 = await resolve_voice_billing_mode(db, user_id, influencer_id)
 
     ok, cost_cents, free_left = await can_afford(
         db, user_id=user_id, influencer_id=influencer_id, feature=feature, units=10, is_18=is_18
@@ -1406,15 +1390,7 @@ async def finalize_conversation(
 
         influencer_id = await _get_influencer_id_from_chat(db, chat_id)
 
-        sub = await db.scalar(
-            select(InfluencerSubscription)
-            .where(
-                InfluencerSubscription.user_id == body.user_id,
-                InfluencerSubscription.influencer_id == influencer_id
-            )
-        )
-        is_18 = sub.is_18_selected if sub else False
-        feature = "voice_18" if is_18 else "live_chat"
+        feature, is_18 = await resolve_voice_billing_mode(db, body.user_id, influencer_id)
 
         await charge_feature(
             db,
@@ -1424,7 +1400,16 @@ async def finalize_conversation(
             units=math.ceil(total_seconds),
             is_18=is_18,
             meta=meta,
+            allow_partial=True,
         )
+
+        # Mark as billed to prevent double-billing from webhook
+        call_record = await db.get(CallRecord, conversation_id)
+        if call_record:
+            call_record.status = "billed"
+            db.add(call_record)
+            await db.commit()
+
         return {
             "ok": True,
             "conversation_id": conversation_id,
