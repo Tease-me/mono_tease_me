@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import insert
 
 from fastapi import HTTPException
 from app.db.models import InfluencerWallet, InfluencerCreditTransaction, DailyUsage, Pricing, User, Chat, Influencer
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 
 async def _get_lifetime_used_units(db: AsyncSession, user_id: int, is_18: bool, feature: str) -> int:
     field_map = {
