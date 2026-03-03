@@ -310,6 +310,17 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     }
   }, [dispatch, status]);
 
+  // Refresh usage/balance after a call ends so the UI shows the updated wallet
+  useEffect(() => {
+    if (status === "disconnected" && influencer?.id) {
+      // Small delay to allow the webhook to process the charge
+      const timer = setTimeout(() => {
+        dispatch(fetchChatUsage({ influencerId: influencer.id, adultMode }));
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [status, influencer?.id, adultMode, dispatch]);
+
   const handleStartConversation = React.useCallback(async () => {
     const result = await startConversation();
     if (result?.errorStatus === 402) {

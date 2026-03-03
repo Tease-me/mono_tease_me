@@ -4,7 +4,6 @@ import type { RelationshipDataModel } from "@/data/models/RelationshipDataModel"
 import type { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import { UserServices } from "@/api/services/UserServices";
 import { apiClient } from "@/api/apis";
-import { secondsToMinutes } from "@/utils/DateTimeUtils";
 import logger from "@/utils/logger";
 import type { AppDispatch } from "./store";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
@@ -202,14 +201,25 @@ const chatScreenSlice = createSlice({
       action: PayloadAction<{ usage: any; adultMode: boolean }>
     ) {
       const { usage, adultMode } = action.payload;
-      state.creditsRemaining = adultMode
-        ? usage?.adult?.messages?.remaining
-        : usage?.normal?.messages?.remaining;
-      const voiceSeconds = usage?.adult?.voice_seconds?.remaining;
-      const fallbackMinutes =
-        usage?.adult?.live_chat?.remaining_minutes ?? usage?.adult?.voice?.remaining_minutes;
-      state.adultMinutesRemaining =
-        voiceSeconds != null ? secondsToMinutes(voiceSeconds) : fallbackMinutes;
+      const free = usage?.free_allowances;
+
+      if (adultMode) {
+        const adultTextFree = free?.adult?.text_free_left ?? 0;
+        const adultTextPaid = usage?.adult?.messages?.remaining ?? 0;
+        state.creditsRemaining = adultTextFree + adultTextPaid;
+
+        const adultVoiceFreeMin = free?.adult?.voice_free_left_minutes ?? 0;
+        const adultVoicePaidMin = usage?.adult?.voice?.remaining_minutes ?? 0;
+        state.adultMinutesRemaining = adultVoiceFreeMin + adultVoicePaidMin;
+      } else {
+        const normalTextFree = free?.normal?.text_free_left ?? 0;
+        const normalTextPaid = usage?.normal?.messages?.remaining ?? 0;
+        state.creditsRemaining = normalTextFree + normalTextPaid;
+
+        const normalLiveFreeMin = free?.normal?.live_chat_free_left_minutes ?? 0;
+        const normalLivePaidMin = usage?.normal?.live_chat?.remaining_minutes ?? 0;
+        state.adultMinutesRemaining = normalLiveFreeMin + normalLivePaidMin;
+      }
     },
   },
 });
