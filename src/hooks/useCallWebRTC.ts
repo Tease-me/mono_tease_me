@@ -103,7 +103,6 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
     onConnect: () => {
       setStatus("connected");
       setErrorMessage(null);
-      stopRing();
     },
     onDisconnect: () => {
       setStatus("disconnected");
@@ -111,7 +110,6 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
     onError: (error: any) => {
       setStatus("error");
       setErrorMessage(error instanceof Error ? error.message : "Call failed");
-      stopRing();
       logger.error(error)
     },
     onMessage: (message) => {
@@ -148,7 +146,6 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
             "Microphone access is required to start the call. Please enable microphone permissions in your browser settings and try again.",
         });
         setStatus("idle");
-        stopRing();
         if (startAbortControllerRef.current === abortController) {
           startAbortControllerRef.current = null;
         }
@@ -158,7 +155,6 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
       if (!user || !user.id) {
         setErrorMessage("Please log in to start a call.");
         setStatus("idle");
-        stopRing();
         if (startAbortControllerRef.current === abortController) {
           startAbortControllerRef.current = null;
         }
@@ -190,7 +186,6 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
 
       if (!conversationToken) {
         setErrorMessage("Unable to start a conversation right now.");
-        stopRing();
         setStatus("idle");
         if (startAbortControllerRef.current === abortController) {
           startAbortControllerRef.current = null;
@@ -201,7 +196,6 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
 
       if ((credits_remainder_secs ?? 0) <= 0) {
         setErrorMessage("You have no remaining credits.");
-        stopRing();
         setStatus("idle");
         if (startAbortControllerRef.current === abortController) {
           startAbortControllerRef.current = null;
@@ -229,7 +223,6 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
       if (!abortController.signal.aborted) {
         setStatus("error");
         setErrorMessage(error.response?.data?.detail?.error || "Call failed");
-        stopRing();
         logger.error(error);
         errorStatus = error.response?.status ?? null;
       }
@@ -239,7 +232,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
     }
     startInFlightRef.current = false;
     return { errorStatus };
-  }, [chatRepo, influencerId, requestMicrophonePermission, stopRing, user]);
+  }, [chatRepo, influencerId, requestMicrophonePermission, user]);
 
   useEffect(() => {
     const pending = pendingStartRef.current;
@@ -290,7 +283,6 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
         if (!abortController.signal.aborted) {
           setStatus("error");
           setErrorMessage(error.response?.data?.detail?.error || "Call failed");
-          stopRing();
           logger.error(error);
         }
       } finally {
@@ -300,7 +292,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
         startInFlightRef.current = false;
       }
     })();
-  }, [agentSettings, chatRepo, conversation, influencerId, stopRing, user]);
+  }, [agentSettings, chatRepo, conversation, influencerId, user]);
 
   const stopConversation = useCallback(async () => {
     if (startAbortControllerRef.current) {
@@ -308,7 +300,6 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
       startAbortControllerRef.current = null;
     }
     startInFlightRef.current = false;
-    stopRing();
     setStatus("idle");
     setErrorMessage(null);
     setTimeRemaining(null);
@@ -322,7 +313,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
     } catch (error) {
       logger.warn("Failed to end session cleanly", error);
     }
-  }, [conversation, releaseMicrophonePermission, stopRing]);
+  }, [conversation, releaseMicrophonePermission]);
 
   const cancelCall = useCallback(() => {
     if (status !== "connecting") {
@@ -333,10 +324,9 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
       startAbortControllerRef.current = null;
     }
     startInFlightRef.current = false;
-    stopRing();
     setStatus("idle");
     setErrorMessage(null);
-  }, [status, stopRing]);
+  }, [status]);
 
   useEffect(() => {
     if (timeRemaining === null) {
