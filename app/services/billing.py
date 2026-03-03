@@ -39,6 +39,7 @@ async def charge_feature(
     is_18: bool = False,
     meta: dict | None = None,
     allow_partial: bool = False,
+    auto_commit: bool = True,
 ) -> int:
     today = date.today()
 
@@ -123,7 +124,11 @@ async def charge_feature(
         )
     )
 
-    await db.commit()
+    if auto_commit:
+        await db.commit()
+    else:
+        await db.flush()
+        
     return cost
 
 async def topup_wallet(

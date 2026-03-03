@@ -231,6 +231,7 @@ async def elevenlabs_post_call(request: Request, db: AsyncSession = Depends(get_
                         is_18=is_18,
                         meta=meta,
                         allow_partial=True,
+                        auto_commit=False,
                     )
                     await mark_billing_done(db, conversation_id)
                     await db.commit()
