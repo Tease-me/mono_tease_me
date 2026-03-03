@@ -15,6 +15,7 @@ class FinalizeConversationBody(BaseModel):
     influencer_id: Optional[str] = None
     sid: Optional[str] = None
     timeout_secs: int = 180
+    charge_if_not_billed: bool = True
 
 class UpdatePromptBody(BaseModel):
     agent_id: Optional[str] = None

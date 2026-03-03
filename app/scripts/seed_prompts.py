@@ -26,7 +26,12 @@ async def upsert_prompt(
     )
 
     if existing:
-        print(f"✓ Skipped {key} (already exists)")
+        if existing.prompt == prompt:
+            print(f"✓ Skipped {key} (unchanged)")
+        else:
+            existing.prompt = prompt
+            existing.updated_at = datetime.now(timezone.utc)
+            print(f"✓ Updated {key}")
     else:
         now = datetime.now(timezone.utc)
         db.add(

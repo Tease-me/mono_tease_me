@@ -1153,6 +1153,27 @@ async def save_pending_conversation(
     return chat_id
 
 
+async def claim_billing_slot(db: AsyncSession, conversation_id: str) -> bool:
+    """Atomically mark a conversation as billed.
+
+    Returns True if this call won the race (status flipped to 'billed').
+    Returns False if it was already billed (no rows affected).
+    """
+    from sqlalchemy import update as sa_update
+
+    result = await db.execute(
+        sa_update(CallRecord)
+        .where(
+            CallRecord.conversation_id == conversation_id,
+            CallRecord.status != "billed",
+        )
+        .values(status="billed")
+    )
+    await db.commit()
+    return (result.rowcount or 0) > 0
+
+
+# Keep a thin backwards-compat wrapper so existing call-sites don't break
 async def was_already_billed(db: AsyncSession, conversation_id: str) -> bool:
     q = select(CallRecord.status).where(CallRecord.conversation_id == conversation_id)
     res = await db.execute(q)
@@ -1382,33 +1403,19 @@ async def finalize_conversation(
             "refresh_required": transcript_synced,
         }
 
-    if body.charge_if_not_billed and not await was_already_billed(db, conversation_id):
-        
-        chat_id = meta.get("chat_id") if isinstance(meta, dict) else None
-        if not chat_id:
-            raise HTTPException(400, "Missing chat_id in meta for billing")
-
-        influencer_id = await _get_influencer_id_from_chat(db, chat_id)
-
-        feature, is_18 = await resolve_voice_billing_mode(db, body.user_id, influencer_id)
+    if body.charge_if_not_billed and chat_id and resolved_influencer_id and await claim_billing_slot(db, conversation_id):
+        feature, is_18 = await resolve_voice_billing_mode(db, body.user_id, resolved_influencer_id)
 
         await charge_feature(
             db,
             user_id=body.user_id,
-            influencer_id=influencer_id,
+            influencer_id=resolved_influencer_id,
             feature=feature,
             units=math.ceil(total_seconds),
             is_18=is_18,
             meta=meta,
             allow_partial=True,
         )
-
-        # Mark as billed to prevent double-billing from webhook
-        call_record = await db.get(CallRecord, conversation_id)
-        if call_record:
-            call_record.status = "billed"
-            db.add(call_record)
-            await db.commit()
 
         return {
             "ok": True,

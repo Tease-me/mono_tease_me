@@ -53,6 +53,8 @@ async def extract_memories_from_transcript(
     async with SessionLocal() as db:
         try:
             fact_prompt = await get_fact_prompt(db)
+            from datetime import datetime, timezone as _tz
+            ts_now = datetime.now(_tz.utc).strftime("%Y-%m-%d %H:%M UTC")
             
             async def extract_chunk(ctx_str: str, msg_str: str):
                 try:
@@ -63,7 +65,7 @@ async def extract_memories_from_transcript(
                         conversation_id=conversation_id,
                     )
                     resp = await FACT_EXTRACTOR.ainvoke(
-                        fact_prompt.format(msg=msg_str, ctx=ctx_str),
+                        fact_prompt.format(msg=msg_str, ctx=ctx_str, ts=ts_now),
                         config={"callbacks": [tracker]}
                     )
 
@@ -127,8 +129,9 @@ async def summarize_memory_list(
                 "system",
                 "You summarize relationship/chat memory logs for an AI persona. "
                 "Current time: {current_time}. "
-                "Use the timestamps ONLY to determine recency and priority — "
-                "NEVER include any dates, times, or time references in your output. "
+                "Use timestamps to include NATURAL relative time markers "
+                "(e.g., 'just now', 'earlier today', 'recently', 'a few days ago', 'last week'). "
+                "NEVER output raw dates or timestamps — translate them into natural relative language. "
                 "Write as if naturally remembering, not citing records. "
                 "Be concise, factual, and deeply analytical. Avoid hallucinations.",
             ),
@@ -140,8 +143,8 @@ async def summarize_memory_list(
                 "3) **Top 3 Priorities for the AI** (Ranked 1 to 3 based on recent user behavior)\n"
                 "4) **Dislikes/Boundaries** (What to never do)\n"
                 "5) **One-paragraph Overall Summary**\n\n"
-                "IMPORTANT: Do NOT reference any dates, times, or timestamps in the output. "
-                "Use timestamps only internally to decide what is most recent/relevant.\n\n"
+                "IMPORTANT: Use natural relative time language (e.g., 'just said', 'recently mentioned', "
+                "'a while back') to convey recency. NEVER output raw dates or timestamps.\n\n"
                 "Memories:\n{memory_block}",
             ),
         ]
@@ -190,8 +193,9 @@ async def summarize_ai_memory_list(
                 "system",
                 "You summarize an AI influencer's past actions, boundaries, and relationship decisions based on memory logs. "
                 "Current time: {current_time}. "
-                "Use the timestamps ONLY to determine recency and priority — "
-                "NEVER include any dates, times, or time references in your output. "
+                "Use timestamps to include NATURAL relative time markers "
+                "(e.g., 'just now', 'earlier today', 'recently', 'a few days ago'). "
+                "NEVER output raw dates or timestamps — translate them into natural relative language. "
                 "Write as if naturally recalling past decisions, not citing records. "
                 "Be incredibly concise, factual, and analytical. Speak in the third person about the AI (e.g. 'The AI promised...').",
             ),
@@ -203,8 +207,8 @@ async def summarize_ai_memory_list(
                 "3) **Open Teases / Unresolved Actions** (What cliffhangers or specific games are currently in play?)\n"
                 "4) **Ranked Boundaries** (Top 3 strict 'NO' boundaries established by the AI)\n"
                 "5) **One-paragraph Overall Stance** (A concise summary of how the AI should position itself right now)\n\n"
-                "IMPORTANT: Do NOT reference any dates, times, or timestamps in the output. "
-                "Use timestamps only internally to decide what is most recent/relevant.\n\n"
+                "IMPORTANT: Use natural relative time language (e.g., 'just decided', 'recently promised') "
+                "to convey recency. NEVER output raw dates or timestamps.\n\n"
                 "AI Memories:\n{memory_block}",
             ),
         ]

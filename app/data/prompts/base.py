@@ -269,6 +269,11 @@ Output Rules:
 Recent context (for reference only):
 {ctx}
 
+Conversation timestamp: {ts}
+If a fact is time-sensitive (e.g., "user is at work", "user just woke up", "user is eating"),
+include a brief relative time marker like "right now" or "at the time of this conversation".
+For durable facts (names, preferences, boundaries), skip the time marker.
+
 Latest exchange (EXTRACT FROM HERE ONLY):
 {msg}
 """.strip()
