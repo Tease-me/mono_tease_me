@@ -55,7 +55,7 @@ interface ChatScreenState {
   mode: ChatMode;
   relationship?: RelationshipDataModel;
   creditsRemaining?: number;
-  adultMinutesRemaining?: number;
+  minutesRemaining?: number;
   showUpgradeModal: boolean;
   showTopupModal: boolean;
   callTime: number;
@@ -86,7 +86,7 @@ const initialState: ChatScreenState = {
   mode: getInitialMode(),
   relationship: undefined,
   creditsRemaining: undefined,
-  adultMinutesRemaining: undefined,
+  minutesRemaining: undefined,
   showUpgradeModal: false,
   showTopupModal: false,
   callTime: 0,
@@ -161,8 +161,8 @@ const chatScreenSlice = createSlice({
     setCreditsRemaining(state, action: PayloadAction<number | undefined>) {
       state.creditsRemaining = action.payload;
     },
-    setAdultMinutesRemaining(state, action: PayloadAction<number | undefined>) {
-      state.adultMinutesRemaining = action.payload;
+    setMinutesRemaining(state, action: PayloadAction<number | undefined>) {
+      state.minutesRemaining = action.payload;
     },
     setShowUpgradeModal(state, action: PayloadAction<boolean>) {
       state.showUpgradeModal = action.payload;
@@ -210,7 +210,7 @@ const chatScreenSlice = createSlice({
 
         const adultVoiceFreeMin = free?.adult?.voice_free_left_minutes ?? 0;
         const adultVoicePaidMin = usage?.adult?.voice?.remaining_minutes ?? 0;
-        state.adultMinutesRemaining = adultVoiceFreeMin + adultVoicePaidMin;
+        state.minutesRemaining = adultVoiceFreeMin + adultVoicePaidMin;
       } else {
         const normalTextFree = free?.normal?.text_free_left ?? 0;
         const normalTextPaid = usage?.normal?.messages?.remaining ?? 0;
@@ -218,7 +218,7 @@ const chatScreenSlice = createSlice({
 
         const normalLiveFreeMin = free?.normal?.live_chat_free_left_minutes ?? 0;
         const normalLivePaidMin = usage?.normal?.live_chat?.remaining_minutes ?? 0;
-        state.adultMinutesRemaining = normalLiveFreeMin + normalLivePaidMin;
+        state.minutesRemaining = normalLiveFreeMin + normalLivePaidMin;
       }
     },
   },
