@@ -41,7 +41,7 @@ export default function WelcomeScreen({
     useCall();
 
   const audioRef = useRef(
-    new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: true }),
+    new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: false }),
   );
 
   const [error, setError] = useState<string | null>(null);
