@@ -178,7 +178,7 @@ async def extract_and_store_facts_for_turn(
             )
 
             facts_txt = facts_resp.content or ""
-            log.info(
+            log.debug(
                 "[%s] fact_extract.llm_response chat=%s raw=%s",
                 cid, chat_id, facts_txt[:200],
             )
@@ -191,8 +191,8 @@ async def extract_and_store_facts_for_turn(
                 # Use batch storage - single API call for all facts
                 stored = await store_facts_batch(db, chat_id, valid_facts)
                 log.info(
-                    "[%s] fact_extract.stored chat=%s stored=%d facts=%s",
-                    cid, chat_id, stored, valid_facts,
+                    "[%s] fact_extract.stored chat=%s stored=%d",
+                    cid, chat_id, stored,
                 )
             else:
                 log.info("[%s] fact_extract.no_facts chat=%s", cid, chat_id)

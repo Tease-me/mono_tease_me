@@ -418,8 +418,13 @@ async def resolve_voice_billing_mode(
         select(InfluencerSubscription).where(
             InfluencerSubscription.user_id == user_id,
             InfluencerSubscription.influencer_id == influencer_id,
+            InfluencerSubscription.status == "active",
         )
     )
-    is_18 = sub.is_18_selected if sub else False
+    is_18 = False
+    if sub and sub.is_18_selected:
+        # Only honour 18+ selection if the subscription period hasn't expired
+        if sub.current_period_end is None or sub.current_period_end >= datetime.now(timezone.utc):
+            is_18 = True
     feature = "voice_18" if is_18 else "live_chat"
     return feature, is_18

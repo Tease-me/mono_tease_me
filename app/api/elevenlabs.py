@@ -1154,10 +1154,13 @@ async def save_pending_conversation(
 
 
 async def claim_billing_slot(db: AsyncSession, conversation_id: str) -> bool:
-    """Atomically mark a conversation as billed.
+    """Atomically mark a conversation as billing-in-progress.
 
-    Returns True if this call won the race (status flipped to 'billed').
-    Returns False if it was already billed (no rows affected).
+    Returns True if this call won the race (status flipped to 'billing').
+    Returns False if it was already billed/billing (no rows affected).
+
+    NOTE: Does NOT commit — the caller is responsible for committing after
+    a successful charge, or resetting status on failure.
     """
     from sqlalchemy import update as sa_update
 
@@ -1165,12 +1168,38 @@ async def claim_billing_slot(db: AsyncSession, conversation_id: str) -> bool:
         sa_update(CallRecord)
         .where(
             CallRecord.conversation_id == conversation_id,
-            CallRecord.status != "billed",
+            CallRecord.status.notin_(["billing", "billed"]),
         )
+        .values(status="billing")
+    )
+    await db.flush()
+    return (result.rowcount or 0) > 0
+
+
+async def mark_billing_done(db: AsyncSession, conversation_id: str) -> None:
+    """Flip status from 'billing' → 'billed' after successful charge."""
+    from sqlalchemy import update as sa_update
+
+    await db.execute(
+        sa_update(CallRecord)
+        .where(CallRecord.conversation_id == conversation_id)
         .values(status="billed")
     )
+
+
+async def reset_billing_slot(db: AsyncSession, conversation_id: str) -> None:
+    """Reset status back to 'done' when charge fails, allowing retry."""
+    from sqlalchemy import update as sa_update
+
+    await db.execute(
+        sa_update(CallRecord)
+        .where(
+            CallRecord.conversation_id == conversation_id,
+            CallRecord.status == "billing",
+        )
+        .values(status="done")
+    )
     await db.commit()
-    return (result.rowcount or 0) > 0
 
 
 # Keep a thin backwards-compat wrapper so existing call-sites don't break
@@ -1403,36 +1432,36 @@ async def finalize_conversation(
             "refresh_required": transcript_synced,
         }
 
+    charged = False
     if body.charge_if_not_billed and chat_id and resolved_influencer_id and await claim_billing_slot(db, conversation_id):
-        feature, is_18 = await resolve_voice_billing_mode(db, body.user_id, resolved_influencer_id)
+        try:
+            feature, is_18 = await resolve_voice_billing_mode(db, body.user_id, resolved_influencer_id)
 
-        await charge_feature(
-            db,
-            user_id=body.user_id,
-            influencer_id=resolved_influencer_id,
-            feature=feature,
-            units=math.ceil(total_seconds),
-            is_18=is_18,
-            meta=meta,
-            allow_partial=True,
-        )
-
-        return {
-            "ok": True,
-            "conversation_id": conversation_id,
-            "status": status,
-            "charged": True,
-            "total_seconds": total_seconds,
-            "meta": meta,
-            "transcript_synced": transcript_synced,
-            "refresh_required": transcript_synced,
-        }
+            await charge_feature(
+                db,
+                user_id=body.user_id,
+                influencer_id=resolved_influencer_id,
+                feature=feature,
+                units=math.ceil(total_seconds),
+                is_18=is_18,
+                meta=meta,
+                allow_partial=True,
+            )
+            await mark_billing_done(db, conversation_id)
+            await db.commit()
+            charged = True
+        except Exception as exc:
+            log.exception(
+                "finalize.charge_failed conv=%s err=%s — resetting billing slot",
+                conversation_id, exc,
+            )
+            await reset_billing_slot(db, conversation_id)
 
     return {
         "ok": True,
         "conversation_id": conversation_id,
         "status": status,
-        "charged": False,
+        "charged": charged,
         "total_seconds": total_seconds,
         "meta": meta,
         "transcript_synced": transcript_synced,

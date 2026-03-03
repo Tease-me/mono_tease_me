@@ -11,6 +11,13 @@ from app.agents.callbacks import UsageTrackingCallback
 
 log = logging.getLogger(__name__)
 
+# ---------------------------------------------------------------------------
+# Tunables for transcript → memory extraction
+# ---------------------------------------------------------------------------
+_CHUNK_SIZE = 14          # turns per LLM chunk (↓ = more calls, ↑ = cheaper)
+_CHUNK_OVERLAP_TURNS = 4  # context overlap between chunks
+
+
 async def extract_memories_from_transcript(
     chat_id: str,
     transcript_entries: list,
@@ -18,6 +25,9 @@ async def extract_memories_from_transcript(
 ) -> None:
     from app.agents.prompts import FACT_EXTRACTOR, get_fact_prompt
     import asyncio
+    import time as _time
+
+    t0 = _time.perf_counter()
 
     all_turns = []
     for entry in transcript_entries:
@@ -31,31 +41,29 @@ async def extract_memories_from_transcript(
         log.info("[MEMORY-BG] no speech in transcript conv=%s", conversation_id)
         return
 
-    log.info(
-        "[MEMORY-BG] chunking transcript of %d turns conv=%s chat=%s",
-        len(all_turns), conversation_id, chat_id,
-    )
-
-    chunks = []
-    # Step through conversation in exchange pairs (e.g. every 2 turns)
-    for i in range(0, len(all_turns), 2):
-        chunk_turns = all_turns[:i+2]
-        if not chunk_turns:
-            continue
-        
-        ctx_turns = chunk_turns[-6:-2]  # Up to 4 turns of context
-        msg_turns = chunk_turns[-2:]    # The latest 1-2 turns to evaluate
+    # ── Large-chunk grouping (2-3 LLM calls instead of N/2) ──
+    chunks: list[tuple[str, str]] = []
+    for start in range(0, len(all_turns), _CHUNK_SIZE):
+        msg_turns = all_turns[start : start + _CHUNK_SIZE]
+        # Context = tail of the previous chunk (overlapping turns)
+        ctx_start = max(0, start - _CHUNK_OVERLAP_TURNS)
+        ctx_turns = all_turns[ctx_start:start] if start > 0 else []
 
         ctx_str = "\n".join(f"{t['sender']}: {t['text']}" for t in ctx_turns)
         msg_str = "\n".join(f"{t['sender']}: {t['text']}" for t in msg_turns)
         chunks.append((ctx_str, msg_str))
+
+    log.info(
+        "[MEMORY-BG] chunking transcript of %d turns into %d chunks conv=%s chat=%s",
+        len(all_turns), len(chunks), conversation_id, chat_id,
+    )
 
     async with SessionLocal() as db:
         try:
             fact_prompt = await get_fact_prompt(db)
             from datetime import datetime, timezone as _tz
             ts_now = datetime.now(_tz.utc).strftime("%Y-%m-%d %H:%M UTC")
-            
+
             async def extract_chunk(ctx_str: str, msg_str: str):
                 try:
                     tracker = UsageTrackingCallback(
@@ -77,9 +85,11 @@ async def extract_memories_from_transcript(
                     log.warning("Chunk extraction failed: %s", e)
                 return []
 
-            # Concurrently extract from all chunks (limit concurrency if needed, but 10-20 chunks is fine for asyncio.gather)
+            # Concurrently extract from all chunks (typically 2-3 tasks)
+            t_llm = _time.perf_counter()
             tasks = [extract_chunk(ctx, msg) for ctx, msg in chunks]
             extracted_results = await asyncio.gather(*tasks)
+            llm_ms = int((_time.perf_counter() - t_llm) * 1000)
 
             # Flatten list of valid facts
             valid_facts = []
@@ -88,13 +98,22 @@ async def extract_memories_from_transcript(
                     valid_facts.extend(res_list)
 
             if valid_facts:
+                t_store = _time.perf_counter()
                 stored = await store_facts_batch(db, chat_id, valid_facts)
+                store_ms = int((_time.perf_counter() - t_store) * 1000)
+                total_ms = int((_time.perf_counter() - t0) * 1000)
                 log.info(
-                    "[MEMORY-BG] stored %d/%d facts from chunks conv=%s chat=%s",
-                    stored, len(valid_facts), conversation_id, chat_id,
+                    "[MEMORY-BG] done conv=%s chat=%s "
+                    "chunks=%d llm_ms=%d stored=%d/%d store_ms=%d total_ms=%d",
+                    conversation_id, chat_id,
+                    len(chunks), llm_ms, stored, len(valid_facts), store_ms, total_ms,
                 )
             else:
-                log.info("[MEMORY-BG] no new facts extracted from chunks conv=%s", conversation_id)
+                total_ms = int((_time.perf_counter() - t0) * 1000)
+                log.info(
+                    "[MEMORY-BG] no new facts extracted conv=%s total_ms=%d",
+                    conversation_id, total_ms,
+                )
 
         except Exception as exc:
             log.error(
@@ -514,6 +533,21 @@ async def _already_have(db, chat_id: str, fact: str) -> bool:
     return result.scalar_one_or_none() is not None
 
 
+async def _batch_already_have(db, chat_id: str, normalized_facts: list[str]) -> set[str]:
+    """Return the set of normalized fact strings that already exist for this chat_id.
+
+    Single DB round-trip instead of N sequential calls.
+    """
+    if not normalized_facts:
+        return set()
+    result = await db.execute(
+        select(func.lower(Memory.content))
+        .where(Memory.chat_id == chat_id)
+        .where(func.lower(Memory.content).in_(normalized_facts))
+    )
+    return {row[0] for row in result.fetchall()}
+
+
 async def store_fact(db, chat_id: str, fact: str, sender: str = "user"):
     """Store a single fact (legacy function for backward compatibility)."""
     norm_fact = _norm(fact)
@@ -545,51 +579,48 @@ async def store_facts_batch(
     sender: str = "system",
 ) -> int:
     """
-    Store multiple facts using batch embedding (70-80% faster than sequential).
-    
-    Args:
-        db: Database session
-        chat_id: Chat ID to associate facts with
-        facts: List of fact strings to store
-        sender: Sender identifier
-        
-    Returns:
-        Number of facts successfully stored
+    Store multiple facts using batch embedding and batched dedup.
+
+    Optimisations vs the original sequential approach:
+    1. Single-query dedup  (1 DB call instead of N)
+    2. Batch embedding      (already existed)
     """
+
     if not facts:
         return 0
-    
-    # 1. Normalize and deduplicate
-    normalized = []
+
+    # 1. Normalize and deduplicate locally
+    normalized: list[str] = []
+    seen: set[str] = set()
     for fact in facts:
         norm = _norm(fact)
-        if norm and norm != "no new memories." and norm not in normalized:
+        if norm and norm != "no new memories." and norm not in seen:
             normalized.append(norm)
-    
+            seen.add(norm)
+
     if not normalized:
         return 0
-    
-    # 2. Filter out already-existing facts
-    new_facts = []
-    for norm in normalized:
-        if not await _already_have(db, chat_id, norm):
-            new_facts.append(norm)
-    
+
+    # 2. Batch dedup against DB — single round-trip
+    existing = await _batch_already_have(db, chat_id, normalized)
+    new_facts = [n for n in normalized if n not in existing]
+
     if not new_facts:
         log.debug("All %d facts already exist for chat=%s", len(normalized), chat_id)
         return 0
-    
+
     # 3. Batch embed all new facts in ONE API call
     try:
         embeddings = await get_embeddings_batch(new_facts)
     except Exception as exc:
         log.error("Batch embedding failed for chat=%s: %s", chat_id, exc, exc_info=True)
         return 0
-    
-    # 4. Store all facts
+
+    # 4. Store all facts (sequential — upsert_memory commits per call,
+    #    and AsyncSession is NOT safe for concurrent transactions)
     stored = 0
     for fact, emb in zip(new_facts, embeddings):
-        if not emb:  # Skip failed embeddings
+        if not emb:
             continue
         try:
             # Dynamically route memory by checking who the fact is about
@@ -604,7 +635,7 @@ async def store_facts_batch(
                 chat_id=chat_id,
                 content=fact,
                 embedding=emb,
-                sender=fact_sender
+                sender=fact_sender,
             )
             stored += 1
             log.info(
@@ -613,6 +644,6 @@ async def store_facts_batch(
             )
         except Exception as exc:
             log.error("Failed to store fact=%r chat=%s: %s", fact, chat_id, exc)
-    
+
     log.info("Stored %d/%d facts for chat=%s", stored, len(new_facts), chat_id)
     return stored
