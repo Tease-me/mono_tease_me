@@ -19,7 +19,7 @@ from app.db.session import get_db
 from app.shared.prompting.influencer_bio import extract_influencer_bio_context
 from app.utils.auth.dependencies import get_current_user
 from app.schemas.elevenlabs import FinalizeConversationBody, RegisterConversationBody, UpdatePromptBody
-from app.services.billing import charge_feature,_get_influencer_id_from_chat, resolve_voice_billing_mode
+from app.services.billing import charge_feature, resolve_voice_billing_mode
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from app.services.billing import can_afford, get_remaining_units
