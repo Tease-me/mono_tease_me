@@ -14,7 +14,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, Q
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Any, Dict, List, Optional
 from app.core.config import settings
-from app.db.models import Influencer, Chat, Message, CallRecord, User, PreInfluencer, Memory
+from app.db.models import Influencer, Chat, Message, CallRecord, User, PreInfluencer, Memory, InfluencerSubscription
 from app.db.session import get_db
 from app.shared.prompting.influencer_bio import extract_influencer_bio_context
 from app.utils.auth.dependencies import get_current_user
@@ -810,8 +810,18 @@ async def get_signed_url(
     if not await get_follow(db, influencer_id, user_id):
         raise HTTPException(status_code=403, detail="You must follow the influencer to interact.")
         
+    sub = await db.scalar(
+        select(InfluencerSubscription)
+        .where(
+            InfluencerSubscription.user_id == user_id,
+            InfluencerSubscription.influencer_id == influencer_id
+        )
+    )
+    is_18 = sub.is_18_selected if sub else False
+    feature = "voice_18" if is_18 else "live_chat"
+
     ok, cost_cents, free_left = await can_afford(
-        db, user_id=user_id, influencer_id=influencer_id, feature="live_chat", units=10
+        db, user_id=user_id, influencer_id=influencer_id, feature=feature, units=10, is_18=is_18
     )
 
     if not ok:
@@ -824,7 +834,7 @@ async def get_signed_url(
             },
         )
     
-    credits_remainder_secs = await get_remaining_units(db, user_id,influencer_id, feature="live_chat")
+    credits_remainder_secs = await get_remaining_units(db, user_id,influencer_id, feature=feature, is_18=is_18)
 
     agent_id = await get_agent_id_from_influencer(db, influencer_id)
     chat_id = await get_or_create_chat(db, user_id, influencer_id)
@@ -866,8 +876,18 @@ async def get_conversation_token(
     if not await get_follow(db, influencer_id, user_id):
         raise HTTPException(status_code=403, detail="You must follow the influencer to interact.")
         
+    sub = await db.scalar(
+        select(InfluencerSubscription)
+        .where(
+            InfluencerSubscription.user_id == user_id,
+            InfluencerSubscription.influencer_id == influencer_id
+        )
+    )
+    is_18 = sub.is_18_selected if sub else False
+    feature = "voice_18" if is_18 else "live_chat"
+
     ok, cost_cents, free_left = await can_afford(
-        db, user_id=user_id, influencer_id=influencer_id, feature="live_chat", units=10
+        db, user_id=user_id, influencer_id=influencer_id, feature=feature, units=10, is_18=is_18
     )
 
     if not ok:
@@ -918,16 +938,16 @@ async def get_conversation_token(
     if current_session_msgs:
         recent_ctx = "\n".join(
             f"{m.type}: {m.content}" 
-            for m in current_session_msgs[-6:] 
+            for m in current_session_msgs[-20:] 
             if getattr(m, "type", None) != "system" 
             and "[SESSION BREAK]" not in getattr(m, "content", "")
             and getattr(m, "content", "").strip() != "..."
         )
     else:
-        # Fallback to the last 4 historical messages if this is a fresh session
+        # Fallback to the last 20 historical messages if this is a fresh session
         recent_ctx = "\n".join(
             f"{m.type}: {m.content}" 
-            for m in history.messages[-4:] 
+            for m in history.messages[-20:] 
             if getattr(m, "type", None) != "system"
             and "[SESSION BREAK]" not in getattr(m, "content", "")
             and getattr(m, "content", "").strip() != "..."
@@ -1386,12 +1406,23 @@ async def finalize_conversation(
 
         influencer_id = await _get_influencer_id_from_chat(db, chat_id)
 
+        sub = await db.scalar(
+            select(InfluencerSubscription)
+            .where(
+                InfluencerSubscription.user_id == body.user_id,
+                InfluencerSubscription.influencer_id == influencer_id
+            )
+        )
+        is_18 = sub.is_18_selected if sub else False
+        feature = "voice_18" if is_18 else "live_chat"
+
         await charge_feature(
             db,
             user_id=body.user_id,
             influencer_id=influencer_id,
-            feature="live_chat",
+            feature=feature,
             units=math.ceil(total_seconds),
+            is_18=is_18,
             meta=meta,
         )
         return {

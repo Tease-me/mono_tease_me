@@ -125,18 +125,23 @@ async def summarize_memory_list(
         [
             (
                 "system",
-                "You summarize relationship/chat memory logs. "
-                "Be concise, factual, and avoid hallucinations.",
+                "You summarize relationship/chat memory logs for an AI persona. "
+                "Current time: {current_time}. "
+                "Use the timestamps ONLY to determine recency and priority — "
+                "NEVER include any dates, times, or time references in your output. "
+                "Write as if naturally remembering, not citing records. "
+                "Be concise, factual, and deeply analytical. Avoid hallucinations.",
             ),
             (
                 "human",
-                "Summarize these memories into:\n"
-                "1) Key Facts\n"
-                "2) Preferences/Likes\n"
-                "3) Dislikes/Boundaries\n"
-                "4) Open Threads / Follow-ups\n"
-                "5) One-paragraph Overall Summary\n\n"
-                "Only use information present in the memories.\n\n"
+                "Summarize these memories into the following ranked categories:\n"
+                "1) **Most Important Recent Context** (Facts from the most recent session)\n"
+                "2) **Evolving Relationship Dynamic & Core Facts** (Ongoing themes/preferences)\n"
+                "3) **Top 3 Priorities for the AI** (Ranked 1 to 3 based on recent user behavior)\n"
+                "4) **Dislikes/Boundaries** (What to never do)\n"
+                "5) **One-paragraph Overall Summary**\n\n"
+                "IMPORTANT: Do NOT reference any dates, times, or timestamps in the output. "
+                "Use timestamps only internally to decide what is most recent/relevant.\n\n"
                 "Memories:\n{memory_block}",
             ),
         ]
@@ -145,15 +150,19 @@ async def summarize_memory_list(
         xai_api_key=settings.XAI_API_KEY,
         model="grok-4-1-fast-non-reasoning",
         temperature=0.2,
-        max_tokens=700,
+        max_tokens=800,
     )
     chain = prompt | llm
     tracker = UsageTrackingCallback(
         category="analysis",
         purpose="summarize_memory",
     )
+    from datetime import datetime, timezone
     resp = await chain.ainvoke(
-        {"memory_block": memory_block},
+        {
+            "memory_block": memory_block, 
+            "current_time": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        },
         config={"callbacks": [tracker]}
     )
 
@@ -180,17 +189,22 @@ async def summarize_ai_memory_list(
             (
                 "system",
                 "You summarize an AI influencer's past actions, boundaries, and relationship decisions based on memory logs. "
-                "Be incredibly concise and factual. Speak in the third person about the AI (e.g. 'The AI promised...').",
+                "Current time: {current_time}. "
+                "Use the timestamps ONLY to determine recency and priority — "
+                "NEVER include any dates, times, or time references in your output. "
+                "Write as if naturally recalling past decisions, not citing records. "
+                "Be incredibly concise, factual, and analytical. Speak in the third person about the AI (e.g. 'The AI promised...').",
             ),
             (
                 "human",
                 "Organize the AI's past decisions into the following critical categories:\n"
-                "1) Core Promises & Commitments (What has the AI agreed to do?)\n"
-                "2) Established Boundaries & Refusals (What has the AI strictly said 'no' to?)\n"
-                "3) Current Persona Dynamic (How is the AI currently acting towards the user?)\n"
-                "4) Open Teases / Unresolved Actions (What cliffhangers or games are currently in play?)\n"
-                "5) One-paragraph Overall Stance (A concise summary of how the AI should position itself right now)\n\n"
-                "Only use information present in the memories. If a category lacks info, just say 'None'.\n\n"
+                "1) **Core Promises & Commitments** (What has the AI agreed to do?)\n"
+                "2) **Current Persona Dynamic** (How is the AI prioritizing interactions towards the user?)\n"
+                "3) **Open Teases / Unresolved Actions** (What cliffhangers or specific games are currently in play?)\n"
+                "4) **Ranked Boundaries** (Top 3 strict 'NO' boundaries established by the AI)\n"
+                "5) **One-paragraph Overall Stance** (A concise summary of how the AI should position itself right now)\n\n"
+                "IMPORTANT: Do NOT reference any dates, times, or timestamps in the output. "
+                "Use timestamps only internally to decide what is most recent/relevant.\n\n"
                 "AI Memories:\n{memory_block}",
             ),
         ]
@@ -199,15 +213,19 @@ async def summarize_ai_memory_list(
         xai_api_key=settings.XAI_API_KEY,
         model="grok-4-1-fast-non-reasoning",
         temperature=0.2,
-        max_tokens=700,
+        max_tokens=800,
     )
     chain = prompt | llm
     tracker = UsageTrackingCallback(
         category="analysis",
         purpose="summarize_ai_memory",
     )
+    from datetime import datetime, timezone
     resp = await chain.ainvoke(
-        {"memory_block": memory_block},
+        {
+            "memory_block": memory_block,
+            "current_time": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        },
         config={"callbacks": [tracker]}
     )
 
@@ -275,17 +293,17 @@ async def get_all_memory_list(
 
     combined = union_all(memories_q, messages_q).subquery("memory_timeline")
     timeline_q = (
-        select(combined.c.content)
+        select(combined.c.created_at, combined.c.content)
         .order_by(combined.c.created_at.desc(), combined.c.row_id.desc())
         .limit(limit)
     )
 
     rows = await db.execute(timeline_q)
-    result = [
-        content.strip()
-        for (content,) in rows.fetchall()
-        if isinstance(content, str) and content.strip()
-    ]
+    result = []
+    for (created_at, content) in rows.fetchall():
+        if isinstance(content, str) and content.strip():
+            ts_str = created_at.strftime('%Y-%m-%d %H:%M') if created_at else "UNKNOWN TIME"
+            result.append(f"[{ts_str}] {content.strip()}")
 
     log.debug(
         "get_all_memory_list user=%s influencer=%s chats=%d items=%d",
@@ -325,7 +343,7 @@ async def get_memory_only_list(
         return []
 
     q = (
-        select(Memory.content)
+        select(Memory.created_at, Memory.content)
         .where(Memory.chat_id.in_(chat_ids))
         .order_by(Memory.created_at.desc())
         .limit(limit)
@@ -334,11 +352,11 @@ async def get_memory_only_list(
         q = q.where(Memory.sender != exclude_sender)
 
     rows = await db.execute(q)
-    result = [
-        content.strip()
-        for (content,) in rows.fetchall()
-        if isinstance(content, str) and content.strip()
-    ]
+    result = []
+    for (created_at, content) in rows.fetchall():
+        if isinstance(content, str) and content.strip():
+            ts_str = created_at.strftime('%Y-%m-%d %H:%M') if created_at else "UNKNOWN TIME"
+            result.append(f"[{ts_str}] {content.strip()}")
 
     log.debug(
         "get_memory_only_list user=%s influencer=%s chats=%d items=%d",

@@ -16,7 +16,7 @@ from app.db.session import get_db, SessionLocal
 from app.services.billing import charge_feature, _get_influencer_id_from_chat
 from app.api.elevenlabs import _extract_total_seconds
 from sqlalchemy import select
-from app.db.models import CallRecord, Chat, Influencer
+from app.db.models import CallRecord, Chat, Influencer, InfluencerSubscription
 from app.agents.turn_handler import  handle_turn, redis_history, _messages_since_session_break
 from app.agents.memory import find_similar_memories
 
@@ -205,12 +205,23 @@ async def elevenlabs_post_call(request: Request, db: AsyncSession = Depends(get_
 
             influencer_id = await _get_influencer_id_from_chat(db, chat_id)
 
+            sub = await db.scalar(
+                select(InfluencerSubscription)
+                .where(
+                    InfluencerSubscription.user_id == user_id,
+                    InfluencerSubscription.influencer_id == influencer_id
+                )
+            )
+            is_18 = sub.is_18_selected if sub else False
+            feature = "voice_18" if is_18 else "live_chat"
+
             await charge_feature(
                 db,
                 user_id=user_id,
                 influencer_id=influencer_id,
-                feature="live_chat",
+                feature=feature,
                 units=int(total_seconds),
+                is_18=is_18,
                 meta=meta,
             )
             
@@ -633,3 +644,31 @@ async def eleven_webhook_reply(
         reply = reply[:317] + "…"
 
     return {"text": reply}
+
+@router.post("/current-time")
+async def eleven_webhook_current_time(
+    req: Request,
+    db: AsyncSession = Depends(get_db),
+    x_webhook_token: str | None = Header(default=None),
+):
+    """
+    ElevenLabs Tool Webhook to fetch the current server time mid-call.
+    Allows the AI to realize how much time has passed since the call started.
+    """
+    _verify_token(ELEVENLABS_CONVAI_WEBHOOK_SECRET, x_webhook_token)
+    from datetime import datetime, timezone
+    
+    try:
+        payload = await req.json()
+    except Exception:
+        payload = {}
+        
+    conversation_id = payload.get("conversation_id", "unknown")
+    now_utc = datetime.now(timezone.utc)
+    
+    log.info("[EL TOOL] /current-time called conv=%s", conversation_id)
+    
+    return {
+        "current_time_utc": now_utc.strftime("%Y-%m-%d %H:%M:%S UTC"),
+        "hint": "This is the true current time. Use this to orient yourself during the active call."
+    }
