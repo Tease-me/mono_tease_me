@@ -10,6 +10,7 @@ from fastapi import HTTPException
 
 from app.core.config import settings
 from app.gateways.elevenlabs_endpoints import ElevenLabsEndpoints
+from app.gateways.elevenlabs_naming import apply_environment_label
 
 log = logging.getLogger(__name__)
 
@@ -23,17 +24,6 @@ class ElevenLabsAgentsGateway:
         if not self._api_key:
             raise HTTPException(500, "ELEVENLABS_API_KEY is not configured.")
         return {"xi-api-key": self._api_key}
-
-    @staticmethod
-    def _apply_env_suffix(name: str) -> str:
-        device = settings.DEVICE.upper() if settings.DEVICE else ""
-        if device == "SERVER":
-            suffix = "-PROD"
-        elif device == "LIVE":
-            suffix = "-LIVE"
-        else:
-            suffix = "-DEV"
-        return f"{name}{suffix}"
 
     @staticmethod
     def _build_agent_create_payload(
@@ -126,7 +116,7 @@ class ElevenLabsAgentsGateway:
         post_call_webhook_id: Optional[str] = None,
     ) -> str:
         payload = self._build_agent_create_payload(
-            name=self._apply_env_suffix(name) if name else None,
+            name=apply_environment_label(name) if name else None,
             voice_id=voice_id,
             prompt_text=prompt_text,
             language=language,

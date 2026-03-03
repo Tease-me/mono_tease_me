@@ -49,7 +49,8 @@ from app.utils.messaging.email import (
     send_influencer_survey_completed_email_to_promoter,
 )
 import mimetypes
-from app.api.elevenlabs import _elevenlabs_create_voice, _push_prompt_to_elevenlabs, _validate_voice_exists
+from app.api.elevenlabs import _push_prompt_to_elevenlabs
+from app.gateways.elevenlabs_voices_gateway import ElevenLabsVoicesGateway
 from app.utils.storage.s3 import s3,save_influencer_photo_to_s3, generate_presigned_url, delete_file_from_s3, get_s3_object_bytes,list_influencer_audio_keys
 from app.services.firstpromoter import (
     fp_create_promoter,
@@ -61,6 +62,7 @@ from app.services.firstpromoter import (
 
 log = logging.getLogger(__name__)
 router = APIRouter(prefix="/pre-influencers", tags=["pre-influencers"])
+_voices_gateway = ElevenLabsVoicesGateway()
 
 def normalize_influencer_id(username: str) -> str:
     return re.sub(r"[^a-z0-9_]", "", username.lower())
@@ -824,7 +826,7 @@ async def approve_pre_influencer(
     display_name = influencer.display_name if influencer and influencer.display_name else (pre.full_name or pre.username)
 
     if voice_id:
-        voice_exists = await _validate_voice_exists(voice_id)
+        voice_exists = await _voices_gateway.voice_exists(voice_id)
         if not voice_exists:
             log.warning("Stale voice_id %s detected for %s, will recreate", voice_id, influencer_id)
             voice_id = None
@@ -857,7 +859,7 @@ async def approve_pre_influencer(
             
             if multipart_files:
                 try:
-                    payload = await _elevenlabs_create_voice(
+                    payload = await _voices_gateway.create_voice(
                         name=display_name or influencer_id, 
                         description=None, 
                         labels_str=None, 
