@@ -34,7 +34,18 @@ from app.agents.turn_handler import (
 from app.db.session import SessionLocal
 from app.utils.logging.prompt_logging import log_prompt
 from app.agents.memory import extract_memories_from_transcript
-from app.gateways.elevenlabs_agents_gateway import ElevenLabsAgentsGateway
+from app.gateways.elevenlabs_agents_gateway import (
+    ElevenLabsAgentsGateway,
+    DEFAULT_AGENT_LLM,
+    DEFAULT_ASR_PROVIDER,
+    DEFAULT_TURN_EAGERNESS,
+    DEFAULT_TURN_TIMEOUT_SECS,
+    DEFAULT_MAX_CONVERSATION_SECS,
+    DEFAULT_CASCADE_TIMEOUT_SECS,
+    DEFAULT_TTS_MODEL_ID,
+    DEFAULT_FIRST_MESSAGE_TEMPLATE,
+    build_conversation_config_override,
+)
 from app.gateways.elevenlabs_voices_gateway import ElevenLabsVoicesGateway
 from app.use_cases.elevenlabs_greeting import _generate_contextual_greeting, build_call_greeting
 
@@ -156,18 +167,19 @@ def _build_agent_patch_payload(
 ) -> Dict[str, Any]:
     
     agent_cfg: Dict[str, Any] = {} 
+    agent_cfg["first_message"] = DEFAULT_FIRST_MESSAGE_TEMPLATE
 
-    if any(v is not None for v in (prompt_text, llm, temperature, max_tokens)):
-        prompt_block: Dict[str, Any] = {}
-        if prompt_text is not None:
-            prompt_block["prompt"] = prompt_text
-        if llm is not None:
-            prompt_block["llm"] = llm
-        if temperature is not None:
-            prompt_block["temperature"] = temperature
-        if max_tokens is not None:
-            prompt_block["max_tokens"] = max_tokens
-        agent_cfg["prompt"] = prompt_block
+    prompt_block: Dict[str, Any] = {
+        "llm": llm or DEFAULT_AGENT_LLM,
+        "cascade_timeout_seconds": DEFAULT_CASCADE_TIMEOUT_SECS,
+    }
+    if prompt_text is not None:
+        prompt_block["prompt"] = prompt_text
+    if temperature is not None:
+        prompt_block["temperature"] = temperature
+    if max_tokens is not None:
+        prompt_block["max_tokens"] = max_tokens
+    agent_cfg["prompt"] = prompt_block
 
     agent_cfg["tools"] = [
         {
@@ -198,20 +210,24 @@ def _build_agent_patch_payload(
 
     return {
         "conversation_config": {
+            "asr": {
+                "provider": DEFAULT_ASR_PROVIDER,
+            },
+            "turn": {
+                "turn_timeout": DEFAULT_TURN_TIMEOUT_SECS,
+                "turn_eagerness": DEFAULT_TURN_EAGERNESS,
+            },
+            "conversation": {
+                "max_duration_seconds": DEFAULT_MAX_CONVERSATION_SECS,
+            },
             "agent": agent_cfg,
-            "client": {
-                "overrides": {
-                    "agent": {
-                         "first_message": True,
-                         "language": True,
-                         "prompt": {
-                             "prompt": True,
-                         },
-                    },
-                    "tts": {
-                        "voice_id": True,
-                    }
-                }
+            "tts": {
+                "model_id": DEFAULT_TTS_MODEL_ID,
+            },
+        },
+        "platform_settings": {
+            "overrides": {
+                "conversation_config_override": build_conversation_config_override()
             }
         }
     }

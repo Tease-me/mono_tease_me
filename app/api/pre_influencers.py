@@ -292,6 +292,7 @@ async def _generate_prompt_from_markdown(markdown: str, additional_prompt: str |
     parsed["dislikes"] = _as_str_list(parsed.get("dislikes"))
 
     return parsed
+
 @router.post("/{pre_id}/accept-terms")
 async def accept_pre_influencer_terms(
     pre_id: int,
@@ -850,10 +851,10 @@ async def approve_pre_influencer(
                 multipart_files.append(("files", (filename, b, content_type)))
                 new_samples_meta.append(
                     {
-                    "s3_key": key,
-                    "original_filename": filename,
-                    "content_type": content_type,
-                    "created_at": datetime.now(timezone.utc).isoformat(),
+                        "s3_key": key,
+                        "original_filename": filename,
+                        "content_type": content_type,
+                        "created_at": datetime.now(timezone.utc).isoformat(),
                     }
                 )
             
@@ -871,8 +872,7 @@ async def approve_pre_influencer(
                 except Exception as e:
                      raise HTTPException(400, f"Failed to create voice: {str(e)}")
 
-    reply_text = "/ reply: For every user message, call this tool with the full transcript in the text field before speaking. Do not answer without calling this tool first."
-    prompt_for_eleven = f"{prompt}{reply_text}"
+    prompt_for_eleven = f"{prompt}"
     
     agent_id = await _push_prompt_to_elevenlabs(
         agent_id=agent_id,
@@ -885,7 +885,7 @@ async def approve_pre_influencer(
         influencer = Influencer(
             id=influencer_id,
             display_name=display_name,
-            prompt_template=json.dumps(prompt) if isinstance(prompt, dict) else prompt,
+            bio_json=json.dumps(prompt) if isinstance(prompt, dict) else prompt,
             owner_id=None,
             voice_id=voice_id,
             fp_promoter_id=pre.fp_promoter_id,
@@ -899,7 +899,7 @@ async def approve_pre_influencer(
         if not influencer.display_name:
             influencer.display_name = display_name
         
-        influencer.prompt_template = json.dumps(prompt) if isinstance(prompt, dict) else prompt
+        influencer.bio_json = json.dumps(prompt) if isinstance(prompt, dict) else prompt
         influencer.voice_id = voice_id
         influencer.influencer_agent_id_third_part = agent_id
         influencer.samples = samples_meta
