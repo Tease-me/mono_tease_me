@@ -13,7 +13,7 @@ export const UserServices = (apiClient: AxiosInstance) => ({
             throw error;
         }
     },
-    getUserUsage: async (influencerId?: string): Promise<SingleInfluencerUsageResponse> => {
+    getUserUsage: async (influencerId: string): Promise<SingleInfluencerUsageResponse> => {
         const me = await apiClient.get(Endpoints.auth.me);
         const userId = me.data.id;
 

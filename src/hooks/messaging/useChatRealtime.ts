@@ -293,7 +293,9 @@ export function useChatRealtime({
           return;
         }
 
-        dispatch(fetchChatUsage({ influencerId: influencerId, adultMode }));
+        if (influencerId) {
+          dispatch(fetchChatUsage({ influencerId, adultMode }));
+        }
 
         dispatch(chatScreenActions.setTyping("recording"));
         window.setTimeout(() => {

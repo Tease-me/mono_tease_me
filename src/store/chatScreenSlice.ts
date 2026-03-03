@@ -18,7 +18,7 @@ export type TypingStatus = "idle" | "typing" | "recording";
 export type ChatMode = "chat" | "call";
 
 type UsagePayload = {
-  influencerId?: string;
+  influencerId: string;
   adultMode: boolean;
 };
 
