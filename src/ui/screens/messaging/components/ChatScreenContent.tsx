@@ -316,7 +316,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
   useEffect(() => {
     const prev = prevStatusRef.current;
     prevStatusRef.current = status;
-    if (prev === "connected" && status === "disconnected" && influencer?.id) {
+    if (prev === "connected" && status !== "connected" && influencer?.id) {
       // Small delay to allow the webhook to process the charge
       const timer = setTimeout(() => {
         dispatch(fetchChatUsage({ influencerId: influencer.id, adultMode }));

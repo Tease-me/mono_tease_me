@@ -1,5 +1,5 @@
 import { Endpoints } from "../urls";
-import { UserDetailResponse } from "../models/user";
+import { UserDetailResponse, SingleInfluencerUsageResponse } from "../models/user";
 import { AxiosInstance } from "axios";
 
 export const UserServices = (apiClient: AxiosInstance) => ({
@@ -13,7 +13,7 @@ export const UserServices = (apiClient: AxiosInstance) => ({
             throw error;
         }
     },
-    getUserUsage: async (influencerId?: string) => {
+    getUserUsage: async (influencerId?: string): Promise<SingleInfluencerUsageResponse> => {
         const me = await apiClient.get(Endpoints.auth.me);
         const userId = me.data.id;
 

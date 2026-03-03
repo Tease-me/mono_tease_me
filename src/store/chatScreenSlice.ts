@@ -2,6 +2,7 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { Message } from "@/data/models/MessageDataModel";
 import type { RelationshipDataModel } from "@/data/models/RelationshipDataModel";
 import type { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
+import type { SingleInfluencerUsageResponse } from "@/api/models/user";
 import { UserServices } from "@/api/services/UserServices";
 import { apiClient } from "@/api/apis";
 import logger from "@/utils/logger";
@@ -198,7 +199,7 @@ const chatScreenSlice = createSlice({
     },
     setUsageFromData(
       state,
-      action: PayloadAction<{ usage: any; adultMode: boolean }>
+      action: PayloadAction<{ usage: SingleInfluencerUsageResponse; adultMode: boolean }>
     ) {
       const { usage, adultMode } = action.payload;
       const free = usage?.free_allowances;
