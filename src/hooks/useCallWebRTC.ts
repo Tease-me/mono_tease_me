@@ -133,7 +133,6 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
     }
     startAbortControllerRef.current = abortController;
     startInFlightRef.current = true;
-    setStatus("connecting");
     setErrorMessage(null);
 
     try {
@@ -168,6 +167,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
         startInFlightRef.current = false;
         return;
       }
+      setStatus("connecting");
 
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
       const { token: conversationToken, credits_remainder_secs, greeting_used, prompt, native_language } = await chatRepo.getConversationToken(
