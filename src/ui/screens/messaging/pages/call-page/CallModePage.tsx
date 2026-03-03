@@ -3,6 +3,7 @@ import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import InfluencerMetrics from "@/ui/components/stats/InfluencerMetrics";
 import { RelationshipDataModel } from "@/data/models/RelationshipDataModel";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
+import { Suspense } from "react";
 
 import styles from "./CallModePage.module.css";
 import BalanceBadge from "@/ui/components/stats/BalanceBadge";
@@ -84,11 +85,11 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
     }, [influencer?.id, relationship?.trust, relationship?.closeness, relationship?.attraction, relationship?.safety]);
     const getButtonIcon = () => {
         if (status === "connected") {
-            return <SvgPack.HangupCallIcon />;
+            return <Suspense fallback={null}><SvgPack.HangupCallIcon /></Suspense>;
         } else if (status === "connecting") {
-            return <SvgPack.HangupCallIcon />;
+            return <Suspense fallback={null}><SvgPack.HangupCallIcon /></Suspense>;
         } else {
-            return <SvgPack.Call />;
+            return <Suspense fallback={null}><SvgPack.Call /></Suspense>;
         }
     }
     const getButtonColor = () => {
