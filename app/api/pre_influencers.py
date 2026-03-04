@@ -754,8 +754,16 @@ async def approve_pre_influencer(
                         voice_id = payload["voice_id"]
                         created_voice_id = voice_id
                         samples_meta = new_samples_meta 
-                    except Exception as e:
-                         raise HTTPException(400, f"Failed to create voice: {str(e)}")
+                    except HTTPException:
+                        # Preserve upstream HTTPException (status code and detail)
+                        raise
+                    except Exception:
+                        # Log the full exception and return a generic upstream error
+                        log.exception("Failed to create voice via ElevenLabsVoicesGateway")
+                        raise HTTPException(
+                            status_code=502,
+                            detail="Failed to create voice due to an upstream error.",
+                        )
         bio_payload: dict = prompt if isinstance(prompt, dict) else {}
         if not bio_payload and isinstance(prompt, str):
             try:
