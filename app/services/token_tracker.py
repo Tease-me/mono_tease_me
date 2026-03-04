@@ -72,7 +72,8 @@ _PRICING_INPUT = {
     "text-embedding-v3":           20,   # $0.02 / 1M input tokens
     "text-embedding-v2":           20,   # $0.02 / 1M input tokens
     # XAI
-    "grok-4-1-fast-reasoning":    200,   # $0.20 / 1M input tokens
+    "grok-4-1-fast-reasoning":        200,   # $0.20 / 1M input tokens
+    "grok-4-1-fast-non-reasoning":    200,   # $0.20 / 1M input tokens
     # Alibaba / Qwen
     "qwen-max":                 1_200,   # $1.20 / 1M input tokens
     "qwen-plus":                  400,   # $0.40 / 1M input tokens
@@ -90,7 +91,8 @@ _PRICING_OUTPUT = {
     "text-embedding-v3":            0,   # embeddings have no output tokens
     "text-embedding-v2":            0,   # embeddings have no output tokens
     # XAI
-    "grok-4-1-fast-reasoning":    500,   # $0.50 / 1M output tokens
+    "grok-4-1-fast-reasoning":        500,   # $0.50 / 1M output tokens
+    "grok-4-1-fast-non-reasoning":    500,   # $0.50 / 1M output tokens
     # Alibaba / Qwen
     "qwen-max":                 6_000,   # $6.00 / 1M output tokens
     "qwen-plus":                1_200,   # $1.20 / 1M output tokens

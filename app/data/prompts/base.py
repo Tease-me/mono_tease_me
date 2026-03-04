@@ -237,41 +237,55 @@ BASE_AUDIO_SYSTEM = (
 )
 
 # Memory extraction prompt
-FACT_PROMPT = """You extract up to TWO durable memories from the latest messages (one for the User, one for the AI).
+FACT_PROMPT = """You extract memories from the latest messages — both from the User and the AI.
 
 IMPORTANT:
 You will be given "Recent context" for reference, but you MUST ONLY use the latest exchanges to extract facts.
 If a detail is not explicitly present in the latest messages, do not extract it.
+Do NOT repeat facts that already appear in the Recent context.
 
 Goal:
-Identify the most emotionally meaningful, preference-based, boundary-related, or relationship-relevant facts that should influence future behavior for a romantic, teasing AI.
+For each User response and each AI response in the latest exchange, capture at most ONE memory — the most important or revealing thing said in that response.
 
-Selection Rules:
-- Extract up to 2 memories maximum (one for the User, one for the AI) if both parties revealed something highly important.
-- Give EQUAL priority to the User and the AI. If only one party said something important, extract exactly 1 memory.
-- For the User: Prioritize their preferences, strict boundaries, true desires, and strong emotional reactions over neutral facts.
-- For the AI: Extract its promises, firm boundaries, or significant relationship decisions (e.g., "AI agreed to be exclusive", "AI promised a photo"). Do NOT extract the AI's general flirting, teasing, or reactions.
-- Do not infer from context. Do not merge with context. Do not “connect dots.”
-- Skip small talk, standard flirting, or already-known chatter.
-- If nothing highly durable or meaningful exists in the latest messages, return exactly:
-No new memories.
+Extraction limits:
+- Maximum 1 memory per User response.
+- Maximum 1 memory per AI response.
+- If a response contains nothing worth remembering, skip it entirely.
+- Only return "No new memories." if the ENTIRE exchange has zero factual content.
+
+What to extract (User):
+- Personal facts: name, age, location, job, pets, hobbies, family
+- Preferences: likes, dislikes, turn-ons, turn-offs
+- Corrections: "I don't have a pet", "My name isn't X"
+- Boundaries: "Don't do that", "I'm not comfortable with X"
+- Plans & states: "I'm at work", "I have an exam tomorrow"
+- Emotional moments: strong reactions, things that made them happy or upset
+
+What to extract (AI):
+- Promises & commitments: "I'll send you that later"
+- Boundaries or limits the AI set
+- Significant relationship decisions: agreed to be exclusive, set a nickname
+- Do NOT extract general flirting, teasing, or reactions
+
+Context & detail:
+- Include enough context so the memory makes sense on its own, months later.
+- BAD: "User has a dog." → too vague.
+- GOOD: "User has a golden retriever named Max that they adopted last year."
+- BAD: "User is at work." → too bare.
+- GOOD: "User is currently at work and seems busy (at the time of this conversation)."
+- BAD: "AI promised something." → useless.
+- GOOD: "AI promised to send user a special photo next time they talk."
 
 Output Rules:
-- NEVER combine the User's memory and the AI's memory into a single sentence.
-- Output each memory on a completely separate line.
-- No bullets, no numbering, no hyphen prefixes.
-- Third person (e.g., "User prefers slow teasing\nAI promised to call later").
-- Concise and specific.
-- Do not restate the full sentence.
-- Do not generalize.
-- Do not interpret beyond what the text clearly supports.
+- Each memory on a separate line. No bullets, no numbering, no hyphens.
+- Third person: "User prefers X" / "AI promised Y"
+- Include relevant details from the conversation to make each memory rich and self-contained.
 
-Recent context (for reference only):
+Recent context (for reference only — do NOT re-extract these):
 {ctx}
 
 Conversation timestamp: {ts}
-If a fact is time-sensitive (e.g., "user is at work", "user just woke up", "user is eating"),
-include a brief relative time marker like "right now" or "at the time of this conversation".
+If a fact is time-sensitive (e.g., "user is at work"), include "right now" or "at the time of this conversation".
 For durable facts (names, preferences, boundaries), skip the time marker.
 
 Latest exchange (EXTRACT FROM HERE ONLY):

@@ -14,8 +14,8 @@ log = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Tunables for transcript → memory extraction
 # ---------------------------------------------------------------------------
-_CHUNK_SIZE = 14          # turns per LLM chunk (↓ = more calls, ↑ = cheaper)
-_CHUNK_OVERLAP_TURNS = 4  # context overlap between chunks
+_CHUNK_SIZE = 6           # turns per LLM chunk (≈3 exchanges → each gets its own extraction)
+_CHUNK_OVERLAP_TURNS = 2  # context overlap between chunks
 
 
 async def extract_memories_from_transcript(
@@ -78,6 +78,14 @@ async def extract_memories_from_transcript(
                     )
 
                     txt = (resp.content or "").strip("- ").strip()
+                    log.info(
+                        "[MEMORY-BG] LLM raw response for conv=%s: %r",
+                        conversation_id, txt[:200],
+                    )
+                    log.info(
+                        "[MEMORY-BG] transcript input (msg) for conv=%s: %r",
+                        conversation_id, msg_str[:300],
+                    )
                     if txt and txt.lower() != "no new memories.":
                         lines = [ln.strip("- ").strip() for ln in txt.split("\n") if ln.strip()]
                         return [ln for ln in lines if ln.lower() != "no new memories."]
@@ -576,7 +584,7 @@ async def store_facts_batch(
     db,
     chat_id: str,
     facts: list[str],
-    sender: str = "system",
+    sender: str = "user",
 ) -> int:
     """
     Store multiple facts using batch embedding and batched dedup.
@@ -622,25 +630,23 @@ async def store_facts_batch(
     for fact, emb in zip(new_facts, embeddings):
         if not emb:
             continue
+            
+        actual_sender = sender
+        if actual_sender == "user" and fact.lower().startswith("ai "):
+            actual_sender = "system"
+            
         try:
-            # Dynamically route memory by checking who the fact is about
-            fact_sender = sender
-            if sender == "system":
-                lower_fact = fact.lower().strip()
-                if lower_fact.startswith("user") or lower_fact.startswith("the user"):
-                    fact_sender = "user"
-
             action = await upsert_memory(
                 db=db,
                 chat_id=chat_id,
                 content=fact,
                 embedding=emb,
-                sender=fact_sender,
+                sender=actual_sender,
             )
             stored += 1
             log.info(
                 "[MEMORY] %s fact for chat=%s sender=%s: %s",
-                (action or "unknown").upper(), chat_id, fact_sender, fact[:80],
+                (action or "unknown").upper(), chat_id, actual_sender, fact[:80],
             )
         except Exception as exc:
             log.error("Failed to store fact=%r chat=%s: %s", fact, chat_id, exc)
