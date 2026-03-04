@@ -39,7 +39,7 @@ type CallModePageProps = {
     onChangeInfluencer?: () => void;
 };
 
-const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, callTime, errorMessage, cancelCall, onChangeInfluencer }: CallModePageProps) => {
+const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, errorMessage, cancelCall, onChangeInfluencer }: CallModePageProps) => {
     const [balance, setBalance] = React.useState<number>(0);
     const [isPopupOpen, setIsPopupOpen] = useState(false);
     const [nextStage, setNextStage] = useState<string>("");
@@ -111,8 +111,24 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
     };
 
     const isMobile = useIsMobile();
-
     const showBalance = false;
+    const [showCallTime, setShowCallTime] = useState(0);
+
+    useEffect(() => {
+        const isActive = status === "connecting" || status === "connected";
+
+        if (!isActive) {
+            setShowCallTime(0);
+            return;
+        }
+
+        const interval = setInterval(() => {
+            setShowCallTime((prev) => prev + 1);
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [status]);
+
 
     return (
         <div className={styles.page}>
@@ -155,12 +171,12 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
 
                     {status === "connected" ? (
                         <div className={clsx(styles.connectionStatus, styles.connected)}>
-                            Connected <span>{formatTime(callTime ?? 0)}</span>
+                            Connected <span>{formatTime(showCallTime ?? 0)}</span>
                         </div>
                     ) : status === "connecting" ? (
                         <div className={clsx(styles.connectionStatus, styles.connected, styles.connecting)}>
                             Ringing...
-                            <span>{formatTime(callTime ?? 0)}</span>
+                            <span>{formatTime(showCallTime ?? 0)}</span>
                         </div>
                     ) : status === "error" ? (
                         <div className={clsx(styles.connectionStatus, styles.error)}>
