@@ -28,7 +28,7 @@ async def get_balance(
     influencer_id: str = Query(...),
     db: AsyncSession = Depends(get_db),
     user=Depends(get_current_user),
-    is_18: bool = True,
+                                                                                                                                                                is_18: bool = False,
 ):
     infl = await db.get(Influencer, influencer_id)
     if not infl:
