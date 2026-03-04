@@ -1,5 +1,6 @@
 
 import asyncio
+import math
 import time
 import logging
 import json
@@ -13,8 +14,9 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Header, Backgrou
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.db.session import get_db, SessionLocal
-from app.services.billing import charge_feature, _get_influencer_id_from_chat
-from app.api.elevenlabs import _extract_total_seconds
+from app.services.billing import charge_feature, _get_influencer_id_from_chat, resolve_voice_billing_mode
+from app.api.elevenlabs import claim_billing_slot, mark_billing_done, reset_billing_slot
+from app.api.elevenlabs import _extract_total_seconds, _persist_transcript_to_chat
 from sqlalchemy import select
 from app.db.models import CallRecord, Chat, Influencer
 from app.agents.turn_handler import  handle_turn, redis_history, _messages_since_session_break
@@ -166,7 +168,7 @@ async def elevenlabs_post_call(request: Request, db: AsyncSession = Depends(get_
     conversation_id = data.get("conversation_id")
     status = (data.get("status") or "done").lower()
     total_seconds = _extract_total_seconds(data)
-    # transcript_entries = data.get("transcript") or []
+    transcript = data.get("transcript") or []
 
     log.info(
         "webhook.parsed type=%s conv_id=%s status=%s seconds=%s ip=%s",
@@ -203,17 +205,44 @@ async def elevenlabs_post_call(request: Request, db: AsyncSession = Depends(get_
             if not chat_id:
                 raise HTTPException(400, "Missing chat_id in meta for billing")
 
-            influencer_id = await _get_influencer_id_from_chat(db, chat_id)
-
-            await charge_feature(
-                db,
-                user_id=user_id,
-                influencer_id=influencer_id,
-                feature="live_chat",
-                units=int(total_seconds),
-                meta=meta,
+            # Resolve influencer_id BEFORE the billed check so it's available
+            # for track_usage_bg regardless of billing outcome.
+            influencer_id = (
+                meta_map.get("influencer_id")
+                or await _get_influencer_id_from_chat(db, chat_id)
             )
-            
+
+            # Atomic claim: returns True if WE flipped status → 'billing'.
+            if not await claim_billing_slot(db, conversation_id):
+                log.info(
+                    "webhook.billing.skipped already_billed conv_id=%s",
+                    _redact(conversation_id),
+                )
+            else:
+                try:
+                    feature, is_18 = await resolve_voice_billing_mode(db, user_id, influencer_id)
+
+                    await charge_feature(
+                        db,
+                        user_id=user_id,
+                        influencer_id=influencer_id,
+                        feature=feature,
+                        units=math.ceil(total_seconds),
+                        is_18=is_18,
+                        meta=meta,
+                        allow_partial=True,
+                        auto_commit=False,
+                    )
+                    await mark_billing_done(db, conversation_id)
+                    await db.commit()
+                except Exception as charge_exc:
+                    log.exception(
+                        "webhook.billing.charge_failed conv_id=%s err=%s — resetting billing slot",
+                        _redact(conversation_id), charge_exc,
+                    )
+                    await reset_billing_slot(db, conversation_id)
+                    raise
+
             from app.services.token_tracker import track_usage_bg
             cost_micros = _extract_cost_micros(data)
             log.info(
@@ -252,6 +281,41 @@ async def elevenlabs_post_call(request: Request, db: AsyncSession = Depends(get_
             "webhook.billing.skipped reason=%s conv_id=%s status=%s user=%s",
             reason, _redact(conversation_id), status, _redact(user_id)
         )
+
+    # ── Persist transcript & extract memories (fire-and-forget) ──
+    if transcript and chat_id and status == "done":
+        influencer_id_for_transcript = (
+            meta_map.get("influencer_id")
+            or (await _get_influencer_id_from_chat(db, chat_id) if chat_id else None)
+        )
+
+        async def _bg_persist_transcript():
+            async with SessionLocal() as bg_db:
+                await _persist_transcript_to_chat(
+                    bg_db,
+                    conversation_json=data,
+                    chat_id=chat_id,
+                    conversation_id=conversation_id,
+                    influencer_id=influencer_id_for_transcript,
+                )
+
+        try:
+            _bg_task = asyncio.create_task(_bg_persist_transcript())
+            _bg_task.add_done_callback(
+                lambda t: log.error(
+                    "webhook.transcript_persist.bg_error conv_id=%s err=%s",
+                    _redact(conversation_id), t.exception(),
+                ) if t.exception() else None
+            )
+            log.info(
+                "webhook.transcript_persist.scheduled conv_id=%s chat=%s turns=%d",
+                _redact(conversation_id), chat_id, len(transcript),
+            )
+        except Exception as exc:
+            log.warning(
+                "webhook.transcript_persist.failed conv_id=%s err=%s",
+                _redact(conversation_id), exc,
+            )
 
     log.info(
         "webhook.response ok=True conv_id=%s status=%s seconds=%s",
@@ -633,3 +697,4 @@ async def eleven_webhook_reply(
         reply = reply[:317] + "…"
 
     return {"text": reply}
+

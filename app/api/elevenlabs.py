@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import math
 from app.agents.memory import get_memory_only_list, summarize_memory_list, summarize_ai_memory_list
 from app.agents.prompt_utils import build_relationship_prompt, get_global_prompt, get_mbti_rules_for_archetype, get_relationship_stage_prompts, get_time_context
 from app.relationship.dtr import plan_dtr_goal
@@ -17,8 +16,8 @@ from app.db.models import Influencer, Chat, Message, CallRecord, User, PreInflue
 from app.db.session import get_db
 from app.shared.prompting.influencer_bio import extract_influencer_bio_context
 from app.utils.auth.dependencies import get_current_user
-from app.schemas.elevenlabs import FinalizeConversationBody, RegisterConversationBody, UpdatePromptBody
-from app.services.billing import charge_feature,_get_influencer_id_from_chat
+from app.schemas.elevenlabs import RegisterConversationBody, UpdatePromptBody
+from app.services.billing import resolve_voice_billing_mode
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from app.services.billing import can_afford, get_remaining_units
@@ -784,8 +783,10 @@ async def get_signed_url(
     if not await get_follow(db, influencer_id, user_id):
         raise HTTPException(status_code=403, detail="You must follow the influencer to interact.")
         
+    feature, is_18 = await resolve_voice_billing_mode(db, user_id, influencer_id)
+
     ok, cost_cents, free_left = await can_afford(
-        db, user_id=user_id, influencer_id=influencer_id, feature="live_chat", units=10
+        db, user_id=user_id, influencer_id=influencer_id, feature=feature, units=10, is_18=is_18
     )
 
     if not ok:
@@ -798,7 +799,7 @@ async def get_signed_url(
             },
         )
     
-    credits_remainder_secs = await get_remaining_units(db, user_id,influencer_id, feature="live_chat")
+    credits_remainder_secs = await get_remaining_units(db, user_id,influencer_id, feature=feature, is_18=is_18)
 
     agent_id = await get_agent_id_from_influencer(db, influencer_id)
     chat_id = await get_or_create_chat(db, user_id, influencer_id)
@@ -840,8 +841,10 @@ async def get_conversation_token(
     if not await get_follow(db, influencer_id, user_id):
         raise HTTPException(status_code=403, detail="You must follow the influencer to interact.")
         
+    feature, is_18 = await resolve_voice_billing_mode(db, user_id, influencer_id)
+
     ok, cost_cents, free_left = await can_afford(
-        db, user_id=user_id, influencer_id=influencer_id, feature="live_chat", units=10
+        db, user_id=user_id, influencer_id=influencer_id, feature=feature, units=10, is_18=is_18
     )
 
     if not ok:
@@ -892,16 +895,16 @@ async def get_conversation_token(
     if current_session_msgs:
         recent_ctx = "\n".join(
             f"{m.type}: {m.content}" 
-            for m in current_session_msgs[-6:] 
+            for m in current_session_msgs[-20:] 
             if getattr(m, "type", None) != "system" 
             and "[SESSION BREAK]" not in getattr(m, "content", "")
             and getattr(m, "content", "").strip() != "..."
         )
     else:
-        # Fallback to the last 4 historical messages if this is a fresh session
+        # Fallback to the last 20 historical messages if this is a fresh session
         recent_ctx = "\n".join(
             f"{m.type}: {m.content}" 
-            for m in history.messages[-4:] 
+            for m in history.messages[-20:] 
             if getattr(m, "type", None) != "system"
             and "[SESSION BREAK]" not in getattr(m, "content", "")
             and getattr(m, "content", "").strip() != "..."
@@ -1123,6 +1126,56 @@ async def save_pending_conversation(
     return chat_id
 
 
+async def claim_billing_slot(db: AsyncSession, conversation_id: str) -> bool:
+    """Atomically mark a conversation as billing-in-progress.
+
+    Returns True if this call won the race (status flipped to 'billing').
+    Returns False if it was already billed/billing (no rows affected).
+
+    NOTE: Does NOT commit — the caller is responsible for committing after
+    a successful charge, or resetting status on failure.
+    """
+    from sqlalchemy import update as sa_update
+
+    result = await db.execute(
+        sa_update(CallRecord)
+        .where(
+            CallRecord.conversation_id == conversation_id,
+            CallRecord.status.notin_(["billing", "billed"]),
+        )
+        .values(status="billing")
+    )
+    await db.flush()
+    return (result.rowcount or 0) > 0
+
+
+async def mark_billing_done(db: AsyncSession, conversation_id: str) -> None:
+    """Flip status from 'billing' → 'billed' after successful charge."""
+    from sqlalchemy import update as sa_update
+
+    await db.execute(
+        sa_update(CallRecord)
+        .where(CallRecord.conversation_id == conversation_id)
+        .values(status="billed")
+    )
+
+
+async def reset_billing_slot(db: AsyncSession, conversation_id: str) -> None:
+    """Reset status back to 'done' when charge fails, allowing retry."""
+    from sqlalchemy import update as sa_update
+
+    await db.execute(
+        sa_update(CallRecord)
+        .where(
+            CallRecord.conversation_id == conversation_id,
+            CallRecord.status == "billing",
+        )
+        .values(status="done")
+    )
+    await db.commit()
+
+
+# Keep a thin backwards-compat wrapper so existing call-sites don't break
 async def was_already_billed(db: AsyncSession, conversation_id: str) -> bool:
     q = select(CallRecord.status).where(CallRecord.conversation_id == conversation_id)
     res = await db.execute(q)
@@ -1174,221 +1227,220 @@ async def register_conversation(
     return {"ok": True, "conversation_id": conversation_id}
 
 
-@router.post("/conversations/{conversation_id}/finalize")
-async def finalize_conversation(
-    conversation_id: str,
-    body: FinalizeConversationBody,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    if body.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized")
+# @router.post("/conversations/{conversation_id}/finalize")
+# async def finalize_conversation(
+#     conversation_id: str,
+#     body: FinalizeConversationBody,
+#     current_user: User = Depends(get_current_user),
+#     db: AsyncSession = Depends(get_db),
+# ):
+#     if body.user_id != current_user.id:
+#         raise HTTPException(status_code=403, detail="Not authorized")
     
-    # OPTIMIZATION: Quick status check (max 5 seconds) instead of blocking for minutes
-    client = await get_elevenlabs_client()
-    try:
-        snapshot = await _wait_until_terminal_status(
-            client,
-            conversation_id,
-            max_wait_secs=5,  # Quick check only
-        )
-        snapshot = await _ensure_transcript_snapshot(client, conversation_id, snapshot)
-        status = (snapshot.get("status") or "").lower()
-    except Exception as exc:
-        log.warning("finalize.quick_check_failed conv=%s err=%s", conversation_id, exc)
-        status = "processing"
-        snapshot = {}
+#     # OPTIMIZATION: Quick status check (max 5 seconds) instead of blocking for minutes
+#     client = await get_elevenlabs_client()
+#     try:
+#         snapshot = await _wait_until_terminal_status(
+#             client,
+#             conversation_id,
+#             max_wait_secs=5,  # Quick check only
+#         )
+#         snapshot = await _ensure_transcript_snapshot(client, conversation_id, snapshot)
+#         status = (snapshot.get("status") or "").lower()
+#     except Exception as exc:
+#         log.warning("finalize.quick_check_failed conv=%s err=%s", conversation_id, exc)
+#         status = "processing"
+#         snapshot = {}
     
-    # If not done yet, schedule background processing and return immediately
-    if status not in {"done", "failed"}:
-        log.info("finalize.scheduling_background_poll conv=%s status=%s", conversation_id, status)
+#     # If not done yet, schedule background processing and return immediately
+#     if status not in {"done", "failed"}:
+#         log.info("finalize.scheduling_background_poll conv=%s status=%s", conversation_id, status)
         
-        # Look up chat_id for background task
-        chat_id = None
-        try:
-            res = await db.execute(
-                select(CallRecord.chat_id, CallRecord.influencer_id).where(
-                    CallRecord.conversation_id == conversation_id
-                )
-            )
-            row = res.first()
-            if row:
-                chat_id = row[0]
-                influencer_id_from_db = row[1]
-                if not body.influencer_id and influencer_id_from_db:
-                    body.influencer_id = influencer_id_from_db
-        except Exception:
-            pass
+#         # Look up chat_id for background task
+#         chat_id = None
+#         try:
+#             res = await db.execute(
+#                 select(CallRecord.chat_id, CallRecord.influencer_id).where(
+#                     CallRecord.conversation_id == conversation_id
+#                 )
+#             )
+#             row = res.first()
+#             if row:
+#                 chat_id = row[0]
+#                 influencer_id_from_db = row[1]
+#                 if not body.influencer_id and influencer_id_from_db:
+#                     body.influencer_id = influencer_id_from_db
+#         except Exception:
+#             pass
         
-        # Schedule background processing
-        try:
-            asyncio.create_task(
-                _poll_and_persist_conversation(
-                    conversation_id,
-                    user_id=body.user_id,
-                    influencer_id=body.influencer_id,
-                    chat_id=chat_id,
-                )
-            )
-        except Exception as exc:
-            log.warning("finalize.background_schedule_failed conv=%s err=%s", conversation_id, exc)
+#         # Schedule background processing
+#         try:
+#             asyncio.create_task(
+#                 _poll_and_persist_conversation(
+#                     conversation_id,
+#                     user_id=body.user_id,
+#                     influencer_id=body.influencer_id,
+#                     chat_id=chat_id,
+#                 )
+#             )
+#         except Exception as exc:
+#             log.warning("finalize.background_schedule_failed conv=%s err=%s", conversation_id, exc)
         
-        return {
-            "ok": True,
-            "conversation_id": conversation_id,
-            "status": "processing",
-            "charged": False,
-            "message": "Conversation still processing. Polling in background. Check status via GET /elevenlabs/calls/{conversation_id}",
-            "refresh_required": False,
-        }
+#         return {
+#             "ok": True,
+#             "conversation_id": conversation_id,
+#             "status": "processing",
+#             "charged": False,
+#             "message": "Conversation still processing. Polling in background. Check status via GET /elevenlabs/calls/{conversation_id}",
+#             "refresh_required": False,
+#         }
     
-    # Conversation is done or failed - process immediately
-    status = (snapshot.get("status") or "").lower()
-    total_seconds = _extract_total_seconds(snapshot)
-    resolved_influencer_id = body.influencer_id
-    normalized_transcript = _normalize_transcript(snapshot)
+#     # Conversation is done or failed - process immediately
+#     status = (snapshot.get("status") or "").lower()
+#     total_seconds = _extract_total_seconds(snapshot)
+#     resolved_influencer_id = body.influencer_id
+#     normalized_transcript = _normalize_transcript(snapshot)
 
-    chat_id = None
-    try:
-        res = await db.execute(
-            select(CallRecord.chat_id, CallRecord.influencer_id).where(
-                CallRecord.conversation_id == conversation_id
-            )
-        )
-        row = res.first()
-        if row:
-            chat_id = row[0]
-            resolved_influencer_id = resolved_influencer_id or row[1]
-    except Exception as exc:
-        log.warning("finalize.lookup_call_record_failed conv=%s err=%s", conversation_id, exc)
+#     chat_id = None
+#     try:
+#         res = await db.execute(
+#             select(CallRecord.chat_id, CallRecord.influencer_id).where(
+#                 CallRecord.conversation_id == conversation_id
+#             )
+#         )
+#         row = res.first()
+#         if row:
+#             chat_id = row[0]
+#             resolved_influencer_id = resolved_influencer_id or row[1]
+#     except Exception as exc:
+#         log.warning("finalize.lookup_call_record_failed conv=%s err=%s", conversation_id, exc)
 
-    if not chat_id and resolved_influencer_id:
-        try:
-            chat_id = await get_or_create_chat(db, body.user_id, resolved_influencer_id)
-        except Exception as exc:
-            log.warning("finalize.create_chat_failed conv=%s err=%s", conversation_id, exc)
+#     if not chat_id and resolved_influencer_id:
+#         try:
+#             chat_id = await get_or_create_chat(db, body.user_id, resolved_influencer_id)
+#         except Exception as exc:
+#             log.warning("finalize.create_chat_failed conv=%s err=%s", conversation_id, exc)
 
-    if chat_id:
-        try:
-            await _persist_transcript_to_chat(
-                db,
-                conversation_json=snapshot,
-                chat_id=chat_id,
-                conversation_id=conversation_id,
-                influencer_id=resolved_influencer_id,
-            )
-        except Exception as exc:
-            log.warning(
-                "finalize.persist_transcript_failed conv=%s chat=%s err=%s",
-                conversation_id,
-                chat_id,
-                exc,
-            )
+#     if chat_id:
+#         try:
+#             await _persist_transcript_to_chat(
+#                 db,
+#                 conversation_json=snapshot,
+#                 chat_id=chat_id,
+#                 conversation_id=conversation_id,
+#                 influencer_id=resolved_influencer_id,
+#             )
+#         except Exception as exc:
+#             log.warning(
+#                 "finalize.persist_transcript_failed conv=%s chat=%s err=%s",
+#                 conversation_id,
+#                 chat_id,
+#                 exc,
+#             )
 
-    meta: Dict[str, Any] = {
-        "session_id": body.sid or conversation_id,
-        "conversation_id": conversation_id,
-        "status": status,
-        "agent_id": snapshot.get("agent_id"),
-        "has_audio": snapshot.get("has_audio", False),
-        "has_user_audio": snapshot.get("has_user_audio", False),
-        "has_response_audio": snapshot.get("has_response_audio", False),
-        "start_time_unix_secs": (snapshot.get("metadata") or {}).get("start_time_unix_secs"),
-        "source": "client_finalize",
-    }
+#     meta: Dict[str, Any] = {
+#         "session_id": body.sid or conversation_id,
+#         "conversation_id": conversation_id,
+#         "status": status,
+#         "agent_id": snapshot.get("agent_id"),
+#         "has_audio": snapshot.get("has_audio", False),
+#         "has_user_audio": snapshot.get("has_user_audio", False),
+#         "has_response_audio": snapshot.get("has_response_audio", False),
+#         "start_time_unix_secs": (snapshot.get("metadata") or {}).get("start_time_unix_secs"),
+#         "source": "client_finalize",
+#     }
 
-    if resolved_influencer_id:
-        meta["influencer_id"] = resolved_influencer_id
+#     if resolved_influencer_id:
+#         meta["influencer_id"] = resolved_influencer_id
 
-    transcript_synced = bool(normalized_transcript)
+#     transcript_synced = bool(normalized_transcript)
 
-    try:
-        call_record = await db.get(CallRecord, conversation_id)
-        if not call_record:
-            call_record = CallRecord(
-                conversation_id=conversation_id,
-                user_id=body.user_id,
-                influencer_id=resolved_influencer_id,
-                chat_id=chat_id,
-                sid=body.sid,
-            )
-        call_record.status = status
-        call_record.call_duration_secs = total_seconds
-        call_record.transcript = normalized_transcript or call_record.transcript
-        if resolved_influencer_id:
-            call_record.influencer_id = resolved_influencer_id
-        if chat_id:
-            call_record.chat_id = chat_id
-        db.add(call_record)
-        await db.commit()
-    except Exception as exc:
-        log.warning(
-            "finalize.update_call_record_failed conv=%s err=%s", conversation_id, exc
-        )
+#     try:
+#         call_record = await db.get(CallRecord, conversation_id)
+#         if not call_record:
+#             call_record = CallRecord(
+#                 conversation_id=conversation_id,
+#                 user_id=body.user_id,
+#                 influencer_id=resolved_influencer_id,
+#                 chat_id=chat_id,
+#                 sid=body.sid,
+#             )
+#         call_record.status = status
+#         call_record.call_duration_secs = total_seconds
+#         call_record.transcript = normalized_transcript or call_record.transcript
+#         if resolved_influencer_id:
+#             call_record.influencer_id = resolved_influencer_id
+#         if chat_id:
+#             call_record.chat_id = chat_id
+#         db.add(call_record)
+#         await db.commit()
+#     except Exception as exc:
+#         log.warning(
+#             "finalize.update_call_record_failed conv=%s err=%s", conversation_id, exc
+#         )
 
-    if status == "failed":
-        log.warning("Conversation %s ended as FAILED; skipping charge.", conversation_id)
-        return {
-            "ok": False,
-            "reason": "failed",
-            "conversation_id": conversation_id,
-            "status": status,
-            "total_seconds": total_seconds,
-            "meta": meta,
-            "transcript_synced": transcript_synced,
-            "refresh_required": transcript_synced,
-        }
+#     if status == "failed":
+#         log.warning("Conversation %s ended as FAILED; skipping charge.", conversation_id)
+#         return {
+#             "ok": False,
+#             "reason": "failed",
+#             "conversation_id": conversation_id,
+#             "status": status,
+#             "total_seconds": total_seconds,
+#             "meta": meta,
+#             "transcript_synced": transcript_synced,
+#             "refresh_required": transcript_synced,
+#         }
 
-    if status != "done":
-        return {
-            "ok": True,
-            "conversation_id": conversation_id,
-            "status": status,
-            "charged": False,
-            "total_seconds": total_seconds,
-            "meta": meta,
-            "note": "Conversation not done yet; waiting for webhook or try again later.",
-            "transcript_synced": transcript_synced,
-            "refresh_required": transcript_synced,
-        }
+#     if status != "done":
+#         return {
+#             "ok": True,
+#             "conversation_id": conversation_id,
+#             "status": status,
+#             "charged": False,
+#             "total_seconds": total_seconds,
+#             "meta": meta,
+#             "note": "Conversation not done yet; waiting for webhook or try again later.",
+#             "transcript_synced": transcript_synced,
+#             "refresh_required": transcript_synced,
+#         }
 
-    if body.charge_if_not_billed and not await was_already_billed(db, conversation_id):
-        
-        chat_id = meta.get("chat_id") if isinstance(meta, dict) else None
-        if not chat_id:
-            raise HTTPException(400, "Missing chat_id in meta for billing")
+#     charged = False
+#     if body.charge_if_not_billed and chat_id and resolved_influencer_id and await claim_billing_slot(db, conversation_id):
+#         try:
+#             feature, is_18 = await resolve_voice_billing_mode(db, body.user_id, resolved_influencer_id)
 
-        influencer_id = await _get_influencer_id_from_chat(db, chat_id)
+#             await charge_feature(
+#                 db,
+#                 user_id=body.user_id,
+#                 influencer_id=resolved_influencer_id,
+#                 feature=feature,
+#                 units=math.ceil(total_seconds),
+#                 is_18=is_18,
+#                 meta=meta,
+#                 allow_partial=True,
+#                 auto_commit=False,
+#             )
+#             await mark_billing_done(db, conversation_id)
+#             await db.commit()
+#             charged = True
+#         except Exception as exc:
+#             log.exception(
+#                 "finalize.charge_failed conv=%s err=%s — resetting billing slot",
+#                 conversation_id, exc,
+#             )
+#             await reset_billing_slot(db, conversation_id)
 
-        await charge_feature(
-            db,
-            user_id=body.user_id,
-            influencer_id=influencer_id,
-            feature="live_chat",
-            units=math.ceil(total_seconds),
-            meta=meta,
-        )
-        return {
-            "ok": True,
-            "conversation_id": conversation_id,
-            "status": status,
-            "charged": True,
-            "total_seconds": total_seconds,
-            "meta": meta,
-            "transcript_synced": transcript_synced,
-            "refresh_required": transcript_synced,
-        }
-
-    return {
-        "ok": True,
-        "conversation_id": conversation_id,
-        "status": status,
-        "charged": False,
-        "total_seconds": total_seconds,
-        "meta": meta,
-        "transcript_synced": transcript_synced,
-        "refresh_required": transcript_synced,
-    }
+#     return {
+#         "ok": True,
+#         "conversation_id": conversation_id,
+#         "status": status,
+#         "charged": charged,
+#         "total_seconds": total_seconds,
+#         "meta": meta,
+#         "transcript_synced": transcript_synced,
+#         "refresh_required": transcript_synced,
+#     }
 
 
 def _default_auto_commit() -> bool:

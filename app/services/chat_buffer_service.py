@@ -265,6 +265,7 @@ async def flush_buffer(
             units=1,
             is_18=config.is_18plus,
             meta={"chat_id": chat_id},
+            auto_commit=False,
         )
     except Exception:
         try:
@@ -273,6 +274,16 @@ async def flush_buffer(
             pass
         log.exception("[BUF %s] Billing error", chat_id)
         await ws.send_json({"error": "⚠️ Billing error. Please try again."})
+        return
+
+    # Successfully billed; save user message
+    try:
+        await save_user_message(db, chat_id, user_text, config.message_model, auto_commit=False)
+    except Exception:
+        log.exception("[BUF %s] Failed to save combined user message", chat_id)
+        # We can continue since it's already billed, but DB might be rolled back.
+        # However, save_user_message rolls back on error.
+        await ws.send_json({"error": "⚠️ System error. Please try again."})
         return
 
     # Call AI turn handler
@@ -352,6 +363,7 @@ async def save_user_message(
     text: str,
     message_model: type,
     embedding: Optional[List[float]] = None,
+    auto_commit: bool = True,
 ) -> None:
     """
     Save user message to database with embedding.
@@ -362,11 +374,15 @@ async def save_user_message(
         text: Message text
         message_model: Message or Message18 class
         embedding: Optional precomputed embedding (avoids duplicate API call)
+        auto_commit: If False, flush instead of commit (for atomic transactions)
     """
     try:
         emb = embedding if embedding is not None else await get_embedding(text)
         db.add(message_model(chat_id=chat_id, sender="user", content=text, embedding=emb))
-        await db.commit()
+        if auto_commit:
+            await db.commit()
+        else:
+            await db.flush()
     except Exception:
         await db.rollback()
         log.exception("[WS %s] Failed to save user message", chat_id)
