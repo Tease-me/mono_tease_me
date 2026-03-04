@@ -11,6 +11,11 @@ from app.utils.auth.dependencies import get_current_user
 
 from app.db.session import get_db
 from app.schemas.influencer import InfluencerCreate, InfluencerOut, InfluencerUpdate, InfluencerDetail
+from app.services.influencer_cleanup import (
+    InfluencerDeleteError,
+    InfluencerDeleteNotFoundError,
+    delete_influencer_and_chat_history,
+)
 from app.utils.storage.s3 import (
     generate_presigned_url,
     get_influencer_audio_download_url,
@@ -97,10 +102,18 @@ async def update_influencer(
 async def delete_influencer(id: str, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     influencer = await db.get(Influencer, id)
     if not influencer:
-        raise HTTPException(404, "Influencer not found")
-    await db.delete(influencer)
-    await db.commit()
-    return {"ok": True}
+        raise HTTPException(status_code=404, detail="Influencer not found")
+
+    # Only the owner of the influencer (or an admin, if supported) may delete it
+    if influencer.owner_id != current_user.id and not getattr(current_user, "is_admin", False):
+        raise HTTPException(status_code=403, detail="Not authorized to delete this influencer")
+    try:
+        result = await delete_influencer_and_chat_history(db, influencer_id=id)
+    except InfluencerDeleteNotFoundError as exc:
+        raise HTTPException(404, str(exc))
+    except InfluencerDeleteError:
+        raise HTTPException(500, "Failed to delete influencer and chat history")
+    return result.as_dict()
 
 
 @router.post("/{influencer_id}/profile", 
