@@ -156,12 +156,21 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           is18: sub?.is_18_selected ?? d.is18,
           expiresAt: sub?.current_period_end ?? d.expiresAt,
           voiceMinutes:
-            u?.normal?.live_chat?.remaining_minutes ?? d.voiceMinutes,
-          msgRemaining: u?.normal?.messages?.remaining ?? d.msgRemaining,
+            u?.normal?.live_chat != null
+              ? (u?.free_allowances?.normal?.live_chat_free_left_minutes ?? 0) + (u.normal.live_chat.remaining_minutes ?? 0)
+              : d.voiceMinutes,
+          msgRemaining:
+            u?.normal?.messages != null
+              ? (u?.free_allowances?.normal?.text_free_left ?? 0) + (u.normal.messages.remaining ?? 0)
+              : d.msgRemaining,
           adultVoiceMinutes:
-            u?.adult?.voice?.remaining_minutes ?? d.adultVoiceMinutes,
+            u?.adult?.voice != null
+              ? (u?.free_allowances?.adult?.voice_free_left_minutes ?? 0) + (u.adult.voice.remaining_minutes ?? 0)
+              : d.adultVoiceMinutes,
           adultMsgRemaining:
-            u?.adult?.messages?.remaining ?? d.adultMsgRemaining,
+            u?.adult?.messages != null
+              ? (u?.free_allowances?.adult?.text_free_left ?? 0) + (u.adult.messages.remaining ?? 0)
+              : d.adultMsgRemaining,
           currentStage: dims?.current_stage ?? d.currentStage,
           nextStage: dims?.next_stage ?? d.nextStage,
         }));
@@ -269,7 +278,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
       ? new Date(data.followingSince).toLocaleDateString()
       : "--";
 
-  const onAdultTermsAgreed = () => {};
+  const onAdultTermsAgreed = () => { };
 
   if (loading) {
     return (
