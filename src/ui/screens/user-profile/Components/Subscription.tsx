@@ -85,7 +85,6 @@ const Subscription = ({ navPayload }: SubscriptionProps) => {
         startInfluencerSubscription({
           influencerId,
           planId: selectedPlan.id,
-          amountCents: selectedPlan.price_cents,
         })
       );
       setAlertMsg(result.message);
