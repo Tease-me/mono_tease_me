@@ -2,7 +2,7 @@
   "name": "TeaseMe",
   "short_name": "TeaseMe",
   "id": "/",
-  "start_url": "/",
+  "start_url": "/login",
   "scope": "/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui", "browser"],
