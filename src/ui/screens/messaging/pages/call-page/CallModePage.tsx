@@ -112,10 +112,12 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
 
     const isMobile = useIsMobile();
 
+    const showBalance = false;
+
     return (
         <div className={styles.page}>
             <div className={styles.cardCaller}>
-                <BalanceBadge balance={balance} />
+                {showBalance ? <BalanceBadge balance={balance} /> : <div style={{ height: "32px" }}></div>}
                 <div className={styles.profileWrap}>
                     <div onClick={handleOpenPopup} className={styles.profileImageClick}>
                         <ProfileMedia active size={isMobile ? "large" : "xlarge"} mediaType="image" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} glow />
