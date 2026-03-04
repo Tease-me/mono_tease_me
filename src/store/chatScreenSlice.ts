@@ -2,9 +2,9 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { Message } from "@/data/models/MessageDataModel";
 import type { RelationshipDataModel } from "@/data/models/RelationshipDataModel";
 import type { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
+import type { SingleInfluencerUsageResponse } from "@/api/models/user";
 import { UserServices } from "@/api/services/UserServices";
 import { apiClient } from "@/api/apis";
-import { secondsToMinutes } from "@/utils/DateTimeUtils";
 import logger from "@/utils/logger";
 import type { AppDispatch } from "./store";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
@@ -18,7 +18,7 @@ export type TypingStatus = "idle" | "typing" | "recording";
 export type ChatMode = "chat" | "call";
 
 type UsagePayload = {
-  influencerId?: string;
+  influencerId: string;
   adultMode: boolean;
 };
 
@@ -56,7 +56,7 @@ interface ChatScreenState {
   mode: ChatMode;
   relationship?: RelationshipDataModel;
   creditsRemaining?: number;
-  adultMinutesRemaining?: number;
+  minutesRemaining?: number;
   showUpgradeModal: boolean;
   showTopupModal: boolean;
   callTime: number;
@@ -87,7 +87,7 @@ const initialState: ChatScreenState = {
   mode: getInitialMode(),
   relationship: undefined,
   creditsRemaining: undefined,
-  adultMinutesRemaining: undefined,
+  minutesRemaining: undefined,
   showUpgradeModal: false,
   showTopupModal: false,
   callTime: 0,
@@ -162,8 +162,8 @@ const chatScreenSlice = createSlice({
     setCreditsRemaining(state, action: PayloadAction<number | undefined>) {
       state.creditsRemaining = action.payload;
     },
-    setAdultMinutesRemaining(state, action: PayloadAction<number | undefined>) {
-      state.adultMinutesRemaining = action.payload;
+    setMinutesRemaining(state, action: PayloadAction<number | undefined>) {
+      state.minutesRemaining = action.payload;
     },
     setShowUpgradeModal(state, action: PayloadAction<boolean>) {
       state.showUpgradeModal = action.payload;
@@ -199,17 +199,28 @@ const chatScreenSlice = createSlice({
     },
     setUsageFromData(
       state,
-      action: PayloadAction<{ usage: any; adultMode: boolean }>
+      action: PayloadAction<{ usage: SingleInfluencerUsageResponse; adultMode: boolean }>
     ) {
       const { usage, adultMode } = action.payload;
-      state.creditsRemaining = adultMode
-        ? usage?.adult?.messages?.remaining
-        : usage?.normal?.messages?.remaining;
-      const voiceSeconds = usage?.adult?.voice_seconds?.remaining;
-      const fallbackMinutes =
-        usage?.adult?.live_chat?.remaining_minutes ?? usage?.adult?.voice?.remaining_minutes;
-      state.adultMinutesRemaining =
-        voiceSeconds != null ? secondsToMinutes(voiceSeconds) : fallbackMinutes;
+      const free = usage?.free_allowances;
+
+      if (adultMode) {
+        const adultTextFree = free?.adult?.text_free_left ?? 0;
+        const adultTextPaid = usage?.adult?.messages?.remaining ?? 0;
+        state.creditsRemaining = adultTextFree + adultTextPaid;
+
+        const adultVoiceFreeMin = free?.adult?.voice_free_left_minutes ?? 0;
+        const adultVoicePaidMin = usage?.adult?.voice?.remaining_minutes ?? 0;
+        state.minutesRemaining = adultVoiceFreeMin + adultVoicePaidMin;
+      } else {
+        const normalTextFree = free?.normal?.text_free_left ?? 0;
+        const normalTextPaid = usage?.normal?.messages?.remaining ?? 0;
+        state.creditsRemaining = normalTextFree + normalTextPaid;
+
+        const normalLiveFreeMin = free?.normal?.live_chat_free_left_minutes ?? 0;
+        const normalLivePaidMin = usage?.normal?.live_chat?.remaining_minutes ?? 0;
+        state.minutesRemaining = normalLiveFreeMin + normalLivePaidMin;
+      }
     },
   },
 });

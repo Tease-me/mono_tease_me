@@ -81,7 +81,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     mode,
     relationship,
     creditsRemaining,
-    adultMinutesRemaining,
+    minutesRemaining,
     showUpgradeModal,
     showTopupModal,
     callTime,
@@ -135,6 +135,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
       }
     },
   });
+
+  const prevStatusRef = useRef(status);
 
   const blockIfCallActive = useCallback(() => {
     const isCallActive = status === "connected" || status === "connecting";
@@ -310,6 +312,19 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     }
   }, [dispatch, status]);
 
+  // Refresh usage/balance after a call ends so the UI shows the updated wallet
+  useEffect(() => {
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = status;
+    if (prev === "connected" && status !== "connected" && influencer?.id) {
+      // Small delay to allow the webhook to process the charge
+      const timer = setTimeout(() => {
+        dispatch(fetchChatUsage({ influencerId: influencer.id, adultMode }));
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [status, influencer?.id, adultMode, dispatch]);
+
   const handleStartConversation = React.useCallback(async () => {
     const result = await startConversation();
     if (result?.errorStatus === 402) {
@@ -378,7 +393,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
                 ? handleAdultModeChange
                 : undefined
             }
-            minutesRemaining={adultMinutesRemaining}
+            minutesRemaining={minutesRemaining}
           />
         </div>
         {isSelectingInfluencer ? (
