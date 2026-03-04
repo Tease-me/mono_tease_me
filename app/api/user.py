@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, Query
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import func
@@ -211,6 +212,18 @@ async def update_user(
     if user_in:
         user_data = UserUpdate.model_validate_json(user_in)
         update_data = user_data.model_dump(exclude_unset=True)
+
+        new_username = update_data.get("username")
+        if new_username and new_username != current_user.username:
+            existing_user = await db.execute(
+                select(User.id).where(
+                    User.username == new_username,
+                    User.id != current_user.id,
+                )
+            )
+            if existing_user.scalar_one_or_none() is not None:
+                raise HTTPException(status_code=409, detail="Username already taken")
+
         for field, value in update_data.items():
             setattr(current_user, field, value)
 
@@ -232,6 +245,16 @@ async def update_user(
     try:
         await db.commit()
         await db.refresh(current_user)
+    except IntegrityError as exc:
+        await db.rollback()
+        if file and current_user.profile_photo_key and current_user.profile_photo_key != previous_key:
+            try:
+                await delete_file_from_s3(current_user.profile_photo_key)
+            except Exception:
+                log.warning("Failed to rollback uploaded S3 photo", exc_info=True)
+        if "username" in str(exc.orig).lower():
+            raise HTTPException(status_code=409, detail="Username already taken") from exc
+        raise HTTPException(status_code=400, detail="Profile update violates a database constraint") from exc
     except Exception:
         await db.rollback()
         if file and current_user.profile_photo_key and current_user.profile_photo_key != previous_key:
