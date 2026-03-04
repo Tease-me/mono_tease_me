@@ -265,21 +265,27 @@ What to extract (AI):
 - Promises & commitments: "I'll send you that later"
 - Boundaries or limits the AI set
 - Significant relationship decisions: agreed to be exclusive, set a nickname
+- Fun facts or information the AI shared with the user
 - Do NOT extract general flirting, teasing, or reactions
+
+CRITICAL PREFIX RULE:
+Every User memory MUST start with "User " (e.g., "User has a dog named Max.")
+Every AI memory MUST start with "AI " (e.g., "AI promised to send a photo tomorrow.")
+This prefix is MANDATORY. Never write a memory without the correct prefix.
 
 Context & detail:
 - Include enough context so the memory makes sense on its own, months later.
 - BAD: "User has a dog." → too vague.
 - GOOD: "User has a golden retriever named Max that they adopted last year."
+- BAD: "AI said something." → useless.
+- GOOD: "AI told user that octopuses have three hearts and blue blood."
 - BAD: "User is at work." → too bare.
-- GOOD: "User is currently at work and seems busy (at the time of this conversation)."
-- BAD: "AI promised something." → useless.
-- GOOD: "AI promised to send user a special photo next time they talk."
+- GOOD: "User is currently at work handling customer service for three hotels (at the time of this conversation)."
 
 Output Rules:
 - Each memory on a separate line. No bullets, no numbering, no hyphens.
-- Third person: "User prefers X" / "AI promised Y"
-- Include relevant details from the conversation to make each memory rich and self-contained.
+- ALWAYS start with "User " or "AI " — this is non-negotiable.
+- Include relevant details to make each memory rich and self-contained.
 
 Recent context (for reference only — do NOT re-extract these):
 {ctx}
