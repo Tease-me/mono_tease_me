@@ -158,8 +158,9 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                             Connected <span>{formatTime(callTime ?? 0)}</span>
                         </div>
                     ) : status === "connecting" ? (
-                        <div className={clsx(styles.connectionStatus, styles.connecting)}>
-                            <span>Ringing...</span>
+                        <div className={clsx(styles.connectionStatus, styles.connected, styles.connecting)}>
+                            Ringing...
+                            <span>{formatTime(callTime ?? 0)}</span>
                         </div>
                     ) : status === "error" ? (
                         <div className={clsx(styles.connectionStatus, styles.error)}>
