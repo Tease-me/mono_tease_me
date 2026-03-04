@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import math
-import json
 from app.agents.memory import get_memory_only_list, summarize_memory_list, summarize_ai_memory_list
 from app.agents.prompt_utils import build_relationship_prompt, get_global_prompt, get_mbti_rules_for_archetype, get_relationship_stage_prompts, get_time_context
 from app.relationship.dtr import plan_dtr_goal

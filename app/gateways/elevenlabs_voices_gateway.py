@@ -99,3 +99,27 @@ class ElevenLabsVoicesGateway:
 
         log.warning("Voice validation returned %s: %s", resp.status_code, resp.text[:200])
         return False
+
+    async def delete_voice(self, voice_id: str) -> None:
+        if not voice_id:
+            return
+        try:
+            async with httpx.AsyncClient(base_url=self._base_url, timeout=20.0) as client:
+                resp = await client.delete(
+                    f"/voices/{voice_id}",
+                    headers=self._headers(),
+                )
+        except httpx.RequestError as exc:
+            log.exception("Network error deleting ElevenLabs voice %s: %s", voice_id, exc)
+            raise HTTPException(status_code=502, detail="Upstream unavailable")
+
+        if resp.status_code in (200, 204, 404):
+            return
+
+        log.error(
+            "ElevenLabs voice delete failed voice_id=%s status=%s body=%s",
+            voice_id,
+            resp.status_code,
+            resp.text[:1000],
+        )
+        raise HTTPException(status_code=resp.status_code, detail=resp.text or "Failed to delete voice")

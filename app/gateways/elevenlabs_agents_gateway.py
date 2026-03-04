@@ -194,3 +194,27 @@ class ElevenLabsAgentsGateway:
                 detail="ElevenLabs agent creation succeeded but returned no agent_id.",
             )
         return new_agent_id
+
+    async def delete_agent(self, agent_id: str) -> None:
+        if not agent_id:
+            return
+        try:
+            async with httpx.AsyncClient(base_url=self._base_url, timeout=20.0) as client:
+                resp = await client.delete(
+                    f"/convai/agents/{agent_id}",
+                    headers=self._headers(),
+                )
+        except httpx.RequestError as exc:
+            log.exception("Network error deleting ElevenLabs agent %s: %s", agent_id, exc)
+            raise HTTPException(status_code=502, detail="Upstream unavailable")
+
+        if resp.status_code in (200, 204, 404):
+            return
+
+        log.error(
+            "ElevenLabs agent delete failed agent_id=%s status=%s body=%s",
+            agent_id,
+            resp.status_code,
+            resp.text[:1000],
+        )
+        raise HTTPException(status_code=resp.status_code, detail=resp.text or "Failed to delete agent")

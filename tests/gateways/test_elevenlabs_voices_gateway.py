@@ -17,9 +17,17 @@ class _FakeResponse:
 
 
 class _FakeAsyncClient:
-    def __init__(self, *, post_response=None, get_response=None, get_error: Exception | None = None):
+    def __init__(
+        self,
+        *,
+        post_response=None,
+        get_response=None,
+        delete_response=None,
+        get_error: Exception | None = None,
+    ):
         self._post_response = post_response
         self._get_response = get_response
+        self._delete_response = delete_response
         self._get_error = get_error
 
     async def __aenter__(self):
@@ -35,6 +43,9 @@ class _FakeAsyncClient:
         if self._get_error:
             raise self._get_error
         return self._get_response
+
+    async def delete(self, *_args, **_kwargs):
+        return self._delete_response
 
 
 def _patch_async_client(monkeypatch, client: _FakeAsyncClient):
@@ -143,3 +154,24 @@ def test_voice_exists_false_on_other_status_or_network_error(monkeypatch):
         _FakeAsyncClient(get_error=httpx.RequestError("boom")),
     )
     assert asyncio.run(gateway.voice_exists("voice_123")) is False
+
+
+def test_delete_voice_succeeds_for_204_and_404(monkeypatch):
+    gateway = ElevenLabsVoicesGateway()
+    gateway._api_key = "test-key"
+    _patch_async_client(monkeypatch, _FakeAsyncClient(delete_response=_FakeResponse(204)))
+    asyncio.run(gateway.delete_voice("voice_123"))
+
+    _patch_async_client(monkeypatch, _FakeAsyncClient(delete_response=_FakeResponse(404)))
+    asyncio.run(gateway.delete_voice("voice_123"))
+
+
+def test_delete_voice_raises_on_upstream_error(monkeypatch):
+    gateway = ElevenLabsVoicesGateway()
+    gateway._api_key = "test-key"
+    _patch_async_client(monkeypatch, _FakeAsyncClient(delete_response=_FakeResponse(500, text="boom")))
+    try:
+        asyncio.run(gateway.delete_voice("voice_123"))
+        assert False, "Expected HTTPException"
+    except HTTPException as exc:
+        assert exc.status_code == 500
