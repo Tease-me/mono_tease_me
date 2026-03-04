@@ -86,9 +86,12 @@ class ElevenLabsVoicesGateway:
                     f"/voices/{voice_id}",
                     headers=self._headers(),
                 )
-        except Exception as exc:
-            log.warning("Voice validation error for %s: %s", voice_id, exc)
+        except httpx.RequestError as exc:
+            log.warning("Network error during voice validation for %s: %s", voice_id, exc)
             return False
+        except HTTPException:
+            # Propagate configuration or upstream HTTP errors (e.g., missing API key)
+            raise
 
         log.info("Voice validation response: %s", resp.status_code)
         if resp.status_code == 200:
