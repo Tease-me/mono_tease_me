@@ -8,7 +8,6 @@ import GuestRoute from "./components/GuestRoute";
 import PrivateRoute from "./components/PrivateRoute";
 import SuperRoute from "./components/SuperRoute";
 import { ThemeProvider } from "@/theme/ThemeProvider";
-import IosInstallHint from "@/ui/components/pwa/IosInstallHint";
 
 const PayPalCancel = lazy(
   () => import("@/ui/components/modals/payment-modal/PayPalCancel")
@@ -224,7 +223,6 @@ function AppRoutes() {
 
   return (
     <ThemeProvider initial="default">
-      <IosInstallHint />
       <BrowserRouter>
         <Suspense fallback={<BlockingLoader />}>
           <Routes>
