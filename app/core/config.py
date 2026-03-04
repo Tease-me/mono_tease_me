@@ -71,13 +71,7 @@ class Settings(BaseSettings):
 
     TWITTER_BEARER_TOKEN: str | None = None
 
-    PAYPAL_MODE: str | None = None
-    PAYPAL_CURRENCY: str | None = None
-    PAYPAL_CLIENT_ID: str | None = None
-    PAYPAL_CLIENT_SECRET: str | None = None
-    PAYPAL_BASE_URL: str | None = None
-    PAYPAL_RETURN_URL: str | None = None
-    PAYPAL_CANCEL_URL: str | None = None
+
 
     FIRSTPROMOTER_TOKEN: str | None = None
     FIRSTPROMOTER_ACCOUNT_ID: str | None = None

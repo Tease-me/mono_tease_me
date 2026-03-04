@@ -21,11 +21,6 @@ from app.utils.infrastructure.idempotency import idempotent
 from app.core.config import settings
 from app.services.firstpromoter import fp_track_sale_v2
 
-import logging
-
-log = logging.getLogger(__name__)
-
-
 router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
 
 # Constants
@@ -159,116 +154,6 @@ async def start_subscription(
         "is_18": is_18,
     }
 
-@router.post("/paypal/capture")
-@rate_limit(max_requests=settings.RATE_LIMIT_BILLING_MAX, window_seconds=settings.RATE_LIMIT_BILLING_WINDOW, key_prefix="sub:paypal-capture")
-async def paypal_capture_subscription(
-    request: Request,
-    subscription_id: int,
-    order_id: str,
-    amount_cents: int,
-    payload: dict,
-    db: AsyncSession = Depends(get_db),
-    user=Depends(get_current_user),
-):
-    sub = await db.get(InfluencerSubscription, subscription_id)
-    if not sub or sub.user_id != user.id:
-        raise HTTPException(404, SUBSCRIPTION_NOT_FOUND)
-
-    existing_payment = await db.scalar(
-        select(InfluencerSubscriptionPayment).where(
-            InfluencerSubscriptionPayment.provider == "paypal",
-            InfluencerSubscriptionPayment.provider_event_id == order_id,
-        )
-    )
-    if existing_payment:
-        return {"status": "already recorded"}
-
-    now = datetime.now(timezone.utc)
-
-    # Check if this is the first payment (subscription was pending)
-    is_first_payment = sub.status == "pending" or sub.current_period_end is None
-
-    if is_first_payment:
-        # First payment - activate subscription
-        sub.current_period_start = now
-        sub.current_period_end = now + timedelta(days=30)
-        sub.next_payment_at = now + timedelta(days=30)
-    else:
-        # Renewal payment - extend subscription
-        base = sub.current_period_end or now
-        next_period = base + timedelta(days=30)
-        sub.current_period_start = sub.current_period_end or now
-        sub.current_period_end = next_period
-        sub.next_payment_at = next_period
-
-    sub.last_payment_at = now
-    sub.status = "active"  # Activate subscription after payment
-
-    payment = InfluencerSubscriptionPayment(
-        subscription_id=sub.id,
-        user_id=user.id,
-        influencer_id=sub.influencer_id,
-        amount_cents=amount_cents,
-        status="succeeded",
-        provider="paypal",
-        provider_event_id=order_id,
-        provider_payload=payload,
-        occurred_at=now,
-    )
-    db.add(payment)
-
-    wallet = await db.scalar(
-        select(InfluencerWallet).where(
-            InfluencerWallet.user_id == user.id,
-            InfluencerWallet.influencer_id == sub.influencer_id,
-            InfluencerWallet.is_18.is_(True),
-        )
-    )
-
-    if not wallet:
-        wallet = InfluencerWallet(
-            user_id=user.id,
-            influencer_id=sub.influencer_id,
-            balance_cents=0,
-            is_18=True,
-        )
-        db.add(wallet)
-        await db.flush()
-
-    # Add credits to balance
-    wallet.balance_cents = (wallet.balance_cents or 0) + int(amount_cents)
-    db.add(wallet)
-
-    db.add(sub)
-    await db.commit()
-
-    # FirstPromoter: track subscription payment as a sale (fire-and-forget)
-    try:
-        from app.db.models import Influencer
-        influencer = await db.get(Influencer, sub.influencer_id)
-        if influencer and influencer.fp_ref_id:
-            await fp_track_sale_v2(
-                email=user.email,
-                uid=str(user.id),
-                amount_cents=amount_cents,
-                event_id=order_id,
-                ref_id=influencer.fp_ref_id,
-                plan="subscription",
-            )
-    except Exception:
-        log.exception("FirstPromoter track sale failed for subscription payment order=%s", order_id)
-
-    return {
-        "status": "payment recorded",
-        "subscription_status": sub.status,  # "active"
-        "is_first_payment": is_first_payment,
-        "subscription_id": sub.id,
-        "influencer_id": sub.influencer_id,
-        "current_period_end": sub.current_period_end.isoformat() if sub.current_period_end else None,
-        "next_payment_at": sub.next_payment_at.isoformat() if sub.next_payment_at else None,
-        "wallet_balance_cents": wallet.balance_cents,
-        "credits_added": amount_cents,
-    }
 
 def _now():
     return datetime.now(timezone.utc)
@@ -643,7 +528,7 @@ async def purchase_addon(
         amount_paid_cents=addon_plan.price_cents,
         credits_granted=credits_to_add,
         currency=addon_plan.currency,
-        provider="simulated",  # Replace with actual provider (paypal/stripe)
+        provider="simulated",
         provider_transaction_id=transaction_id,
         purchased_at=datetime.now(timezone.utc),
     )
