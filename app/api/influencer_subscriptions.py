@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pydantic import BaseModel
 import uuid
 
@@ -566,7 +566,7 @@ async def purchase_addon(
                 plan="addon",
             )
     except Exception:
-        log.exception("FirstPromoter track sale failed for addon purchase tx=%s", transaction_id)
+        print("FirstPromoter track sale failed for addon purchase tx=%s" % transaction_id)
 
     return {
         "ok": True,
