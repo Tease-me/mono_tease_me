@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from copy import deepcopy
 from typing import Any, Optional
 
 import httpx
@@ -10,8 +11,35 @@ from fastapi import HTTPException
 
 from app.core.config import settings
 from app.gateways.elevenlabs_endpoints import ElevenLabsEndpoints
+from app.gateways.elevenlabs_naming import apply_environment_label
 
 log = logging.getLogger(__name__)
+
+DEFAULT_AGENT_LLM = "claude-sonnet-4-5"
+DEFAULT_ASR_PROVIDER = "scribe_realtime"
+DEFAULT_TURN_EAGERNESS = "eager"
+DEFAULT_TURN_TIMEOUT_SECS = 5
+DEFAULT_MAX_CONVERSATION_SECS = 3600
+DEFAULT_CASCADE_TIMEOUT_SECS = 4
+DEFAULT_TTS_MODEL_ID = "eleven_v3_conversational"
+DEFAULT_FIRST_MESSAGE_TEMPLATE = "{{first_message}}"
+DEFAULT_CONVERSATION_CONFIG_OVERRIDE = {
+    "agent": {
+        "first_message": True,
+        "language": True,
+        "prompt": {
+            "prompt": True,
+        },
+    },
+    "tts": {
+        "voice_id": True,
+    },
+}
+
+
+def build_conversation_config_override() -> dict[str, Any]:
+    """Return the allowed conversation override config for client initiation."""
+    return deepcopy(DEFAULT_CONVERSATION_CONFIG_OVERRIDE)
 
 
 class ElevenLabsAgentsGateway:
@@ -23,17 +51,6 @@ class ElevenLabsAgentsGateway:
         if not self._api_key:
             raise HTTPException(500, "ELEVENLABS_API_KEY is not configured.")
         return {"xi-api-key": self._api_key}
-
-    @staticmethod
-    def _apply_env_suffix(name: str) -> str:
-        device = settings.DEVICE.upper() if settings.DEVICE else ""
-        if device == "SERVER":
-            suffix = "-PROD"
-        elif device == "LIVE":
-            suffix = "-LIVE"
-        else:
-            suffix = "-DEV"
-        return f"{name}{suffix}"
 
     @staticmethod
     def _build_agent_create_payload(
@@ -50,9 +67,12 @@ class ElevenLabsAgentsGateway:
             raise HTTPException(400, "voice_id is required to create an ElevenLabs agent.")
 
         agent_cfg: dict[str, Any] = {
+            "first_message": DEFAULT_FIRST_MESSAGE_TEMPLATE,
             "language": language,
             "prompt": {
                 "prompt": prompt_text or "",
+                "llm": llm or DEFAULT_AGENT_LLM,
+                "cascade_timeout_seconds": DEFAULT_CASCADE_TIMEOUT_SECS,
             },
             "tools": [
                 {
@@ -82,8 +102,6 @@ class ElevenLabsAgentsGateway:
             ],
         }
 
-        if llm is not None:
-            agent_cfg["prompt"]["llm"] = llm
         if temperature is not None:
             agent_cfg["prompt"]["temperature"] = temperature
         if max_tokens is not None:
@@ -92,23 +110,27 @@ class ElevenLabsAgentsGateway:
         return {
             "name": name,
             "conversation_config": {
+                # The public API does not currently expose a dedicated
+                # "filter_background_speech" field; Scribe is the closest setting.
+                "asr": {
+                    "provider": DEFAULT_ASR_PROVIDER,
+                },
+                "turn": {
+                    "turn_timeout": DEFAULT_TURN_TIMEOUT_SECS,
+                    "turn_eagerness": DEFAULT_TURN_EAGERNESS,
+                },
+                "conversation": {
+                    "max_duration_seconds": DEFAULT_MAX_CONVERSATION_SECS,
+                },
                 "agent": agent_cfg,
                 "tts": {
+                    "model_id": DEFAULT_TTS_MODEL_ID,
                     "voice_id": voice_id,
                 },
-                "client": {
-                    "overrides": {
-                        "agent": {
-                            "first_message": True,
-                            "language": True,
-                            "prompt": {
-                                "prompt": True,
-                            },
-                        },
-                        "tts": {
-                            "voice_id": True,
-                        },
-                    }
+            },
+            "platform_settings": {
+                "overrides": {
+                    "conversation_config_override": build_conversation_config_override()
                 },
             },
         }
@@ -126,7 +148,7 @@ class ElevenLabsAgentsGateway:
         post_call_webhook_id: Optional[str] = None,
     ) -> str:
         payload = self._build_agent_create_payload(
-            name=self._apply_env_suffix(name) if name else None,
+            name=apply_environment_label(name) if name else None,
             voice_id=voice_id,
             prompt_text=prompt_text,
             language=language,
@@ -135,9 +157,8 @@ class ElevenLabsAgentsGateway:
             max_tokens=max_tokens,
         )
         if post_call_webhook_id:
-            payload["platform_settings"] = {
-                "post_call_webhook_ids": [post_call_webhook_id],
-            }
+            payload.setdefault("platform_settings", {})
+            payload["platform_settings"]["post_call_webhook_ids"] = [post_call_webhook_id]
 
         try:
             async with httpx.AsyncClient(base_url=self._base_url, timeout=20.0) as client:
@@ -173,3 +194,27 @@ class ElevenLabsAgentsGateway:
                 detail="ElevenLabs agent creation succeeded but returned no agent_id.",
             )
         return new_agent_id
+
+    async def delete_agent(self, agent_id: str) -> None:
+        if not agent_id:
+            return
+        try:
+            async with httpx.AsyncClient(base_url=self._base_url, timeout=20.0) as client:
+                resp = await client.delete(
+                    f"/convai/agents/{agent_id}",
+                    headers=self._headers(),
+                )
+        except httpx.RequestError as exc:
+            log.exception("Network error deleting ElevenLabs agent %s: %s", agent_id, exc)
+            raise HTTPException(status_code=502, detail="Upstream unavailable")
+
+        if resp.status_code in (200, 204, 404):
+            return
+
+        log.error(
+            "ElevenLabs agent delete failed agent_id=%s status=%s body=%s",
+            agent_id,
+            resp.status_code,
+            resp.text[:1000],
+        )
+        raise HTTPException(status_code=resp.status_code, detail=resp.text or "Failed to delete agent")

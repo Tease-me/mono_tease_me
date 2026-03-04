@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import insert
 
 from fastapi import HTTPException
 from app.db.models import InfluencerWallet, InfluencerCreditTransaction, DailyUsage, Pricing, User, Chat, Influencer
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 
 async def _get_lifetime_used_units(db: AsyncSession, user_id: int, is_18: bool, feature: str) -> int:
     field_map = {
@@ -38,6 +38,8 @@ async def charge_feature(
     units: int,
     is_18: bool = False,
     meta: dict | None = None,
+    allow_partial: bool = False,
+    auto_commit: bool = True,
 ) -> int:
     today = date.today()
 
@@ -92,7 +94,10 @@ async def charge_feature(
 
         old_balance = wallet.balance_cents or 0
         if old_balance < cost:
-            raise HTTPException(402, "Insufficient credits")
+            if allow_partial:
+                cost = old_balance
+            else:
+                raise HTTPException(402, "Insufficient credits")
 
         wallet.balance_cents = old_balance - cost
         db.add(wallet)
@@ -119,7 +124,11 @@ async def charge_feature(
         )
     )
 
-    await db.commit()
+    if auto_commit:
+        await db.commit()
+    else:
+        await db.flush()
+        
     return cost
 
 async def topup_wallet(
@@ -398,3 +407,29 @@ async def _get_influencer_id_from_chat(db: AsyncSession, chat_id: str) -> str:
     if not chat or not chat.influencer_id:
         raise HTTPException(400, "Missing chat/influencer context")
     return chat.influencer_id
+
+
+async def resolve_voice_billing_mode(
+    db: AsyncSession,
+    user_id: int,
+    influencer_id: str,
+) -> tuple[str, bool]:
+    """Return (feature, is_18) for a voice call between user and influencer.
+
+    Centralises the subscription lookup so every billing path uses identical logic.
+    """
+    from app.db.models import InfluencerSubscription
+    sub = await db.scalar(
+        select(InfluencerSubscription).where(
+            InfluencerSubscription.user_id == user_id,
+            InfluencerSubscription.influencer_id == influencer_id,
+            InfluencerSubscription.status == "active",
+        )
+    )
+    is_18 = False
+    if sub and sub.is_18_selected:
+        # Only honour 18+ selection if the subscription period hasn't expired
+        if sub.current_period_end is None or sub.current_period_end >= datetime.now(timezone.utc):
+            is_18 = True
+    feature = "voice_18" if is_18 else "live_chat"
+    return feature, is_18

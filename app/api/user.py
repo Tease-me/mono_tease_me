@@ -75,64 +75,93 @@ async def get_user_usage(
             return (0, 0)
         return (price.price_cents or 0, price.free_allowance or 0)
 
-    def calc_remaining(balance: int, unit_price: int, free_left: int) -> int:
-        paid_units = balance // unit_price if unit_price > 0 else 0
-        return free_left + paid_units
-
     text_price, text_free = get_price_info("text")
+    voice_price, voice_free = get_price_info("voice")
     live_price, live_free = get_price_info("live_chat")
     text_18_price, text_18_free = get_price_info("text_18")
     voice_18_price, voice_18_free = get_price_info("voice_18")
 
+    # ── Free allowances (global, once per account) ──
     normal_text_used = normal_usage_totals["text"]
+    normal_voice_used = normal_usage_totals["voice"]
     normal_live_used = normal_usage_totals["live"]
     adult_text_used = adult_usage_totals["text"]
     adult_voice_used = adult_usage_totals["voice"]
 
     normal_text_free_left = max(text_free - normal_text_used, 0)
+    normal_voice_free_left = max(voice_free - normal_voice_used, 0)
     normal_live_free_left = max(live_free - normal_live_used, 0)
     adult_text_free_left = max(text_18_free - adult_text_used, 0)
     adult_voice_free_left = max(voice_18_free - adult_voice_used, 0)
 
     def build_normal_wallet(balance: int) -> dict:
-        text_remaining = calc_remaining(balance, text_price, normal_text_free_left)
-        live_remaining = calc_remaining(balance, live_price, normal_live_free_left)
+        """Build wallet info. `remaining` shows max purchasable from wallet only (no free)."""
+        text_paid = balance // text_price if text_price > 0 else 0
+        voice_paid = balance // voice_price if voice_price > 0 else 0
+        live_paid = balance // live_price if live_price > 0 else 0
         return {
             "balance_cents": balance,
             "messages": {
-                "remaining": text_remaining,
-                "free_left": normal_text_free_left,
-                "used_today": normal_text_used,
+                "remaining": text_paid,
                 "unit_price_cents": text_price,
+                "used_total": normal_text_used,
+                "used_today": normal_text_used,  # backward compat
+                "free_left": normal_text_free_left,  # backward compat
+            },
+            "voice_notes": {
+                "remaining": voice_paid,
+                "remaining_minutes": round(voice_paid / 60, 2),
+                "unit_price_cents": voice_price,
+                "used_total": normal_voice_used,
+                "used_today": normal_voice_used,  # backward compat
+                "free_left": normal_voice_free_left,  # backward compat
             },
             "live_chat": {
-                "remaining": live_remaining,
-                "remaining_minutes": round(live_remaining / 60, 2),
-                "free_left": normal_live_free_left,
-                "used_today": normal_live_used,
+                "remaining": live_paid,
+                "remaining_minutes": round(live_paid / 60, 2),
                 "unit_price_cents": live_price,
+                "used_total": normal_live_used,
+                "used_today": normal_live_used,  # backward compat
+                "free_left": normal_live_free_left,  # backward compat
             },
         }
 
     def build_adult_wallet(balance: int) -> dict:
-        text_remaining = calc_remaining(balance, text_18_price, adult_text_free_left)
-        voice_remaining = calc_remaining(balance, voice_18_price, adult_voice_free_left)
+        text_paid = balance // text_18_price if text_18_price > 0 else 0
+        voice_paid = balance // voice_18_price if voice_18_price > 0 else 0
         return {
             "balance_cents": balance,
             "messages": {
-                "remaining": text_remaining,
-                "free_left": adult_text_free_left,
-                "used_today": adult_text_used,
+                "remaining": text_paid,
                 "unit_price_cents": text_18_price,
+                "used_total": adult_text_used,
+                "used_today": adult_text_used,  # backward compat
+                "free_left": adult_text_free_left,  # backward compat
             },
             "voice": {
-                "remaining": voice_remaining,
-                "remaining_minutes": round(voice_remaining / 60, 2),
-                "free_left": adult_voice_free_left,
-                "used_today": adult_voice_used,
+                "remaining": voice_paid,
+                "remaining_minutes": round(voice_paid / 60, 2),
                 "unit_price_cents": voice_18_price,
+                "used_total": adult_voice_used,
+                "used_today": adult_voice_used,  # backward compat
+                "free_left": adult_voice_free_left,  # backward compat
             },
         }
+
+    # Free allowances are global (once per account), returned at top level
+    free_allowances = {
+        "normal": {
+            "text_free_left": normal_text_free_left,
+            "voice_notes_free_left": normal_voice_free_left,
+            "live_chat_free_left": normal_live_free_left,
+            "live_chat_free_left_minutes": round(normal_live_free_left / 60, 2),
+        },
+        "adult": {
+            "text_free_left": adult_text_free_left,
+            "voice_free_left": adult_voice_free_left,
+            "voice_free_left_minutes": round(adult_voice_free_left / 60, 2),
+        },
+    }
 
     if influencer_id:
         normal_wallet = None
@@ -154,6 +183,7 @@ async def get_user_usage(
             "influencer_id": influencer_id,
             "normal": normal_wallet,
             "adult": adult_wallet,
+            "free_allowances": free_allowances,
         }
 
     influencer_wallets: dict[str, dict] = {}
@@ -177,6 +207,7 @@ async def get_user_usage(
             "normal": build_normal_wallet(total_normal_balance),
             "adult": build_adult_wallet(total_adult_balance),
         },
+        "free_allowances": free_allowances,
     }
 
 @router.get("/{id}", response_model=UserOut)

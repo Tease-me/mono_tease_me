@@ -72,7 +72,8 @@ _PRICING_INPUT = {
     "text-embedding-v3":           20,   # $0.02 / 1M input tokens
     "text-embedding-v2":           20,   # $0.02 / 1M input tokens
     # XAI
-    "grok-4-1-fast-reasoning":    200,   # $0.20 / 1M input tokens
+    "grok-4-1-fast-reasoning":        200,   # $0.20 / 1M input tokens
+    "grok-4-1-fast-non-reasoning":    200,   # $0.20 / 1M input tokens
     # Alibaba / Qwen
     "qwen-max":                 1_200,   # $1.20 / 1M input tokens
     "qwen-plus":                  400,   # $0.40 / 1M input tokens
@@ -90,7 +91,8 @@ _PRICING_OUTPUT = {
     "text-embedding-v3":            0,   # embeddings have no output tokens
     "text-embedding-v2":            0,   # embeddings have no output tokens
     # XAI
-    "grok-4-1-fast-reasoning":    500,   # $0.50 / 1M output tokens
+    "grok-4-1-fast-reasoning":        500,   # $0.50 / 1M output tokens
+    "grok-4-1-fast-non-reasoning":    500,   # $0.50 / 1M output tokens
     # Alibaba / Qwen
     "qwen-max":                 6_000,   # $6.00 / 1M output tokens
     "qwen-plus":                1_200,   # $1.20 / 1M output tokens
@@ -233,6 +235,7 @@ async def track_usage(
     model: str,
     purpose: str,
     *,
+    exact_cost_micros: Optional[int] = None,
     input_tokens: Optional[int] = None,
     output_tokens: Optional[int] = None,
     total_tokens: Optional[int] = None,
@@ -258,6 +261,7 @@ async def track_usage(
         provider: "openai" | "xai" | "elevenlabs"
         model: Model name (e.g. "gpt-5.2", "grok-4-1-fast-reasoning", "whisper-1")
         purpose: Purpose of call (e.g. "main_reply", "moderation", "tts", "transcription")
+        exact_cost_micros: Exact cost in micro-dollars from provider (overrides _estimate_cost when set)
         input_tokens: Number of input tokens (for LLMs)
         output_tokens: Number of output tokens (for LLMs)
         total_tokens: Total tokens (input + output)
@@ -275,9 +279,12 @@ async def track_usage(
         if total_tokens is None and input_tokens is not None:
             total_tokens = (input_tokens or 0) + (output_tokens or 0)
 
-        estimated_cost = _estimate_cost(
-            model, provider, input_tokens, output_tokens, duration_secs, purpose,
-        )
+        if exact_cost_micros is not None:
+            estimated_cost = exact_cost_micros
+        else:
+            estimated_cost = _estimate_cost(
+                model, provider, input_tokens, output_tokens, duration_secs, purpose,
+            )
 
         row = ApiUsageLog(
             category=category,

@@ -19,6 +19,11 @@ from app.services.influencer_subscriptions import get_valid_subscription
 from app.utils.infrastructure.rate_limiter import rate_limit
 from app.utils.infrastructure.idempotency import idempotent
 from app.core.config import settings
+from app.services.firstpromoter import fp_track_sale_v2
+
+import logging
+
+log = logging.getLogger(__name__)
 
 
 router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
@@ -236,6 +241,22 @@ async def paypal_capture_subscription(
 
     db.add(sub)
     await db.commit()
+
+    # FirstPromoter: track subscription payment as a sale (fire-and-forget)
+    try:
+        from app.db.models import Influencer
+        influencer = await db.get(Influencer, sub.influencer_id)
+        if influencer and influencer.fp_ref_id:
+            await fp_track_sale_v2(
+                email=user.email,
+                uid=str(user.id),
+                amount_cents=amount_cents,
+                event_id=order_id,
+                ref_id=influencer.fp_ref_id,
+                plan="subscription",
+            )
+    except Exception:
+        log.exception("FirstPromoter track sale failed for subscription payment order=%s", order_id)
 
     return {
         "status": "payment recorded",
@@ -645,7 +666,23 @@ async def purchase_addon(
     await db.commit()
     await db.refresh(wallet)
     await db.refresh(addon_purchase)
-    
+
+    # FirstPromoter: track add-on purchase as a sale (fire-and-forget)
+    try:
+        from app.db.models import Influencer
+        influencer = await db.get(Influencer, req.influencer_id)
+        if influencer and influencer.fp_ref_id:
+            await fp_track_sale_v2(
+                email=user.email,
+                uid=str(user.id),
+                amount_cents=addon_plan.price_cents,
+                event_id=transaction_id,
+                ref_id=influencer.fp_ref_id,
+                plan="addon",
+            )
+    except Exception:
+        log.exception("FirstPromoter track sale failed for addon purchase tx=%s", transaction_id)
+
     return {
         "ok": True,
         "message": f"Add-on purchased: {addon_plan.plan_name}",
