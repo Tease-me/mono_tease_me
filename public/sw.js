@@ -1,48 +1,49 @@
-const SW_VERSION = "v2.0.0";
-const STATIC_CACHE = `tease-me-static-${SW_VERSION}`;
-const RUNTIME_CACHE = `tease-me-runtime-${SW_VERSION}`;
-
-const SHELL_ASSETS = [
-  "/",
-  "/index.html",
-  "/site.webmanifest",
+const CACHE_PREFIX = "tease-me-";
+const ASSET_CACHE = `${CACHE_PREFIX}assets-v1`;
+const CACHEABLE_DESTINATIONS = new Set(["script", "style"]);
+const CACHEABLE_ICON_PATHS = new Set([
   "/apple-touch-icon.png",
   "/web-app-manifest-192x192.png",
   "/web-app-manifest-512x512.png",
   "/favicon.svg",
   "/favicon.ico",
-];
-
-const API_PATH_PREFIXES = ["/api", "/chat", "/call", "/ws", "/socket"];
-const STATIC_DESTINATIONS = new Set(["script", "style", "image", "font"]);
+]);
 
 const isSameOrigin = (url) => url.origin === self.location.origin;
-const isApiRequest = (url) =>
-  API_PATH_PREFIXES.some((prefix) => url.pathname.startsWith(prefix));
 
-async function precacheShell() {
-  const cache = await caches.open(STATIC_CACHE);
-  await Promise.allSettled(
-    SHELL_ASSETS.map(async (assetPath) => {
-      try {
-        const response = await fetch(assetPath, { cache: "no-store" });
-        if (response.ok) {
-          await cache.put(assetPath, response.clone());
-        }
-      } catch {
-        // Keep install resilient: missing optional files must not break SW install.
-      }
-    }),
+function shouldCacheAsset(request, requestUrl) {
+  if (request.method !== "GET") {
+    return false;
+  }
+
+  if (request.destination === "font") {
+    return true;
+  }
+
+  if (!isSameOrigin(requestUrl)) {
+    return false;
+  }
+
+  return (
+    CACHEABLE_DESTINATIONS.has(request.destination) ||
+    CACHEABLE_ICON_PATHS.has(requestUrl.pathname)
   );
 }
 
+async function updateAssetCache(cache, request) {
+  try {
+    const response = await fetch(request);
+    if (response.ok || response.type === "opaque") {
+      await cache.put(request, response.clone());
+    }
+    return response;
+  } catch {
+    return undefined;
+  }
+}
+
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    (async () => {
-      await precacheShell();
-      await self.skipWaiting();
-    })(),
-  );
+  event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener("activate", (event) => {
@@ -50,98 +51,54 @@ self.addEventListener("activate", (event) => {
     (async () => {
       const cacheNames = await caches.keys();
       await Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== STATIC_CACHE && cacheName !== RUNTIME_CACHE) {
-            return caches.delete(cacheName);
-          }
-          return Promise.resolve();
-        }),
+        cacheNames
+          .filter((cacheName) => cacheName.startsWith(CACHE_PREFIX))
+          .map((cacheName) =>
+            cacheName === ASSET_CACHE
+              ? Promise.resolve(false)
+              : caches.delete(cacheName),
+          ),
       );
       await self.clients.claim();
     })(),
   );
 });
 
-async function handleNavigation(request) {
-  const staticCache = await caches.open(STATIC_CACHE);
-  try {
-    const networkResponse = await fetch(request);
-    if (networkResponse.ok) {
-      await staticCache.put("/index.html", networkResponse.clone());
-    }
-    return networkResponse;
-  } catch {
-    const cachedDocument =
-      (await staticCache.match(request)) ||
-      (await staticCache.match("/index.html")) ||
-      (await caches.match("/index.html"));
-    if (cachedDocument) {
-      return cachedDocument;
-    }
-    return new Response("Offline", {
-      status: 503,
-      headers: { "Content-Type": "text/plain" },
-    });
-  }
-}
-
-async function handleStaticAsset(request) {
-  const runtimeCache = await caches.open(RUNTIME_CACHE);
-  const cached = await runtimeCache.match(request);
-  const fetchAndUpdate = fetch(request)
-    .then((response) => {
-      if (response.ok) {
-        runtimeCache.put(request, response.clone()).catch(() => {});
-      }
-      return response;
-    })
-    .catch(() => undefined);
-
-  if (cached) {
-    fetchAndUpdate.catch(() => {});
-    return cached;
-  }
-
-  const networkResponse = await fetchAndUpdate;
-  if (networkResponse) {
-    return networkResponse;
-  }
-
-  const staticFallback = await caches.match(request);
-  if (staticFallback) {
-    return staticFallback;
-  }
-
-  return new Response("", { status: 504 });
-}
-
 self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") {
-    return;
-  }
-
   const requestUrl = new URL(event.request.url);
-  if (!isSameOrigin(requestUrl)) {
+  if (!shouldCacheAsset(event.request, requestUrl)) {
     return;
   }
 
-  if (isApiRequest(requestUrl)) {
-    event.respondWith(fetch(event.request));
-    return;
-  }
+  event.respondWith(
+    (async () => {
+      const cache = await caches.open(ASSET_CACHE);
+      const cached = await cache.match(event.request);
 
-  if (event.request.mode === "navigate") {
-    event.respondWith(handleNavigation(event.request));
-    return;
-  }
+      if (cached) {
+        event.waitUntil(updateAssetCache(cache, event.request));
+        return cached;
+      }
 
-  if (STATIC_DESTINATIONS.has(event.request.destination)) {
-    event.respondWith(handleStaticAsset(event.request));
-  }
+      const networkResponse = await updateAssetCache(cache, event.request);
+      if (networkResponse) {
+        return networkResponse;
+      }
+
+      return new Response("", { status: 504 });
+    })(),
+  );
 });
 
 self.addEventListener("push", (event) => {
-  const payload = event.data ? event.data.json() : {};
+  let payload = {};
+  if (event.data) {
+    try {
+      payload = event.data.json();
+    } catch {
+      payload = { body: event.data.text() };
+    }
+  }
   const title = payload.title || "New Notification";
   const options = {
     body: payload.body || payload.message || "",
