@@ -100,6 +100,13 @@ async def update_influencer(
 
 @router.delete("/{id}")
 async def delete_influencer(id: str, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    influencer = await db.get(Influencer, id)
+    if not influencer:
+        raise HTTPException(status_code=404, detail="Influencer not found")
+
+    # Only the owner of the influencer (or an admin, if supported) may delete it
+    if influencer.owner_id != current_user.id and not getattr(current_user, "is_admin", False):
+        raise HTTPException(status_code=403, detail="Not authorized to delete this influencer")
     try:
         result = await delete_influencer_and_chat_history(db, influencer_id=id)
     except InfluencerDeleteNotFoundError as exc:
