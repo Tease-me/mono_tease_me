@@ -10,18 +10,31 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Provider } from "react-redux";
 import { store } from "./store/store";
 
-function registerServiceWorker() {
+function cleanupPwaArtifacts() {
   if ("serviceWorker" in navigator) {
-    (async () => {
-      try {
-        const registration = await navigator.serviceWorker.register("/sw.js");
-        logger.info("ServiceWorker Successfully registered! 🎉", registration);
-      } catch (error) {
-        logger.error("Failed to subscribe the user:", error);
-      }
-    })();
-  } else {
-    logger.error("Service Worker or Push API not supported.");
+    navigator.serviceWorker
+      .getRegistrations()
+      .then((registrations) =>
+        Promise.all(registrations.map((registration) => registration.unregister())),
+      )
+      .catch((error) => {
+        logger.warn("Failed to unregister service workers:", error);
+      });
+  }
+
+  if ("caches" in window) {
+    caches
+      .keys()
+      .then((cacheNames) =>
+        Promise.all(
+          cacheNames
+            .filter((cacheName) => cacheName.startsWith("tease-me-"))
+            .map((cacheName) => caches.delete(cacheName)),
+        ),
+      )
+      .catch((error) => {
+        logger.warn("Failed to clear PWA caches:", error);
+      });
   }
 }
 
@@ -30,7 +43,7 @@ const queryClient = new QueryClient();
 
 if (rootElement) {
   if (import.meta.env.PROD) {
-    registerServiceWorker();
+    cleanupPwaArtifacts();
   }
   createRoot(rootElement).render(
     <StrictMode>
