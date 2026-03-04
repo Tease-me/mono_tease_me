@@ -3,13 +3,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
 from datetime import datetime, timezone
 from pydantic import BaseModel
-import uuid
 
 from app.db.session import get_db
 from app.utils.auth.dependencies import get_current_user, require_age_verification
 from app.db.models import (
     InfluencerSubscription,
-    InfluencerSubscriptionPayment,
     InfluencerSubscriptionPlan,
     InfluencerSubscriptionAddonPurchase,
     InfluencerWallet,
@@ -19,7 +17,7 @@ from app.services.influencer_subscriptions import get_valid_subscription
 from app.utils.infrastructure.rate_limiter import rate_limit
 from app.utils.infrastructure.idempotency import idempotent
 from app.core.config import settings
-from app.services.firstpromoter import fp_track_sale_v2
+
 
 router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
 

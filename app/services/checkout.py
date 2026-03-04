@@ -269,7 +269,7 @@ async def _fulfil_subscription(
 ) -> InfluencerSubscription:
     """Activate a subscription after successful payment."""
     from datetime import timedelta
-    from app.db.models import InfluencerWallet
+
     from app.services.billing import topup_wallet
     from app.services.firstpromoter import fp_track_sale_v2
 

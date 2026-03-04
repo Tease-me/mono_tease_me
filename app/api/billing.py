@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
-from app.db.models import InfluencerWallet, Influencer, InfluencerSubscriptionPayment
+from app.db.models import InfluencerWallet, Influencer
 from app.schemas.billing import (
     TopUpRequest,
     CreateCheckoutRequest,
