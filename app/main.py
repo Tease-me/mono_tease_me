@@ -33,6 +33,7 @@ from app.scheduler import start_scheduler, stop_scheduler
 from app.utils.infrastructure.redis_pool import close_redis
 from app.api.elevenlabs import close_elevenlabs_client
 from app.core.logging import configure_logging
+from app.services.checkout import close_checkout_client
 
 configure_logging()
 log = logging.getLogger(__name__)
@@ -56,6 +57,9 @@ async def lifespan(app: FastAPI):
     
     log.info("Closing ElevenLabs HTTP client...")
     await close_elevenlabs_client()
+    
+    log.info("Closing checkout HTTP client...")
+    await close_checkout_client()
 
 
 

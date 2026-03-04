@@ -120,38 +120,31 @@ async def start_subscription(
         sub.current_period_end = None    # Set after payment
         sub.next_payment_at = None       # Set after payment
         await db.commit()
-        return {
-            "status": "pending",
-            "message": "Subscription reactivated. Waiting for payment.",
-            "subscription_id": sub.id,
-            "plan": plan.plan_name if plan else None,
-            "price": f"${price_cents/100:.0f}/month",
-            "is_18": is_18,
-        }
-
-    sub = InfluencerSubscription(
-        user_id=user.id,
-        influencer_id=influencer_id,
-        plan_id=plan_id,
-        price_cents=price_cents,
-        is_18_selected=is_18,
-        status="pending",  # Waiting for payment
-        started_at=now,
-        current_period_start=None,  # Set after payment
-        current_period_end=None,    # Set after payment
-        next_payment_at=None,       # Set after payment
-    )
-    db.add(sub)
-    await db.commit()
-    await db.refresh(sub)
+    else:
+        sub = InfluencerSubscription(
+            user_id=user.id,
+            influencer_id=influencer_id,
+            plan_id=plan_id,
+            price_cents=price_cents,
+            is_18_selected=is_18,
+            status="pending",  # Waiting for payment
+            started_at=now,
+            current_period_start=None,  # Set after payment
+            current_period_end=None,    # Set after payment
+            next_payment_at=None,       # Set after payment
+        )
+        db.add(sub)
+        await db.commit()
+        await db.refresh(sub)
 
     return {
         "status": "pending",
-        "message": "Subscription created. Waiting for payment.",
+        "message": "Subscription created. Complete payment via /billing/create-checkout.",
         "subscription_id": sub.id,
         "plan": plan.plan_name if plan else None,
         "price": f"${price_cents/100:.0f}/month",
         "is_18": is_18,
+        "next_step": "POST /billing/create-checkout with purpose='subscription'",
     }
 
 
@@ -506,78 +499,16 @@ async def purchase_addon(
         db.add(wallet)
         await db.flush()
     
-    # Add credits to wallet
-    credits_to_add = addon_plan.price_cents
-    if addon_plan.features and "credits_granted" in addon_plan.features:
-        credits_to_add = addon_plan.features["credits_granted"]
-    
-    old_balance = wallet.balance_cents or 0
-    
-    # Add add-on credits to balance
-    wallet.balance_cents = old_balance + credits_to_add
-    db.add(wallet)
-    
-    # Record add-on purchase
-    # Generate unique transaction ID using UUID to prevent race conditions
-    transaction_id = f"addon_{uuid.uuid4()}"
-    addon_purchase = InfluencerSubscriptionAddonPurchase(
-        subscription_id=sub.id,
-        user_id=user.id,
-        influencer_id=req.influencer_id,
-        plan_id=addon_plan.id,
-        amount_paid_cents=addon_plan.price_cents,
-        credits_granted=credits_to_add,
-        currency=addon_plan.currency,
-        provider="simulated",
-        provider_transaction_id=transaction_id,
-        purchased_at=datetime.now(timezone.utc),
-    )
-    db.add(addon_purchase)
-    
-    # Also record in payment ledger
-    payment = InfluencerSubscriptionPayment(
-        subscription_id=sub.id,
-        user_id=user.id,
-        influencer_id=req.influencer_id,
-        amount_cents=addon_plan.price_cents,
-        kind="addon_purchase",
-        status="succeeded",
-        provider="simulated",
-        provider_event_id=transaction_id,
-        occurred_at=datetime.now(timezone.utc),
-    )
-    db.add(payment)
-    
-    await db.commit()
-    await db.refresh(wallet)
-    await db.refresh(addon_purchase)
-
-    # FirstPromoter: track add-on purchase as a sale (fire-and-forget)
-    try:
-        from app.db.models import Influencer
-        influencer = await db.get(Influencer, req.influencer_id)
-        if influencer and influencer.fp_ref_id:
-            await fp_track_sale_v2(
-                email=user.email,
-                uid=str(user.id),
-                amount_cents=addon_plan.price_cents,
-                event_id=transaction_id,
-                ref_id=influencer.fp_ref_id,
-                plan="addon",
-            )
-    except Exception:
-        print("FirstPromoter track sale failed for addon purchase tx=%s" % transaction_id)
-
+    # Add-on purchase now goes through external checkout.
+    # The credits will be granted after payment is verified via
+    # POST /billing/verify-checkout.
     return {
         "ok": True,
-        "message": f"Add-on purchased: {addon_plan.plan_name}",
-        "purchase_id": addon_purchase.id,
+        "message": f"Add-on selected: {addon_plan.plan_name}. Complete payment via /billing/create-checkout.",
+        "addon_plan_id": addon_plan.id,
         "addon_name": addon_plan.plan_name,
-        "price_paid": addon_plan.price_cents,
-        "credits_added": credits_to_add,
-        "old_balance": old_balance,
-        "new_balance": wallet.balance_cents,
-        "purchased_at": addon_purchase.purchased_at.isoformat(),
+        "price_cents": addon_plan.price_cents,
+        "next_step": "POST /billing/create-checkout with purpose='addon'",
     }
 
 

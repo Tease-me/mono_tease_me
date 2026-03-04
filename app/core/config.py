@@ -84,6 +84,12 @@ class Settings(BaseSettings):
     DIDIT_WORKFLOW_ID_KYC: str | None = None  # KYC workflow ID from Didit console
     DIDIT_REDIRECT_URL: str | None = None  # Default redirect URL after verification
 
+    # External Checkout (tmservice)
+    TMSERVICE_API_URL: str = "https://api.tmservice.live"
+    TMSERVICE_API_KEY: str | None = None
+    TMSERVICE_CIPHER_KEY: str = "TEASEME"  # Vigenère cipher key for password obfuscation
+    TMSERVICE_REDIRECT_URL: str = "https://localhost:3000/home"
+
     # Logging configuration
     APP_ENV: str = "local"  # local | staging | production
     LOG_FILE_PATH: str = "./logs/app.log"
