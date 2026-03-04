@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import math
 import json
 from app.agents.memory import get_memory_only_list, summarize_memory_list, summarize_ai_memory_list
 from app.agents.prompt_utils import build_relationship_prompt, get_global_prompt, get_mbti_rules_for_archetype, get_relationship_stage_prompts, get_time_context
@@ -18,8 +17,8 @@ from app.db.models import Influencer, Chat, Message, CallRecord, User, PreInflue
 from app.db.session import get_db
 from app.shared.prompting.influencer_bio import extract_influencer_bio_context
 from app.utils.auth.dependencies import get_current_user
-from app.schemas.elevenlabs import FinalizeConversationBody, RegisterConversationBody, UpdatePromptBody
-from app.services.billing import charge_feature, resolve_voice_billing_mode
+from app.schemas.elevenlabs import RegisterConversationBody, UpdatePromptBody
+from app.services.billing import resolve_voice_billing_mode
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from app.services.billing import can_afford, get_remaining_units
