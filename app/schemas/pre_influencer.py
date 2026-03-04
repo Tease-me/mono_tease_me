@@ -45,10 +45,10 @@ class SurveyStages(BaseModel):
     hate: str
     dislike: str
     strangers: str
-    friendly: str
+    friends: str
     flirting: str
     dating: str
-    in_love: str
+    girlfriend: str
 
 class SurveyPromptResponse(BaseModel):
     likes: List[str]

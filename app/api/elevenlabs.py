@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import json
 from app.agents.memory import get_memory_only_list, summarize_memory_list, summarize_ai_memory_list
 from app.agents.prompt_utils import build_relationship_prompt, get_global_prompt, get_mbti_rules_for_archetype, get_relationship_stage_prompts, get_time_context
 from app.relationship.dtr import plan_dtr_goal
@@ -33,7 +32,19 @@ from app.agents.turn_handler import (
 from app.db.session import SessionLocal
 from app.utils.logging.prompt_logging import log_prompt
 from app.agents.memory import extract_memories_from_transcript
-from app.gateways.elevenlabs_agents_gateway import ElevenLabsAgentsGateway
+from app.gateways.elevenlabs_agents_gateway import (
+    ElevenLabsAgentsGateway,
+    DEFAULT_AGENT_LLM,
+    DEFAULT_ASR_PROVIDER,
+    DEFAULT_TURN_EAGERNESS,
+    DEFAULT_TURN_TIMEOUT_SECS,
+    DEFAULT_MAX_CONVERSATION_SECS,
+    DEFAULT_CASCADE_TIMEOUT_SECS,
+    DEFAULT_TTS_MODEL_ID,
+    DEFAULT_FIRST_MESSAGE_TEMPLATE,
+    build_conversation_config_override,
+)
+from app.gateways.elevenlabs_voices_gateway import ElevenLabsVoicesGateway
 from app.use_cases.elevenlabs_greeting import _generate_contextual_greeting, build_call_greeting
 
 
@@ -43,6 +54,7 @@ log = logging.getLogger(__name__)
 ELEVENLABS_API_KEY = settings.ELEVENLABS_API_KEY
 ELEVEN_BASE_URL = settings.ELEVEN_BASE_URL
 DEFAULT_ELEVENLABS_VOICE_ID = settings.ELEVENLABS_VOICE_ID or None
+_voices_gateway = ElevenLabsVoicesGateway()
 
 # Shared HTTP client for connection pooling
 _elevenlabs_client: Optional[httpx.AsyncClient] = None
@@ -72,19 +84,6 @@ async def close_elevenlabs_client() -> None:
         await _elevenlabs_client.aclose()
         _elevenlabs_client = None
         log.info("Closed ElevenLabs HTTP client")
-
-def _get_env_suffix() -> str:
-    device = settings.DEVICE.upper() if settings.DEVICE else ""
-    if device == "SERVER":
-        return "-PROD"
-    elif device == "LIVE":
-        return "-LIVE"
-    else:
-        return "-DEV"
-
-def _apply_env_suffix(name: str) -> str:
-    suffix = _get_env_suffix()
-    return f"{name}{suffix}"
 
 def _headers() -> Dict[str, str]:
     """Return ElevenLabs auth headers. Fail fast when misconfigured."""
@@ -146,36 +145,6 @@ async def _get_or_create_post_call_webhook(client: httpx.AsyncClient) -> Optiona
     return None
 
 
-async def _validate_voice_exists(voice_id: str) -> bool:
-    """
-    Check if a voice_id still exists in ElevenLabs.
-    Returns True if voice exists, False if deleted/not found.
-    """
-    if not voice_id:
-        return False
-    
-    log.info("Validating voice_id: %s", voice_id)
-    client = await get_elevenlabs_client()
-    try:
-        resp = await client.get(
-            f"/voices/{voice_id}",
-            headers=_headers(),
-            timeout=15.0,
-        )
-        log.info("Voice validation response: %s", resp.status_code)
-        if resp.status_code == 200:
-            return True
-        elif resp.status_code == 404:
-            log.warning("Voice %s not found in ElevenLabs", voice_id)
-            return False
-        else:
-            log.warning("Voice validation returned %s: %s", resp.status_code, resp.text[:200])
-            return False
-    except Exception as e:
-        log.warning("Voice validation error for %s: %s", voice_id, e)
-        return False
-
-
 async def get_agent_id_from_influencer(db: AsyncSession, influencer_id: str) -> str:
     """
     Looks up the ElevenLabs agent id stored on the Influencer row.
@@ -196,18 +165,19 @@ def _build_agent_patch_payload(
 ) -> Dict[str, Any]:
     
     agent_cfg: Dict[str, Any] = {} 
+    agent_cfg["first_message"] = DEFAULT_FIRST_MESSAGE_TEMPLATE
 
-    if any(v is not None for v in (prompt_text, llm, temperature, max_tokens)):
-        prompt_block: Dict[str, Any] = {}
-        if prompt_text is not None:
-            prompt_block["prompt"] = prompt_text
-        if llm is not None:
-            prompt_block["llm"] = llm
-        if temperature is not None:
-            prompt_block["temperature"] = temperature
-        if max_tokens is not None:
-            prompt_block["max_tokens"] = max_tokens
-        agent_cfg["prompt"] = prompt_block
+    prompt_block: Dict[str, Any] = {
+        "llm": llm or DEFAULT_AGENT_LLM,
+        "cascade_timeout_seconds": DEFAULT_CASCADE_TIMEOUT_SECS,
+    }
+    if prompt_text is not None:
+        prompt_block["prompt"] = prompt_text
+    if temperature is not None:
+        prompt_block["temperature"] = temperature
+    if max_tokens is not None:
+        prompt_block["max_tokens"] = max_tokens
+    agent_cfg["prompt"] = prompt_block
 
     agent_cfg["tools"] = [
         {
@@ -238,20 +208,24 @@ def _build_agent_patch_payload(
 
     return {
         "conversation_config": {
+            "asr": {
+                "provider": DEFAULT_ASR_PROVIDER,
+            },
+            "turn": {
+                "turn_timeout": DEFAULT_TURN_TIMEOUT_SECS,
+                "turn_eagerness": DEFAULT_TURN_EAGERNESS,
+            },
+            "conversation": {
+                "max_duration_seconds": DEFAULT_MAX_CONVERSATION_SECS,
+            },
             "agent": agent_cfg,
-            "client": {
-                "overrides": {
-                    "agent": {
-                         "first_message": True,
-                         "language": True,
-                         "prompt": {
-                             "prompt": True,
-                         },
-                    },
-                    "tts": {
-                        "voice_id": True,
-                    }
-                }
+            "tts": {
+                "model_id": DEFAULT_TTS_MODEL_ID,
+            },
+        },
+        "platform_settings": {
+            "overrides": {
+                "conversation_config_override": build_conversation_config_override()
             }
         }
     }
@@ -1474,53 +1448,7 @@ def _default_auto_commit() -> bool:
     return True
 
 def _parse_labels(labels_json: str | None) -> str | None:
-
-    if not labels_json:
-        return None
-    try:
-        obj = json.loads(labels_json)
-        if not isinstance(obj, dict):
-            raise ValueError("labels_json must be a JSON object")
-        return json.dumps(obj)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Invalid labels_json: {e}")
-
-
-async def _elevenlabs_create_voice(
-    *,
-    name: str,
-    description: str | None,
-    labels_str: str | None,
-    remove_background_noise: bool,
-    multipart_files: list[tuple[str, tuple[str, bytes, str]]],
-) -> dict:
-    data = {
-        "name": _apply_env_suffix(name),
-        "remove_background_noise": "true" if remove_background_noise else "false",
-    }
-    if description is not None:
-        data["description"] = description
-    if labels_str is not None:
-        data["labels"] = labels_str
-
-    client = await get_elevenlabs_client()
-    r = await client.post(
-        "/voices/add",
-        headers=_headers(),
-        data=data,
-        files=multipart_files,
-        timeout=60.0,
-    )
-
-    if r.status_code >= 400:
-        log.error("ElevenLabs /v1/voices/add failed: %s %s", r.status_code, r.text[:1500])
-        raise HTTPException(status_code=r.status_code, detail=r.text)
-
-    payload = r.json() or {}
-    if not payload.get("voice_id"):
-        raise HTTPException(status_code=502, detail="ElevenLabs returned no voice_id")
-
-    return payload
+    return _voices_gateway.parse_labels(labels_json)
 
 
 @router.post("/voices/add")
@@ -1552,7 +1480,7 @@ async def eleven_create_voice_clone(
             ("files", (f.filename or "sample.mp3", b, ctype))
         )
 
-    payload = await _elevenlabs_create_voice(
+    payload = await _voices_gateway.create_voice(
         name=name,
         description=description,
         labels_str=labels_str,
