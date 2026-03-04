@@ -2,6 +2,7 @@ import json
 import logging
 import secrets
 import re
+from pydantic import ValidationError
 from fastapi.encoders import jsonable_encoder
 
 from datetime import datetime, timezone
@@ -376,7 +377,14 @@ async def generate_prompt_from_survey(
     sections = await load_survey_questions(db)
     markdown = format_survey_markdown(sections, pre.survey_answers or {}, pre.username)
     prompt = await generate_prompt_from_markdown(markdown, additional_prompt=additional_prompt, db=db)
-    return SurveyPromptResponse(**prompt)
+    try:
+        return SurveyPromptResponse(**prompt)
+    except ValidationError as exc:
+        log.warning("survey_prompt.response_validation_failed errors=%s payload=%s", exc.errors(), prompt)
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Prompt generation returned an invalid schema payload.",
+        )
 
 
 def _survey_is_completed(survey_step: int, total_sections: int) -> bool:
@@ -740,12 +748,23 @@ async def approve_pre_influencer(
                     samples_meta = new_samples_meta 
                 except Exception as e:
                      raise HTTPException(400, f"Failed to create voice: {str(e)}")
-
-    prompt_for_eleven = f"{prompt}"
+    bio_payload: dict = prompt if isinstance(prompt, dict) else {}
+    if not bio_payload and isinstance(prompt, str):
+        try:
+            parsed_prompt = json.loads(prompt)
+            if isinstance(parsed_prompt, dict):
+                bio_payload = parsed_prompt
+        except Exception:
+            bio_payload = {}
+    personality_prompt = (
+        bio_payload.get("personality_rules")
+        if isinstance(bio_payload.get("personality_rules"), str)
+        else ""
+    )
     
     agent_id = await _push_prompt_to_elevenlabs(
         agent_id=agent_id,
-        prompt_text=prompt_for_eleven,
+        prompt_text=personality_prompt,
         voice_id=voice_id,
         agent_name=display_name or influencer_id,
     )
@@ -753,8 +772,9 @@ async def approve_pre_influencer(
     if not influencer:
         influencer = Influencer(
             id=influencer_id,
+            prompt_template=personality_prompt,
             display_name=display_name,
-            bio_json=json.dumps(prompt) if isinstance(prompt, dict) else prompt,
+            bio_json=bio_payload,
             owner_id=None,
             voice_id=voice_id,
             fp_promoter_id=pre.fp_promoter_id,
@@ -768,7 +788,8 @@ async def approve_pre_influencer(
         if not influencer.display_name:
             influencer.display_name = display_name
         
-        influencer.bio_json = json.dumps(prompt) if isinstance(prompt, dict) else prompt
+        influencer.bio_json = bio_payload
+        influencer.prompt_template = personality_prompt
         influencer.voice_id = voice_id
         influencer.influencer_agent_id_third_part = agent_id
         influencer.samples = samples_meta

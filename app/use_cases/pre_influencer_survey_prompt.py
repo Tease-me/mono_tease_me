@@ -124,19 +124,40 @@ async def generate_prompt_from_markdown(
 
     parsed.setdefault("likes", [])
     parsed.setdefault("dislikes", [])
-    parsed.setdefault("mbti_architype", "")
+
+    # Accept common model output typo/variant and normalize to API field.
+    parsed["mbti_architype"] = parsed.get("mbti_architype") or parsed.get("mbti_archetype") or ""
     parsed.setdefault("mbti_rules", "")
     parsed.setdefault("personality_rules", "")
     parsed.setdefault("tone", "")
-    stages = parsed.get("stages") or {}
+
+    def _to_str(val: Any) -> str:
+        if val is None:
+            return ""
+        if isinstance(val, str):
+            return val
+        return str(val)
+
+    stages_raw = parsed.get("stages")
+    stages = stages_raw if isinstance(stages_raw, dict) else {}
+    hate = _to_str(stages.get("hate", ""))
+    dislike = _to_str(stages.get("dislike", ""))
+    strangers = _to_str(stages.get("strangers", ""))
+    # Support both old and new key names from LLM/system prompt variants.
+    friendly_or_friends = _to_str(stages.get("friendly", stages.get("friends", "")))
+    flirting = _to_str(stages.get("flirting", ""))
+    dating = _to_str(stages.get("dating", ""))
+    in_love_or_girlfriend = _to_str(stages.get("in_love", stages.get("girlfriend", "")))
     parsed["stages"] = {
-        "hate": stages.get("hate", ""),
-        "dislike": stages.get("dislike", ""),
-        "strangers": stages.get("strangers", ""),
-        "friends": stages.get("friends", ""),
-        "flirting": stages.get("flirting", ""),
-        "dating": stages.get("dating", ""),
-        "girlfriend": stages.get("girlfriend", ""),
+        "hate": hate,
+        "dislike": dislike,
+        "strangers": strangers,
+        "friends": friendly_or_friends,
+        "friendly": friendly_or_friends,
+        "flirting": flirting,
+        "dating": dating,
+        "girlfriend": in_love_or_girlfriend,
+        "in_love": in_love_or_girlfriend,
     }
 
     def _as_str_list(val: Any) -> list[str]:
@@ -148,6 +169,10 @@ async def generate_prompt_from_markdown(
 
     parsed["likes"] = _as_str_list(parsed.get("likes"))
     parsed["dislikes"] = _as_str_list(parsed.get("dislikes"))
+    parsed["mbti_architype"] = _to_str(parsed.get("mbti_architype"))
+    parsed["mbti_rules"] = _to_str(parsed.get("mbti_rules"))
+    parsed["personality_rules"] = _to_str(parsed.get("personality_rules"))
+    parsed["tone"] = _to_str(parsed.get("tone"))
     return parsed
 
 
