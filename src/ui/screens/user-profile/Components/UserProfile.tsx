@@ -9,6 +9,7 @@ import { apiClient } from "@/api/apis";
 import { UserDataModel } from "@/data/models/UserDataModel";
 import ImageCropModal from "@/ui/components/modals/image-crop-modal/ImageCropModal";
 import clsx from "clsx";
+import logger from "@/utils/logger";
 
 type UserProfileProps = { goTo: (id: string) => void; };
 type LocalUser = Partial<UserDataModel>;
@@ -71,7 +72,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ goTo }) => {
             : "Please try again later.";
       setError(`Error: ${message}`);
       setIsErrorPositive(false);
-      console.error("Error updating profile:", err);
+      logger.error("Error updating profile:", err);
     } finally {
       setIsUpdating(false);
       setPhotoBlob(null);
