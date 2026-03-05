@@ -12,7 +12,7 @@ import { CallStatus } from "@/hooks/useCallWebRTC";
 import SvgPack from "@/utils/SvgPack";
 import { formatTime } from "@/utils/time";
 import clsx from "clsx";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { getRelationshipStatusIcon, getRelationshipStatusLabel, RelationshipStatus } from "@/utils/relationshipStatusUtils";
 import { BalanceServices } from "@/api/services/BalanceServices";
 import { apiClient } from "@/api/apis";
@@ -37,12 +37,16 @@ type CallModePageProps = {
     errorMessage?: string;
     cancelCall?: () => void;
     onChangeInfluencer?: () => void;
+    conversationId?: string | null;
 };
 
-const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, errorMessage, cancelCall, onChangeInfluencer }: CallModePageProps) => {
+const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, errorMessage, cancelCall, onChangeInfluencer, conversationId }: CallModePageProps) => {
     const [balance, setBalance] = React.useState<number>(0);
     const [isPopupOpen, setIsPopupOpen] = useState(false);
     const [nextStage, setNextStage] = useState<string>("");
+    const [callSummary, setCallSummary] = useState<{ durationSecs: number; } | null>(null);
+    const activeConversationIdRef = useRef<string | null>(null);
+    const lastCallDurationRef = useRef<number>(0);
 
     const handleCallButtonClicked = () => {
         if (status === "connected") {
@@ -123,11 +127,35 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
         }
 
         const interval = setInterval(() => {
-            setShowCallTime((prev) => prev + 1);
+            setShowCallTime((prev) => {
+                const next = prev + 1;
+                lastCallDurationRef.current = next;
+                return next;
+            });
         }, 1000);
 
         return () => clearInterval(interval);
     }, [status]);
+
+    useEffect(() => {
+        if (status === "connected" && conversationId) {
+            activeConversationIdRef.current = conversationId;
+        }
+
+
+        if ((status === "idle" || status === "disconnected") && activeConversationIdRef.current) {
+            activeConversationIdRef.current = null;
+            const secs = lastCallDurationRef.current;
+            lastCallDurationRef.current = 0;
+            if (secs > 0) {
+                setCallSummary({ durationSecs: secs });
+            }
+        }
+
+        if (status === "connecting") {
+            setCallSummary(null);
+        }
+    }, [status, conversationId]);
 
 
     return (
@@ -184,7 +212,10 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                         </div>
                     ) : (
                         <div className={clsx(styles.connectionStatus, styles.lastConnected)}>
-                            Last Connected: <span>{relationship?.last_interaction_at ? formatDateTimeRelative(relationship?.last_interaction_at) : "Never"}</span>
+                            <div>Last Connected: <span>{relationship?.last_interaction_at ? formatDateTimeRelative(relationship?.last_interaction_at) : "Never"}</span></div>
+                            {callSummary && (status === "disconnected" || status === "idle") && (
+                                <div>Last Call: <span>{formatTime(callSummary.durationSecs)}</span></div>
+                            )}
                         </div>
                     )}
                     <IconButton className={styles.callButton} color={getButtonColor()} type="pill" leftIcon={getButtonIcon()} onClick={handleCallButtonClicked} />

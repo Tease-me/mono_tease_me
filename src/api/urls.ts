@@ -57,6 +57,8 @@ export const Endpoints = {
     signed_url: "/elevenlabs/signed-url",
     signed_url_free: "/elevenlabs/signed-url-free",
     signed_landing_url_free: "/elevenlabs/signed-url-free-landing",
+    callDetails: (conversationId: string) =>
+      `/elevenlabs/calls/${encodeURIComponent(conversationId)}`,
     register: (conversationId: string) =>
       `/elevenlabs/conversations/${encodeURIComponent(
         conversationId

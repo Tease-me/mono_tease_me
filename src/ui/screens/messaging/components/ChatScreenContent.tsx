@@ -111,6 +111,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     toggleMute,
     errorMessage,
     cancelCall,
+    conversationId,
   } = useCallWebRTC({
     onMessage: (message, conversationId) => {
       logger.debug(
@@ -495,6 +496,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
                 relationship={relationship}
                 influencer={influencer}
                 errorMessage={errorMessage || "Something went wrong!"}
+                conversationId={conversationId}
                 onChangeInfluencer={
                   hasMultipleInfluencers
                     ? handleChangeInfluencerClicked
