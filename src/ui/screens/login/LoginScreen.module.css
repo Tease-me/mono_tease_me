@@ -27,12 +27,16 @@
 }
 
 .input-field span {
-  margin-top: 14px;
+  margin-top: 4px;
   margin-left: 10px;
-  min-height: 20px;
+  min-height: 0;
   font-size: 14px;
   color: #ff4d6d;
-  margin-bottom: 10px;
+  margin-bottom: 0;
+}
+
+.input-field span:empty {
+  display: none;
 }
 
 .check-box {
