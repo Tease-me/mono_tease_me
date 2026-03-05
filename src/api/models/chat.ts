@@ -40,7 +40,9 @@ export interface ConversationTokenResponse {
     credits_remainder_secs: number;
     greeting_used?: string;
     prompt?: string;
+    voice_id?: string;
     native_language?: string;
+    unit_price_cents?: number;
 }
 
 export interface CallTranscriptEntryResponse {
