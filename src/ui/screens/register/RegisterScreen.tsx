@@ -118,7 +118,7 @@ export default function RegisterScreen() {
     ) {
       nextErrors.confirmPassword = "Passwords do not match";
     }
-    if (!account.agree) nextErrors.general = "Please Agree to NSFW";
+    if (!account.agree) nextErrors.general = "Confirm that you are over 18";
 
     return cleanErrors(nextErrors);
   };
