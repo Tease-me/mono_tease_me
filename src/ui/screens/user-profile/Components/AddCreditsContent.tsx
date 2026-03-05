@@ -9,6 +9,8 @@ import { apiClient } from "@/api/apis";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 import { storage } from "@/utils/storage";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
+import SvgPack from "@/utils/SvgPack";
+
 
 const billing = BillingServices(apiClient);
 
@@ -135,18 +137,42 @@ export default function AddCreditsContent({
             className={styles.customBtn}
           />
         </div>
-        <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 12 }}>
-          <NormalButton
-            text="Stripe"
-            selected={provider === "stripe"}
-            onClick={() => setProvider("stripe")}
-          />
-          <NormalButton
-            text="PayPal"
+
+
+              <div className={styles.payWithSection}>
+          <div className={styles.payWithRow01}>
+            {" "}
+            <h4
+              style={{
+                textAlign: "center",
+                marginBlock: "16px",
+                
+              }}    >
+              Pay with:
+            </h4>
+          </div>
+          <div className={styles.payWithRow02}>
+                   <NormalButton
+                   color="black"
+           
+            leftIcon={<SvgPack.PayPalLogo/>}
+            className={styles.quickCreditButton}
             selected={provider === "paypal"}
             onClick={() => setProvider("paypal")}
           />
+                   <NormalButton
+           
+            color="black"
+              leftIcon={<SvgPack.StripeLogo/>}
+            className={styles.quickCreditButton}
+            selected={provider === "stripe"}
+            onClick={() => setProvider("stripe")}
+          />
+        
+          </div>
         </div>
+
+      
         <PrimaryButton
           text="Confirm"
           disabled={amount <= 0 || isPaying}
