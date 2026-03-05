@@ -77,6 +77,9 @@ class Settings(BaseSettings):
     PAYPAL_RETURN_URL: str | None = None
     PAYPAL_CANCEL_URL: str | None = None
 
+    # External checkout webhook (Stripe/PayPal payment confirmation)
+    PAYMENT_WEBHOOK_SECRET: str | None = None
+
     FIRSTPROMOTER_TOKEN: str | None = None
     FIRSTPROMOTER_ACCOUNT_ID: str | None = None
     FIRSTPROMOTER_API_KEY: str | None = None
