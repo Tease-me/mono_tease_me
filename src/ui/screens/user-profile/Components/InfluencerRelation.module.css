@@ -76,33 +76,47 @@
 }
 
 .balanceBadge {
-  margin-bottom: 12px;
-  ;
+  display: flex;
+  justify-content: center;
 }
 
 .balanceStats {
   display: flex;
   flex-direction: row;
-  justify-content: center;
   gap: var(--space-px-12);
-  padding: 16px;
+}
+
+.balanceStats>* {
+  flex: 1;
+  max-width: unset;
 }
 
 .balanceArea {
   display: flex;
   flex-direction: column;
   gap: var(--space-px-24);
-  align-items: center;
+  align-items: stretch;
+  padding: 0 16px 16px;
+  max-width: 360px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 .adultBalanceArea {
   background: rgba(20, 20, 20, 0.2);
-  padding: 24px 8px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: var(--space-px-24);
-  justify-content: center;
   align-items: center;
+}
+
+.adultBalanceInner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-px-24);
+  align-items: stretch;
+  max-width: 360px;
   width: 100%;
 }
 
@@ -110,10 +124,9 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   text-align: left;
   gap: var(--space-px-12);
-  width: auto;
 }
 
 .adultToggleArea p {
@@ -139,9 +152,96 @@
 .adultBalanceStats {
   display: flex;
   flex-direction: row;
-  justify-content: center;
   gap: var(--space-px-12);
-  padding: 16px;
+}
+
+.adultBalanceStats>* {
+  flex: 1;
+  max-width: unset;
+}
+
+.balanceStatsWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-px-8);
+}
+
+.totalBalanceLabel {
+  color: var(--Greyscale-400, #BDBDBD);
+  text-align: left;
+  font-family: Urbanist;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0.2px;
+  align-self: flex-start;
+  padding: 0;
+}
+
+.lastCallSection {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-px-8);
+}
+
+.lastCallHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lastCallTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-px-8);
+  color: var(--Greyscale-400, #BDBDBD);
+  font-family: Urbanist;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0.2px;
+}
+
+.lastCallTitle svg {
+  width: 18px;
+  height: 18px;
+}
+
+.lastCallStats {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-px-12);
+}
+
+.lastCallCard {
+  flex: 1;
+  background: rgba(66, 66, 66, 0.40);
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-px-8);
+}
+
+.lastCallCardLabel {
+  color: var(--Greyscale-500, #9E9E9E);
+  font-family: Urbanist;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0.2px;
+}
+
+.lastCallCardValue {
+  color: var(--Greyscale-500, #9E9E9E);
+  font-family: Urbanist;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0.2px;
 }
 
 .grayBtn {
@@ -254,4 +354,73 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.infoIconBtn {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.callInfoModal {
+  background: #212121;
+  border-radius: 8px;
+  max-width: 357px;
+  min-width: 280px;
+}
+
+.callInfoModalCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-px-20);
+  padding: var(--space-px-24);
+  width: 100%;
+}
+
+.callInfoHeading {
+  color: #fff;
+  font-family: Urbanist;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 140%;
+  letter-spacing: 0.2px;
+}
+
+.callInfoSubtitle {
+  color: #B2B2B2;
+  font-family: Urbanist;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 140%;
+  letter-spacing: 0.2px;
+}
+
+.callInfoNote {
+  border-radius: 12px;
+  background: #2E2E2E;
+  width: 100%;
+  padding: var(--space-px-20);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.callInfoNoteTitle {
+  color: #fff;
+  font-family: Urbanist;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 140%;
+  letter-spacing: 0.2px;
+}
+
+.callInfoNoteText {
+  color: #B2B2B2;
+  font-family: Urbanist;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 140%;
+  letter-spacing: 0.2px;
 }
