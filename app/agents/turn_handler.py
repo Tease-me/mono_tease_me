@@ -158,11 +158,14 @@ async def extract_and_store_facts_for_turn(
     chat_id: str,
     cid: str,
 ) -> None:
+    log.info("[%s] fact_extract.start chat=%s", cid, chat_id)
+    from datetime import datetime, timezone as _tz
     async with SessionLocal() as db:
         try:
             fact_prompt = await get_fact_prompt(db)
             
             exchange = f"user: {message}\nai: {reply}"
+            ts_now = datetime.now(_tz.utc).strftime("%Y-%m-%d %H:%M UTC")
 
             tracker = UsageTrackingCallback(
                 category="extraction",
@@ -170,11 +173,15 @@ async def extract_and_store_facts_for_turn(
                 chat_id=chat_id,
             )
             facts_resp = await FACT_EXTRACTOR.ainvoke(
-                fact_prompt.format(msg=exchange, ctx=recent_ctx),
+                fact_prompt.format(msg=exchange, ctx=recent_ctx, ts=ts_now),
                 config={"callbacks": [tracker]}
             )
 
             facts_txt = facts_resp.content or ""
+            log.debug(
+                "[%s] fact_extract.llm_response chat=%s raw=%s",
+                cid, chat_id, facts_txt[:200],
+            )
             lines = [ln.strip("- ").strip() for ln in facts_txt.split("\n") if ln.strip()]
             
             # Filter out empty/skip lines
@@ -182,7 +189,13 @@ async def extract_and_store_facts_for_turn(
             
             if valid_facts:
                 # Use batch storage - single API call for all facts
-                await store_facts_batch(db, chat_id, valid_facts)
+                stored = await store_facts_batch(db, chat_id, valid_facts)
+                log.info(
+                    "[%s] fact_extract.stored chat=%s stored=%d",
+                    cid, chat_id, stored,
+                )
+            else:
+                log.info("[%s] fact_extract.no_facts chat=%s", cid, chat_id)
                 
         except Exception as ex:
             log.error("[%s] Fact extraction failed: %s", cid, ex, exc_info=True)

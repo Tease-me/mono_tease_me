@@ -9,6 +9,7 @@ from app.api.chat_18 import router as chat_18_router
 from app.api.auth import router as auth_router
 from app.api.push import router as push_router 
 from app.api import billing
+from app.api.checkout import router as checkout_router
 
 from app.api.notify_ws import router as notify_ws_router
 from app.api.influencer import router as influencer_router
@@ -33,6 +34,7 @@ from app.scheduler import start_scheduler, stop_scheduler
 from app.utils.infrastructure.redis_pool import close_redis
 from app.api.elevenlabs import close_elevenlabs_client
 from app.core.logging import configure_logging
+from app.services.checkout import close_checkout_client
 
 configure_logging()
 log = logging.getLogger(__name__)
@@ -56,6 +58,9 @@ async def lifespan(app: FastAPI):
     
     log.info("Closing ElevenLabs HTTP client...")
     await close_elevenlabs_client()
+    
+    log.info("Closing checkout HTTP client...")
+    await close_checkout_client()
 
 
 
@@ -75,6 +80,7 @@ app.include_router(chat_18_router)
 app.include_router(push_router)
 app.include_router(notify_ws_router)
 app.include_router(billing.router)
+app.include_router(checkout_router)
 app.include_router(influencer_router)
 app.include_router(user_router)
 app.include_router(elevenlabs_router)

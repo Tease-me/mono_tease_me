@@ -1,15 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pydantic import BaseModel
-import uuid
 
 from app.db.session import get_db
 from app.utils.auth.dependencies import get_current_user, require_age_verification
 from app.db.models import (
     InfluencerSubscription,
-    InfluencerSubscriptionPayment,
     InfluencerSubscriptionPlan,
     InfluencerSubscriptionAddonPurchase,
     InfluencerWallet,
@@ -120,134 +118,33 @@ async def start_subscription(
         sub.current_period_end = None    # Set after payment
         sub.next_payment_at = None       # Set after payment
         await db.commit()
-        return {
-            "status": "pending",
-            "message": "Subscription reactivated. Waiting for payment.",
-            "subscription_id": sub.id,
-            "plan": plan.plan_name if plan else None,
-            "price": f"${price_cents/100:.0f}/month",
-            "is_18": is_18,
-        }
-
-    sub = InfluencerSubscription(
-        user_id=user.id,
-        influencer_id=influencer_id,
-        plan_id=plan_id,
-        price_cents=price_cents,
-        is_18_selected=is_18,
-        status="pending",  # Waiting for payment
-        started_at=now,
-        current_period_start=None,  # Set after payment
-        current_period_end=None,    # Set after payment
-        next_payment_at=None,       # Set after payment
-    )
-    db.add(sub)
-    await db.commit()
-    await db.refresh(sub)
+    else:
+        sub = InfluencerSubscription(
+            user_id=user.id,
+            influencer_id=influencer_id,
+            plan_id=plan_id,
+            price_cents=price_cents,
+            is_18_selected=is_18,
+            status="pending",  # Waiting for payment
+            started_at=now,
+            current_period_start=None,  # Set after payment
+            current_period_end=None,    # Set after payment
+            next_payment_at=None,       # Set after payment
+        )
+        db.add(sub)
+        await db.commit()
+        await db.refresh(sub)
 
     return {
         "status": "pending",
-        "message": "Subscription created. Waiting for payment.",
+        "message": "Subscription created. Complete payment via /billing/create-checkout.",
         "subscription_id": sub.id,
         "plan": plan.plan_name if plan else None,
         "price": f"${price_cents/100:.0f}/month",
         "is_18": is_18,
+        "next_step": "POST /billing/create-checkout with purpose='subscription'",
     }
 
-@router.post("/paypal/capture")
-@rate_limit(max_requests=settings.RATE_LIMIT_BILLING_MAX, window_seconds=settings.RATE_LIMIT_BILLING_WINDOW, key_prefix="sub:paypal-capture")
-async def paypal_capture_subscription(
-    request: Request,
-    subscription_id: int,
-    order_id: str,
-    amount_cents: int,
-    payload: dict,
-    db: AsyncSession = Depends(get_db),
-    user=Depends(get_current_user),
-):
-    sub = await db.get(InfluencerSubscription, subscription_id)
-    if not sub or sub.user_id != user.id:
-        raise HTTPException(404, SUBSCRIPTION_NOT_FOUND)
-
-    existing_payment = await db.scalar(
-        select(InfluencerSubscriptionPayment).where(
-            InfluencerSubscriptionPayment.provider == "paypal",
-            InfluencerSubscriptionPayment.provider_event_id == order_id,
-        )
-    )
-    if existing_payment:
-        return {"status": "already recorded"}
-
-    now = datetime.now(timezone.utc)
-
-    # Check if this is the first payment (subscription was pending)
-    is_first_payment = sub.status == "pending" or sub.current_period_end is None
-
-    if is_first_payment:
-        # First payment - activate subscription
-        sub.current_period_start = now
-        sub.current_period_end = now + timedelta(days=30)
-        sub.next_payment_at = now + timedelta(days=30)
-    else:
-        # Renewal payment - extend subscription
-        base = sub.current_period_end or now
-        next_period = base + timedelta(days=30)
-        sub.current_period_start = sub.current_period_end or now
-        sub.current_period_end = next_period
-        sub.next_payment_at = next_period
-
-    sub.last_payment_at = now
-    sub.status = "active"  # Activate subscription after payment
-
-    payment = InfluencerSubscriptionPayment(
-        subscription_id=sub.id,
-        user_id=user.id,
-        influencer_id=sub.influencer_id,
-        amount_cents=amount_cents,
-        status="succeeded",
-        provider="paypal",
-        provider_event_id=order_id,
-        provider_payload=payload,
-        occurred_at=now,
-    )
-    db.add(payment)
-
-    wallet = await db.scalar(
-        select(InfluencerWallet).where(
-            InfluencerWallet.user_id == user.id,
-            InfluencerWallet.influencer_id == sub.influencer_id,
-            InfluencerWallet.is_18.is_(True),
-        )
-    )
-
-    if not wallet:
-        wallet = InfluencerWallet(
-            user_id=user.id,
-            influencer_id=sub.influencer_id,
-            balance_cents=0,
-            is_18=True,
-        )
-        db.add(wallet)
-        await db.flush()
-
-    # Add credits to balance
-    wallet.balance_cents = (wallet.balance_cents or 0) + int(amount_cents)
-    db.add(wallet)
-
-    db.add(sub)
-    await db.commit()
-
-    return {
-        "status": "payment recorded",
-        "subscription_status": sub.status,  # "active"
-        "is_first_payment": is_first_payment,
-        "subscription_id": sub.id,
-        "influencer_id": sub.influencer_id,
-        "current_period_end": sub.current_period_end.isoformat() if sub.current_period_end else None,
-        "next_payment_at": sub.next_payment_at.isoformat() if sub.next_payment_at else None,
-        "wallet_balance_cents": wallet.balance_cents,
-        "credits_added": amount_cents,
-    }
 
 def _now():
     return datetime.now(timezone.utc)
@@ -600,62 +497,16 @@ async def purchase_addon(
         db.add(wallet)
         await db.flush()
     
-    # Add credits to wallet
-    credits_to_add = addon_plan.price_cents
-    if addon_plan.features and "credits_granted" in addon_plan.features:
-        credits_to_add = addon_plan.features["credits_granted"]
-    
-    old_balance = wallet.balance_cents or 0
-    
-    # Add add-on credits to balance
-    wallet.balance_cents = old_balance + credits_to_add
-    db.add(wallet)
-    
-    # Record add-on purchase
-    # Generate unique transaction ID using UUID to prevent race conditions
-    transaction_id = f"addon_{uuid.uuid4()}"
-    addon_purchase = InfluencerSubscriptionAddonPurchase(
-        subscription_id=sub.id,
-        user_id=user.id,
-        influencer_id=req.influencer_id,
-        plan_id=addon_plan.id,
-        amount_paid_cents=addon_plan.price_cents,
-        credits_granted=credits_to_add,
-        currency=addon_plan.currency,
-        provider="simulated",  # Replace with actual provider (paypal/stripe)
-        provider_transaction_id=transaction_id,
-        purchased_at=datetime.now(timezone.utc),
-    )
-    db.add(addon_purchase)
-    
-    # Also record in payment ledger
-    payment = InfluencerSubscriptionPayment(
-        subscription_id=sub.id,
-        user_id=user.id,
-        influencer_id=req.influencer_id,
-        amount_cents=addon_plan.price_cents,
-        kind="addon_purchase",
-        status="succeeded",
-        provider="simulated",
-        provider_event_id=transaction_id,
-        occurred_at=datetime.now(timezone.utc),
-    )
-    db.add(payment)
-    
-    await db.commit()
-    await db.refresh(wallet)
-    await db.refresh(addon_purchase)
-    
+    # Add-on purchase now goes through external checkout.
+    # The credits will be granted after payment is verified via
+    # POST /billing/verify-checkout.
     return {
         "ok": True,
-        "message": f"Add-on purchased: {addon_plan.plan_name}",
-        "purchase_id": addon_purchase.id,
+        "message": f"Add-on selected: {addon_plan.plan_name}. Complete payment via /billing/create-checkout.",
+        "addon_plan_id": addon_plan.id,
         "addon_name": addon_plan.plan_name,
-        "price_paid": addon_plan.price_cents,
-        "credits_added": credits_to_add,
-        "old_balance": old_balance,
-        "new_balance": wallet.balance_cents,
-        "purchased_at": addon_purchase.purchased_at.isoformat(),
+        "price_cents": addon_plan.price_cents,
+        "next_step": "POST /billing/create-checkout with purpose='addon'",
     }
 
 

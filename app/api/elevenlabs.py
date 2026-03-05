@@ -1,7 +1,5 @@
 import asyncio
 import logging
-import math
-import json
 from app.agents.memory import get_memory_only_list, summarize_memory_list, summarize_ai_memory_list
 from app.agents.prompt_utils import build_relationship_prompt, get_global_prompt, get_mbti_rules_for_archetype, get_relationship_stage_prompts, get_time_context
 from app.relationship.dtr import plan_dtr_goal
@@ -18,8 +16,8 @@ from app.db.models import Influencer, Chat, Message, CallRecord, User, PreInflue
 from app.db.session import get_db
 from app.shared.prompting.influencer_bio import extract_influencer_bio_context
 from app.utils.auth.dependencies import get_current_user
-from app.schemas.elevenlabs import FinalizeConversationBody, RegisterConversationBody, UpdatePromptBody
-from app.services.billing import charge_feature,_get_influencer_id_from_chat
+from app.schemas.elevenlabs import RegisterConversationBody, UpdatePromptBody
+from app.services.billing import resolve_voice_billing_mode
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from app.services.billing import can_afford, get_remaining_units
@@ -34,8 +32,20 @@ from app.agents.turn_handler import (
 from app.db.session import SessionLocal
 from app.utils.logging.prompt_logging import log_prompt
 from app.agents.memory import extract_memories_from_transcript
-from app.gateways.elevenlabs_agents_gateway import ElevenLabsAgentsGateway
-from app.use_cases.elevenlabs_greeting import _generate_contextual_greeting, build_call_greeting
+from app.gateways.elevenlabs_agents_gateway import (
+    ElevenLabsAgentsGateway,
+    DEFAULT_AGENT_LLM,
+    DEFAULT_ASR_PROVIDER,
+    DEFAULT_TURN_EAGERNESS,
+    DEFAULT_TURN_TIMEOUT_SECS,
+    DEFAULT_MAX_CONVERSATION_SECS,
+    DEFAULT_CASCADE_TIMEOUT_SECS,
+    DEFAULT_TTS_MODEL_ID,
+    DEFAULT_FIRST_MESSAGE_TEMPLATE,
+    build_conversation_config_override,
+)
+from app.gateways.elevenlabs_voices_gateway import ElevenLabsVoicesGateway
+from app.use_cases.elevenlabs_greeting import build_call_greeting
 
 
 router = APIRouter(prefix="/elevenlabs", tags=["elevenlabs"])
@@ -44,6 +54,7 @@ log = logging.getLogger(__name__)
 ELEVENLABS_API_KEY = settings.ELEVENLABS_API_KEY
 ELEVEN_BASE_URL = settings.ELEVEN_BASE_URL
 DEFAULT_ELEVENLABS_VOICE_ID = settings.ELEVENLABS_VOICE_ID or None
+_voices_gateway = ElevenLabsVoicesGateway()
 
 # Shared HTTP client for connection pooling
 _elevenlabs_client: Optional[httpx.AsyncClient] = None
@@ -73,19 +84,6 @@ async def close_elevenlabs_client() -> None:
         await _elevenlabs_client.aclose()
         _elevenlabs_client = None
         log.info("Closed ElevenLabs HTTP client")
-
-def _get_env_suffix() -> str:
-    device = settings.DEVICE.upper() if settings.DEVICE else ""
-    if device == "SERVER":
-        return "-PROD"
-    elif device == "LIVE":
-        return "-LIVE"
-    else:
-        return "-DEV"
-
-def _apply_env_suffix(name: str) -> str:
-    suffix = _get_env_suffix()
-    return f"{name}{suffix}"
 
 def _headers() -> Dict[str, str]:
     """Return ElevenLabs auth headers. Fail fast when misconfigured."""
@@ -147,36 +145,6 @@ async def _get_or_create_post_call_webhook(client: httpx.AsyncClient) -> Optiona
     return None
 
 
-async def _validate_voice_exists(voice_id: str) -> bool:
-    """
-    Check if a voice_id still exists in ElevenLabs.
-    Returns True if voice exists, False if deleted/not found.
-    """
-    if not voice_id:
-        return False
-    
-    log.info("Validating voice_id: %s", voice_id)
-    client = await get_elevenlabs_client()
-    try:
-        resp = await client.get(
-            f"/voices/{voice_id}",
-            headers=_headers(),
-            timeout=15.0,
-        )
-        log.info("Voice validation response: %s", resp.status_code)
-        if resp.status_code == 200:
-            return True
-        elif resp.status_code == 404:
-            log.warning("Voice %s not found in ElevenLabs", voice_id)
-            return False
-        else:
-            log.warning("Voice validation returned %s: %s", resp.status_code, resp.text[:200])
-            return False
-    except Exception as e:
-        log.warning("Voice validation error for %s: %s", voice_id, e)
-        return False
-
-
 async def get_agent_id_from_influencer(db: AsyncSession, influencer_id: str) -> str:
     """
     Looks up the ElevenLabs agent id stored on the Influencer row.
@@ -197,18 +165,19 @@ def _build_agent_patch_payload(
 ) -> Dict[str, Any]:
     
     agent_cfg: Dict[str, Any] = {} 
+    agent_cfg["first_message"] = DEFAULT_FIRST_MESSAGE_TEMPLATE
 
-    if any(v is not None for v in (prompt_text, llm, temperature, max_tokens)):
-        prompt_block: Dict[str, Any] = {}
-        if prompt_text is not None:
-            prompt_block["prompt"] = prompt_text
-        if llm is not None:
-            prompt_block["llm"] = llm
-        if temperature is not None:
-            prompt_block["temperature"] = temperature
-        if max_tokens is not None:
-            prompt_block["max_tokens"] = max_tokens
-        agent_cfg["prompt"] = prompt_block
+    prompt_block: Dict[str, Any] = {
+        "llm": llm or DEFAULT_AGENT_LLM,
+        "cascade_timeout_seconds": DEFAULT_CASCADE_TIMEOUT_SECS,
+    }
+    if prompt_text is not None:
+        prompt_block["prompt"] = prompt_text
+    if temperature is not None:
+        prompt_block["temperature"] = temperature
+    if max_tokens is not None:
+        prompt_block["max_tokens"] = max_tokens
+    agent_cfg["prompt"] = prompt_block
 
     agent_cfg["tools"] = [
         {
@@ -239,20 +208,24 @@ def _build_agent_patch_payload(
 
     return {
         "conversation_config": {
+            "asr": {
+                "provider": DEFAULT_ASR_PROVIDER,
+            },
+            "turn": {
+                "turn_timeout": DEFAULT_TURN_TIMEOUT_SECS,
+                "turn_eagerness": DEFAULT_TURN_EAGERNESS,
+            },
+            "conversation": {
+                "max_duration_seconds": DEFAULT_MAX_CONVERSATION_SECS,
+            },
             "agent": agent_cfg,
-            "client": {
-                "overrides": {
-                    "agent": {
-                         "first_message": True,
-                         "language": True,
-                         "prompt": {
-                             "prompt": True,
-                         },
-                    },
-                    "tts": {
-                        "voice_id": True,
-                    }
-                }
+            "tts": {
+                "model_id": DEFAULT_TTS_MODEL_ID,
+            },
+        },
+        "platform_settings": {
+            "overrides": {
+                "conversation_config_override": build_conversation_config_override()
             }
         }
     }
@@ -810,8 +783,10 @@ async def get_signed_url(
     if not await get_follow(db, influencer_id, user_id):
         raise HTTPException(status_code=403, detail="You must follow the influencer to interact.")
         
+    feature, is_18 = await resolve_voice_billing_mode(db, user_id, influencer_id)
+
     ok, cost_cents, free_left = await can_afford(
-        db, user_id=user_id, influencer_id=influencer_id, feature="live_chat", units=10
+        db, user_id=user_id, influencer_id=influencer_id, feature=feature, units=10, is_18=is_18
     )
 
     if not ok:
@@ -824,7 +799,7 @@ async def get_signed_url(
             },
         )
     
-    credits_remainder_secs = await get_remaining_units(db, user_id,influencer_id, feature="live_chat")
+    credits_remainder_secs = await get_remaining_units(db, user_id,influencer_id, feature=feature, is_18=is_18)
 
     agent_id = await get_agent_id_from_influencer(db, influencer_id)
     chat_id = await get_or_create_chat(db, user_id, influencer_id)
@@ -866,8 +841,10 @@ async def get_conversation_token(
     if not await get_follow(db, influencer_id, user_id):
         raise HTTPException(status_code=403, detail="You must follow the influencer to interact.")
         
+    feature, is_18 = await resolve_voice_billing_mode(db, user_id, influencer_id)
+
     ok, cost_cents, free_left = await can_afford(
-        db, user_id=user_id, influencer_id=influencer_id, feature="live_chat", units=10
+        db, user_id=user_id, influencer_id=influencer_id, feature=feature, units=10, is_18=is_18
     )
 
     if not ok:
@@ -880,27 +857,70 @@ async def get_conversation_token(
             },
         )
     
-    agent_id = await get_agent_id_from_influencer(db, influencer_id)
-    # Sequential to avoid SQLAlchemy AsyncSession concurrent access issue
-    prompt_template = await get_global_prompt(db, True)
+    # ── OPT: Single influencer fetch (was duplicated via get_agent_id_from_influencer) ──
     influencer = await db.get(Influencer, influencer_id)
-    chat_id = await get_or_create_chat(db, user_id, influencer_id)
-
     if not influencer:
         raise HTTPException(404, "Influencer not found")
-    
+    agent_id = influencer.influencer_agent_id_third_part
+    if not agent_id:
+        raise HTTPException(404, "Influencer agent_id not found")
+
     bio_ctx = extract_influencer_bio_context(influencer)
     persona_likes = bio_ctx.likes
     persona_dislikes = bio_ctx.dislikes
     influencer_stages = bio_ctx.stages
-    # Get stage prompts from DB, with potential bio_json override
-    stages = await get_relationship_stage_prompts(db)
     personality_rules = bio_ctx.personality_rules
     tone = bio_ctx.tone
     mbti_archetype = bio_ctx.mbti_archetype
     mbti_addon = bio_ctx.mbti_rules_addon
-    mbti_rules = await get_mbti_rules_for_archetype(db, mbti_archetype, mbti_addon)
     daily_context = ""
+
+    # ── OPT: Parallel Wave 1 — independent DB lookups via dedicated sessions ──
+    async def _w1_prompt_template():
+        async with SessionLocal() as s:
+            return await get_global_prompt(s, True)
+
+    async def _w1_chat_id():
+        async with SessionLocal() as s:
+            return await get_or_create_chat(s, user_id, influencer_id)
+
+    async def _w1_relationship():
+        async with SessionLocal() as s:
+            return await get_or_create_relationship(s, int(user_id), influencer_id)
+
+    async def _w1_stages():
+        async with SessionLocal() as s:
+            return await get_relationship_stage_prompts(s)
+
+    async def _w1_mbti():
+        async with SessionLocal() as s:
+            return await get_mbti_rules_for_archetype(s, mbti_archetype, mbti_addon)
+
+    async def _w1_time_ctx():
+        async with SessionLocal() as s:
+            return await get_time_context(s, user_timezone)
+
+    prompt_template, chat_id, rel, stages, mbti_rules, time_context = await asyncio.gather(
+        _w1_prompt_template(),
+        _w1_chat_id(),
+        _w1_relationship(),
+        _w1_stages(),
+        _w1_mbti(),
+        _w1_time_ctx(),
+    )
+
+    now = datetime.now(timezone.utc)
+    days_idle = apply_inactivity_decay(rel, now)
+
+    can_ask = (
+        rel.state == "DATING"
+        and rel.safety >= 70
+        and rel.trust >= 75
+        and rel.closeness >= 70
+        and rel.attraction >= 65
+    )
+
+    dtr_goal = plan_dtr_goal(rel, can_ask)
 
     history = redis_history(chat_id)
 
@@ -914,69 +934,69 @@ async def get_conversation_token(
 
     # Scope recent_ctx to current session only (excludes previous call messages)
     current_session_msgs = _messages_since_session_break(history.messages)
-    
+
     if current_session_msgs:
         recent_ctx = "\n".join(
-            f"{m.type}: {m.content}" 
-            for m in current_session_msgs[-6:] 
-            if getattr(m, "type", None) != "system" 
+            f"{m.type}: {m.content}"
+            for m in current_session_msgs[-20:]
+            if getattr(m, "type", None) != "system"
             and "[SESSION BREAK]" not in getattr(m, "content", "")
             and getattr(m, "content", "").strip() != "..."
         )
     else:
-        # Fallback to the last 4 historical messages if this is a fresh session
+        # Fallback to the last 20 historical messages if this is a fresh session
         recent_ctx = "\n".join(
-            f"{m.type}: {m.content}" 
-            for m in history.messages[-4:] 
+            f"{m.type}: {m.content}"
+            for m in history.messages[-20:]
             if getattr(m, "type", None) != "system"
             and "[SESSION BREAK]" not in getattr(m, "content", "")
             and getattr(m, "content", "").strip() != "..."
         )
 
+    # ── OPT: Parallel Wave 2 — memory + user data via dedicated sessions ──
+    async def _w2_users_name():
+        async with SessionLocal() as s:
+            return await _build_user_name_block(s, user_id)
 
-    now = datetime.now(timezone.utc)
-    rel = await get_or_create_relationship(db, int(user_id), influencer_id)
-    days_idle = apply_inactivity_decay(rel, now)
+    async def _w2_memories():
+        async with SessionLocal() as s:
+            return await get_memory_only_list(s, user_id, influencer_id, exclude_sender="system")
 
-    can_ask = (
-        rel.state == "DATING"
-        and rel.safety >= 70
-        and rel.trust >= 75
-        and rel.closeness >= 70
-        and rel.attraction >= 65
+    async def _w2_ai_memories():
+        async with SessionLocal() as s:
+            ai_mem_query = select(Memory.content).where(
+                Memory.chat_id.in_(
+                    select(Chat.id).where(
+                        Chat.user_id == user_id, Chat.influencer_id == influencer_id
+                    )
+                ),
+                Memory.sender == "system"
+            ).order_by(Memory.created_at.desc()).limit(200)
+            ai_mem_res = await s.execute(ai_mem_query)
+            return [row[0] for row in ai_mem_res.fetchall()]
+
+    async def _w2_credits():
+        async with SessionLocal() as s:
+            return await get_remaining_units(s, user_id, influencer_id, feature="live_chat")
+
+    users_name, memories, ai_mem_list, credits_remainder_secs = await asyncio.gather(
+        _w2_users_name(),
+        _w2_memories(),
+        _w2_ai_memories(),
+        _w2_credits(),
     )
 
-    dtr_goal = plan_dtr_goal(rel, can_ask)
-    time_context = await get_time_context(db, user_timezone)
-
-    # ── Phase 1: Quick DB fetches (sequential on shared session) ──
-    users_name = await _build_user_name_block(db, user_id)
-    # Use curated memories only (not raw messages) — much smaller, higher-quality dataset
-    memories = await get_memory_only_list(db, user_id, influencer_id, exclude_sender="system")
-
-    # Fetch AI memories directly (sender="system") with LIMIT
-    ai_mem_query = select(Memory.content).where(
-        Memory.chat_id.in_(
-            select(Chat.id).where(
-                Chat.user_id == user_id, Chat.influencer_id == influencer_id
-            )
-        ),
-        Memory.sender == "system"
-    ).order_by(Memory.created_at.desc()).limit(200)
-    ai_mem_res = await db.execute(ai_mem_query)
-    ai_mem_list = [row[0] for row in ai_mem_res.fetchall()]
-
-    credits_remainder_secs = await get_remaining_units(db, user_id, influencer_id, feature="live_chat")
-
-    # ── Phase 2: All slow I/O in parallel (~2-3s instead of ~8s) ──
-    # Check Redis cache for summaries first (5 min TTL avoids redundant LLM calls on reconnects)
-    import redis as _redis
-    _rclient = _redis.from_url(settings.REDIS_URL, decode_responses=True)
-    _MEM_SUMMARY_TTL = 60  # 1 minute
+    # ── OPT: Async Redis pool (was creating sync connection per-request) ──
+    from app.utils.infrastructure.redis_pool import get_redis
+    _rclient = await get_redis()
+    _MEM_SUMMARY_TTL = 86400  # 24h safety — invalidated on write by store_facts_batch
+    _GREETING_TTL = 5      # seconds — skip LLM on rapid reconnects
     _mem_cache_key = f"mem_summary:{chat_id}"
     _ai_mem_cache_key = f"ai_mem_summary:{chat_id}"
-    cached_mem = _rclient.get(_mem_cache_key)
-    cached_ai_mem = _rclient.get(_ai_mem_cache_key)
+    _greeting_cache_key = f"greeting:{chat_id}"
+    cached_mem = await _rclient.get(_mem_cache_key)
+    cached_ai_mem = await _rclient.get(_ai_mem_cache_key)
+    cached_greeting = await _rclient.get(_greeting_cache_key)
 
     async def _fetch_token() -> str:
         try:
@@ -1004,21 +1024,12 @@ async def get_conversation_token(
             raise HTTPException(status_code=502, detail="Token not returned by ElevenLabs")
         return t
 
-    if cached_mem and cached_ai_mem:
-        # Cache hit — skip LLM summarization entirely
-        memory = cached_mem
-        ai_mem_block = cached_ai_mem
-        greeting, token = await asyncio.gather(
-            _generate_contextual_greeting(db, chat_id, influencer_id, user_timezone),
-            _fetch_token(),
-        )
-        log.info("get_conversation_token.cache_hit chat=%s", chat_id)
-    else:
-        # Cache miss — run LLM summarization and cache results
-        memory, ai_mem_block, greeting, token = await asyncio.gather(
-            summarize_memory_list(memories or []),
-            summarize_ai_memory_list(ai_mem_list),
-            build_call_greeting(
+    # ── OPT: Greeting now cached (45s TTL) to skip LLM on reconnects ──
+    async def _resolve_greeting():
+        if cached_greeting:
+            log.info("get_conversation_token.greeting_cache_hit chat=%s", chat_id)
+            return cached_greeting
+        g = await build_call_greeting(
             db=db,
             chat_id=chat_id,
             influencer_id=influencer_id,
@@ -1028,12 +1039,34 @@ async def get_conversation_token(
             rel=rel,
             stages=stages,
             influencer_stages=influencer_stages,
-        ),
+        )
+        if g:
+            try:
+                await _rclient.setex(_greeting_cache_key, _GREETING_TTL, g)
+            except Exception as exc:
+                log.warning("get_conversation_token.greeting_cache_set_failed chat=%s err=%s", chat_id, exc)
+        return g
+
+    if cached_mem and cached_ai_mem:
+        # Cache hit — skip LLM summarization entirely
+        memory = cached_mem
+        ai_mem_block = cached_ai_mem
+        greeting, token = await asyncio.gather(
+            _resolve_greeting(),
+            _fetch_token(),
+        )
+        log.info("get_conversation_token.cache_hit chat=%s", chat_id)
+    else:
+        # Cache miss — run LLM summarization and cache results
+        memory, ai_mem_block, greeting, token = await asyncio.gather(
+            summarize_memory_list(memories or []),
+            summarize_ai_memory_list(ai_mem_list),
+            _resolve_greeting(),
             _fetch_token(),
         )
         try:
-            _rclient.setex(_mem_cache_key, _MEM_SUMMARY_TTL, memory)
-            _rclient.setex(_ai_mem_cache_key, _MEM_SUMMARY_TTL, ai_mem_block)
+            await _rclient.setex(_mem_cache_key, _MEM_SUMMARY_TTL, memory)
+            await _rclient.setex(_ai_mem_cache_key, _MEM_SUMMARY_TTL, ai_mem_block)
             log.info("get_conversation_token.cache_set chat=%s ttl=%d", chat_id, _MEM_SUMMARY_TTL)
         except Exception as exc:
             log.warning("get_conversation_token.cache_set_failed chat=%s err=%s", chat_id, exc)
@@ -1149,6 +1182,56 @@ async def save_pending_conversation(
     return chat_id
 
 
+async def claim_billing_slot(db: AsyncSession, conversation_id: str) -> bool:
+    """Atomically mark a conversation as billing-in-progress.
+
+    Returns True if this call won the race (status flipped to 'billing').
+    Returns False if it was already billed/billing (no rows affected).
+
+    NOTE: Does NOT commit — the caller is responsible for committing after
+    a successful charge, or resetting status on failure.
+    """
+    from sqlalchemy import update as sa_update
+
+    result = await db.execute(
+        sa_update(CallRecord)
+        .where(
+            CallRecord.conversation_id == conversation_id,
+            CallRecord.status.notin_(["billing", "billed"]),
+        )
+        .values(status="billing")
+    )
+    await db.flush()
+    return (result.rowcount or 0) > 0
+
+
+async def mark_billing_done(db: AsyncSession, conversation_id: str) -> None:
+    """Flip status from 'billing' → 'billed' after successful charge."""
+    from sqlalchemy import update as sa_update
+
+    await db.execute(
+        sa_update(CallRecord)
+        .where(CallRecord.conversation_id == conversation_id)
+        .values(status="billed")
+    )
+
+
+async def reset_billing_slot(db: AsyncSession, conversation_id: str) -> None:
+    """Reset status back to 'done' when charge fails, allowing retry."""
+    from sqlalchemy import update as sa_update
+
+    await db.execute(
+        sa_update(CallRecord)
+        .where(
+            CallRecord.conversation_id == conversation_id,
+            CallRecord.status == "billing",
+        )
+        .values(status="done")
+    )
+    await db.commit()
+
+
+# Keep a thin backwards-compat wrapper so existing call-sites don't break
 async def was_already_billed(db: AsyncSession, conversation_id: str) -> bool:
     q = select(CallRecord.status).where(CallRecord.conversation_id == conversation_id)
     res = await db.execute(q)
@@ -1200,221 +1283,220 @@ async def register_conversation(
     return {"ok": True, "conversation_id": conversation_id}
 
 
-@router.post("/conversations/{conversation_id}/finalize")
-async def finalize_conversation(
-    conversation_id: str,
-    body: FinalizeConversationBody,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    if body.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized")
+# @router.post("/conversations/{conversation_id}/finalize")
+# async def finalize_conversation(
+#     conversation_id: str,
+#     body: FinalizeConversationBody,
+#     current_user: User = Depends(get_current_user),
+#     db: AsyncSession = Depends(get_db),
+# ):
+#     if body.user_id != current_user.id:
+#         raise HTTPException(status_code=403, detail="Not authorized")
     
-    # OPTIMIZATION: Quick status check (max 5 seconds) instead of blocking for minutes
-    client = await get_elevenlabs_client()
-    try:
-        snapshot = await _wait_until_terminal_status(
-            client,
-            conversation_id,
-            max_wait_secs=5,  # Quick check only
-        )
-        snapshot = await _ensure_transcript_snapshot(client, conversation_id, snapshot)
-        status = (snapshot.get("status") or "").lower()
-    except Exception as exc:
-        log.warning("finalize.quick_check_failed conv=%s err=%s", conversation_id, exc)
-        status = "processing"
-        snapshot = {}
+#     # OPTIMIZATION: Quick status check (max 5 seconds) instead of blocking for minutes
+#     client = await get_elevenlabs_client()
+#     try:
+#         snapshot = await _wait_until_terminal_status(
+#             client,
+#             conversation_id,
+#             max_wait_secs=5,  # Quick check only
+#         )
+#         snapshot = await _ensure_transcript_snapshot(client, conversation_id, snapshot)
+#         status = (snapshot.get("status") or "").lower()
+#     except Exception as exc:
+#         log.warning("finalize.quick_check_failed conv=%s err=%s", conversation_id, exc)
+#         status = "processing"
+#         snapshot = {}
     
-    # If not done yet, schedule background processing and return immediately
-    if status not in {"done", "failed"}:
-        log.info("finalize.scheduling_background_poll conv=%s status=%s", conversation_id, status)
+#     # If not done yet, schedule background processing and return immediately
+#     if status not in {"done", "failed"}:
+#         log.info("finalize.scheduling_background_poll conv=%s status=%s", conversation_id, status)
         
-        # Look up chat_id for background task
-        chat_id = None
-        try:
-            res = await db.execute(
-                select(CallRecord.chat_id, CallRecord.influencer_id).where(
-                    CallRecord.conversation_id == conversation_id
-                )
-            )
-            row = res.first()
-            if row:
-                chat_id = row[0]
-                influencer_id_from_db = row[1]
-                if not body.influencer_id and influencer_id_from_db:
-                    body.influencer_id = influencer_id_from_db
-        except Exception:
-            pass
+#         # Look up chat_id for background task
+#         chat_id = None
+#         try:
+#             res = await db.execute(
+#                 select(CallRecord.chat_id, CallRecord.influencer_id).where(
+#                     CallRecord.conversation_id == conversation_id
+#                 )
+#             )
+#             row = res.first()
+#             if row:
+#                 chat_id = row[0]
+#                 influencer_id_from_db = row[1]
+#                 if not body.influencer_id and influencer_id_from_db:
+#                     body.influencer_id = influencer_id_from_db
+#         except Exception:
+#             pass
         
-        # Schedule background processing
-        try:
-            asyncio.create_task(
-                _poll_and_persist_conversation(
-                    conversation_id,
-                    user_id=body.user_id,
-                    influencer_id=body.influencer_id,
-                    chat_id=chat_id,
-                )
-            )
-        except Exception as exc:
-            log.warning("finalize.background_schedule_failed conv=%s err=%s", conversation_id, exc)
+#         # Schedule background processing
+#         try:
+#             asyncio.create_task(
+#                 _poll_and_persist_conversation(
+#                     conversation_id,
+#                     user_id=body.user_id,
+#                     influencer_id=body.influencer_id,
+#                     chat_id=chat_id,
+#                 )
+#             )
+#         except Exception as exc:
+#             log.warning("finalize.background_schedule_failed conv=%s err=%s", conversation_id, exc)
         
-        return {
-            "ok": True,
-            "conversation_id": conversation_id,
-            "status": "processing",
-            "charged": False,
-            "message": "Conversation still processing. Polling in background. Check status via GET /elevenlabs/calls/{conversation_id}",
-            "refresh_required": False,
-        }
+#         return {
+#             "ok": True,
+#             "conversation_id": conversation_id,
+#             "status": "processing",
+#             "charged": False,
+#             "message": "Conversation still processing. Polling in background. Check status via GET /elevenlabs/calls/{conversation_id}",
+#             "refresh_required": False,
+#         }
     
-    # Conversation is done or failed - process immediately
-    status = (snapshot.get("status") or "").lower()
-    total_seconds = _extract_total_seconds(snapshot)
-    resolved_influencer_id = body.influencer_id
-    normalized_transcript = _normalize_transcript(snapshot)
+#     # Conversation is done or failed - process immediately
+#     status = (snapshot.get("status") or "").lower()
+#     total_seconds = _extract_total_seconds(snapshot)
+#     resolved_influencer_id = body.influencer_id
+#     normalized_transcript = _normalize_transcript(snapshot)
 
-    chat_id = None
-    try:
-        res = await db.execute(
-            select(CallRecord.chat_id, CallRecord.influencer_id).where(
-                CallRecord.conversation_id == conversation_id
-            )
-        )
-        row = res.first()
-        if row:
-            chat_id = row[0]
-            resolved_influencer_id = resolved_influencer_id or row[1]
-    except Exception as exc:
-        log.warning("finalize.lookup_call_record_failed conv=%s err=%s", conversation_id, exc)
+#     chat_id = None
+#     try:
+#         res = await db.execute(
+#             select(CallRecord.chat_id, CallRecord.influencer_id).where(
+#                 CallRecord.conversation_id == conversation_id
+#             )
+#         )
+#         row = res.first()
+#         if row:
+#             chat_id = row[0]
+#             resolved_influencer_id = resolved_influencer_id or row[1]
+#     except Exception as exc:
+#         log.warning("finalize.lookup_call_record_failed conv=%s err=%s", conversation_id, exc)
 
-    if not chat_id and resolved_influencer_id:
-        try:
-            chat_id = await get_or_create_chat(db, body.user_id, resolved_influencer_id)
-        except Exception as exc:
-            log.warning("finalize.create_chat_failed conv=%s err=%s", conversation_id, exc)
+#     if not chat_id and resolved_influencer_id:
+#         try:
+#             chat_id = await get_or_create_chat(db, body.user_id, resolved_influencer_id)
+#         except Exception as exc:
+#             log.warning("finalize.create_chat_failed conv=%s err=%s", conversation_id, exc)
 
-    if chat_id:
-        try:
-            await _persist_transcript_to_chat(
-                db,
-                conversation_json=snapshot,
-                chat_id=chat_id,
-                conversation_id=conversation_id,
-                influencer_id=resolved_influencer_id,
-            )
-        except Exception as exc:
-            log.warning(
-                "finalize.persist_transcript_failed conv=%s chat=%s err=%s",
-                conversation_id,
-                chat_id,
-                exc,
-            )
+#     if chat_id:
+#         try:
+#             await _persist_transcript_to_chat(
+#                 db,
+#                 conversation_json=snapshot,
+#                 chat_id=chat_id,
+#                 conversation_id=conversation_id,
+#                 influencer_id=resolved_influencer_id,
+#             )
+#         except Exception as exc:
+#             log.warning(
+#                 "finalize.persist_transcript_failed conv=%s chat=%s err=%s",
+#                 conversation_id,
+#                 chat_id,
+#                 exc,
+#             )
 
-    meta: Dict[str, Any] = {
-        "session_id": body.sid or conversation_id,
-        "conversation_id": conversation_id,
-        "status": status,
-        "agent_id": snapshot.get("agent_id"),
-        "has_audio": snapshot.get("has_audio", False),
-        "has_user_audio": snapshot.get("has_user_audio", False),
-        "has_response_audio": snapshot.get("has_response_audio", False),
-        "start_time_unix_secs": (snapshot.get("metadata") or {}).get("start_time_unix_secs"),
-        "source": "client_finalize",
-    }
+#     meta: Dict[str, Any] = {
+#         "session_id": body.sid or conversation_id,
+#         "conversation_id": conversation_id,
+#         "status": status,
+#         "agent_id": snapshot.get("agent_id"),
+#         "has_audio": snapshot.get("has_audio", False),
+#         "has_user_audio": snapshot.get("has_user_audio", False),
+#         "has_response_audio": snapshot.get("has_response_audio", False),
+#         "start_time_unix_secs": (snapshot.get("metadata") or {}).get("start_time_unix_secs"),
+#         "source": "client_finalize",
+#     }
 
-    if resolved_influencer_id:
-        meta["influencer_id"] = resolved_influencer_id
+#     if resolved_influencer_id:
+#         meta["influencer_id"] = resolved_influencer_id
 
-    transcript_synced = bool(normalized_transcript)
+#     transcript_synced = bool(normalized_transcript)
 
-    try:
-        call_record = await db.get(CallRecord, conversation_id)
-        if not call_record:
-            call_record = CallRecord(
-                conversation_id=conversation_id,
-                user_id=body.user_id,
-                influencer_id=resolved_influencer_id,
-                chat_id=chat_id,
-                sid=body.sid,
-            )
-        call_record.status = status
-        call_record.call_duration_secs = total_seconds
-        call_record.transcript = normalized_transcript or call_record.transcript
-        if resolved_influencer_id:
-            call_record.influencer_id = resolved_influencer_id
-        if chat_id:
-            call_record.chat_id = chat_id
-        db.add(call_record)
-        await db.commit()
-    except Exception as exc:
-        log.warning(
-            "finalize.update_call_record_failed conv=%s err=%s", conversation_id, exc
-        )
+#     try:
+#         call_record = await db.get(CallRecord, conversation_id)
+#         if not call_record:
+#             call_record = CallRecord(
+#                 conversation_id=conversation_id,
+#                 user_id=body.user_id,
+#                 influencer_id=resolved_influencer_id,
+#                 chat_id=chat_id,
+#                 sid=body.sid,
+#             )
+#         call_record.status = status
+#         call_record.call_duration_secs = total_seconds
+#         call_record.transcript = normalized_transcript or call_record.transcript
+#         if resolved_influencer_id:
+#             call_record.influencer_id = resolved_influencer_id
+#         if chat_id:
+#             call_record.chat_id = chat_id
+#         db.add(call_record)
+#         await db.commit()
+#     except Exception as exc:
+#         log.warning(
+#             "finalize.update_call_record_failed conv=%s err=%s", conversation_id, exc
+#         )
 
-    if status == "failed":
-        log.warning("Conversation %s ended as FAILED; skipping charge.", conversation_id)
-        return {
-            "ok": False,
-            "reason": "failed",
-            "conversation_id": conversation_id,
-            "status": status,
-            "total_seconds": total_seconds,
-            "meta": meta,
-            "transcript_synced": transcript_synced,
-            "refresh_required": transcript_synced,
-        }
+#     if status == "failed":
+#         log.warning("Conversation %s ended as FAILED; skipping charge.", conversation_id)
+#         return {
+#             "ok": False,
+#             "reason": "failed",
+#             "conversation_id": conversation_id,
+#             "status": status,
+#             "total_seconds": total_seconds,
+#             "meta": meta,
+#             "transcript_synced": transcript_synced,
+#             "refresh_required": transcript_synced,
+#         }
 
-    if status != "done":
-        return {
-            "ok": True,
-            "conversation_id": conversation_id,
-            "status": status,
-            "charged": False,
-            "total_seconds": total_seconds,
-            "meta": meta,
-            "note": "Conversation not done yet; waiting for webhook or try again later.",
-            "transcript_synced": transcript_synced,
-            "refresh_required": transcript_synced,
-        }
+#     if status != "done":
+#         return {
+#             "ok": True,
+#             "conversation_id": conversation_id,
+#             "status": status,
+#             "charged": False,
+#             "total_seconds": total_seconds,
+#             "meta": meta,
+#             "note": "Conversation not done yet; waiting for webhook or try again later.",
+#             "transcript_synced": transcript_synced,
+#             "refresh_required": transcript_synced,
+#         }
 
-    if body.charge_if_not_billed and not await was_already_billed(db, conversation_id):
-        
-        chat_id = meta.get("chat_id") if isinstance(meta, dict) else None
-        if not chat_id:
-            raise HTTPException(400, "Missing chat_id in meta for billing")
+#     charged = False
+#     if body.charge_if_not_billed and chat_id and resolved_influencer_id and await claim_billing_slot(db, conversation_id):
+#         try:
+#             feature, is_18 = await resolve_voice_billing_mode(db, body.user_id, resolved_influencer_id)
 
-        influencer_id = await _get_influencer_id_from_chat(db, chat_id)
+#             await charge_feature(
+#                 db,
+#                 user_id=body.user_id,
+#                 influencer_id=resolved_influencer_id,
+#                 feature=feature,
+#                 units=math.ceil(total_seconds),
+#                 is_18=is_18,
+#                 meta=meta,
+#                 allow_partial=True,
+#                 auto_commit=False,
+#             )
+#             await mark_billing_done(db, conversation_id)
+#             await db.commit()
+#             charged = True
+#         except Exception as exc:
+#             log.exception(
+#                 "finalize.charge_failed conv=%s err=%s — resetting billing slot",
+#                 conversation_id, exc,
+#             )
+#             await reset_billing_slot(db, conversation_id)
 
-        await charge_feature(
-            db,
-            user_id=body.user_id,
-            influencer_id=influencer_id,
-            feature="live_chat",
-            units=math.ceil(total_seconds),
-            meta=meta,
-        )
-        return {
-            "ok": True,
-            "conversation_id": conversation_id,
-            "status": status,
-            "charged": True,
-            "total_seconds": total_seconds,
-            "meta": meta,
-            "transcript_synced": transcript_synced,
-            "refresh_required": transcript_synced,
-        }
-
-    return {
-        "ok": True,
-        "conversation_id": conversation_id,
-        "status": status,
-        "charged": False,
-        "total_seconds": total_seconds,
-        "meta": meta,
-        "transcript_synced": transcript_synced,
-        "refresh_required": transcript_synced,
-    }
+#     return {
+#         "ok": True,
+#         "conversation_id": conversation_id,
+#         "status": status,
+#         "charged": charged,
+#         "total_seconds": total_seconds,
+#         "meta": meta,
+#         "transcript_synced": transcript_synced,
+#         "refresh_required": transcript_synced,
+#     }
 
 
 def _default_auto_commit() -> bool:
@@ -1422,53 +1504,7 @@ def _default_auto_commit() -> bool:
     return True
 
 def _parse_labels(labels_json: str | None) -> str | None:
-
-    if not labels_json:
-        return None
-    try:
-        obj = json.loads(labels_json)
-        if not isinstance(obj, dict):
-            raise ValueError("labels_json must be a JSON object")
-        return json.dumps(obj)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Invalid labels_json: {e}")
-
-
-async def _elevenlabs_create_voice(
-    *,
-    name: str,
-    description: str | None,
-    labels_str: str | None,
-    remove_background_noise: bool,
-    multipart_files: list[tuple[str, tuple[str, bytes, str]]],
-) -> dict:
-    data = {
-        "name": _apply_env_suffix(name),
-        "remove_background_noise": "true" if remove_background_noise else "false",
-    }
-    if description is not None:
-        data["description"] = description
-    if labels_str is not None:
-        data["labels"] = labels_str
-
-    client = await get_elevenlabs_client()
-    r = await client.post(
-        "/voices/add",
-        headers=_headers(),
-        data=data,
-        files=multipart_files,
-        timeout=60.0,
-    )
-
-    if r.status_code >= 400:
-        log.error("ElevenLabs /v1/voices/add failed: %s %s", r.status_code, r.text[:1500])
-        raise HTTPException(status_code=r.status_code, detail=r.text)
-
-    payload = r.json() or {}
-    if not payload.get("voice_id"):
-        raise HTTPException(status_code=502, detail="ElevenLabs returned no voice_id")
-
-    return payload
+    return _voices_gateway.parse_labels(labels_json)
 
 
 @router.post("/voices/add")
@@ -1500,7 +1536,7 @@ async def eleven_create_voice_clone(
             ("files", (f.filename or "sample.mp3", b, ctype))
         )
 
-    payload = await _elevenlabs_create_voice(
+    payload = await _voices_gateway.create_voice(
         name=name,
         description=description,
         labels_str=labels_str,

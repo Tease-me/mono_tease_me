@@ -32,7 +32,6 @@ from app.services.chat_buffer_service import (
     flush_buffer,
     cleanup_buffer,
     get_message_context,
-    save_user_message,
 )
 
 SECRET_KEY = settings.SECRET_KEY
@@ -142,12 +141,8 @@ async def websocket_chat(
                 })
                 continue
 
-            # Save user message
-            try:
-                await save_user_message(db, chat_id, text, Message18)
-            except Exception:
-                log.exception("[WS %s] Failed to save user message", chat_id)
-
+            # DO NOT save user message here to avoid TOCTOU orphaned messages.
+            # Message is saved in flush_buffer only after successful billing.
             # Moderation check
             try:
                 context = await get_message_context(db, chat_id, Message18)
@@ -299,6 +294,7 @@ async def chat_audio(
             units=seconds,
             is_18=True,
             meta={"chat_id": chat_id, "seconds": seconds},
+            auto_commit=False,
         )
 
         user_audio_key = await save_audio_to_s3(
@@ -330,7 +326,7 @@ async def chat_audio(
             embedding=embedding,
         )
         db.add(msg_user)
-        await db.commit()
+        await db.flush()  # flush only; final commit after AI reply for atomicity
 
         ai_reply = await get_ai_reply_via_websocket_18(
             chat_id,
