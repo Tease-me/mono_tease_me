@@ -55,11 +55,12 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
   const displayValue = customAmount > 0 ? `$${customAmount.toFixed(0)}` : "";
   const minCustomAmout = 5;
 
-  // PayPal state
+  // Payment state
   const [isPaying, setIsPaying] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
+  const [provider, setProvider] = useState<"stripe" | "paypal">("stripe");
 
-  const startPayPalTopUp = async () => {
+  const startCheckout = async () => {
     try {
       setIsPaying(true);
       setPayError(null);
@@ -72,24 +73,21 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
 
       const cents = Math.round(dollars * 100);
 
-      // Create PayPal order on backend (cookie auth)
-      const { approve_url, order_id } = await billing.paypalCreateOrder({
-        cents,
-        currency: "AUD",
+      const { payment_url, checkout_id } = await billing.createCheckout({
+        amount_cents: cents,
         influencer_id: influencerTEMPORARY,
+        purpose: "topup",
+        provider,
       });
 
-      // store for return page fallback
-      storage.set(LocalStorageKeys.PayPalOrderId, order_id);
-      storage.set(LocalStorageKeys.PayPalTopUpAmount, String(dollars));
+      // store for return page
+      storage.set(LocalStorageKeys.CheckoutId, checkout_id);
+      storage.set(LocalStorageKeys.TopUpAmount, String(dollars));
 
-      // localStorage.setItem("paypal_topup_order_id", order_id);
-      // localStorage.setItem("paypal_topup_amount", String(dollars));
-
-      // redirect user to PayPal approval page
-      window.location.href = approve_url;
+      // redirect user to payment page
+      window.location.href = payment_url;
     } catch (e: any) {
-      setPayError(e?.message || "PayPal top up failed. Please try again.");
+      setPayError(e?.message || "Payment failed. Please try again.");
       setTopUpState("error");
     } finally {
       setIsPaying(false);
@@ -211,6 +209,22 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
             <h3 className={styles.errorTitle}>{payError}</h3>
           </div>
         )}
+
+        <h3 className={styles.mdText} style={{ marginTop: 16 }}>Payment Method</h3>
+        <div className={styles.quickCreditButtonArea}>
+          <NormalButton
+            text="Stripe"
+            className={styles.quickCreditButton}
+            selected={provider === "stripe"}
+            onClick={() => setProvider("stripe")}
+          />
+          <NormalButton
+            text="PayPal"
+            className={styles.quickCreditButton}
+            selected={provider === "paypal"}
+            onClick={() => setProvider("paypal")}
+          />
+        </div>
       </div>
     );
   };
@@ -289,7 +303,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
           <TabsLayout
             tabs={tabItems}
             activeTab={activeTab}
-            setActiveTab={() => {}}
+            setActiveTab={() => { }}
           />
         </div>
       )}
@@ -349,7 +363,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
                       setTopUpState("low");
                       break;
                     case "low":
-                      startPayPalTopUp();
+                      startCheckout();
                       break;
                     default:
                       break;

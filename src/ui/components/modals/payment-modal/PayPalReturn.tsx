@@ -19,44 +19,41 @@ export default function PayPalReturn() {
   const [influencerName, setInfluencerName] = useState<string | undefined>();
   const navigate = useNavigate();
   const fallbackAmount = useMemo(() => {
-    const raw = storage.get(LocalStorageKeys.PayPalTopUpAmount);
+    const raw = storage.get(LocalStorageKeys.TopUpAmount);
     const parsed = raw ? Number(raw) : NaN;
     return Number.isFinite(parsed) ? parsed : undefined;
   }, []);
   const fallbackInfluencerName = useMemo(() => {
-    const raw = storage.get(LocalStorageKeys.PayPalTopUpInfluencerName);
+    const raw = storage.get(LocalStorageKeys.TopUpInfluencerName);
     return raw?.trim() || undefined;
   }, []);
 
   useEffect(() => {
     (async () => {
-      const params = new URLSearchParams(window.location.search);
-      const tokenOrderId = params.get("token");
-      const order_id =
-        tokenOrderId || storage.get(LocalStorageKeys.PayPalOrderId);
-      const influencer_id =
-        storage.get(LocalStorageKeys.PayPalTopUpInfluencerId)?.trim() ||
-        undefined;
+      // Get checkout_id from localStorage (stored before redirect)
+      const checkout_id = storage.get(LocalStorageKeys.CheckoutId);
 
-      if (!order_id) {
+      if (!checkout_id) {
         setStatus("error");
         return;
       }
 
       try {
-        const res = await billing.paypalCapture({
-          order_id,
-          ...(influencer_id ? { influencer_id } : {}),
+        const res = await billing.verifyCheckout({
+          checkout_id,
         });
 
-        if (res?.ok) {
-          storage.remove(LocalStorageKeys.PayPalOrderId);
-          storage.remove(LocalStorageKeys.PayPalTopUpInfluencerId);
-          storage.remove(LocalStorageKeys.PayPalTopUpAmount);
-          storage.remove(LocalStorageKeys.PayPalTopUpInfluencerName);
+        if (res?.ok && res.status === "succeeded") {
+          storage.remove(LocalStorageKeys.CheckoutId);
+          storage.remove(LocalStorageKeys.TopUpInfluencerId);
+          storage.remove(LocalStorageKeys.TopUpAmount);
+          storage.remove(LocalStorageKeys.TopUpInfluencerName);
 
           setStatus("success");
           setTimeout(() => navigate(Paths.home), 2000);
+        } else if (res?.status === "pending") {
+          // Still processing — could retry or show "pending" state
+          setStatus("error");
         } else {
           setStatus("error");
         }
@@ -80,7 +77,7 @@ export default function PayPalReturn() {
       {status === "loading" ? (
         <div className={styles.loading}>
           <LoadingSpinner />
-          <div className={styles.loadingText}>Capturing your payment...</div>
+          <div className={styles.loadingText}>Verifying your payment...</div>
         </div>
       ) : (
         <div className={styles.resultWrap}>

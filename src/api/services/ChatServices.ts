@@ -1,5 +1,5 @@
 import { Endpoints } from "../urls";
-import { ChatAudioResponse, ChatHistoryResponse, ChatIdResponse, ConversationTokenResponse, SignedUrlResponse } from "../models/chat";
+import { CallDetailsResponse, ChatAudioResponse, ChatHistoryResponse, ChatIdResponse, ConversationTokenResponse, SignedUrlResponse } from "../models/chat";
 import { apiClient } from "../apis";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { storage } from "@/utils/storage";
@@ -103,6 +103,20 @@ export const ChatServices = () => ({
                         influencer_id,
                         user_timezone,
                     },
+                    signal,
+                }
+            );
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    getCallDetails: async (conversation_id: string, signal?: AbortSignal): Promise<CallDetailsResponse> => {
+        try {
+            const response = await apiClient.get(
+                Endpoints.elevenlabs.callDetails(conversation_id),
+                {
                     signal,
                 }
             );

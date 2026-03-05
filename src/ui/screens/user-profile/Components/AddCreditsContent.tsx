@@ -9,6 +9,8 @@ import { apiClient } from "@/api/apis";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 import { storage } from "@/utils/storage";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
+import SvgPack from "@/utils/SvgPack";
+
 
 const billing = BillingServices(apiClient);
 
@@ -44,15 +46,16 @@ export default function AddCreditsContent({
   const handleIncrease = () => setAmount((a) => a + 10);
 
   const handleConfirmPayment = () => {
-    startPayPalTopUp();
+    startCheckout();
   };
 
-  // PayPal state
+  // Payment state
   const [isPaying, setIsPaying] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
+  const [provider, setProvider] = useState<"stripe" | "paypal">("stripe");
   const minCustomAmout = 5;
 
-  const startPayPalTopUp = async () => {
+  const startCheckout = async () => {
     try {
       setIsPaying(true);
       setPayError(null);
@@ -65,22 +68,22 @@ export default function AddCreditsContent({
 
       const cents = Math.round(dollars * 100);
 
-      // Create PayPal order on backend (cookie auth)
-      const { approve_url, order_id } = await billing.paypalCreateOrder({
-        cents,
-        currency: "AUD",
+      const { payment_url, checkout_id } = await billing.createCheckout({
+        amount_cents: cents,
         influencer_id: influencerId,
+        purpose: "topup",
+        provider,
       });
 
-      // store for return page fallback
-      storage.set(LocalStorageKeys.PayPalOrderId, order_id);
-      storage.set(LocalStorageKeys.PayPalTopUpInfluencerId, influencerId);
-      storage.set(LocalStorageKeys.PayPalTopUpAmount, String(dollars));
+      // store for return page
+      storage.set(LocalStorageKeys.CheckoutId, checkout_id);
+      storage.set(LocalStorageKeys.TopUpInfluencerId, influencerId);
+      storage.set(LocalStorageKeys.TopUpAmount, String(dollars));
 
-      // redirect user to PayPal approval page
-      window.location.href = approve_url;
+      // redirect user to payment page
+      window.location.href = payment_url;
     } catch (e: any) {
-      setPayError(e?.message || "PayPal top up failed. Please try again.");
+      setPayError(e?.message || "Payment failed. Please try again.");
     } finally {
       setIsPaying(false);
     }
@@ -134,6 +137,43 @@ export default function AddCreditsContent({
             className={styles.customBtn}
           />
         </div>
+
+
+              <div className={styles.payWithSection}>
+          <div className={styles.payWithRow01}>
+            {" "}
+            <h4
+              style={{
+                textAlign: "center",
+                marginBlock: "16px",
+                
+              }}    >
+              Pay with:
+            </h4>
+          </div>
+          <div className={styles.payWithRow02}>
+                   <NormalButton
+                   color="black"
+           
+            leftIcon={<SvgPack.PayPalLogo/>}
+            className={styles.quickCreditButton}
+            selected={provider === "paypal"}
+            onClick={() => setProvider("paypal")}
+          />
+                   <NormalButton
+           
+            color="black"
+              leftIcon={<SvgPack.CreditCard/>}
+              text="Credit Card"
+            className={styles.quickCreditCardButton}
+            selected={provider === "stripe"}
+            onClick={() => setProvider("stripe")}
+          />
+        
+          </div>
+        </div>
+
+      
         <PrimaryButton
           text="Confirm"
           disabled={amount <= 0 || isPaying}

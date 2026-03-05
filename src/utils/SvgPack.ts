@@ -81,6 +81,13 @@ export default {
     SocialXRed: lazy(() => import("@/assets/svg/iconSocialXRed.svg?react")),
     // End of Social Media Icons
 
+
+    // Payment Icons
+    PayPalLogo: lazy(() => import("@/assets/svg/PayPalLogo.svg?react")),
+    StripeLogo: lazy(() => import("@/assets/svg/StripeLogo.svg?react")),
+    CreditCard: lazy(() => import("@/assets/svg/CreditCard.svg?react")),
+    // End of Payment Icons
+
     Calling: lazy(() => import("@/assets/svg/Calling.svg?react")),
     RecordingStart: lazy(() => import("@/assets/svg/iconStartRecording.svg?react")),
     RecordingStop: lazy(() => import("@/assets/svg/iconStopRecording.svg?react")),

@@ -42,3 +42,21 @@ export interface ConversationTokenResponse {
     prompt?: string;
     native_language?: string;
 }
+
+export interface CallTranscriptEntryResponse {
+    sender: string;
+    text: string;
+    time_in_call_secs: number;
+}
+
+export interface CallDetailsResponse {
+    conversation_id: string;
+    user_id: number;
+    influencer_id: string;
+    chat_id: string;
+    status: string;
+    duration_seconds: number;
+    transcript: CallTranscriptEntryResponse[];
+    created_at: string;
+    agent_id: string | null;
+}

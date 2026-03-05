@@ -25,8 +25,8 @@ export const Endpoints = {
   billing: {
     balance: "/billing/balance",
     topUp: "/billing/topup",
-    paypalCreateOrder: "/billing/paypal/create-order",
-    paypalCapture: "/billing/paypal/capture",
+    createCheckout: "/billing/create-checkout",
+    verifyCheckout: "/billing/verify-checkout",
   },
   chat: {
     start: "/chat",
@@ -57,6 +57,8 @@ export const Endpoints = {
     signed_url: "/elevenlabs/signed-url",
     signed_url_free: "/elevenlabs/signed-url-free",
     signed_landing_url_free: "/elevenlabs/signed-url-free-landing",
+    callDetails: (conversationId: string) =>
+      `/elevenlabs/calls/${encodeURIComponent(conversationId)}`,
     register: (conversationId: string) =>
       `/elevenlabs/conversations/${encodeURIComponent(
         conversationId
@@ -110,7 +112,7 @@ export const Endpoints = {
     start: "/subscriptions/start",
     plans: "/subscriptions/plans",
     cancel: "/subscriptions/cancel",
-    capture: "/subscriptions/paypal/capture",
+    // capture removed — verification happens via /billing/verify-checkout
     list: "/subscriptions/me",
     influencer: (influencerId: string) => `/subscriptions/${influencerId}`,
     influencerActivate: (influencerId: string) => `/subscriptions/${influencerId}/18`,
