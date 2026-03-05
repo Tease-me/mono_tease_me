@@ -23,6 +23,8 @@ import { useChatScroll } from "@/hooks/useChatScroll";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import { DropDownMenuDataModel } from "@/ui/components/inputs/dropdown/DropDownMenu";
 import AdultModePage from "../pages/adult-mode/AdultModePage";
+import AdultModeComingSoon from "../pages/adult-mode/AdultModeComingSoon";
+import { ADULT_MODE_AVAILABLE } from "@/constants/adultModeAvailable";
 import UserNav from "@/ui/components/nav/UserNav";
 import { Modal } from "@/ui/components/modals/Modal";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
@@ -505,7 +507,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
               />
             )}
           </>
-        ) : (
+        ) : ADULT_MODE_AVAILABLE ? (
           <AdultModePage
             onSubscribePressed={handleSubscribePressed}
             onBackClicked={() => {
@@ -515,6 +517,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
             influencerId={influencer?.id ?? ""}
             influencerImageUrl={influencer?.img ?? null}
             influencerName={influencer?.name ?? null}
+          />
+        ) : (
+          <AdultModeComingSoon
+            onBackClicked={() => {
+              setShowSubscriptionPage(false);
+              setAdultModeSwitch(false);
+            }}
           />
         )}
       </div>
