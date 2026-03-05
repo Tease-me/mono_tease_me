@@ -107,7 +107,11 @@ async def extract_memories_from_transcript(
 
             if valid_facts:
                 t_store = _time.perf_counter()
-                stored = await store_facts_batch(db, chat_id, valid_facts)
+                # OPT: Pipeline storage + summarization in parallel
+                stored, _ = await asyncio.gather(
+                    store_facts_batch(db, chat_id, valid_facts, skip_cache_refresh=True),
+                    _refresh_memory_summary_cache(chat_id, new_facts=valid_facts),
+                )
                 store_ms = int((_time.perf_counter() - t_store) * 1000)
                 total_ms = int((_time.perf_counter() - t0) * 1000)
                 log.info(
@@ -585,6 +589,7 @@ async def store_facts_batch(
     chat_id: str,
     facts: list[str],
     sender: str = "user",
+    skip_cache_refresh: bool = False,
 ) -> int:
     """
     Store multiple facts using batch embedding and batched dedup.
@@ -652,4 +657,165 @@ async def store_facts_batch(
             log.error("Failed to store fact=%r chat=%s: %s", fact, chat_id, exc)
 
     log.info("Stored %d/%d facts for chat=%s", stored, len(new_facts), chat_id)
+
+    # ── OPT: Invalidate + refresh memory summary cache after new facts ──
+    if stored > 0 and not skip_cache_refresh:
+        import asyncio as _aio
+        _aio.create_task(_refresh_memory_summary_cache(chat_id, new_facts=new_facts))
+
     return stored
+
+
+async def _refresh_memory_summary_cache(
+    chat_id: str,
+    new_facts: list[str] | None = None,
+) -> None:
+    """Re-compute and cache memory summaries after new facts are written.
+
+    Supports two modes:
+    - **Incremental** (new_facts provided + existing cache): merge new facts
+      into the existing summary with a lightweight LLM call (~0.3-0.5s).
+    - **Full** (cold start / no cache): re-fetch all memories and summarize
+      from scratch (~1-2s).
+    """
+    _SAFETY_TTL = 86400  # 24 hours
+    try:
+        from app.utils.infrastructure.redis_pool import get_redis
+        import asyncio
+        rclient = await get_redis()
+
+        mem_key = f"mem_summary:{chat_id}"
+        ai_key = f"ai_mem_summary:{chat_id}"
+
+        # Check for existing cached summaries (for incremental merge)
+        existing_mem, existing_ai = await asyncio.gather(
+            rclient.get(mem_key),
+            rclient.get(ai_key),
+        )
+
+        if new_facts and existing_mem and existing_ai:
+            # ── Incremental merge: much lighter LLM call ──
+            user_facts = [f for f in new_facts if not f.lower().startswith("ai ")]
+            ai_facts = [f for f in new_facts if f.lower().startswith("ai ")]
+
+            tasks = []
+            if user_facts:
+                tasks.append(_incremental_merge_summary(
+                    existing_mem, user_facts, "user_memories"
+                ))
+            else:
+                tasks.append(_just_return(existing_mem))
+
+            if ai_facts:
+                tasks.append(_incremental_merge_summary(
+                    existing_ai, ai_facts, "ai_memories"
+                ))
+            else:
+                tasks.append(_just_return(existing_ai))
+
+            mem_summary, ai_summary = await asyncio.gather(*tasks)
+
+            await rclient.setex(mem_key, _SAFETY_TTL, mem_summary)
+            await rclient.setex(ai_key, _SAFETY_TTL, ai_summary)
+            log.info(
+                "[MEM-CACHE] incremental merge chat=%s new_facts=%d",
+                chat_id, len(new_facts),
+            )
+            return
+
+        # ── Full re-summarize (cold start fallback) ──
+        # Delete stale entries first
+        await rclient.delete(mem_key, ai_key)
+
+        async with SessionLocal() as db:
+            chat = await db.get(Chat, chat_id)
+            if not chat:
+                log.warning("[MEM-CACHE] chat not found for refresh chat=%s", chat_id)
+                return
+            user_id, influencer_id = chat.user_id, chat.influencer_id
+
+            memories = await get_memory_only_list(
+                db, user_id, influencer_id, exclude_sender="system"
+            )
+
+            ai_mem_query = select(Memory.content).where(
+                Memory.chat_id.in_(
+                    select(Chat.id).where(
+                        Chat.user_id == user_id,
+                        Chat.influencer_id == influencer_id,
+                    )
+                ),
+                Memory.sender == "system",
+            ).order_by(Memory.created_at.desc()).limit(200)
+            ai_mem_res = await db.execute(ai_mem_query)
+            ai_mem_list = [row[0] for row in ai_mem_res.fetchall()]
+
+        mem_summary, ai_summary = await asyncio.gather(
+            summarize_memory_list(memories or []),
+            summarize_ai_memory_list(ai_mem_list),
+        )
+
+        await rclient.setex(mem_key, _SAFETY_TTL, mem_summary)
+        await rclient.setex(ai_key, _SAFETY_TTL, ai_summary)
+        log.info(
+            "[MEM-CACHE] full refresh chat=%s mem_len=%d ai_len=%d",
+            chat_id, len(mem_summary), len(ai_summary),
+        )
+    except Exception as exc:
+        log.warning("[MEM-CACHE] refresh failed chat=%s err=%s", chat_id, exc)
+
+
+async def _just_return(val: str) -> str:
+    """Async identity — used as a no-op task in asyncio.gather."""
+    return val
+
+
+async def _incremental_merge_summary(
+    existing_summary: str,
+    new_facts: list[str],
+    summary_type: str,
+) -> str:
+    """Merge new facts into an existing summary with a lightweight LLM call.
+
+    Much faster than re-summarizing all memories (~0.3-0.5s vs ~1-2s).
+    """
+    facts_block = "\n".join(f"- {f}" for f in new_facts)
+
+    if summary_type == "ai_memories":
+        role_ctx = (
+            "You maintain an AI influencer's behavioral summary. "
+            "Merge the new AI decisions/actions into the existing summary. "
+            "Keep the same category structure. Be concise."
+        )
+    else:
+        role_ctx = (
+            "You maintain a relationship memory summary for an AI persona. "
+            "Merge the new user facts into the existing summary. "
+            "Keep the same category structure. Be concise."
+        )
+
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", role_ctx),
+        ("human",
+         "Existing summary:\n{existing_summary}\n\n"
+         "New facts to incorporate:\n{new_facts}\n\n"
+         "Produce the updated summary. Keep it concise and maintain the same structure. "
+         "Use natural relative time language (e.g., 'just now', 'recently'). "
+         "NEVER output raw dates or timestamps."),
+    ])
+    llm = ChatXAI(
+        xai_api_key=settings.XAI_API_KEY,
+        model="grok-4-1-fast-non-reasoning",
+        temperature=0.2,
+        max_tokens=800,
+    )
+    tracker = UsageTrackingCallback(
+        category="analysis",
+        purpose=f"incremental_merge_{summary_type}",
+    )
+    resp = await (prompt | llm).ainvoke(
+        {"existing_summary": existing_summary, "new_facts": facts_block},
+        config={"callbacks": [tracker]},
+    )
+    result = (resp.content or "").strip()
+    return result if result else existing_summary

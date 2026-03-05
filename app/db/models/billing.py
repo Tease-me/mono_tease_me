@@ -6,7 +6,7 @@ from sqlalchemy import (
     Integer, String, Boolean, Text, ForeignKey, DateTime, JSON, 
     Index, UniqueConstraint
 )
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
 
@@ -97,6 +97,9 @@ class InfluencerCreditTransaction(Base):
     amount_cents: Mapped[int] = mapped_column(Integer)
 
     meta: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
+    amount_cents: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
     
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -216,7 +219,7 @@ class InfluencerSubscription(Base):
     canceled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     cancel_reason: Mapped[str | None] = mapped_column(String, nullable=True)
 
-    provider: Mapped[str | None] = mapped_column(String, nullable=True)  # "paypal" | "stripe"
+    provider: Mapped[str | None] = mapped_column(String, nullable=True)
     provider_customer_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
     provider_subscription_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
 
@@ -236,12 +239,7 @@ class InfluencerSubscription(Base):
         nullable=False,
     )
 
-    # Relationships
-    payments = relationship(
-        "InfluencerSubscriptionPayment",
-        back_populates="subscription",
-        cascade="all, delete-orphan",
-    )
+
 
     __table_args__ = (
         UniqueConstraint("user_id", "influencer_id", name="uq_user_influencer_subscription"),
@@ -285,7 +283,7 @@ class InfluencerSubscriptionAddonPurchase(Base):
     credits_granted: Mapped[int] = mapped_column(Integer, nullable=False)
     currency: Mapped[str] = mapped_column(String, nullable=False, default="USD")
 
-    provider: Mapped[str | None] = mapped_column(String, nullable=True)  # "paypal" | "stripe"
+    provider: Mapped[str | None] = mapped_column(String, nullable=True)
     provider_transaction_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
 
     purchased_at: Mapped[datetime] = mapped_column(
@@ -312,9 +310,9 @@ class InfluencerSubscriptionPayment(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
-    subscription_id: Mapped[int] = mapped_column(
-        ForeignKey("influencer_subscriptions.id", ondelete="CASCADE"),
-        nullable=False,
+    subscription_id: Mapped[int | None] = mapped_column(
+        ForeignKey("influencer_subscriptions.id", ondelete="SET NULL"),
+        nullable=True,
         index=True,
     )
 
@@ -337,7 +335,7 @@ class InfluencerSubscriptionPayment(Base):
 
     status: Mapped[str] = mapped_column(String, nullable=False, default="pending")
 
-    provider: Mapped[str | None] = mapped_column(String, nullable=True)  # "paypal"
+    provider: Mapped[str | None] = mapped_column(String, nullable=True)
     provider_event_id: Mapped[str | None] = mapped_column(String, nullable=True, unique=True, index=True)
 
     provider_payload: Mapped[dict | None] = mapped_column(JSON, nullable=True)
@@ -358,35 +356,26 @@ class InfluencerSubscriptionPayment(Base):
         nullable=False,
     )
 
-    # Relationships
-    subscription = relationship("InfluencerSubscription", back_populates="payments")
 
     __table_args__ = (
         Index("ix_inf_sub_pay_user_infl_time", "user_id", "influencer_id", "occurred_at"),
     )
 
-
 class PayPalTopUp(Base):
-    """PayPal credit top-up transaction."""
-    
     __tablename__ = "paypal_topups"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-
+    influencer_id: Mapped[str | None] = mapped_column(
+        ForeignKey("influencers.id", ondelete="CASCADE"), nullable=True, index=True
+    )
     order_id: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
     cents: Mapped[int] = mapped_column(Integer, nullable=False)
+    provider: Mapped[str | None] = mapped_column(String, nullable=True)  # "paypal" | "stripe"
 
     status: Mapped[str] = mapped_column(String, default="CREATED")  # CREATED | COMPLETED | FAILED
     credited: Mapped[bool] = mapped_column(Boolean, default=False)
-    fp_tracked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-
-    influencer_id: Mapped[str | None] = mapped_column(
-        ForeignKey("influencers.id", ondelete="SET NULL"),
-        nullable=True,
-        index=True,
-    )
+    fp_tracked: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)

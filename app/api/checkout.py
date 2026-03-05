@@ -1,0 +1,154 @@
+"""
+External payment confirmation webhook.
+
+Receives `payment.completed` events from the checkout service (Stripe/PayPal),
+validates the HMAC signature, guards against duplicate processing, and credits
+the user's influencer wallet via the existing `topup_wallet` service.
+"""
+
+import hmac
+import logging
+from hashlib import sha256
+
+from fastapi import APIRouter, Depends, HTTPException, Header, Request
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.config import settings
+from app.db.models import User, PayPalTopUp, Influencer
+from app.db.session import get_db
+from app.schemas.checkout import PaymentWebhookPayload
+from app.services.billing import topup_wallet
+from app.services.firstpromoter import fp_track_sale_v2
+
+log = logging.getLogger(__name__)
+
+router = APIRouter(prefix="/checkout", tags=["checkout"])
+
+
+def _verify_signature(raw_body: bytes, signature: str | None) -> None:
+    """Verify HMAC-SHA256 signature against the configured webhook secret."""
+    secret = settings.PAYMENT_WEBHOOK_SECRET
+    if not secret:
+        log.warning("PAYMENT_WEBHOOK_SECRET is not configured — skipping signature verification")
+        return
+
+    if not signature:
+        raise HTTPException(status_code=401, detail="Missing X-Webhook-Signature header")
+
+    expected = hmac.new(secret.encode(), raw_body, sha256).hexdigest()
+    if not hmac.compare_digest(expected, signature):
+        raise HTTPException(status_code=401, detail="Invalid webhook signature")
+
+
+@router.post("/webhook")
+async def payment_webhook(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    x_webhook_signature: str | None = Header(default=None),
+):
+    # ── 1. Read raw body & verify HMAC ──────────────────────────────
+    raw_body = await request.body()
+    _verify_signature(raw_body, x_webhook_signature)
+
+    # ── 2. Parse & validate payload ─────────────────────────────────
+    try:
+        payload = PaymentWebhookPayload.model_validate_json(raw_body)
+    except Exception as exc:
+        log.warning("Webhook payload validation failed: %s", exc)
+        raise HTTPException(status_code=422, detail="Invalid payload") from exc
+
+    if payload.event != "payment.completed":
+        log.info("Ignoring webhook event: %s", payload.event)
+        return {"ok": True, "skipped": True, "reason": f"Unhandled event: {payload.event}"}
+
+    source = f"checkout:{payload.checkout_id}"
+
+    # ── 3. Idempotency & Intent: check if already processed ─────────
+    topup_intent = await db.scalar(
+        select(PayPalTopUp).where(
+            PayPalTopUp.order_id == payload.checkout_id
+        )
+    )
+    if topup_intent and topup_intent.credited:
+        log.info("Duplicate webhook for checkout_id=%s — already processed", payload.checkout_id)
+        return {"ok": True, "duplicate": True}
+
+    # ── 4. Resolve user ─────────────────────────────────────────────
+    user = await db.get(User, payload.user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User {payload.user_id} not found")
+        
+    influencer = await db.get(Influencer, payload.influencer_id)
+
+    # ── 5. Credit the wallet ────────────────────────────────────────
+    try:
+        new_balance = await topup_wallet(
+            db,
+            user_id=user.id,
+            influencer_id=payload.influencer_id,
+            cents=payload.balance_cents,
+            source=source,
+            is_18=False,
+        )
+        
+        if topup_intent:
+            topup_intent.status = "COMPLETED"
+            topup_intent.credited = True
+            db.add(topup_intent)
+        else:
+            # Webhook arrived before create_checkout saved — create the record now
+            topup_intent = PayPalTopUp(
+                user_id=user.id,
+                influencer_id=payload.influencer_id,
+                order_id=payload.checkout_id,
+                cents=payload.amount_cents,
+                provider=payload.provider,
+                status="COMPLETED",
+                credited=True,
+            )
+            db.add(topup_intent)
+            
+        await db.commit()
+    except HTTPException:
+        await db.rollback()
+        raise
+    except Exception:
+        await db.rollback()
+        log.exception("payment_webhook: failed to credit wallet for checkout_id=%s", payload.checkout_id)
+        raise HTTPException(status_code=500, detail="Internal error processing payment")
+
+    log.info(
+        "Payment credited: user=%s influencer=%s cents=%s new_balance=%s checkout_id=%s provider=%s",
+        payload.user_id,
+        payload.influencer_id,
+        payload.balance_cents,
+        new_balance,
+        payload.checkout_id,
+        payload.provider,
+    )
+
+    # ── 6. FirstPromoter Tracking (Post-Commit) ──────────────────────
+    if topup_intent and not topup_intent.fp_tracked and influencer and influencer.fp_ref_id:
+        try:
+            await fp_track_sale_v2(
+                email=user.email,
+                uid=str(user.id),
+                amount_cents=payload.amount_cents,
+                event_id=payload.checkout_id,
+                ref_id=influencer.fp_ref_id,
+                plan="wallet_topup",
+            )
+            topup_intent.fp_tracked = True
+            db.add(topup_intent)
+            await db.commit()
+        except Exception as e:
+            log.warning("FP track sale failed for checkout_id=%s: %s", payload.checkout_id, e)
+
+    return {
+        "ok": True,
+        "user_id": payload.user_id,
+        "influencer_id": payload.influencer_id,
+        "credited_cents": payload.balance_cents,
+        "new_balance_cents": new_balance,
+    }

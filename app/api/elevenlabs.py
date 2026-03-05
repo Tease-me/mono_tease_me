@@ -45,7 +45,7 @@ from app.gateways.elevenlabs_agents_gateway import (
     build_conversation_config_override,
 )
 from app.gateways.elevenlabs_voices_gateway import ElevenLabsVoicesGateway
-from app.use_cases.elevenlabs_greeting import _generate_contextual_greeting, build_call_greeting
+from app.use_cases.elevenlabs_greeting import build_call_greeting
 
 
 router = APIRouter(prefix="/elevenlabs", tags=["elevenlabs"])
@@ -857,27 +857,70 @@ async def get_conversation_token(
             },
         )
     
-    agent_id = await get_agent_id_from_influencer(db, influencer_id)
-    # Sequential to avoid SQLAlchemy AsyncSession concurrent access issue
-    prompt_template = await get_global_prompt(db, True)
+    # ── OPT: Single influencer fetch (was duplicated via get_agent_id_from_influencer) ──
     influencer = await db.get(Influencer, influencer_id)
-    chat_id = await get_or_create_chat(db, user_id, influencer_id)
-
     if not influencer:
         raise HTTPException(404, "Influencer not found")
-    
+    agent_id = influencer.influencer_agent_id_third_part
+    if not agent_id:
+        raise HTTPException(404, "Influencer agent_id not found")
+
     bio_ctx = extract_influencer_bio_context(influencer)
     persona_likes = bio_ctx.likes
     persona_dislikes = bio_ctx.dislikes
     influencer_stages = bio_ctx.stages
-    # Get stage prompts from DB, with potential bio_json override
-    stages = await get_relationship_stage_prompts(db)
     personality_rules = bio_ctx.personality_rules
     tone = bio_ctx.tone
     mbti_archetype = bio_ctx.mbti_archetype
     mbti_addon = bio_ctx.mbti_rules_addon
-    mbti_rules = await get_mbti_rules_for_archetype(db, mbti_archetype, mbti_addon)
     daily_context = ""
+
+    # ── OPT: Parallel Wave 1 — independent DB lookups via dedicated sessions ──
+    async def _w1_prompt_template():
+        async with SessionLocal() as s:
+            return await get_global_prompt(s, True)
+
+    async def _w1_chat_id():
+        async with SessionLocal() as s:
+            return await get_or_create_chat(s, user_id, influencer_id)
+
+    async def _w1_relationship():
+        async with SessionLocal() as s:
+            return await get_or_create_relationship(s, int(user_id), influencer_id)
+
+    async def _w1_stages():
+        async with SessionLocal() as s:
+            return await get_relationship_stage_prompts(s)
+
+    async def _w1_mbti():
+        async with SessionLocal() as s:
+            return await get_mbti_rules_for_archetype(s, mbti_archetype, mbti_addon)
+
+    async def _w1_time_ctx():
+        async with SessionLocal() as s:
+            return await get_time_context(s, user_timezone)
+
+    prompt_template, chat_id, rel, stages, mbti_rules, time_context = await asyncio.gather(
+        _w1_prompt_template(),
+        _w1_chat_id(),
+        _w1_relationship(),
+        _w1_stages(),
+        _w1_mbti(),
+        _w1_time_ctx(),
+    )
+
+    now = datetime.now(timezone.utc)
+    days_idle = apply_inactivity_decay(rel, now)
+
+    can_ask = (
+        rel.state == "DATING"
+        and rel.safety >= 70
+        and rel.trust >= 75
+        and rel.closeness >= 70
+        and rel.attraction >= 65
+    )
+
+    dtr_goal = plan_dtr_goal(rel, can_ask)
 
     history = redis_history(chat_id)
 
@@ -891,69 +934,69 @@ async def get_conversation_token(
 
     # Scope recent_ctx to current session only (excludes previous call messages)
     current_session_msgs = _messages_since_session_break(history.messages)
-    
+
     if current_session_msgs:
         recent_ctx = "\n".join(
-            f"{m.type}: {m.content}" 
-            for m in current_session_msgs[-20:] 
-            if getattr(m, "type", None) != "system" 
+            f"{m.type}: {m.content}"
+            for m in current_session_msgs[-20:]
+            if getattr(m, "type", None) != "system"
             and "[SESSION BREAK]" not in getattr(m, "content", "")
             and getattr(m, "content", "").strip() != "..."
         )
     else:
         # Fallback to the last 20 historical messages if this is a fresh session
         recent_ctx = "\n".join(
-            f"{m.type}: {m.content}" 
-            for m in history.messages[-20:] 
+            f"{m.type}: {m.content}"
+            for m in history.messages[-20:]
             if getattr(m, "type", None) != "system"
             and "[SESSION BREAK]" not in getattr(m, "content", "")
             and getattr(m, "content", "").strip() != "..."
         )
 
+    # ── OPT: Parallel Wave 2 — memory + user data via dedicated sessions ──
+    async def _w2_users_name():
+        async with SessionLocal() as s:
+            return await _build_user_name_block(s, user_id)
 
-    now = datetime.now(timezone.utc)
-    rel = await get_or_create_relationship(db, int(user_id), influencer_id)
-    days_idle = apply_inactivity_decay(rel, now)
+    async def _w2_memories():
+        async with SessionLocal() as s:
+            return await get_memory_only_list(s, user_id, influencer_id, exclude_sender="system")
 
-    can_ask = (
-        rel.state == "DATING"
-        and rel.safety >= 70
-        and rel.trust >= 75
-        and rel.closeness >= 70
-        and rel.attraction >= 65
+    async def _w2_ai_memories():
+        async with SessionLocal() as s:
+            ai_mem_query = select(Memory.content).where(
+                Memory.chat_id.in_(
+                    select(Chat.id).where(
+                        Chat.user_id == user_id, Chat.influencer_id == influencer_id
+                    )
+                ),
+                Memory.sender == "system"
+            ).order_by(Memory.created_at.desc()).limit(200)
+            ai_mem_res = await s.execute(ai_mem_query)
+            return [row[0] for row in ai_mem_res.fetchall()]
+
+    async def _w2_credits():
+        async with SessionLocal() as s:
+            return await get_remaining_units(s, user_id, influencer_id, feature="live_chat")
+
+    users_name, memories, ai_mem_list, credits_remainder_secs = await asyncio.gather(
+        _w2_users_name(),
+        _w2_memories(),
+        _w2_ai_memories(),
+        _w2_credits(),
     )
 
-    dtr_goal = plan_dtr_goal(rel, can_ask)
-    time_context = await get_time_context(db, user_timezone)
-
-    # ── Phase 1: Quick DB fetches (sequential on shared session) ──
-    users_name = await _build_user_name_block(db, user_id)
-    # Use curated memories only (not raw messages) — much smaller, higher-quality dataset
-    memories = await get_memory_only_list(db, user_id, influencer_id, exclude_sender="system")
-
-    # Fetch AI memories directly (sender="system") with LIMIT
-    ai_mem_query = select(Memory.content).where(
-        Memory.chat_id.in_(
-            select(Chat.id).where(
-                Chat.user_id == user_id, Chat.influencer_id == influencer_id
-            )
-        ),
-        Memory.sender == "system"
-    ).order_by(Memory.created_at.desc()).limit(200)
-    ai_mem_res = await db.execute(ai_mem_query)
-    ai_mem_list = [row[0] for row in ai_mem_res.fetchall()]
-
-    credits_remainder_secs = await get_remaining_units(db, user_id, influencer_id, feature="live_chat")
-
-    # ── Phase 2: All slow I/O in parallel (~2-3s instead of ~8s) ──
-    # Check Redis cache for summaries first (5 min TTL avoids redundant LLM calls on reconnects)
-    import redis as _redis
-    _rclient = _redis.from_url(settings.REDIS_URL, decode_responses=True)
-    _MEM_SUMMARY_TTL = 60  # 1 minute
+    # ── OPT: Async Redis pool (was creating sync connection per-request) ──
+    from app.utils.infrastructure.redis_pool import get_redis
+    _rclient = await get_redis()
+    _MEM_SUMMARY_TTL = 86400  # 24h safety — invalidated on write by store_facts_batch
+    _GREETING_TTL = 5      # seconds — skip LLM on rapid reconnects
     _mem_cache_key = f"mem_summary:{chat_id}"
     _ai_mem_cache_key = f"ai_mem_summary:{chat_id}"
-    cached_mem = _rclient.get(_mem_cache_key)
-    cached_ai_mem = _rclient.get(_ai_mem_cache_key)
+    _greeting_cache_key = f"greeting:{chat_id}"
+    cached_mem = await _rclient.get(_mem_cache_key)
+    cached_ai_mem = await _rclient.get(_ai_mem_cache_key)
+    cached_greeting = await _rclient.get(_greeting_cache_key)
 
     async def _fetch_token() -> str:
         try:
@@ -981,21 +1024,12 @@ async def get_conversation_token(
             raise HTTPException(status_code=502, detail="Token not returned by ElevenLabs")
         return t
 
-    if cached_mem and cached_ai_mem:
-        # Cache hit — skip LLM summarization entirely
-        memory = cached_mem
-        ai_mem_block = cached_ai_mem
-        greeting, token = await asyncio.gather(
-            _generate_contextual_greeting(db, chat_id, influencer_id, user_timezone),
-            _fetch_token(),
-        )
-        log.info("get_conversation_token.cache_hit chat=%s", chat_id)
-    else:
-        # Cache miss — run LLM summarization and cache results
-        memory, ai_mem_block, greeting, token = await asyncio.gather(
-            summarize_memory_list(memories or []),
-            summarize_ai_memory_list(ai_mem_list),
-            build_call_greeting(
+    # ── OPT: Greeting now cached (45s TTL) to skip LLM on reconnects ──
+    async def _resolve_greeting():
+        if cached_greeting:
+            log.info("get_conversation_token.greeting_cache_hit chat=%s", chat_id)
+            return cached_greeting
+        g = await build_call_greeting(
             db=db,
             chat_id=chat_id,
             influencer_id=influencer_id,
@@ -1005,12 +1039,34 @@ async def get_conversation_token(
             rel=rel,
             stages=stages,
             influencer_stages=influencer_stages,
-        ),
+        )
+        if g:
+            try:
+                await _rclient.setex(_greeting_cache_key, _GREETING_TTL, g)
+            except Exception as exc:
+                log.warning("get_conversation_token.greeting_cache_set_failed chat=%s err=%s", chat_id, exc)
+        return g
+
+    if cached_mem and cached_ai_mem:
+        # Cache hit — skip LLM summarization entirely
+        memory = cached_mem
+        ai_mem_block = cached_ai_mem
+        greeting, token = await asyncio.gather(
+            _resolve_greeting(),
+            _fetch_token(),
+        )
+        log.info("get_conversation_token.cache_hit chat=%s", chat_id)
+    else:
+        # Cache miss — run LLM summarization and cache results
+        memory, ai_mem_block, greeting, token = await asyncio.gather(
+            summarize_memory_list(memories or []),
+            summarize_ai_memory_list(ai_mem_list),
+            _resolve_greeting(),
             _fetch_token(),
         )
         try:
-            _rclient.setex(_mem_cache_key, _MEM_SUMMARY_TTL, memory)
-            _rclient.setex(_ai_mem_cache_key, _MEM_SUMMARY_TTL, ai_mem_block)
+            await _rclient.setex(_mem_cache_key, _MEM_SUMMARY_TTL, memory)
+            await _rclient.setex(_ai_mem_cache_key, _MEM_SUMMARY_TTL, ai_mem_block)
             log.info("get_conversation_token.cache_set chat=%s ttl=%d", chat_id, _MEM_SUMMARY_TTL)
         except Exception as exc:
             log.warning("get_conversation_token.cache_set_failed chat=%s err=%s", chat_id, exc)
