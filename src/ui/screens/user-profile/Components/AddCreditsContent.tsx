@@ -163,8 +163,9 @@ export default function AddCreditsContent({
                    <NormalButton
            
             color="black"
-              leftIcon={<SvgPack.StripeLogo/>}
-            className={styles.quickCreditButton}
+              leftIcon={<SvgPack.CreditCard/>}
+              text="Credit Card"
+            className={styles.quickCreditCardButton}
             selected={provider === "stripe"}
             onClick={() => setProvider("stripe")}
           />
