@@ -11,13 +11,20 @@ export type UsageMessages = {
   remaining: number;
   unit_price_cents: number;
   used_total: number;
+  used_today: number;
+  free_left: number;
 };
 
 export type UsageVoice = {
   remaining: number;
+  remaining_paid: number;
   remaining_minutes: number;
   unit_price_cents: number;
   used_total: number;
+  used_today: number;
+  free_left: number;
+  last_call_seconds?: number;
+  last_call_minutes?: number;
 };
 
 export type UsageBucket = {
