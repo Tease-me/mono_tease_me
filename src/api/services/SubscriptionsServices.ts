@@ -13,14 +13,7 @@ export const SubscriptionsServices = (apiClient: AxiosInstance) => ({
         );
         return response.data;
     },
-    captureSubscription: async (subscriptionId: string, orderId: string, amountCents: number): Promise<any> => {
-        const response = await apiClient.post(
-            Endpoints.subscriptions.capture,
-            {},
-            { params: { subscription_id: subscriptionId, order_id: orderId, amount_cents: amountCents } }
-        );
-        return response.data;
-    },
+    // captureSubscription removed — verification now happens via BillingServices.verifyCheckout()
     getMySubscriptions: async (): Promise<any> => {
         const response = await apiClient.get(
             Endpoints.subscriptions.list,

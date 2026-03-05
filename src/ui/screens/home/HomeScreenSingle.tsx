@@ -141,7 +141,6 @@ export default function HomeScreenSingle() {
         startInfluencerSubscription({
           influencerId,
           planId: 1,
-          amountCents: 10000,
         }),
       );
       window.alert(result.message);

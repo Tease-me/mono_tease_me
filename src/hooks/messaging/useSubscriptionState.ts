@@ -172,7 +172,6 @@ export function useSubscriptionState({
         startInfluencerSubscription({
           influencerId: influencer.id,
           planId: 1,
-          amountCents: 10000,
         }),
       );
       if (!result.success) {
