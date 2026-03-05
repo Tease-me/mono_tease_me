@@ -118,7 +118,7 @@ async def create_checkout(
         "userEmail": user.email,
         "password": ciphered_password,
         "amount": resolved_amount,
-        "slug": user.full_name or user.email.split("@")[0],
+        "slug": influencer_id,
         "payment_provider": provider,
         "redirection": settings.TMSERVICE_REDIRECT_URL,
     }
