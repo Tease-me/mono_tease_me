@@ -1,5 +1,6 @@
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 import { terms } from "@/ui/screens/terms/termsContent";
+import { ADULT_MODE_AVAILABLE } from "@/constants/adultModeAvailable";
 
 import { JSX, Suspense, lazy } from "react";
 import { BrowserRouter, Route, Routes, Navigate, useSearchParams, useNavigate } from "react-router-dom";
@@ -86,6 +87,9 @@ const AdminLogs = lazy(() => import("@/ui/screens/admin/logs/AdminLogs"));
 const AdultModePage = lazy(
   () => import("@/ui/screens/messaging/pages/adult-mode/AdultModePage")
 );
+const AdultModeComingSoon = lazy(
+  () => import("@/ui/screens/messaging/pages/adult-mode/AdultModeComingSoon")
+);
 const LandingPage = lazy(() => import("@/ui/screens/landing-page/LandingPage"));
 const InfluencerHome = lazy(
   () => import("@/ui/screens/landing-page/InfluencerHome")
@@ -104,6 +108,10 @@ function AdultModeRoute() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const influencerId = searchParams.get("influencerId");
+
+  if (!ADULT_MODE_AVAILABLE) {
+    return <AdultModeComingSoon onBackClicked={() => navigate(Paths.home)} />;
+  }
 
   if (!influencerId) {
     return <Navigate to={Paths.home} replace />;

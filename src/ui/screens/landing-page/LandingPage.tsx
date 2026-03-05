@@ -11,7 +11,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import imageHPHero from "@/assets/image/creator-collage.jpg";
 import imageTeaseMeLight from "@/assets/image/iconTeaseMeLight.png";
-import PlusBadge from "@/ui/components/badges/PlusBadge";
+
 import { Paths } from "@/routes/path";
 import "./LandingPage.css";
 
@@ -104,7 +104,7 @@ const LandingPage: React.FC = () => {
                 {" "}
                 favourite influencer{" "}
               </span>{" "}
-              on TeaseMe? <PlusBadge/>
+              on TeaseMe? 
             </h1>
             <p className="home-page-subtitle">
               Coming in 2026: <strong>Creator Discovery!</strong> <br></br>

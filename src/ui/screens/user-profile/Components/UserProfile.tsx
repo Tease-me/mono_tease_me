@@ -9,12 +9,13 @@ import { apiClient } from "@/api/apis";
 import { UserDataModel } from "@/data/models/UserDataModel";
 import ImageCropModal from "@/ui/components/modals/image-crop-modal/ImageCropModal";
 import clsx from "clsx";
+import logger from "@/utils/logger";
 
 type UserProfileProps = { goTo: (id: string) => void; };
 type LocalUser = Partial<UserDataModel>;
 
 const UserProfile: React.FC<UserProfileProps> = ({ goTo }) => {
-  const { user } = useContext(AuthContext);
+  const { user, refreshUser } = useContext(AuthContext);
   const [localUser, setLocalUser] = useState<LocalUser>(user ?? {});
   const [photoBlob, setPhotoBlob] = useState<Blob | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -24,11 +25,32 @@ const UserProfile: React.FC<UserProfileProps> = ({ goTo }) => {
 
   const [error, setError] = useState<string | null>(null);
   const [isErrorPositive, setIsErrorPositive] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const handleUpdateProfile = async () => {
+    if (!user?.id) {
+      setIsErrorPositive(false);
+      setError("Error: Unable to update profile right now.");
+      return;
+    }
+
     setError(null);
+    setIsUpdating(true);
 
     try {
+      const form = new FormData();
+      form.append(
+        "user_in",
+        JSON.stringify({
+          username: localUser.username ?? "",
+          full_name: localUser.full_name ?? "",
+        }),
+      );
+
+      await apiClient.patch(`/user/${user.id}/profile`, form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
       if (photoBlob && user?.id) {
         const form = new FormData();
         form.append("file", photoBlob, "avatar.jpg");
@@ -37,30 +59,37 @@ const UserProfile: React.FC<UserProfileProps> = ({ goTo }) => {
         });
         setLocalUser((u) => (u ? { ...u, imgUrl: previewUrl ?? u.imgUrl } : u));
       }
-
-      if (user?.id && localUser?.full_name) {
-        await apiClient.patch(`/user/${user.id}/profile`, { full_name: localUser.full_name });
-        setLocalUser((u) => (u ? { ...u, name: localUser.full_name } : u));
-      }
+      await refreshUser();
       setIsErrorPositive(true);
       setError("Profile updated.");
-    } catch (err) {
-      setError(`Error: Please try again later.`);
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail;
+      const message =
+        typeof detail === "string"
+          ? detail
+          : Array.isArray(detail) && detail[0]?.msg
+            ? detail[0].msg
+            : "Please try again later.";
+      setError(`Error: ${message}`);
       setIsErrorPositive(false);
-      console.error("Error updating profile:", err);
+      logger.error("Error updating profile:", err);
     } finally {
+      setIsUpdating(false);
       setPhotoBlob(null);
     }
   };
 
   const handleCancel = () => {
+    if (isUpdating) {
+      return;
+    }
     setError(null);
     goTo('home');
   }
 
   useEffect(() => {
-
-  }, [user?.imgUrl])
+    setLocalUser(user ?? {});
+  }, [user]);
 
 
   return (
@@ -93,9 +122,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ goTo }) => {
       <div className={styles.form}>
         <div className={styles.inpArea}>
           <TextInput
-            placeholder="Username"
-            value={localUser?.username ?? "Username not found"}
-            readOnly
+            placeholder="Nickname"
+            value={localUser?.username ?? ""}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              const value = e.target.value;
+              setLocalUser((u) => ({ ...u, username: value }));
+            }}
             className={styles.input}
           />
           <TextInput
@@ -128,26 +160,31 @@ const UserProfile: React.FC<UserProfileProps> = ({ goTo }) => {
         {/* <button className={styles.delete}>Delete Account</button> */}
       </div>
       <div className='u-sidebar-footer'>
-      <div className={styles.footer}>
-        <button className={styles.cancel} onClick={handleCancel}>Cancel</button>
-        <NormalButton text="Update Profile" onClick={handleUpdateProfile} className={styles.update} />
-      </div>
-
-      <ImageCropModal
-        isOpen={showCropModal}
-        imageSrc={pendingImage!}
-        onClose={() => setShowCropModal(false)}
-        onCropComplete={(blob, dataUrl) => {
-          setPreviewUrl(dataUrl);
-          setShowCropModal(false);
-          setPhotoBlob(blob);
-          if (pendingImage) {
-            URL.revokeObjectURL(pendingImage);
-            setPendingImage(null);
-
-          }
-        }} />
+        <div className={styles.footer}>
+          <button className={styles.cancel} onClick={handleCancel} disabled={isUpdating}>Cancel</button>
+          <NormalButton
+            text={isUpdating ? "Updating..." : "Update Profile"}
+            onClick={handleUpdateProfile}
+            className={styles.update}
+            disabled={isUpdating}
+          />
         </div>
+
+        <ImageCropModal
+          isOpen={showCropModal}
+          imageSrc={pendingImage!}
+          onClose={() => setShowCropModal(false)}
+          onCropComplete={(blob, dataUrl) => {
+            setPreviewUrl(dataUrl);
+            setShowCropModal(false);
+            setPhotoBlob(blob);
+            if (pendingImage) {
+              URL.revokeObjectURL(pendingImage);
+              setPendingImage(null);
+
+            }
+          }} />
+      </div>
     </div>
   );
 };

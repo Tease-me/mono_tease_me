@@ -9,6 +9,7 @@ import {
 import { showErrorModal } from "@/utils/errorModal";
 import logger from "@/utils/logger";
 import { useCallback, useEffect, useState } from "react";
+import { ADULT_MODE_AVAILABLE } from "@/constants/adultModeAvailable";
 
 interface UseSubscriptionStateProps {
   influencer?: InfluencerDataModel;
@@ -43,8 +44,9 @@ export function useSubscriptionState({
   useEffect(() => {
     if (!subscriptionStatus) return;
     setHasSubscription(subscriptionStatus.hasSubscription);
-    setAdultModeSwitch(subscriptionStatus.isAdult);
-    setAdultMode(subscriptionStatus.isAdult);
+    const isAdult = ADULT_MODE_AVAILABLE && subscriptionStatus.isAdult;
+    setAdultModeSwitch(isAdult);
+    setAdultMode(isAdult);
   }, [subscriptionStatus]);
 
   useEffect(() => {
@@ -67,6 +69,13 @@ export function useSubscriptionState({
         setAdultModeSwitch(false);
         return;
       }
+
+      if (checked && !ADULT_MODE_AVAILABLE) {
+        setAdultModeSwitch(true);
+        setShowSubscriptionPage(true);
+        return;
+      }
+
       setShowErrorAlert(undefined);
       setAdultModeSwitch(checked);
 
@@ -172,7 +181,6 @@ export function useSubscriptionState({
         startInfluencerSubscription({
           influencerId: influencer.id,
           planId: 1,
-          amountCents: 10000,
         }),
       );
       if (!result.success) {

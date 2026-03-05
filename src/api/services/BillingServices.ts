@@ -14,27 +14,41 @@ export type TopUpRes = {
   new_balance_cents: number;
 };
 
-export type PayPalCreateOrderReq = {
-  cents: number;
-  currency?: string;
+// ── External Checkout (tmservice) ──────────────────────────────────
+
+export type CreateCheckoutReq = {
   influencer_id: string;
+  purpose: "subscription" | "addon" | "topup";
+  provider: "stripe" | "paypal";
+  plan_id?: number;
+  amount_cents?: number;
 };
 
-export type PayPalCreateOrderRes = {
-  order_id: string;
-  approve_url: string;
+export type CreateCheckoutRes = {
+  checkout_id: string;
+  payment_url: string;
+  provider: string;
+  purpose: string;
+  amount_cents: number;
 };
 
-export type PayPalCaptureReq = {
-  order_id: string;
-  influencer_id?: string;
+export type VerifyCheckoutReq = {
+  checkout_id: string;
 };
 
-export type PayPalCaptureRes = {
+export type VerifyCheckoutRes = {
   ok: boolean;
-  status?: string;
-  credited?: boolean;
-  new_balance_cents?: number;
+  checkout_id: string;
+  status: string;
+  provider: string;
+  amount_cents: number;
+  balance_cents?: number;
+  subscription_id?: number;
+  subscription_status?: string;
+  purchase_id?: number;
+  addon_name?: string;
+  credits_added?: number;
+  new_balance?: number;
 };
 
 export const BillingServices = (apiClient: AxiosInstance) => ({
@@ -48,20 +62,23 @@ export const BillingServices = (apiClient: AxiosInstance) => ({
     return res.data;
   },
 
-  paypalCreateOrder: async (
-    payload: PayPalCreateOrderReq
-  ): Promise<PayPalCreateOrderRes> => {
+  createCheckout: async (
+    payload: CreateCheckoutReq
+  ): Promise<CreateCheckoutRes> => {
     const res = await apiClient.post(
-      Endpoints.billing.paypalCreateOrder,
+      Endpoints.billing.createCheckout,
       payload
     );
     return res.data;
   },
 
-  paypalCapture: async (
-    payload: PayPalCaptureReq
-  ): Promise<PayPalCaptureRes> => {
-    const res = await apiClient.post(Endpoints.billing.paypalCapture, payload);
+  verifyCheckout: async (
+    payload: VerifyCheckoutReq
+  ): Promise<VerifyCheckoutRes> => {
+    const res = await apiClient.post(
+      Endpoints.billing.verifyCheckout,
+      payload
+    );
     return res.data;
   },
 });

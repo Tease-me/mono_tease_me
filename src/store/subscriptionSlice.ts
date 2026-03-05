@@ -25,8 +25,6 @@ export type SubscribeResult = {
 type StartSubscriptionPayload = {
   influencerId: string;
   planId: number;
-  amountCents: number;
-  orderId?: string;
 };
 
 type FetchSubscriptionStatusPayload = {
@@ -130,138 +128,136 @@ const subscriptionSlice = createSlice({
 export const subscriptionActions = subscriptionSlice.actions;
 
 export const startInfluencerSubscription =
-  ({ influencerId, planId, amountCents, orderId }: StartSubscriptionPayload) =>
-  async (
-    dispatch: AppDispatch,
-    getState: () => RootState,
-  ): Promise<SubscribeResult> => {
-    if (getState().subscription.isSubscribing) {
-      return { success: false, message: "Subscription already in progress." };
-    }
-
-    dispatch(subscriptionActions.setIsSubscribing(true));
-    dispatch(subscriptionActions.setSubscribeError(undefined));
-
-    try {
-      const startRes = await subscriptionSvc.startSubscription(
-        influencerId,
-        planId,
-      );
-      const resolvedOrderId =
-        orderId ??
-        (typeof crypto !== "undefined" && "randomUUID" in crypto
-          ? crypto.randomUUID()
-          : `order_${Date.now()}_${Math.random().toString(16).slice(2)}`);
-      const subId = startRes?.subscription_id ?? startRes?.subscriptionId;
-      if (!subId) {
-        throw new Error("Missing subscription ID");
+  ({ influencerId, planId }: StartSubscriptionPayload) =>
+    async (
+      dispatch: AppDispatch,
+      getState: () => RootState,
+    ): Promise<SubscribeResult> => {
+      if (getState().subscription.isSubscribing) {
+        return { success: false, message: "Subscription already in progress." };
       }
 
-      await subscriptionSvc.captureSubscription(
-        String(subId),
-        resolvedOrderId,
-        amountCents,
-      );
-      await subscriptionSvc.activateMySubscriptionForInfluencer(
-        influencerId,
-        true,
-      );
-      return { success: true, message: "Subscription successful!" };
-    } catch (err: any) {
-      logger.error("Subscription error:", err);
-      const message =
-        err?.response?.data?.detail?.message ??
-        err?.message ??
-        "Error subscribing. Please try again.";
-      dispatch(subscriptionActions.setSubscribeError(message));
-      return { success: false, message };
-    } finally {
-      dispatch(subscriptionActions.setIsSubscribing(false));
-    }
-  };
+      dispatch(subscriptionActions.setIsSubscribing(true));
+      dispatch(subscriptionActions.setSubscribeError(undefined));
+
+      try {
+        const startRes = await subscriptionSvc.startSubscription(
+          influencerId,
+          planId,
+        );
+
+        // New flow: backend returns a payment_url for external checkout
+        if (startRes?.payment_url) {
+          // Store checkout_id for verification on return
+          if (startRes.checkout_id && typeof window !== "undefined") {
+            localStorage.setItem("checkout_id", startRes.checkout_id);
+          }
+          // Redirect to external payment page
+          window.location.href = startRes.payment_url;
+          return { success: true, message: "Redirecting to payment..." };
+        }
+
+        // Fallback: if no payment_url, subscription was activated directly (e.g. free plan)
+        await subscriptionSvc.activateMySubscriptionForInfluencer(
+          influencerId,
+          true,
+        );
+        return { success: true, message: "Subscription successful!" };
+      } catch (err: any) {
+        logger.error("Subscription error:", err);
+        const message =
+          err?.response?.data?.detail?.message ??
+          err?.message ??
+          "Error subscribing. Please try again.";
+        dispatch(subscriptionActions.setSubscribeError(message));
+        return { success: false, message };
+      } finally {
+        dispatch(subscriptionActions.setIsSubscribing(false));
+      }
+    };
 
 export const fetchSubscriptionStatus =
   ({ influencerId, force = false }: FetchSubscriptionStatusPayload) =>
-  async (
-    dispatch: AppDispatch,
-  ): Promise<NormalizedSubscriptionStatus | undefined> => {
-    try {
-      dispatch(
-        subscriptionActions.setStatusLoading({ influencerId, loading: true }),
-      );
-      dispatch(
-        subscriptionActions.setStatusError({ influencerId, error: undefined }),
-      );
+    async (
+      dispatch: AppDispatch,
+    ): Promise<NormalizedSubscriptionStatus | undefined> => {
+      try {
+        dispatch(
+          subscriptionActions.setStatusLoading({ influencerId, loading: true }),
+        );
+        dispatch(
+          subscriptionActions.setStatusError({ influencerId, error: undefined }),
+        );
 
-      let subscription: SubscriptionApiResponse | undefined;
-      if (!force && subscriptionStatusCache.has(influencerId)) {
-        subscription = subscriptionStatusCache.get(influencerId);
-      } else if (!force && subscriptionStatusInFlight.has(influencerId)) {
-        subscription = await subscriptionStatusInFlight.get(influencerId);
-      } else {
-        const request = subscriptionSvc
-          .getMySubscriptionForInfluencer(influencerId)
-          .then((response) => {
-            subscriptionStatusCache.set(influencerId, response);
-            return response as SubscriptionApiResponse | undefined;
-          })
-          .finally(() => {
-            subscriptionStatusInFlight.delete(influencerId);
-          });
+        let subscription: SubscriptionApiResponse | undefined;
+        if (!force && subscriptionStatusCache.has(influencerId)) {
+          subscription = subscriptionStatusCache.get(influencerId);
+        } else if (!force && subscriptionStatusInFlight.has(influencerId)) {
+          subscription = await subscriptionStatusInFlight.get(influencerId);
+        } else {
+          const request = subscriptionSvc
+            .getMySubscriptionForInfluencer(influencerId)
+            .then((response) => {
+              subscriptionStatusCache.set(influencerId, response);
+              return response as SubscriptionApiResponse | undefined;
+            })
+            .finally(() => {
+              subscriptionStatusInFlight.delete(influencerId);
+            });
 
-        subscriptionStatusInFlight.set(influencerId, request);
-        subscription = await request;
+          subscriptionStatusInFlight.set(influencerId, request);
+          subscription = await request;
+        }
+
+        const normalized = normalizeStatus(subscription);
+        dispatch(
+          subscriptionActions.setSubscriptionStatus({
+            influencerId,
+            status: normalized,
+          }),
+        );
+        return normalized;
+      } catch (err: any) {
+        const message =
+          err?.response?.data?.detail?.message ??
+          err?.message ??
+          "Failed to load subscription status.";
+        dispatch(
+          subscriptionActions.setStatusError({ influencerId, error: message }),
+        );
+        return undefined;
+      } finally {
+        dispatch(
+          subscriptionActions.setStatusLoading({ influencerId, loading: false }),
+        );
       }
-
-      const normalized = normalizeStatus(subscription);
-      dispatch(
-        subscriptionActions.setSubscriptionStatus({
-          influencerId,
-          status: normalized,
-        }),
-      );
-      return normalized;
-    } catch (err: any) {
-      const message =
-        err?.response?.data?.detail?.message ??
-        err?.message ??
-        "Failed to load subscription status.";
-      dispatch(
-        subscriptionActions.setStatusError({ influencerId, error: message }),
-      );
-      return undefined;
-    } finally {
-      dispatch(
-        subscriptionActions.setStatusLoading({ influencerId, loading: false }),
-      );
-    }
-  };
+    };
 
 export const setAdultModeSelection =
   ({ influencerId, checked }: SetAdultModePayload) =>
-  async (dispatch: AppDispatch): Promise<SetAdultModeResult> => {
-    try {
-      await subscriptionSvc.activateMySubscriptionForInfluencer(
-        influencerId,
-        checked,
-      );
-      subscriptionStatusCache.delete(influencerId);
-      await dispatch(fetchSubscriptionStatus({ influencerId, force: true }));
-      return { success: true };
-    } catch (err: any) {
-      logger.error("Error updating adult mode selection:", err);
-      const idVerified =
-        err?.response?.data?.detail?.verification_status?.is_identity_verified;
-      const message =
-        err?.response?.data?.detail?.message ??
-        err?.message ??
-        "Failed to update adult mode.";
-      const statusCode = err?.response?.status;
-      dispatch(
-        subscriptionActions.setStatusError({ influencerId, error: message }),
-      );
-      return { success: false, idVerified, message, statusCode };
-    }
-  };
+    async (dispatch: AppDispatch): Promise<SetAdultModeResult> => {
+      try {
+        await subscriptionSvc.activateMySubscriptionForInfluencer(
+          influencerId,
+          checked,
+        );
+        subscriptionStatusCache.delete(influencerId);
+        await dispatch(fetchSubscriptionStatus({ influencerId, force: true }));
+        return { success: true };
+      } catch (err: any) {
+        logger.error("Error updating adult mode selection:", err);
+        const idVerified =
+          err?.response?.data?.detail?.verification_status?.is_identity_verified;
+        const message =
+          err?.response?.data?.detail?.message ??
+          err?.message ??
+          "Failed to update adult mode.";
+        const statusCode = err?.response?.status;
+        dispatch(
+          subscriptionActions.setStatusError({ influencerId, error: message }),
+        );
+        return { success: false, idVerified, message, statusCode };
+      }
+    };
 
 export default subscriptionSlice.reducer;

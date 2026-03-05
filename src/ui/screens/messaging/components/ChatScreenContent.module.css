@@ -122,4 +122,9 @@
         bottom: auto;
         width: 100%;
     }
+
+    .chat-messages-container {
+        margin-bottom: 3dvh;
+        mask-image: linear-gradient(180deg, transparent, black 5%, black 90%, transparent);
+    }
 }

@@ -40,5 +40,25 @@ export interface ConversationTokenResponse {
     credits_remainder_secs: number;
     greeting_used?: string;
     prompt?: string;
+    voice_id?: string;
     native_language?: string;
+    unit_price_cents?: number;
+}
+
+export interface CallTranscriptEntryResponse {
+    sender: string;
+    text: string;
+    time_in_call_secs: number;
+}
+
+export interface CallDetailsResponse {
+    conversation_id: string;
+    user_id: number;
+    influencer_id: string;
+    chat_id: string;
+    status: string;
+    duration_seconds: number;
+    transcript: CallTranscriptEntryResponse[];
+    created_at: string;
+    agent_id: string | null;
 }

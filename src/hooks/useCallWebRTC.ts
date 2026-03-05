@@ -23,7 +23,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
 
   const getRingtone = useCallback((): Howl => {
     if (!ringtoneRef.current) {
-      ringtoneRef.current = new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: true });
+      ringtoneRef.current = new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: false });
     }
     return ringtoneRef.current;
   }, []);
@@ -103,7 +103,6 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
     onConnect: () => {
       setStatus("connected");
       setErrorMessage(null);
-      stopRing();
     },
     onDisconnect: () => {
       setStatus("disconnected");
@@ -134,7 +133,6 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
     }
     startAbortControllerRef.current = abortController;
     startInFlightRef.current = true;
-    setStatus("connecting");
     setErrorMessage(null);
 
     try {
@@ -147,7 +145,6 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
             "Microphone access is required to start the call. Please enable microphone permissions in your browser settings and try again.",
         });
         setStatus("idle");
-        stopRing();
         if (startAbortControllerRef.current === abortController) {
           startAbortControllerRef.current = null;
         }
@@ -157,7 +154,6 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
       if (!user || !user.id) {
         setErrorMessage("Please log in to start a call.");
         setStatus("idle");
-        stopRing();
         if (startAbortControllerRef.current === abortController) {
           startAbortControllerRef.current = null;
         }
@@ -171,6 +167,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
         startInFlightRef.current = false;
         return;
       }
+      setStatus("connecting");
 
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
       const { token: conversationToken, credits_remainder_secs, greeting_used, prompt, native_language } = await chatRepo.getConversationToken(
@@ -189,7 +186,6 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
 
       if (!conversationToken) {
         setErrorMessage("Unable to start a conversation right now.");
-        stopRing();
         setStatus("idle");
         if (startAbortControllerRef.current === abortController) {
           startAbortControllerRef.current = null;
@@ -200,7 +196,6 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
 
       if ((credits_remainder_secs ?? 0) <= 0) {
         setErrorMessage("You have no remaining credits.");
-        stopRing();
         setStatus("idle");
         if (startAbortControllerRef.current === abortController) {
           startAbortControllerRef.current = null;
@@ -237,7 +232,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
     }
     startInFlightRef.current = false;
     return { errorStatus };
-  }, [chatRepo, influencerId, requestMicrophonePermission, stopRing, user]);
+  }, [chatRepo, influencerId, requestMicrophonePermission, user]);
 
   useEffect(() => {
     const pending = pendingStartRef.current;
@@ -305,7 +300,6 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
       startAbortControllerRef.current = null;
     }
     startInFlightRef.current = false;
-    stopRing();
     setStatus("idle");
     setErrorMessage(null);
     setTimeRemaining(null);
@@ -319,7 +313,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
     } catch (error) {
       logger.warn("Failed to end session cleanly", error);
     }
-  }, [conversation, releaseMicrophonePermission, stopRing]);
+  }, [conversation, releaseMicrophonePermission]);
 
   const cancelCall = useCallback(() => {
     if (status !== "connecting") {
@@ -330,10 +324,9 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
       startAbortControllerRef.current = null;
     }
     startInFlightRef.current = false;
-    stopRing();
     setStatus("idle");
     setErrorMessage(null);
-  }, [status, stopRing]);
+  }, [status]);
 
   useEffect(() => {
     if (timeRemaining === null) {

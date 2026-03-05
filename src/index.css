@@ -180,7 +180,7 @@ button {
   height: 100%;
   padding-left: 24px;
   padding-right: 24px;
-  justify-content: space-between;
+justify-content: flex-start;
       padding-bottom: 3dvh;
 }
 

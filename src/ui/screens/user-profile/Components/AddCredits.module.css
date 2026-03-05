@@ -23,6 +23,7 @@
   align-items: center;
   gap: var(--space-px-8);
   margin-top: 20px;
+  align-items: stretch;
 }
 
 
@@ -90,3 +91,10 @@
 .input-right-padding {
   padding-right: unset;
 }
+
+
+/* pay with section  **/
+
+.payWithRow02 {display: grid; grid-template-columns: 1fr 1.5fr; gap: var(--space-px-8); margin-bottom: var(--space-px-16);}
+.quickCreditButton svg { transform: scale(2.1);}
+.quickCreditCardButton svg {transform: scale(0.8);}

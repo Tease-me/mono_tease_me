@@ -15,6 +15,7 @@ import styles from "./HomeScreenSingle.module.css";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { startInfluencerSubscription } from "@/store/subscriptionSlice";
+import { ADULT_MODE_AVAILABLE } from "@/constants/adultModeAvailable";
 import { storage } from "@/utils/storage";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 
@@ -36,6 +37,9 @@ const AddCredits = React.lazy(
 );
 const AdultModePage = React.lazy(
   () => import("../messaging/pages/adult-mode/AdultModePage"),
+);
+const AdultModeComingSoon = React.lazy(
+  () => import("../messaging/pages/adult-mode/AdultModeComingSoon"),
 );
 const PaymentCheck = React.lazy(
   () => import("../user-profile/Components/PaymentCheck"),
@@ -141,7 +145,6 @@ export default function HomeScreenSingle() {
         startInfluencerSubscription({
           influencerId,
           planId: 1,
-          amountCents: 10000,
         }),
       );
       window.alert(result.message);
@@ -164,18 +167,22 @@ export default function HomeScreenSingle() {
           navPayload={navPayload}
         />
     },
-    { id: "influencer_profile", label: "Influencer Profile", render: ({ goTo, navPayload, goBack }) => <InfluencerRelation key={navPayload.influencerId} goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
+    { id: "influencer_profile", label: "Influencer Profile", background: "#080808", render: ({ goTo, navPayload, goBack }) => <InfluencerRelation key={navPayload.influencerId} goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
     { id: "add_credits", label: "Add Credits", render: ({ goTo, navPayload }) => <AddCredits goTo={goTo} navpayload={navPayload} /> },
     {
-      id: "subscribe", label: "Subscribe", render: ({ navPayload, goBack }) => (
-        <AdultModePage
-          influencerId={navPayload.influencerId}
-          influencerImageUrl={navPayload.influencerImageUrl}
-          influencerName={navPayload.influencerName}
-          onSubscribePressed={() => handleSidebarSubscribe(navPayload.influencerId, goBack)}
-          onBackClicked={goBack}
-          nobg
-        />
+      id: "subscribe", label: "Adult Mode", render: ({ navPayload, goBack }) => (
+        ADULT_MODE_AVAILABLE ? (
+          <AdultModePage
+            influencerId={navPayload.influencerId}
+            influencerImageUrl={navPayload.influencerImageUrl}
+            influencerName={navPayload.influencerName}
+            onSubscribePressed={() => handleSidebarSubscribe(navPayload.influencerId, goBack)}
+            onBackClicked={goBack}
+            nobg
+          />
+        ) : (
+          <AdultModeComingSoon onBackClicked={goBack} nobg />
+        )
       )
     },
     { id: "subscription", label: "Subscription", render: ({ goTo, navPayload }) => <Subscription goTo={goTo} navPayload={navPayload} />, background: "linear-gradient(0deg, #131313 0%, #131313 100%), url(<path-to-image>) lightgray -60.714px 0px / 130.206% 89.736% no-repeat" },

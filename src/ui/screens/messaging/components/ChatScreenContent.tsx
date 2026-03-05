@@ -23,6 +23,8 @@ import { useChatScroll } from "@/hooks/useChatScroll";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import { DropDownMenuDataModel } from "@/ui/components/inputs/dropdown/DropDownMenu";
 import AdultModePage from "../pages/adult-mode/AdultModePage";
+import AdultModeComingSoon from "../pages/adult-mode/AdultModeComingSoon";
+import { ADULT_MODE_AVAILABLE } from "@/constants/adultModeAvailable";
 import UserNav from "@/ui/components/nav/UserNav";
 import { Modal } from "@/ui/components/modals/Modal";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
@@ -81,7 +83,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     mode,
     relationship,
     creditsRemaining,
-    adultMinutesRemaining,
+    minutesRemaining,
     showUpgradeModal,
     showTopupModal,
     callTime,
@@ -111,6 +113,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     toggleMute,
     errorMessage,
     cancelCall,
+    conversationId,
   } = useCallWebRTC({
     onMessage: (message, conversationId) => {
       logger.debug(
@@ -135,6 +138,8 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
       }
     },
   });
+
+  const prevStatusRef = useRef(status);
 
   const blockIfCallActive = useCallback(() => {
     const isCallActive = status === "connected" || status === "connecting";
@@ -310,6 +315,19 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     }
   }, [dispatch, status]);
 
+  // Refresh usage/balance after a call ends so the UI shows the updated wallet
+  useEffect(() => {
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = status;
+    if (prev === "connected" && status !== "connected" && influencer?.id) {
+      // Small delay to allow the webhook to process the charge
+      const timer = setTimeout(() => {
+        dispatch(fetchChatUsage({ influencerId: influencer.id, adultMode }));
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [status, influencer?.id, adultMode, dispatch]);
+
   const handleStartConversation = React.useCallback(async () => {
     const result = await startConversation();
     if (result?.errorStatus === 402) {
@@ -378,7 +396,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
                 ? handleAdultModeChange
                 : undefined
             }
-            minutesRemaining={adultMinutesRemaining}
+            minutesRemaining={minutesRemaining}
           />
         </div>
         {isSelectingInfluencer ? (
@@ -461,7 +479,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
                       dispatch(chatScreenActions.setInputText(text))
                     }
                     setInputAudio={setInputAudio}
-                    disabled={error ? true : false}
+                    // disabled={error ? true : false}
                     error={error}
                     creditsRemaining={creditsRemaining}
                     inputAudio={inputAudio}
@@ -480,6 +498,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
                 relationship={relationship}
                 influencer={influencer}
                 errorMessage={errorMessage || "Something went wrong!"}
+                conversationId={conversationId}
                 onChangeInfluencer={
                   hasMultipleInfluencers
                     ? handleChangeInfluencerClicked
@@ -488,7 +507,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
               />
             )}
           </>
-        ) : (
+        ) : ADULT_MODE_AVAILABLE ? (
           <AdultModePage
             onSubscribePressed={handleSubscribePressed}
             onBackClicked={() => {
@@ -498,6 +517,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
             influencerId={influencer?.id ?? ""}
             influencerImageUrl={influencer?.img ?? null}
             influencerName={influencer?.name ?? null}
+          />
+        ) : (
+          <AdultModeComingSoon
+            onBackClicked={() => {
+              setShowSubscriptionPage(false);
+              setAdultModeSwitch(false);
+            }}
           />
         )}
       </div>
