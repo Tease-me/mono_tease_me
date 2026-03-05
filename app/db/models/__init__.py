@@ -44,7 +44,6 @@ from .billing import (
     InfluencerSubscription,
     InfluencerSubscriptionAddonPurchase,
     InfluencerSubscriptionPayment,
-    PayPalTopUp,
 )
 
 # Relationship models
@@ -92,7 +91,6 @@ __all__ = [
     "InfluencerSubscription",
     "InfluencerSubscriptionAddonPurchase",
     "InfluencerSubscriptionPayment",
-    "PayPalTopUp",
     # Relationship
     "RelationshipState",
     # Content
