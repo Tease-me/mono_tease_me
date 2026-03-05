@@ -145,6 +145,10 @@
     color: #fff;
 }
 
+.connectionStatus.connecting {
+    color: #ff6b6b;
+}
+
 .formatTime {
     font-weight: 700;
     font-size: 24px;
