@@ -11,14 +11,15 @@ import logging
 from hashlib import sha256
 
 from fastapi import APIRouter, Depends, HTTPException, Header, Request
-from sqlalchemy import select, and_
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.db.models import User, InfluencerCreditTransaction
+from app.db.models import User, PayPalTopUp, Influencer
 from app.db.session import get_db
 from app.schemas.checkout import PaymentWebhookPayload
 from app.services.billing import topup_wallet
+from app.services.firstpromoter import fp_track_sale_v2
 
 log = logging.getLogger(__name__)
 
@@ -63,18 +64,13 @@ async def payment_webhook(
 
     source = f"checkout:{payload.checkout_id}"
 
-    # ── 3. Idempotency: check if already processed ──────────────────
-    existing_tx = await db.scalar(
-        select(InfluencerCreditTransaction).where(
-            and_(
-                InfluencerCreditTransaction.user_id == payload.user_id,
-                InfluencerCreditTransaction.influencer_id == payload.influencer_id,
-                InfluencerCreditTransaction.feature == "topup",
-                InfluencerCreditTransaction.meta["source"].as_string() == source,
-            )
+    # ── 3. Idempotency & Intent: check if already processed ─────────
+    topup_intent = await db.scalar(
+        select(PayPalTopUp).where(
+            PayPalTopUp.order_id == payload.checkout_id
         )
     )
-    if existing_tx:
+    if topup_intent and topup_intent.credited:
         log.info("Duplicate webhook for checkout_id=%s — already processed", payload.checkout_id)
         return {"ok": True, "duplicate": True}
 
@@ -82,6 +78,8 @@ async def payment_webhook(
     user = await db.get(User, payload.user_id)
     if not user:
         raise HTTPException(status_code=404, detail=f"User {payload.user_id} not found")
+        
+    influencer = await db.get(Influencer, payload.influencer_id)
 
     # ── 5. Credit the wallet ────────────────────────────────────────
     try:
@@ -93,6 +91,24 @@ async def payment_webhook(
             source=source,
             is_18=False,
         )
+        
+        if topup_intent:
+            topup_intent.status = "COMPLETED"
+            topup_intent.credited = True
+            db.add(topup_intent)
+        else:
+            # Webhook arrived before create_checkout saved — create the record now
+            topup_intent = PayPalTopUp(
+                user_id=user.id,
+                influencer_id=payload.influencer_id,
+                order_id=payload.checkout_id,
+                cents=payload.amount_cents,
+                provider=payload.provider,
+                status="COMPLETED",
+                credited=True,
+            )
+            db.add(topup_intent)
+            
         await db.commit()
     except HTTPException:
         await db.rollback()
@@ -111,6 +127,23 @@ async def payment_webhook(
         payload.checkout_id,
         payload.provider,
     )
+
+    # ── 6. FirstPromoter Tracking (Post-Commit) ──────────────────────
+    if topup_intent and not topup_intent.fp_tracked and influencer and influencer.fp_ref_id:
+        try:
+            await fp_track_sale_v2(
+                email=user.email,
+                uid=str(user.id),
+                amount_cents=payload.amount_cents,
+                event_id=payload.checkout_id,
+                ref_id=influencer.fp_ref_id,
+                plan="wallet_topup",
+            )
+            topup_intent.fp_tracked = True
+            db.add(topup_intent)
+            await db.commit()
+        except Exception as e:
+            log.warning("FP track sale failed for checkout_id=%s: %s", payload.checkout_id, e)
 
     return {
         "ok": True,

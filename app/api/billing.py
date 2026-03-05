@@ -123,12 +123,11 @@ async def create_checkout(
         amount_cents=req.amount_cents,
     )
 
-    pp = payment.provider_payload or {}
     return CheckoutResponse(
-        checkout_id=pp.get("checkout_id", payment.provider_event_id),
-        payment_url=pp.get("payment_url", ""),
-        provider=payment.provider,
-        amount_cents=payment.amount_cents,
+        checkout_id=payment["checkout_id"],
+        payment_url=payment["payment_url"],
+        provider=payment["provider"],
+        amount_cents=payment["amount_cents"],
     )
 
 
@@ -148,33 +147,17 @@ async def verify_checkout_endpoint(
     Verify that a checkout has been paid.
 
     The frontend should call this after the user returns from the
-    payment page.  If payment is confirmed, the system will
-    automatically credit the user's wallet.
+    payment page.  The actual wallet crediting happens securely
+    via the webhook.
     """
     from app.services.checkout import verify_checkout as _verify
-    from app.services.billing import topup_wallet
 
-    payment = await _verify(db, checkout_id=req.checkout_id, user_id=user.id)
+    status = await _verify(checkout_id=req.checkout_id, user_id=user.id)
 
     result = {
         "ok": True,
-        "checkout_id": payment.provider_event_id,
-        "status": payment.status,
-        "provider": payment.provider,
-        "amount_cents": payment.amount_cents,
+        "checkout_id": req.checkout_id,
+        "status": status,
     }
-
-    # ── If confirmed, credit the wallet ───────────────────────────
-    if payment.status == "succeeded":
-        new_balance = await topup_wallet(
-            db,
-            user_id=user.id,
-            influencer_id=payment.influencer_id,
-            cents=payment.amount_cents,
-            source=f"checkout:{payment.provider}",
-            is_18=False,
-        )
-        await db.commit()
-        result["balance_cents"] = new_balance
 
     return result

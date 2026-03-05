@@ -4,24 +4,18 @@ Creates payment sessions and verifies their status. Uses the ASCII
 Vigenère cipher to obfuscate the user's password hash before sending
 it to the external service.
 
-Checkout state is stored in ``InfluencerSubscriptionPayment`` with
-``kind='checkout'``.  The ``provider_payload`` JSON column holds the
-extra checkout metadata (payment_url, etc.).
+Checkout state is stored in ``PayPalTopUp`` (``paypal_topups`` table)
+with ``status='CREATED'`` until webhook confirms payment.
 """
 
 import logging
-from datetime import datetime, timezone
 
 import httpx
 from fastapi import HTTPException
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.db.models import (
-    InfluencerSubscriptionPayment,
-    User,
-)
+from app.db.models import User
 from app.utils.crypto import vigenere_cipher
 
 log = logging.getLogger(__name__)
@@ -67,14 +61,11 @@ async def create_checkout(
     influencer_id: str,
     provider: str,
     amount_cents: int,
-) -> InfluencerSubscriptionPayment:
+) -> dict:
     """
     Call tmservice to create an external checkout session for a credit top-up.
 
-    Stores the checkout as an ``InfluencerSubscriptionPayment``
-    with ``kind='checkout'`` and ``status='pending'``.
-
-    Returns the payment record (provider_payload contains payment_url).
+    Returns the payment details (checkout_id, payment_url, etc.).
     """
 
     if not amount_cents or amount_cents <= 0:
@@ -124,69 +115,46 @@ async def create_checkout(
     checkout_id = data["checkout_id"]
     payment_url = data["payment_url"]
 
-    # ── Store as InfluencerSubscriptionPayment ────────────────────
-    provider_payload = {
-        "checkout_id": checkout_id,
-        "payment_url": payment_url,
-    }
-    # Provider-specific data
-    if provider == "stripe":
-        provider_payload["session_id"] = data.get("session_id")
-    elif provider == "paypal":
-        provider_payload["order_id"] = data.get("order_id")
-
-    payment = InfluencerSubscriptionPayment(
+    # ── Store pending PayPalTopUp ──────────────────────────────────────────
+    from app.db.models import PayPalTopUp
+    tx = PayPalTopUp(
         user_id=user.id,
         influencer_id=influencer_id,
-        amount_cents=amount_cents,
-        kind="checkout",
-        status="pending",
+        order_id=checkout_id,
+        cents=amount_cents,
         provider=provider,
-        provider_event_id=checkout_id,
-        provider_payload=provider_payload,
-        occurred_at=datetime.now(timezone.utc),
+        status="CREATED",
+        credited=False,
     )
-    db.add(payment)
+    db.add(tx)
     await db.commit()
-    await db.refresh(payment)
 
     log.info(
-        "checkout.created payment_id=%s checkout_id=%s provider=%s amount=%d",
-        payment.id, checkout_id, provider, amount_cents,
+        "checkout.created checkout_id=%s provider=%s amount=%d",
+        checkout_id, provider, amount_cents,
     )
 
-    return payment
+    return {
+        "checkout_id": checkout_id,
+        "payment_url": payment_url,
+        "provider": provider,
+        "amount_cents": amount_cents,
+    }
 
 
 # ── Verify checkout ──────────────────────────────────────────────────
 
 
 async def verify_checkout(
-    db: AsyncSession,
-    *,
     checkout_id: str,
     user_id: int,
-) -> InfluencerSubscriptionPayment:
+) -> str:
     """
     Poll tmservice for checkout status and update the local record.
 
     NOTE: The exact tmservice verify endpoint is TBD.  For now we
     assume GET /external/checkout-status?checkout_id=<id>.
     """
-
-    payment = await db.scalar(
-        select(InfluencerSubscriptionPayment).where(
-            InfluencerSubscriptionPayment.provider_event_id == checkout_id,
-            InfluencerSubscriptionPayment.user_id == user_id,
-            InfluencerSubscriptionPayment.kind == "checkout",
-        )
-    )
-
-    if not payment:
-        raise HTTPException(404, "Checkout session not found")
-
-    if payment.status == "succeeded":
-        raise HTTPException(409, "Checkout already completed")
 
     # ── Poll tmservice ────────────────────────────────────────────
     try:
@@ -213,14 +181,7 @@ async def verify_checkout(
     )
 
     if payment_status in ("completed", "paid", "succeeded"):
-        payment.status = "succeeded"
+        return "succeeded"
     elif payment_status in ("failed", "cancelled", "canceled"):
-        payment.status = "failed"
-        payment.failure_message = f"tmservice: {payment_status}"
-    # else: still pending – no change
-
-    db.add(payment)
-    await db.commit()
-    await db.refresh(payment)
-
-    return payment
+        return "failed"
+    return "pending"

@@ -6,7 +6,7 @@ from sqlalchemy import (
     Integer, String, Boolean, Text, ForeignKey, DateTime, JSON, 
     Index, UniqueConstraint
 )
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
 
@@ -97,6 +97,9 @@ class InfluencerCreditTransaction(Base):
     amount_cents: Mapped[int] = mapped_column(Integer)
 
     meta: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
+    amount_cents: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
     
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -358,3 +361,27 @@ class InfluencerSubscriptionPayment(Base):
         Index("ix_inf_sub_pay_user_infl_time", "user_id", "influencer_id", "occurred_at"),
     )
 
+class PayPalTopUp(Base):
+    __tablename__ = "paypal_topups"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    influencer_id: Mapped[str | None] = mapped_column(
+        ForeignKey("influencers.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    order_id: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
+    cents: Mapped[int] = mapped_column(Integer, nullable=False)
+    provider: Mapped[str | None] = mapped_column(String, nullable=True)  # "paypal" | "stripe"
+
+    status: Mapped[str] = mapped_column(String, default="CREATED")  # CREATED | COMPLETED | FAILED
+    credited: Mapped[bool] = mapped_column(Boolean, default=False)
+    fp_tracked: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
