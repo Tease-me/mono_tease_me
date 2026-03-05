@@ -191,6 +191,6 @@ justify-content: flex-start;
 }
 
 .u-sidebar-footer {
- 
+  margin-top: auto;
   padding-bottom: 16px;
 }

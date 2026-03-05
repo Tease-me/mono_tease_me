@@ -524,6 +524,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
               setShowSubscriptionPage(false);
               setAdultModeSwitch(false);
             }}
+            influencerId={influencer?.id ?? ""}
+            influencerImageUrl={influencer?.img ?? null}
+            influencerName={influencer?.name ?? null}
           />
         )}
       </div>
