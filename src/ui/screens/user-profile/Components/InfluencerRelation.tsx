@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
 import styles from "./InfluencerRelation.module.css";
 import SvgPack from "@/utils/SvgPack";
@@ -25,6 +25,7 @@ import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 import AdultTermsModal from "@/ui/components/modals/adult-terms/AdultTermsModal";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { FollowServices } from "@/api/services/FollowServices";
+import { ADULT_MODE_AVAILABLE } from "@/constants/adultModeAvailable";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 //TODO
 // UNFOLLOW BUTTON IS HIDDEN
@@ -60,6 +61,9 @@ type RelationData = {
   balance?: number;
   voiceMinutes?: number;
   msgRemaining?: number;
+  lastCallMinutes?: number;
+  lastCallSeconds?: number;
+  lastCallUnitPriceCents?: number;
   //18+ Data
   adultBalance?: number;
   adultVoiceMinutes?: number;
@@ -108,6 +112,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
     !!data.hasSubscription && data.subscriptionStatus === "active",
   );
 
+  const [showCallInfoModal, setShowCallInfoModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [cancelSuccess, setCancelSuccess] = useState(false);
@@ -128,7 +133,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           relationshipService.getRelationship(initial.id!),
           balanceService.getBalance(initial.id!, false).catch(() => null),
           subscriptionService.getMySubscriptionForInfluencer(initial.id!),
-          userServices.getUserUsage(initial.id),
+          userServices.getUserUsage(initial.id).catch(() => null),
           influencerRepo.getInfluencer(initial.id!),
           followingService.list(),
           relationshipService.getDimensions(initial.id!).catch(() => null),
@@ -163,6 +168,9 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
             u?.normal?.messages != null
               ? (u?.free_allowances?.normal?.text_free_left ?? 0) + (u.normal.messages.remaining ?? 0)
               : d.msgRemaining,
+          lastCallMinutes: u?.normal?.live_chat?.last_call_minutes ?? d.lastCallMinutes,
+          lastCallSeconds: u?.normal?.live_chat?.last_call_seconds ?? d.lastCallSeconds,
+          lastCallUnitPriceCents: u?.normal?.live_chat?.unit_price_cents ?? d.lastCallUnitPriceCents,
           adultVoiceMinutes:
             u?.adult?.voice != null
               ? (u?.free_allowances?.adult?.voice_free_left_minutes ?? 0) + (u.adult.voice.remaining_minutes ?? 0)
@@ -310,30 +318,62 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           <NormalButton
             type="nobg"
             className={styles.grayBtn}
-            text={!showBalanceDetails ? "View Details" : "Hide Details"}
+            text={!showBalanceDetails ? "View Balance Details" : "Hide Balance Details"}
             onClick={() => setShowBalanceDetails((prev) => !prev)}
           />
           {showBalanceDetails && (
-            <div className={styles.balanceStats}>
-              <UsageView
-                label="Voice Minutes"
-                tone="green"
-                value={
-                  data.voiceMinutes != null
-                    ? minutesToTime(data.voiceMinutes)
-                    : "--"
-                }
-              />
-              <UsageView
-                label="Text Msgs"
-                tone="green"
-                value={
-                  data.msgRemaining != null
-                    ? data.msgRemaining.toString()
-                    : "--"
-                }
-              />
-            </div>
+            <>
+              <div className={styles.balanceStatsWrapper}>
+                <p className={styles.totalBalanceLabel}>Total Balance</p>
+                <div className={styles.balanceStats}>
+                  <UsageView
+                    label="Call Time"
+                    tone="green"
+                    value={
+                      data.voiceMinutes != null
+                        ? minutesToTime(data.voiceMinutes)
+                        : "--"
+                    }
+                  />
+                  <UsageView
+                    label="Text Msgs"
+                    tone="green"
+                    value={
+                      data.msgRemaining != null
+                        ? data.msgRemaining.toString()
+                        : "--"
+                    }
+                  />
+                </div>
+                <div className={styles.lastCallSection}>
+                  <div className={styles.lastCallHeader}>
+                    <span className={styles.lastCallTitle}>
+                      <Suspense fallback={null}><SvgPack.Call2 /></Suspense>
+                      Last Call Details
+                    </span>
+                    <span className={styles.infoIconBtn} onClick={() => setShowCallInfoModal(true)}>
+                      <Suspense fallback={null}><SvgPack.InfoCircleGray /></Suspense>
+                    </span>
+                  </div>
+                  <div className={styles.lastCallStats}>
+                    <div className={styles.lastCallCard}>
+                      <span className={styles.lastCallCardLabel}>Duration</span>
+                      <span className={styles.lastCallCardValue}>
+                        {data.lastCallMinutes != null ? minutesToTime(data.lastCallMinutes) : "--"}
+                      </span>
+                    </div>
+                    <div className={styles.lastCallCard}>
+                      <span className={styles.lastCallCardLabel}>Cost</span>
+                      <span className={styles.lastCallCardValue}>
+                        {data.lastCallSeconds != null && data.lastCallUnitPriceCents != null
+                          ? `$${((data.lastCallSeconds * data.lastCallUnitPriceCents) / 100).toFixed(2)}`
+                          : "--"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
           )}
           <PrimaryButton
             leftIcon={<SvgPack.PlusBox />}
@@ -342,64 +382,66 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
             className={styles.btn}
           />
         </div>
-        <div className={styles.adultBalanceArea}>
-          <NormalButton
-            type="nobg"
-            className={styles.grayBtn}
-            text={!showAdultBalanceDetails ? "View Details" : "Hide Details"}
-            onClick={() => setShowAdultBalanceDetails((prev) => !prev)}
-          />
-          {showAdultBalanceDetails && (
-            <div className={styles.adultBalanceStats}>
-              <UsageView
-                label="Voice Minutes"
-                tone="purple"
-                value={
-                  data.adultVoiceMinutes != null
-                    ? minutesToTime(data.adultVoiceMinutes)
-                    : "--"
-                }
-              />
-              <UsageView
-                label="Text Msg"
-                tone="purple"
-                value={
-                  data.adultMsgRemaining != null
-                    ? data.adultMsgRemaining.toString()
-                    : "--"
-                }
-              />
-            </div>
-          )}
-          {isSubscribed && showAdultBalanceDetails && (
-            <button
-              className={styles.cancelSub}
-              type="button"
-              onClick={() => {
-                setShowCancelModal(true);
-              }}
-            >
-              Cancel Subscription
-            </button>
-          )}
-          <div className={styles.adultToggleArea}>
-            <button type="button" className={styles.adultToggleBtn}>
-              <AdultModeToggle
-                checked={adultModeChecked}
-                onChange={handleAdultToggleChange}
-                minutesLeft={data.adultVoiceMinutes}
-              />
-            </button>
-            {isSubscribed && (
-              <p>
-                Until:{" "}
-                {data.expiresAt
-                  ? new Date(data.expiresAt).toLocaleDateString()
-                  : "--"}
-              </p>
+        {ADULT_MODE_AVAILABLE && <div className={styles.adultBalanceArea}>
+          <div className={styles.adultBalanceInner}>
+            <NormalButton
+              type="nobg"
+              className={styles.grayBtn}
+              text={!showAdultBalanceDetails ? "View Details" : "Hide Details"}
+              onClick={() => setShowAdultBalanceDetails((prev) => !prev)}
+            />
+            {showAdultBalanceDetails && (
+              <div className={styles.adultBalanceStats}>
+                <UsageView
+                  label="Voice Minutes"
+                  tone="purple"
+                  value={
+                    data.adultVoiceMinutes != null
+                      ? minutesToTime(data.adultVoiceMinutes)
+                      : "--"
+                  }
+                />
+                <UsageView
+                  label="Text Msg"
+                  tone="purple"
+                  value={
+                    data.adultMsgRemaining != null
+                      ? data.adultMsgRemaining.toString()
+                      : "--"
+                  }
+                />
+              </div>
             )}
+            {isSubscribed && showAdultBalanceDetails && (
+              <button
+                className={styles.cancelSub}
+                type="button"
+                onClick={() => {
+                  setShowCancelModal(true);
+                }}
+              >
+                Cancel Subscription
+              </button>
+            )}
+            <div className={styles.adultToggleArea}>
+              <button type="button" className={styles.adultToggleBtn}>
+                <AdultModeToggle
+                  checked={adultModeChecked}
+                  onChange={handleAdultToggleChange}
+                  minutesLeft={data.adultVoiceMinutes}
+                />
+              </button>
+              {isSubscribed && (
+                <p>
+                  Until:{" "}
+                  {data.expiresAt
+                    ? new Date(data.expiresAt).toLocaleDateString()
+                    : "--"}
+                </p>
+              )}
+            </div>
           </div>
-        </div>
+        </div>}
       </div>
 
       {/* Relationship stats area */}
@@ -443,6 +485,19 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
       {/* <div className={styles.unfollow}>
         <IconButton color="black" type="pill" leftIcon={<SvgPack.Delete />} text={`Unfollow ${data.name}`} redText className={styles.unfollowBtn} />
       </div> */}
+
+      {showCallInfoModal && (
+        <Modal isOpen onClose={() => setShowCallInfoModal(false)} className={styles.callInfoModal}>
+          <div className={styles.callInfoModalCard}>
+            <h3 className={styles.callInfoHeading}>How are call costs calculated?</h3>
+            <p className={styles.callInfoSubtitle}>Standard call charge $1.00 – $1.30 per minute</p>
+            <div className={styles.callInfoNote}>
+              <p className={styles.callInfoNoteTitle}>Notes on Call Charges</p>
+              <p className={styles.callInfoNoteText}>The total duration of the connection.<br></br> Includes the time it takes to establish the connection and is usually longer than the conversation.</p>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       {showCancelModal && (
         <Modal

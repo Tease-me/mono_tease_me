@@ -214,7 +214,7 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                         <div className={clsx(styles.connectionStatus, styles.lastConnected)}>
                             <div>Last Connected: <span>{relationship?.last_interaction_at ? formatDateTimeRelative(relationship?.last_interaction_at) : "Never"}</span></div>
                             {callSummary && (status === "disconnected" || status === "idle") && (
-                                <div>Last Call: <span>{formatTime(callSummary.durationSecs)}</span></div>
+                                <div>Last Call Duration: <span>{formatTime(callSummary.durationSecs)}</span></div>
                             )}
                         </div>
                     )}
