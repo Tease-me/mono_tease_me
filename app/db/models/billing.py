@@ -236,12 +236,7 @@ class InfluencerSubscription(Base):
         nullable=False,
     )
 
-    # Relationships
-    payments = relationship(
-        "InfluencerSubscriptionPayment",
-        back_populates="subscription",
-        cascade="all, delete-orphan",
-    )
+
 
     __table_args__ = (
         UniqueConstraint("user_id", "influencer_id", name="uq_user_influencer_subscription"),
@@ -312,9 +307,9 @@ class InfluencerSubscriptionPayment(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
-    subscription_id: Mapped[int] = mapped_column(
-        ForeignKey("influencer_subscriptions.id", ondelete="CASCADE"),
-        nullable=False,
+    subscription_id: Mapped[int | None] = mapped_column(
+        ForeignKey("influencer_subscriptions.id", ondelete="SET NULL"),
+        nullable=True,
         index=True,
     )
 
@@ -358,8 +353,6 @@ class InfluencerSubscriptionPayment(Base):
         nullable=False,
     )
 
-    # Relationships
-    subscription = relationship("InfluencerSubscription", back_populates="payments")
 
     __table_args__ = (
         Index("ix_inf_sub_pay_user_infl_time", "user_id", "influencer_id", "occurred_at"),

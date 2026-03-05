@@ -119,9 +119,7 @@ async def create_checkout(
         db,
         user=user,
         influencer_id=req.influencer_id,
-        purpose=req.purpose,
         provider=req.provider,
-        plan_id=req.plan_id,
         amount_cents=req.amount_cents,
     )
 
@@ -130,7 +128,6 @@ async def create_checkout(
         checkout_id=pp.get("checkout_id", payment.provider_event_id),
         payment_url=pp.get("payment_url", ""),
         provider=payment.provider,
-        purpose=pp.get("purpose", ""),
         amount_cents=payment.amount_cents,
     )
 
@@ -152,14 +149,12 @@ async def verify_checkout_endpoint(
 
     The frontend should call this after the user returns from the
     payment page.  If payment is confirmed, the system will
-    automatically credit the wallet / activate the subscription.
+    automatically credit the user's wallet.
     """
     from app.services.checkout import verify_checkout as _verify
     from app.services.billing import topup_wallet
 
     payment = await _verify(db, checkout_id=req.checkout_id, user_id=user.id)
-    pp = payment.provider_payload or {}
-    purpose = pp.get("purpose", "")
 
     result = {
         "ok": True,
@@ -169,29 +164,17 @@ async def verify_checkout_endpoint(
         "amount_cents": payment.amount_cents,
     }
 
-    # ── If confirmed, fulfil the purchase ──────────────────────────
+    # ── If confirmed, credit the wallet ───────────────────────────
     if payment.status == "succeeded":
-        if purpose == "topup":
-            new_balance = await topup_wallet(
-                db,
-                user_id=user.id,
-                influencer_id=payment.influencer_id,
-                cents=payment.amount_cents,
-                source=f"checkout:{payment.provider}",
-                is_18=True,
-            )
-            await db.commit()
-            result["balance_cents"] = new_balance
-
-        elif purpose == "subscription":
-            from app.services.checkout import _fulfil_subscription
-            sub = await _fulfil_subscription(db, payment, user)
-            result["subscription_id"] = sub.id
-            result["subscription_status"] = sub.status
-
-        elif purpose == "addon":
-            from app.services.checkout import _fulfil_addon
-            addon_result = await _fulfil_addon(db, payment, user)
-            result.update(addon_result)
+        new_balance = await topup_wallet(
+            db,
+            user_id=user.id,
+            influencer_id=payment.influencer_id,
+            cents=payment.amount_cents,
+            source=f"checkout:{payment.provider}",
+            is_18=False,
+        )
+        await db.commit()
+        result["balance_cents"] = new_balance
 
     return result

@@ -11,13 +11,11 @@ class TopUpRequest(BaseModel):
 
 
 class CreateCheckoutRequest(BaseModel):
-    """Frontend request to initiate a payment checkout."""
+    """Frontend request to initiate a credit top-up checkout."""
 
     influencer_id: str
-    purpose: Literal["subscription", "addon", "topup"]
     provider: Literal["stripe", "paypal"]
-    plan_id: int | None = None       # required for subscription / addon
-    amount_cents: int | None = None   # required for topup (plan price used otherwise)
+    amount_cents: int
 
 
 class CheckoutResponse(BaseModel):
@@ -26,7 +24,6 @@ class CheckoutResponse(BaseModel):
     checkout_id: str
     payment_url: str
     provider: str
-    purpose: str
     amount_cents: int
 
 
