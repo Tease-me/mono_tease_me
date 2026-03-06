@@ -5,7 +5,7 @@ import clsx from "clsx";
 import PlayIcon from "@/assets/svg/Play.svg?react";
 import PauseIcon from "@/assets/svg/Pause.svg?react";
 import CheckIcon from "@/assets/svg/Check.svg?react";
-import avatarImage from "@/assets/image/avatar.png";
+import emptyProfile from "@/assets/empty-profile.png";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { InfluencerSampleModel } from "@/data/models/InfluencerDataModel";
 
@@ -63,7 +63,7 @@ const AdultModeComingSoon: React.FC<AdultModeComingSoonProps> = ({
     setPlayingId(key);
   };
 
-  const resolvedAvatar = influencerImageUrl?.trim() || avatarImage;
+  const resolvedAvatar = influencerImageUrl?.trim() || emptyProfile;
 
   return (
     <div className={clsx(styles.container, nobg && styles.nobg)}>
@@ -99,7 +99,7 @@ const AdultModeComingSoon: React.FC<AdultModeComingSoonProps> = ({
                     <img src={resolvedAvatar} alt={influencerName ?? "Influencer"} />
                   </div>
                   <div className={styles.audioCard}>
-                    <div className={styles.audioTitle}>Audio Sample {String(index + 1).padStart(2, "0")}</div>
+                    <div className={styles.audioTitle}>{influencerName ? `${influencerName}'s Audio Sample` : "Audio Sample"} {String(index + 1).padStart(2, "0")}</div>
                     <div className={styles.audioPill}>
                       <button
                         className={styles.playButton}
