@@ -10,7 +10,7 @@ class PaymentWebhookPayload(BaseModel):
     session_id: Optional[str] = None     # Stripe session_id
     checkout_id: str                     # Idempotency key
     user_email: str
-    user_id: int
+    user_id: Optional[int] = None
     amount_cents: int
     balance_cents: int
     influencer_id: str
