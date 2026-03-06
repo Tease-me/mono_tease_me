@@ -9,12 +9,6 @@ import emptyProfile from "@/assets/empty-profile.png";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { InfluencerSampleModel } from "@/data/models/InfluencerDataModel";
 
-const FEATURES = [
-  "Explicit Ai phone conversations",
-  "Integrates interests from influencer",
-  "Tailored to your relationship",
-  "Romantic roleplaying",
-];
 
 const waveformBars = new Array(24).fill(0);
 
@@ -33,6 +27,14 @@ const AdultModeComingSoon: React.FC<AdultModeComingSoonProps> = ({
   influencerImageUrl,
   influencerName,
 }) => {
+
+  const FEATURES = [
+    "Explicit Ai phone conversations",
+    `Integrates interests from ${influencerName || " influencer"}`,
+    "Tailored to your relationship",
+    "Romantic roleplaying",
+  ];
+
   const influencerRepo = useMemo(() => InfluencerRepo(), []);
   const [samples, setSamples] = useState<InfluencerSampleModel[]>([]);
   const [playingId, setPlayingId] = useState<string | null>(null);
