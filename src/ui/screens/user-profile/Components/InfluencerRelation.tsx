@@ -227,6 +227,10 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
   };
 
   const handleAdultToggleChange = async () => {
+    if (!ADULT_MODE_AVAILABLE) {
+      goToSubPage();
+      return;
+    }
     if (!isSubscribed) {
       //Check if verified
       try {
@@ -382,46 +386,48 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
             className={styles.btn}
           />
         </div>
-        {ADULT_MODE_AVAILABLE && <div className={styles.adultBalanceArea}>
+        <div className={styles.adultBalanceArea}>
           <div className={styles.adultBalanceInner}>
-            <NormalButton
-              type="nobg"
-              className={styles.grayBtn}
-              text={!showAdultBalanceDetails ? "View Details" : "Hide Details"}
-              onClick={() => setShowAdultBalanceDetails((prev) => !prev)}
-            />
-            {showAdultBalanceDetails && (
-              <div className={styles.adultBalanceStats}>
-                <UsageView
-                  label="Voice Minutes"
-                  tone="purple"
-                  value={
-                    data.adultVoiceMinutes != null
-                      ? minutesToTime(data.adultVoiceMinutes)
-                      : "--"
-                  }
+            {ADULT_MODE_AVAILABLE && (
+              <>
+                <NormalButton
+                  type="nobg"
+                  className={styles.grayBtn}
+                  text={!showAdultBalanceDetails ? "View Details" : "Hide Details"}
+                  onClick={() => setShowAdultBalanceDetails((prev) => !prev)}
                 />
-                <UsageView
-                  label="Text Msg"
-                  tone="purple"
-                  value={
-                    data.adultMsgRemaining != null
-                      ? data.adultMsgRemaining.toString()
-                      : "--"
-                  }
-                />
-              </div>
-            )}
-            {isSubscribed && showAdultBalanceDetails && (
-              <button
-                className={styles.cancelSub}
-                type="button"
-                onClick={() => {
-                  setShowCancelModal(true);
-                }}
-              >
-                Cancel Subscription
-              </button>
+                {showAdultBalanceDetails && (
+                  <div className={styles.adultBalanceStats}>
+                    <UsageView
+                      label="Voice Minutes"
+                      tone="purple"
+                      value={
+                        data.adultVoiceMinutes != null
+                          ? minutesToTime(data.adultVoiceMinutes)
+                          : "--"
+                      }
+                    />
+                    <UsageView
+                      label="Text Msg"
+                      tone="purple"
+                      value={
+                        data.adultMsgRemaining != null
+                          ? data.adultMsgRemaining.toString()
+                          : "--"
+                      }
+                    />
+                  </div>
+                )}
+                {isSubscribed && showAdultBalanceDetails && (
+                  <button
+                    className={styles.cancelSub}
+                    type="button"
+                    onClick={() => setShowCancelModal(true)}
+                  >
+                    Cancel Subscription
+                  </button>
+                )}
+              </>
             )}
             <div className={styles.adultToggleArea}>
               <button type="button" className={styles.adultToggleBtn}>
@@ -431,7 +437,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
                   minutesLeft={data.adultVoiceMinutes}
                 />
               </button>
-              {isSubscribed && (
+              {ADULT_MODE_AVAILABLE && isSubscribed && (
                 <p>
                   Until:{" "}
                   {data.expiresAt
@@ -441,7 +447,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
               )}
             </div>
           </div>
-        </div>}
+        </div>
       </div>
 
       {/* Relationship stats area */}
