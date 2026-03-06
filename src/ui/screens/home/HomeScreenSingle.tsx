@@ -181,7 +181,13 @@ export default function HomeScreenSingle() {
             nobg
           />
         ) : (
-          <AdultModeComingSoon onBackClicked={goBack} nobg />
+          <AdultModeComingSoon
+            onBackClicked={goBack}
+            nobg
+            influencerId={navPayload.influencerId}
+            influencerImageUrl={navPayload.influencerImageUrl}
+            influencerName={navPayload.influencerName}
+          />
         )
       )
     },

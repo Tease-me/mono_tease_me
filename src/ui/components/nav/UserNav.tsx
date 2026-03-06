@@ -4,7 +4,7 @@ import styles from './UserNav.module.css'
 import TeaseMeLogo from '../logos/TeaseMeLogo'
 import SvgPack from '@/utils/SvgPack'
 import IconButton from '../inputs/buttons/IconButton'
-import useIsDesktop from '@/hooks/layout/useIsDesktop'
+import { useIsDesktopOnly } from '@/hooks/layout/useIsDesktop'
 import { useTheme } from '@/theme/ThemeProvider'
 import AdultModeToggle from "@/ui/components/adult-mode-toggle/AdultModeToggle";
 import clsx from 'clsx'
@@ -21,7 +21,7 @@ interface UserNavProps extends React.HTMLAttributes<HTMLDivElement> {
 
 
 const UserNav: React.FC<UserNavProps> = ({ onCallClick, onMenuClick, adultMode, callMode, onAdultModeChange, minutesRemaining, title }) => {
-  const isMobile = useIsDesktop() === false;
+  const isMobile = useIsDesktopOnly() === false;
   const { theme, setTheme } = useTheme();
   useEffect(() => {
     if (typeof adultMode === "boolean") {

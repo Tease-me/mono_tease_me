@@ -3,6 +3,7 @@ import styles from './SlideDrawerLayout.module.css';
 import clsx from "clsx"
 import SvgPack from '@/utils/SvgPack';
 import TeaseMeLogo from '../components/logos/TeaseMeLogo';
+import { constants } from '@/utils/constants';
 
 interface SlideDrawerLayoutProps {
   sidebar: React.ReactNode;
@@ -29,7 +30,8 @@ const SlideDrawerLayout: React.FC<SlideDrawerLayoutProps> = ({
   // Lock body scroll on mobile when sidebar is open
   useEffect(() => {
     if (!showSidebar) return;
-    const mq = window.matchMedia('(max-width: 768px)');
+    const mobileAndTabletMaxWidth = constants.DESKTOP_BREAKPOINT - 1;
+    const mq = window.matchMedia(`(max-width: ${mobileAndTabletMaxWidth}px)`);
     if (!mq.matches) return;
     const scrollY = window.scrollY;
     document.body.style.position = 'fixed';
