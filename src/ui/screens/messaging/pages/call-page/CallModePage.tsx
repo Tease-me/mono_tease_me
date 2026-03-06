@@ -38,9 +38,10 @@ type CallModePageProps = {
     cancelCall?: () => void;
     onChangeInfluencer?: () => void;
     conversationId?: string | null;
+    isSubscribed?: boolean;
 };
 
-const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, errorMessage, cancelCall, onChangeInfluencer, conversationId }: CallModePageProps) => {
+const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, errorMessage, cancelCall, onChangeInfluencer, conversationId, isSubscribed = false }: CallModePageProps) => {
     const [balance, setBalance] = React.useState<number>(0);
     const [isPopupOpen, setIsPopupOpen] = useState(false);
     const [nextStage, setNextStage] = useState<string>("");
@@ -164,7 +165,7 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                 {showBalance ? <BalanceBadge balance={balance} /> : <div style={{ height: "32px" }}></div>}
                 <div className={styles.profileWrap}>
                     <div onClick={handleOpenPopup} className={styles.profileImageClick}>
-                        <ProfileMedia active size={isMobile ? "large" : "xlarge"} mediaType="image" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} glow />
+                        <ProfileMedia active size={isMobile ? "large" : "xlarge"} videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} glow />
                     </div>
                     {onChangeInfluencer && <button
                         type="button"
@@ -230,9 +231,10 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                         ? {
                             name: influencer.name || "",
                             image: influencer.img || "",
+                            video: influencer.videoUrl,
                             lastConnected: formatDate(relationship?.last_interaction_at),
                             followingSince: formatDate(influencer.created_at),
-                            isSubscribed: false,
+                            isSubscribed: isSubscribed,
                             sentimentScore: relationship?.sentiment_score ?? 0,
                             currentStage: relationship?.state ?? "",
                             nextStage: nextStage,

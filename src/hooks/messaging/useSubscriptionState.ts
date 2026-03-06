@@ -211,6 +211,7 @@ export function useSubscriptionState({
     adultModeSwitch,
     setAdultModeSwitch,
     hasSubscription,
+    isActiveSubscriber: subscriptionStatus?.isSubscribed ?? false,
     showSubscriptionPage,
     setShowSubscriptionPage,
     showTermsModal,
