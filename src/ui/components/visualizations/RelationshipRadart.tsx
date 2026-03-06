@@ -26,7 +26,7 @@ const RelationshipRadar: React.FC<RelationshipRadarProps> = ({
   closeness,
   height = 260,
   width = 320,
-  color = "#a53cfd",
+  color = "#FF4D67",
 }) => {
   const data = useMemo(
     () => [

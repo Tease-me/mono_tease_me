@@ -15,3 +15,14 @@
     justify-content: center;
     text-align: center;
 }
+
+@media (max-width: 768px) {
+    .container {
+        align-items: flex-start;
+        padding: 16px 0;
+    }
+
+    .content {
+        width: 100%;
+    }
+}

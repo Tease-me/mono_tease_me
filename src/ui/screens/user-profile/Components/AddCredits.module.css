@@ -98,3 +98,16 @@
 .payWithRow02 {display: grid; grid-template-columns: 1fr 1.5fr; gap: var(--space-px-8); margin-bottom: var(--space-px-16);}
 .quickCreditButton svg { transform: scale(2.1);}
 .quickCreditCardButton svg {transform: scale(0.8);}
+
+.paypalImg {
+  width: 64px;
+  height: auto;
+  min-width: 64px;
+  max-width: none;
+  flex-shrink: 0;
+}
+
+.creditCardImg {
+  width: 22px;
+  height: auto;
+}
