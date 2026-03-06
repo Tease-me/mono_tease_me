@@ -86,7 +86,7 @@ Your own promises & decisions (stay consistent with these):
 Knowledge context (retrieved):
 {knowledge_context}
 
-Here is the user's latest message for your reference only:
+Here's some highlight of your previous conversation:
 {last_user_message}
 
 ━━━━━━━━━━━━━━━━━━━━━━
@@ -256,9 +256,11 @@ Extraction limits:
 What to extract (User):
 - Personal facts: name, age, location, job, pets, hobbies, family
 - Preferences: likes, dislikes, turn-ons, turn-offs
+- Current activities & schedule: what user is doing RIGHT NOW, daily routines,
+  upcoming plans ("I'm at work", "heading to the gym", "about to sleep")
 - Corrections: "I don't have a pet", "My name isn't X"
 - Boundaries: "Don't do that", "I'm not comfortable with X"
-- Plans & states: "I'm at work", "I have an exam tomorrow"
+- Plans & upcoming events: "I have an exam tomorrow", "going on vacation next week"
 - Emotional moments: strong reactions, things that made them happy or upset
 
 What to extract (AI):
@@ -282,6 +284,25 @@ Context & detail:
 - BAD: "User is at work." → too bare.
 - GOOD: "User is currently at work handling customer service for three hotels (at the time of this conversation)."
 
+TEMPORAL / ACTIVITY MEMORIES:
+When the user mentions what they are doing RIGHT NOW or their current state:
+- ALWAYS include [ACTIVITY @ HH:MM] using the conversation timestamp, right after the "User " prefix.
+- Keep the core activity description (at work, at gym, driving, sleeping) consistent so updates replace old versions.
+- BAD:  "User is at work."
+- GOOD: "User [ACTIVITY @ 14:30] is at work handling customer service for three hotels."
+- BAD:  "User mentioned being home."
+- GOOD: "User [ACTIVITY @ 19:15] is home for the evening after work."
+
+When the user mentions a SCHEDULE or ROUTINE (not just right now):
+- Use [SCHEDULE] instead of [ACTIVITY @ HH:MM].
+- GOOD: "User [SCHEDULE] typically works 9-5 at a hotel customer service job."
+- GOOD: "User [SCHEDULE] goes to the gym every morning before work."
+
+SUPERSEDE RULE:
+If a new activity clearly replaces a previous one (e.g., "I'm home now" after previously being at work),
+phrase the memory to describe the CURRENT state only. The system will automatically replace the old version.
+Do NOT include both old and new states in the same memory.
+
 Output Rules:
 - Each memory on a separate line. No bullets, no numbering, no hyphens.
 - ALWAYS start with "User " or "AI " — this is non-negotiable.
@@ -291,7 +312,7 @@ Recent context (for reference only — do NOT re-extract these):
 {ctx}
 
 Conversation timestamp: {ts}
-If a fact is time-sensitive (e.g., "user is at work"), include "right now" or "at the time of this conversation".
+If a fact is time-sensitive (e.g., "user is at work"), include [ACTIVITY @ HH:MM] with the time from the timestamp.
 For durable facts (names, preferences, boundaries), skip the time marker.
 
 Latest exchange (EXTRACT FROM HERE ONLY):

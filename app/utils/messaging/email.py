@@ -3,6 +3,7 @@ import boto3
 from botocore.exceptions import ClientError
 from app.core.config import settings
 from datetime import datetime
+from typing import Optional
 from app.db.models import Influencer
 import io
 import uuid
@@ -23,14 +24,35 @@ ses_client = boto3.client("ses", region_name=AWS_REGION)
 
 EMAIL_VERIFY_HEADER_URL = "https://bucket-image-tease-me.s3.us-east-1.amazonaws.com/email_verify_header.png"
 EMAIL_RESET_HEADER_URL = "https://bucket-image-tease-me.s3.us-east-1.amazonaws.com/reset_password_header.png"
+EMAIL_INFLUENCER_HEADER_BG_URL = "https://bucket-image-tease-me.s3.us-east-1.amazonaws.com/influencer_header_background.png"
 # Email hero image size (width is fixed by template). Increase height here without changing face size
 # because we render the overlay at a fixed scale (fit-to-width) and only crop vertically.
 EMAIL_HEADER_SIZE = (520, 150)  # (width, height)
 
-def send_verification_email(to_email: str, token: str):
+async def send_verification_email(
+    to_email: str,
+    token: str,
+    *,
+    influencer_id: str | None = None,
+    influencer_profile_photo_key: Optional[str] = None,
+):
     subject = "Confirm your email on TeaseMe!"
     confirm_url = f"{CONFIRM_BASE_URL}/verify-email?token={token}"
     logo_url = EMAIL_VERIFY_HEADER_URL
+
+    if influencer_id and influencer_profile_photo_key:
+        try:
+            logo_url = compose_email_header_image_url(
+                photo_key=influencer_profile_photo_key,
+                background_url=EMAIL_INFLUENCER_HEADER_BG_URL,
+                influencer_id=str(influencer_id),
+            )
+        except Exception:
+            log.warning(
+                "send_verification_email: failed to compose influencer header influencer_id=%s",
+                influencer_id,
+                exc_info=True,
+            )
 
     body_html = f"""
 <!DOCTYPE html>

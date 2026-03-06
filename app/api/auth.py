@@ -87,6 +87,7 @@ async def register(
     db: AsyncSession = Depends(get_db),
     file: UploadFile | None = File(default=None),
 ):
+    influencer = None
     existing_user = await db.execute(
         select(User).where((User.email == data.email))
     )
@@ -94,7 +95,7 @@ async def register(
         raise HTTPException(status_code=200, detail="Username or email already registered")
 
     if data.influencer_id:
-        await ensure_influencer(db, data.influencer_id)
+        influencer = await ensure_influencer(db, data.influencer_id)
 
     verify_token = secrets.token_urlsafe(32)
     token_expires = datetime.utcnow() + timedelta(hours=24)
@@ -160,7 +161,12 @@ async def register(
     except Exception:
         log.exception("FirstPromoter track/signup failed")
     
-    send_verification_email(user.email, verify_token)
+    await send_verification_email(
+        user.email,
+        verify_token,
+        influencer_id=data.influencer_id,
+        influencer_profile_photo_key=getattr(influencer, "profile_photo_key", None),
+    )
 
     return {
         "ok": True,
@@ -294,7 +300,7 @@ async def resend_verification_email(request: Request, email: str, db: AsyncSessi
     user.email_token_expires_at = datetime.utcnow() + timedelta(hours=24)
     await db.commit()
 
-    send_verification_email(user.email, verify_token)
+    await send_verification_email(user.email, verify_token)
 
     return {
         "ok": True,
