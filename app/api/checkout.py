@@ -75,9 +75,11 @@ async def payment_webhook(
         return {"ok": True, "duplicate": True}
 
     # ── 4. Resolve user ─────────────────────────────────────────────
-    user = await db.get(User, payload.user_id)
+    user = await db.scalar(
+        select(User).where(User.email == payload.user_email)
+    )
     if not user:
-        raise HTTPException(status_code=404, detail=f"User {payload.user_id} not found")
+        raise HTTPException(status_code=404, detail=f"User with email {payload.user_email} not found")
         
     influencer = await db.get(Influencer, payload.influencer_id)
 
@@ -119,8 +121,8 @@ async def payment_webhook(
         raise HTTPException(status_code=500, detail="Internal error processing payment")
 
     log.info(
-        "Payment credited: user=%s influencer=%s cents=%s new_balance=%s checkout_id=%s provider=%s",
-        payload.user_id,
+        user.id,
+        payload.user_email,
         payload.influencer_id,
         payload.balance_cents,
         new_balance,
@@ -147,7 +149,7 @@ async def payment_webhook(
 
     return {
         "ok": True,
-        "user_id": payload.user_id,
+        "user_id": user.id,
         "influencer_id": payload.influencer_id,
         "credited_cents": payload.balance_cents,
         "new_balance_cents": new_balance,
