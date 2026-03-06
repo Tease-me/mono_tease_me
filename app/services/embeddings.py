@@ -375,7 +375,7 @@ async def upsert_memory(
     content: str,
     embedding: list[float],
     sender: str = "fact",
-    similarity_threshold: float = 0.15,
+    similarity_threshold: float = 0.25,
 ) -> str | None:
     """
     Insert or update a memory based on semantic similarity using cosine distance.
@@ -389,7 +389,7 @@ async def upsert_memory(
         content: Memory content
         embedding: Content embedding vector
         sender: Sender identifier (default: "fact")
-        similarity_threshold: Maximum cosine distance for considering memories similar (default: 0.15)
+        similarity_threshold: Maximum cosine distance for considering memories similar (default: 0.25)
                              Lower = stricter matching (0=identical, 1=orthogonal)
         
     Returns:
