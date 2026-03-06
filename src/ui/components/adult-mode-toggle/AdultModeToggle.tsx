@@ -3,6 +3,7 @@ import styles from "./AdultModeToggle.module.css";
 import LipsIcon from "@/assets/svg/angel_lips.svg?react";
 import HorneyLips from "@/assets/svg/devil_lips.svg?react";
 import { minutesToTime } from "@/utils/DateTimeUtils";
+import { ADULT_MODE_AVAILABLE } from "@/constants/adultModeAvailable";
 
 interface AdultModeToggleProps {
   checked: boolean;
@@ -20,10 +21,12 @@ const AdultModeToggle: React.FC<AdultModeToggleProps> = ({ minutesLeft, checked,
   };
 
   return (
-    <div className={styles.adultModeToggleContainer}>
-      <div className={clsx(styles.minutesArea, checked ? styles.minutesEnabled : styles.minutesDisabled)}>
-        <span>{minutesLeft ? minutesToTime(minutesLeft) : "0"} mins</span>
-      </div>
+    <div className={clsx(styles.adultModeToggleContainer, !ADULT_MODE_AVAILABLE && styles.toggleOnly)}>
+      {ADULT_MODE_AVAILABLE && (
+        <div className={clsx(styles.minutesArea, checked ? styles.minutesEnabled : styles.minutesDisabled)}>
+          <span>{minutesLeft ? minutesToTime(minutesLeft) : "0"} mins</span>
+        </div>
+      )}
       <div className={styles.toggleArea} onClick={handleToggle}
         role="button"
         aria-pressed={checked}

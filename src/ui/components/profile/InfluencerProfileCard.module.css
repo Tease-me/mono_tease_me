@@ -15,12 +15,8 @@
   animation: fade-in-top 0.4s cubic-bezier(0.39, 0.575, 0.565, 1) both;
 }
 
-.profileImage {
-  width: 100px;
-  height: 100px;
+.profileMedia {
   border-radius: 50%;
-  object-fit: cover;
-  border: 5px solid #404040;
 }
 
 .profileimageContainer {

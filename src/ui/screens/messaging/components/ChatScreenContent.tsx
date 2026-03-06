@@ -166,7 +166,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     adultMode,
     adultModeSwitch,
     setAdultModeSwitch,
-    hasSubscription,
+    isActiveSubscriber,
     showSubscriptionPage,
     setShowSubscriptionPage,
     showTermsModal,
@@ -432,7 +432,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
                   adultMode={adultMode}
                   showChangeInfluencerButton={hasMultipleInfluencers}
                   onChangeInfluencer={handleChangeInfluencerClicked}
-                  isSubscribed={hasSubscription}
+                  isSubscribed={isActiveSubscriber}
                 />
                 <div
                   className={clsx(
@@ -504,6 +504,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
                     ? handleChangeInfluencerClicked
                     : undefined
                 }
+                isSubscribed={isActiveSubscriber}
               />
             )}
           </>
@@ -541,6 +542,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
       <AddCreditsModal
         isOpen={showTopupModal}
         image={influencer?.img}
+        video={influencer?.videoUrl}
         onClose={() => dispatch(chatScreenActions.setShowTopupModal(false))}
         influencerId={influencer?.id || ""}
       />

@@ -152,6 +152,7 @@ export default function ChatInfluencerBar({
             ? {
               name: influencer.name || "",
               image: influencer.img || "",
+              video: influencer.videoUrl,
               lastConnected: formatDate(relationship?.last_interaction_at),
               followingSince: formatDate(influencer.created_at),
               isSubscribed: isSubscribed,

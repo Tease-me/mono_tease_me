@@ -9,7 +9,8 @@ import { apiClient } from "@/api/apis";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 import { storage } from "@/utils/storage";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
-import SvgPack from "@/utils/SvgPack";
+import PayPalLogoUrl from "@/assets/svg/PayPalLogo.svg";
+import CreditCardUrl from "@/assets/svg/CreditCard.svg";
 
 
 const billing = BillingServices(apiClient);
@@ -155,7 +156,7 @@ export default function AddCreditsContent({
                    <NormalButton
                    color="black"
            
-            leftIcon={<SvgPack.PayPalLogo/>}
+            leftIcon={<img src={PayPalLogoUrl} alt="PayPal" className={styles.paypalImg} />}
             className={styles.quickCreditButton}
             selected={provider === "paypal"}
             onClick={() => setProvider("paypal")}
@@ -163,7 +164,7 @@ export default function AddCreditsContent({
                    <NormalButton
            
             color="black"
-              leftIcon={<SvgPack.CreditCard/>}
+              leftIcon={<img src={CreditCardUrl} alt="Credit Card" className={styles.creditCardImg} />}
               text="Credit Card"
             className={styles.quickCreditCardButton}
             selected={provider === "stripe"}
