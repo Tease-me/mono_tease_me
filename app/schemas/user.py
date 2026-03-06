@@ -9,9 +9,20 @@ class UserBase(BaseModel):
     email: Optional[str] = None
 
 class UserUpdate(BaseModel):
+    username: Optional[str] = None
     full_name: Optional[str] = None
     gender: Optional[str] = None
     date_of_birth: Optional[datetime] = None
+
+    @field_validator('username', mode='before')
+    @classmethod
+    def normalize_username(cls, v):
+        if v is None:
+            return v
+        if isinstance(v, str):
+            username = v.strip()
+            return username or None
+        return v
 
     @field_validator('date_of_birth', mode='before')
     @classmethod
