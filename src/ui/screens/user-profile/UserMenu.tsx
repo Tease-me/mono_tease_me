@@ -20,9 +20,9 @@ export default function UserMenu({ goTo }: UserMenuProps) {
     goTo("profile");
   };
 
-  const handlePaymentDetailsClick = () => {
-    goTo("payment");
-  };
+  // const handlePaymentDetailsClick = () => {
+  //   goTo("payment");
+  // };
 
   const handlePTopupClick = () => {
     if (!storedId) return;
@@ -51,11 +51,11 @@ export default function UserMenu({ goTo }: UserMenuProps) {
             subtitle="Edit & Update User Details"
             onClick={handleUserProfileClick}
           />
-          <NavigationRow
+          {/* <NavigationRow
             title="Payment Details"
             subtitle="Add & Edit Payment Sources"
             onClick={handlePaymentDetailsClick}
-          />
+          /> */}
           {storedId && (
             <NavigationRow
               title="Topup"
