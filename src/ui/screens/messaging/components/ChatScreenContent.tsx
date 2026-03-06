@@ -166,7 +166,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     adultMode,
     adultModeSwitch,
     setAdultModeSwitch,
-    hasSubscription,
     isActiveSubscriber,
     showSubscriptionPage,
     setShowSubscriptionPage,
