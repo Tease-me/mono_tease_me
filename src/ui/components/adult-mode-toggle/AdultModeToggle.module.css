@@ -7,9 +7,16 @@
   gap: var(--space-px-6);
   max-width: 200px;
   border-radius: 74px;
-border: 1px solid hsla(0, 0%, 79%, 0.09);
-background: hsla(0, 0%, 13%, 0.43);
-min-height: 48px;
+  border: 1px solid hsla(0, 0%, 79%, 0.09);
+  background: hsla(0, 0%, 13%, 0.43);
+  min-height: 48px;
+}
+
+.toggleOnly {
+  grid-template-columns: 1fr;
+  border: none;
+  background: transparent;
+  padding: 0;
 }
 
 .minutesArea {

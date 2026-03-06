@@ -98,11 +98,13 @@ export default function RegisterStepForm({
       >
         I am over 18
       </CheckBox>
-      {errors.general && (
-        <ValidationPill variant="error" className={styles["errorPill"]}>
-          {errors.general}
-        </ValidationPill>
-      )}
+      <div>
+        {errors.general && (
+          <ValidationPill variant="error" className={styles["errorPill"]}>
+            {errors.general}
+          </ValidationPill>
+        )}
+      </div>
       <div className={styles["user-action-section"]}>
         <div className={styles["auth-buttons"]}>
           <ButtonRow>

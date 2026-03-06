@@ -306,6 +306,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
       <InfluencerProfileCard
         name={data.name || ""}
         image={data.image || ""}
+        video={data.video}
         isSubscribed={isSubscribed}
         lastConnected={
           data.lastConnected ? formatDateTimeRelative(data.lastConnected) : "--"

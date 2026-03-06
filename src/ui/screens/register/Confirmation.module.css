@@ -1,8 +1,5 @@
 .container {
-    min-width: 900px;
     flex-direction: column;
-    transition: background-image 0.3s ease, box-shadow 0.3s ease;
-    cursor: pointer;
     display: flex;
     align-items: center;
     padding: 10%;
@@ -53,4 +50,14 @@
 .buttons-container {
     margin-top: 8px;
     margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+    .container {
+        min-width: auto;
+        width: calc(100% - 32px);
+        padding: 32px 24px;
+        border-radius: 12px;
+        align-self: center;
+    }
 }

@@ -1,11 +1,12 @@
 import styles from "./InfluencerProfileCard.module.css";
 import SvgPack from "@/utils/SvgPack";
 import PlusBadge from "@/ui/components/badges/PlusBadge";
-import emptyProfile from "@/assets/empty-profile.png";
+import ProfileMedia from "@/ui/components/ProfileMedia";
 
 type InfluencerProfileCardProps = {
   name: string;
   image: string;
+  video?: string;
   lastConnected: string;
   followingSince: string;
   isSubscribed?: boolean;
@@ -25,8 +26,8 @@ type SocialLink = {
 };
 
 export default function InfluencerProfileCard({
-  name,
   image,
+  video,
   lastConnected,
   followingSince,
   isSubscribed = false,
@@ -51,7 +52,7 @@ export default function InfluencerProfileCard({
     <div className={styles.section01}>
       <div className={styles.profileCardContainer}>
         <div className={styles.profileimageContainer}>
-          <img src={image || emptyProfile} alt={name} className={styles.profileImage} />
+          <ProfileMedia imageSrc={image || undefined} videoSrc={video || undefined} size="medium" className={styles.profileMedia} active />
           {isSubscribed && (
             <div className={styles.hearticon}>
               <PlusBadge />

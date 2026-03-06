@@ -12,6 +12,7 @@ interface InfluencerPopupProps {
   influencerData?: {
     name: string;
     image: string;
+    video?: string;
     lastConnected: string;
     followingSince: string;
     isSubscribed?: boolean;
@@ -74,6 +75,7 @@ export default function InfluencerPopup({
                 <InfluencerProfileCard
                   name={influencerData.name}
                   image={influencerData.image}
+                  video={influencerData.video}
                   lastConnected={influencerData.lastConnected}
                   followingSince={influencerData.followingSince}
                   isSubscribed={influencerData.isSubscribed}
