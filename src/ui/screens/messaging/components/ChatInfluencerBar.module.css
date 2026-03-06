@@ -34,6 +34,9 @@
   grid-template-columns: 1fr 1fr 1fr;
   width: 100%;
   justify-content: space-between;
+      align-items: center;
+              top: -0.6rem;
+        position: relative;
 }
 
 .leftCol {
@@ -74,6 +77,7 @@
   gap: var(--space-px-8);
   grid-template-columns: 1fr 1fr;
   justify-items: center;
+  align-items: center;
 }
 
 .relationshipStatusLabel {
@@ -332,6 +336,7 @@
   .influencerStatsRow {
     max-width: calc(var(--max-chat-content-width) + 22px);
     margin: 0 auto;
+        align-items: center;
   }
 
   .leftCol {
