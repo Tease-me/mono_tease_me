@@ -1,5 +1,5 @@
 import React, { useEffect, useContext, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import BackgroundGradient from "../../templates/BackgroundGradient";
 import styles from "./LoginScreen.module.css";
 import CheckBox from "@/ui/components/inputs/check-boxes/CheckBox";
@@ -40,6 +40,8 @@ export default function LoginScreen() {
   const { login, isSignedIn, authErrors } = useContext(AuthContext);
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromPath = (location.state as { from?: string })?.from;
 
   useEffect(() => { if (isSignedIn) navigate(Paths.home); }, [isSignedIn, navigate]);
 
@@ -141,7 +143,7 @@ export default function LoginScreen() {
   }
 
   const handleBackClick = () => {
-    navigate(Paths.root)
+    navigate(fromPath ?? Paths.root);
   }
 
   return (
@@ -157,7 +159,7 @@ export default function LoginScreen() {
           navigate(Paths.underage)
         }}
       />
-      <FullWidthLayout fullWidthNav={<OnBoardingTopNav onBackClicked={handleBackClick} />}>
+      <FullWidthLayout fullWidthNav={<OnBoardingTopNav onBackClicked={fromPath ? handleBackClick : undefined} />}>
         <HeadingText className={styles["title"]}>Login to your Account</HeadingText>
         <form className={styles["auth-form"]} onSubmit={handleSubmit}>
           <div className={styles["input-fields"]}>
