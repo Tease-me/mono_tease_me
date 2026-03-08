@@ -59,7 +59,7 @@
 
 .buttons-container {
   justify-self: center;
-  max-width: 200px;
+  max-width: 300px;
   justify-content: center;
   flex: 1;
 }
@@ -89,6 +89,6 @@
   }
 }
 
-.errorArea{
+.errorArea {
   margin: 32px;
 }

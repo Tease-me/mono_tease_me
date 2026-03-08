@@ -21,7 +21,8 @@
   align-self: flex-start;
   width: fit-content;
   max-width: 100%;
-  color: #d0f5d7; /* adjust for success/error */
+  color: #d0f5d7;
+  /* adjust for success/error */
   background: rgba(46, 204, 113, 0.15);
   border: 1px solid rgba(46, 204, 113, 0.4);
   border-radius: 8px;
@@ -37,7 +38,7 @@
 
 
 
-.pillArea{
+.pillArea {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -87,7 +88,7 @@
   justify-content: space-between;
   align-items: center;
   gap: var(--space-px-12);
-  margin-top: 24px;
+  height: 3.1875rem;
 }
 
 .cancel {
@@ -103,4 +104,5 @@
   flex: 1;
   min-width: 0;
   width: auto;
+  height: 3.1875rem;
 }
