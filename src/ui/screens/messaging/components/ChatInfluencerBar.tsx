@@ -80,6 +80,10 @@ export default function ChatInfluencerBar({
     setIsPopupOpen(false);
   };
 
+  const handleProfileImageClick = () => {
+
+  }
+
   return (
     <div className={styles.chatInfluencerBar}>
       <div className={styles.influencerTop}>
@@ -89,7 +93,7 @@ export default function ChatInfluencerBar({
               <p>{influencer?.name}</p><p className={styles.statusText}>{status}</p>
             </div>
             <div className={styles.middleCol}></div>
-            <div className={clsx(styles.rightCol, adultMode && styles.hidden)}>
+            <div className={clsx(styles.rightCol, adultMode && styles.hidden, !adultMode && styles.clickable)} onClick={adultMode ? undefined : handleOpenPopup}>
               <div className={styles.relationshipStatus}>
                 {getRelationshipStatusIcon(relationship?.state as RelationshipStatus)}
                 <div className={styles.relationshipStatusLabel}>
@@ -119,7 +123,7 @@ export default function ChatInfluencerBar({
           </div>
         </div>
         <div className={styles.profileMidCol}>
-          <div onClick={adultMode ? undefined : handleOpenPopup} className={clsx(!adultMode && styles.profileImageClick)}>
+          <div onClick={adultMode ? undefined : handleProfileImageClick} className={clsx(!adultMode && styles.profileImageClick)}>
             <ProfileMedia size="medium" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} />
           </div>
           <button
