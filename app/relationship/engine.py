@@ -72,14 +72,6 @@ class RelOut:
     safety: float
 
 def compute_state(trust, closeness, attraction, safety, prev_state):
-    if prev_state == "BROKEN":
-        return "BROKEN"
-
-    if prev_state == "STRAINED":
-        if safety < 45:
-            return "STRAINED"
-    if safety < 30:
-        return "STRAINED"
     if trust > 80 and closeness > 75 and attraction > 70 and safety > 75:
         return "DATING"
     if attraction > 55 and closeness > 45 and safety > 55:

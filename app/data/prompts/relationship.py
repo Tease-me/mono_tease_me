@@ -18,7 +18,7 @@ respect: User admires, values, or respects her. "I really admire you", "you're s
 apology: User apologizes sincerely. "I'm so sorry" → 0.7–1.0. Mild softening → 0.2–0.4.
 commitment_talk: User discusses relationship status, future together, exclusivity, making it official.
 accepted_exclusive: True ONLY if user explicitly accepts/agrees to be exclusive or official.
-accepted_girlfriend: True ONLY if user explicitly accepts/proposes a girlfriend relationship in response to an invitation.
+accepted_girlfriend: True ONLY if the user explicitly accepts or agrees to become girlfriend/boyfriend AFTER the AI has proposed or invited the transition. Do NOT set true when the user initiates or proposes the idea themselves — only when they are accepting the AI's invitation.
 
 === NEGATIVE SIGNALS ===
 rude: User is genuinely disrespectful, dismissive, or mean to her. ONLY score > 0 for actual rudeness. Saying "I love you", complimenting her, or expressing attraction is NOT rude. Direct or bold statements that are still respectful → 0.0. Mildly rude → 0.2–0.4. Clearly disrespectful → 0.6–0.9.
