@@ -13,28 +13,31 @@ def sat_down(x: float, delta: float, k: float = 0.03) -> float:
         return x
     return x - x * (1 - math.exp(-k * delta))
 K_UP_BY_STAGE = {
-    "HATE": 0.015,
-    "DISLIKE": 0.025,
-    "STRANGERS": 0.150,
-    "FRIENDS": 0.1,
-    "FLIRTING": 0.055,
-    "DATING": 0.025,
-    "GIRLFRIEND": 0.020,
-    "STRAINED": 0.015,
-    "BROKEN": 0.010
+    # How fast dimensions (trust/closeness/attraction/safety) RISE per positive signal.
+    # Higher = more responsive. Capped in practice by enforce_stage_dimension_caps().
+    # HATE/DISLIKE intentionally higher — user needs to feel visible progress when being nice,
+    # otherwise it feels like a dead end. Stage_points (which drive stage change) are already
+    # gated by STAGE_DELTA multipliers and caps in relationship_stages.py.
+    "HATE":       0.055,   # She's hurt but CAN warm up — nice behavior should feel meaningful
+    "DISLIKE":    0.055,   # Cooling off is possible; consistent warmth visibly softens her
+    "STRANGERS":  0.080,   # Early stage — a few nice messages can build connection quickly
+    "FRIENDS":    0.065,   # Friendship deepens steadily
+    "FLIRTING":   0.045,   # Romantic feelings build slowly — she's enjoying the tension
+    "DATING":     0.045,   # Deep trust earned turn-by-turn; she needs consistency
+    "GIRLFRIEND": 0.030,   # Relationship maintenance; appreciation compounds over time
 }
 
 K_DOWN_BY_STAGE = {
-    "HATE": 0.050,
-    "DISLIKE": 0.045,
-    "STRANGERS": 0.020,
-    "FRIENDS": 0.025,
-    "FLIRTING": 0.035,
-    "DATING": 0.045,
-    "GIRLFRIEND": 0.030,
-    "STRAINED": 0.045,
-    "BROKEN": 0.050,
+    # How fast dimensions FALL per negative signal.
+    "HATE":       0.040,   # Already at rock bottom — marginal further damage, focus on recovery
+    "DISLIKE":    0.050,   # She's cold; rude behavior confirms it, but not a free-fall
+    "STRANGERS":  0.050,   # First impressions matter — rudeness can turn a stranger off quickly
+    "FRIENDS":    0.045,   # Friends forgive small things; bigger rudeness still hurts
+    "FLIRTING":   0.055,   # Romantic tension is fragile — pushiness or rudeness kills the vibe
+    "DATING":     0.060,   # She's invested now; betrayal or disrespect hits harder
+    "GIRLFRIEND": 0.030,   # Most forgiving (also 60% dampened separately in processor)
 }
+
 def sat_up_staged(x: float, delta: float, stage: str) -> float:
     if delta <= 0: 
         return x
@@ -69,14 +72,6 @@ class RelOut:
     safety: float
 
 def compute_state(trust, closeness, attraction, safety, prev_state):
-    if prev_state == "BROKEN":
-        return "BROKEN"
-
-    if prev_state == "STRAINED":
-        if safety < 45:
-            return "STRAINED"
-    if safety < 30:
-        return "STRAINED"
     if trust > 80 and closeness > 75 and attraction > 70 and safety > 75:
         return "DATING"
     if attraction > 55 and closeness > 45 and safety > 55:

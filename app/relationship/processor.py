@@ -177,8 +177,12 @@ def compute_stage_delta(sig: Signals, current_stage: str) -> float:
 
   # Baseline reward for non-negative engagement
   # Rewards genuine engagement without giving free points for spam
-  is_negative = (sig.rude > 0.15 or sig.boundary_push > 0.15 or 
-                 sig.dislike > 0.15 or sig.hate > 0.1)
+  # Thresholds: 0.25 for rude/boundary_push/dislike, 0.15 for hate — LLM can
+  # produce small accidental scores for genuinely nice messages due to prompt
+  # ambiguity; don't penalise unless clearly negative. Hate uses a lower cutoff
+  # because even mild hostility should suppress the baseline reward.
+  is_negative = (sig.rude > 0.25 or sig.boundary_push > 0.25 or
+                 sig.dislike > 0.25 or sig.hate > 0.15)
   
   baseline = 0.0 if is_negative else STAGE_DELTA_BASELINE
   delta += baseline
