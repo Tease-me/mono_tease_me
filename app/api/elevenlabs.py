@@ -977,7 +977,7 @@ async def get_conversation_token(
 
     async def _w2_credits():
         async with SessionLocal() as s:
-            return await get_remaining_units(s, user_id, influencer_id, feature="live_chat")
+            return await get_remaining_units(s, user_id, influencer_id, feature=feature, is_18=is_18)
 
     users_name, memories, ai_mem_list, credits_remainder_secs = await asyncio.gather(
         _w2_users_name(),
@@ -999,11 +999,21 @@ async def get_conversation_token(
     cached_greeting = await _rclient.get(_greeting_cache_key)
 
     async def _fetch_token() -> str:
+        # Cap the conversation to the user's remaining credits so ElevenLabs
+        # terminates the call server-side when the free trial / paid balance runs out.
+        max_secs = max(min(credits_remainder_secs, DEFAULT_MAX_CONVERSATION_SECS), 30)
         try:
             client = await get_elevenlabs_client()
-            resp = await client.get(
+            resp = await client.post(
                 "/convai/conversation/token",
-                params={"agent_id": agent_id},
+                json={
+                    "agent_id": agent_id,
+                    "conversation_config_override": {
+                        "conversation": {
+                            "max_duration_seconds": max_secs,
+                        }
+                    },
+                },
                 headers=_headers(),
                 timeout=15.0,
             )
