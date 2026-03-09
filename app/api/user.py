@@ -178,18 +178,31 @@ async def get_user_usage(
         }
 
     # Free allowances are global (once per account), returned at top level
+    normal_trial_available = (
+        normal_text_free_left > 0
+        or normal_voice_free_left > 0
+        or normal_live_free_left > 0
+    )
+    adult_trial_available = (
+        adult_text_free_left > 0
+        or adult_voice_free_left > 0
+    )
+
     free_allowances = {
         "normal": {
             "text_free_left": normal_text_free_left,
             "voice_notes_free_left": normal_voice_free_left,
             "live_chat_free_left": normal_live_free_left,
             "live_chat_free_left_minutes": round(normal_live_free_left / 60, 2),
+            "free_trial_available": normal_trial_available,
         },
         "adult": {
             "text_free_left": adult_text_free_left,
             "voice_free_left": adult_voice_free_left,
             "voice_free_left_minutes": round(adult_voice_free_left / 60, 2),
+            "free_trial_available": adult_trial_available,
         },
+        "free_trial_available": normal_trial_available or adult_trial_available,
     }
 
     if influencer_id:
