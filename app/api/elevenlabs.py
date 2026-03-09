@@ -39,6 +39,7 @@ from app.gateways.elevenlabs_agents_gateway import (
     DEFAULT_TURN_EAGERNESS,
     DEFAULT_TURN_TIMEOUT_SECS,
     DEFAULT_MAX_CONVERSATION_SECS,
+    compute_max_duration,
     DEFAULT_CASCADE_TIMEOUT_SECS,
     DEFAULT_TTS_MODEL_ID,
     DEFAULT_FIRST_MESSAGE_TEMPLATE,
@@ -1001,7 +1002,7 @@ async def get_conversation_token(
     async def _fetch_token() -> str:
         # Cap the conversation to the user's remaining credits so ElevenLabs
         # terminates the call server-side when the free trial / paid balance runs out.
-        max_secs = max(min(credits_remainder_secs, DEFAULT_MAX_CONVERSATION_SECS), 30)
+        max_secs = compute_max_duration(credits_remainder_secs)
         try:
             client = await get_elevenlabs_client()
             resp = await client.post(
