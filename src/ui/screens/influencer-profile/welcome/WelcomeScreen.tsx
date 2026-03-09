@@ -15,7 +15,7 @@ import CenteredLayout from "@/ui/templates/CenteredLayout";
 import { storage } from "@/utils/storage";
 import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import styles from "./WelcomeScreen.module.css";
 import ValidationPill from "@/ui/components/inputs/buttons/ValidationPill";
 import { Howl } from "howler";
@@ -34,6 +34,7 @@ export default function WelcomeScreen({
   showFollowBtn,
 }: WelcomeScreenProps) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [isFirstTime, setIsFirstTime] = useState(true);
   const [onTryClicked, setOnTryClicked] = useState(false);
@@ -66,7 +67,7 @@ export default function WelcomeScreen({
   }, [influencer]);
 
   const handleSignInClick = () => {
-    navigate(Paths.login);
+    navigate(Paths.login, { state: { from: location.pathname } });
   };
 
   const handleSignUpClick = () => {
@@ -195,7 +196,7 @@ export default function WelcomeScreen({
                     onClick={() => {
                       storage.set(LocalStorageKeys.SelectedId, influencer.id);
 
-                      navigate(Paths.login);
+                      navigate(Paths.login, { state: { from: location.pathname } });
                     }}
                     style={{ cursor: "pointer", color: "#ff4d6d" }}
                   >
