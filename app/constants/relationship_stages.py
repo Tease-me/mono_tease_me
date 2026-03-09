@@ -108,25 +108,25 @@ STAGE_DELTA_BASELINE = 0.08
 # Higher = faster progression, Lower = slower progression
 # This allows different stages to have different progression speeds
 STAGE_DELTA_MULTIPLIER = {
-    "HATE": 1.2,        # Faster to escape HATE (nobody wants to stay here)
-    "DISLIKE": 1.1,     # Slightly faster to move past dislike
-    "STRANGERS": 1.0,   # Normal pace - building initial connection
-    "FRIENDS": 0.85,    # Slower - deep friendship takes time
-    "FLIRTING": 0.7,    # Much slower - romantic tension builds gradually
-    "DATING": 0.5,      # Very slow - becoming girlfriend is earned
-    "GIRLFRIEND": 0.4,  # Slowest - deepening relationship bond requires consistent effort
+    "HATE": 1.5,        # Quick escape — genuine kindness melts hostility fast in real life
+    "DISLIKE": 1.3,     # Cold shoulder thaws noticeably when someone is consistently warm
+    "STRANGERS": 1.2,   # Chemistry can spark quickly — a great first convo matters
+    "FRIENDS": 1.0,     # Friendship deepens at a natural, steady rhythm
+    "FLIRTING": 0.85,   # Romantic momentum builds — she's excited but still evaluating
+    "DATING": 0.65,     # Commitment is earned but shouldn't feel like a grind
+    "GIRLFRIEND": 0.5,  # Deepening love is slow but should still feel rewarding
 }
 
 # Stage-specific max gain caps (points per message)
 # Later stages are harder to progress through (more earned)
 STAGE_DELTA_CAP_MAX_BY_STAGE = {
-    "HATE": 0.8,        # Can gain up to 0.8 pts/msg (escape faster)
-    "DISLIKE": 0.7,     # 0.7 pts/msg
-    "STRANGERS": 0.6,   # 0.6 pts/msg
-    "FRIENDS": 0.5,     # 0.5 pts/msg
-    "FLIRTING": 0.4,    # 0.4 pts/msg (slower romantic build)
-    "DATING": 0.25,     # 0.25 pts/msg (very slow, girlfriend is earned)
-    "GIRLFRIEND": 0.15, # 0.15 pts/msg (slowest - deepening bond takes time)
+    "HATE": 1.1,        # A heartfelt apology or kindness can visibly shift things
+    "DISLIKE": 0.95,    # Warm gestures land hard when she's been cold
+    "STRANGERS": 0.8,   # Good first impressions can move the needle fast
+    "FRIENDS": 0.7,     # Meaningful moments deepen friendship noticeably
+    "FLIRTING": 0.55,   # Big romantic gestures still register, just tempered
+    "DATING": 0.35,     # Consistency matters more than grand gestures now
+    "GIRLFRIEND": 0.20, # Small acts of love still compound over time
 }
 
 # Stage-specific max loss caps (negative points per message)
