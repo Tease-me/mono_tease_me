@@ -14,7 +14,7 @@ type RelationshipRadarProps = {
   closeness: number;
   height?: number;          // default 260
   width?: number;           // default 320
-  color?: string;           // fill/stroke color, default "#a53cfd"
+  color?: string;           // fill/stroke color, default "hsl(340, 100%, 59%)"
 };
 
 const clamp100 = (v: number) => Math.max(0, Math.min(100, Number.isFinite(v) ? v : 0));
@@ -26,7 +26,7 @@ const RelationshipRadar: React.FC<RelationshipRadarProps> = ({
   closeness,
   height = 260,
   width = 320,
-  color = "#FF4D67",
+  color = "hsl(340, 100%, 59%)",
 }) => {
   const data = useMemo(
     () => [

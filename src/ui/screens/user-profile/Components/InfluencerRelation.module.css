@@ -99,7 +99,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-px-24);
-  align-items: stretch;
+  align-items: center;
   padding: 0 16px 16px;
   max-width: 360px;
   width: 100%;
@@ -145,12 +145,11 @@
 
 .adultToggleBtn {
   display: flex;
-  padding: 0 4px 0 11px;
-  justify-content: space-between;
+  padding: 0;
+  justify-content: center;
   align-items: center;
   gap: var(--space-px-8);
   flex-shrink: 0;
-
 }
 
 .adultBalanceStats {
@@ -257,6 +256,7 @@
   font-style: normal;
   font-weight:
     700;
+    width: 100%;
 }
 
 .radarPlaceholder {

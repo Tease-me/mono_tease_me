@@ -19,13 +19,13 @@
 }
 
 .profile-container.large {
-    width: 132px;
-    height: 132px;
+    aspect-ratio: 1/1;
+    height: 10rem;
 }
 
 .profile-container.xlarge {
-    width: 172px;
-    height: 172px;
+    height: 28dvh;
+    aspect-ratio: 1 / 1;
 }
 
 .profile-media-container {
@@ -230,10 +230,7 @@
 }
 
 @media (min-width: 1024px) {
-    .profile-container {
-        width: 200px;
-        height: 200px;
-    }
+    .profile-container {}
 }
 
 @keyframes float {

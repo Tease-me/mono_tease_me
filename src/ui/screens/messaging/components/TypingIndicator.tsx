@@ -1,5 +1,7 @@
 import React from 'react';
 import styles from "./TypingIndicator.module.css"
+import LottieAnimation from '@/ui/components/LottieAnimation';
+import IndicationTyping from '@/assets/lottie/IndicatorTyping.json'
 
 interface TypingIndicatorProps {
     isAduio?: boolean;
@@ -7,15 +9,23 @@ interface TypingIndicatorProps {
 
 const TypingIndicator: React.FC<TypingIndicatorProps> = ({ isAduio = false }) => {
     return (
-        <div className={styles["typing"]} data-type="typing">
-            {isAduio ? "Recording..." : "Typing..."}
-            {/* <div className={styles["typing"]} aria-busy="true">
-                <div className={styles["typing-dot"]} data-i="0" />
-                <div className={styles["typing-dot"]} data-i="1" />
-                <div className={styles["typing-dot"]} data-i="2" />
-            </div> */}
-        </div>
+        <div className={styles.typing} data-type="typing">
+            {isAduio ? (
+                "Recording…"
+            ) : (
+                <>
+
+                    <span className={styles.text}>Typing</span>
+                    <span className={styles.typingIndicator}><LottieAnimation autoplay loop animationData={IndicationTyping} /></span>
+                </>
+            )
+            }
+        </div >
     );
 };
 
 export default TypingIndicator;
+
+
+
+

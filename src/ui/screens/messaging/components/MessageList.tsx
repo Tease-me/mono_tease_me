@@ -46,9 +46,9 @@ const MessagesList = React.memo(
         container.scrollHeight - (container.scrollTop + container.clientHeight);
       const shouldAutoScroll = distanceFromBottom < 120;
       if (shouldAutoScroll) {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
       }
-    }, [messages.length, messagesEndRef, containerRef]);
+    }, [messages.length, typing, messagesEndRef, containerRef]);
 
     return (
       <>

@@ -99,7 +99,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ goTo }) => {
           imageSrc={previewUrl || user?.imgUrl}
           mediaType="image"
           onEditClick={() => document.getElementById("profile-image-input")?.click()}
-          size="large"
+          size="medium"
         />
         <input
           type="file"

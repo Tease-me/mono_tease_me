@@ -59,7 +59,7 @@
 
 .buttons-container {
   justify-self: center;
-  max-width: 200px;
+  max-width: 300px;
   justify-content: center;
   flex: 1;
 }
@@ -71,7 +71,7 @@
   }
 
   .profile-container {
-    width: 200px;
+
     height: 200px;
   }
 
@@ -89,6 +89,6 @@
   }
 }
 
-.errorArea{
+.errorArea {
   margin: 32px;
 }

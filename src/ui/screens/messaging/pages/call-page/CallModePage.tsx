@@ -164,7 +164,7 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
             <div className={styles.cardCaller}>
                 {showBalance ? <BalanceBadge balance={balance} /> : <div style={{ height: "32px" }}></div>}
                 <div className={styles.profileWrap}>
-                    <div onClick={handleOpenPopup} className={styles.profileImageClick}>
+                    <div className={styles.profileImageClick}>
                         <ProfileMedia active size={isMobile ? "large" : "xlarge"} videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} glow />
                     </div>
                     {onChangeInfluencer && <button
@@ -179,7 +179,7 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                 <div className={styles.name}>{influencer?.name}</div>
 
                 <div className={styles.statsRow}>
-                    <div className={styles.statCard}>
+                    <div className={clsx(styles.statCard, styles.clickable)} onClick={handleOpenPopup}>
                         <div className={styles.statLabel}>Feelings</div>
                         <div className={styles.statValue}>
                             <LoveScore rankPosition="left" sentimentDelta={relationship?.sentiment_delta} size="large" />
