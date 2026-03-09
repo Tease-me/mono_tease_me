@@ -186,7 +186,7 @@ const ProfileSurvey: React.FC = () => {
             )}
             <input
               className="ps-input"
-              placeholder="@yourusername"
+              placeholder="yourusername"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
             />

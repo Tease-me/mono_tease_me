@@ -42,11 +42,9 @@
     flex-direction: column;
     align-items: center;
     margin-top: 4px;
+    z-index: 6;
 }
 
-.profileImageClick {
-    cursor: pointer;
-}
 
 .profileGlow {
     position: absolute;
@@ -79,6 +77,10 @@
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.10);
     text-align: center;
+}
+
+.clickable {
+    cursor: pointer;
 }
 
 .statLabel {
@@ -177,18 +179,18 @@
 .profileSwitch {
     background: linear-gradient(#424242, #1c1c1c);
     border: 1px solid hsla(0, 0%, 26%, 0.423);
-    width: 2rem;
-    height: 2rem;
+    width: 4rem;
+    height: 4rem;
     border-radius: 50%;
     display: flex;
     justify-content: center;
-    margin-top: -0.75rem;
+    margin-top: -1.75rem;
     overflow: clip;
     background-size: cover;
     background-repeat: no-repeat;
     box-shadow: 1px -4px 4px hsla(0, 0%, 0%, 0.5);
     align-items: center;
-    z-index: 1;
+    z-index: 6;
     cursor: pointer;
 }
 
@@ -197,6 +199,7 @@
     max-width: 0;
     max-height: 1rem;
     overflow-x: hidden;
+    overflow-y: hidden;
     transition: all 300ms ease, max-width 150ms ease;
 }
 
@@ -224,11 +227,12 @@
 
     .profileSwitch {
         transition: all 100ms ease-in-out;
+        z-index: 6;
     }
 
     .profileSwitch:hover {
-        width: 10rem;
-        height: 2rem;
+        width: 14rem;
+        height: 4rem;
         border-radius: 2rem;
         transition: all 200ms ease-in-out;
         box-shadow: inset -3px 3px 2px -3px #ffffff9d, 0px 6px 4px hsla(0, 0%, 0%, 0.5);
@@ -239,6 +243,7 @@
         transform: scale(1.1) translateY(0.2rem);
         background: linear-gradient(hsla(0, 0%, 26%, 0.2), hsla(0, 0%, 11%, 0.2));
         backdrop-filter: blur(6px);
+        z-index: 6;
     }
 
     .profileSwitch:hover .switchProfileLabel {
@@ -246,5 +251,7 @@
         max-width: 8rem;
         transition: all 200ms ease-out;
         font-size: 14px;
+        z-index: 6;
+        overflow-y: hidden;
     }
 }

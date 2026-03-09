@@ -126,7 +126,7 @@ export default function UpdateProfileStepForm({
           {errors.userName && (
             <span className={styles["error"]}>{errors.userName}</span>
           )}
-          <TextInput
+<div className={styles["CalendarContainer"]}>          <TextInput
             type="date"
             placeholder="Date of Birth"
             value={values.dateOfBirth}
@@ -134,7 +134,10 @@ export default function UpdateProfileStepForm({
               onChange("dateOfBirth", (e.target as HTMLInputElement).value)
             }
             onBlur={() => onBlur("dateOfBirth")}
-          />
+          /> <div className={styles["CalendarIcon"]}>
+            <SvgPack.IconCalendar />
+            
+            </div></div>
           {errors.dateOfBirth && (
             <span className={styles["error"]}>{errors.dateOfBirth}</span>
           )}

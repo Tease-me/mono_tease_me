@@ -17,6 +17,12 @@
   border: none;
   background: transparent;
   padding: 0;
+  justify-items: center;
+}
+
+.toggleOnly .toggleArea {
+  margin-left: 0;
+  translate: none;
 }
 
 .minutesArea {
