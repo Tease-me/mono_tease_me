@@ -87,10 +87,10 @@ DIMENSION_RANGES = {
 
 # Positive signal multipliers (signals are 0.0 to 1.0 range)
 STAGE_DELTA_POSITIVE = {
-    "support": 0.4,      # Emotional support, helping, being there (was 0.5)
-    "affection": 0.3,    # Warmth, care, affection shown (was 0.4)
-    "respect": 0.3,      # Respect, admiration, valuing them (was 0.4)
-    "flirt": 0.25,       # Flirting, attraction, romantic interest (was 0.3)
+    "support": 0.50,     # Emotional support, helping, being there — most valued by women
+    "affection": 0.45,   # Warmth, love, genuine care — drives closeness
+    "respect": 0.40,     # Respect and admiration — foundational to attraction
+    "flirt": 0.30,       # Flirting, romantic interest — adds spice but not the core
 }
 
 # Negative signal multipliers (positive values, will be subtracted)
@@ -101,8 +101,8 @@ STAGE_DELTA_NEGATIVE = {
     "hate": 1.2,           # Hateful, extremely negative behavior (was 1.5)
 }
 
-# Baseline reward for non-negative engagement (small positive for showing up)
-STAGE_DELTA_BASELINE = 0.05  # Was 0.08
+# Baseline reward for non-negative engagement (small positive for just showing up)
+STAGE_DELTA_BASELINE = 0.08
 
 # Stage-specific progression multipliers (applied after base delta calculation)
 # Higher = faster progression, Lower = slower progression
