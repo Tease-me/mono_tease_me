@@ -26,6 +26,8 @@ DEFAULT_TTS_MODEL_ID = "eleven_v3_conversational"
 
 def compute_max_duration(credits_remainder_secs: int | float) -> int:
     return int(min(credits_remainder_secs, DEFAULT_MAX_CONVERSATION_SECS))
+
+
 DEFAULT_FIRST_MESSAGE_TEMPLATE = "{{first_message}}"
 DEFAULT_CONVERSATION_CONFIG_OVERRIDE = {
     "agent": {

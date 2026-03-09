@@ -1000,21 +1000,11 @@ async def get_conversation_token(
     cached_greeting = await _rclient.get(_greeting_cache_key)
 
     async def _fetch_token() -> str:
-        # Cap the conversation to the user's remaining credits so ElevenLabs
-        # terminates the call server-side when the free trial / paid balance runs out.
-        max_secs = compute_max_duration(credits_remainder_secs)
         try:
             client = await get_elevenlabs_client()
-            resp = await client.post(
+            resp = await client.get(
                 "/convai/conversation/token",
-                json={
-                    "agent_id": agent_id,
-                    "conversation_config_override": {
-                        "conversation": {
-                            "max_duration_seconds": max_secs,
-                        }
-                    },
-                },
+                params={"agent_id": agent_id},
                 headers=_headers(),
                 timeout=15.0,
             )
@@ -1250,6 +1240,54 @@ async def was_already_billed(db: AsyncSession, conversation_id: str) -> bool:
     return bool(row and row[0] == "billed")
 
 
+async def _end_conversation_after_credits(
+    conversation_id: str,
+    user_id: int,
+    influencer_id: str,
+) -> None:
+    """Sleep until the user's credit balance is exhausted, then end the call via ElevenLabs API."""
+    try:
+        async with SessionLocal() as db:
+            feature, is_18 = await resolve_voice_billing_mode(db, user_id, influencer_id)
+            remaining = await get_remaining_units(db, user_id, influencer_id, feature=feature, is_18=is_18)
+
+        max_secs = compute_max_duration(remaining)
+        if max_secs <= 0:
+            max_secs = 1  # end immediately
+
+        log.info(
+            "credit_guard.scheduled conv=%s user=%s secs=%d",
+            conversation_id, user_id, max_secs,
+        )
+        await asyncio.sleep(max_secs)
+
+        # Check if the conversation is already done before trying to end it
+        client = await get_elevenlabs_client()
+        try:
+            snapshot = await _get_conversation_snapshot(client, conversation_id)
+            status = (snapshot.get("status") or "").lower()
+            if status in ("done", "failed"):
+                log.info("credit_guard.already_ended conv=%s status=%s", conversation_id, status)
+                return
+        except Exception:
+            pass  # If we can't check status, try to end it anyway
+
+        try:
+            resp = await client.delete(
+                f"/convai/conversations/{conversation_id}",
+                headers=_headers(),
+                timeout=15.0,
+            )
+            log.info(
+                "credit_guard.ended conv=%s status=%d",
+                conversation_id, resp.status_code,
+            )
+        except Exception as exc:
+            log.warning("credit_guard.end_failed conv=%s err=%s", conversation_id, exc)
+    except Exception as exc:
+        log.exception("credit_guard.fatal conv=%s err=%s", conversation_id, exc)
+
+
 @router.post("/conversations/{conversation_id}/register")
 async def register_conversation(
     conversation_id: str,
@@ -1291,6 +1329,20 @@ async def register_conversation(
         )
     except Exception as exc:
         log.warning("register.background_poll_failed conv=%s err=%s", conversation_id, exc)
+
+    # Schedule credit-based call termination
+    if body.influencer_id:
+        try:
+            asyncio.create_task(
+                _end_conversation_after_credits(
+                    conversation_id,
+                    user_id=body.user_id,
+                    influencer_id=body.influencer_id,
+                )
+            )
+        except Exception as exc:
+            log.warning("register.credit_guard_failed conv=%s err=%s", conversation_id, exc)
+
     return {"ok": True, "conversation_id": conversation_id}
 
 
