@@ -23,8 +23,8 @@ K_UP_BY_STAGE = {
     "STRANGERS":  0.080,   # Early stage — a few nice messages can build connection quickly
     "FRIENDS":    0.065,   # Friendship deepens steadily
     "FLIRTING":   0.045,   # Romantic feelings build slowly — she's enjoying the tension
-    "DATING":     0.030,   # Deep trust earned turn-by-turn; she needs consistency
-    "GIRLFRIEND": 0.025,   # Relationship maintenance; appreciation compounds over time
+    "DATING":     0.045,   # Deep trust earned turn-by-turn; she needs consistency
+    "GIRLFRIEND": 0.030,   # Relationship maintenance; appreciation compounds over time
 }
 
 K_DOWN_BY_STAGE = {
@@ -35,8 +35,9 @@ K_DOWN_BY_STAGE = {
     "FRIENDS":    0.045,   # Friends forgive small things; bigger rudeness still hurts
     "FLIRTING":   0.055,   # Romantic tension is fragile — pushiness or rudeness kills the vibe
     "DATING":     0.060,   # She's invested now; betrayal or disrespect hits harder
-    "GIRLFRIEND": 0.025,   # Most forgiving (also 60% dampened separately in processor)
+    "GIRLFRIEND": 0.030,   # Most forgiving (also 60% dampened separately in processor)
 }
+
 def sat_up_staged(x: float, delta: float, stage: str) -> float:
     if delta <= 0: 
         return x
