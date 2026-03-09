@@ -772,6 +772,20 @@ async def approve_pre_influencer(
                     bio_payload = parsed_prompt
             except Exception:
                 bio_payload = {}
+
+        # Persist country, languages and social_links from survey answers into bio_json
+        answers_for_bio = pre.survey_answers or {}
+        if answers_for_bio.get("q4_country") and not bio_payload.get("country"):
+            bio_payload["country"] = answers_for_bio["q4_country"]
+        languages: list[str] = []
+        if answers_for_bio.get("q5_main_language"):
+            languages.append(answers_for_bio["q5_main_language"])
+        if answers_for_bio.get("q6_secondary_language"):
+            languages.append(answers_for_bio["q6_secondary_language"])
+        if languages and not bio_payload.get("languages"):
+            bio_payload["languages"] = languages
+        bio_payload.setdefault("social_links", [])
+
         personality_prompt = (
             bio_payload.get("personality_rules")
             if isinstance(bio_payload.get("personality_rules"), str)

@@ -53,3 +53,18 @@ class InfluencerDetail(InfluencerOut):
     photo_url: Optional[str] = None
     video_url: Optional[str] = None
     custom_adult_prompt: Optional[str] = None
+
+
+class SocialLink(BaseModel):
+    platform: str
+    url: str
+
+
+class InfluencerBio(BaseModel):
+    id: str
+    display_name: str
+    country: Optional[str] = None
+    languages: List[str] = []
+    likes: List[str] = []
+    dislikes: List[str] = []
+    social_links: List[SocialLink] = []
