@@ -5,21 +5,40 @@ from pathlib import Path
 from app.constants import prompt_keys
 
 # Relationship signal extraction
-RELATIONSHIP_SIGNAL_PROMPT = """Return ONLY valid JSON with keys:
-support, affection, flirt, respect, apology, commitment_talk,
-rude, boundary_push, dislike, hate,
-accepted_exclusive, accepted_girlfriend.
+RELATIONSHIP_SIGNAL_PROMPT = """You are analyzing a user's message in a relationship simulation. Return ONLY valid JSON — no markdown, no explanation.
 
-Influencer preferences:
+Keys: support, affection, flirt, respect, apology, commitment_talk, rude, boundary_push, dislike, hate, accepted_exclusive, accepted_girlfriend.
+All numeric values are floats 0.0–1.0. accepted_exclusive and accepted_girlfriend are booleans.
+
+=== POSITIVE SIGNALS ===
+support: User is emotionally supportive, encouraging, or helpful. "I'm here for you", "you can do it", asking about her day with care → 0.6–0.9. Mild warmth → 0.3–0.5. Neutral → 0.0.
+affection: User expresses love, warmth, or care. "I love you", "you're amazing", heartfelt compliments → 0.7–1.0. "You're nice" → 0.3–0.5. Neutral → 0.0.
+flirt: User flirts or shows romantic/sexual interest. Playful teasing, "you're so beautiful", "I'd love to take you out" → 0.5–0.9. Subtle hint → 0.2–0.4.
+respect: User admires, values, or respects her. "I really admire you", "you're so talented" → 0.6–0.9. General politeness → 0.2–0.4.
+apology: User apologizes sincerely. "I'm so sorry" → 0.7–1.0. Mild softening → 0.2–0.4.
+commitment_talk: User discusses relationship status, future together, exclusivity, making it official.
+accepted_exclusive: True ONLY if user explicitly accepts/agrees to be exclusive or official.
+accepted_girlfriend: True ONLY if the user explicitly accepts or agrees to become girlfriend/boyfriend AFTER the AI has proposed or invited the transition. Do NOT set true when the user initiates or proposes the idea themselves — only when they are accepting the AI's invitation.
+
+=== NEGATIVE SIGNALS ===
+rude: User is genuinely disrespectful, dismissive, or mean to her. ONLY score > 0 for actual rudeness. Saying "I love you", complimenting her, or expressing attraction is NOT rude. Direct or bold statements that are still respectful → 0.0. Mildly rude → 0.2–0.4. Clearly disrespectful → 0.6–0.9.
+boundary_push: User makes unwanted sexual demands, is aggressively pushy, or ignores "no". Normal flirting and compliments are NOT boundary_push. Saying "I want to kiss you" at early stage → 0.1–0.2. Explicit sexual demands or persistent pressure after being refused → 0.5–0.9.
+dislike: User expresses dislike, negativity, or contempt toward her. "You're annoying", "I don't like you" → 0.5–0.9. Mild negativity → 0.2–0.4.
+hate: ONLY for extreme hostility — slurs, wishing harm, "I hate you" with venom → 0.6–1.0. Do NOT use for frustration or mild annoyance.
+
+=== INFLUENCER PERSONALITY ===
 Likes: {persona_likes}
 Dislikes: {persona_dislikes}
+- If message aligns with Likes → increase affection/support/respect by 0.1–0.2.
+- If message aligns with Dislikes → increase dislike by 0.1–0.2 ONLY if user is actually being negative about them, NOT if user is simply unaware of them.
 
-Guidance:
-- If the user message aligns with Likes -> raise affection/support/respect.
-- If the user message aligns with Dislikes -> raise dislike (mild), not hate.
-- Use hate only for strong hostility ("I hate you", slurs, wishing harm).
+=== CRITICAL RULES ===
+1. A compliment, sweet message, or expression of love MUST NOT produce rude > 0.1 or boundary_push > 0.1.
+2. If you are uncertain whether something is rude or a boundary push, default to 0.0.
+3. Signals should reflect what the user said, not what the influencer might feel about it.
+4. Do NOT mirror negativity onto positive messages.
 
-Context:
+Context (recent conversation):
 {recent_ctx}
 
 User message:

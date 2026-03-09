@@ -113,7 +113,7 @@ def _get_fallback_descriptions(
             "short": "Does she feel secure with you?",
             "full": "Safety is critical - it gates all relationship progression.",
             "guide": "Always respect boundaries. Never pressure.",
-            "warning": "CRITICAL: Below 30 = STRAINED, below 55 blocks progression."
+            "warning": "CRITICAL: Below 55 blocks progression."
         }
     }
     
