@@ -140,41 +140,41 @@ export default function AddCreditsContent({
         </div>
 
 
-              <div className={styles.payWithSection}>
+        <div className={styles.payWithSection}>
           <div className={styles.payWithRow01}>
             {" "}
             <h4
               style={{
                 textAlign: "center",
                 marginBlock: "16px",
-                
+
               }}    >
               Pay with:
             </h4>
           </div>
           <div className={styles.payWithRow02}>
-                   <NormalButton
-                   color="black"
-           
-            leftIcon={<img src={PayPalLogoUrl} alt="PayPal" className={styles.paypalImg} />}
-            className={styles.quickCreditButton}
-            selected={provider === "paypal"}
-            onClick={() => setProvider("paypal")}
-          />
-                   <NormalButton
-           
-            color="black"
+            <NormalButton
+              color="black"
+
+              leftIcon={<img src={PayPalLogoUrl} alt="PayPal" className={styles.paypalImg} />}
+              className={styles.quickCreditButton}
+              selected={provider === "paypal"}
+              onClick={() => setProvider("paypal")}
+            />
+            <NormalButton
+
+              color="black"
               leftIcon={<img src={CreditCardUrl} alt="Credit Card" className={styles.creditCardImg} />}
               text="Credit Card"
-            className={styles.quickCreditCardButton}
-            selected={provider === "stripe"}
-            onClick={() => setProvider("stripe")}
-          />
-        
+              className={styles.quickCreditCardButton}
+              selected={provider === "stripe"}
+              onClick={() => setProvider("stripe")}
+            />
+
           </div>
         </div>
 
-      
+
         <PrimaryButton
           text="Confirm"
           disabled={amount <= 0 || isPaying}
