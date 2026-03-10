@@ -25,7 +25,7 @@ export default function FullScreenPopup({
     }, 300);
   };
 
-  if (!isOpen) return null;
+  if (!isOpen && !isClosing) return null;
 
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {

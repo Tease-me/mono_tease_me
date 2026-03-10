@@ -19,6 +19,7 @@ import { apiClient } from "@/api/apis";
 import { formatDateTimeRelative, formatDate } from "@/utils/DateTimeUtils";
 import switchProfileImg from "@/assets/svg/switchProfile.svg";
 import RelationshipPopup from "../../components/RelationshipPopup";
+import ProfilePopup from "../../components/ProfilePopup";
 import { RelationshipServices } from "@/api/services/RelationshipServices";
 import { useIsMobile } from "@/hooks/layout/useIsDesktop";
 
@@ -44,6 +45,7 @@ type CallModePageProps = {
 const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, errorMessage, cancelCall, onChangeInfluencer, conversationId, isSubscribed = false }: CallModePageProps) => {
     const [balance, setBalance] = React.useState<number>(0);
     const [isPopupOpen, setIsPopupOpen] = useState(false);
+    const [isProfilePopupOpen, setIsProfilePopupOpen] = useState(false);
     const [nextStage, setNextStage] = useState<string>("");
     const [callSummary, setCallSummary] = useState<{ durationSecs: number; } | null>(null);
     const activeConversationIdRef = useRef<string | null>(null);
@@ -164,7 +166,7 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
             <div className={styles.cardCaller}>
                 {showBalance ? <BalanceBadge balance={balance} /> : <div style={{ height: "32px" }}></div>}
                 <div className={styles.profileWrap}>
-                    <div className={styles.profileImageClick}>
+                    <div className={styles.profileImageClick} onClick={() => setIsProfilePopupOpen(true)}>
                         <ProfileMedia active size={isMobile ? "large" : "xlarge"} videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} glow />
                     </div>
                     {onChangeInfluencer && <button
@@ -224,6 +226,22 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                 </div>
             </div>
 
+            <ProfilePopup
+                isOpen={isProfilePopupOpen}
+                onClose={() => setIsProfilePopupOpen(false)}
+                influencerData={
+                    influencer
+                        ? {
+                            name: influencer.name || "",
+                            image: influencer.img || "",
+                            video: influencer.videoUrl,
+                            lastConnected: formatDate(relationship?.last_interaction_at),
+                            followingSince: formatDate(influencer.created_at),
+                            isSubscribed: isSubscribed,
+                        }
+                        : undefined
+                }
+            />
             <RelationshipPopup
                 isOpen={isPopupOpen}
                 onClose={handleClosePopup}

@@ -1,7 +1,7 @@
 import React, { Suspense } from "react";
 import styles from "./RelationshipPopup.module.css";
 import FullScreenPopup from "@/ui/components/modals/FullScreenPopup";
-import InfluencerProfileCard from "@/ui/components/profile/InfluencerProfileCard";
+import InfluencerProfileCard, { SocialLinks } from "@/ui/components/profile/InfluencerProfileCard";
 import RelationshipStageProgress from "@/ui/components/stats/RelationshipStageProgress";
 import RelatioshipAffinities from "@/ui/components/stats/RelatioshipAffinities";
 import RelationshipRadar from "@/ui/components/visualizations/RelationshipRadart";
@@ -23,13 +23,7 @@ interface RelationshipPopupProps {
     closeness?: number;
     attraction?: number;
     safety?: number;
-    onlyFansUrl?: string;
-    instagramUrl?: string;
-    tiktokUrl?: string;
-    snapchatUrl?: string;
-    telegramUrl?: string;
-    xUrl?: string;
-    whatsappUrl?: string;
+    socials?: SocialLinks;
   };
 }
 
@@ -52,13 +46,7 @@ export default function RelationshipPopup({
               lastConnected={influencerData.lastConnected}
               followingSince={influencerData.followingSince}
               isSubscribed={influencerData.isSubscribed}
-              onlyFansUrl={influencerData.onlyFansUrl}
-              instagramUrl={influencerData.instagramUrl}
-              tiktokUrl={influencerData.tiktokUrl}
-              snapchatUrl={influencerData.snapchatUrl}
-              telegramUrl={influencerData.telegramUrl}
-              xUrl={influencerData.xUrl}
-              whatsappUrl={influencerData.whatsappUrl}
+              socials={influencerData.socials}
             />
           </Suspense>
         </div>

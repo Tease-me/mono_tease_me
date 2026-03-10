@@ -8,6 +8,7 @@ import MetricRing from "@/ui/components/stats/MetricRing";
 import SvgPack from "@/utils/SvgPack";
 import LoveScore from "./LoveScore";
 import RelationshipPopup from "../components/RelationshipPopup";
+import ProfilePopup from "../components/ProfilePopup";
 import styles from "./ChatInfluencerBar.module.css";
 import {
   getRelationshipStatusIcon,
@@ -42,6 +43,7 @@ export default function ChatInfluencerBar({
   isSubscribed = false,
 }: ChatInfluencerBarProps) {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isProfilePopupOpen, setIsProfilePopupOpen] = useState(false);
   const [nextStage, setNextStage] = useState<string>("");
 
   useEffect(() => {
@@ -81,8 +83,8 @@ export default function ChatInfluencerBar({
   };
 
   const handleProfileImageClick = () => {
-
-  }
+    setIsProfilePopupOpen(true);
+  };
 
   return (
     <div className={styles.chatInfluencerBar}>
@@ -167,6 +169,22 @@ export default function ChatInfluencerBar({
               closeness: relationship?.closeness,
               attraction: relationship?.attraction,
               safety: relationship?.safety,
+            }
+            : undefined
+        }
+      />
+      <ProfilePopup
+        isOpen={isProfilePopupOpen}
+        onClose={() => setIsProfilePopupOpen(false)}
+        influencerData={
+          influencer
+            ? {
+              name: influencer.name || "",
+              image: influencer.img || "",
+              video: influencer.videoUrl,
+              lastConnected: formatDate(relationship?.last_interaction_at),
+              followingSince: formatDate(influencer.created_at),
+              isSubscribed: isSubscribed,
             }
             : undefined
         }

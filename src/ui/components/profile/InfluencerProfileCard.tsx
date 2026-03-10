@@ -3,6 +3,16 @@ import SvgPack from "@/utils/SvgPack";
 import PlusBadge from "@/ui/components/badges/PlusBadge";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 
+export type SocialLinks = {
+  onlyFans?: string;
+  instagram?: string;
+  tiktok?: string;
+  snapchat?: string;
+  telegram?: string;
+  x?: string;
+  whatsapp?: string;
+};
+
 type InfluencerProfileCardProps = {
   name: string;
   image: string;
@@ -10,13 +20,7 @@ type InfluencerProfileCardProps = {
   lastConnected: string;
   followingSince: string;
   isSubscribed?: boolean;
-  onlyFansUrl?: string;
-  instagramUrl?: string;
-  tiktokUrl?: string;
-  snapchatUrl?: string;
-  telegramUrl?: string;
-  xUrl?: string;
-  whatsappUrl?: string;
+  socials?: SocialLinks;
 };
 
 type SocialLink = {
@@ -31,22 +35,16 @@ export default function InfluencerProfileCard({
   lastConnected,
   followingSince,
   isSubscribed = false,
-  onlyFansUrl,
-  instagramUrl,
-  tiktokUrl,
-  snapchatUrl,
-  telegramUrl,
-  xUrl,
-  whatsappUrl,
+  socials,
 }: InfluencerProfileCardProps) {
   const socialLinks: SocialLink[] = [
-    ...(onlyFansUrl ? [{ icon: SvgPack.OnlyFans, label: "OnlyFans", url: onlyFansUrl }] : []),
-    ...(instagramUrl ? [{ icon: SvgPack.Instagram, label: "Instagram", url: instagramUrl }] : []),
-    ...(tiktokUrl ? [{ icon: SvgPack.TikTok, label: "TikTok", url: tiktokUrl }] : []),
-    ...(snapchatUrl ? [{ icon: SvgPack.SocialSnapChatWhite, label: "Snapchat", url: snapchatUrl }] : []),
-    ...(telegramUrl ? [{ icon: SvgPack.SocialTelegramWhite, label: "Telegram", url: telegramUrl }] : []),
-    ...(xUrl ? [{ icon: SvgPack.SocialXWhite, label: "X", url: xUrl }] : []),
-    ...(whatsappUrl ? [{ icon: SvgPack.SocialWhatsAppWhite, label: "WhatsApp", url: whatsappUrl }] : []),
+    ...(socials?.onlyFans ? [{ icon: SvgPack.OnlyFans, label: "OnlyFans", url: socials.onlyFans }] : []),
+    ...(socials?.instagram ? [{ icon: SvgPack.Instagram, label: "Instagram", url: socials.instagram }] : []),
+    ...(socials?.tiktok ? [{ icon: SvgPack.TikTok, label: "TikTok", url: socials.tiktok }] : []),
+    ...(socials?.snapchat ? [{ icon: SvgPack.SocialSnapChatWhite, label: "Snapchat", url: socials.snapchat }] : []),
+    ...(socials?.telegram ? [{ icon: SvgPack.SocialTelegramWhite, label: "Telegram", url: socials.telegram }] : []),
+    ...(socials?.x ? [{ icon: SvgPack.SocialXWhite, label: "X", url: socials.x }] : []),
+    ...(socials?.whatsapp ? [{ icon: SvgPack.SocialWhatsAppWhite, label: "WhatsApp", url: socials.whatsapp }] : []),
   ];
   return (
     <div className={styles.section01}>
