@@ -30,6 +30,7 @@ from app.use_cases.admin_history_cleanup import (
     AdminHistoryClearError,
     AdminHistoryNotFoundError,
     HistoryClearMode,
+    clear_elevenlabs_conversation_cache,
     clear_pair_history,
 )
 from app.use_cases.admin_chat_info import (
@@ -94,6 +95,15 @@ async def clear_chat_history_admin(
             redis_history(chat_id).clear()
         except Exception:
             log.warning("[REDIS] Failed to clear history for chat %s", chat_id)
+
+        elevenlabs_cache_result = await clear_elevenlabs_conversation_cache([chat_id])
+        log.info(
+            "admin_history_single_clear_elevenlabs_cache chat_id=%s keys_attempted=%s keys_deleted=%s failures=%s",
+            chat_id,
+            elevenlabs_cache_result["keys_attempted"],
+            elevenlabs_cache_result["keys_deleted"],
+            len(elevenlabs_cache_result["failed_chat_ids"]),
+        )
 
         if not deleted_msg_ids and not deleted_call_ids and not deleted_mem_ids:
             await db.rollback()
@@ -983,4 +993,3 @@ async def get_api_usage_errors(
         for r in rows
     ]
     return {"errors": errors, "total_errors": len(errors)}
-
