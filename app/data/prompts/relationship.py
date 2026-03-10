@@ -38,6 +38,12 @@ Dislikes: {persona_dislikes}
 3. Signals should reflect what the user said, not what the influencer might feel about it.
 4. Do NOT mirror negativity onto positive messages.
 
+What you remember about this user:
+{memories}
+
+Your own promises & decisions (stay consistent with these):
+{ai_memories}
+
 Context (recent conversation):
 {recent_ctx}
 

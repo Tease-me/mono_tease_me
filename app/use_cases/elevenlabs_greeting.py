@@ -372,8 +372,29 @@ async def _generate_contextual_greeting(
         return _pick_random_first_greeting(persona_name)
 
     try:
-        async with SessionLocal() as session:
-            users_name = await _build_user_name_block(session, user_id)
+        async def _fetch_user_name():
+            async with SessionLocal() as session:
+                return await _build_user_name_block(session, user_id)
+
+        async def _fetch_cached_memories():
+            """Read pre-computed memory summaries from Redis (populated by store_facts_batch)."""
+            try:
+                from app.utils.infrastructure.redis_pool import get_redis
+                rclient = await get_redis()
+                mem_val, ai_val = await asyncio.gather(
+                    rclient.get(f"mem_summary:{chat_id}"),
+                    rclient.get(f"ai_mem_summary:{chat_id}"),
+                )
+                return (mem_val or ""), (ai_val or "")
+            except Exception as exc:
+                log.warning("contextual_greeting.redis_mem_failed chat=%s err=%s", chat_id, exc)
+                return "", ""
+
+        users_name, (mem_block, ai_mem_block) = await asyncio.gather(
+            _fetch_user_name(),
+            _fetch_cached_memories(),
+        )
+
         prompt = await _get_contextual_first_message_prompt(db)
         partial_vars = {
             "influencer_name": persona_name,
@@ -385,6 +406,8 @@ async def _generate_contextual_greeting(
             "last_message": last_message or "(no recent message)",
             "history": transcript or "(no recent history)",
             "mood": time_context,
+            "memories": mem_block or "No memories yet.",
+            "ai_memories": ai_mem_block or "None yet.",
         }
         partial_vars.update(_build_relationship_partial_vars(rel))
         partial_vars.update(_build_stage_partial_vars(rel, stages, influencer_stages))
