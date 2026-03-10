@@ -26,6 +26,7 @@ export const validationRules = {
     hasNumber("Password"),
     // hasSpecialChar("Password")
   ),
+  nickName: composeValidators(required("Nick Name"), minLength("Nick Name", 3), maxLength("Nick Name", 30)),
   username: composeValidators(required("Username"), minLength("Username", 3), maxLength("Username", 30)),
   phone: composeValidators(required("Phone"), phoneFormat),
   url: composeValidators(required("URL"), urlFormat),
