@@ -21,10 +21,14 @@ import switchProfileImg from "@/assets/svg/switchProfile.svg";
 import RelationshipPopup from "../../components/RelationshipPopup";
 import ProfilePopup from "../../components/ProfilePopup";
 import { RelationshipServices } from "@/api/services/RelationshipServices";
+import { InfluencerServices } from "@/api/services/InfluencerService";
+import { InfluencerBioResponse } from "@/api/models/influencers";
+import { SocialLinks } from "@/ui/components/profile/InfluencerProfileCard";
 import { useIsMobile } from "@/hooks/layout/useIsDesktop";
 
 const balanceSvc = BalanceServices(apiClient);
 const relationshipService = RelationshipServices(apiClient);
+const influencerService = InfluencerServices(apiClient);
 
 type CallModePageProps = {
     startConversation?: () => void;
@@ -46,6 +50,7 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
     const [balance, setBalance] = React.useState<number>(0);
     const [isPopupOpen, setIsPopupOpen] = useState(false);
     const [isProfilePopupOpen, setIsProfilePopupOpen] = useState(false);
+    const [bio, setBio] = useState<InfluencerBioResponse | null>(null);
     const [nextStage, setNextStage] = useState<string>("");
     const [callSummary, setCallSummary] = useState<{ durationSecs: number; } | null>(null);
     const activeConversationIdRef = useRef<string | null>(null);
@@ -166,7 +171,12 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
             <div className={styles.cardCaller}>
                 {showBalance ? <BalanceBadge balance={balance} /> : <div style={{ height: "32px" }}></div>}
                 <div className={styles.profileWrap}>
-                    <div className={styles.profileImage} onClick={() => setIsProfilePopupOpen(true)}>
+                    <div className={styles.profileImage} onClick={() => {
+                        setIsProfilePopupOpen(true);
+                        if (influencer?.id && !bio) {
+                            influencerService.getBio(influencer.id).then(setBio).catch(() => {});
+                        }
+                    }}>
                         <ProfileMedia active size={isMobile ? "large" : "xlarge"} videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} glow />
                     </div>
                     {onChangeInfluencer && <button
@@ -238,22 +248,14 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                             lastConnected: formatDate(relationship?.last_interaction_at),
                             followingSince: formatDate(influencer.created_at),
                             isSubscribed: isSubscribed,
-                            ...(import.meta.env.DEV && {
-                                socials: {
-                                    onlyFans: "https://onlyfans.com",
-                                    instagram: "https://instagram.com",
-                                    tiktok: "https://tiktok.com",
-                                    snapchat: "https://snapchat.com",
-                                    telegram: "https://telegram.org",
-                                    x: "https://x.com",
-                                    whatsapp: "https://whatsapp.com",
-                                },
-                                bio: "I'm 23, originally from Texas but living in LA for school. I spend my weekends exploring new coffee shops and vintage stores, though secretly I'm a huge homebody who loves binge-watching reality TV.",
-                                country: "Argentina",
-                                languages: "English, Spanish",
-                                likes: "I love going on beach walks, playing with puppies. Dancing the night away.",
-                                dislikes: "Arrogance, bad texters, people who don't have empathy.",
-                            }),
+                            socials: bio?.social_links?.length
+                                ? (Object.fromEntries(bio.social_links.map((s) => [s.platform, s.url])) as SocialLinks)
+                                : undefined,
+                            bio: bio?.about_me ?? undefined,
+                            country: bio?.country ?? undefined,
+                            languages: bio?.languages?.join(", ") || undefined,
+                            likes: bio?.likes?.join(", ") || undefined,
+                            dislikes: bio?.dislikes?.join(", ") || undefined,
                         }
                         : undefined
                 }

@@ -17,6 +17,9 @@ import {
 } from "@/utils/relationshipStatusUtils";
 import { apiClient } from "@/api/apis";
 import { RelationshipServices } from "@/api/services/RelationshipServices";
+import { InfluencerServices } from "@/api/services/InfluencerService";
+import { InfluencerBioResponse } from "@/api/models/influencers";
+import { SocialLinks } from "@/ui/components/profile/InfluencerProfileCard";
 import { formatDate } from "@/utils/DateTimeUtils";
 
 export type ChatInfluencerBarProps = {
@@ -32,6 +35,7 @@ export type ChatInfluencerBarProps = {
 };
 
 const relationshipService = RelationshipServices(apiClient);
+const influencerService = InfluencerServices(apiClient);
 
 export default function ChatInfluencerBar({
   relationship,
@@ -44,6 +48,7 @@ export default function ChatInfluencerBar({
 }: ChatInfluencerBarProps) {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isProfilePopupOpen, setIsProfilePopupOpen] = useState(false);
+  const [bio, setBio] = useState<InfluencerBioResponse | null>(null);
   const [nextStage, setNextStage] = useState<string>("");
 
   useEffect(() => {
@@ -84,7 +89,14 @@ export default function ChatInfluencerBar({
 
   const handleProfileImageClick = () => {
     setIsProfilePopupOpen(true);
+    if (influencer?.id && !bio) {
+      influencerService.getBio(influencer.id).then(setBio).catch(() => {});
+    }
   };
+
+  const bioSocials: SocialLinks | undefined = bio?.social_links?.length
+    ? Object.fromEntries(bio.social_links.map((s) => [s.platform, s.url]))
+    : undefined;
 
   return (
     <div className={styles.chatInfluencerBar}>
@@ -185,6 +197,12 @@ export default function ChatInfluencerBar({
               lastConnected: formatDate(relationship?.last_interaction_at),
               followingSince: formatDate(influencer.created_at),
               isSubscribed: isSubscribed,
+              socials: bioSocials,
+              bio: bio?.about_me ?? undefined,
+              country: bio?.country ?? undefined,
+              languages: bio?.languages?.join(", ") || undefined,
+              likes: bio?.likes?.join(", ") || undefined,
+              dislikes: bio?.dislikes?.join(", ") || undefined,
             }
             : undefined
         }
