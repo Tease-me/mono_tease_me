@@ -9,6 +9,7 @@ from typing import Literal
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.turn_handler import redis_history
+from app.utils.infrastructure.redis_pool import get_redis
 from app.repositories.history_cleanup_repository import (
     delete_calls_by_chat_ids_or_orphans,
     delete_calls_orphans_only,
@@ -32,6 +33,45 @@ class AdminHistoryNotFoundError(Exception):
 
 class AdminHistoryClearError(Exception):
     """Raised when history cleanup fails unexpectedly."""
+
+
+async def clear_elevenlabs_conversation_cache(chat_ids: list[str]) -> dict[str, int | list[str]]:
+    """Best-effort invalidation for ElevenLabs conversation cache keys."""
+    unique_chat_ids = sorted(set(chat_ids))
+    if not unique_chat_ids:
+        return {"chat_ids": 0, "keys_attempted": 0, "keys_deleted": 0, "failed_chat_ids": []}
+
+    keys: list[str] = []
+    for chat_id in unique_chat_ids:
+        keys.extend(
+            [
+                f"mem_summary:{chat_id}",
+                f"ai_mem_summary:{chat_id}",
+                f"greeting:{chat_id}",
+            ]
+        )
+
+    try:
+        rclient = await get_redis()
+        deleted = await rclient.delete(*keys) if keys else 0
+        return {
+            "chat_ids": len(unique_chat_ids),
+            "keys_attempted": len(keys),
+            "keys_deleted": int(deleted or 0),
+            "failed_chat_ids": [],
+        }
+    except Exception:
+        log.warning(
+            "[REDIS] Failed to clear ElevenLabs conversation cache for chats=%s",
+            unique_chat_ids,
+            exc_info=True,
+        )
+        return {
+            "chat_ids": len(unique_chat_ids),
+            "keys_attempted": len(keys),
+            "keys_deleted": 0,
+            "failed_chat_ids": unique_chat_ids,
+        }
 
 
 @dataclass(slots=True)
@@ -155,6 +195,18 @@ async def clear_pair_history(
         except Exception:
             redis_clear_failures.append(key)
             log.warning("[REDIS] Failed to clear history for chat %s", key, exc_info=True)
+
+    elevenlabs_cache_result = await clear_elevenlabs_conversation_cache(
+        list(normal_chat_ids) + list(adult_chat_ids)
+    )
+    log.info(
+        "admin_history_clear_elevenlabs_cache mode=%s chat_ids=%s keys_attempted=%s keys_deleted=%s failures=%s",
+        mode,
+        elevenlabs_cache_result["chat_ids"],
+        elevenlabs_cache_result["keys_attempted"],
+        elevenlabs_cache_result["keys_deleted"],
+        len(elevenlabs_cache_result["failed_chat_ids"]),
+    )
 
     result = HistoryCleanupResult(
         ok=True,
