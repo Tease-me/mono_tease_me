@@ -58,9 +58,7 @@ _DOPAMINE_OPENERS: Dict[str, List[str]] = {
 }
 
 _RANDOM_FIRST_GREETINGS: List[str] = [
-    "Hello?",
-    "Hello, this is {persona_name}. Who’s calling?",
-    "Hi, who am I speaking with?",
+    "Hey... i've been waiting for you!"
 ]
 
 
@@ -388,8 +386,7 @@ async def _generate_contextual_greeting(
                     r = await s.execute(
                         select(
                             exists().where(
-                                CallRecord.user_id == user_id,
-                                CallRecord.influencer_id == influencer_id,
+                                CallRecord.chat_id == chat_id,
                             )
                         )
                     )
@@ -416,8 +413,7 @@ async def _generate_contextual_greeting(
                 user_nick = (user.full_name or user.username or "").strip().split()[0] or None
             if user_nick:
                 return f"Hey is this {user_nick} calling?..... i've been waiting for you!"
-            return "Hey... i've been waiting for you!"
-        # return _pick_random_first_greeting(persona_name)
+        return _pick_random_first_greeting(persona_name)
 
     try:
         async def _fetch_user_name():
