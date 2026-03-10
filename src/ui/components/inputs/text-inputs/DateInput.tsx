@@ -1,9 +1,9 @@
 import React, { forwardRef, useMemo } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import SvgPack from "@/utils/SvgPack";
 import TextInput from "./TextInput";
 import styles from "./DateInput.module.css";
+import SvgPack from "@/utils/SvgPack";
 
 export type DateInputProps = {
   value?: string;
