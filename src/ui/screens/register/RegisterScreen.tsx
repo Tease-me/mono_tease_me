@@ -32,7 +32,7 @@ export default function RegisterScreen() {
   const [profile, setProfile] = useState({
     fullName: "",
     userName: "",
-    gender: "" as "male" | "female" | "",
+    gender: "male" as "male" | "female",
     dateOfBirth: "",
     profilePhotoFile: null as File | null,
   });
@@ -311,8 +311,9 @@ export default function RegisterScreen() {
   return (
     <BackgroundGradient>
       <FullWidthLayout
-        fullWidthNav={<OnBoardingTopNav onBackClicked={handleBackClick} />}
-      >
+        fullWidthNav={
+          <OnBoardingTopNav onBackClicked={handleBackClick} />
+        }>
         <HeadingText className={styles["title"]}>
           Create your Account
         </HeadingText>

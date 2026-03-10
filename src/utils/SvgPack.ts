@@ -9,7 +9,7 @@ export default {
     Bill: lazy(() => import("@/assets/mj-dashboard/svg/Bill.svg?react")),
     Danger: lazy(() => import("@/assets/mj-dashboard/svg/DangerTriangle.svg?react")),
     Dashboard: lazy(() => import("@/assets/mj-dashboard/svg/dashboard.svg?react")),
-    IconCalendar: lazy(() => import("@/assets/svg/iconCalendar.svg?react")),
+    IconCalendar: lazy(() => import("@/assets/svg/Calendar.svg?react")),
     Logout: lazy(() => import("@/assets/mj-dashboard/svg/Logout.svg?react")),
     Profile: lazy(() => import("@/assets/mj-dashboard/svg/Profile.svg?react")),
     Users: lazy(() => import("@/assets/mj-dashboard/svg/Users.svg?react")),

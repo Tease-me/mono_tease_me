@@ -60,26 +60,6 @@
   margin-top: 4px;
 }
 
-input[type="date"]::-webkit-calendar-picker-indicator {
-display: none;
-}
-
-input[type="date"]{
-  padding-right: 2.5rem;
-}
-
-.CalendarContainer{display: flex;
-position: relative;}
-
-.CalendarIcon{position: absolute;
-top: 30%;
-right: 5%;
-display: flex;
-width: 1.5em;
-aspect-ratio: 1/1;
-
-}
-
 @media (max-width: 767px) {
   .auth-buttons {
     flex-direction: column;
