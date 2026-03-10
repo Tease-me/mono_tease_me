@@ -18,7 +18,7 @@ import { BalanceServices } from "@/api/services/BalanceServices";
 import { apiClient } from "@/api/apis";
 import { formatDateTimeRelative, formatDate } from "@/utils/DateTimeUtils";
 import switchProfileImg from "@/assets/svg/switchProfile.svg";
-import InfluencerPopup from "../../components/InfluencerPopup";
+import RelationshipPopup from "../../components/RelationshipPopup";
 import { RelationshipServices } from "@/api/services/RelationshipServices";
 import { useIsMobile } from "@/hooks/layout/useIsDesktop";
 
@@ -224,7 +224,7 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                 </div>
             </div>
 
-            <InfluencerPopup
+            <RelationshipPopup
                 isOpen={isPopupOpen}
                 onClose={handleClosePopup}
                 influencerData={

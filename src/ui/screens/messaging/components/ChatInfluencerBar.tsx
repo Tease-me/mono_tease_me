@@ -7,7 +7,7 @@ import { RelationshipResponse } from "@/api/models/relationship";
 import MetricRing from "@/ui/components/stats/MetricRing";
 import SvgPack from "@/utils/SvgPack";
 import LoveScore from "./LoveScore";
-import InfluencerPopup from "../components/InfluencerPopup";
+import RelationshipPopup from "../components/RelationshipPopup";
 import styles from "./ChatInfluencerBar.module.css";
 import {
   getRelationshipStatusIcon,
@@ -148,7 +148,7 @@ export default function ChatInfluencerBar({
         </div>
       </div>
 
-      <InfluencerPopup
+      <RelationshipPopup
         isOpen={isPopupOpen}
         onClose={handleClosePopup}
         influencerData={
