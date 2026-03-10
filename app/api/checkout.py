@@ -4,6 +4,9 @@ External payment confirmation webhook.
 Receives `payment.completed` events from the checkout service (Stripe/PayPal),
 validates the HMAC signature, guards against duplicate processing, and credits
 the user's influencer wallet via the existing `topup_wallet` service.
+
+All payment details (user, influencer, amount) come from our local PayPalTopUp
+record created at checkout time — the webhook only confirms that payment went through.
 """
 
 import hmac
@@ -62,55 +65,41 @@ async def payment_webhook(
         log.info("Ignoring webhook event: %s", payload.event)
         return {"ok": True, "skipped": True, "reason": f"Unhandled event: {payload.event}"}
 
-    source = f"checkout:{payload.checkout_id}"
-
-    # ── 3. Idempotency & Intent: check if already processed ─────────
-    topup_intent = await db.scalar(
-        select(PayPalTopUp).where(
-            PayPalTopUp.order_id == payload.checkout_id
-        )
+    # ── 3. Look up our local checkout record (source of truth) ──────
+    topup = await db.scalar(
+        select(PayPalTopUp).where(PayPalTopUp.order_id == payload.checkout_id)
     )
-    if topup_intent and topup_intent.credited:
+    if not topup:
+        log.error("No PayPalTopUp record for checkout_id=%s — cannot process", payload.checkout_id)
+        raise HTTPException(status_code=404, detail="Unknown checkout_id")
+
+    if topup.credited:
         log.info("Duplicate webhook for checkout_id=%s — already processed", payload.checkout_id)
         return {"ok": True, "duplicate": True}
 
-    # ── 4. Resolve user ─────────────────────────────────────────────
-    user = await db.scalar(
-        select(User).where(User.email == payload.user_email)
-    )
+    # ── 4. Resolve user & influencer from our DB ────────────────────
+    user = await db.get(User, topup.user_id)
     if not user:
-        raise HTTPException(status_code=404, detail=f"User with email {payload.user_email} not found")
-        
-    influencer = await db.get(Influencer, payload.influencer_id)
+        raise HTTPException(status_code=404, detail="User not found")
+
+    influencer = await db.get(Influencer, topup.influencer_id)
+
+    source = f"checkout:{payload.checkout_id}"
 
     # ── 5. Credit the wallet ────────────────────────────────────────
     try:
         new_balance = await topup_wallet(
             db,
-            user_id=user.id,
-            influencer_id=payload.influencer_id,
-            cents=payload.balance_cents,
+            user_id=topup.user_id,
+            influencer_id=topup.influencer_id,
+            cents=topup.cents,
             source=source,
             is_18=False,
         )
-        
-        if topup_intent:
-            topup_intent.status = "COMPLETED"
-            topup_intent.credited = True
-            db.add(topup_intent)
-        else:
-            # Webhook arrived before create_checkout saved — create the record now
-            topup_intent = PayPalTopUp(
-                user_id=user.id,
-                influencer_id=payload.influencer_id,
-                order_id=payload.checkout_id,
-                cents=payload.amount_cents,
-                provider=payload.provider,
-                status="COMPLETED",
-                credited=True,
-            )
-            db.add(topup_intent)
-            
+
+        topup.status = "COMPLETED"
+        topup.credited = True
+        db.add(topup)
         await db.commit()
     except HTTPException:
         await db.rollback()
@@ -121,43 +110,37 @@ async def payment_webhook(
         raise HTTPException(status_code=500, detail="Internal error processing payment")
 
     log.info(
-        "payment_webhook: credited user=%s email=%s influencer=%s cents=%s balance=%s checkout_id=%s provider=%s",
-        user.id,
-        payload.user_email,
-        payload.influencer_id,
-        payload.balance_cents,
-        new_balance,
-        payload.checkout_id,
-        payload.provider,
+        "payment_webhook: credited user=%s influencer=%s cents=%s balance=%s checkout_id=%s",
+        topup.user_id, topup.influencer_id, topup.cents, new_balance, payload.checkout_id,
     )
 
-    # ── 6. FirstPromoter Tracking (Post-Commit) ──────────────────────
-    if topup_intent and not topup_intent.fp_tracked:
+    # ── 6. FirstPromoter tracking ───────────────────────────────────
+    if not topup.fp_tracked:
         if not influencer:
-            log.warning("FP tracking skipped: influencer not found for checkout_id=%s influencer_id=%s", payload.checkout_id, payload.influencer_id)
+            log.warning("FP tracking skipped: influencer %s not found for checkout_id=%s", topup.influencer_id, payload.checkout_id)
         elif not influencer.fp_ref_id:
-            log.warning("FP tracking skipped: influencer %s has no fp_ref_id", payload.influencer_id)
+            log.warning("FP tracking skipped: influencer %s has no fp_ref_id", topup.influencer_id)
         else:
             try:
                 await fp_track_sale_v2(
                     email=user.email,
                     uid=str(user.id),
-                    amount_cents=payload.amount_cents,
+                    amount_cents=topup.cents,
                     event_id=payload.checkout_id,
                     ref_id=influencer.fp_ref_id,
                     plan="wallet_topup",
                 )
-                topup_intent.fp_tracked = True
-                db.add(topup_intent)
+                topup.fp_tracked = True
+                db.add(topup)
                 await db.commit()
-                log.info("FP sale tracked for checkout_id=%s ref_id=%s amount=%s", payload.checkout_id, influencer.fp_ref_id, payload.amount_cents)
+                log.info("FP sale tracked for checkout_id=%s ref_id=%s amount=%s", payload.checkout_id, influencer.fp_ref_id, topup.cents)
             except Exception as e:
                 log.warning("FP track sale failed for checkout_id=%s: %s", payload.checkout_id, e)
 
     return {
         "ok": True,
-        "user_id": user.id,
-        "influencer_id": payload.influencer_id,
-        "credited_cents": payload.balance_cents,
+        "user_id": topup.user_id,
+        "influencer_id": topup.influencer_id,
+        "credited_cents": topup.cents,
         "new_balance_cents": new_balance,
     }

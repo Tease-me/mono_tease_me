@@ -34,13 +34,17 @@ async def classify_signals(
     llm,
     user_id: int | None = None,
     influencer_id: str | None = None,
+    memories: str = "",
+    ai_memories: str = "",
 ) -> dict:
     prompt_template = await get_system_prompt(db, prompt_keys.RELATIONSHIP_SIGNAL_PROMPT)
     prompt = prompt_template.format(
         persona_likes=persona_likes,
         persona_dislikes=persona_dislikes,
         recent_ctx=recent_ctx,
-        message=message
+        message=message,
+        memories=memories or "No memories yet.",
+        ai_memories=ai_memories or "None yet.",
     )
     try:
         t0 = time.perf_counter()
