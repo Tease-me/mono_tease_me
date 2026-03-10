@@ -1,8 +1,8 @@
-import React, { HTMLAttributes, HTMLInputTypeAttribute } from 'react';
+import React, { forwardRef, HTMLInputTypeAttribute, InputHTMLAttributes } from 'react';
 import styles from './TextInput.module.css';
 import clsx from 'clsx';
 
-interface TextInputProps extends HTMLAttributes<HTMLInputElement> {
+interface TextInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
     type?: HTMLInputTypeAttribute;
     placeholder?: string;
     autoComplete?: string;
@@ -15,7 +15,7 @@ interface TextInputProps extends HTMLAttributes<HTMLInputElement> {
     readOnly?: boolean;
 }
 
-const TextInput: React.FC<TextInputProps> = ({
+const TextInput = forwardRef<HTMLInputElement, TextInputProps>(({
     type = 'text',
     placeholder,
     leftIcon,
@@ -28,13 +28,14 @@ const TextInput: React.FC<TextInputProps> = ({
     readOnly,
     onChange,
     ...rest
-}) => {
+}, ref) => {
     return (
         <div className={clsx(styles['text-input-container'], className)}>
             {leftIcon && <div className={clsx(styles["icon"], styles["left"])} style={leftIconStyles?.style}>
                 {leftIcon}
             </div>}
             <input
+                ref={ref}
                 type={type}
                 placeholder={placeholder}
                 className={clsx(styles['auth-input'], styles[`input-${size}`], !leftIcon && styles["input-left-padding"], !rightIcon && styles["input-right-padding"])}
@@ -48,6 +49,8 @@ const TextInput: React.FC<TextInputProps> = ({
             </div>}
         </div>
     );
-};
+});
+
+TextInput.displayName = 'TextInput';
 
 export default TextInput;

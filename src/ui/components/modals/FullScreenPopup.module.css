@@ -67,7 +67,7 @@
   flex-direction: column;
   gap: 2rem;
   width: 100%;
-  padding: 0 18px;
+  padding: 0 2rem;
   overflow: visible;
 }
 
@@ -79,6 +79,10 @@
   line-height: 120%;
   margin: 0 0 1.5rem 0;
   text-align: left;
+}
+
+.titleCenter {
+  text-align: center;
 }
 
 @media (min-width: 32rem) {
