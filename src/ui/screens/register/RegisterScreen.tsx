@@ -276,7 +276,7 @@ export default function RegisterScreen() {
       }
     }
     if (field === "fullName") error = required("Full name")(value);
-    if (field === "userName") error = validationRules.username(value);
+    if (field === "userName") error = validationRules.nickName(value);
     if (field === "gender") error = required("Gender")(value);
     if (field === "dateOfBirth") {
       error = required("Date of birth")(value);

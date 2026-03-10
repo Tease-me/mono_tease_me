@@ -116,7 +116,7 @@ export default function UpdateProfileStepForm({
           )}
           <TextInput
             type="text"
-            placeholder="Username"
+            placeholder="Nick Name"
             value={values.userName}
             onChange={(e) =>
               onChange("userName", (e.target as HTMLInputElement).value)
