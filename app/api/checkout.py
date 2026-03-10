@@ -121,6 +121,7 @@ async def payment_webhook(
         raise HTTPException(status_code=500, detail="Internal error processing payment")
 
     log.info(
+        "payment_webhook: credited user=%s email=%s influencer=%s cents=%s balance=%s checkout_id=%s provider=%s",
         user.id,
         payload.user_email,
         payload.influencer_id,
@@ -131,21 +132,27 @@ async def payment_webhook(
     )
 
     # ── 6. FirstPromoter Tracking (Post-Commit) ──────────────────────
-    if topup_intent and not topup_intent.fp_tracked and influencer and influencer.fp_ref_id:
-        try:
-            await fp_track_sale_v2(
-                email=user.email,
-                uid=str(user.id),
-                amount_cents=payload.amount_cents,
-                event_id=payload.checkout_id,
-                ref_id=influencer.fp_ref_id,
-                plan="wallet_topup",
-            )
-            topup_intent.fp_tracked = True
-            db.add(topup_intent)
-            await db.commit()
-        except Exception as e:
-            log.warning("FP track sale failed for checkout_id=%s: %s", payload.checkout_id, e)
+    if topup_intent and not topup_intent.fp_tracked:
+        if not influencer:
+            log.warning("FP tracking skipped: influencer not found for checkout_id=%s influencer_id=%s", payload.checkout_id, payload.influencer_id)
+        elif not influencer.fp_ref_id:
+            log.warning("FP tracking skipped: influencer %s has no fp_ref_id", payload.influencer_id)
+        else:
+            try:
+                await fp_track_sale_v2(
+                    email=user.email,
+                    uid=str(user.id),
+                    amount_cents=payload.amount_cents,
+                    event_id=payload.checkout_id,
+                    ref_id=influencer.fp_ref_id,
+                    plan="wallet_topup",
+                )
+                topup_intent.fp_tracked = True
+                db.add(topup_intent)
+                await db.commit()
+                log.info("FP sale tracked for checkout_id=%s ref_id=%s amount=%s", payload.checkout_id, influencer.fp_ref_id, payload.amount_cents)
+            except Exception as e:
+                log.warning("FP track sale failed for checkout_id=%s: %s", payload.checkout_id, e)
 
     return {
         "ok": True,

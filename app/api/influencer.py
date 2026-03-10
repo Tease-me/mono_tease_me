@@ -10,7 +10,7 @@ from app.db.models import Influencer, User
 from app.utils.auth.dependencies import get_current_user
 
 from app.db.session import get_db
-from app.schemas.influencer import InfluencerCreate, InfluencerOut, InfluencerUpdate, InfluencerDetail
+from app.schemas.influencer import InfluencerCreate, InfluencerOut, InfluencerUpdate, InfluencerDetail, InfluencerBio, SocialLink
 from app.services.influencer_cleanup import (
     InfluencerDeleteError,
     InfluencerDeleteNotFoundError,
@@ -59,6 +59,38 @@ async def list_influencers(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Influencer))
     influencers = result.scalars().all()
     return [await _build_influencer_detail(influencer) for influencer in influencers]
+
+@router.get("/{influencer_id}/bio", response_model=InfluencerBio)
+async def get_influencer_bio(influencer_id: str, db: AsyncSession = Depends(get_db)):
+    influencer = await db.get(Influencer, influencer_id)
+    if not influencer:
+        raise HTTPException(404, "Influencer not found")
+
+    bio = influencer.bio_json if isinstance(influencer.bio_json, dict) else {}
+
+    # Languages: prefer bio_json, fallback to native_language column
+    languages = bio.get("languages") or []
+    if not languages and influencer.native_language:
+        languages = [influencer.native_language]
+
+    # Social links: list of {platform, url} objects
+    raw_links = bio.get("social_links") or []
+    social_links = [
+        SocialLink(platform=link["platform"], url=link["url"])
+        for link in raw_links
+        if isinstance(link, dict) and link.get("platform") and link.get("url")
+    ]
+
+    return InfluencerBio(
+        id=influencer.id,
+        display_name=influencer.display_name,
+        country=bio.get("country"),
+        languages=languages,
+        likes=bio.get("likes") or [],
+        dislikes=bio.get("dislikes") or [],
+        social_links=social_links,
+    )
+
 
 @router.get("/{id}", response_model=InfluencerDetail)
 async def get_influencer(id: str, db: AsyncSession = Depends(get_db)):
