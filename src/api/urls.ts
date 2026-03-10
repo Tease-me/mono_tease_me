@@ -67,6 +67,7 @@ export const Endpoints = {
   },
   influencers: "/influencer",
   influencer: (id: string) => `/influencer/${id}`,
+  influencerBio: (id: string) => `/influencer/${id}/bio`,
   relationship_update: `influencer/relationship_update`,
   uploadCsv: "persona/import-csv",
   admin: {
