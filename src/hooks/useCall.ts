@@ -126,7 +126,7 @@ export default function useCall() {
 
       let signed_url: string | null = null;
       let credits_remainder_secs = 120;
-      let first_message = "Hi there who am I speaking to?";
+      let first_message = "Hey honey, I've been waiting for you, don't be shy, talk to me."
 
       if (!user || !user.id) {
         const response = await chatRepo.getFreeSignedUrl(
@@ -168,6 +168,9 @@ export default function useCall() {
 
       const conversationId = await conversation.startSession({
         signedUrl: signed_url,
+        customLlmExtraBody: {
+          model: "qwen3-30b-a3b",
+        },
         dynamicVariables: {
           first_message: first_message,
         }
