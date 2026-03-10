@@ -87,6 +87,19 @@
   }
 }
 
+@media (min-aspect-ratio: 1/1) {
+  .overlay {
+    align-items: center;
+  }
+
+  .popupContainer {
+    height: auto;
+    max-height: 99dvh;
+    border-radius: 1rem;
+    border: 1px solid #333;
+  }
+}
+
 @media (max-width: 31.9375rem) {
   .title {
     text-align: left;
@@ -94,21 +107,41 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes fadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes slideDown {
-  from { transform: translateY(-150%); }
-  to { transform: translateY(0); }
+  from {
+    transform: translateY(-150%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideUpExit {
-  from { transform: translateY(0); }
-  to { transform: translateY(-150%); }
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-150%);
+  }
 }
