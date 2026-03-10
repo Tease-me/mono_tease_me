@@ -34,28 +34,31 @@ export default function ProfilePopup({
   return (
     <FullScreenPopup isOpen={isOpen} onClose={onClose} title={influencerData.name}>
       <div className={styles.profileContent}>
-        <div className={styles.profileCard}>
-          <Suspense fallback={null}>
-            <InfluencerProfileCard
-              name={influencerData.name}
-              image={influencerData.image}
-              video={influencerData.video}
-              lastConnected={influencerData.lastConnected}
-              followingSince={influencerData.followingSince}
-              isSubscribed={influencerData.isSubscribed}
-              socials={influencerData.socials}
-            />
-          </Suspense>
+        <div className={styles.topRow}>
+          <div className={styles.profileCard}>
+            <Suspense fallback={null}>
+              <InfluencerProfileCard
+                name={influencerData.name}
+                image={influencerData.image}
+                video={influencerData.video}
+                lastConnected={influencerData.lastConnected}
+                followingSince={influencerData.followingSince}
+                isSubscribed={influencerData.isSubscribed}
+                socials={influencerData.socials}
+              />
+            </Suspense>
+          </div>
+
+          <div className={styles.aboutMe}>
+            <h3 className={styles.detailsHeading}>{influencerData.name}'s Details</h3>
+            <div className={styles.section}>
+              <span className={styles.label}>About Me</span>
+              <p className={styles.value}>{influencerData.bio ?? "--"}</p>
+            </div>
+          </div>
         </div>
 
         <div className={styles.details}>
-          <h3 className={styles.detailsHeading}>{influencerData.name}'s Details</h3>
-
-          <div className={styles.section}>
-            <span className={styles.label}>About Me</span>
-            <p className={styles.value}>{influencerData.bio ?? "--"}</p>
-          </div>
-
           <div className={styles.divider} />
 
           <div className={styles.row}>
