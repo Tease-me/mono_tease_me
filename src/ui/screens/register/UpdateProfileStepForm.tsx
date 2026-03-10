@@ -11,7 +11,7 @@ import ValidationPill from "@/ui/components/inputs/buttons/ValidationPill";
 type ProfileValues = {
   fullName: string;
   userName: string;
-  gender: "male" | "female" | "";
+  gender: "male" | "female";
   dateOfBirth: string;
   profilePhotoFile: File | null;
 };
@@ -85,7 +85,7 @@ export default function UpdateProfileStepForm({
                 orientation="vertical"
                 text="Male"
                 type="square"
-                selected={values.gender === "male"}
+                color={values.gender === "male" ? "pink" : "black"}
                 onClick={() => onGenderSelect("male")}
               />
               <IconButton
@@ -93,7 +93,7 @@ export default function UpdateProfileStepForm({
                 orientation="vertical"
                 text="Female"
                 type="square"
-                selected={values.gender === "female"}
+                color={values.gender === "female" ? "pink" : "black"}
                 onClick={() => onGenderSelect("female")}
               />
             </div>
@@ -126,7 +126,7 @@ export default function UpdateProfileStepForm({
           {errors.userName && (
             <span className={styles["error"]}>{errors.userName}</span>
           )}
-<div className={styles["CalendarContainer"]}>          <TextInput
+          <div className={styles["CalendarContainer"]}>          <TextInput
             type="date"
             placeholder="Date of Birth"
             value={values.dateOfBirth}
@@ -135,8 +135,8 @@ export default function UpdateProfileStepForm({
             }
             onBlur={() => onBlur("dateOfBirth")}
           /> <div className={styles["CalendarIcon"]}>
-            <SvgPack.IconCalendar />
-            
+              <SvgPack.IconCalendar />
+
             </div></div>
           {errors.dateOfBirth && (
             <span className={styles["error"]}>{errors.dateOfBirth}</span>
