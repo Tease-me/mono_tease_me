@@ -34,8 +34,8 @@ K_DOWN_BY_STAGE = {
     "STRANGERS":  0.050,   # First impressions matter — rudeness can turn a stranger off quickly
     "FRIENDS":    0.045,   # Friends forgive small things; bigger rudeness still hurts
     "FLIRTING":   0.055,   # Romantic tension is fragile — pushiness or rudeness kills the vibe
-    "DATING":     0.080,   # She's invested now; betrayal or disrespect hits harder
-    "GIRLFRIEND": 0.060,   # Most forgiving (also 60% dampened separately in processor)
+    "DATING":     0.600,   # She's invested now; betrayal or disrespect hits harder
+    "GIRLFRIEND": 0.400,   # Most forgiving (also 60% dampened separately in processor)
 }
 
 def sat_up_staged(x: float, delta: float, stage: str) -> float:
