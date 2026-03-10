@@ -84,6 +84,7 @@ async def get_influencer_bio(influencer_id: str, db: AsyncSession = Depends(get_
     return InfluencerBio(
         id=influencer.id,
         display_name=influencer.display_name,
+        about_me=bio.get("about_me"),
         country=bio.get("country"),
         languages=languages,
         likes=bio.get("likes") or [],
