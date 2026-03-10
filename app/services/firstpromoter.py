@@ -163,6 +163,46 @@ async def fp_create_promoter(*, email: str, first_name: str, last_name: str, cus
         r.raise_for_status()
         return r.json()
     
+async def fp_track_refund(
+    *,
+    event_id: str,
+    amount_cents: int,
+    email: str | None = None,
+    uid: str | None = None,
+):
+    """
+    FirstPromoter v2 refund tracking:
+    POST https://v2.firstpromoter.com/api/v2/track/refund
+    """
+    token = settings.FIRSTPROMOTER_TOKEN
+    account_id = settings.FIRSTPROMOTER_ACCOUNT_ID
+
+    if not token or not account_id:
+        return None
+
+    payload: dict = {
+        "event_id": event_id,
+        "amount": int(amount_cents),
+    }
+    if email:
+        payload["email"] = email
+    if uid:
+        payload["uid"] = uid
+
+    async with httpx.AsyncClient(timeout=20) as client:
+        r = await client.post(
+            "https://v2.firstpromoter.com/api/v2/track/refund",
+            json=payload,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {token}",
+                "Account-ID": account_id,
+            },
+        )
+        r.raise_for_status()
+        return r.json()
+
+
 async def fp_find_promoter_id_by_ref_token(ref_token: str) -> int | None:
     token = settings.FIRSTPROMOTER_TOKEN
     account_id = settings.FIRSTPROMOTER_ACCOUNT_ID
