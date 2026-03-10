@@ -1,8 +1,19 @@
+.title {
+  color: #fff;
+  font-family: Urbanist, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-align: center;
+  margin: 0;
+}
+
 .profileContent {
   display: flex;
   flex-direction: column;
   gap: 2rem;
   width: 100%;
+  max-width: 36rem;
+  margin: 0 auto;
 }
 
 .topRow {
@@ -12,7 +23,11 @@
   width: 100%;
 }
 
-.profileCard {
+.mediaWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
   width: 100%;
 }
 
@@ -83,11 +98,3 @@
   margin: 0.25rem 0;
 }
 
-@media (min-width: 32rem) {
-  .topRow {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    align-items: start;
-  }
-}

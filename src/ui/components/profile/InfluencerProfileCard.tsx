@@ -4,7 +4,7 @@ import PlusBadge from "@/ui/components/badges/PlusBadge";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 
 export type SocialLinks = {
-  onlyFans?: string;
+  onlyfans?: string;
   instagram?: string;
   tiktok?: string;
   snapchat?: string;
@@ -38,7 +38,7 @@ export default function InfluencerProfileCard({
   socials,
 }: InfluencerProfileCardProps) {
   const socialLinks: SocialLink[] = [
-    ...(socials?.onlyFans ? [{ icon: SvgPack.OnlyFans, label: "OnlyFans", url: socials.onlyFans }] : []),
+    ...(socials?.onlyfans ? [{ icon: SvgPack.OnlyFans, label: "OnlyFans", url: socials.onlyfans }] : []),
     ...(socials?.instagram ? [{ icon: SvgPack.Instagram, label: "Instagram", url: socials.instagram }] : []),
     ...(socials?.tiktok ? [{ icon: SvgPack.TikTok, label: "TikTok", url: socials.tiktok }] : []),
     ...(socials?.snapchat ? [{ icon: SvgPack.SocialSnapChatWhite, label: "Snapchat", url: socials.snapchat }] : []),

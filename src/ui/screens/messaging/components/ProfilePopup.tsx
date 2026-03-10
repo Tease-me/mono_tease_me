@@ -1,7 +1,9 @@
-import React, { Suspense } from "react";
 import styles from "./ProfilePopup.module.css";
 import FullScreenPopup from "@/ui/components/modals/FullScreenPopup";
-import InfluencerProfileCard, { SocialLinks } from "@/ui/components/profile/InfluencerProfileCard";
+import ProfileMedia from "@/ui/components/ProfileMedia";
+import SocialLinksGrid from "@/ui/components/profile/SocialLinksGrid";
+import { SocialLinks } from "@/ui/components/profile/InfluencerProfileCard";
+import { useIsMobile } from "@/hooks/layout/useIsDesktop";
 
 interface ProfilePopupProps {
   isOpen: boolean;
@@ -27,28 +29,38 @@ export default function ProfilePopup({
   onClose,
   influencerData,
 }: ProfilePopupProps) {
+  const isMobile = useIsMobile();
   if (!influencerData) return null;
 
   return (
-    <FullScreenPopup isOpen={isOpen} onClose={onClose} title={influencerData.name}>
+    <FullScreenPopup isOpen={isOpen} onClose={onClose}>
       <div className={styles.profileContent}>
+        <h2 className={styles.title}>{influencerData.name}</h2>
         <div className={styles.topRow}>
-          <div className={styles.profileCard}>
-            <Suspense fallback={null}>
-              <InfluencerProfileCard
-                name={influencerData.name}
-                image={influencerData.image}
-                video={influencerData.video}
-                lastConnected={influencerData.lastConnected}
-                followingSince={influencerData.followingSince}
-                isSubscribed={influencerData.isSubscribed}
-                socials={influencerData.socials}
-              />
-            </Suspense>
+          <div className={styles.mediaWrap}>
+            <ProfileMedia
+              size={isMobile ? "large" : "xlarge"}
+              imageSrc={influencerData.image || undefined}
+              videoSrc={influencerData.video}
+              active
+            />
+            <SocialLinksGrid socials={influencerData.socials} />
           </div>
 
           <div className={styles.aboutMe}>
-            <h3 className={styles.detailsHeading}>{influencerData.name}'s Details</h3>
+            <div className={styles.row}>
+              <div className={styles.col}>
+                <span className={styles.label}>Country</span>
+                <span className={styles.value}>{influencerData.country ?? "--"}</span>
+              </div>
+              <div className={styles.col}>
+                <span className={styles.label}>Languages</span>
+                <span className={styles.value}>{influencerData.languages ?? "--"}</span>
+              </div>
+            </div>
+
+            <div className={styles.divider} />
+
             <div className={styles.section}>
               <span className={styles.label}>About Me</span>
               <p className={styles.value}>{influencerData.bio ?? "--"}</p>
@@ -57,19 +69,6 @@ export default function ProfilePopup({
         </div>
 
         <div className={styles.details}>
-          <div className={styles.divider} />
-
-          <div className={styles.row}>
-            <div className={styles.col}>
-              <span className={styles.label}>Country</span>
-              <span className={styles.value}>{influencerData.country ?? "--"}</span>
-            </div>
-            <div className={styles.col}>
-              <span className={styles.label}>Languages</span>
-              <span className={styles.value}>{influencerData.languages ?? "--"}</span>
-            </div>
-          </div>
-
           <div className={styles.divider} />
 
           <div className={styles.section}>

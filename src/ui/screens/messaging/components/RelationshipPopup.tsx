@@ -35,7 +35,8 @@ export default function RelationshipPopup({
   if (!influencerData) return null;
 
   return (
-    <FullScreenPopup isOpen={isOpen} onClose={onClose} title={influencerData.name}>
+    <FullScreenPopup isOpen={isOpen} onClose={onClose}>
+      <h2 className={styles.popupTitle}>{influencerData.name}</h2>
       <div className={styles.profileDetails}>
         <div className={styles.section01}>
           <Suspense fallback={null}>
