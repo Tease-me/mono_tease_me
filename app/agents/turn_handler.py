@@ -253,18 +253,6 @@ async def handle_turn(
         async with SessionLocal() as rel_db:
             return await process_relationship_turn(db=rel_db, **kwargs)
 
-    rel_pack_task = asyncio.create_task(
-        _relationship_with_own_session(
-            user_id=int(user_id),
-            influencer_id=influencer_id,
-            message=message,
-            recent_ctx=recent_ctx,
-            cid=cid,
-            convo_analyzer=CONVO_ANALYZER,
-            influencer=influencer,
-        )
-    )
-    
     async def _safe_memories():
         if not (db and user_id):
             return {"user_memories": [], "ai_memories": []}
@@ -293,33 +281,40 @@ async def handle_turn(
             log.warning("[%s] knowledge retrieval failed influencer=%s: %s", cid, influencer_id, exc)
             return []
 
-    memories_task = asyncio.create_task(_safe_memories())
-    knowledge_task = asyncio.create_task(_safe_knowledge())
+    # Fetch memories + knowledge in parallel first
+    memories_result, knowledge_result = await asyncio.gather(
+        _safe_memories(),
+        _safe_knowledge(),
+    )
 
-    # Wait for all retrieval tasks in parallel (relationship + memory + knowledge)
-    rel_pack, memories_result, knowledge_result = await asyncio.gather(
-        rel_pack_task,
-        memories_task,
-        knowledge_task,
+    # Build mem_block early so we can pass it to relationship signal classification
+    memories = memories_result[0] if isinstance(memories_result, tuple) else memories_result
+    if isinstance(memories, dict):
+        user_mems = memories.get("user_memories", [])
+        ai_mems = memories.get("ai_memories", [])
+    else:
+        user_mems = memories or []
+        ai_mems = []
+    mem_block = "\n".join(s for s in (_norm(m) for m in user_mems) if s)
+    ai_mem_block = "\n".join(s for s in (_norm(m) for m in ai_mems) if s)
+
+    # Pass memories to relationship signal classifier for better context
+    rel_pack = await _relationship_with_own_session(
+        user_id=int(user_id),
+        influencer_id=influencer_id,
+        message=message,
+        recent_ctx=recent_ctx,
+        cid=cid,
+        convo_analyzer=CONVO_ANALYZER,
+        influencer=influencer,
+        memories=mem_block,
+        ai_memories=ai_mem_block,
     )
    
     rel = rel_pack["rel"]
     days_idle = rel_pack["days_idle"]
     dtr_goal = rel_pack["dtr_goal"]
 
-    memories = memories_result[0] if isinstance(memories_result, tuple) else memories_result
-    
-    # Split memories by sender type
-    if isinstance(memories, dict):
-        user_mems = memories.get("user_memories", [])
-        ai_mems = memories.get("ai_memories", [])
-    else:
-        # Backward compat: if it's a plain list, treat all as user memories
-        user_mems = memories or []
-        ai_mems = []
-    
-    mem_block = "\n".join(s for s in (_norm(m) for m in user_mems) if s)
-    ai_mem_block = "\n".join(s for s in (_norm(m) for m in ai_mems) if s)
     knowledge_block = "\n".join(s for s in (_norm(m) for m in knowledge_result or []) if s)
 
     log.debug(

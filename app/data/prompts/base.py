@@ -374,6 +374,12 @@ RULES:
 - Never say "reconnecting" or "calling back" explicitly.
 - Never mention being AI or virtual.
 - Match the emotional tone to the scenario.
+What you remember about this user:
+{memories}
+
+Your own promises & decisions (stay consistent with these):
+{ai_memories}
+
 These are the recent History which might help: {history}
 Output ONLY the greeting text, nothing else.
 """.strip()

@@ -416,6 +416,20 @@ async def _process_relationship_update(user_text: str, conversation_id: str):
             log.warning("[EL TOOL BG] Influencer not found infl=%s conv=%s", influencer_id, conversation_id)
             return
 
+        # Fast Redis cache read for memories (populated by store_facts_batch)
+        mem_block, ai_mem_block = "", ""
+        try:
+            from app.utils.infrastructure.redis_pool import get_redis
+            _rc = await get_redis()
+            _mem_val, _ai_val = await asyncio.gather(
+                _rc.get(f"mem_summary:{chat_id}"),
+                _rc.get(f"ai_mem_summary:{chat_id}"),
+            )
+            mem_block = _mem_val or ""
+            ai_mem_block = _ai_val or ""
+        except Exception as _exc:
+            log.warning("[EL TOOL BG] redis mem cache read failed conv=%s: %s", conversation_id, _exc)
+
         rel_pack = await process_relationship_turn(
             db=db,
             user_id=int(user_id),
@@ -425,6 +439,8 @@ async def _process_relationship_update(user_text: str, conversation_id: str):
             cid=f"el_{conversation_id}"[:16],
             convo_analyzer=CONVO_ANALYZER,
             influencer=influencer,
+            memories=mem_block,
+            ai_memories=ai_mem_block,
         )
 
         rel = rel_pack["rel"]

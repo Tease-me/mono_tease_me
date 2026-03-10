@@ -208,6 +208,8 @@ async def process_relationship_turn(
     cid: str,
     convo_analyzer,
     influencer: Any | None = None,
+    memories: str = "",
+    ai_memories: str = "",
 ) -> Dict[str, Any]:
     """
     Shared relationship update pipeline used by chat turns and webhooks.
@@ -239,7 +241,8 @@ async def process_relationship_turn(
 
     sig_dict = await classify_signals(
         db, message, recent_ctx, persona_likes, persona_dislikes, convo_analyzer,
-        user_id=user_id, influencer_id=influencer_id
+        user_id=user_id, influencer_id=influencer_id,
+        memories=memories, ai_memories=ai_memories,
     )
     log.info("[%s] SIG_DICT=%s", cid, sig_dict)
     sig = Signals(**sig_dict)
