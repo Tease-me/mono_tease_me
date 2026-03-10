@@ -6,7 +6,7 @@ from itertools import chain
 from typing import Any, Dict, List, Optional
 
 from langchain_core.prompts import ChatPromptTemplate
-from sqlalchemy import select
+from sqlalchemy import exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.prompt_utils import get_time_context
@@ -14,6 +14,7 @@ from app.agents.prompts import GREETING_GENERATOR
 from app.agents.turn_handler import _build_user_name_block, redis_history
 from app.constants import prompt_keys
 from app.db.models import CallRecord, Chat, Influencer, Message, User
+from app.db.models.chat import Memory
 from app.db.session import SessionLocal
 from app.services.system_prompt_service import get_system_prompt
 from app.utils.logging.prompt_logging import log_prompt
@@ -308,6 +309,7 @@ async def _generate_contextual_greeting(
 
     user_id = chat.user_id if chat else None
     last_call: Optional[CallRecord] = None
+    user: Optional[User] = None
 
     if user_id:
         async def _fetch_user_standalone() -> Optional[User]:
@@ -315,7 +317,7 @@ async def _generate_contextual_greeting(
                 return await session.get(User, user_id)
 
         try:
-            last_call, _ = await asyncio.gather(
+            last_call, user = await asyncio.gather(
                 _fetch_last_call_standalone(user_id),
                 _fetch_user_standalone(),
             )
@@ -369,6 +371,51 @@ async def _generate_contextual_greeting(
     persona_name = influencer.display_name if influencer and influencer.display_name else influencer_id
 
     if not transcript and not last_message:
+        # Verify it's truly a first-time interaction by checking DB
+        is_first = True
+        try:
+            async def _has_messages() -> bool:
+                async with SessionLocal() as s:
+                    r = await s.execute(
+                        select(exists().where(Message.chat_id == chat_id))
+                    )
+                    return r.scalar()
+
+            async def _has_calls() -> bool:
+                if not user_id:
+                    return False
+                async with SessionLocal() as s:
+                    r = await s.execute(
+                        select(
+                            exists().where(
+                                CallRecord.user_id == user_id,
+                                CallRecord.influencer_id == influencer_id,
+                            )
+                        )
+                    )
+                    return r.scalar()
+
+            async def _has_memories() -> bool:
+                async with SessionLocal() as s:
+                    r = await s.execute(
+                        select(exists().where(Memory.chat_id == chat_id))
+                    )
+                    return r.scalar()
+
+            has_msgs, has_calls, has_mems = await asyncio.gather(
+                _has_messages(), _has_calls(), _has_memories(),
+            )
+            is_first = not (has_msgs or has_calls or has_mems)
+        except Exception as exc:
+            log.warning("first_interaction_check_failed chat=%s err=%s", chat_id, exc)
+
+        if is_first:
+            # First-time interaction — personalised welcome
+            user_nick = None
+            if user:
+                user_nick = (user.full_name or user.username or "").strip().split()[0] or None
+            if user_nick:
+                return f"Hey is this {user_nick} calling?..... i've been waiting for you!"
         return _pick_random_first_greeting(persona_name)
 
     try:
