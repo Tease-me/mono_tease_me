@@ -57,6 +57,7 @@ from app.services.firstpromoter import (
     fp_get_promoter_v2,
     fp_extract_email,
     fp_extract_parent_promoter_id,
+    fp_track_signup,
 )
 
 log = logging.getLogger(__name__)
@@ -262,7 +263,18 @@ async def register_pre_influencer(
             
     except Exception as e:
         log.exception("FirstPromoter create promoter failed: %s", e)
-    
+
+    # Track pre-influencer signup in FirstPromoter (if fp_tid provided)
+    if data.fp_tid:
+        try:
+            await fp_track_signup(
+                email=pre.email,
+                uid=f"preinf-{pre.id}",
+                tid=data.fp_tid,
+            )
+        except Exception:
+            log.exception("FirstPromoter track signup failed for pre-influencer %s", pre.id)
+
     send_profile_survey_email(
         pre.email,
         verify_token,
