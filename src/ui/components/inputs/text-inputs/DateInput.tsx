@@ -104,6 +104,8 @@ export default function DateInput({
   autoComplete,
 }: DateInputProps) {
   const selected = useMemo(() => parseIsoDate(value), [value]);
+  const maxDate = new Date();
+  const minDate = new Date(new Date().getFullYear() - 100, 0, 1);
 
   return (
     <div className={`${styles["container"]} ${className ?? ""}`}>
@@ -125,6 +127,11 @@ export default function DateInput({
           />
         }
         dateFormat="dd/MM/yyyy"
+        showYearDropdown
+        showMonthDropdown
+        dropdownMode="select"
+        minDate={minDate}
+        maxDate={maxDate}
         disabled={disabled}
         readOnly={readOnly}
         calendarClassName={styles["calendar"]}
