@@ -18,12 +18,17 @@ import { BalanceServices } from "@/api/services/BalanceServices";
 import { apiClient } from "@/api/apis";
 import { formatDateTimeRelative, formatDate } from "@/utils/DateTimeUtils";
 import switchProfileImg from "@/assets/svg/switchProfile.svg";
-import InfluencerPopup from "../../components/InfluencerPopup";
+import RelationshipPopup from "../../components/RelationshipPopup";
+import ProfilePopup from "../../components/ProfilePopup";
 import { RelationshipServices } from "@/api/services/RelationshipServices";
+import { InfluencerServices } from "@/api/services/InfluencerService";
+import { InfluencerBioResponse } from "@/api/models/influencers";
+import { SocialLinks } from "@/ui/components/profile/InfluencerProfileCard";
 import { useIsMobile } from "@/hooks/layout/useIsDesktop";
 
 const balanceSvc = BalanceServices(apiClient);
 const relationshipService = RelationshipServices(apiClient);
+const influencerService = InfluencerServices(apiClient);
 
 type CallModePageProps = {
     startConversation?: () => void;
@@ -44,6 +49,8 @@ type CallModePageProps = {
 const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, errorMessage, cancelCall, onChangeInfluencer, conversationId, isSubscribed = false }: CallModePageProps) => {
     const [balance, setBalance] = React.useState<number>(0);
     const [isPopupOpen, setIsPopupOpen] = useState(false);
+    const [isProfilePopupOpen, setIsProfilePopupOpen] = useState(false);
+    const [bio, setBio] = useState<InfluencerBioResponse | null>(null);
     const [nextStage, setNextStage] = useState<string>("");
     const [callSummary, setCallSummary] = useState<{ durationSecs: number; } | null>(null);
     const activeConversationIdRef = useRef<string | null>(null);
@@ -164,7 +171,12 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
             <div className={styles.cardCaller}>
                 {showBalance ? <BalanceBadge balance={balance} /> : <div style={{ height: "32px" }}></div>}
                 <div className={styles.profileWrap}>
-                    <div className={styles.profileImageClick}>
+                    <div className={styles.profileImage} onClick={() => {
+                        setIsProfilePopupOpen(true);
+                        if (influencer?.id && !bio) {
+                            influencerService.getBio(influencer.id).then(setBio).catch(() => {});
+                        }
+                    }}>
                         <ProfileMedia active size={isMobile ? "large" : "xlarge"} videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} glow />
                     </div>
                     {onChangeInfluencer && <button
@@ -224,7 +236,31 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                 </div>
             </div>
 
-            <InfluencerPopup
+            <ProfilePopup
+                isOpen={isProfilePopupOpen}
+                onClose={() => setIsProfilePopupOpen(false)}
+                influencerData={
+                    influencer
+                        ? {
+                            name: influencer.name || "",
+                            image: influencer.img || "",
+                            video: influencer.videoUrl,
+                            lastConnected: formatDate(relationship?.last_interaction_at),
+                            followingSince: formatDate(influencer.created_at),
+                            isSubscribed: isSubscribed,
+                            socials: bio?.social_links?.length
+                                ? (Object.fromEntries(bio.social_links.map((s) => [s.platform, s.url])) as SocialLinks)
+                                : undefined,
+                            bio: bio?.about_me ?? undefined,
+                            country: bio?.country ?? undefined,
+                            languages: bio?.languages?.join(", ") || undefined,
+                            likes: bio?.likes?.join(", ") || undefined,
+                            dislikes: bio?.dislikes?.join(", ") || undefined,
+                        }
+                        : undefined
+                }
+            />
+            <RelationshipPopup
                 isOpen={isPopupOpen}
                 onClose={handleClosePopup}
                 influencerData={
