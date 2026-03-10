@@ -415,7 +415,7 @@ async def _generate_contextual_greeting(
             if user:
                 user_nick = (user.full_name or user.username or "").strip().split()[0] or None
             if user_nick:
-                return f"Hey {user_nick}... I've been waiting for you mi amor"
+                return f"Hey is this {user_nick} calling?..... i've been waiting for you!"
         return _pick_random_first_greeting(persona_name)
 
     try:
