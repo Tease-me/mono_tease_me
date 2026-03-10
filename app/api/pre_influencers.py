@@ -57,6 +57,7 @@ from app.services.firstpromoter import (
     fp_get_promoter_v2,
     fp_extract_email,
     fp_extract_parent_promoter_id,
+    fp_track_signup,
 )
 
 log = logging.getLogger(__name__)
@@ -262,7 +263,18 @@ async def register_pre_influencer(
             
     except Exception as e:
         log.exception("FirstPromoter create promoter failed: %s", e)
-    
+
+    # Track pre-influencer signup in FirstPromoter (if fp_tid provided)
+    if data.fp_tid:
+        try:
+            await fp_track_signup(
+                email=pre.email,
+                uid=f"preinf-{pre.id}",
+                tid=data.fp_tid,
+            )
+        except Exception:
+            log.exception("FirstPromoter track signup failed for pre-influencer %s", pre.id)
+
     send_profile_survey_email(
         pre.email,
         verify_token,
@@ -772,6 +784,20 @@ async def approve_pre_influencer(
                     bio_payload = parsed_prompt
             except Exception:
                 bio_payload = {}
+
+        # Persist country, languages and social_links from survey answers into bio_json
+        answers_for_bio = pre.survey_answers or {}
+        if answers_for_bio.get("q4_country") and not bio_payload.get("country"):
+            bio_payload["country"] = answers_for_bio["q4_country"]
+        languages: list[str] = []
+        if answers_for_bio.get("q5_main_language"):
+            languages.append(answers_for_bio["q5_main_language"])
+        if answers_for_bio.get("q6_secondary_language"):
+            languages.append(answers_for_bio["q6_secondary_language"])
+        if languages and not bio_payload.get("languages"):
+            bio_payload["languages"] = languages
+        bio_payload.setdefault("social_links", [])
+
         personality_prompt = (
             bio_payload.get("personality_rules")
             if isinstance(bio_payload.get("personality_rules"), str)

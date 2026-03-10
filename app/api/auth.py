@@ -100,6 +100,8 @@ async def register(
     verify_token = secrets.token_urlsafe(32)
     token_expires = datetime.utcnow() + timedelta(hours=24)
 
+    fp_tid = getattr(data, "fp_tid", None) or request.cookies.get("_fprom_tid") or None
+
     user = User(
         password_hash=pwd_context.hash(data.password),
         email=data.email,
@@ -143,20 +145,18 @@ async def register(
         await create_follow_if_missing(db, data.influencer_id, user.id)
 
     try:
-        tid = getattr(data, "fp_tid", None) or request.cookies.get("_fprom_tid")
-
         log.info(
             "FP signup: tid_body=%s tid_cookie=%s chosen=%s",
             getattr(data, "fp_tid", None),
             request.cookies.get("_fprom_tid"),
-            tid,
+            fp_tid,
         )
 
-        if tid:
+        if fp_tid:
             await fp_track_signup(
                 email=user.email,
                 uid=str(user.id),
-                tid=tid,
+                tid=fp_tid,
             )
     except Exception:
         log.exception("FirstPromoter track/signup failed")
