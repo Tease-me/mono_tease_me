@@ -63,6 +63,7 @@ class SocialLink(BaseModel):
 class InfluencerBio(BaseModel):
     id: str
     display_name: str
+    about_me: Optional[str] = None
     country: Optional[str] = None
     languages: List[str] = []
     likes: List[str] = []
