@@ -250,12 +250,20 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                             isSubscribed: isSubscribed,
                             socials: bio?.social_links?.length
                                 ? (Object.fromEntries(bio.social_links.map((s) => [s.platform, s.url])) as SocialLinks)
-                                : undefined,
-                            bio: bio?.about_me ?? undefined,
-                            country: bio?.country ?? undefined,
-                            languages: bio?.languages?.join(", ") || undefined,
-                            likes: bio?.likes?.join(", ") || undefined,
-                            dislikes: bio?.dislikes?.join(", ") || undefined,
+                                : import.meta.env.DEV ? {
+                                    onlyFans: "https://onlyfans.com/your_handle",
+                                    instagram: "https://instagram.com/your_handle",
+                                    tiktok: "https://tiktok.com/@your_handle",
+                                    snapchat: "https://snapchat.com/add/your_handle",
+                                    telegram: "https://t.me/your_handle",
+                                    x: "https://x.com/your_handle",
+                                    whatsapp: "https://wa.me/your_number",
+                                } : undefined,
+                            bio: bio?.about_me ?? (import.meta.env.DEV ? "I'm 23, originally from Texas but living in LA for school. I spend my weekends exploring new coffee shops and vintage stores, though secretly I'm a huge homebody who loves binge-watching reality TV." : undefined),
+                            country: bio?.country ?? (import.meta.env.DEV ? "Australia" : undefined),
+                            languages: bio?.languages?.join(", ") || (import.meta.env.DEV ? "English, Spanish" : undefined),
+                            likes: bio?.likes?.join(", ") || (import.meta.env.DEV ? "Late-night voice calls, deep conversations, music, spontaneous plans, playful flirting." : undefined),
+                            dislikes: bio?.dislikes?.join(", ") || (import.meta.env.DEV ? "Cold replies, dry one-word texts, pessimism, being ignored." : undefined),
                         }
                         : undefined
                 }
