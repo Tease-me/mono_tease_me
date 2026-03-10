@@ -5,7 +5,7 @@ import styles from "./FullScreenPopup.module.css";
 interface FullScreenPopupProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
+  title?: string;
   children: React.ReactNode;
 }
 
@@ -43,7 +43,7 @@ export default function FullScreenPopup({
           ✕
         </button>
         <div className={styles.content}>
-          <h2 className={styles.title}>{title}</h2>
+          {title && <h2 className={styles.title}>{title}</h2>}
           {children}
         </div>
       </div>

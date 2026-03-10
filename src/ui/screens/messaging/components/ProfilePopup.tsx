@@ -3,6 +3,7 @@ import FullScreenPopup from "@/ui/components/modals/FullScreenPopup";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import SocialLinksGrid from "@/ui/components/profile/SocialLinksGrid";
 import { SocialLinks } from "@/ui/components/profile/InfluencerProfileCard";
+import { useIsMobile } from "@/hooks/layout/useIsDesktop";
 
 interface ProfilePopupProps {
   isOpen: boolean;
@@ -28,15 +29,17 @@ export default function ProfilePopup({
   onClose,
   influencerData,
 }: ProfilePopupProps) {
+  const isMobile = useIsMobile();
   if (!influencerData) return null;
 
   return (
-    <FullScreenPopup isOpen={isOpen} onClose={onClose} title={influencerData.name}>
+    <FullScreenPopup isOpen={isOpen} onClose={onClose}>
       <div className={styles.profileContent}>
+        <h2 className={styles.title}>{influencerData.name}</h2>
         <div className={styles.topRow}>
           <div className={styles.mediaWrap}>
             <ProfileMedia
-              size="large"
+              size={isMobile ? "large" : "xlarge"}
               imageSrc={influencerData.image || undefined}
               videoSrc={influencerData.video}
               active
