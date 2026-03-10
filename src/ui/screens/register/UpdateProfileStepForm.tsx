@@ -2,6 +2,7 @@ import ProfileMedia from "@/ui/components/ProfileMedia";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
+import DateInput from "@/ui/components/inputs/text-inputs/DateInput";
 import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 import SvgPack from "@/utils/SvgPack";
 import styles from "./UpdateProfileStepForm.module.css";
@@ -11,7 +12,7 @@ import ValidationPill from "@/ui/components/inputs/buttons/ValidationPill";
 type ProfileValues = {
   fullName: string;
   userName: string;
-  gender: "male" | "female" | "";
+  gender: "male" | "female";
   dateOfBirth: string;
   profilePhotoFile: File | null;
 };
@@ -85,7 +86,7 @@ export default function UpdateProfileStepForm({
                 orientation="vertical"
                 text="Male"
                 type="square"
-                selected={values.gender === "male"}
+                color={values.gender === "male" ? "pink" : "black"}
                 onClick={() => onGenderSelect("male")}
               />
               <IconButton
@@ -93,7 +94,7 @@ export default function UpdateProfileStepForm({
                 orientation="vertical"
                 text="Female"
                 type="square"
-                selected={values.gender === "female"}
+                color={values.gender === "female" ? "pink" : "black"}
                 onClick={() => onGenderSelect("female")}
               />
             </div>
@@ -126,18 +127,12 @@ export default function UpdateProfileStepForm({
           {errors.userName && (
             <span className={styles["error"]}>{errors.userName}</span>
           )}
-<div className={styles["CalendarContainer"]}>          <TextInput
-            type="date"
+          <DateInput
             placeholder="Date of Birth"
             value={values.dateOfBirth}
-            onChange={(e) =>
-              onChange("dateOfBirth", (e.target as HTMLInputElement).value)
-            }
+            onChange={(value) => onChange("dateOfBirth", value)}
             onBlur={() => onBlur("dateOfBirth")}
-          /> <div className={styles["CalendarIcon"]}>
-            <SvgPack.IconCalendar />
-            
-            </div></div>
+          />
           {errors.dateOfBirth && (
             <span className={styles["error"]}>{errors.dateOfBirth}</span>
           )}
