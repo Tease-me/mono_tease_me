@@ -35,6 +35,22 @@ export interface InfluencerSampleListResponse {
   }>;
 }
 
+export interface InfluencerBioSocialLink {
+  platform: string;
+  url: string;
+}
+
+export interface InfluencerBioResponse {
+  id: string;
+  display_name: string;
+  about_me: string | null;
+  country: string | null;
+  languages: string[];
+  likes: string[];
+  dislikes: string[];
+  social_links: InfluencerBioSocialLink[];
+}
+
 export interface PersonaImportResponse {
   total_rows: number;
   imported_count: number;

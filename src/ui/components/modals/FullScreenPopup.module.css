@@ -1,0 +1,151 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  backdrop-filter: blur(0.3em);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  z-index: 100;
+  overflow: visible;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.overlay.closing {
+  animation: fadeOut 0.3s ease-in-out forwards;
+}
+
+.popupContainer {
+  width: 100%;
+  max-width: 72rem;
+  height: 100dvh;
+  background: #181a20;
+  border-radius: 0;
+  overflow-y: auto;
+  overflow-x: visible;
+  position: relative;
+  animation: slideDown 0.4s cubic-bezier(0.39, 0.575, 0.565, 1) both;
+  padding-top: 3rem;
+  padding-bottom: 2rem;
+  border-left: 1px solid #333;
+  border-right: 1px solid #333;
+}
+
+.popupContainer.closing {
+  animation: slideUpExit 0.3s ease-in-out forwards;
+}
+
+.closeBtn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid #333;
+  background: #212121;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 101;
+  transition: all 0.2s ease;
+}
+
+.closeBtn:hover {
+  background: #2a2a2a;
+  border-color: #404040;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100%;
+  padding: 0 2rem;
+  overflow: visible;
+}
+
+.title {
+  color: #fff;
+  font-family: Urbanist, sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 120%;
+  margin: 0 0 1.5rem 0;
+  text-align: left;
+}
+
+.titleCenter {
+  text-align: center;
+}
+
+@media (min-width: 32rem) {
+  .content {
+    padding: 0 2rem;
+  }
+}
+
+@media (min-aspect-ratio: 1/1) {
+  .overlay {
+    align-items: center;
+  }
+
+  .popupContainer {
+    height: auto;
+    max-height: 99dvh;
+    border-radius: 1rem;
+    border: 1px solid #333;
+  }
+}
+
+@media (max-width: 31.9375rem) {
+  .title {
+    text-align: left;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-150%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUpExit {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-150%);
+  }
+}
