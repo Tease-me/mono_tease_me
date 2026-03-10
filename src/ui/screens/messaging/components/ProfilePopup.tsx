@@ -17,8 +17,6 @@ interface ProfilePopupProps {
     bio?: string;
     country?: string;
     languages?: string;
-    likesShort?: string;
-    dislikesShort?: string;
     likes?: string;
     dislikes?: string;
   };
@@ -74,23 +72,12 @@ export default function ProfilePopup({
 
           <div className={styles.divider} />
 
-          <div className={styles.row}>
-            <div className={styles.col}>
-              <span className={styles.label}>Likes</span>
-              <span className={styles.value}>{influencerData.likesShort ?? "--"}</span>
-            </div>
-            <div className={styles.col}>
-              <span className={styles.label}>Dislikes</span>
-              <span className={styles.value}>{influencerData.dislikesShort ?? "--"}</span>
-            </div>
-          </div>
-
-          <div className={styles.divider} />
-
           <div className={styles.section}>
             <span className={styles.label}>Likes</span>
             <p className={styles.value}>{influencerData.likes ?? "--"}</p>
           </div>
+
+          <div className={styles.divider} />
 
           <div className={styles.section}>
             <span className={styles.label}>Dislikes</span>

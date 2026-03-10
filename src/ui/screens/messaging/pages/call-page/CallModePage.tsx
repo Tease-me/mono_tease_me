@@ -238,6 +238,22 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                             lastConnected: formatDate(relationship?.last_interaction_at),
                             followingSince: formatDate(influencer.created_at),
                             isSubscribed: isSubscribed,
+                            ...(import.meta.env.DEV && {
+                                socials: {
+                                    onlyFans: "https://onlyfans.com",
+                                    instagram: "https://instagram.com",
+                                    tiktok: "https://tiktok.com",
+                                    snapchat: "https://snapchat.com",
+                                    telegram: "https://telegram.org",
+                                    x: "https://x.com",
+                                    whatsapp: "https://whatsapp.com",
+                                },
+                                bio: "I'm 23, originally from Texas but living in LA for school. I spend my weekends exploring new coffee shops and vintage stores, though secretly I'm a huge homebody who loves binge-watching reality TV.",
+                                country: "Argentina",
+                                languages: "English, Spanish",
+                                likes: "I love going on beach walks, playing with puppies. Dancing the night away.",
+                                dislikes: "Arrogance, bad texters, people who don't have empathy.",
+                            }),
                         }
                         : undefined
                 }
