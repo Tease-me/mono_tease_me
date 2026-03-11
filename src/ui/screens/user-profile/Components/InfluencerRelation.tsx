@@ -323,13 +323,13 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           <NormalButton
             type="nobg"
             className={styles.grayBtn}
-            text={!showBalanceDetails ? "View Balance Details" : "Hide Balance Details"}
+            text={!showBalanceDetails ? "View Details" : "Hide Details"}
             onClick={() => setShowBalanceDetails((prev) => !prev)}
           />
           {showBalanceDetails && (
             <>
               <div className={styles.balanceStatsWrapper}>
-                <p className={styles.totalBalanceLabel}>Total Balance</p>
+                <p className={styles.totalBalanceLabel}>Remaining usage (estimate) </p>
                 <div className={styles.balanceStats}>
                   <UsageView
                     label="Call Time"
