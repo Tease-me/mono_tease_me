@@ -153,14 +153,14 @@ export default function AddCreditsContent({
             </h4>
           </div>
           <div className={styles.payWithRow02}>
-            <NormalButton
+            {false && <NormalButton
               color="black"
 
               leftIcon={<img src={PayPalLogoUrl} alt="PayPal" className={styles.paypalImg} />}
               className={styles.quickCreditButton}
               selected={provider === "paypal"}
               onClick={() => setProvider("paypal")}
-            />
+            />}
             <NormalButton
 
               color="black"
