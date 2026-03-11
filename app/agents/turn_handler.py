@@ -274,6 +274,7 @@ async def handle_turn(
                 chat_id,
                 message,
                 embedding=message_embedding,
+                user_timezone=user_timezone,
             )
         except Exception as exc:
             log.warning("[%s] memory retrieval failed: %s", cid, exc)
@@ -308,29 +309,29 @@ async def handle_turn(
     dtr_goal = rel_pack["dtr_goal"]
 
     memories = memories_result[0] if isinstance(memories_result, tuple) else memories_result
-    
+
     # Split memories by sender type
     if isinstance(memories, dict):
-        user_mems = memories.get("user_memories", [])
-        ai_mems = memories.get("ai_memories", [])
+        user_mems = memories.get("user_memories", "")
+        ai_mems = memories.get("ai_memories", "")
     else:
         # Backward compat: if it's a plain list, treat all as user memories
-        user_mems = memories or []
-        ai_mems = []
-    
-    mem_block = "\n".join(s for s in (_norm(m) for m in user_mems) if s)
-    ai_mem_block = "\n".join(s for s in (_norm(m) for m in ai_mems) if s)
+        user_mems = memories or ""
+        ai_mems = ""
+
+    # Memories are now pre-formatted strings with day labels, not lists
+    mem_block = user_mems if isinstance(user_mems, str) else "\n".join(s for s in (_norm(m) for m in user_mems) if s)
+    ai_mem_block = ai_mems if isinstance(ai_mems, str) else "\n".join(s for s in (_norm(m) for m in ai_mems) if s)
     knowledge_block = "\n".join(s for s in (_norm(m) for m in knowledge_result or []) if s)
 
     log.debug(
-        "[%s] rag_context influencer=%s kb_hits=%d mem_hits=%d ai_mem_hits=%d kb_chars=%d mem_chars=%d",
+        "[%s] rag_context influencer=%s kb_hits=%d mem_chars=%d ai_mem_chars=%d kb_chars=%d",
         cid,
         influencer_id,
         len(knowledge_result or []),
-        len(user_mems),
-        len(ai_mems),
+        len(mem_block),
+        len(ai_mem_block),
         len(knowledge_block),
-        len(mem_block) + len(ai_mem_block),
     )
 
     bio_ctx = extract_influencer_bio_context(influencer)
