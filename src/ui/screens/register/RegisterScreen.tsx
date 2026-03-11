@@ -314,9 +314,11 @@ export default function RegisterScreen() {
         fullWidthNav={
           <OnBoardingTopNav onBackClicked={handleBackClick} />
         }>
-        <HeadingText className={styles["title"]}>
-          Create your Account
-        </HeadingText>
+        {!isSubmitting && (
+          <HeadingText className={styles["title"]}>
+            Create your Account
+          </HeadingText>
+        )}
         {isSubmitting ? (
           <BlockingLoader />
         ) : step === 1 ? (
