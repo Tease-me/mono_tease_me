@@ -6,7 +6,7 @@ from itertools import chain
 from typing import Any, Dict, List, Optional
 
 from langchain_core.prompts import ChatPromptTemplate
-from sqlalchemy import select
+from sqlalchemy import exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.prompt_utils import get_time_context
@@ -14,6 +14,7 @@ from app.agents.prompts import GREETING_GENERATOR
 from app.agents.turn_handler import _build_user_name_block, redis_history
 from app.constants import prompt_keys
 from app.db.models import CallRecord, Chat, Influencer, Message, User
+from app.db.models.chat import Memory
 from app.db.session import SessionLocal
 from app.services.system_prompt_service import get_system_prompt
 from app.utils.logging.prompt_logging import log_prompt
@@ -57,9 +58,7 @@ _DOPAMINE_OPENERS: Dict[str, List[str]] = {
 }
 
 _RANDOM_FIRST_GREETINGS: List[str] = [
-    "Hello?",
-    "Hello, this is {persona_name}. Who’s calling?",
-    "Hi, who am I speaking with?",
+    "Hey... i've been waiting for you!"
 ]
 
 
@@ -308,6 +307,7 @@ async def _generate_contextual_greeting(
 
     user_id = chat.user_id if chat else None
     last_call: Optional[CallRecord] = None
+    user: Optional[User] = None
 
     if user_id:
         async def _fetch_user_standalone() -> Optional[User]:
@@ -315,7 +315,7 @@ async def _generate_contextual_greeting(
                 return await session.get(User, user_id)
 
         try:
-            last_call, _ = await asyncio.gather(
+            last_call, user = await asyncio.gather(
                 _fetch_last_call_standalone(user_id),
                 _fetch_user_standalone(),
             )
@@ -369,11 +369,76 @@ async def _generate_contextual_greeting(
     persona_name = influencer.display_name if influencer and influencer.display_name else influencer_id
 
     if not transcript and not last_message:
+        # Verify it's truly a first-time interaction by checking DB
+        is_first = True
+        try:
+            async def _has_messages() -> bool:
+                async with SessionLocal() as s:
+                    r = await s.execute(
+                        select(exists().where(Message.chat_id == chat_id))
+                    )
+                    return r.scalar()
+
+            async def _has_calls() -> bool:
+                if not user_id:
+                    return False
+                async with SessionLocal() as s:
+                    r = await s.execute(
+                        select(
+                            exists().where(
+                                CallRecord.chat_id == chat_id,
+                            )
+                        )
+                    )
+                    return r.scalar()
+
+            async def _has_memories() -> bool:
+                async with SessionLocal() as s:
+                    r = await s.execute(
+                        select(exists().where(Memory.chat_id == chat_id))
+                    )
+                    return r.scalar()
+
+            has_msgs, has_calls, has_mems = await asyncio.gather(
+                _has_messages(), _has_calls(), _has_memories(),
+            )
+            is_first = not (has_msgs or has_calls or has_mems)
+        except Exception as exc:
+            log.warning("first_interaction_check_failed chat=%s err=%s", chat_id, exc)
+
+        if is_first:
+            # First-time interaction — personalised welcome
+            user_nick = None
+            if user:
+                user_nick = (user.full_name or user.username or "").strip().split()[0] or None
+            if user_nick:
+                return f"Hey is this {user_nick} calling?..... i've been waiting for you!"
         return _pick_random_first_greeting(persona_name)
 
     try:
-        async with SessionLocal() as session:
-            users_name = await _build_user_name_block(session, user_id)
+        async def _fetch_user_name():
+            async with SessionLocal() as session:
+                return await _build_user_name_block(session, user_id)
+
+        async def _fetch_cached_memories():
+            """Read pre-computed memory summaries from Redis (populated by store_facts_batch)."""
+            try:
+                from app.utils.infrastructure.redis_pool import get_redis
+                rclient = await get_redis()
+                mem_val, ai_val = await asyncio.gather(
+                    rclient.get(f"mem_summary:{chat_id}"),
+                    rclient.get(f"ai_mem_summary:{chat_id}"),
+                )
+                return (mem_val or ""), (ai_val or "")
+            except Exception as exc:
+                log.warning("contextual_greeting.redis_mem_failed chat=%s err=%s", chat_id, exc)
+                return "", ""
+
+        users_name, (mem_block, ai_mem_block) = await asyncio.gather(
+            _fetch_user_name(),
+            _fetch_cached_memories(),
+        )
+
         prompt = await _get_contextual_first_message_prompt(db)
         partial_vars = {
             "influencer_name": persona_name,
@@ -385,6 +450,8 @@ async def _generate_contextual_greeting(
             "last_message": last_message or "(no recent message)",
             "history": transcript or "(no recent history)",
             "mood": time_context,
+            "memories": mem_block or "No memories yet.",
+            "ai_memories": ai_mem_block or "None yet.",
         }
         partial_vars.update(_build_relationship_partial_vars(rel))
         partial_vars.update(_build_stage_partial_vars(rel, stages, influencer_stages))

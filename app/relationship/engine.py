@@ -20,9 +20,9 @@ K_UP_BY_STAGE = {
     # gated by STAGE_DELTA multipliers and caps in relationship_stages.py.
     "HATE":       0.055,   # She's hurt but CAN warm up — nice behavior should feel meaningful
     "DISLIKE":    0.055,   # Cooling off is possible; consistent warmth visibly softens her
-    "STRANGERS":  0.080,   # Early stage — a few nice messages can build connection quickly
-    "FRIENDS":    0.065,   # Friendship deepens steadily
-    "FLIRTING":   0.045,   # Romantic feelings build slowly — she's enjoying the tension
+    "STRANGERS":  0.800,   # Early stage — a few nice messages can build connection quickly
+    "FRIENDS":    0.400,   # Friendship deepens steadily
+    "FLIRTING":   0.200,   # Romantic feelings build slowly — she's enjoying the tension
     "DATING":     0.045,   # Deep trust earned turn-by-turn; she needs consistency
     "GIRLFRIEND": 0.030,   # Relationship maintenance; appreciation compounds over time
 }
@@ -30,10 +30,10 @@ K_UP_BY_STAGE = {
 K_DOWN_BY_STAGE = {
     # How fast dimensions FALL per negative signal.
     "HATE":       0.040,   # Already at rock bottom — marginal further damage, focus on recovery
-    "DISLIKE":    0.050,   # She's cold; rude behavior confirms it, but not a free-fall
-    "STRANGERS":  0.050,   # First impressions matter — rudeness can turn a stranger off quickly
-    "FRIENDS":    0.045,   # Friends forgive small things; bigger rudeness still hurts
-    "FLIRTING":   0.055,   # Romantic tension is fragile — pushiness or rudeness kills the vibe
+    "DISLIKE":    0.150,   # She's cold; rude behavior confirms it, but not a free-fall
+    "STRANGERS":  0.200,   # First impressions matter — rudeness can turn a stranger off quickly
+    "FRIENDS":    0.100,   # Friends forgive small things; bigger rudeness still hurts
+    "FLIRTING":   0.100,   # Romantic tension is fragile — pushiness or rudeness kills the vibe
     "DATING":     0.600,   # She's invested now; betrayal or disrespect hits harder
     "GIRLFRIEND": 0.400,   # Most forgiving (also 60% dampened separately in processor)
 }
