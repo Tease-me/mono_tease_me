@@ -314,9 +314,11 @@ export default function RegisterScreen() {
         fullWidthNav={
           <OnBoardingTopNav onBackClicked={handleBackClick} />
         }>
-        <HeadingText className={styles["title"]}>
-          Create your Account
-        </HeadingText>
+        {!isSubmitting && (
+          <HeadingText className={styles["title"]}>
+            Create your Account
+          </HeadingText>
+        )}
         {isSubmitting ? (
           <BlockingLoader />
         ) : step === 1 ? (
@@ -331,7 +333,7 @@ export default function RegisterScreen() {
             }}
             onBlur={(field) => validateField(field, String(account[field]))}
             onContinue={handleContinueClicked}
-            onBack={() => navigate(Paths.root)}
+            onBack={handleBackClick}
             onSignIn={() => navigate(Paths.login)}
           />
         ) : (

@@ -50,7 +50,7 @@ const RelationshipRadar: React.FC<RelationshipRadarProps> = ({
       >
         <PolarGrid />
         <PolarAngleAxis dataKey="metric" />
-        <PolarRadiusAxis domain={[0, 100]} tickCount={6} />
+        <PolarRadiusAxis domain={[0, 100]} tickCount={6} tick={false} />
         <Radar
           dataKey="value"
           stroke={color}
