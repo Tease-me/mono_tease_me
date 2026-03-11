@@ -49,7 +49,7 @@ Alternatively, you can paste this directly into the **JSON editor** in the Ampli
 
 ## Disabling Maintenance Mode
 
-In the Amplify console JSON editor, remove the maintenance rule and save:
+In the Amplify console JSON editor, remove the maintenance rule and save. Also add a redirect for `/maintenance.html` → `/` so users can't discover the page directly:
 
 ```json
 [
@@ -57,6 +57,11 @@ In the Amplify console JSON editor, remove the maintenance rule and save:
     "source": "https://teaseme.live",
     "status": "302",
     "target": "https://www.teaseme.live"
+  },
+  {
+    "source": "/maintenance.html",
+    "status": "302",
+    "target": "/"
   },
   {
     "source": "/<*>",
