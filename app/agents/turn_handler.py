@@ -298,8 +298,18 @@ async def handle_turn(
     else:
         user_mems = memories or []
         ai_mems = []
-    mem_block = "\n".join(s for s in (_norm(m) for m in user_mems) if s)
-    ai_mem_block = "\n".join(s for s in (_norm(m) for m in ai_mems) if s)
+
+    # Memories are now pre-formatted strings with day labels (Today > Yesterday > Older)
+    # If string, use directly; if list (backward compat), join them
+    if isinstance(user_mems, str):
+        mem_block = user_mems
+    else:
+        mem_block = "\n".join(s for s in (_norm(m) for m in user_mems) if s)
+
+    if isinstance(ai_mems, str):
+        ai_mem_block = ai_mems
+    else:
+        ai_mem_block = "\n".join(s for s in (_norm(m) for m in ai_mems) if s)
 
     # Pass memories to relationship signal classifier for better context
     rel_pack = await _relationship_with_own_session(
