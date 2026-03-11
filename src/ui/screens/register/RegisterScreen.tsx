@@ -331,7 +331,7 @@ export default function RegisterScreen() {
             }}
             onBlur={(field) => validateField(field, String(account[field]))}
             onContinue={handleContinueClicked}
-            onBack={() => navigate(Paths.root)}
+            onBack={handleBackClick}
             onSignIn={() => navigate(Paths.login)}
           />
         ) : (
