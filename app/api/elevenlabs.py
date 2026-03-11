@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import math
 from app.agents.memory import get_memory_only_list, summarize_memory_list, summarize_ai_memory_list
 from app.agents.prompt_utils import build_relationship_prompt, get_global_prompt, get_mbti_rules_for_archetype, get_relationship_stage_prompts, get_time_context
 from app.relationship.dtr import plan_dtr_goal
@@ -17,7 +18,7 @@ from app.db.session import get_db
 from app.shared.prompting.influencer_bio import extract_influencer_bio_context
 from app.utils.auth.dependencies import get_current_user
 from app.schemas.elevenlabs import RegisterConversationBody, UpdatePromptBody
-from app.services.billing import resolve_voice_billing_mode
+from app.services.billing import resolve_voice_billing_mode, charge_feature
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from app.services.billing import can_afford, get_remaining_units
@@ -309,13 +310,103 @@ async def _poll_and_persist_conversation(
         if not chat_id and user_id and influencer_id:
             try:
                 chat_id = await get_or_create_chat(db, user_id, influencer_id)
-            except Exception as exc:  
+            except Exception as exc:
                 log.warning(
                     "background.chat_id_fallback_failed conv=%s user=%s infl=%s err=%s",
                     conversation_id,
                     user_id,
                     influencer_id,
                     exc,
+                )
+
+        # ── Billing (poll-driven, no webhook needed) ─────────────
+        if status == "done" and user_id and chat_id:
+            try:
+                if not influencer_id:
+                    from app.services.billing import _get_influencer_id_from_chat
+                    influencer_id = await _get_influencer_id_from_chat(db, chat_id)
+
+                if await claim_billing_slot(db, conversation_id):
+                    try:
+                        feature, is_18 = await resolve_voice_billing_mode(db, user_id, influencer_id)
+                        cost_charged = await charge_feature(
+                            db,
+                            user_id=user_id,
+                            influencer_id=influencer_id,
+                            feature=feature,
+                            units=math.ceil(total_seconds),
+                            is_18=is_18,
+                            meta={
+                                "conversation_id": conversation_id,
+                                "status": status,
+                                "source": "poll",
+                            },
+                            allow_partial=True,
+                            auto_commit=False,
+                        )
+                        await mark_billing_done(db, conversation_id)
+                        await db.commit()
+                        log.info(
+                            "poll.billing.success conv=%s user=%s secs=%s cost=%s",
+                            conversation_id, user_id, total_seconds, cost_charged,
+                        )
+
+                        # Track ElevenLabs cost from snapshot metadata
+                        from app.services.token_tracker import track_usage_bg
+                        from app.api.webhooks import _extract_cost_micros
+                        cost_micros = _extract_cost_micros(snapshot)
+                        track_usage_bg(
+                            category="voice",
+                            provider="elevenlabs",
+                            model="elevenlabs_convai",
+                            purpose="call_conversation",
+                            user_id=user_id,
+                            influencer_id=influencer_id,
+                            chat_id=chat_id,
+                            duration_secs=float(total_seconds),
+                            latency_ms=0,
+                            exact_cost_micros=cost_micros,
+                        )
+
+                        # Push updated balance to client via WebSocket
+                        try:
+                            from app.api.notify_ws import notify_call_billed
+                            from sqlalchemy import select as sa_select, and_
+                            from app.db.models import InfluencerWallet, User as UserModel
+
+                            user_obj = await db.get(UserModel, user_id)
+                            wallet = await db.scalar(
+                                sa_select(InfluencerWallet).where(
+                                    and_(
+                                        InfluencerWallet.user_id == user_id,
+                                        InfluencerWallet.influencer_id == influencer_id,
+                                        InfluencerWallet.is_18.is_(is_18),
+                                    )
+                                )
+                            )
+                            if user_obj and user_obj.email:
+                                await notify_call_billed(
+                                    user_obj.email,
+                                    balance_cents=int(wallet.balance_cents) if wallet else 0,
+                                    cost_cents=cost_charged,
+                                    duration_secs=total_seconds,
+                                    conversation_id=conversation_id,
+                                )
+                        except Exception as ws_exc:
+                            log.warning("poll.billing.ws_notify_failed conv=%s err=%s", conversation_id, ws_exc)
+
+                    except Exception as charge_exc:
+                        log.exception(
+                            "poll.billing.charge_failed conv=%s err=%s — resetting billing slot",
+                            conversation_id, charge_exc,
+                        )
+                        await reset_billing_slot(db, conversation_id)
+                else:
+                    log.info("poll.billing.skipped already_billed conv=%s", conversation_id)
+            except Exception as billing_exc:
+                log.exception(
+                    "poll.billing.error conv=%s user=%s err=%s",
+                    conversation_id, user_id, billing_exc,
                 )
 
         try:
@@ -327,7 +418,7 @@ async def _poll_and_persist_conversation(
                     conversation_id=conversation_id,
                     influencer_id=influencer_id,
                 )
-        except Exception as exc: 
+        except Exception as exc:
             log.warning(
                 "background.persist_transcript_failed conv=%s chat=%s err=%s",
                 conversation_id,
@@ -344,7 +435,7 @@ async def _poll_and_persist_conversation(
                     influencer_id=influencer_id,
                     chat_id=chat_id,
                 )
-            call_record.status = status
+            call_record.status = status if status != "done" else (call_record.status or status)
             call_record.call_duration_secs = total_seconds
             call_record.transcript = normalized_transcript or call_record.transcript
             if influencer_id:
@@ -353,7 +444,7 @@ async def _poll_and_persist_conversation(
                 call_record.chat_id = chat_id
             db.add(call_record)
             await db.commit()
-        except Exception as exc:  
+        except Exception as exc:
             log.warning(
                 "background.update_call_record_failed conv=%s err=%s",
                 conversation_id,
