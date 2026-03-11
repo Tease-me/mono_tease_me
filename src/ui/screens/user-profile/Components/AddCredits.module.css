@@ -97,7 +97,7 @@
 
 .payWithRow02 {
   display: grid;
-  grid-template-columns: 1fr 1.5fr;
+  grid-template-columns: 1fr;
   gap: var(--space-px-8);
   margin-bottom: var(--space-px-16);
 }

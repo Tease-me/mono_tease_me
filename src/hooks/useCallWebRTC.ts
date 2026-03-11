@@ -31,6 +31,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const { user } = useContext(AuthContext);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const stopConversationRef = useRef<() => void>(() => {});
   const startInFlightRef = useRef(false);
   const startAbortControllerRef = useRef<AbortController | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -329,6 +330,10 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
   }, [status]);
 
   useEffect(() => {
+    stopConversationRef.current = stopConversation;
+  }, [stopConversation]);
+
+  useEffect(() => {
     if (timeRemaining === null) {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -338,7 +343,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
     }
 
     if (timeRemaining === 0) {
-      stopConversation();
+      stopConversationRef.current();
       return;
     }
 
@@ -362,7 +367,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
         intervalRef.current = null;
       }
     };
-  }, [timeRemaining, stopConversation]);
+  }, [timeRemaining]);
 
   const toggleMute = useCallback(() => {
     setMicMuted(prev => {
