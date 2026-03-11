@@ -51,9 +51,8 @@ const ProfileMedia: React.FC<ProfileMediaProps> = ({
     useEffect(() => {
         if (shouldShowVideo && videoRef.current) {
             videoRef.current.load();
-            videoRef.current.play().catch((err) => {
-                console.warn('Autoplay failed:', err);
-
+            videoRef.current.play().catch(() => {
+                setShouldShowVideo(false);
             });
         }
     }, [shouldShowVideo]);
