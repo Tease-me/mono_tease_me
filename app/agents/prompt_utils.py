@@ -37,6 +37,29 @@ def _is_weekend(user_timezone: str | None) -> bool:
     return now.weekday() >= 5 
 
 
+def _format_timezone_location(tz_name: str | None) -> str:
+    if not tz_name:
+        return "UTC"
+
+    cleaned = tz_name.strip()
+    if not cleaned:
+        return "UTC"
+
+    upper = cleaned.upper()
+    if upper in {"UTC", "GMT"}:
+        return upper
+
+    parts = [part.replace("_", " ") for part in cleaned.split("/") if part]
+    if not parts:
+        return "UTC"
+    if len(parts) == 1:
+        return parts[0]
+
+    location = parts[-1]
+    region = ", ".join(parts[:-1])
+    return f"{location} ({region})"
+
+
 def _hour_from_12h(hour: int, meridiem: str) -> int:
     hour = hour % 12
     if meridiem.upper() == "PM":
@@ -228,8 +251,12 @@ async def get_time_context(db: AsyncSession, user_timezone: str | None) -> str:
     
     weekend_type = "weekend" if is_weekend else "weekday"
     selected_vibe = random.choice(vibes)
+    location = _format_timezone_location(user_timezone)
     
-    return f"{now.strftime('%I:%M %p')}, {day_name} {now.strftime('%d %B %Y')} ({weekend_type}) - {selected_vibe}"
+    return (
+        f"{now.strftime('%I:%M %p')}, {day_name} {now.strftime('%d %B %Y')} "
+        f"in {location} ({weekend_type}) - {selected_vibe}"
+    )
 
  
 
