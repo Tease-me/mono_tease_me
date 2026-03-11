@@ -36,7 +36,9 @@ export default function WelcomeScreen({
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [isFirstTime, setIsFirstTime] = useState(true);
+  const [isFirstTime, setIsFirstTime] = useState(
+    () => !storage.getBoolean(LocalStorageKeys.VisitedWelcome),
+  );
   const [onTryClicked, setOnTryClicked] = useState(false);
   const { status, startConversation, stopConversation, setInfluencerId } =
     useCall();
@@ -47,14 +49,19 @@ export default function WelcomeScreen({
 
   const [error, setError] = useState<string | null>(null);
   const [waiting, setWaiting] = useState(false);
+  const syncIsFirstTimeFromStorage = () => {
+    setIsFirstTime(!storage.getBoolean(LocalStorageKeys.VisitedWelcome));
+  };
 
   useEffect(() => {
     if (status === "connected") {
       storage.setBoolean(LocalStorageKeys.VisitedWelcome, true);
+      syncIsFirstTimeFromStorage();
     } else if (status === "disconnected") {
-      setIsFirstTime(false);
+      syncIsFirstTimeFromStorage();
     }
   }, [status]);
+
   useEffect(() => {
     return () => {
       audioRef.current.stop();
@@ -83,7 +90,8 @@ export default function WelcomeScreen({
   const handleHangUpCall = () => {
     audioRef.current.stop();
     stopConversation();
-    setIsFirstTime(false);
+    storage.setBoolean(LocalStorageKeys.VisitedWelcome, true);
+    syncIsFirstTimeFromStorage();
     setOnTryClicked(false);
   };
 
