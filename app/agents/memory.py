@@ -439,7 +439,7 @@ def _get_relative_day_label(created_at, user_timezone: str | None = None) -> str
     Get a human-readable day label (Today, Yesterday, N days ago) based on created_at.
     Uses user's timezone if provided.
     """
-    from datetime import datetime, timezone as dt_tz, timedelta
+    from datetime import datetime, timezone as dt_tz
     from zoneinfo import ZoneInfo
 
     if not created_at:
