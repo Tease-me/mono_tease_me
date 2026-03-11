@@ -48,40 +48,55 @@ export default function ProfilePopup({
           </div>
 
           <div className={styles.aboutMe}>
-            <div className={styles.row}>
-              <div className={styles.col}>
-                <span className={styles.label}>Country</span>
-                <span className={styles.value}>{influencerData.country ?? "--"}</span>
+            {(influencerData.country || influencerData.languages) && (
+              <div className={styles.row}>
+                {influencerData.country && (
+                  <div className={styles.col}>
+                    <span className={styles.label}>Country</span>
+                    <span className={styles.value}>{influencerData.country}</span>
+                  </div>
+                )}
+                {influencerData.languages && (
+                  <div className={styles.col}>
+                    <span className={styles.label}>Languages</span>
+                    <span className={styles.value}>{influencerData.languages}</span>
+                  </div>
+                )}
               </div>
-              <div className={styles.col}>
-                <span className={styles.label}>Languages</span>
-                <span className={styles.value}>{influencerData.languages ?? "--"}</span>
-              </div>
-            </div>
+            )}
 
-            <div className={styles.divider} />
-
-            <div className={styles.section}>
-              <span className={styles.label}>About Me</span>
-              <p className={styles.value}>{influencerData.bio ?? "--"}</p>
-            </div>
+            {influencerData.bio && (
+              <>
+                <div className={styles.divider} />
+                <div className={styles.section}>
+                  <span className={styles.label}>About Me</span>
+                  <p className={styles.value}>{influencerData.bio}</p>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
         <div className={styles.details}>
-          <div className={styles.divider} />
+          {influencerData.likes && (
+            <>
+              <div className={styles.divider} />
+              <div className={styles.section}>
+                <span className={styles.label}>Likes</span>
+                <p className={styles.value}>{influencerData.likes}</p>
+              </div>
+            </>
+          )}
 
-          <div className={styles.section}>
-            <span className={styles.label}>Likes</span>
-            <p className={styles.value}>{influencerData.likes ?? "--"}</p>
-          </div>
-
-          <div className={styles.divider} />
-
-          <div className={styles.section}>
-            <span className={styles.label}>Dislikes</span>
-            <p className={styles.value}>{influencerData.dislikes ?? "--"}</p>
-          </div>
+          {influencerData.dislikes && (
+            <>
+              <div className={styles.divider} />
+              <div className={styles.section}>
+                <span className={styles.label}>Dislikes</span>
+                <p className={styles.value}>{influencerData.dislikes}</p>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </FullScreenPopup>
