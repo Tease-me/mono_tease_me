@@ -69,3 +69,20 @@ class InfluencerBio(BaseModel):
     likes: List[str] = []
     dislikes: List[str] = []
     social_links: List[SocialLink] = []
+
+
+class InfluencerAdultCharacterOut(BaseModel):
+    id: int
+    slug: str
+    name: str
+    description: Optional[str] = None
+    prompt_template: str
+    is_active: bool
+    display_order: int
+    default_artwork_key: Optional[str] = None
+    photo_key: Optional[str] = None
+    photo_url: Optional[str] = None
+    video_key: Optional[str] = None
+    video_url: Optional[str] = None
+    meta_json: Optional[Dict[str, Any]] = None
+    has_influencer_override: bool

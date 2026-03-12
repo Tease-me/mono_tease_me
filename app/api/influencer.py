@@ -6,11 +6,19 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Request
 from app.api.webhooks import _process_relationship_update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app.db.models import Influencer, User
+from app.db.models import AdultCharacter, Influencer, InfluencerCharacterMeta, User
 from app.utils.auth.dependencies import get_current_user
 
 from app.db.session import get_db
-from app.schemas.influencer import InfluencerCreate, InfluencerOut, InfluencerUpdate, InfluencerDetail, InfluencerBio, SocialLink
+from app.schemas.influencer import (
+    InfluencerAdultCharacterOut,
+    InfluencerBio,
+    InfluencerCreate,
+    InfluencerDetail,
+    InfluencerOut,
+    InfluencerUpdate,
+    SocialLink,
+)
 from app.services.influencer_cleanup import (
     InfluencerDeleteError,
     InfluencerDeleteNotFoundError,
@@ -52,6 +60,59 @@ async def _build_influencer_detail(influencer: Influencer) -> InfluencerDetail:
     detail.photo_url = photo_url
     detail.video_url = video_url
     return detail
+
+
+async def _build_influencer_adult_characters(
+    db: AsyncSession,
+    influencer_id: str,
+) -> list[InfluencerAdultCharacterOut]:
+    characters_result = await db.execute(
+        select(AdultCharacter)
+        .where(AdultCharacter.is_active.is_(True))
+        .order_by(AdultCharacter.display_order, AdultCharacter.id)
+    )
+    characters = sorted(
+        characters_result.scalars().all(),
+        key=lambda character: (character.display_order, character.id),
+    )
+
+    overlay_result = await db.execute(
+        select(InfluencerCharacterMeta).where(
+            InfluencerCharacterMeta.influencer_id == influencer_id,
+        )
+    )
+    overlays = {
+        overlay.character_id: overlay
+        for overlay in overlay_result.scalars().all()
+        if overlay.is_active
+    }
+
+    items: list[InfluencerAdultCharacterOut] = []
+    for character in characters:
+        overlay = overlays.get(character.id)
+        resolved_photo_key = (
+            overlay.photo_key if overlay and overlay.photo_key else character.default_artwork_key
+        )
+        resolved_video_key = overlay.video_key if overlay and overlay.video_key else None
+        items.append(
+            InfluencerAdultCharacterOut(
+                id=character.id,
+                slug=character.slug,
+                name=character.name,
+                description=character.description,
+                prompt_template=character.prompt_template,
+                is_active=character.is_active,
+                display_order=character.display_order,
+                default_artwork_key=character.default_artwork_key,
+                photo_key=resolved_photo_key,
+                photo_url=generate_presigned_url(resolved_photo_key) if resolved_photo_key else None,
+                video_key=resolved_video_key,
+                video_url=generate_presigned_url(resolved_video_key) if resolved_video_key else None,
+                meta_json=overlay.meta_json if overlay else None,
+                has_influencer_override=overlay is not None,
+            )
+        )
+    return items
 
 
 @router.get("", response_model=List[InfluencerDetail])
@@ -100,6 +161,19 @@ async def get_influencer(id: str, db: AsyncSession = Depends(get_db)):
         raise HTTPException(404, "Influencer not found")
 
     return await _build_influencer_detail(influencer)
+
+
+@router.get("/{influencer_id}/adult-characters", response_model=List[InfluencerAdultCharacterOut])
+async def get_influencer_adult_characters(
+    influencer_id: str,
+    _current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    influencer = await db.get(Influencer, influencer_id)
+    if not influencer:
+        raise HTTPException(404, "Influencer not found")
+
+    return await _build_influencer_adult_characters(db, influencer_id)
 
 @router.post("", response_model=InfluencerOut, status_code=201)
 async def create_influencer(data: InfluencerCreate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
