@@ -3,8 +3,6 @@ import re
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
 log = logging.getLogger(__name__)
 
 _TIME_RANGE_RE = re.compile(r"^\s*(\d{1,2})\s*(AM|PM)\s*-\s*(\d{1,2})\s*(AM|PM)\s*$", re.IGNORECASE)
@@ -19,7 +17,7 @@ def resolve_timezone(tz_name: str | None):
         return timezone.utc
 
 
-def is_weekend(user_timezone: str | None) -> bool:
+def check_is_weekend(user_timezone: str | None) -> bool:
     tz = resolve_timezone(user_timezone)
     now = datetime.now(tz)
     return now.weekday() >= 5

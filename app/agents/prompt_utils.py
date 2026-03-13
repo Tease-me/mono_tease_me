@@ -14,7 +14,7 @@ from app.db.models import Influencer
 from fastapi import Depends, HTTPException
 from app.db.session import get_db
 from app.services.system_prompt_service import get_system_prompt
-from app.utils.time import format_timezone_location
+from app.utils.time import check_is_weekend, format_timezone_location
 
 import logging
 log = logging.getLogger(__name__)
@@ -166,7 +166,7 @@ async def get_time_context(db: AsyncSession, user_timezone: str | None) -> str:
     
     hour = now.hour
     day_name = now.strftime("%A")
-    is_weekend = is_weekend(user_timezone)
+    is_weekend = check_is_weekend(user_timezone)
     
     vibe_ranges = _default_time_vibe_ranges()
     cfg = await get_system_prompt(db, prompt_keys.TIME_VIBE_CONFIG_JSON)
