@@ -47,6 +47,14 @@ from app.use_cases.admin_logs import (
     stream_logs_sse,
 )
 from app.utils.storage.s3 import save_sample_audio_to_s3, generate_presigned_url, delete_file_from_s3
+from app.use_cases.admin_user_analytics import (
+    get_analytics_overview,
+    get_user_growth,
+    get_user_engagement,
+    get_user_spending,
+    get_user_retention,
+    get_user_detail,
+)
 
 from pydantic import BaseModel, Field
 from typing import Literal, Optional
@@ -993,3 +1001,112 @@ async def get_api_usage_errors(
         for r in rows
     ]
     return {"errors": errors, "total_errors": len(errors)}
+
+
+# ── User Analytics ──────────────────────────────────────────────
+
+@router.get("/analytics/overview")
+async def analytics_overview(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """High-level KPI dashboard summary."""
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Admin only")
+
+    try:
+        return await get_analytics_overview(db)
+    except Exception:
+        log.error("analytics_overview_failed", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to fetch analytics overview")
+
+
+@router.get("/analytics/user-growth")
+async def analytics_user_growth(
+    period: str = "30d",
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Registration trends over time."""
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Admin only")
+
+    try:
+        return await get_user_growth(db, period)
+    except Exception:
+        log.error("analytics_user_growth_failed", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to fetch user growth data")
+
+
+@router.get("/analytics/user-engagement")
+async def analytics_user_engagement(
+    period: str = "24h",
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Activity metrics: messages, calls, active users, channels."""
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Admin only")
+
+    try:
+        return await get_user_engagement(db, period)
+    except Exception:
+        log.error("analytics_user_engagement_failed", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to fetch user engagement data")
+
+
+@router.get("/analytics/user-spending")
+async def analytics_user_spending(
+    period: str = "30d",
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Revenue analysis: total revenue, ARPU, top spenders, subscriptions."""
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Admin only")
+
+    try:
+        return await get_user_spending(db, period)
+    except Exception:
+        log.error("analytics_user_spending_failed", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to fetch user spending data")
+
+
+@router.get("/analytics/user-retention")
+async def analytics_user_retention(
+    period: str = "30d",
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """DAU / WAU / MAU counts and daily active user trend."""
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Admin only")
+
+    try:
+        return await get_user_retention(db, period)
+    except Exception:
+        log.error("analytics_user_retention_failed", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to fetch user retention data")
+
+
+@router.get("/analytics/user-detail/{user_id}")
+async def analytics_user_detail(
+    user_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Deep-dive analytics for a single user."""
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Admin only")
+
+    try:
+        result = await get_user_detail(db, user_id)
+        if result is None:
+            raise HTTPException(status_code=404, detail="User not found")
+        return result
+    except HTTPException:
+        raise
+    except Exception:
+        log.error("analytics_user_detail_failed user_id=%s", user_id, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to fetch user detail")
+
