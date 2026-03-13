@@ -9,7 +9,11 @@ import { showErrorModal } from "@/utils/errorModal";
 
 export type CallStatus = "connecting" | "connected" | "disconnected" | "idle" | "error";
 
-export default function useCallWebRTC(options?: { onMessage?: (message: any, conversationId: string | null) => void }) {
+export default function useCallWebRTC(options?: {
+  onMessage?: (message: any, conversationId: string | null) => void;
+  onCreditsExpired?: () => void
+}
+) {
   const [status, setStatus] = useState<CallStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const {
@@ -31,7 +35,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const { user } = useContext(AuthContext);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const stopConversationRef = useRef<() => void>(() => {});
+  const stopConversationRef = useRef<() => void>(() => { });
   const startInFlightRef = useRef(false);
   const startAbortControllerRef = useRef<AbortController | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -343,6 +347,7 @@ export default function useCallWebRTC(options?: { onMessage?: (message: any, con
     }
 
     if (timeRemaining === 0) {
+      options?.onCreditsExpired?.();
       stopConversationRef.current();
       return;
     }
