@@ -14,7 +14,7 @@ from app.db.models import Influencer
 from fastapi import Depends, HTTPException
 from app.db.session import get_db
 from app.services.system_prompt_service import get_system_prompt
-from app.utils.time import format_timezone_location, get_time_context as build_time_context
+from app.utils.time import format_timezone_location
 
 import logging
 log = logging.getLogger(__name__)
