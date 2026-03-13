@@ -104,10 +104,14 @@ _PRICING_OUTPUT = {
 _OPENAI_SNAPSHOT_OVERRIDES_INPUT: dict[str, int] = {}
 _OPENAI_SNAPSHOT_OVERRIDES_OUTPUT: dict[str, int] = {}
 
-# ElevenLabs: charged per character or per minute for ConvAI
-# Official: $0.10/min for ConvAI, ~$0.18/1000 chars for TTS
-_ELEVENLABS_CONVAI_COST_PER_SEC = 1_667    # $0.001667/sec = $0.10/min in microdollars
-_ELEVENLABS_TTS_COST_PER_SEC    = 3_000    # ~$0.003/sec estimate for TTS
+# ElevenLabs: charged per character for TTS, per minute for ConvAI
+# Official pricing (Pro plan):
+#   - ConvAI: ~$0.10/min (used as fallback; webhook provides exact credits)
+#   - TTS:    ~$0.20/1000 characters = 200 microdollars per character
+#   - TTS time-based fallback: ~$0.18/min when only audio duration is known
+_ELEVENLABS_CONVAI_COST_PER_SEC = 1_667    # $0.001667/sec ≈ $0.10/min in microdollars
+_ELEVENLABS_TTS_COST_PER_CHAR   = 200      # $0.0002/char = $0.20/1000 chars in microdollars
+_ELEVENLABS_TTS_COST_PER_SEC    = 3_000    # ~$0.18/min fallback when only duration is known
 
 # Whisper: charged per minute of audio
 _WHISPER_COST_PER_MINUTE = 6_000  # $0.006/min in microdollars
@@ -155,6 +159,7 @@ def _estimate_cost(
     output_tokens: Optional[int],
     duration_secs: Optional[float],
     purpose: str,
+    char_count: Optional[int] = None,
 ) -> Optional[int]:
     """
     Estimate cost in micro-dollars.
@@ -168,14 +173,15 @@ def _estimate_cost(
     normalized_provider = (provider or "").strip().lower()
     pricing_model = _canonicalize_model_for_pricing(raw_model, normalized_provider)
 
-    # Handle ElevenLabs time-based pricing
-    if normalized_provider == "elevenlabs" and duration_secs is not None:
-        rate = (
-            _ELEVENLABS_CONVAI_COST_PER_SEC
-            if purpose == "call_conversation"
-            else _ELEVENLABS_TTS_COST_PER_SEC
-        )
-        return int(duration_secs * rate)
+    # Handle ElevenLabs pricing
+    if normalized_provider == "elevenlabs":
+        if purpose == "call_conversation" and duration_secs is not None:
+            return int(duration_secs * _ELEVENLABS_CONVAI_COST_PER_SEC)
+        # TTS: prefer character-based pricing, fallback to duration estimate
+        if char_count is not None:
+            return int(char_count * _ELEVENLABS_TTS_COST_PER_CHAR)
+        if duration_secs is not None:
+            return int(duration_secs * _ELEVENLABS_TTS_COST_PER_SEC)
 
     # Handle Whisper time-based pricing
     if pricing_model == "whisper-1" and duration_secs is not None:
@@ -240,6 +246,7 @@ async def track_usage(
     output_tokens: Optional[int] = None,
     total_tokens: Optional[int] = None,
     duration_secs: Optional[float] = None,
+    char_count: Optional[int] = None,
     latency_ms: Optional[int] = None,
     user_id: Optional[int] = None,
     influencer_id: Optional[str] = None,
@@ -266,6 +273,7 @@ async def track_usage(
         output_tokens: Number of output tokens (for LLMs)
         total_tokens: Total tokens (input + output)
         duration_secs: Duration in seconds (for audio services like Whisper, ElevenLabs)
+        char_count: Character count for ElevenLabs TTS (preferred over duration for cost)
         latency_ms: API call latency in milliseconds
         user_id: User ID for attribution (optional)
         influencer_id: Influencer ID for attribution (optional)
@@ -284,6 +292,7 @@ async def track_usage(
         else:
             estimated_cost = _estimate_cost(
                 model, provider, input_tokens, output_tokens, duration_secs, purpose,
+                char_count=char_count,
             )
 
         row = ApiUsageLog(

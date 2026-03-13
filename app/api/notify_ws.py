@@ -28,6 +28,27 @@ async def notify_low_balance(email: str, balance_cents: int):
         except Exception:
             notification_sockets.pop(email, None)
 
+async def notify_call_billed(
+    email: str,
+    *,
+    balance_cents: int,
+    cost_cents: int,
+    duration_secs: float,
+    conversation_id: str,
+):
+    ws = notification_sockets.get(email)
+    if ws:
+        try:
+            await ws.send_json({
+                "type": "call_billed",
+                "balance_cents": balance_cents,
+                "cost_cents": cost_cents,
+                "duration_secs": duration_secs,
+                "conversation_id": conversation_id,
+            })
+        except Exception:
+            notification_sockets.pop(email, None)
+
 @router.websocket("/ws/notifications")
 async def websocket_notifications(ws: WebSocket):
     await ws.accept()
