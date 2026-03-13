@@ -1,6 +1,5 @@
 import json
 from datetime import date, datetime
-from pydoc import resolve
 import random
 from typing import Any, Optional
 
@@ -14,7 +13,11 @@ from app.db.models import Influencer
 from fastapi import Depends, HTTPException
 from app.db.session import get_db
 from app.services.system_prompt_service import get_system_prompt
-from app.utils.time import check_is_weekend, format_timezone_location
+from app.utils.time import (
+    check_is_weekend,
+    format_timezone_location,
+    resolve_timezone,
+)
 
 import logging
 log = logging.getLogger(__name__)
@@ -161,7 +164,7 @@ async def get_time_context(db: AsyncSession, user_timezone: str | None) -> str:
     Generate simple time context for AI to naturally incorporate.
     Returns a concise time description instead of pre-written mood scripts.
     """
-    tz = resolve(user_timezone)
+    tz = resolve_timezone(user_timezone)
     now = datetime.now(tz)
     
     hour = now.hour
