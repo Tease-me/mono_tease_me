@@ -9,10 +9,10 @@ plain dicts ready for JSON serialisation. Errors propagate to the router.
 """
 
 import logging
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta
 from typing import Any
 
-from sqlalchemy import select, func, desc, case, distinct, and_, Integer, cast
+from sqlalchemy import select, func, desc, case, distinct
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import (
@@ -30,7 +30,6 @@ from app.db.models import (
     ContentViolation,
     InfluencerFollower,
     ApiUsageLog,
-    InfluencerCreditTransaction,
 )
 
 log = logging.getLogger(__name__)
