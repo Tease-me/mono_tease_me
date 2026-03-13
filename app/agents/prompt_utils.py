@@ -1,7 +1,10 @@
 import json
-from datetime import date
+from datetime import date, datetime
+from pydoc import resolve
+import random
 from typing import Any, Optional
 
+from app.constants import prompt_keys
 from app.shared.prompting.influencer_bio import InfluencerBioContext
 from langchain_core.prompts import (
     ChatPromptTemplate,
@@ -11,8 +14,7 @@ from app.db.models import Influencer
 from fastapi import Depends, HTTPException
 from app.db.session import get_db
 from app.services.system_prompt_service import get_system_prompt
-from app.utils.time import get_time_context as build_time_context
-from app.constants import prompt_keys
+from app.utils.time import format_timezone_location, get_time_context as build_time_context
 
 import logging
 log = logging.getLogger(__name__)
@@ -159,12 +161,12 @@ async def get_time_context(db: AsyncSession, user_timezone: str | None) -> str:
     Generate simple time context for AI to naturally incorporate.
     Returns a concise time description instead of pre-written mood scripts.
     """
-    tz = _resolve_tz(user_timezone)
+    tz = resolve(user_timezone)
     now = datetime.now(tz)
     
     hour = now.hour
     day_name = now.strftime("%A")
-    is_weekend = _is_weekend(user_timezone)
+    is_weekend = is_weekend(user_timezone)
     
     vibe_ranges = _default_time_vibe_ranges()
     cfg = await get_system_prompt(db, prompt_keys.TIME_VIBE_CONFIG_JSON)
@@ -179,7 +181,7 @@ async def get_time_context(db: AsyncSession, user_timezone: str | None) -> str:
     
     weekend_type = "weekend" if is_weekend else "weekday"
     selected_vibe = random.choice(vibes)
-    location = _format_timezone_location(user_timezone)
+    location = format_timezone_location(user_timezone)
     
     return (
         f"{now.strftime('%I:%M %p')}, {day_name} {now.strftime('%d %B %Y')} "
