@@ -51,6 +51,44 @@ async def _load_recent_ctx_18(db, chat_id: str, limit: int = 12) -> list[BaseMes
     return _render_recent_ctx(rows)
 
 
+async def _build_user_name_block_18(db, user_id: int | None) -> str:
+    user = None
+    if user_id:
+        try:
+            user = await db.get(User, int(user_id))
+        except Exception as exc:
+            log.warning("_build_user_name_block_18: failed to fetch user %s: %s", user_id, exc)
+
+    if user:
+        parts = []
+        full_name = (user.full_name or "").strip()
+        username = (user.username or "").strip()
+        gender = (user.gender or "").strip()
+        dob = user.date_of_birth
+
+        if full_name:
+            parts.append(f"Full name: {full_name}")
+        if username:
+            parts.append(f"Username: {username}")
+        if gender:
+            parts.append(f"Gender: {gender}")
+        if dob:
+            parts.append(f"Date of birth: {dob.strftime('%B %d, %Y')}")
+
+        if parts:
+            return (
+                ", ".join(parts) + ". "
+                "Use their name naturally and sparingly — don't overuse it. "
+                "If the user has told you to call them something else, use that preferred name instead."
+            )
+
+    return (
+        "You don't know the user's name yet. "
+        "If they've told you to call them something specific, use that preferred name instead. "
+        "Otherwise, don't assume a name."
+    )
+
+
 async def handle_turn_18(
     *,
     message: str,
@@ -95,11 +133,13 @@ async def handle_turn_18(
 
     user = await db.get(User, user_id) if user_id else None
     user_adult_prompt = user.custom_adult_prompt if user else None
+    users_name = await _build_user_name_block_18(db, user_id)
     prompt = prompt.partial(
         influencer_name=influencer.display_name,
         user_prompt=user_adult_prompt or "", 
         history=recent_ctx, 
-        mood=time_context
+        mood=time_context,
+        users_name=users_name,
     )
     chain = prompt | XAI_MODEL
 
