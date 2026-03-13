@@ -32,9 +32,9 @@ router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 ELEVENLABS_CONVAI_WEBHOOK_SECRET = settings.ELEVENLABS_CONVAI_WEBHOOK_SECRET
 
 # ElevenLabs credit → micro-dollar conversion
-# Pro plan: $99/month for 500k credits = $0.000198/credit ≈ 0.198 microdollars/credit
-# Adjust this constant if your plan pricing differs.
-_ELEVENLABS_MICRODOLLARS_PER_CREDIT = 0.198
+# Pro plan: $99/month for 500k credits = $0.000198/credit
+# 1 micro-dollar = $0.000001, so $0.000198 = 198 micro-dollars per credit
+_ELEVENLABS_MICRODOLLARS_PER_CREDIT = 198
 
 
 def _extract_cost_micros(data: dict) -> int | None:
