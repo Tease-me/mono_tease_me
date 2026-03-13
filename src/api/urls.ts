@@ -94,6 +94,13 @@ export const Endpoints = {
       topUsers: (period: string = "24h") => `admin/api-usage/top-users?period=${period}`,
       topInfluencers: (period: string = "24h") => `admin/api-usage/top-influencers?period=${period}`,
       errors: (period: string = "24h") => `admin/api-usage/errors?period=${period}`,
+      // User analytics
+      overview: `admin/analytics/overview`,
+      userGrowth: (period: string = "30d") => `admin/analytics/user-growth?period=${period}`,
+      userEngagement: (period: string = "24h") => `admin/analytics/user-engagement?period=${period}`,
+      userSpending: (period: string = "30d") => `admin/analytics/user-spending?period=${period}`,
+      userRetention: (period: string = "30d") => `admin/analytics/user-retention?period=${period}`,
+      userDetail: (userId: number) => `admin/analytics/user-detail/${userId}`,
     },
     knowledge: {
       get: (influencerId: string) => `admin/influencers/${encodeURIComponent(influencerId)}/knowledge`,
