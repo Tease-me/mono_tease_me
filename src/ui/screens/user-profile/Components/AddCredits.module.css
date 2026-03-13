@@ -95,6 +95,10 @@
 
 /* pay with section  **/
 
+.payWithSection {
+  display: none;
+}
+
 .payWithRow02 {
   display: grid;
   grid-template-columns: 1fr;
