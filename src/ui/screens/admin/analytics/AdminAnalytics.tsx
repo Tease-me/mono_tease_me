@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import {
     Bar,
     BarChart,
@@ -21,6 +21,10 @@ import {
 import AdminLayout from "../AdminLayout";
 import AdminTwoColumn from "../AdminTwoColumn";
 import styles from "./AdminAnalytics.module.css";
+
+const UserAnalytics = lazy(() => import("./UserAnalytics"));
+
+type AnalyticsTab = "api-usage" | "users";
 
 const admin = AdminServices(apiClient);
 
@@ -119,6 +123,7 @@ const ChartTooltip: React.FC<any> = ({ active, payload, label }) => {
 
 
 const AdminAnalytics: React.FC = () => {
+    const [activeTab, setActiveTab] = useState<AnalyticsTab>("api-usage");
     const [period, setPeriod] = useState<Period>("24h");
     const [groupBy, setGroupBy] = useState<GroupBy>("category");
     const [costCategory, setCostCategory] = useState<string>("__all__");
@@ -215,6 +220,27 @@ const AdminAnalytics: React.FC = () => {
             title="Analytics"
             subtitle="API usage, costs, and error tracking across the platform."
         >
+            {/* ── Tab Bar ──────────────────────────────────── */}
+            <div className={styles["tab-bar"]}>
+                <button
+                    className={`${styles["tab-btn"]} ${activeTab === "api-usage" ? styles["tab-btn--active"] : ""}`}
+                    onClick={() => setActiveTab("api-usage")}
+                >
+                    API Usage
+                </button>
+                <button
+                    className={`${styles["tab-btn"]} ${activeTab === "users" ? styles["tab-btn--active"] : ""}`}
+                    onClick={() => setActiveTab("users")}
+                >
+                    Users
+                </button>
+            </div>
+
+            {activeTab === "users" ? (
+                <Suspense fallback={<div style={{ padding: "40px 0", textAlign: "center", opacity: 0.6 }}>Loading…</div>}>
+                    <UserAnalytics />
+                </Suspense>
+            ) : (
             <AdminTwoColumn sidebar={<aside className={styles["sidebar"]}>
                 <div className={styles["sidebar-section"]}>
                     <div className={styles["sidebar-title"]}>Current Window</div>
@@ -612,6 +638,7 @@ const AdminAnalytics: React.FC = () => {
                     </div>
                 </section>
             </AdminTwoColumn>
+            )}
         </AdminLayout>
     );
 };
