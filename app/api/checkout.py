@@ -1,13 +1,3 @@
-"""
-External payment confirmation webhook.
-
-Receives `payment.completed` events from the checkout service (Stripe/PayPal),
-validates the HMAC signature, guards against duplicate processing, and credits
-the user's influencer wallet via the existing `topup_wallet` service.
-
-All payment details (user, influencer, amount) come from our local PayPalTopUp
-record created at checkout time — the webhook only confirms that payment went through.
-"""
 
 import hmac
 import logging

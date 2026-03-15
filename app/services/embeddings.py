@@ -147,12 +147,13 @@ async def get_embeddings_batch(texts: list[str]) -> list[list[float]]:
         return embeddings
 
 
-async def search_similar_memories(db, chat_id: str, embedding: list[float], top_k: int = 10, max_distance: float | None = None) -> list[tuple[str, str]]:
+async def search_similar_memories(db, chat_id: str, embedding: list[float], top_k: int = 10, max_distance: float | None = None, created_after: str | None = None, user_timezone: str | None = None, days_back: int = 30) -> list[tuple[str, str]]:
     """
     Search for similar memories using vector similarity with cosine distance.
-    
+
     Orders by similarity first (most relevant), then by recency (created_at DESC) as a tiebreaker.
-    
+    Returns memories from the last N days (default 30) in user's timezone.
+
     Args:
         db: Database session
         chat_id: Chat ID to search within
@@ -161,17 +162,43 @@ async def search_similar_memories(db, chat_id: str, embedding: list[float], top_
         max_distance: Optional maximum cosine distance threshold (default: None = no filtering)
                      Lower = more similar (0=identical, 1=orthogonal)
                      Recommended: 0.3-0.7 for filtering
-        
+        created_after: Optional ISO timestamp to filter memories (default: N days ago in user's TZ)
+                      Prevents retrieving very stale memories
+        user_timezone: User's timezone (e.g., "America/New_York"). If provided, calculates
+                      date boundary in user's timezone. If None, defaults to UTC.
+        days_back: How many days back to search (default 30). Set to 1 for today only.
+
     Returns:
-        List of (content, sender) tuples ordered by similarity, then recency
+        List of (content, sender, created_at) tuples ordered by similarity, then recency
     """
+    # Default to N days ago in user's timezone if not specified
+    if created_after is None:
+        from datetime import datetime, timezone as dt_tz, timedelta
+        from zoneinfo import ZoneInfo
+
+        if user_timezone:
+            try:
+                tz = ZoneInfo(user_timezone)
+                cutoff = datetime.now(tz) - timedelta(days=days_back)
+                cutoff = cutoff.replace(hour=0, minute=0, second=0, microsecond=0)
+            except Exception:
+                # Fallback to UTC if timezone is invalid
+                cutoff = datetime.now(dt_tz.utc) - timedelta(days=days_back)
+                cutoff = cutoff.replace(hour=0, minute=0, second=0, microsecond=0)
+        else:
+            cutoff = datetime.now(dt_tz.utc) - timedelta(days=days_back)
+            cutoff = cutoff.replace(hour=0, minute=0, second=0, microsecond=0)
+
+        created_after = cutoff.isoformat()
+
     if max_distance is not None:
         sql = text("""
-            SELECT content, sender, embedding <=> :embedding AS distance
+            SELECT content, sender, created_at, embedding <=> :embedding AS distance
             FROM memories
             WHERE chat_id = :chat_id
               AND embedding IS NOT NULL
               AND embedding <=> :embedding <= :max_distance
+              AND created_at >= :created_after
             ORDER BY distance ASC, created_at DESC
             LIMIT :top_k
         """)
@@ -179,33 +206,37 @@ async def search_similar_memories(db, chat_id: str, embedding: list[float], top_
             "chat_id": chat_id,
             "embedding": "[" + ",".join(str(x) for x in embedding) + "]",
             "top_k": top_k,
-            "max_distance": max_distance
+            "max_distance": max_distance,
+            "created_after": created_after
         }
     else:
         sql = text("""
-            SELECT content, sender
+            SELECT content, sender, created_at
             FROM memories
             WHERE chat_id = :chat_id
               AND embedding IS NOT NULL
+              AND created_at >= :created_after
             ORDER BY embedding <=> :embedding, created_at DESC
             LIMIT :top_k
         """)
         params = {
             "chat_id": chat_id,
             "embedding": "[" + ",".join(str(x) for x in embedding) + "]",
-            "top_k": top_k
+            "top_k": top_k,
+            "created_after": created_after
         }
-    
+
     result = await db.execute(sql, params)
-    return [(row[0], row[1] or "user") for row in result.fetchall()]
+    return [(row[0], row[1] or "user", row[2]) for row in result.fetchall()]
 
 
-async def search_similar_messages(db, chat_id: str, embedding: list[float], top_k: int = 10, max_distance: float | None = None) -> list[str]:
+async def search_similar_messages(db, chat_id: str, embedding: list[float], top_k: int = 10, max_distance: float | None = None, created_after: str | None = None, user_timezone: str | None = None, days_back: int = 30) -> list[tuple[str, str | None]]:
     """
     Search for similar messages using vector similarity with cosine distance.
-    
+
     Orders by similarity first (most relevant), then by recency (created_at DESC) as a tiebreaker.
-    
+    Returns messages from the last N days (default 30) in user's timezone.
+
     Args:
         db: Database session
         chat_id: Chat ID to search within
@@ -214,17 +245,43 @@ async def search_similar_messages(db, chat_id: str, embedding: list[float], top_
         max_distance: Optional maximum cosine distance threshold (default: None = no filtering)
                      Lower = more similar (0=identical, 1=orthogonal)
                      Recommended: 0.3-0.7 for filtering
-        
+        created_after: Optional ISO timestamp to filter messages (default: N days ago in user's TZ)
+                      Prevents retrieving very stale messages
+        user_timezone: User's timezone (e.g., "America/New_York"). If provided, calculates
+                      date boundary in user's timezone. If None, defaults to UTC.
+        days_back: How many days back to search (default 30). Set to 1 for today only.
+
     Returns:
-        List of message content strings ordered by similarity, then recency
+        List of (message_content, created_at) tuples ordered by similarity, then recency
     """
+    # Default to N days ago in user's timezone if not specified
+    if created_after is None:
+        from datetime import datetime, timezone as dt_tz, timedelta
+        from zoneinfo import ZoneInfo
+
+        if user_timezone:
+            try:
+                tz = ZoneInfo(user_timezone)
+                cutoff = datetime.now(tz) - timedelta(days=days_back)
+                cutoff = cutoff.replace(hour=0, minute=0, second=0, microsecond=0)
+            except Exception:
+                # Fallback to UTC if timezone is invalid
+                cutoff = datetime.now(dt_tz.utc) - timedelta(days=days_back)
+                cutoff = cutoff.replace(hour=0, minute=0, second=0, microsecond=0)
+        else:
+            cutoff = datetime.now(dt_tz.utc) - timedelta(days=days_back)
+            cutoff = cutoff.replace(hour=0, minute=0, second=0, microsecond=0)
+
+        created_after = cutoff.isoformat()
+
     if max_distance is not None:
         sql = text("""
-            SELECT content, embedding <=> :embedding AS distance
+            SELECT content, created_at, embedding <=> :embedding AS distance
             FROM messages
             WHERE chat_id = :chat_id
               AND embedding IS NOT NULL
               AND embedding <=> :embedding <= :max_distance
+              AND created_at >= :created_after
             ORDER BY distance ASC, created_at DESC
             LIMIT :top_k
         """)
@@ -232,42 +289,49 @@ async def search_similar_messages(db, chat_id: str, embedding: list[float], top_
             "chat_id": chat_id,
             "embedding": "[" + ",".join(str(x) for x in embedding) + "]",
             "top_k": top_k,
-            "max_distance": max_distance
+            "max_distance": max_distance,
+            "created_after": created_after
         }
     else:
         sql = text("""
-            SELECT content
+            SELECT content, created_at
             FROM messages
             WHERE chat_id = :chat_id
               AND embedding IS NOT NULL
+              AND created_at >= :created_after
             ORDER BY embedding <=> :embedding, created_at DESC
             LIMIT :top_k
         """)
         params = {
             "chat_id": chat_id,
             "embedding": "[" + ",".join(str(x) for x in embedding) + "]",
-            "top_k": top_k
+            "top_k": top_k,
+            "created_after": created_after
         }
-    
+
     result = await db.execute(sql, params)
-    return [row[0] for row in result.fetchall()]
+    return [(row[0], row[1]) for row in result.fetchall()]
 
 
 async def search_similar_memories_and_messages(
-    db, 
-    chat_id: str, 
-    embedding: list[float], 
-    top_k: int = 10, 
+    db,
+    chat_id: str,
+    embedding: list[float],
+    top_k: int = 10,
     max_distance: float | None = None,
     memories_weight: float = 1.0,
     messages_weight: float = 1.0,
-) -> list[str]:
+    created_after: str | None = None,
+    user_timezone: str | None = None,
+    days_back: int = 30,
+) -> list[tuple[str, str | None]]:
     """
     Search for similar content across BOTH memories and messages using UNION.
-    
+
     This combines results from both tables, allowing you to get a richer context
     by including both curated memories (facts) and actual conversation history.
-    
+    Returns content from the last N days (default 30) in user's timezone.
+
     Args:
         db: Database session
         chat_id: Chat ID to search within
@@ -280,24 +344,49 @@ async def search_similar_memories_and_messages(
                         Lower = prioritize memories (e.g., 0.8 gives memories 20% boost)
         messages_weight: Weight multiplier for message distances (default: 1.0)
                         Lower = prioritize messages (e.g., 0.9 gives messages 10% boost)
-        
+        created_after: Optional ISO timestamp to filter memories/messages (default: N days ago in user's TZ)
+                      Prevents retrieving very stale content
+        user_timezone: User's timezone (e.g., "America/New_York"). If provided, calculates
+                      date boundary in user's timezone. If None, defaults to UTC.
+        days_back: How many days back to search (default 30). Set to 1 for today only.
+
     Returns:
-        List of content strings (both memories and messages) ordered by weighted similarity
-        
+        List of (content, created_at) tuples ordered by weighted similarity
+
     Example:
         # Prioritize memories slightly over messages
         results = await search_similar_memories_and_messages(
-            db, chat_id, embedding, top_k=10, 
+            db, chat_id, embedding, top_k=10,
             memories_weight=0.8, messages_weight=1.0
         )
     """
+    # Default to N days ago in user's timezone if not specified
+    if created_after is None:
+        from datetime import datetime, timezone as dt_tz, timedelta
+        from zoneinfo import ZoneInfo
+
+        if user_timezone:
+            try:
+                tz = ZoneInfo(user_timezone)
+                cutoff = datetime.now(tz) - timedelta(days=days_back)
+                cutoff = cutoff.replace(hour=0, minute=0, second=0, microsecond=0)
+            except Exception:
+                # Fallback to UTC if timezone is invalid
+                cutoff = datetime.now(dt_tz.utc) - timedelta(days=days_back)
+                cutoff = cutoff.replace(hour=0, minute=0, second=0, microsecond=0)
+        else:
+            cutoff = datetime.now(dt_tz.utc) - timedelta(days=days_back)
+            cutoff = cutoff.replace(hour=0, minute=0, second=0, microsecond=0)
+
+        created_after = cutoff.isoformat()
+
     embedding_str = "[" + ",".join(str(x) for x in embedding) + "]"
-    
+
     if max_distance is not None:
         sql = text("""
-            SELECT content, weighted_distance, source
+            SELECT content, created_at, weighted_distance, source
             FROM (
-                SELECT 
+                SELECT
                     content,
                     (embedding <=> :embedding) * :memories_weight AS weighted_distance,
                     'memory' AS source,
@@ -306,10 +395,11 @@ async def search_similar_memories_and_messages(
                 WHERE chat_id = :chat_id
                   AND embedding IS NOT NULL
                   AND (embedding <=> :embedding) * :memories_weight <= :max_distance
-                
+                  AND created_at >= :created_after
+
                 UNION ALL
-                
-                SELECT 
+
+                SELECT
                     content,
                     (embedding <=> :embedding) * :messages_weight AS weighted_distance,
                     'message' AS source,
@@ -318,6 +408,7 @@ async def search_similar_memories_and_messages(
                 WHERE chat_id = :chat_id
                   AND embedding IS NOT NULL
                   AND (embedding <=> :embedding) * :messages_weight <= :max_distance
+                  AND created_at >= :created_after
             ) combined
             ORDER BY weighted_distance ASC, created_at DESC
             LIMIT :top_k
@@ -329,12 +420,13 @@ async def search_similar_memories_and_messages(
             "max_distance": max_distance,
             "memories_weight": memories_weight,
             "messages_weight": messages_weight,
+            "created_after": created_after,
         }
     else:
         sql = text("""
-            SELECT content, weighted_distance, source
+            SELECT content, created_at, weighted_distance, source
             FROM (
-                SELECT 
+                SELECT
                     content,
                     (embedding <=> :embedding) * :memories_weight AS weighted_distance,
                     'memory' AS source,
@@ -342,10 +434,11 @@ async def search_similar_memories_and_messages(
                 FROM memories
                 WHERE chat_id = :chat_id
                   AND embedding IS NOT NULL
-                
+                  AND created_at >= :created_after
+
                 UNION ALL
-                
-                SELECT 
+
+                SELECT
                     content,
                     (embedding <=> :embedding) * :messages_weight AS weighted_distance,
                     'message' AS source,
@@ -353,6 +446,7 @@ async def search_similar_memories_and_messages(
                 FROM messages
                 WHERE chat_id = :chat_id
                   AND embedding IS NOT NULL
+                  AND created_at >= :created_after
             ) combined
             ORDER BY weighted_distance ASC, created_at DESC
             LIMIT :top_k
@@ -363,10 +457,11 @@ async def search_similar_memories_and_messages(
             "top_k": top_k,
             "memories_weight": memories_weight,
             "messages_weight": messages_weight,
+            "created_after": created_after,
         }
-    
+
     result = await db.execute(sql, params)
-    return [row[0] for row in result.fetchall()]
+    return [(row[0], row[1]) for row in result.fetchall()]
 
 
 async def upsert_memory(

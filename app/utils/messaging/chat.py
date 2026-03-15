@@ -330,6 +330,7 @@ async def synthesize_audio_with_elevenlabs_V3(text: str, db, influencer_id: str 
             "18_voice", "elevenlabs", "eleven_v3", "tts",
             latency_ms=tts_ms,
             duration_secs=duration_estimate,
+            char_count=len(text),
             influencer_id=influencer_id,
         )
         return resp.content, "audio/mpeg"

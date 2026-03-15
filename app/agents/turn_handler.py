@@ -262,6 +262,7 @@ async def handle_turn(
                 chat_id,
                 message,
                 embedding=message_embedding,
+                user_timezone=user_timezone,
             )
         except Exception as exc:
             log.warning("[%s] memory retrieval failed: %s", cid, exc)
@@ -289,14 +290,26 @@ async def handle_turn(
 
     # Build mem_block early so we can pass it to relationship signal classification
     memories = memories_result[0] if isinstance(memories_result, tuple) else memories_result
+    
+    # Split memories by sender type
     if isinstance(memories, dict):
-        user_mems = memories.get("user_memories", [])
-        ai_mems = memories.get("ai_memories", [])
+        user_mems = memories.get("user_memories", "")
+        ai_mems = memories.get("ai_memories", "")
     else:
         user_mems = memories or []
         ai_mems = []
-    mem_block = "\n".join(s for s in (_norm(m) for m in user_mems) if s)
-    ai_mem_block = "\n".join(s for s in (_norm(m) for m in ai_mems) if s)
+
+    # Memories are now pre-formatted strings with day labels (Today > Yesterday > Older)
+    # If string, use directly; if list (backward compat), join them
+    if isinstance(user_mems, str):
+        mem_block = user_mems
+    else:
+        mem_block = "\n".join(s for s in (_norm(m) for m in user_mems) if s)
+
+    if isinstance(ai_mems, str):
+        ai_mem_block = ai_mems
+    else:
+        ai_mem_block = "\n".join(s for s in (_norm(m) for m in ai_mems) if s)
 
     # Pass memories to relationship signal classifier for better context
     rel_pack = await _relationship_with_own_session(
@@ -318,14 +331,13 @@ async def handle_turn(
     knowledge_block = "\n".join(s for s in (_norm(m) for m in knowledge_result or []) if s)
 
     log.debug(
-        "[%s] rag_context influencer=%s kb_hits=%d mem_hits=%d ai_mem_hits=%d kb_chars=%d mem_chars=%d",
+        "[%s] rag_context influencer=%s kb_hits=%d mem_chars=%d ai_mem_chars=%d kb_chars=%d",
         cid,
         influencer_id,
         len(knowledge_result or []),
-        len(user_mems),
-        len(ai_mems),
+        len(mem_block),
+        len(ai_mem_block),
         len(knowledge_block),
-        len(mem_block) + len(ai_mem_block),
     )
 
     bio_ctx = extract_influencer_bio_context(influencer)

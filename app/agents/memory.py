@@ -434,6 +434,100 @@ async def find_similar_messages(
     return chat_memories
 
 
+def _get_relative_day_label(created_at, user_timezone: str | None = None) -> str:
+    """
+    Get a human-readable day label (Today, Yesterday, N days ago) based on created_at.
+    Uses user's timezone if provided.
+    """
+    from datetime import datetime, timezone as dt_tz
+    from zoneinfo import ZoneInfo
+
+    if not created_at:
+        return "Unknown time"
+
+    # Ensure created_at is timezone-aware
+    if created_at.tzinfo is None:
+        created_at = created_at.replace(tzinfo=dt_tz.utc)
+
+    if user_timezone:
+        try:
+            tz = ZoneInfo(user_timezone)
+            now = datetime.now(tz)
+            then = created_at.astimezone(tz)
+        except Exception:
+            now = datetime.now(dt_tz.utc)
+            then = created_at.astimezone(dt_tz.utc)
+    else:
+        now = datetime.now(dt_tz.utc)
+        then = created_at.astimezone(dt_tz.utc)
+
+    today = now.date()
+    that_day = then.date()
+    days_ago = (today - that_day).days
+
+    if days_ago == 0:
+        return "Today"
+    elif days_ago == 1:
+        return "Yesterday"
+    elif days_ago < 7:
+        return f"{days_ago} days ago"
+    else:
+        return f"{days_ago} days ago"
+
+
+def _format_memories_by_day(memories_with_dates: list[tuple[str, str | None]], user_timezone: str | None = None) -> str:
+    """
+    Format memories grouped by day with relative day labels.
+
+    Args:
+        memories_with_dates: List of (content, created_at_timestamp) tuples
+        user_timezone: User's timezone for day boundary calculation
+
+    Returns:
+        Formatted text block organized by day
+    """
+    from datetime import datetime, timezone as dt_tz
+    from collections import defaultdict
+
+    # Group by day
+    by_day = defaultdict(list)
+    for content, created_at_str in memories_with_dates:
+        if created_at_str:
+            # Parse ISO format timestamp
+            if isinstance(created_at_str, str):
+                try:
+                    created_at = datetime.fromisoformat(created_at_str.replace('Z', '+00:00'))
+                except Exception:
+                    created_at = datetime.now(dt_tz.utc)
+            else:
+                created_at = created_at_str
+        else:
+            created_at = datetime.now(dt_tz.utc)
+
+        day_label = _get_relative_day_label(created_at, user_timezone)
+        by_day[day_label].append(content)
+
+    # Format output
+    result = []
+    day_order = ["Today", "Yesterday"]
+
+    # Add ordered days first
+    for day_label in day_order:
+        if day_label in by_day:
+            result.append(f"\n## {day_label}:")
+            for content in by_day[day_label]:
+                result.append(f"- {content}")
+            del by_day[day_label]
+
+    # Add remaining days (older)
+    for day_label in sorted(by_day.keys()):
+        result.append(f"\n## {day_label}:")
+        for content in by_day[day_label]:
+            result.append(f"- {content}")
+
+    return "\n".join(result) if result else ""
+
+
 async def find_similar_memories(
     db,
     chat_id: str,
@@ -442,10 +536,13 @@ async def find_similar_memories(
     top_k: int = 10,
     embedding: list[float] | None = None,
     max_distance: float | None = None,
+    user_timezone: str | None = None,
 ) -> dict[str, list[str]]:
     """
     Find similar memories using semantic search with improved accuracy.
-    
+
+    Searches last 30 days and returns results organized by day (Today > Yesterday > Older).
+
     Args:
         db: Database session
         chat_id: ID of the chat
@@ -455,23 +552,29 @@ async def find_similar_memories(
         embedding: Optional precomputed embedding for the message (reuse to avoid duplicate calls)
         max_distance: Optional maximum cosine distance for relevance (default: None = no filtering)
                      Lower = stricter matching. Recommended: 0.3-0.7 if filtering
-    
+        user_timezone: User's timezone (e.g., "America/New_York"). Used for day boundary calculation.
+                      If None, defaults to UTC.
+
     Returns:
-        Dict with 'user_memories' and 'ai_memories' lists
+        Dict with 'user_memories' and 'ai_memories' lists (organized by day)
     """
     emb = embedding or await get_embedding(message)
-    
-    results = await search_similar_memories(db, chat_id, emb, top_k=top_k, max_distance=max_distance)
 
-    user_memories = []
-    ai_memories = []
-    for content, sender in results:
+    results = await search_similar_memories(db, chat_id, emb, top_k=top_k, max_distance=max_distance, user_timezone=user_timezone, days_back=30)
+
+    user_mems_with_dates = []
+    ai_mems_with_dates = []
+    for content, sender, created_at in results:
         if sender == "system":
-            ai_memories.append(content)
+            ai_mems_with_dates.append((content, created_at))
         else:
-            user_memories.append(content)
+            user_mems_with_dates.append((content, created_at))
 
-    return {"user_memories": user_memories, "ai_memories": ai_memories}
+    # Format by day
+    user_memories_str = _format_memories_by_day(user_mems_with_dates, user_timezone)
+    ai_memories_str = _format_memories_by_day(ai_mems_with_dates, user_timezone)
+
+    return {"user_memories": user_memories_str, "ai_memories": ai_memories_str}
 
 
 async def find_similar_memories_and_messages(
