@@ -203,6 +203,89 @@ export type AdminLogsParams = {
   direction?: "backward" | "forward";
 };
 
+/* ── User Analytics Types ──────────────────────────────────── */
+
+export type AnalyticsOverview = {
+  total_users: number;
+  dau: number;
+  revenue_today_usd: number;
+  revenue_month_usd: number;
+  active_subscriptions: number;
+  messages_today: number;
+  calls_today: number;
+  top_influencers: { influencer_id: string; followers: number }[];
+};
+
+export type UserGrowthDay = { date: string; count: number };
+export type UserGrowthResponse = {
+  period: string;
+  total_users: number;
+  verified_users: number;
+  unverified_users: number;
+  identity_verified: number;
+  age_verified: number;
+  daily_signups: UserGrowthDay[];
+};
+
+export type EngagementTopUser = {
+  user_id: number;
+  username: string | null;
+  messages: number;
+  calls: number;
+};
+export type UserEngagementResponse = {
+  period: string;
+  active_users: number;
+  total_messages: number;
+  total_calls: number;
+  total_call_duration_secs: number;
+  channel_breakdown: Record<string, number>;
+  relationship_stages: Record<string, number>;
+  top_active_users: EngagementTopUser[];
+};
+
+export type SpendingTopUser = {
+  user_id: number;
+  username: string | null;
+  total_spent: number;
+};
+export type UserSpendingResponse = {
+  period: string;
+  total_revenue_usd: number;
+  total_topups_usd: number;
+  total_subscriptions_usd: number;
+  arpu_usd: number;
+  paying_users: number;
+  subscription_status_breakdown: Record<string, number>;
+  wallet_total_balance: number;
+  top_spenders: SpendingTopUser[];
+};
+
+export type RetentionDay = { date: string; active: number };
+export type UserRetentionResponse = {
+  period: string;
+  dau: number;
+  wau: number;
+  mau: number;
+  stickiness_ratio: number;
+  new_today: number;
+  new_this_week: number;
+  daily_active_trend: RetentionDay[];
+};
+
+export type UserDetailResponse = {
+  profile: Record<string, any>;
+  wallets: any[];
+  subscriptions: any[];
+  messages_count: number;
+  calls_count: number;
+  total_call_duration_secs: number;
+  relationships: any[];
+  violations: any[];
+  total_topups_usd: number;
+  total_api_cost_usd: number;
+};
+
 export const AdminServices = (apiClient: AxiosInstance) => ({
   getUsers: async (q?: string): Promise<AdminUserRow[]> => {
     const response = await apiClient.get(Endpoints.admin.users(q));
@@ -332,4 +415,112 @@ export const AdminServices = (apiClient: AxiosInstance) => ({
     a.click();
     URL.revokeObjectURL(url);
   },
+
+  /* ── User Analytics ──────────────────────────────────── */
+
+  getAnalyticsOverview: async (): Promise<AnalyticsOverview> => {
+    const response = await apiClient.get(Endpoints.admin.analytics.overview);
+    const d = response.data;
+    // Normalize nested backend shape to frontend flat type
+    return {
+      total_users: d.total_users ?? d.users?.total ?? 0,
+      dau: d.dau ?? d.users?.dau ?? 0,
+      revenue_today_usd: d.revenue_today_usd ?? d.revenue?.today_usd ?? 0,
+      revenue_month_usd: d.revenue_month_usd ?? d.revenue?.month_usd ?? 0,
+      active_subscriptions: d.active_subscriptions ?? d.subscriptions?.active ?? 0,
+      messages_today: d.messages_today ?? d.activity?.messages_today ?? 0,
+      calls_today: d.calls_today ?? d.activity?.calls_today ?? 0,
+      top_influencers: d.top_influencers ?? [],
+    };
+  },
+
+  getUserGrowth: async (period: string = "30d"): Promise<UserGrowthResponse> => {
+    const response = await apiClient.get(Endpoints.admin.analytics.userGrowth(period));
+    return response.data;
+  },
+
+  getUserEngagement: async (period: string = "24h"): Promise<UserEngagementResponse> => {
+    const response = await apiClient.get(Endpoints.admin.analytics.userEngagement(period));
+    const d = response.data;
+    // Normalize backend shape to frontend type
+    const channelBreakdown: Record<string, number> = {};
+    const channels = d.channel_breakdown ?? d.channels ?? [];
+    if (Array.isArray(channels)) {
+      channels.forEach((c: any) => { channelBreakdown[c.channel || c.name || "unknown"] = c.count; });
+    } else if (channels && typeof channels === "object") {
+      Object.assign(channelBreakdown, channels);
+    }
+    const relStages: Record<string, number> = {};
+    const stages = d.relationship_stages ?? [];
+    if (Array.isArray(stages)) {
+      stages.forEach((s: any) => { relStages[s.stage || s.state || "unknown"] = s.count; });
+    } else if (stages && typeof stages === "object") {
+      Object.assign(relStages, stages);
+    }
+    return {
+      period: d.period,
+      active_users: typeof d.active_users === "number" ? d.active_users : (d.active_users?.text ?? 0) + (d.active_users?.voice ?? 0),
+      total_messages: d.total_messages ?? d.messages?.total ?? 0,
+      total_calls: d.total_calls ?? d.calls?.total ?? 0,
+      total_call_duration_secs: d.total_call_duration_secs ?? d.calls?.total_duration_secs ?? 0,
+      channel_breakdown: channelBreakdown,
+      relationship_stages: relStages,
+      top_active_users: d.top_active_users ?? [],
+    };
+  },
+
+  getUserSpending: async (period: string = "30d"): Promise<UserSpendingResponse> => {
+    const response = await apiClient.get(Endpoints.admin.analytics.userSpending(period));
+    const d = response.data;
+    // Normalize backend shape to frontend type
+    const subBreakdown: Record<string, number> = {};
+    const subs = d.subscription_status_breakdown ?? d.subscriptions ?? [];
+    if (Array.isArray(subs)) {
+      subs.forEach((s: any) => { subBreakdown[s.status || "unknown"] = s.count; });
+    } else if (subs && typeof subs === "object") {
+      Object.assign(subBreakdown, subs);
+    }
+    const topSpenders = (d.top_spenders ?? []).map((s: any) => ({
+      user_id: s.user_id,
+      username: s.username ?? s.email ?? null,
+      total_spent: s.total_spent ?? s.total_usd ?? (s.total_cents ? s.total_cents / 100 : 0),
+    }));
+    return {
+      period: d.period,
+      total_revenue_usd: d.total_revenue_usd ?? d.revenue?.total_usd ?? 0,
+      total_topups_usd: d.total_topups_usd ?? (d.revenue?.topup_cents != null ? d.revenue.topup_cents / 100 : 0),
+      total_subscriptions_usd: d.total_subscriptions_usd ?? (d.revenue?.subscription_cents != null ? d.revenue.subscription_cents / 100 : 0),
+      arpu_usd: d.arpu_usd ?? (d.arpu_cents != null ? d.arpu_cents / 100 : 0),
+      paying_users: d.paying_users ?? 0,
+      subscription_status_breakdown: subBreakdown,
+      wallet_total_balance: d.wallet_total_balance ?? (d.wallets?.total_balance_cents != null ? d.wallets.total_balance_cents / 100 : 0),
+      top_spenders: topSpenders,
+    };
+  },
+
+  getUserRetention: async (period: string = "30d"): Promise<UserRetentionResponse> => {
+    const response = await apiClient.get(Endpoints.admin.analytics.userRetention(period));
+    const d = response.data;
+    // Normalize backend shape (daily_active / stickiness_dau_mau) to frontend type
+    const trend = d.daily_active_trend ?? d.daily_active ?? [];
+    return {
+      period: d.period,
+      dau: d.dau ?? 0,
+      wau: d.wau ?? 0,
+      mau: d.mau ?? 0,
+      stickiness_ratio: d.stickiness_ratio ?? d.stickiness_dau_mau ?? 0,
+      new_today: d.new_today ?? 0,
+      new_this_week: d.new_this_week ?? 0,
+      daily_active_trend: trend.map((r: any) => ({
+        date: r.date,
+        active: r.active ?? r.active_users ?? 0,
+      })),
+    };
+  },
+
+  getUserDetail: async (userId: number): Promise<UserDetailResponse> => {
+    const response = await apiClient.get(Endpoints.admin.analytics.userDetail(userId));
+    return response.data;
+  },
 });
+

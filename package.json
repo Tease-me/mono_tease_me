@@ -47,6 +47,7 @@
     "@types/howler": "^2.2.12",
     "@types/node": "^24.0.13",
     "@types/react": "^19.1.8",
+    "@types/react-datepicker": "^6.2.0",
     "@types/react-dom": "^19.1.2",
     "@types/react-lottie": "^1.2.10",
     "@typescript-eslint/eslint-plugin": "^8.39.0",

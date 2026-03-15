@@ -137,6 +137,9 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
         }
       }
     },
+    onCreditsExpired: () => {
+      dispatch(chatScreenActions.setShowTopupModal(true));
+    }
   });
 
   const prevStatusRef = useRef(status);
