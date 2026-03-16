@@ -23,6 +23,7 @@ export default function AdultMode() {
     },
     {
       name: "Evening Seduction",
+      title: "Police",
       description: "Unwind after a long day with a seductive tease. Great for those who want to relax and indulge in some fantasy.",
       imageSrc: "https://static.vecteezy.com/system/resources/previews/046/613/575/non_2x/cute-model-girl-with-clean-healthy-skin-on-transparent-background-free-png.png",
       videoSrc: "/assets/video/scene3.mp4"
@@ -51,7 +52,7 @@ export default function AdultMode() {
                 <IconButton
                   onClick={handleSelectScenario}
                   text={scene.default ? "Girlfriend Mode" : "Select Scenario"}
-                  color="pink-glass"
+                  color={scene.default ? "pink-glass" : "purple"}
                   type="pill"
                   className={styles.sceneButton}
                   leftIcon={scene.default ? <SvgPack.Heart /> : undefined}

@@ -26,8 +26,12 @@ export default function AdultSceneSelector({
   return (
     <div className={styles.card}>
       <div className={styles.upperBody}>
-        <div className={styles.slickTitle}>{title ?? name}</div>
         <div className={clsx(styles.imageArea, girlfriend && styles.girlfriend)}>
+          {!girlfriend && (
+            <div className={styles.sceneTitle} aria-hidden="true">
+              {title}
+            </div>
+          )}
           {imageFailed ? (
             <div className={styles.imageFallback} aria-hidden="true" />
           ) : (
