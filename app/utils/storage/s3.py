@@ -224,7 +224,6 @@ async def save_influencer_video_to_s3(file_obj, filename: str | None, content_ty
     file_obj.seek(0)
     s3.upload_fileobj(file_obj, settings.BUCKET_NAME, key, ExtraArgs={"ContentType": content_type})
     return key
-
 async def save_influencer_profile_to_s3(
     influencer_id: str,
     *,

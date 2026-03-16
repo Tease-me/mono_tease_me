@@ -87,3 +87,32 @@ class InfluencerAdultCharacterOut(BaseModel):
     video_url: Optional[str] = None
     meta_json: Optional[Dict[str, Any]] = None
     has_influencer_override: bool
+
+
+class AdminInfluencerAdultCharacterAssetOut(BaseModel):
+    id: int
+    slug: str
+    name: str
+    description: Optional[str] = None
+    is_active: bool
+    display_order: int
+    base_photo_key: Optional[str] = None
+    base_lottie_text: Optional[str] = None
+    override_photo_key: Optional[str] = None
+    override_video_key: Optional[str] = None
+    resolved_photo_key: Optional[str] = None
+    resolved_photo_url: Optional[str] = None
+    resolved_video_key: Optional[str] = None
+    resolved_video_url: Optional[str] = None
+    resolved_lottie_text: Optional[str] = None
+    meta_json: Optional[Dict[str, Any]] = None
+    has_influencer_override: bool
+
+
+class AdminInfluencerCharacterAssetMutationOut(BaseModel):
+    influencer_id: str
+    character_id: int
+    photo_key: Optional[str] = None
+    video_key: Optional[str] = None
+    meta_json: Optional[Dict[str, Any]] = None
+    has_influencer_override: bool

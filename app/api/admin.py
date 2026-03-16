@@ -8,12 +8,21 @@ from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.turn_handler import redis_history
-from app.db.models import CallRecord, Message, Memory, Message18, ContentViolation, ApiUsageLog
+from app.db.models import (
+    AdultCharacter,
+    ApiUsageLog,
+    CallRecord,
+    ContentViolation,
+    InfluencerCharacterMeta,
+    Message,
+    Memory,
+    Message18,
+)
 from app.db.session import get_db
 from app.utils.auth.dependencies import get_current_user
 
 from sqlalchemy import select, func, desc, Integer
-from app.db.models import RelationshipState, Influencer,User
+from app.db.models import RelationshipState, Influencer, User
 from app.domain.errors.knowledge_errors import (
     KnowledgeNotFoundError,
     KnowledgePersistenceError,
@@ -46,7 +55,12 @@ from app.use_cases.admin_logs import (
     get_logs_page,
     stream_logs_sse,
 )
-from app.utils.storage.s3 import save_sample_audio_to_s3, generate_presigned_url, delete_file_from_s3
+from app.utils.storage.s3 import delete_file_from_s3, generate_presigned_url, save_sample_audio_to_s3
+from app.repositories.influencer_character_assets_repository import (
+    delete_influencer_character_asset,
+    upload_influencer_character_photo,
+    upload_influencer_character_video,
+)
 from app.use_cases.admin_user_analytics import (
     get_analytics_overview,
     get_user_growth,
@@ -58,11 +72,93 @@ from app.use_cases.admin_user_analytics import (
 
 from pydantic import BaseModel, Field
 from typing import Literal, Optional
+from app.schemas.influencer import (
+    AdminInfluencerAdultCharacterAssetOut,
+    AdminInfluencerCharacterAssetMutationOut,
+)
 
 from app.constants.relationship_stages import STAGE_POINTS_MIN, STAGE_POINTS_MAX
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 log = logging.getLogger(__name__)
+
+
+async def _get_influencer_character_overlay(
+    db: AsyncSession,
+    influencer_id: str,
+    character_id: int,
+) -> InfluencerCharacterMeta | None:
+    result = await db.execute(
+        select(InfluencerCharacterMeta).where(
+            InfluencerCharacterMeta.influencer_id == influencer_id,
+            InfluencerCharacterMeta.character_id == character_id,
+        )
+    )
+    return result.scalars().first()
+
+
+def _overlay_has_values(overlay: InfluencerCharacterMeta) -> bool:
+    return any(
+        (
+            overlay.photo_key,
+            overlay.video_key,
+            overlay.meta_json,
+        )
+    )
+
+
+async def _build_admin_influencer_adult_characters(
+    db: AsyncSession,
+    influencer_id: str,
+) -> list[AdminInfluencerAdultCharacterAssetOut]:
+    characters_result = await db.execute(
+        select(AdultCharacter)
+        .where(AdultCharacter.is_active.is_(True))
+        .order_by(AdultCharacter.display_order, AdultCharacter.id)
+    )
+    characters = sorted(
+        characters_result.scalars().all(),
+        key=lambda character: (character.display_order, character.id),
+    )
+
+    overlay_result = await db.execute(
+        select(InfluencerCharacterMeta).where(
+            InfluencerCharacterMeta.influencer_id == influencer_id,
+        )
+    )
+    overlays = {
+        overlay.character_id: overlay
+        for overlay in overlay_result.scalars().all()
+        if overlay.is_active
+    }
+
+    items: list[AdminInfluencerAdultCharacterAssetOut] = []
+    for character in characters:
+        overlay = overlays.get(character.id)
+        resolved_photo_key = overlay.photo_key if overlay and overlay.photo_key else character.default_artwork_key
+        resolved_video_key = overlay.video_key if overlay and overlay.video_key else None
+        items.append(
+            AdminInfluencerAdultCharacterAssetOut(
+                id=character.id,
+                slug=character.slug,
+                name=character.name,
+                description=character.description,
+                is_active=character.is_active,
+                display_order=character.display_order,
+                base_photo_key=character.default_artwork_key,
+                base_lottie_text=character.lottie_text,
+                override_photo_key=overlay.photo_key if overlay else None,
+                override_video_key=overlay.video_key if overlay else None,
+                resolved_photo_key=resolved_photo_key,
+                resolved_photo_url=generate_presigned_url(resolved_photo_key) if resolved_photo_key else None,
+                resolved_video_key=resolved_video_key,
+                resolved_video_url=generate_presigned_url(resolved_video_key) if resolved_video_key else None,
+                resolved_lottie_text=character.lottie_text,
+                meta_json=overlay.meta_json if overlay else None,
+                has_influencer_override=overlay is not None,
+            )
+        )
+    return items
 
 @router.delete("/chats/history/{chat_id}")
 async def clear_chat_history_admin(
@@ -549,6 +645,193 @@ async def update_relationship(
     await db.refresh(rel)
 
     return {"ok": True}
+
+
+@router.get(
+    "/influencer/{influencer_id}/adult-characters",
+    response_model=list[AdminInfluencerAdultCharacterAssetOut],
+)
+async def get_admin_influencer_adult_characters(
+    influencer_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Admin only")
+
+    influencer = await db.get(Influencer, influencer_id)
+    if not influencer:
+        raise HTTPException(status_code=404, detail="Influencer not found")
+
+    return await _build_admin_influencer_adult_characters(db, influencer_id)
+
+
+@router.post(
+    "/influencer/{influencer_id}/adult-characters/{character_id}/assets",
+    response_model=AdminInfluencerCharacterAssetMutationOut,
+)
+async def upsert_admin_influencer_character_assets(
+    influencer_id: str,
+    character_id: int,
+    photo: UploadFile | None = File(default=None),
+    video: UploadFile | None = File(default=None),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Admin only")
+
+    influencer = await db.get(Influencer, influencer_id)
+    if not influencer:
+        raise HTTPException(status_code=404, detail="Influencer not found")
+
+    character = await db.get(AdultCharacter, character_id)
+    if not character or not character.is_active:
+        raise HTTPException(status_code=404, detail="Adult character not found")
+
+    if not any((photo, video)):
+        raise HTTPException(status_code=400, detail="At least one asset file is required")
+
+    overlay = await _get_influencer_character_overlay(db, influencer_id, character_id)
+    if not overlay:
+        overlay = InfluencerCharacterMeta(
+            influencer_id=influencer_id,
+            character_id=character_id,
+        )
+        db.add(overlay)
+
+    previous_photo_key = overlay.photo_key
+    previous_video_key = overlay.video_key
+    uploaded_photo_key: str | None = None
+    uploaded_video_key: str | None = None
+
+    try:
+        if photo:
+            photo_bytes = await photo.read()
+            if not photo_bytes:
+                raise HTTPException(status_code=400, detail="Empty photo file")
+            uploaded_photo_key = await upload_influencer_character_photo(
+                io.BytesIO(photo_bytes),
+                photo.filename,
+                photo.content_type or "image/jpeg",
+                influencer_id,
+                character_id,
+            )
+            overlay.photo_key = uploaded_photo_key
+
+        if video:
+            video_bytes = await video.read()
+            if not video_bytes:
+                raise HTTPException(status_code=400, detail="Empty video file")
+            uploaded_video_key = await upload_influencer_character_video(
+                io.BytesIO(video_bytes),
+                video.filename,
+                video.content_type or "video/mp4",
+                influencer_id,
+                character_id,
+            )
+            overlay.video_key = uploaded_video_key
+
+        db.add(overlay)
+        await db.commit()
+        await db.refresh(overlay)
+    except HTTPException:
+        await db.rollback()
+        for key in (uploaded_photo_key, uploaded_video_key):
+            if key:
+                try:
+                    await delete_influencer_character_asset(key)
+                except Exception:
+                    log.warning("Failed to cleanup uploaded character asset %s", key, exc_info=True)
+        raise
+    except Exception:
+        await db.rollback()
+        for key in (uploaded_photo_key, uploaded_video_key):
+            if key:
+                try:
+                    await delete_influencer_character_asset(key)
+                except Exception:
+                    log.warning("Failed to cleanup uploaded character asset %s", key, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to save character assets")
+
+    for old_key, new_key in (
+        (previous_photo_key, overlay.photo_key),
+        (previous_video_key, overlay.video_key),
+    ):
+        if old_key and new_key and old_key != new_key:
+            try:
+                await delete_influencer_character_asset(old_key)
+            except Exception:
+                log.warning("Failed to delete previous character asset %s", old_key, exc_info=True)
+
+    return AdminInfluencerCharacterAssetMutationOut(
+        influencer_id=influencer_id,
+        character_id=character_id,
+        photo_key=overlay.photo_key,
+        video_key=overlay.video_key,
+        meta_json=overlay.meta_json,
+        has_influencer_override=True,
+    )
+
+
+@router.delete(
+    "/influencer/{influencer_id}/adult-characters/{character_id}/assets/{asset_type}",
+    response_model=AdminInfluencerCharacterAssetMutationOut,
+)
+async def delete_admin_influencer_character_asset(
+    influencer_id: str,
+    character_id: int,
+    asset_type: Literal["photo", "video"],
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if current_user.id != 1:
+        raise HTTPException(status_code=403, detail="Admin only")
+
+    influencer = await db.get(Influencer, influencer_id)
+    if not influencer:
+        raise HTTPException(status_code=404, detail="Influencer not found")
+
+    overlay = await _get_influencer_character_overlay(db, influencer_id, character_id)
+    if not overlay:
+        raise HTTPException(status_code=404, detail="Character override not found")
+
+    current_key = {
+        "photo": overlay.photo_key,
+        "video": overlay.video_key,
+    }[asset_type]
+    if not current_key:
+        raise HTTPException(status_code=404, detail=f"{asset_type} override not found")
+
+    if asset_type == "photo":
+        overlay.photo_key = None
+    else:
+        overlay.video_key = None
+
+    overlay_exists_after_delete = _overlay_has_values(overlay)
+    try:
+        if overlay_exists_after_delete:
+            db.add(overlay)
+        else:
+            await db.delete(overlay)
+        await db.commit()
+    except Exception:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to delete character asset")
+
+    try:
+        await delete_influencer_character_asset(current_key)
+    except Exception:
+        log.warning("Failed to delete character asset file %s", current_key, exc_info=True)
+
+    return AdminInfluencerCharacterAssetMutationOut(
+        influencer_id=influencer_id,
+        character_id=character_id,
+        photo_key=overlay.photo_key if overlay_exists_after_delete else None,
+        video_key=overlay.video_key if overlay_exists_after_delete else None,
+        meta_json=overlay.meta_json if overlay_exists_after_delete else None,
+        has_influencer_override=overlay_exists_after_delete,
+    )
 
 
 @router.post("/influencer/{influencer_id}/samples")
@@ -1109,4 +1392,3 @@ async def analytics_user_detail(
     except Exception:
         log.error("analytics_user_detail_failed user_id=%s", user_id, exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to fetch user detail")
-
