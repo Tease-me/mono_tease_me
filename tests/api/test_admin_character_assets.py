@@ -104,6 +104,7 @@ async def test_list_admin_adult_characters_orders_rows():
         slug="later",
         name="Later",
         description=None,
+        short_description=None,
         prompt_template="later-template",
         default_artwork_key=None,
         lottie_text=None,
@@ -117,6 +118,7 @@ async def test_list_admin_adult_characters_orders_rows():
         slug="earlier",
         name="Earlier",
         description="desc",
+        short_description="short",
         prompt_template="early-template",
         default_artwork_key="art.png",
         lottie_text="lot.json",
@@ -141,6 +143,7 @@ async def test_create_admin_adult_character_creates_row():
         name="Nurse",
         prompt_template="template",
         description="desc",
+        short_description="short desc",
         default_artwork_key="art.png",
         lottie_text="lot.json",
         is_active=True,
@@ -157,6 +160,7 @@ async def test_create_admin_adult_character_creates_row():
 
     assert isinstance(row, AdultCharacter)
     assert row.slug == "nurse"
+    assert row.short_description == "short desc"
     assert created.slug == "nurse"
     assert created.id == 1
     assert db.did_commit is True
@@ -206,6 +210,7 @@ async def test_patch_admin_adult_character_updates_row():
         slug="nurse",
         name="Nurse",
         description="old",
+        short_description="old-short",
         prompt_template="old-template",
         default_artwork_key=None,
         lottie_text=None,
@@ -218,14 +223,20 @@ async def test_patch_admin_adult_character_updates_row():
 
     result = await patch_admin_adult_character(
         character_id=7,
-        payload=AdminAdultCharacterUpdate(name="Updated Nurse", description="new"),
+        payload=AdminAdultCharacterUpdate(
+            name="Updated Nurse",
+            description="new",
+            short_description="new-short",
+        ),
         current_user=_admin_user(),
         db=db,
     )
 
     assert character.name == "Updated Nurse"
     assert character.description == "new"
+    assert character.short_description == "new-short"
     assert result.name == "Updated Nurse"
+    assert result.short_description == "new-short"
     assert db.did_commit is True
 
 
@@ -236,6 +247,7 @@ async def test_patch_admin_adult_character_rejects_disable_when_active_for_influ
         slug="nurse",
         name="Nurse",
         description="old",
+        short_description="old-short",
         prompt_template="old-template",
         default_artwork_key=None,
         lottie_text=None,
@@ -289,6 +301,7 @@ async def test_build_admin_influencer_adult_characters_returns_base_override_and
         slug="nurse",
         name="Nurse",
         description="desc",
+        short_description="short desc",
         is_active=True,
         display_order=1,
         default_artwork_key="base/photo.png",
@@ -305,6 +318,7 @@ async def test_build_admin_influencer_adult_characters_returns_base_override_and
 
     assert len(items) == 1
     item = items[0]
+    assert item.short_description == "short desc"
     assert item.base_lottie_text == "base/lottie.json"
     assert item.photo_url == "https://cdn.test/influencer/juliana/characters/7/photo.png"
     assert item.photo_2x_url == "https://cdn.test/influencer/juliana/characters/7/photo@2x.png"

@@ -81,6 +81,7 @@ async def _build_admin_influencer_adult_characters(
                 slug=character.slug,
                 name=character.name,
                 description=character.description,
+                short_description=character.short_description,
                 is_active=character.is_active,
                 display_order=character.display_order,
                 base_lottie_text=character.lottie_text,

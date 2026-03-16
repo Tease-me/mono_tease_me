@@ -9,6 +9,7 @@ class AdminInfluencerAdultCharacterAssetOut(BaseModel):
     slug: str
     name: str
     description: Optional[str] = None
+    short_description: Optional[str] = None
     is_active: bool
     display_order: int
     base_lottie_text: Optional[str] = None
@@ -43,6 +44,7 @@ class AdminAdultCharacterCreate(BaseModel):
     name: str
     prompt_template: str
     description: Optional[str] = None
+    short_description: Optional[str] = None
     default_artwork_key: Optional[str] = None
     lottie_text: Optional[str] = None
     is_active: bool = True
@@ -54,6 +56,7 @@ class AdminAdultCharacterUpdate(BaseModel):
     name: Optional[str] = None
     prompt_template: Optional[str] = None
     description: Optional[str] = None
+    short_description: Optional[str] = None
     default_artwork_key: Optional[str] = None
     lottie_text: Optional[str] = None
     is_active: Optional[bool] = None
@@ -65,6 +68,7 @@ class AdminAdultCharacterOut(BaseModel):
     slug: str
     name: str
     description: Optional[str] = None
+    short_description: Optional[str] = None
     prompt_template: str
     default_artwork_key: Optional[str] = None
     lottie_text: Optional[str] = None

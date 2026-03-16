@@ -76,6 +76,7 @@ class InfluencerAdultCharacterOut(BaseModel):
     slug: str
     name: str
     description: Optional[str] = None
+    short_description: Optional[str] = None
     prompt_template: str
     is_active: bool
     display_order: int

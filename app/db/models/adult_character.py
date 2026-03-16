@@ -17,6 +17,7 @@ class AdultCharacter(Base):
     slug: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    short_description: Mapped[str | None] = mapped_column(Text, nullable=True)
     prompt_template: Mapped[str] = mapped_column(Text, nullable=False)
     default_artwork_key: Mapped[str | None] = mapped_column(String, nullable=True)
     lottie_text: Mapped[str | None] = mapped_column(Text, nullable=True)
