@@ -14,7 +14,8 @@ export default {
     Profile: lazy(() => import("@/assets/mj-dashboard/svg/Profile.svg?react")),
     Users: lazy(() => import("@/assets/mj-dashboard/svg/Users.svg?react")),
     MoreCircle: lazy(() => import("@/assets/svg/MoreCircle.svg?react")),
-    CloseSquare: lazy(() => import("@/assets/mj-dashboard/svg/CloseSquare.svg?react")),
+    CloseSquare: lazy(() => import("@/assets/svg/CloseSquare.svg?react")),
+
     CloseSquareSolid: lazy(() => import("@/assets/CloseSquare.svg?react")),
     DangerTriangleSmall: lazy(() => import("@/assets/mj-dashboard/svg/Danger.svg?react")),
     DangerCircleSmall: lazy(() => import("@/assets/mj-dashboard/svg/DangerCircle.svg?react")),

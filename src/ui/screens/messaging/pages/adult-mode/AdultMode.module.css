@@ -112,21 +112,21 @@
   top: 20px;
   right: 20px;
   z-index: 2;
-  width: 60px !important;
-  height: 60px !important;
-  flex: 0 0 60px;
+  width: 52px !important;
+  height: 52px !important;
+  flex: 0 0 52px;
 }
+
+
 
 .previewCloseButton>div>div>div {
   width: 32px;
   height: 32px;
-  padding: 0;
 }
 
 .previewCloseIcon {
   width: 32px;
   height: 32px;
-  flex: 0 0 32px;
 }
 
 
