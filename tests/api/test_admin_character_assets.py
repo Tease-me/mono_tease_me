@@ -13,10 +13,11 @@ from app.api.admin.characters import (
     _build_admin_influencer_adult_characters,
     delete_admin_influencer_character_asset,
     list_admin_adult_characters,
+    patch_admin_adult_character,
     upsert_admin_influencer_character_assets,
 )
 from app.db.models import AdultCharacter, Influencer, InfluencerCharacterMeta
-from app.schemas.admin import AdminAdultCharacterCreate
+from app.schemas.admin import AdminAdultCharacterCreate, AdminAdultCharacterUpdate
 
 
 @pytest.fixture
@@ -196,6 +197,66 @@ async def test_delete_admin_adult_character_deletes_row():
     assert result.id == 7
     assert db.deleted == [character]
     assert db.did_commit is True
+
+
+@pytest.mark.anyio
+async def test_patch_admin_adult_character_updates_row():
+    character = SimpleNamespace(
+        id=7,
+        slug="nurse",
+        name="Nurse",
+        description="old",
+        prompt_template="old-template",
+        default_artwork_key=None,
+        lottie_text=None,
+        is_active=True,
+        display_order=1,
+        created_at=None,
+        updated_at=None,
+    )
+    db = _FakeAsyncSession(characters={7: character})
+
+    result = await patch_admin_adult_character(
+        character_id=7,
+        payload=AdminAdultCharacterUpdate(name="Updated Nurse", description="new"),
+        current_user=_admin_user(),
+        db=db,
+    )
+
+    assert character.name == "Updated Nurse"
+    assert character.description == "new"
+    assert result.name == "Updated Nurse"
+    assert db.did_commit is True
+
+
+@pytest.mark.anyio
+async def test_patch_admin_adult_character_rejects_disable_when_active_for_influencer():
+    character = SimpleNamespace(
+        id=7,
+        slug="nurse",
+        name="Nurse",
+        description="old",
+        prompt_template="old-template",
+        default_artwork_key=None,
+        lottie_text=None,
+        is_active=True,
+        display_order=1,
+        created_at=None,
+        updated_at=None,
+    )
+    active_overlay = SimpleNamespace(character_id=7, is_active=True)
+    db = _FakeAsyncSession(characters={7: character}, execute_responses=[[active_overlay]])
+
+    with pytest.raises(Exception) as exc:
+        await patch_admin_adult_character(
+            character_id=7,
+            payload=AdminAdultCharacterUpdate(is_active=False),
+            current_user=_admin_user(),
+            db=db,
+        )
+
+    assert getattr(exc.value, "status_code", None) == 400
+    assert character.is_active is True
 
 
 @pytest.mark.anyio

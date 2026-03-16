@@ -20,6 +20,7 @@ from app.repositories.influencer_character_assets_repository import (
 from app.schemas.admin import (
     AdminAdultCharacterCreate,
     AdminAdultCharacterOut,
+    AdminAdultCharacterUpdate,
     AdminDeleteResponse,
     AdminInfluencerAdultCharacterAssetOut,
     AdminInfluencerCharacterAssetMutationOut,
@@ -164,6 +165,53 @@ async def delete_admin_adult_character(
     await db.delete(character)
     await db.commit()
     return AdminDeleteResponse(ok=True, id=character_id)
+
+
+@router.patch(
+    "/adult-characters/{character_id}",
+    response_model=AdminAdultCharacterOut,
+    summary="Update an adult character",
+    description="Apply a partial update to a global adult character entry in the admin catalog.",
+)
+async def patch_admin_adult_character(
+    character_id: int,
+    payload: AdminAdultCharacterUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    ensure_admin(current_user)
+    character = await db.get(AdultCharacter, character_id)
+    if not character:
+        raise HTTPException(status_code=404, detail="Adult character not found")
+
+    update_payload = payload.model_dump(exclude_unset=True)
+    next_slug = update_payload.get("slug")
+    if next_slug and next_slug != character.slug:
+        existing = await db.execute(
+            select(AdultCharacter).where(AdultCharacter.slug == next_slug)
+        )
+        if existing.scalars().first():
+            raise HTTPException(status_code=400, detail="Adult character with this slug already exists")
+    if update_payload.get("is_active") is False:
+        active_overlay_result = await db.execute(
+            select(InfluencerCharacterMeta).where(
+                InfluencerCharacterMeta.character_id == character_id,
+                InfluencerCharacterMeta.is_active.is_(True),
+            )
+        )
+        if active_overlay_result.scalars().first():
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot disable adult character while it is active for an influencer",
+            )
+
+    for key, value in update_payload.items():
+        setattr(character, key, value)
+
+    db.add(character)
+    await db.commit()
+    await db.refresh(character)
+    return AdminAdultCharacterOut.model_validate(character)
 
 
 @router.get(

@@ -49,6 +49,17 @@ class AdminAdultCharacterCreate(BaseModel):
     display_order: int = 0
 
 
+class AdminAdultCharacterUpdate(BaseModel):
+    slug: Optional[str] = None
+    name: Optional[str] = None
+    prompt_template: Optional[str] = None
+    description: Optional[str] = None
+    default_artwork_key: Optional[str] = None
+    lottie_text: Optional[str] = None
+    is_active: Optional[bool] = None
+    display_order: Optional[int] = None
+
+
 class AdminAdultCharacterOut(BaseModel):
     id: int
     slug: str
