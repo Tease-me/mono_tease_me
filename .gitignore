@@ -26,3 +26,6 @@ Thumbs.db
 # Database backups
 backups/db/*
 !backups/db/.gitkeep
+
+# Telegram Userbot session files
+telegram_sessions/

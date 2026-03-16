@@ -25,6 +25,7 @@ from app.api.admin import router as admin_router
 from app.api.relationship import router as relationship_router
 from app.api.re_engagement import router as re_engagement_router
 from app.api.verification import router as verification_router
+from app.api.telegram_admin import router as telegram_admin_router
 
 from app.api import system_prompts as system_prompts_router
 
@@ -35,6 +36,7 @@ from app.utils.infrastructure.redis_pool import close_redis
 from app.api.elevenlabs import close_elevenlabs_client
 from app.core.logging import configure_logging
 from app.services.checkout import close_checkout_client
+from app.telegram import lifecycle as telegram_lifecycle
 
 configure_logging()
 log = logging.getLogger(__name__)
@@ -47,8 +49,14 @@ origins = [origin.strip() for origin in origins_str.split(",") if origin.strip()
 async def lifespan(app: FastAPI):
     log.info("Starting re-engagement scheduler...")
     start_scheduler()
+
+    log.info("Starting Telegram sessions...")
+    await telegram_lifecycle.start_all_sessions()
     
     yield
+
+    log.info("Stopping Telegram sessions...")
+    await telegram_lifecycle.stop_all_sessions()
     
     log.info("Stopping re-engagement scheduler...")
     stop_scheduler()
@@ -95,3 +103,4 @@ app.include_router(admin_router)
 app.include_router(relationship_router)
 app.include_router(re_engagement_router)
 app.include_router(verification_router)
+app.include_router(telegram_admin_router)
