@@ -1,7 +1,6 @@
 import styles from "./AdultMode.module.css";
 import AdultSceneSelector from "@/ui/components/cards/AdultSceneSelectorCard";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
-import SvgPack from "@/utils/SvgPack";
 import adultTitlePlaceholder from "@/assets/adult-mode/local-test/adultTitlePlaceholder.json";
 import mainImageDefaultSmall from "@/assets/adult-mode/local-test/images/mainImageDefault.png";
 import mainImageDefaultLarge from "@/assets/adult-mode/local-test/images/mainImageDefault@2x.png";
@@ -117,15 +116,14 @@ export default function AdultMode() {
                   imageSmallSrc={scene.image.small}
                   imageLargeSrc={scene.image.large}
                   titlePlaceholderData={adultTitlePlaceholder}
-                  girlfriend={Boolean(scene.default)}
+                  default={Boolean(scene.default)}
                 />
                 <IconButton
                   onClick={handleSelectScenario}
-                  text={scene.default ? "Girlfriend Mode" : "Select Scenario"}
-                  color={scene.default ? "pink-glass" : "purple-glass"}
+                  text="Select Scenario"
+                  color="purple-glass"
                   type="pill"
                   className={styles.sceneButton}
-                  leftIcon={scene.default ? <SvgPack.Heart /> : undefined}
                 />
               </div>
             ))}
