@@ -1,4 +1,4 @@
-.PHONY: seed-influencers seed-pricing seed-users seed-all seed-prompts seed-subscription-plans rename-influencer-id
+.PHONY: seed-adult-characters seed-influencers seed-pricing seed-users seed-all seed-prompts seed-subscription-plans rename-influencer-id
 .PHONY: lint lint-fix format format-check lint-docker lint-docker-fix format-docker format-docker-check
 .PHONY: db-backup db-restore db-backup-list
 
@@ -9,6 +9,9 @@ LINT_PATHS := app
 ifneq ("$(wildcard tests)","")
 LINT_PATHS += tests
 endif
+
+seed-adult-characters:
+	$(COMPOSE) exec $(SERVICE) python -m app.scripts.seed_adult_characters
 
 seed-influencers:
 	$(COMPOSE) exec $(SERVICE) python -m app.scripts.seed_influencers
@@ -25,7 +28,7 @@ seed-prompts:
 seed-subscription-plans:
 	$(COMPOSE) exec $(SERVICE) python -m app.scripts.seed_subscription_plans
 
-seed-all: seed-influencers seed-pricing seed-users seed-prompts seed-subscription-plans
+seed-all: seed-adult-characters seed-influencers seed-pricing seed-users seed-prompts seed-subscription-plans
 
 rename-influencer-id:
 	@if [ -z "$(OLD_ID)" ] || [ -z "$(NEW_ID)" ]; then \
