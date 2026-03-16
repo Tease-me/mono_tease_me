@@ -27,6 +27,9 @@ from app.services.influencer_cleanup import (
 from app.repositories.influencer_character_assets_repository import (
     get_influencer_character_asset_state,
 )
+from app.repositories.adult_character_assets_repository import (
+    get_adult_character_asset_state,
+)
 from app.utils.storage.s3 import (
     generate_presigned_url,
     get_influencer_audio_download_url,
@@ -94,6 +97,10 @@ async def _build_influencer_adult_characters(
     for character in characters:
         overlay = overlays.get(character.id)
         asset_state = get_influencer_character_asset_state(influencer_id, character.id)
+        base_asset_state = get_adult_character_asset_state(
+            character.default_artwork_key,
+            character.lottie_text,
+        )
         items.append(
             InfluencerAdultCharacterOut(
                 id=character.id,
@@ -105,7 +112,9 @@ async def _build_influencer_adult_characters(
                 is_active=character.is_active,
                 display_order=character.display_order,
                 default_artwork_key=character.default_artwork_key,
+                default_artwork_url=base_asset_state["default_artwork_url"],
                 lottie_text=character.lottie_text,
+                lottie_text_url=base_asset_state["lottie_text_url"],
                 photo_url=asset_state["photo_url"],
                 photo_2x_url=asset_state["photo_2x_url"],
                 video_mp4_url=asset_state["video_mp4_url"],

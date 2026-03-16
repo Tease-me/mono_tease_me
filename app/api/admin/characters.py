@@ -9,6 +9,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.admin.common import ensure_admin
 from app.db.models import AdultCharacter, Influencer, InfluencerCharacterMeta, User
 from app.db.session import get_db
+from app.repositories.adult_character_assets_repository import (
+    get_adult_character_asset_state,
+    upload_adult_character_default_artwork,
+    upload_adult_character_lottie,
+)
 from app.repositories.influencer_character_assets_repository import (
     delete_influencer_character_asset,
     get_influencer_character_asset_keys,
@@ -100,6 +105,16 @@ async def _build_admin_influencer_adult_characters(
     return items
 
 
+def _build_admin_adult_character_out(character: AdultCharacter) -> AdminAdultCharacterOut:
+    asset_state = get_adult_character_asset_state(
+        character.default_artwork_key,
+        character.lottie_text,
+    )
+    payload = AdminAdultCharacterOut.model_validate(character).model_dump()
+    payload.update(asset_state)
+    return AdminAdultCharacterOut(**payload)
+
+
 @router.get(
     "/adult-characters",
     response_model=list[AdminAdultCharacterOut],
@@ -118,7 +133,7 @@ async def list_admin_adult_characters(
         result.scalars().all(),
         key=lambda character: (character.display_order, character.id),
     )
-    return [AdminAdultCharacterOut.model_validate(character) for character in characters]
+    return [_build_admin_adult_character_out(character) for character in characters]
 
 
 @router.post(
@@ -144,7 +159,7 @@ async def create_admin_adult_character(
     db.add(character)
     await db.commit()
     await db.refresh(character)
-    return AdminAdultCharacterOut.model_validate(character)
+    return _build_admin_adult_character_out(character)
 
 
 @router.delete(
@@ -212,7 +227,55 @@ async def patch_admin_adult_character(
     db.add(character)
     await db.commit()
     await db.refresh(character)
-    return AdminAdultCharacterOut.model_validate(character)
+    return _build_admin_adult_character_out(character)
+
+
+@router.post(
+    "/adult-characters/{character_id}/assets",
+    response_model=AdminAdultCharacterOut,
+    summary="Upload base adult character assets",
+    description="Upload default artwork and lottie assets for a global adult character.",
+)
+async def upsert_admin_adult_character_assets(
+    character_id: int,
+    default_artwork: UploadFile | None = File(default=None),
+    lottie_text: UploadFile | None = File(default=None),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    ensure_admin(current_user)
+
+    character = await db.get(AdultCharacter, character_id)
+    if not character:
+        raise HTTPException(status_code=404, detail="Adult character not found")
+
+    if not any((default_artwork, lottie_text)):
+        raise HTTPException(status_code=400, detail="At least one asset file is required")
+
+    if default_artwork:
+        artwork_bytes = await default_artwork.read()
+        if not artwork_bytes:
+            raise HTTPException(status_code=400, detail="Empty default artwork file")
+        character.default_artwork_key = await upload_adult_character_default_artwork(
+            io.BytesIO(artwork_bytes),
+            default_artwork.filename,
+            default_artwork.content_type or "image/png",
+            character_id,
+        )
+
+    if lottie_text:
+        lottie_bytes = await lottie_text.read()
+        if not lottie_bytes:
+            raise HTTPException(status_code=400, detail="Empty lottie file")
+        character.lottie_text = await upload_adult_character_lottie(
+            io.BytesIO(lottie_bytes),
+            character_id,
+        )
+
+    db.add(character)
+    await db.commit()
+    await db.refresh(character)
+    return _build_admin_adult_character_out(character)
 
 
 @router.get(

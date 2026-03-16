@@ -42,6 +42,13 @@ class _FakeAsyncSession:
 @pytest.mark.anyio
 async def test_build_influencer_adult_characters_includes_lottie_text_key(monkeypatch):
     monkeypatch.setattr(
+        "app.api.influencer.get_adult_character_asset_state",
+        lambda default_artwork_key, lottie_text_key: {
+            "default_artwork_url": "https://example.test/base/2/default-artwork.png",
+            "lottie_text_url": "https://example.test/base/2/lottie.json",
+        },
+    )
+    monkeypatch.setattr(
         "app.api.influencer.get_influencer_character_asset_state",
         lambda influencer_id, character_id: {
             "photo_url": f"https://example.test/{influencer_id}/{character_id}/photo.png",
@@ -79,6 +86,8 @@ async def test_build_influencer_adult_characters_includes_lottie_text_key(monkey
     item = items[0]
     assert item.short_description == "Quick nurse teaser"
     assert item.lottie_text == "lottie/nurse.json"
+    assert item.default_artwork_url == "https://example.test/base/2/default-artwork.png"
+    assert item.lottie_text_url == "https://example.test/base/2/lottie.json"
     assert item.photo_url == "https://example.test/juliana/2/photo.png"
     assert item.photo_2x_url == "https://example.test/juliana/2/photo@2x.png"
     assert item.video_mp4_url is None
@@ -88,6 +97,17 @@ async def test_build_influencer_adult_characters_includes_lottie_text_key(monkey
 
 @pytest.mark.anyio
 async def test_build_influencer_adult_characters_keeps_null_lottie_text(monkeypatch):
+    monkeypatch.setattr(
+        "app.api.influencer.get_adult_character_asset_state",
+        lambda default_artwork_key, lottie_text_key: {
+            "default_artwork_url": f"https://example.test/base/{default_artwork_key}"
+            if default_artwork_key
+            else None,
+            "lottie_text_url": f"https://example.test/base/{lottie_text_key}"
+            if lottie_text_key
+            else None,
+        },
+    )
     monkeypatch.setattr(
         "app.api.influencer.get_influencer_character_asset_state",
         lambda influencer_id, character_id: {
@@ -138,5 +158,9 @@ async def test_build_influencer_adult_characters_keeps_null_lottie_text(monkeypa
     assert items[1].short_description is None
     assert items[0].lottie_text == "lottie/beta.json"
     assert items[1].lottie_text is None
+    assert items[0].default_artwork_url == "https://example.test/base/artwork/beta.png"
+    assert items[0].lottie_text_url == "https://example.test/base/lottie/beta.json"
+    assert items[1].default_artwork_url is None
+    assert items[1].lottie_text_url is None
     assert items[0].photo_url == "https://example.test/juliana/3/photo.png"
     assert items[1].photo_url is None

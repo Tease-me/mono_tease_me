@@ -71,7 +71,9 @@ class AdminAdultCharacterOut(BaseModel):
     short_description: Optional[str] = None
     prompt_template: str
     default_artwork_key: Optional[str] = None
+    default_artwork_url: Optional[str] = None
     lottie_text: Optional[str] = None
+    lottie_text_url: Optional[str] = None
     is_active: bool
     display_order: int
     created_at: Optional[datetime] = None

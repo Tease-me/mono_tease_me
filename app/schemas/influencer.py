@@ -81,7 +81,9 @@ class InfluencerAdultCharacterOut(BaseModel):
     is_active: bool
     display_order: int
     default_artwork_key: Optional[str] = None
+    default_artwork_url: Optional[str] = None
     lottie_text: Optional[str] = None
+    lottie_text_url: Optional[str] = None
     photo_url: Optional[str] = None
     photo_2x_url: Optional[str] = None
     video_mp4_url: Optional[str] = None

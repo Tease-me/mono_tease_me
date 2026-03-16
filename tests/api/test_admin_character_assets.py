@@ -11,6 +11,7 @@ from app.api.admin.characters import (
     create_admin_adult_character,
     delete_admin_adult_character,
     _build_admin_influencer_adult_characters,
+    upsert_admin_adult_character_assets,
     delete_admin_influencer_character_asset,
     list_admin_adult_characters,
     patch_admin_adult_character,
@@ -97,6 +98,21 @@ def _non_admin_user():
     return SimpleNamespace(id=2)
 
 
+@pytest.fixture(autouse=True)
+def _patch_base_asset_state(monkeypatch):
+    monkeypatch.setattr(
+        "app.api.admin.characters.get_adult_character_asset_state",
+        lambda default_artwork_key, lottie_text_key: {
+            "default_artwork_url": f"https://cdn.test/{default_artwork_key}"
+            if default_artwork_key
+            else None,
+            "lottie_text_url": f"https://cdn.test/{lottie_text_key}"
+            if lottie_text_key
+            else None,
+        },
+    )
+
+
 @pytest.mark.anyio
 async def test_list_admin_adult_characters_orders_rows():
     later = SimpleNamespace(
@@ -133,6 +149,8 @@ async def test_list_admin_adult_characters_orders_rows():
 
     assert [item.id for item in items] == [3, 9]
     assert items[0].slug == "earlier"
+    assert items[0].default_artwork_url == "https://cdn.test/art.png"
+    assert items[0].lottie_text_url == "https://cdn.test/lot.json"
 
 
 @pytest.mark.anyio
@@ -163,6 +181,8 @@ async def test_create_admin_adult_character_creates_row():
     assert row.short_description == "short desc"
     assert created.slug == "nurse"
     assert created.id == 1
+    assert created.default_artwork_url == "https://cdn.test/art.png"
+    assert created.lottie_text_url == "https://cdn.test/lot.json"
     assert db.did_commit is True
 
 
@@ -237,7 +257,149 @@ async def test_patch_admin_adult_character_updates_row():
     assert character.short_description == "new-short"
     assert result.name == "Updated Nurse"
     assert result.short_description == "new-short"
+    assert result.default_artwork_url is None
+    assert result.lottie_text_url is None
     assert db.did_commit is True
+
+
+@pytest.mark.anyio
+async def test_upsert_admin_adult_character_assets_uploads_artwork_and_lottie(monkeypatch):
+    async def _upload_artwork(*_args, **_kwargs):
+        return "adult-characters/7/default-artwork.png"
+
+    async def _upload_lottie(*_args, **_kwargs):
+        return "adult-characters/7/lottie.json"
+
+    monkeypatch.setattr(
+        "app.api.admin.characters.upload_adult_character_default_artwork",
+        _upload_artwork,
+    )
+    monkeypatch.setattr(
+        "app.api.admin.characters.upload_adult_character_lottie",
+        _upload_lottie,
+    )
+
+    character = SimpleNamespace(
+        id=7,
+        slug="nurse",
+        name="Nurse",
+        description="old",
+        short_description="old-short",
+        prompt_template="old-template",
+        default_artwork_key=None,
+        lottie_text=None,
+        is_active=True,
+        display_order=1,
+        created_at=None,
+        updated_at=None,
+    )
+    db = _FakeAsyncSession(characters={7: character})
+
+    result = await upsert_admin_adult_character_assets(
+        character_id=7,
+        default_artwork=UploadFile(file=BytesIO(b"image"), filename="artwork.png"),
+        lottie_text=UploadFile(file=BytesIO(b'{"v":"5.0"}'), filename="lottie.json"),
+        current_user=_admin_user(),
+        db=db,
+    )
+
+    assert character.default_artwork_key == "adult-characters/7/default-artwork.png"
+    assert character.lottie_text == "adult-characters/7/lottie.json"
+    assert result.default_artwork_url == "https://cdn.test/adult-characters/7/default-artwork.png"
+    assert result.lottie_text_url == "https://cdn.test/adult-characters/7/lottie.json"
+    assert db.did_commit is True
+
+
+@pytest.mark.anyio
+async def test_upsert_admin_adult_character_assets_uploads_artwork_only(monkeypatch):
+    async def _upload_artwork(*_args, **_kwargs):
+        return "adult-characters/7/default-artwork.png"
+
+    monkeypatch.setattr(
+        "app.api.admin.characters.upload_adult_character_default_artwork",
+        _upload_artwork,
+    )
+
+    character = SimpleNamespace(
+        id=7,
+        slug="nurse",
+        name="Nurse",
+        description="old",
+        short_description="old-short",
+        prompt_template="old-template",
+        default_artwork_key=None,
+        lottie_text=None,
+        is_active=True,
+        display_order=1,
+        created_at=None,
+        updated_at=None,
+    )
+    db = _FakeAsyncSession(characters={7: character})
+
+    result = await upsert_admin_adult_character_assets(
+        character_id=7,
+        default_artwork=UploadFile(file=BytesIO(b"image"), filename="artwork.png"),
+        lottie_text=None,
+        current_user=_admin_user(),
+        db=db,
+    )
+
+    assert result.default_artwork_url == "https://cdn.test/adult-characters/7/default-artwork.png"
+    assert result.lottie_text_url is None
+
+
+@pytest.mark.anyio
+async def test_upsert_admin_adult_character_assets_uploads_lottie_only(monkeypatch):
+    async def _upload_lottie(*_args, **_kwargs):
+        return "adult-characters/7/lottie.json"
+
+    monkeypatch.setattr(
+        "app.api.admin.characters.upload_adult_character_lottie",
+        _upload_lottie,
+    )
+
+    character = SimpleNamespace(
+        id=7,
+        slug="nurse",
+        name="Nurse",
+        description="old",
+        short_description="old-short",
+        prompt_template="old-template",
+        default_artwork_key=None,
+        lottie_text=None,
+        is_active=True,
+        display_order=1,
+        created_at=None,
+        updated_at=None,
+    )
+    db = _FakeAsyncSession(characters={7: character})
+
+    result = await upsert_admin_adult_character_assets(
+        character_id=7,
+        default_artwork=None,
+        lottie_text=UploadFile(file=BytesIO(b'{"v":"5.0"}'), filename="lottie.json"),
+        current_user=_admin_user(),
+        db=db,
+    )
+
+    assert result.default_artwork_url is None
+    assert result.lottie_text_url == "https://cdn.test/adult-characters/7/lottie.json"
+
+
+@pytest.mark.anyio
+async def test_upsert_admin_adult_character_assets_rejects_missing_character():
+    db = _FakeAsyncSession(characters={})
+
+    with pytest.raises(Exception) as exc:
+        await upsert_admin_adult_character_assets(
+            character_id=7,
+            default_artwork=UploadFile(file=BytesIO(b"image"), filename="artwork.png"),
+            lottie_text=None,
+            current_user=_admin_user(),
+            db=db,
+        )
+
+    assert getattr(exc.value, "status_code", None) == 404
 
 
 @pytest.mark.anyio
