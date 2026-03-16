@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.api.openapi_tags import OPENAPI_TAGS
 from app.api.chat import router
 from app.api.chat_18 import router as chat_18_router
 from app.api.auth import router as auth_router
@@ -62,9 +63,13 @@ async def lifespan(app: FastAPI):
     log.info("Closing checkout HTTP client...")
     await close_checkout_client()
 
-
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    title="TeaseMe API",
+    description="Backend API for auth, chat, influencer, admin, and analytics flows.",
+    version="1.0.0",
+    lifespan=lifespan,
+    openapi_tags=OPENAPI_TAGS,
+)
 
 app.add_middleware(
     CORSMiddleware,
