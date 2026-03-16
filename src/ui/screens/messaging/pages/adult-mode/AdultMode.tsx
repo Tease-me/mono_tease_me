@@ -123,6 +123,10 @@ export default function AdultMode() {
     setSessionState("preview");
   };
 
+  const handleCloseScenario = () => {
+    setSelectedScene(null);
+  };
+
   const handleStartCall = () => {
     setSessionState("active");
   };
@@ -175,9 +179,17 @@ export default function AdultMode() {
               <source src={selectedScene.video.mp4} type="video/mp4" />
               Your browser does not support the video tag.
             </video>
+
             {sessionState === "preview" && <div className={styles.previewOverlay} />}
             {sessionState === "preview" ? (
               <>
+                <IconButton
+                  type="pill"
+                  color="black"
+                  leftIcon={<SvgPack.CloseSquare className={styles.previewCloseIcon} />}
+                  onClick={handleCloseScenario}
+                  className={styles.previewCloseButton}
+                />
                 <div className={styles.sessionName}>{selectedScene.name}</div>
                 <div className={styles.previewPanel}>
                   <div className={styles.subtitle}>Scenario Details</div>
