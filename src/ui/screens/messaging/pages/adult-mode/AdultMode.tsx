@@ -7,7 +7,7 @@ import SvgPack from "@/utils/SvgPack";
 export default function AdultMode() {
   const scenes = [
     {
-      name: "Horny Girlfriend",
+      name: "Default",
       title: "Girlfriend",
       description: "Start your day with a little tease. Perfect for those who like to wake up slowly and enjoy the anticipation.",
       imageSrc: "https://static.vecteezy.com/system/resources/thumbnails/046/822/632/small/a-businesswoman-in-a-sharp-outfit-isolated-on-a-transparent-background-png.png",
@@ -52,7 +52,7 @@ export default function AdultMode() {
                 <IconButton
                   onClick={handleSelectScenario}
                   text={scene.default ? "Girlfriend Mode" : "Select Scenario"}
-                  color={scene.default ? "pink-glass" : "purple"}
+                  color={scene.default ? "pink-glass" : "purple-glass"}
                   type="pill"
                   className={styles.sceneButton}
                   leftIcon={scene.default ? <SvgPack.Heart /> : undefined}
