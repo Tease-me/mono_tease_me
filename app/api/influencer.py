@@ -104,6 +104,7 @@ async def _build_influencer_adult_characters(
                 is_active=character.is_active,
                 display_order=character.display_order,
                 default_artwork_key=character.default_artwork_key,
+                lottie_text=character.lottie_text,
                 photo_key=resolved_photo_key,
                 photo_url=generate_presigned_url(resolved_photo_key) if resolved_photo_key else None,
                 video_key=resolved_video_key,

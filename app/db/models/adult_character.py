@@ -19,6 +19,7 @@ class AdultCharacter(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     prompt_template: Mapped[str] = mapped_column(Text, nullable=False)
     default_artwork_key: Mapped[str | None] = mapped_column(String, nullable=True)
+    lottie_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,
