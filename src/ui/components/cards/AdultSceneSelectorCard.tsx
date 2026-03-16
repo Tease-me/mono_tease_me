@@ -49,8 +49,7 @@ export default function AdultSceneSelector({
       <div className={styles.name}>{name}</div>
       <div
         className={clsx(
-          styles.lowerBody,
-          girlfriend ? styles.lowerBodyGirlfriend : styles.lowerBodyStandard,
+          styles.lowerBody
         )}
       >
         <div className={styles.description}>{description}</div>
