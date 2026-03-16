@@ -5,13 +5,22 @@ Routes incoming Telegram DMs through the existing TeaseMe chat pipeline.
 Reuses the same LLM, persona context, and memory infrastructure.
 """
 
+from __future__ import annotations
+
 import asyncio
 import logging
 import uuid
 from datetime import datetime, timezone
 
-from pyrogram import Client, filters
-from pyrogram.types import Message as TgMessage
+try:
+    from pyrogram import Client, filters
+    from pyrogram.enums import ChatAction
+    from pyrogram.types import Message as TgMessage
+except ImportError:
+    Client = None  # type: ignore
+    filters = None  # type: ignore
+    ChatAction = None  # type: ignore
+    TgMessage = None  # type: ignore
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -54,12 +63,16 @@ class TelegramMessageHandler:
     def register(self):
         """Register all message handlers on the Pyrogram client."""
 
-        @self.client.on_message(filters.private & filters.text & ~filters.me)
+        @self.client.on_message(filters.private & filters.text & ~filters.me & ~filters.user(777000))
         async def handle_text_dm(_client: Client, message: TgMessage):
-            """Handle incoming private text messages."""
+            """Handle incoming private text messages.
+
+            Excludes Telegram system messages (user_id 777000) which
+            deliver login codes and service notifications.
+            """
             await self._handle_text(message)
 
-        @self.client.on_message(filters.private & filters.voice & ~filters.me)
+        @self.client.on_message(filters.private & filters.voice & ~filters.me & ~filters.user(777000))
         async def handle_voice_dm(_client: Client, message: TgMessage):
             """Handle incoming voice messages (Phase 2 — placeholder)."""
             await message.reply_text(
@@ -69,11 +82,10 @@ class TelegramMessageHandler:
 
         @self.client.on_raw_update()
         async def handle_raw_update(_client: Client, update, users, chats):
-            """Detect incoming private calls via raw Telegram updates.
-
-            Telegram private calls arrive as UpdatePhoneCall with
-            PhoneCallRequested. We intercept these to start a voice session.
-            """
+            """Detect incoming private calls via raw Telegram updates."""
+            update_class = type(update).__name__
+            if "Phone" in update_class or "Call" in update_class or "phone" in str(update).lower():
+                log.info("RAW UPDATE CAUGHT: %s -> %s", update_class, update)
             await self._handle_incoming_call(update)
 
         log.info(
@@ -108,7 +120,7 @@ class TelegramMessageHandler:
                 # Show "typing" indicator while processing
                 await self.client.send_chat_action(
                     chat_id=message.chat.id,
-                    action="typing",
+                    action=ChatAction.TYPING,
                 )
 
                 response = await self._generate_ai_response(
@@ -151,15 +163,20 @@ class TelegramMessageHandler:
         from openai import AsyncOpenAI
         from app.core.config import settings
 
+        from sqlalchemy import select, func
         openai_client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
 
-        chat_id = self._make_chat_id(self.influencer_id, telegram_user_id)
-
         async with SessionLocal() as db:
-            # 1. Load influencer persona
-            influencer = await db.get(Influencer, self.influencer_id)
+            # 1. Load influencer persona (case-insensitive)
+            result = await db.execute(
+                select(Influencer).where(func.lower(Influencer.id) == self.influencer_id.lower())
+            )
+            influencer = result.scalar_one_or_none()
             if not influencer:
                 return "I'm not available right now. Please try again later."
+            
+            actual_influencer_id = influencer.id
+            chat_id = self._make_chat_id(actual_influencer_id, telegram_user_id)
 
             # 2. Ensure Chat record exists (user_id=0 for Telegram users without
             #    a TeaseMe account — they interact anonymously via Telegram)
@@ -168,7 +185,7 @@ class TelegramMessageHandler:
                 new_chat = Chat(
                     id=chat_id,
                     user_id=0,  # Telegram-only user placeholder
-                    influencer_id=self.influencer_id,
+                    influencer_id=actual_influencer_id,
                 )
                 db.add(new_chat)
                 await db.flush()
@@ -220,7 +237,7 @@ class TelegramMessageHandler:
             response_text = completion.choices[0].message.content or ""
 
             # 7. Persist both messages
-            now = datetime.now(timezone.utc)
+            now = datetime.utcnow()
 
             db.add(Message(
                 chat_id=chat_id,
@@ -247,22 +264,37 @@ class TelegramMessageHandler:
         Detects PhoneCallRequested updates, checks billing eligibility,
         and starts a VoiceCallSession using the voice engine.
         """
+        # Unpack wrapped updates
+        if hasattr(update, "updates") and isinstance(getattr(update, "updates"), list):
+            for u in update.updates:
+                await self._handle_incoming_call(u)
+            return
+            
+        if hasattr(update, "update") and type(update).__name__.startswith("UpdateShort"):
+            await self._handle_incoming_call(update.update)
+            return
+
         # Telegram sends UpdatePhoneCall with phone_call of type PhoneCallRequested
         update_class = type(update).__name__
+        if "Phone" in update_class or "Call" in update_class:
+            log.info("_handle_incoming_call checking update: class=%s", update_class)
+
         if update_class != "UpdatePhoneCall":
             return
 
         phone_call = getattr(update, "phone_call", None)
         if phone_call is None:
+            log.warning("UpdatePhoneCall has no phone_call attribute: %s", update)
             return
 
         call_class = type(phone_call).__name__
+        log.info("Detected phone_call of type: %s", call_class)
+        
         if call_class != "PhoneCallRequested":
             return
 
-        caller_id = getattr(phone_call, "participant_id", None) or getattr(
-            phone_call, "admin_id", None
-        )
+        # For incoming calls, admin_id is the caller who initiated the call
+        caller_id = getattr(phone_call, "admin_id", None)
         if not caller_id:
             log.warning("Incoming call but no caller ID found in %s", phone_call)
             return
@@ -277,15 +309,30 @@ class TelegramMessageHandler:
         from app.services.billing import get_remaining_units
         from app.db.session import SessionLocal as _SessionLocal
 
+        from sqlalchemy import select, func
+        from app.db.models import Influencer
+
         # Check billing eligibility
-        async with _SessionLocal() as db:
-            remaining = await get_remaining_units(
-                db,
-                user_id=0,  # Telegram-only user
-                influencer_id=self.influencer_id,
-                feature="voice",
-                is_18=False,
-            )
+        try:
+            async with _SessionLocal() as db:
+                result = await db.execute(
+                    select(Influencer).where(func.lower(Influencer.id) == self.influencer_id.lower())
+                )
+                inf_record = result.scalar_one_or_none()
+                log.info("telegram.incoming_call queried influencer=%s", inf_record)
+                
+                actual_id = inf_record.id if inf_record else self.influencer_id
+
+                remaining = await get_remaining_units(
+                    db,
+                    user_id=0,  # Telegram-only user
+                    influencer_id=actual_id,
+                    feature="voice",
+                    is_18=False,
+                )
+        except Exception as e:
+            log.exception("telegram.incoming_call failed during DB query")
+            return
 
         if remaining <= 0:
             # No free trial left — send redirect
@@ -306,7 +353,7 @@ class TelegramMessageHandler:
         # Start voice call session
         session = await voice_call_manager.start_call(
             client=self.client,
-            influencer_id=self.influencer_id,
+            influencer_id=actual_id,
             telegram_user_id=caller_id,
             chat_id=caller_id,
         )

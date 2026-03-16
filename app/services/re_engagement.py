@@ -73,17 +73,20 @@ async def find_inactive_high_balance_users(
     rows = result.all()
 
     now = datetime.now(timezone.utc)
-    return [
-        {
+    res = []
+    for row in rows:
+        last_int = row.last_interaction_at
+        if last_int.tzinfo is None:
+            last_int = last_int.replace(tzinfo=timezone.utc)
+        res.append({
             "user_id": row.user_id,
             "influencer_id": row.influencer_id,
             "balance_cents": row.balance_cents,
             "last_interaction_at": row.last_interaction_at,
-            "days_inactive": (now - row.last_interaction_at).days,
+            "days_inactive": (now - last_int).days,
             "influencer_name": row.influencer_name,
-        }
-        for row in rows
-    ]
+        })
+    return res
 
 
 async def generate_reengagement_via_turn_handler(

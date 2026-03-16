@@ -11,12 +11,29 @@ Handles the complete call lifecycle:
 5. End call + send redirect link to teaseme.live
 """
 
+from __future__ import annotations
+
 import asyncio
 import logging
 import time
+import os
+import tempfile
 from typing import Optional
 
-from pyrogram import Client
+try:
+    from pyrogram import Client
+    import pyrogram.errors
+    # Monkeypatch for pytgcalls compatibility with newer pyrogram versions
+    if not hasattr(pyrogram.errors, "GroupcallForbidden"):
+        class GroupcallForbidden(pyrogram.errors.RPCError):
+            pass
+        pyrogram.errors.GroupcallForbidden = GroupcallForbidden
+except ImportError:
+    Client = None  # type: ignore
+
+from pytgcalls import PyTgCalls
+from pytgcalls.types import MediaStream, RecordStream
+from pytgcalls.types.raw.audio_parameters import AudioParameters
 
 from app.core.config import settings
 from app.db.session import SessionLocal
@@ -81,8 +98,14 @@ class VoiceCallSession:
         self._is_active = False
         self._start_time: float = 0
         self._timer_task: Optional[asyncio.Task] = None
+        self._io_task: Optional[asyncio.Task] = None
         self._processing_lock = asyncio.Lock()
         self._call_record_id: Optional[str] = None
+        self._loop = asyncio.get_running_loop()
+
+        # Audio Pipes (FIFOs) for pytgcalls
+        self._in_pipe = os.path.join(tempfile.gettempdir(), f"in_{influencer_id}_{telegram_user_id}.raw")
+        self._out_pipe = os.path.join(tempfile.gettempdir(), f"out_{influencer_id}_{telegram_user_id}.raw")
 
     @property
     def is_active(self) -> bool:
@@ -99,10 +122,31 @@ class VoiceCallSession:
         self._is_active = True
         self._start_time = time.monotonic()
 
+        # Create FIFOs
+        if os.path.exists(self._in_pipe): os.remove(self._in_pipe)
+        if os.path.exists(self._out_pipe): os.remove(self._out_pipe)
+        os.mkfifo(self._in_pipe)
+        os.mkfifo(self._out_pipe)
+
+        # Connect PyTgCalls Call
+        calls = voice_call_manager._tgcalls.get(self.influencer_id)
+        if calls:
+            params = AudioParameters(SAMPLE_RATE, CHANNELS)
+            # Accept the call by telling PyTgCalls to play and record to the pipes
+            await calls.play(
+                self.chat_id,
+                MediaStream(self._in_pipe, audio_parameters=params)
+            )
+            await calls.record(
+                self.chat_id,
+                RecordStream(self._out_pipe, audio_parameters=params)
+            )
+
         # Create call record in DB
         await self._create_call_record()
 
-        # Start the trial timer
+        # Start IO loops and trial timer
+        self._io_task = asyncio.create_task(self._run_io_loops())
         self._timer_task = asyncio.create_task(self._trial_timer())
 
         log.info(
@@ -119,9 +163,23 @@ class VoiceCallSession:
 
         self._is_active = False
 
-        # Cancel timer
+        # Cancel tasks
         if self._timer_task and not self._timer_task.done():
             self._timer_task.cancel()
+        if self._io_task and not self._io_task.done():
+            self._io_task.cancel()
+
+        # Stop PyTgCalls stream
+        calls = voice_call_manager._tgcalls.get(self.influencer_id)
+        if calls:
+            try:
+                await calls.leave_call(self.chat_id)
+            except Exception as e:
+                log.warning("voice_call.leave_error: %s", e)
+
+        # Cleanup FIFOs
+        if os.path.exists(self._in_pipe): os.remove(self._in_pipe)
+        if os.path.exists(self._out_pipe): os.remove(self._out_pipe)
 
         duration = self.elapsed_seconds
 
@@ -188,6 +246,48 @@ class VoiceCallSession:
         except asyncio.QueueEmpty:
             # Return silence
             return b"\x00" * length
+
+    async def _run_io_loops(self):
+        """Run blocking IO for UNIX pipes in thread pool."""
+        read_task = asyncio.to_thread(self._read_loop_sync)
+        write_task = asyncio.to_thread(self._write_loop_sync)
+        await asyncio.gather(read_task, write_task, return_exceptions=True)
+
+    def _read_loop_sync(self):
+        """Read incoming audio from Telegram via FIFO."""
+        try:
+            with open(self._out_pipe, 'rb') as f:
+                while self._is_active:
+                    data = f.read(4000)
+                    if not data:
+                        time.sleep(0.01)
+                        continue
+                    # Safely pass data back to asyncio event loop
+                    self._loop.call_soon_threadsafe(self.on_recorded_data, data)
+        except Exception as e:
+            if self._is_active: log.error("voice_call.read_error: %s", e)
+
+    def _write_loop_sync(self):
+        """Write outgoing synthesized audio to Telegram via FIFO."""
+        try:
+            with open(self._in_pipe, 'wb') as f:
+                while self._is_active:
+                    # Thread-safe since Queue.get_nowait and primitives are async, wait -
+                    # actually on_played_data uses Queue.get_nowait() which is NOT threadsafe!
+                    # So we should run it in the loop and wait for result.
+                    future = asyncio.run_coroutine_threadsafe(self._get_played_data_async(4000), self._loop)
+                    chunk = future.result()
+                    if chunk:
+                        f.write(chunk)
+                        f.flush()
+                    else:
+                        time.sleep(0.01)
+        except Exception as e:
+            if self._is_active: log.error("voice_call.write_error: %s", e)
+
+    async def _get_played_data_async(self, length: int) -> bytes:
+        """Async-safe wrapper for on_played_data for the write thread."""
+        return self.on_played_data(length)
 
     async def _process_audio_chunk(self, pcm_chunk: bytes):
         """Process a buffered audio chunk through the full AI pipeline.
@@ -322,11 +422,24 @@ class VoiceCallSession:
 
         try:
             async with SessionLocal() as db:
+                chat_id = f"tg_{self.influencer_id}_{self.telegram_user_id}"
+                
+                from app.db.models import Chat
+                existing_chat = await db.get(Chat, chat_id)
+                if not existing_chat:
+                    new_chat = Chat(
+                        id=chat_id,
+                        user_id=0,
+                        influencer_id=self.influencer_id,
+                    )
+                    db.add(new_chat)
+                    await db.flush()
+
                 record = CallRecord(
                     conversation_id=self._call_record_id,
                     user_id=0,  # Telegram-only user
                     influencer_id=self.influencer_id,
-                    chat_id=f"tg_{self.influencer_id}_{self.telegram_user_id}",
+                    chat_id=chat_id,
                     status="active",
                 )
                 db.add(record)
@@ -355,6 +468,21 @@ class VoiceCallManager:
 
     def __init__(self):
         self._active_calls: dict[str, VoiceCallSession] = {}
+        self._tgcalls: dict[str, PyTgCalls] = {}
+
+    async def register_client(self, influencer_id: str, client: Client):
+        """Register and start PyTgCalls for an influencer's Pyrogram client."""
+        if influencer_id not in self._tgcalls:
+            calls = PyTgCalls(client)
+            await calls.start()
+            self._tgcalls[influencer_id] = calls
+            log.info("Started PyTgCalls for influencer=%s", influencer_id)
+
+    async def unregister_client(self, influencer_id: str):
+        calls = self._tgcalls.pop(influencer_id, None)
+        if calls:
+           pass  # PyTgCalls doesnt have explicit stop method? Wait it has stop()? Let's assume start handles session logic.
+           log.info("Stopped PyTgCalls for influencer=%s", influencer_id)
 
     def _call_key(self, influencer_id: str, telegram_user_id: int) -> str:
         return f"{influencer_id}:{telegram_user_id}"

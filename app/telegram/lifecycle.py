@@ -99,7 +99,7 @@ async def stop_all_sessions():
 
 
 def _register_handlers(influencer_id: str, client):
-    """Register message handlers on a Pyrogram client."""
+    """Register message handlers on a Pyrogram client and start voice engine."""
     if influencer_id in _registered_handlers:
         log.debug("Handlers already registered for influencer=%s", influencer_id)
         return
@@ -107,4 +107,9 @@ def _register_handlers(influencer_id: str, client):
     handler = TelegramMessageHandler(client, influencer_id)
     handler.register()
     _registered_handlers[influencer_id] = handler
+
+    # Start PyTgCalls for this influencer
+    from app.telegram.voice_engine import voice_call_manager
+    import asyncio
+    asyncio.create_task(voice_call_manager.register_client(influencer_id, client))
 
