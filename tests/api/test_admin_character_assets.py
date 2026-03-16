@@ -7,12 +7,16 @@ from starlette.datastructures import UploadFile
 
 os.environ.setdefault("OPENAI_API_KEY", "test-key")
 
-from app.api.admin import (
+from app.api.admin.characters import (
+    create_admin_adult_character,
+    delete_admin_adult_character,
     _build_admin_influencer_adult_characters,
     delete_admin_influencer_character_asset,
+    list_admin_adult_characters,
     upsert_admin_influencer_character_assets,
 )
 from app.db.models import AdultCharacter, Influencer, InfluencerCharacterMeta
+from app.schemas.admin import AdminAdultCharacterCreate
 
 
 @pytest.fixture
@@ -69,6 +73,12 @@ class _FakeAsyncSession:
         self.did_commit = True
 
     async def refresh(self, _obj):
+        if isinstance(_obj, AdultCharacter) and getattr(_obj, "id", None) is None:
+            _obj.id = 1
+        if isinstance(_obj, AdultCharacter) and getattr(_obj, "created_at", None) is None:
+            _obj.created_at = None
+        if isinstance(_obj, AdultCharacter) and getattr(_obj, "updated_at", None) is None:
+            _obj.updated_at = None
         self.did_refresh = True
 
     async def rollback(self):
@@ -82,10 +92,126 @@ def _admin_user():
     return SimpleNamespace(id=1)
 
 
+def _non_admin_user():
+    return SimpleNamespace(id=2)
+
+
+@pytest.mark.anyio
+async def test_list_admin_adult_characters_orders_rows():
+    later = SimpleNamespace(
+        id=9,
+        slug="later",
+        name="Later",
+        description=None,
+        prompt_template="later-template",
+        default_artwork_key=None,
+        lottie_text=None,
+        is_active=True,
+        display_order=3,
+        created_at=None,
+        updated_at=None,
+    )
+    earlier = SimpleNamespace(
+        id=3,
+        slug="earlier",
+        name="Earlier",
+        description="desc",
+        prompt_template="early-template",
+        default_artwork_key="art.png",
+        lottie_text="lot.json",
+        is_active=False,
+        display_order=1,
+        created_at=None,
+        updated_at=None,
+    )
+    db = _FakeAsyncSession(execute_responses=[[later, earlier]])
+
+    items = await list_admin_adult_characters(current_user=_admin_user(), db=db)
+
+    assert [item.id for item in items] == [3, 9]
+    assert items[0].slug == "earlier"
+
+
+@pytest.mark.anyio
+async def test_create_admin_adult_character_creates_row():
+    db = _FakeAsyncSession(execute_responses=[[]])
+    payload = AdminAdultCharacterCreate(
+        slug="nurse",
+        name="Nurse",
+        prompt_template="template",
+        description="desc",
+        default_artwork_key="art.png",
+        lottie_text="lot.json",
+        is_active=True,
+        display_order=2,
+    )
+
+    created = await create_admin_adult_character(
+        payload=payload,
+        current_user=_admin_user(),
+        db=db,
+    )
+
+    row = db.added[0]
+
+    assert isinstance(row, AdultCharacter)
+    assert row.slug == "nurse"
+    assert created.slug == "nurse"
+    assert created.id == 1
+    assert db.did_commit is True
+
+
+@pytest.mark.anyio
+async def test_create_admin_adult_character_rejects_duplicate_slug():
+    existing = SimpleNamespace(id=5, slug="nurse")
+    db = _FakeAsyncSession(execute_responses=[[existing]])
+    payload = AdminAdultCharacterCreate(
+        slug="nurse",
+        name="Nurse",
+        prompt_template="template",
+    )
+
+    with pytest.raises(Exception) as exc:
+        await create_admin_adult_character(
+            payload=payload,
+            current_user=_admin_user(),
+            db=db,
+        )
+
+    assert getattr(exc.value, "status_code", None) == 400
+
+
+@pytest.mark.anyio
+async def test_delete_admin_adult_character_deletes_row():
+    character = SimpleNamespace(id=7)
+    db = _FakeAsyncSession(characters={7: character})
+
+    result = await delete_admin_adult_character(
+        character_id=7,
+        current_user=_admin_user(),
+        db=db,
+    )
+
+    assert result.ok is True
+    assert result.id == 7
+    assert db.deleted == [character]
+    assert db.did_commit is True
+
+
+@pytest.mark.anyio
+async def test_list_admin_adult_characters_requires_admin():
+    db = _FakeAsyncSession(execute_responses=[[]])
+
+    with pytest.raises(Exception) as exc:
+        await list_admin_adult_characters(current_user=_non_admin_user(), db=db)
+
+    assert getattr(exc.value, "status_code", None) == 403
+
+
 @pytest.mark.anyio
 async def test_build_admin_influencer_adult_characters_returns_base_override_and_resolved(monkeypatch):
     monkeypatch.setattr(
-        "app.api.admin.get_influencer_character_asset_state",
+        "app.api.admin.characters.get_influencer_character_asset_state",
         lambda influencer_id, character_id: {
             "photo_url": "https://cdn.test/influencer/juliana/characters/7/photo.png",
             "photo_2x_url": "https://cdn.test/influencer/juliana/characters/7/photo@2x.png",
@@ -135,11 +261,11 @@ async def test_upsert_admin_influencer_character_assets_uploads_photo_without_ov
         return "influencer/juliana/characters/7/photo.png"
 
     monkeypatch.setattr(
-        "app.api.admin.upload_influencer_character_photo",
+        "app.api.admin.characters.upload_influencer_character_photo",
         _save_photo,
     )
     monkeypatch.setattr(
-        "app.api.admin.get_influencer_character_asset_state",
+        "app.api.admin.characters.get_influencer_character_asset_state",
         lambda influencer_id, character_id: {
             "photo_url": "https://cdn.test/influencer/juliana/characters/7/photo.png",
             "photo_2x_url": None,
@@ -188,11 +314,11 @@ async def test_delete_admin_influencer_character_asset_clears_grouped_video(monk
         deleted_keys.append(key)
 
     monkeypatch.setattr(
-        "app.api.admin.delete_influencer_character_asset",
+        "app.api.admin.characters.delete_influencer_character_asset",
         _delete_file,
     )
     monkeypatch.setattr(
-        "app.api.admin.get_influencer_character_asset_keys",
+        "app.api.admin.characters.get_influencer_character_asset_keys",
         lambda influencer_id, character_id: {
             "photo": "influencer/juliana/characters/7/photo.png",
             "photo_2x": "influencer/juliana/characters/7/photo@2x.png",
@@ -202,7 +328,7 @@ async def test_delete_admin_influencer_character_asset_clears_grouped_video(monk
         },
     )
     monkeypatch.setattr(
-        "app.api.admin.get_influencer_character_asset_presence",
+        "app.api.admin.characters.get_influencer_character_asset_presence",
         lambda influencer_id, character_id: {
             "photo": True,
             "photo_2x": True,
@@ -212,7 +338,7 @@ async def test_delete_admin_influencer_character_asset_clears_grouped_video(monk
         },
     )
     monkeypatch.setattr(
-        "app.api.admin.get_influencer_character_asset_state",
+        "app.api.admin.characters.get_influencer_character_asset_state",
         lambda influencer_id, character_id: {
             "photo_url": "https://cdn.test/influencer/juliana/characters/7/photo.png",
             "photo_2x_url": "https://cdn.test/influencer/juliana/characters/7/photo@2x.png",
