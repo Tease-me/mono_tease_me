@@ -1,42 +1,44 @@
 import { useEffect, useState } from "react";
 import clsx from "clsx";
 import styles from "./AdultSceneSelectorCard.module.css";
+import LottieAnimation from "@/ui/components/LottieAnimation";
 
 type Props = {
   name: string;
   girlfriend?: boolean;
-  title?: string;
   description: string;
-  imageSrc: string;
+  imageSmallSrc: string;
+  imageLargeSrc: string;
+  titlePlaceholderData: unknown;
 };
 
 export default function AdultSceneSelector({
   name,
-  title,
   description,
-  imageSrc,
+  imageSmallSrc,
+  imageLargeSrc,
+  titlePlaceholderData,
   girlfriend = false
 }: Props) {
   const [imageFailed, setImageFailed] = useState(false);
 
   useEffect(() => {
     setImageFailed(false);
-  }, [imageSrc]);
+  }, [imageSmallSrc, imageLargeSrc]);
 
   return (
     <div className={styles.card}>
       <div className={styles.upperBody}>
         <div className={clsx(styles.imageArea, girlfriend && styles.girlfriend)}>
-          {!girlfriend && (
-            <div className={styles.sceneTitle} aria-hidden="true">
-              {title}
-            </div>
-          )}
+          <div className={styles.titlePlaceholder} aria-hidden="true">
+            <LottieAnimation autoplay loop animationData={titlePlaceholderData} />
+          </div>
           {imageFailed ? (
             <div className={styles.imageFallback} aria-hidden="true" />
           ) : (
             <img
-              src={imageSrc}
+              src={imageSmallSrc}
+              srcSet={`${imageSmallSrc} 1x, ${imageLargeSrc} 2x`}
               alt={name}
               className={styles.image}
               onError={() => setImageFailed(true)}

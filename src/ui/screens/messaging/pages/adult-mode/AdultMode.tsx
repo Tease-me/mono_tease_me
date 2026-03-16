@@ -2,31 +2,100 @@ import styles from "./AdultMode.module.css";
 import AdultSceneSelector from "@/ui/components/cards/AdultSceneSelectorCard";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import SvgPack from "@/utils/SvgPack";
+import adultTitlePlaceholder from "@/assets/adult-mode/local-test/adultTitlePlaceholder.json";
+import mainImageDefaultSmall from "@/assets/adult-mode/local-test/images/mainImageDefault.png";
+import mainImageDefaultLarge from "@/assets/adult-mode/local-test/images/mainImageDefault@2x.png";
+import mainImageGymSmall from "@/assets/adult-mode/local-test/images/mainImageGym.png";
+import mainImageGymLarge from "@/assets/adult-mode/local-test/images/mainImageGym@2x.png";
+import mainImageHotTeacherSmall from "@/assets/adult-mode/local-test/images/mainImageHotTeacher.png";
+import mainImageHotTeacherLarge from "@/assets/adult-mode/local-test/images/mainImageHotTeacher@2x.png";
+import mainImageMaidSmall from "@/assets/adult-mode/local-test/images/mainImageMaid.png";
+import mainImageMaidLarge from "@/assets/adult-mode/local-test/images/mainImageMaid@2x.png";
+import mainImageNurseSmall from "@/assets/adult-mode/local-test/images/mainImageNurse.png";
+import mainImageNurseLarge from "@/assets/adult-mode/local-test/images/mainImageNurse@2x.png";
+import mainImagePoliceSmall from "@/assets/adult-mode/local-test/images/mainImagePolice.png";
+import mainImagePoliceLarge from "@/assets/adult-mode/local-test/images/mainImagePolice@2x.png";
+import videoPoster from "@/assets/adult-mode/local-test/video/posterJulianaPolice-min2.png";
+import videoMp4 from "@/assets/adult-mode/local-test/video/videoJulianaPolice-min2.mp4";
+import videoWebm from "@/assets/adult-mode/local-test/video/videoJulianaPolice-min2.webm";
 
+type Scene = {
+  name: string;
+  description: string;
+  image: {
+    small: string;
+    large: string;
+  };
+  video: {
+    image: string;
+    mp4: string;
+    webm: string;
+  };
+  default?: boolean;
+};
 
 export default function AdultMode() {
-  const scenes = [
+  const sharedVideo = {
+    image: videoPoster,
+    mp4: videoMp4,
+    webm: videoWebm
+  };
+
+  const scenes: Scene[] = [
     {
       name: "Default",
-      title: "Girlfriend",
-      description: "Start your day with a little tease. Perfect for those who like to wake up slowly and enjoy the anticipation.",
-      imageSrc: "https://static.vecteezy.com/system/resources/thumbnails/046/822/632/small/a-businesswoman-in-a-sharp-outfit-isolated-on-a-transparent-background-png.png",
-      videoSrc: "/assets/video/scene1.mp4",
+      description: "A playful everyday tease with a familiar, flirty energy.",
+      image: {
+        small: mainImageDefaultSmall,
+        large: mainImageDefaultLarge
+      },
+      video: sharedVideo,
       default: true
     },
     {
-      name: "Office Fantasy",
-      title: "Office",
-      description: "A little escape from the daily grind. Ideal for those who want to add some excitement to their workday.",
-      imageSrc: "https://static.vecteezy.com/system/resources/previews/046/613/575/non_2x/cute-model-girl-with-clean-healthy-skin-on-transparent-background-free-png.png",
-      videoSrc: "/assets/video/scene2.mp4"
+      name: "Gym",
+      description: "Confident, sweaty, and intense. A high-energy workout fantasy.",
+      image: {
+        small: mainImageGymSmall,
+        large: mainImageGymLarge
+      },
+      video: sharedVideo
     },
     {
-      name: "Evening Seduction",
-      title: "Police",
-      description: "Unwind after a long day with a seductive tease. Great for those who want to relax and indulge in some fantasy.",
-      imageSrc: "https://static.vecteezy.com/system/resources/previews/046/613/575/non_2x/cute-model-girl-with-clean-healthy-skin-on-transparent-background-free-png.png",
-      videoSrc: "/assets/video/scene3.mp4"
+      name: "Hot Teacher",
+      description: "Strict, seductive, and impossible to ignore after class.",
+      image: {
+        small: mainImageHotTeacherSmall,
+        large: mainImageHotTeacherLarge
+      },
+      video: sharedVideo
+    },
+    {
+      name: "Maid",
+      description: "Polite on the surface, but full of teasing tension underneath.",
+      image: {
+        small: mainImageMaidSmall,
+        large: mainImageMaidLarge
+      },
+      video: sharedVideo
+    },
+    {
+      name: "Nurse",
+      description: "Soft care, close attention, and a dangerously intimate bedside manner.",
+      image: {
+        small: mainImageNurseSmall,
+        large: mainImageNurseLarge
+      },
+      video: sharedVideo
+    },
+    {
+      name: "Police",
+      description: "Commanding, bold, and ready to take control of the situation.",
+      image: {
+        small: mainImagePoliceSmall,
+        large: mainImagePoliceLarge
+      },
+      video: sharedVideo
     }
   ];
 
@@ -44,9 +113,10 @@ export default function AdultMode() {
               <div key={scene.name} className={styles.sceneItem}>
                 <AdultSceneSelector
                   name={scene.name}
-                  title={scene.title}
                   description={scene.description}
-                  imageSrc={scene.imageSrc}
+                  imageSmallSrc={scene.image.small}
+                  imageLargeSrc={scene.image.large}
+                  titlePlaceholderData={adultTitlePlaceholder}
                   girlfriend={Boolean(scene.default)}
                 />
                 <IconButton
