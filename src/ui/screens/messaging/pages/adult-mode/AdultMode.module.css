@@ -1,0 +1,91 @@
+.container {
+  width: 100%;
+  height: 100%;
+}
+
+.page1 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 24px;
+  padding: 24px 20px 40px;
+}
+
+.header {
+  color: #fff;
+  font-size: 32px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.selectionArea {
+  width: 100%;
+  max-width: 100%;
+}
+
+.scenesList {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  gap: 24px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+  justify-content: safe center;
+  padding: 0 20px 16px;
+}
+
+.scenesList::-webkit-scrollbar {
+  display: none;
+}
+
+.sceneItem {
+  display: flex;
+  flex: 0 0 560px;
+  width: 560px;
+  max-width: 560px;
+  flex-direction: column;
+  gap: 32px;
+  scroll-snap-align: start;
+}
+
+.sceneButton {
+  flex: 0 0 auto;
+  width: fit-content;
+  min-height: 64px;
+  height: 64px;
+  align-self: center;
+}
+
+.edgeFade {
+  mask-image: linear-gradient(90deg, black 0%, black 90%, transparent 100%);
+}
+
+.page2 {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .page1 {
+    padding: 20px 16px 32px;
+  }
+
+  .header {
+    font-size: 26px;
+  }
+
+  .scenesList {
+    gap: 14px;
+    padding: 0 16px 16px;
+    scroll-snap-type: none;
+    justify-content: flex-start;
+  }
+
+  .sceneItem {
+    flex: 0 0 min(320px, calc(100vw - 88px));
+    width: min(320px, calc(100vw - 88px));
+    max-width: none;
+    scroll-snap-align: unset;
+  }
+}
