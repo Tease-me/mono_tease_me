@@ -152,7 +152,7 @@ def generate_presigned_urls_for_keys(keys: list[str], expires: int = 3600) -> li
     return [generate_presigned_url(key, expires) for key in keys]
         
 def _influencer_key(influencer_id: str, suffix: str) -> str:
-    return f"{settings.INFLUENCER_PREFIX}/{influencer_id}/{suffix}"
+    return f"{settings.INFLUENCER_BUCKET_PREFIX}/{influencer_id}/{suffix}"
 
 def _is_heic(filename: str | None, content_type: str | None) -> bool:
     """Check if the file is HEIC/HEIF format."""

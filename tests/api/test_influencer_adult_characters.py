@@ -42,8 +42,16 @@ class _FakeAsyncSession:
 @pytest.mark.anyio
 async def test_build_influencer_adult_characters_includes_lottie_text_key(monkeypatch):
     monkeypatch.setattr(
-        "app.api.influencer.generate_presigned_url",
-        lambda key: f"https://example.test/{key}",
+        "app.api.influencer.get_influencer_character_asset_state",
+        lambda influencer_id, character_id: {
+            "photo_url": f"https://example.test/{influencer_id}/{character_id}/photo.png",
+            "photo_2x_url": f"https://example.test/{influencer_id}/{character_id}/photo@2x.png",
+            "video_mp4_url": None,
+            "video_webm_url": None,
+            "video_preview_png_url": None,
+            "has_photo": True,
+            "has_complete_video_set": False,
+        },
     )
 
     character = SimpleNamespace(
@@ -59,8 +67,6 @@ async def test_build_influencer_adult_characters_includes_lottie_text_key(monkey
     )
     overlay = SimpleNamespace(
         character_id=2,
-        photo_key="overlay/nurse.png",
-        video_key=None,
         meta_json={"theme": "medical"},
         is_active=True,
     )
@@ -71,17 +77,30 @@ async def test_build_influencer_adult_characters_includes_lottie_text_key(monkey
     assert len(items) == 1
     item = items[0]
     assert item.lottie_text == "lottie/nurse.json"
-    assert item.photo_key == "overlay/nurse.png"
-    assert item.photo_url == "https://example.test/overlay/nurse.png"
-    assert item.video_key is None
+    assert item.photo_url == "https://example.test/juliana/2/photo.png"
+    assert item.photo_2x_url == "https://example.test/juliana/2/photo@2x.png"
+    assert item.video_mp4_url is None
+    assert item.has_photo is True
     assert item.meta_json == {"theme": "medical"}
 
 
 @pytest.mark.anyio
 async def test_build_influencer_adult_characters_keeps_null_lottie_text(monkeypatch):
     monkeypatch.setattr(
-        "app.api.influencer.generate_presigned_url",
-        lambda key: f"https://example.test/{key}",
+        "app.api.influencer.get_influencer_character_asset_state",
+        lambda influencer_id, character_id: {
+            "photo_url": f"https://example.test/{influencer_id}/{character_id}/photo.png"
+            if character_id == 3
+            else None,
+            "photo_2x_url": f"https://example.test/{influencer_id}/{character_id}/photo@2x.png"
+            if character_id == 3
+            else None,
+            "video_mp4_url": None,
+            "video_webm_url": None,
+            "video_preview_png_url": None,
+            "has_photo": character_id == 3,
+            "has_complete_video_set": False,
+        },
     )
 
     first = SimpleNamespace(
@@ -113,5 +132,5 @@ async def test_build_influencer_adult_characters_keeps_null_lottie_text(monkeypa
     assert [item.id for item in items] == [3, 9]
     assert items[0].lottie_text == "lottie/beta.json"
     assert items[1].lottie_text is None
-    assert items[0].photo_key == "artwork/beta.png"
-    assert items[0].photo_url == "https://example.test/artwork/beta.png"
+    assert items[0].photo_url == "https://example.test/juliana/3/photo.png"
+    assert items[1].photo_url is None

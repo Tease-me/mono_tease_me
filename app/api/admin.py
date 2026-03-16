@@ -57,6 +57,9 @@ from app.use_cases.admin_logs import (
 )
 from app.utils.storage.s3 import delete_file_from_s3, generate_presigned_url, save_sample_audio_to_s3
 from app.repositories.influencer_character_assets_repository import (
+    get_influencer_character_asset_keys,
+    get_influencer_character_asset_presence,
+    get_influencer_character_asset_state,
     delete_influencer_character_asset,
     upload_influencer_character_photo,
     upload_influencer_character_video,
@@ -97,16 +100,6 @@ async def _get_influencer_character_overlay(
     return result.scalars().first()
 
 
-def _overlay_has_values(overlay: InfluencerCharacterMeta) -> bool:
-    return any(
-        (
-            overlay.photo_key,
-            overlay.video_key,
-            overlay.meta_json,
-        )
-    )
-
-
 async def _build_admin_influencer_adult_characters(
     db: AsyncSession,
     influencer_id: str,
@@ -135,8 +128,7 @@ async def _build_admin_influencer_adult_characters(
     items: list[AdminInfluencerAdultCharacterAssetOut] = []
     for character in characters:
         overlay = overlays.get(character.id)
-        resolved_photo_key = overlay.photo_key if overlay and overlay.photo_key else character.default_artwork_key
-        resolved_video_key = overlay.video_key if overlay and overlay.video_key else None
+        asset_state = get_influencer_character_asset_state(influencer_id, character.id)
         items.append(
             AdminInfluencerAdultCharacterAssetOut(
                 id=character.id,
@@ -145,14 +137,14 @@ async def _build_admin_influencer_adult_characters(
                 description=character.description,
                 is_active=character.is_active,
                 display_order=character.display_order,
-                base_photo_key=character.default_artwork_key,
                 base_lottie_text=character.lottie_text,
-                override_photo_key=overlay.photo_key if overlay else None,
-                override_video_key=overlay.video_key if overlay else None,
-                resolved_photo_key=resolved_photo_key,
-                resolved_photo_url=generate_presigned_url(resolved_photo_key) if resolved_photo_key else None,
-                resolved_video_key=resolved_video_key,
-                resolved_video_url=generate_presigned_url(resolved_video_key) if resolved_video_key else None,
+                photo_url=asset_state["photo_url"],
+                photo_2x_url=asset_state["photo_2x_url"],
+                video_mp4_url=asset_state["video_mp4_url"],
+                video_webm_url=asset_state["video_webm_url"],
+                video_preview_png_url=asset_state["video_preview_png_url"],
+                has_photo=asset_state["has_photo"],
+                has_complete_video_set=asset_state["has_complete_video_set"],
                 resolved_lottie_text=character.lottie_text,
                 meta_json=overlay.meta_json if overlay else None,
                 has_influencer_override=overlay is not None,
@@ -674,7 +666,10 @@ async def upsert_admin_influencer_character_assets(
     influencer_id: str,
     character_id: int,
     photo: UploadFile | None = File(default=None),
-    video: UploadFile | None = File(default=None),
+    photo_2x: UploadFile | None = File(default=None),
+    video_mp4: UploadFile | None = File(default=None),
+    video_webm: UploadFile | None = File(default=None),
+    video_preview_png: UploadFile | None = File(default=None),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -689,88 +684,113 @@ async def upsert_admin_influencer_character_assets(
     if not character or not character.is_active:
         raise HTTPException(status_code=404, detail="Adult character not found")
 
-    if not any((photo, video)):
+    if not any((photo, photo_2x, video_mp4, video_webm, video_preview_png)):
         raise HTTPException(status_code=400, detail="At least one asset file is required")
 
     overlay = await _get_influencer_character_overlay(db, influencer_id, character_id)
-    if not overlay:
-        overlay = InfluencerCharacterMeta(
-            influencer_id=influencer_id,
-            character_id=character_id,
-        )
-        db.add(overlay)
-
-    previous_photo_key = overlay.photo_key
-    previous_video_key = overlay.video_key
-    uploaded_photo_key: str | None = None
-    uploaded_video_key: str | None = None
+    uploaded_keys: list[str] = []
 
     try:
         if photo:
             photo_bytes = await photo.read()
             if not photo_bytes:
                 raise HTTPException(status_code=400, detail="Empty photo file")
-            uploaded_photo_key = await upload_influencer_character_photo(
+            uploaded_keys.append(
+                await upload_influencer_character_photo(
                 io.BytesIO(photo_bytes),
                 photo.filename,
                 photo.content_type or "image/jpeg",
                 influencer_id,
                 character_id,
+                variant="photo",
+                )
             )
-            overlay.photo_key = uploaded_photo_key
 
-        if video:
-            video_bytes = await video.read()
-            if not video_bytes:
-                raise HTTPException(status_code=400, detail="Empty video file")
-            uploaded_video_key = await upload_influencer_character_video(
-                io.BytesIO(video_bytes),
-                video.filename,
-                video.content_type or "video/mp4",
-                influencer_id,
-                character_id,
+        if photo_2x:
+            photo_2x_bytes = await photo_2x.read()
+            if not photo_2x_bytes:
+                raise HTTPException(status_code=400, detail="Empty photo_2x file")
+            uploaded_keys.append(
+                await upload_influencer_character_photo(
+                    io.BytesIO(photo_2x_bytes),
+                    photo_2x.filename,
+                    photo_2x.content_type or "image/jpeg",
+                    influencer_id,
+                    character_id,
+                    variant="photo_2x",
+                )
             )
-            overlay.video_key = uploaded_video_key
 
-        db.add(overlay)
-        await db.commit()
-        await db.refresh(overlay)
+        if video_mp4:
+            video_mp4_bytes = await video_mp4.read()
+            if not video_mp4_bytes:
+                raise HTTPException(status_code=400, detail="Empty video_mp4 file")
+            uploaded_keys.append(
+                await upload_influencer_character_video(
+                    io.BytesIO(video_mp4_bytes),
+                    video_mp4.content_type or "video/mp4",
+                    influencer_id,
+                    character_id,
+                    variant="video_mp4",
+                )
+            )
+
+        if video_webm:
+            video_webm_bytes = await video_webm.read()
+            if not video_webm_bytes:
+                raise HTTPException(status_code=400, detail="Empty video_webm file")
+            uploaded_keys.append(
+                await upload_influencer_character_video(
+                    io.BytesIO(video_webm_bytes),
+                    video_webm.content_type or "video/webm",
+                    influencer_id,
+                    character_id,
+                    variant="video_webm",
+                )
+            )
+
+        if video_preview_png:
+            preview_bytes = await video_preview_png.read()
+            if not preview_bytes:
+                raise HTTPException(status_code=400, detail="Empty video_preview_png file")
+            uploaded_keys.append(
+                await upload_influencer_character_video(
+                    io.BytesIO(preview_bytes),
+                    video_preview_png.content_type or "image/png",
+                    influencer_id,
+                    character_id,
+                    variant="video_preview_png",
+                )
+            )
     except HTTPException:
-        await db.rollback()
-        for key in (uploaded_photo_key, uploaded_video_key):
-            if key:
-                try:
-                    await delete_influencer_character_asset(key)
-                except Exception:
-                    log.warning("Failed to cleanup uploaded character asset %s", key, exc_info=True)
+        for key in uploaded_keys:
+            try:
+                await delete_influencer_character_asset(key)
+            except Exception:
+                log.warning("Failed to cleanup uploaded character asset %s", key, exc_info=True)
         raise
     except Exception:
-        await db.rollback()
-        for key in (uploaded_photo_key, uploaded_video_key):
-            if key:
-                try:
-                    await delete_influencer_character_asset(key)
-                except Exception:
-                    log.warning("Failed to cleanup uploaded character asset %s", key, exc_info=True)
+        for key in uploaded_keys:
+            try:
+                await delete_influencer_character_asset(key)
+            except Exception:
+                log.warning("Failed to cleanup uploaded character asset %s", key, exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to save character assets")
 
-    for old_key, new_key in (
-        (previous_photo_key, overlay.photo_key),
-        (previous_video_key, overlay.video_key),
-    ):
-        if old_key and new_key and old_key != new_key:
-            try:
-                await delete_influencer_character_asset(old_key)
-            except Exception:
-                log.warning("Failed to delete previous character asset %s", old_key, exc_info=True)
+    asset_state = get_influencer_character_asset_state(influencer_id, character_id)
 
     return AdminInfluencerCharacterAssetMutationOut(
         influencer_id=influencer_id,
         character_id=character_id,
-        photo_key=overlay.photo_key,
-        video_key=overlay.video_key,
-        meta_json=overlay.meta_json,
-        has_influencer_override=True,
+        photo_url=asset_state["photo_url"],
+        photo_2x_url=asset_state["photo_2x_url"],
+        video_mp4_url=asset_state["video_mp4_url"],
+        video_webm_url=asset_state["video_webm_url"],
+        video_preview_png_url=asset_state["video_preview_png_url"],
+        has_photo=asset_state["has_photo"],
+        has_complete_video_set=asset_state["has_complete_video_set"],
+        meta_json=overlay.meta_json if overlay else None,
+        has_influencer_override=overlay is not None,
     )
 
 
@@ -781,7 +801,7 @@ async def upsert_admin_influencer_character_assets(
 async def delete_admin_influencer_character_asset(
     influencer_id: str,
     character_id: int,
-    asset_type: Literal["photo", "video"],
+    asset_type: Literal["photo", "photo_2x", "video_mp4", "video_webm", "video_preview_png", "video"],
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -792,45 +812,51 @@ async def delete_admin_influencer_character_asset(
     if not influencer:
         raise HTTPException(status_code=404, detail="Influencer not found")
 
+    character = await db.get(AdultCharacter, character_id)
+    if not character or not character.is_active:
+        raise HTTPException(status_code=404, detail="Adult character not found")
+
     overlay = await _get_influencer_character_overlay(db, influencer_id, character_id)
-    if not overlay:
-        raise HTTPException(status_code=404, detail="Character override not found")
-
-    current_key = {
-        "photo": overlay.photo_key,
-        "video": overlay.video_key,
+    keys = get_influencer_character_asset_keys(influencer_id, character_id)
+    presence = get_influencer_character_asset_presence(influencer_id, character_id)
+    target_keys = {
+        "photo": [keys["photo"]],
+        "photo_2x": [keys["photo_2x"]],
+        "video_mp4": [keys["video_mp4"]],
+        "video_webm": [keys["video_webm"]],
+        "video_preview_png": [keys["video_preview_png"]],
+        "video": [keys["video_mp4"], keys["video_webm"], keys["video_preview_png"]],
     }[asset_type]
-    if not current_key:
-        raise HTTPException(status_code=404, detail=f"{asset_type} override not found")
+    key_to_presence = {
+        keys["photo"]: presence["photo"],
+        keys["photo_2x"]: presence["photo_2x"],
+        keys["video_mp4"]: presence["video_mp4"],
+        keys["video_webm"]: presence["video_webm"],
+        keys["video_preview_png"]: presence["video_preview_png"],
+    }
+    existing_keys = [key for key in target_keys if key_to_presence[key]]
+    if not existing_keys:
+        raise HTTPException(status_code=404, detail=f"{asset_type} asset not found")
 
-    if asset_type == "photo":
-        overlay.photo_key = None
-    else:
-        overlay.video_key = None
+    for key in existing_keys:
+        try:
+            await delete_influencer_character_asset(key)
+        except Exception:
+            log.warning("Failed to delete character asset file %s", key, exc_info=True)
 
-    overlay_exists_after_delete = _overlay_has_values(overlay)
-    try:
-        if overlay_exists_after_delete:
-            db.add(overlay)
-        else:
-            await db.delete(overlay)
-        await db.commit()
-    except Exception:
-        await db.rollback()
-        raise HTTPException(status_code=500, detail="Failed to delete character asset")
-
-    try:
-        await delete_influencer_character_asset(current_key)
-    except Exception:
-        log.warning("Failed to delete character asset file %s", current_key, exc_info=True)
-
+    asset_state = get_influencer_character_asset_state(influencer_id, character_id)
     return AdminInfluencerCharacterAssetMutationOut(
         influencer_id=influencer_id,
         character_id=character_id,
-        photo_key=overlay.photo_key if overlay_exists_after_delete else None,
-        video_key=overlay.video_key if overlay_exists_after_delete else None,
-        meta_json=overlay.meta_json if overlay_exists_after_delete else None,
-        has_influencer_override=overlay_exists_after_delete,
+        photo_url=asset_state["photo_url"],
+        photo_2x_url=asset_state["photo_2x_url"],
+        video_mp4_url=asset_state["video_mp4_url"],
+        video_webm_url=asset_state["video_webm_url"],
+        video_preview_png_url=asset_state["video_preview_png_url"],
+        has_photo=asset_state["has_photo"],
+        has_complete_video_set=asset_state["has_complete_video_set"],
+        meta_json=overlay.meta_json if overlay else None,
+        has_influencer_override=overlay is not None,
     )
 
 

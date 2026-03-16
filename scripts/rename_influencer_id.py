@@ -95,12 +95,12 @@ def rewrite_s3_key(key: str | None, old_id: str, new_id: str) -> str | None:
         return key
 
     prefixes = (
-        f"{settings.INFLUENCER_PREFIX}/{old_id}/",
+        f"{settings.INFLUENCER_BUCKET_PREFIX}/{old_id}/",
         f"influencer-audio/{old_id}/",
         f"samples/{old_id}/",
     )
     replacements = (
-        f"{settings.INFLUENCER_PREFIX}/{new_id}/",
+        f"{settings.INFLUENCER_BUCKET_PREFIX}/{new_id}/",
         f"influencer-audio/{new_id}/",
         f"samples/{new_id}/",
     )
@@ -194,7 +194,7 @@ def list_s3_keys_for_prefix(s3_client: Any, bucket: str, prefix: str) -> list[st
 
 def discover_influencer_s3_keys(s3_client: Any, bucket: str, old_id: str) -> list[str]:
     prefixes = (
-        f"{settings.INFLUENCER_PREFIX}/{old_id}/",
+        f"{settings.INFLUENCER_BUCKET_PREFIX}/{old_id}/",
         f"influencer-audio/{old_id}/",
         f"samples/{old_id}/",
     )

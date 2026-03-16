@@ -24,6 +24,9 @@ from app.services.influencer_cleanup import (
     InfluencerDeleteNotFoundError,
     delete_influencer_and_chat_history,
 )
+from app.repositories.influencer_character_assets_repository import (
+    get_influencer_character_asset_state,
+)
 from app.utils.storage.s3 import (
     generate_presigned_url,
     get_influencer_audio_download_url,
@@ -90,10 +93,7 @@ async def _build_influencer_adult_characters(
     items: list[InfluencerAdultCharacterOut] = []
     for character in characters:
         overlay = overlays.get(character.id)
-        resolved_photo_key = (
-            overlay.photo_key if overlay and overlay.photo_key else character.default_artwork_key
-        )
-        resolved_video_key = overlay.video_key if overlay and overlay.video_key else None
+        asset_state = get_influencer_character_asset_state(influencer_id, character.id)
         items.append(
             InfluencerAdultCharacterOut(
                 id=character.id,
@@ -105,10 +105,13 @@ async def _build_influencer_adult_characters(
                 display_order=character.display_order,
                 default_artwork_key=character.default_artwork_key,
                 lottie_text=character.lottie_text,
-                photo_key=resolved_photo_key,
-                photo_url=generate_presigned_url(resolved_photo_key) if resolved_photo_key else None,
-                video_key=resolved_video_key,
-                video_url=generate_presigned_url(resolved_video_key) if resolved_video_key else None,
+                photo_url=asset_state["photo_url"],
+                photo_2x_url=asset_state["photo_2x_url"],
+                video_mp4_url=asset_state["video_mp4_url"],
+                video_webm_url=asset_state["video_webm_url"],
+                video_preview_png_url=asset_state["video_preview_png_url"],
+                has_photo=asset_state["has_photo"],
+                has_complete_video_set=asset_state["has_complete_video_set"],
                 meta_json=overlay.meta_json if overlay else None,
                 has_influencer_override=overlay is not None,
             )

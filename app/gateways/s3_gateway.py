@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import boto3
+import botocore.exceptions
 
 from app.core.config import settings
 
@@ -52,6 +53,17 @@ def delete_object(*, bucket: str, key: str) -> None:
 def list_objects(*, bucket: str, prefix: str) -> list[str]:
     resp = s3_client.list_objects_v2(Bucket=bucket, Prefix=prefix)
     return [obj["Key"] for obj in resp.get("Contents", [])]
+
+
+def object_exists(*, bucket: str, key: str) -> bool:
+    try:
+        s3_client.head_object(Bucket=bucket, Key=key)
+        return True
+    except botocore.exceptions.ClientError as exc:
+        code = str(exc.response.get("Error", {}).get("Code", ""))
+        if code in {"404", "NoSuchKey", "NotFound"}:
+            return False
+        raise
 
 
 def generate_presigned_get_url(*, bucket: str, key: str, expires: int = 3600) -> str:

@@ -84,7 +84,18 @@ def _admin_user():
 
 @pytest.mark.anyio
 async def test_build_admin_influencer_adult_characters_returns_base_override_and_resolved(monkeypatch):
-    monkeypatch.setattr("app.api.admin.generate_presigned_url", lambda key: f"https://cdn.test/{key}")
+    monkeypatch.setattr(
+        "app.api.admin.get_influencer_character_asset_state",
+        lambda influencer_id, character_id: {
+            "photo_url": "https://cdn.test/influencer/juliana/characters/7/photo.png",
+            "photo_2x_url": "https://cdn.test/influencer/juliana/characters/7/photo@2x.png",
+            "video_mp4_url": "https://cdn.test/influencer/juliana/characters/7/video.mp4",
+            "video_webm_url": "https://cdn.test/influencer/juliana/characters/7/video.webm",
+            "video_preview_png_url": "https://cdn.test/influencer/juliana/characters/7/video.png",
+            "has_photo": True,
+            "has_complete_video_set": True,
+        },
+    )
 
     character = SimpleNamespace(
         id=7,
@@ -98,8 +109,6 @@ async def test_build_admin_influencer_adult_characters_returns_base_override_and
     )
     overlay = SimpleNamespace(
         character_id=7,
-        photo_key="override/photo.png",
-        video_key="override/video.mp4",
         meta_json={"accent": "red"},
         is_active=True,
     )
@@ -109,25 +118,37 @@ async def test_build_admin_influencer_adult_characters_returns_base_override_and
 
     assert len(items) == 1
     item = items[0]
-    assert item.base_photo_key == "base/photo.png"
     assert item.base_lottie_text == "base/lottie.json"
-    assert item.override_photo_key == "override/photo.png"
-    assert item.override_video_key == "override/video.mp4"
-    assert item.resolved_photo_key == "override/photo.png"
-    assert item.resolved_video_key == "override/video.mp4"
+    assert item.photo_url == "https://cdn.test/influencer/juliana/characters/7/photo.png"
+    assert item.photo_2x_url == "https://cdn.test/influencer/juliana/characters/7/photo@2x.png"
+    assert item.video_mp4_url == "https://cdn.test/influencer/juliana/characters/7/video.mp4"
+    assert item.video_webm_url == "https://cdn.test/influencer/juliana/characters/7/video.webm"
+    assert item.video_preview_png_url == "https://cdn.test/influencer/juliana/characters/7/video.png"
+    assert item.has_photo is True
+    assert item.has_complete_video_set is True
     assert item.resolved_lottie_text == "base/lottie.json"
-    assert item.resolved_photo_url == "https://cdn.test/override/photo.png"
-    assert item.resolved_video_url == "https://cdn.test/override/video.mp4"
 
 
 @pytest.mark.anyio
-async def test_upsert_admin_influencer_character_assets_creates_overlay_and_preserves_other_fields(monkeypatch):
+async def test_upsert_admin_influencer_character_assets_uploads_photo_without_overlay_write(monkeypatch):
     async def _save_photo(*_args, **_kwargs):
-        return "s3/photo.png"
+        return "influencer/juliana/characters/7/photo.png"
 
     monkeypatch.setattr(
         "app.api.admin.upload_influencer_character_photo",
         _save_photo,
+    )
+    monkeypatch.setattr(
+        "app.api.admin.get_influencer_character_asset_state",
+        lambda influencer_id, character_id: {
+            "photo_url": "https://cdn.test/influencer/juliana/characters/7/photo.png",
+            "photo_2x_url": None,
+            "video_mp4_url": None,
+            "video_webm_url": None,
+            "video_preview_png_url": None,
+            "has_photo": False,
+            "has_complete_video_set": False,
+        },
     )
 
     influencer = SimpleNamespace(id="juliana")
@@ -142,22 +163,25 @@ async def test_upsert_admin_influencer_character_assets_creates_overlay_and_pres
         "juliana",
         7,
         photo=UploadFile(file=BytesIO(b"photo"), filename="photo.png"),
-        video=None,
+        photo_2x=None,
+        video_mp4=None,
+        video_webm=None,
+        video_preview_png=None,
         current_user=_admin_user(),
         db=db,
     )
 
     assert result.influencer_id == "juliana"
     assert result.character_id == 7
-    assert result.photo_key == "s3/photo.png"
-    assert result.video_key is None
-    overlay = next(obj for obj in db.added if isinstance(obj, InfluencerCharacterMeta))
-    assert overlay.photo_key == "s3/photo.png"
-    assert db.did_commit is True
+    assert result.photo_url == "https://cdn.test/influencer/juliana/characters/7/photo.png"
+    assert result.photo_2x_url is None
+    assert result.has_photo is False
+    assert db.added == []
+    assert db.did_commit is False
 
 
 @pytest.mark.anyio
-async def test_delete_admin_influencer_character_asset_clears_only_requested_field(monkeypatch):
+async def test_delete_admin_influencer_character_asset_clears_grouped_video(monkeypatch):
     deleted_keys = []
 
     async def _delete_file(key):
@@ -167,18 +191,50 @@ async def test_delete_admin_influencer_character_asset_clears_only_requested_fie
         "app.api.admin.delete_influencer_character_asset",
         _delete_file,
     )
+    monkeypatch.setattr(
+        "app.api.admin.get_influencer_character_asset_keys",
+        lambda influencer_id, character_id: {
+            "photo": "influencer/juliana/characters/7/photo.png",
+            "photo_2x": "influencer/juliana/characters/7/photo@2x.png",
+            "video_mp4": "influencer/juliana/characters/7/video.mp4",
+            "video_webm": "influencer/juliana/characters/7/video.webm",
+            "video_preview_png": "influencer/juliana/characters/7/video.png",
+        },
+    )
+    monkeypatch.setattr(
+        "app.api.admin.get_influencer_character_asset_presence",
+        lambda influencer_id, character_id: {
+            "photo": True,
+            "photo_2x": True,
+            "video_mp4": True,
+            "video_webm": True,
+            "video_preview_png": False,
+        },
+    )
+    monkeypatch.setattr(
+        "app.api.admin.get_influencer_character_asset_state",
+        lambda influencer_id, character_id: {
+            "photo_url": "https://cdn.test/influencer/juliana/characters/7/photo.png",
+            "photo_2x_url": "https://cdn.test/influencer/juliana/characters/7/photo@2x.png",
+            "video_mp4_url": None,
+            "video_webm_url": None,
+            "video_preview_png_url": None,
+            "has_photo": True,
+            "has_complete_video_set": False,
+        },
+    )
 
     influencer = SimpleNamespace(id="juliana")
+    character = SimpleNamespace(id=7, is_active=True)
     overlay = SimpleNamespace(
         influencer_id="juliana",
         character_id=7,
-        photo_key="s3/photo.png",
-        video_key="s3/video.mp4",
         meta_json=None,
         is_active=True,
     )
     db = _FakeAsyncSession(
         influencers={"juliana": influencer},
+        characters={7: character},
         execute_responses=[[overlay]],
     )
 
@@ -190,8 +246,11 @@ async def test_delete_admin_influencer_character_asset_clears_only_requested_fie
         db=db,
     )
 
-    assert result.photo_key == "s3/photo.png"
-    assert result.video_key is None
+    assert result.photo_url == "https://cdn.test/influencer/juliana/characters/7/photo.png"
+    assert result.video_mp4_url is None
     assert result.has_influencer_override is True
-    assert deleted_keys == ["s3/video.mp4"]
+    assert deleted_keys == [
+        "influencer/juliana/characters/7/video.mp4",
+        "influencer/juliana/characters/7/video.webm",
+    ]
     assert db.deleted == []

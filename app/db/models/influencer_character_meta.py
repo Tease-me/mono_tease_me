@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -23,8 +23,6 @@ class InfluencerCharacterMeta(Base):
         ForeignKey("adult_characters.id", ondelete="CASCADE"),
         nullable=False,
     )
-    photo_key: Mapped[str | None] = mapped_column(String, nullable=True)
-    video_key: Mapped[str | None] = mapped_column(String, nullable=True)
     meta_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     is_active: Mapped[bool] = mapped_column(
         Boolean,
