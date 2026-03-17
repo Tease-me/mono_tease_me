@@ -7,6 +7,7 @@ import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import styles from "./AdultMode.module.css";
 import SvgPack from "@/utils/SvgPack";
 import useCallWebRTC from "@/hooks/useCallWebRTC";
+import { formatTime } from "@/utils/time";
 
 type Scene = {
   id: number;
@@ -63,6 +64,7 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
   const [sessionState, setSessionState] = useState<SessionState>("preview");
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showCallTime, setShowCallTime] = useState(0);
   const { setInfluencerId, startConversation, stopConversation, status } =
     useCallWebRTC();
   const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
@@ -77,6 +79,21 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
   useEffect(() => {
     setInfluencerId(influencerId);
   }, [influencerId, setInfluencerId]);
+
+  useEffect(() => {
+    const isActive = status === "connecting" || status === "connected";
+
+    if (!isActive) {
+      setShowCallTime(0);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setShowCallTime((prev) => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [status]);
 
   useEffect(() => {
     if (!influencerId) {
@@ -298,7 +315,7 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
               className={`${styles.activePanel} ${sessionState === "active" ? styles.activePanelVisible : styles.activePanelHidden}`}
             >
               <div className={styles.subtitle}>{statusLabel}</div>
-              <div className={styles.sessionTimer}>00:00</div>
+              <div className={styles.sessionTimer}>{formatTime(showCallTime)}</div>
               <div className={styles.activeActions}>
                 <IconButton
                   onClick={handleEndCall}
