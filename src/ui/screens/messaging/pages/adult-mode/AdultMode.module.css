@@ -128,6 +128,9 @@
   min-height: 0;
   overflow: hidden;
   border-radius: 16px;
+  transition:
+    width 320ms ease,
+    flex-basis 320ms ease;
 }
 
 .sessionVideo {
@@ -139,13 +142,6 @@
   transition: transform 320ms ease;
 }
 
-.previewVideo {
-  transform: scale(1);
-}
-
-.activeVideo {
-  transform: scale(1);
-}
 
 .previewOverlay {
   position: absolute;
@@ -178,6 +174,17 @@
 
 .previewDesktopPanel {
   display: none;
+}
+
+.previewDesktopPanelVisible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.previewDesktopPanelHidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-56px);
 }
 
 .callButtonIcon {
@@ -319,6 +326,18 @@
   backdrop-filter: blur(5px);
 }
 
+.activePanelVisible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.activePanelHidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(32px);
+}
+
 .callButton {
   width: 180px;
   flex: 0 0 180px;
@@ -393,6 +412,10 @@
     padding: 44px 24px 24px;
   }
 
+  .previewVideo {
+    transform: scale(1.1);
+  }
+
   .sessionName {
     bottom: calc(46% - 24px);
     font-size: 18px;
@@ -410,17 +433,20 @@
   }
 
   .previewStage {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     width: min(100%, 880px);
     max-width: 880px;
     height: min(100%, 620px);
     overflow: hidden;
     border-radius: 16px;
     background: #222429;
+    transition:
+      width 320ms ease,
+      max-width 320ms ease;
   }
 
   .previewStage .sessionMedia {
+    width: 50%;
+    flex: 0 0 50%;
     border-radius: 16px 0 0 16px;
   }
 
@@ -436,6 +462,11 @@
 
   .previewDesktopPanel {
     display: flex;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 50%;
     min-width: 0;
     min-height: 0;
     overflow: hidden;
@@ -446,6 +477,9 @@
     gap: 24px;
     background: #222429;
     border-radius: 0 16px 16px 0;
+    transition:
+      opacity 320ms ease,
+      transform 320ms ease;
   }
 
   .previewDesktopPanel .subtitle,
@@ -454,6 +488,21 @@
   }
 
   .activeStage {
-    min-height: min(100%, 620px);
+    width: min(100%, 560px);
+    max-width: 560px;
+    height: min(100%, 620px);
+    transition:
+      width 320ms ease,
+      max-width 320ms ease;
+  }
+
+  .activeStage .sessionMedia {
+    border-radius: 16px;
+  }
+
+  .activePanel {
+    transition:
+      opacity 320ms ease,
+      transform 320ms ease;
   }
 }

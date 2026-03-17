@@ -254,7 +254,7 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
             ) : null}
 
             {sessionState === "preview" && <div className={styles.previewOverlay} />}
-            {sessionState === "preview" ? (
+            {sessionState === "preview" && (
               <>
                 <div className={styles.sessionName}>{selectedScene.name}</div>
                 <div className={styles.previewPanel}>
@@ -277,50 +277,51 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
                   </div>
                 </div>
               </>
-            ) : (
-              <div className={styles.activePanel}>
-                <div className={styles.subtitle}>Connected</div>
-                <div className={styles.sessionTimer}>00:00</div>
-                <div className={styles.activeActions}>
+            )}
+            <div
+              className={`${styles.activePanel} ${sessionState === "active" ? styles.activePanelVisible : styles.activePanelHidden}`}
+            >
+              <div className={styles.subtitle}>Connected</div>
+              <div className={styles.sessionTimer}>00:00</div>
+              <div className={styles.activeActions}>
+                <IconButton
+                  onClick={handleEndCall}
+                  color="red"
+                  type="pill"
+                  className={styles.activeCallButton}
+                  leftIcon={
+                    <Suspense fallback={null}>
+                      <SvgPack.HangupCallIcon />
+                    </Suspense>
+                  }
+                />
+              </div>
+            </div>
+            </div>
+            <div
+              className={`${styles.previewDesktopPanel} ${sessionState === "preview" ? styles.previewDesktopPanelVisible : styles.previewDesktopPanelHidden}`}
+            >
+              <div className={styles.desktopSessionName}>{selectedScene.name}</div>
+              <div className={styles.previewDesktopBody}>
+                <div className={styles.subtitle}>Scenario Details</div>
+                <div className={styles.sessionDescription}>
+                  {selectedScene.scenarioDetails}
+                </div>
+                <div className={styles.previewActions}>
                   <IconButton
-                    onClick={handleEndCall}
-                    color="red"
+                    onClick={handleStartCall}
+                    color="green"
                     type="pill"
-                    className={styles.activeCallButton}
+                    className={styles.callButton}
                     leftIcon={
                       <Suspense fallback={null}>
-                        <SvgPack.HangupCallIcon />
+                        <SvgPack.Call className={styles.callButtonIcon} />
                       </Suspense>
                     }
                   />
                 </div>
               </div>
-            )}
             </div>
-            {sessionState === "preview" && (
-              <div className={styles.previewDesktopPanel}>
-                <div className={styles.desktopSessionName}>{selectedScene.name}</div>
-                <div className={styles.previewDesktopBody}>
-                  <div className={styles.subtitle}>Scenario Details</div>
-                  <div className={styles.sessionDescription}>
-                    {selectedScene.scenarioDetails}
-                  </div>
-                  <div className={styles.previewActions}>
-                    <IconButton
-                      onClick={handleStartCall}
-                      color="green"
-                      type="pill"
-                      className={styles.callButton}
-                      leftIcon={
-                        <Suspense fallback={null}>
-                          <SvgPack.Call className={styles.callButtonIcon} />
-                        </Suspense>
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}
