@@ -28,6 +28,24 @@ except ImportError:
     HAS_PYROGRAM = False
     Client = None  # type: ignore
 
+# Ensure pyrogram has error classes expected by py-tgcalls (v2.2.11+)
+try:
+    from pyrogram.errors import GroupcallForbidden  # noqa: F401
+except ImportError:
+    import pyrogram.errors as _pe
+
+    class _GroupcallForbidden(Exception):
+        pass
+
+    _pe.GroupcallForbidden = _GroupcallForbidden  # type: ignore[attr-defined]
+
+try:
+    from pytgcalls import PyTgCalls
+    HAS_PYTGCALLS = True
+except ImportError:
+    HAS_PYTGCALLS = False
+    PyTgCalls = None  # type: ignore
+
 from app.core.config import settings
 
 log = logging.getLogger(__name__)
@@ -38,6 +56,7 @@ class TelegramSessionManager:
 
     def __init__(self):
         self._sessions: dict[str, Client] = {}
+        self._pytgcalls: dict[str, PyTgCalls] = {}  # per-influencer PyTgCalls instances
         self._locks: dict[str, asyncio.Lock] = {}
         self._pending_auth: dict[str, dict] = {}  # influencer_id -> {client, phone_code_hash}
         self._sessions_dir = Path(settings.TELEGRAM_SESSIONS_DIR)
@@ -67,6 +86,39 @@ class TelegramSessionManager:
     def is_active(self, influencer_id: str) -> bool:
         """Check if an influencer has an active session."""
         return influencer_id in self._sessions and self._sessions[influencer_id].is_connected
+
+    def get_pytgcalls(self, influencer_id: str) -> "PyTgCalls | None":
+        """Get the PyTgCalls instance for an influencer (if active)."""
+        return self._pytgcalls.get(influencer_id)
+
+    async def _start_pytgcalls(self, influencer_id: str, client: Client):
+        """Create and start a PyTgCalls instance for voice call support."""
+        if not HAS_PYTGCALLS:
+            log.debug("pytgcalls not installed, skipping voice call setup")
+            return
+
+        try:
+            ptg = PyTgCalls(client)
+            await ptg.start()
+            self._pytgcalls[influencer_id] = ptg
+            log.info("PyTgCalls started for influencer=%s", influencer_id)
+        except Exception:
+            log.exception("Failed to start PyTgCalls for influencer=%s", influencer_id)
+
+    async def _stop_pytgcalls(self, influencer_id: str):
+        """Stop PyTgCalls instance for an influencer."""
+        ptg = self._pytgcalls.pop(influencer_id, None)
+        if ptg:
+            try:
+                # Leave any active calls before stopping
+                for call_id in list(ptg.private_calls or []):
+                    try:
+                        await ptg.leave_call(call_id)
+                    except Exception:
+                        pass
+                log.info("PyTgCalls stopped for influencer=%s", influencer_id)
+            except Exception:
+                log.exception("Error stopping PyTgCalls for influencer=%s", influencer_id)
 
     # ─────────────────── 2-step headless auth ───────────────────
 
@@ -177,6 +229,9 @@ class TelegramSessionManager:
             self._sessions[influencer_id] = client
             self._pending_auth.pop(influencer_id, None)
 
+            # Start PyTgCalls for voice call support
+            await self._start_pytgcalls(influencer_id, client)
+
             log.info(
                 "Telegram session authenticated for influencer=%s as @%s (id=%s)",
                 influencer_id,
@@ -222,6 +277,10 @@ class TelegramSessionManager:
             await client.start()
             me = await client.get_me()
             self._sessions[influencer_id] = client
+
+            # Start PyTgCalls for voice call support
+            await self._start_pytgcalls(influencer_id, client)
+
             log.info(
                 "Resumed existing session for influencer=%s as @%s",
                 influencer_id,
@@ -295,13 +354,17 @@ class TelegramSessionManager:
             try:
                 await client.start()
                 me = await client.get_me()
+                self._sessions[influencer_id] = client
+
+                # Start PyTgCalls for voice call support
+                await self._start_pytgcalls(influencer_id, client)
+
                 log.info(
                     "Telegram session started for influencer=%s as @%s (id=%s)",
                     influencer_id,
                     me.username or me.first_name,
                     me.id,
                 )
-                self._sessions[influencer_id] = client
                 return client
             except FloodWait as e:
                 raise RuntimeError(
@@ -327,6 +390,9 @@ class TelegramSessionManager:
 
     async def stop_session(self, influencer_id: str) -> bool:
         async with self._get_lock(influencer_id):
+            # Stop PyTgCalls first
+            await self._stop_pytgcalls(influencer_id)
+
             client = self._sessions.pop(influencer_id, None)
             if client is None:
                 return False

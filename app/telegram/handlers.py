@@ -289,6 +289,11 @@ class TelegramMessageHandler:
 
         call_class = type(phone_call).__name__
         log.info("Detected phone_call of type: %s", call_class)
+
+        # Handle call disconnect/hangup — clean up active sessions
+        if call_class == "PhoneCallDiscarded":
+            await self._handle_call_discarded(phone_call)
+            return
         
         if call_class != "PhoneCallRequested":
             return
@@ -351,8 +356,25 @@ class TelegramMessageHandler:
             return
 
         # Start voice call session
+        from app.telegram.session_manager import session_manager
+        ptg = session_manager.get_pytgcalls(self.influencer_id)
+        if not ptg:
+            log.error(
+                "No PyTgCalls instance for influencer=%s — cannot accept call",
+                self.influencer_id,
+            )
+            try:
+                await self.client.send_message(
+                    chat_id=caller_id,
+                    text="Sorry, voice calls aren't available right now. Try again later! 💕",
+                )
+            except Exception:
+                pass
+            return
+
         session = await voice_call_manager.start_call(
             client=self.client,
+            ptg=ptg,
             influencer_id=actual_id,
             telegram_user_id=caller_id,
             chat_id=caller_id,
@@ -371,4 +393,51 @@ class TelegramMessageHandler:
                 )
             except Exception:
                 pass
+
+    async def _handle_call_discarded(self, phone_call):
+        """Clean up voice call session when the Telegram call is discarded."""
+        from app.telegram.voice_engine import voice_call_manager
+
+        caller_id = getattr(phone_call, "admin_id", None)
+        reason_obj = getattr(phone_call, "reason", None)
+        reason_class = type(reason_obj).__name__ if reason_obj else "unknown"
+
+        log.info(
+            "telegram.call_discarded influencer=%s caller=%s reason=%s",
+            self.influencer_id,
+            caller_id,
+            reason_class,
+        )
+
+        if not caller_id:
+            log.warning("call_discarded: no admin_id, skipping cleanup")
+            return
+
+        from sqlalchemy import select, func
+        from app.db.models import Influencer
+        from app.db.session import SessionLocal as _SessionLocal
+
+        try:
+            async with _SessionLocal() as db:
+                result = await db.execute(
+                    select(Influencer).where(func.lower(Influencer.id) == self.influencer_id.lower())
+                )
+                inf_record = result.scalar_one_or_none()
+                actual_id = inf_record.id if inf_record else self.influencer_id
+        except Exception:
+            actual_id = self.influencer_id
+
+        try:
+            await voice_call_manager.end_call(actual_id, caller_id)
+            log.info(
+                "telegram.call_discarded.cleaned_up influencer=%s caller=%s",
+                actual_id,
+                caller_id,
+            )
+        except Exception:
+            log.exception(
+                "telegram.call_discarded.cleanup_error influencer=%s caller=%s",
+                actual_id,
+                caller_id,
+            )
 

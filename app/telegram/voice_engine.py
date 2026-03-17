@@ -4,9 +4,9 @@ Voice Engine
 Manages live 1-on-1 Telegram voice calls via pytgcalls.
 
 Handles the complete call lifecycle:
-1. Accept incoming private call
-2. Capture user audio (PCM) → buffer → transcribe (Whisper)
-3. Generate AI response (LLM) → synthesize (ElevenLabs) → play back
+1. Accept incoming private call via pytgcalls ``play()`` + ``CallConfig``
+2. Receive incoming audio via ``on_update(stream_frame)`` → buffer → transcribe
+3. Generate AI response (LLM) → synthesize (ElevenLabs) → ``send_frame()``
 4. Enforce 2-minute free trial timer
 5. End call + send redirect link to teaseme.live
 """
@@ -15,31 +15,40 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import struct
 import time
-import os
-import tempfile
 from typing import Optional
 
 try:
     from pyrogram import Client
-    import pyrogram.errors
-    # Monkeypatch for pytgcalls compatibility with newer pyrogram versions
-    if not hasattr(pyrogram.errors, "GroupcallForbidden"):
-        class GroupcallForbidden(pyrogram.errors.RPCError):
-            pass
-        pyrogram.errors.GroupcallForbidden = GroupcallForbidden
 except ImportError:
     Client = None  # type: ignore
 
-from pytgcalls import PyTgCalls
-from pytgcalls.types import MediaStream, RecordStream
-from pytgcalls.types.raw.audio_parameters import AudioParameters
+try:
+    from pytgcalls import PyTgCalls, filters as ptg_filters
+    from pytgcalls.types import (
+        CallConfig,
+        ChatUpdate,
+        MediaStream,
+        RecordStream,
+        StreamFrames,
+        Device,
+        Direction,
+        Frame,
+        AudioQuality,
+    )
+    from pytgcalls.types.stream.external_media import ExternalMedia
+    from pytgcalls.types.raw import AudioParameters as RawAudioParameters
+    HAS_PYTGCALLS = True
+except ImportError:
+    HAS_PYTGCALLS = False
 
 from app.core.config import settings
 from app.db.session import SessionLocal
 from app.db.models import Influencer, CallRecord
 from app.telegram.audio_bridge import (
     pcm_to_wav,
+    stereo_to_mono,
     transcribe_audio,
     elevenlabs_tts_to_pcm,
     seconds_of_pcm,
@@ -63,6 +72,17 @@ DEFAULT_TRIAL_SECS = 120
 # Redirect URL after trial
 TEASEME_URL = "https://www.teaseme.live/"
 
+import audioop
+
+def _is_speech(pcm_data: bytes) -> bool:
+    """Check if the given PCM chunk exceeds the silence threshold."""
+    try:
+        rms = audioop.rms(pcm_data, 2)
+        return rms > SILENCE_RMS_THRESHOLD
+    except Exception:
+        # Fallback: assume it's speech if calculation fails
+        return True
+
 
 class VoiceCallSession:
     """Manages a single live 1-on-1 voice call.
@@ -74,6 +94,7 @@ class VoiceCallSession:
     def __init__(
         self,
         client: Client,
+        ptg: PyTgCalls,
         influencer_id: str,
         telegram_user_id: int,
         chat_id: int,
@@ -82,6 +103,7 @@ class VoiceCallSession:
         max_duration_secs: int = DEFAULT_TRIAL_SECS,
     ):
         self.client = client
+        self.ptg = ptg
         self.influencer_id = influencer_id
         self.telegram_user_id = telegram_user_id
         self.chat_id = chat_id
@@ -92,20 +114,14 @@ class VoiceCallSession:
         # Internal state
         self._audio_buffer = bytearray()
         self._playback_queue: asyncio.Queue[bytes] = asyncio.Queue()
-        self._playback_offset = 0
-        self._current_playback: bytes = b""
         self._conversation_history: list[dict] = []
         self._is_active = False
         self._start_time: float = 0
         self._timer_task: Optional[asyncio.Task] = None
-        self._io_task: Optional[asyncio.Task] = None
+        self._playback_task: Optional[asyncio.Task] = None
         self._processing_lock = asyncio.Lock()
         self._call_record_id: Optional[str] = None
-        self._loop = asyncio.get_running_loop()
-
-        # Audio Pipes (FIFOs) for pytgcalls
-        self._in_pipe = os.path.join(tempfile.gettempdir(), f"in_{influencer_id}_{telegram_user_id}.raw")
-        self._out_pipe = os.path.join(tempfile.gettempdir(), f"out_{influencer_id}_{telegram_user_id}.raw")
+        self._play_task: Optional[asyncio.Task] = None
 
     @property
     def is_active(self) -> bool:
@@ -118,43 +134,282 @@ class VoiceCallSession:
         return time.monotonic() - self._start_time
 
     async def start(self):
-        """Start the call session and timer."""
+        """Accept the call and start the audio pipeline + trial timer."""
         self._is_active = True
         self._start_time = time.monotonic()
 
-        # Create FIFOs
-        if os.path.exists(self._in_pipe): os.remove(self._in_pipe)
-        if os.path.exists(self._out_pipe): os.remove(self._out_pipe)
-        os.mkfifo(self._in_pipe)
-        os.mkfifo(self._out_pipe)
-
-        # Connect PyTgCalls Call
-        calls = voice_call_manager._tgcalls.get(self.influencer_id)
-        if calls:
-            params = AudioParameters(SAMPLE_RATE, CHANNELS)
-            # Accept the call by telling PyTgCalls to play and record to the pipes
-            await calls.play(
-                self.chat_id,
-                MediaStream(self._in_pipe, audio_parameters=params)
-            )
-            await calls.record(
-                self.chat_id,
-                RecordStream(self._out_pipe, audio_parameters=params)
-            )
+        # Register the incoming audio handler FIRST so we catch frames
+        # as soon as the WebRTC connection establishes
+        self._register_stream_handler()
 
         # Create call record in DB
         await self._create_call_record()
 
-        # Start IO loops and trial timer
-        self._io_task = asyncio.create_task(self._run_io_loops())
+        # Start playback loop and trial timer immediately
+        self._playback_task = asyncio.create_task(self._playback_loop())
         self._timer_task = asyncio.create_task(self._trial_timer())
 
+        # Accept the incoming private call using pytgcalls.
+        # NOTE: ptg.play() triggers AcceptCall and WebRTC setup internally,
+        # but its await hangs indefinitely for private calls in pytgcalls
+        # v2.2.x. We fire it as a background task so it doesn't block
+        # the audio pipeline (stream handler, playback, greeting).
         log.info(
-            "voice_call.started influencer=%s user=%s max_duration=%ds",
+            "voice_call.play_starting influencer=%s chat=%s ptg=%s",
+            self.influencer_id,
+            self.chat_id,
+            type(self.ptg).__name__,
+        )
+        try:
+            stream = MediaStream(
+                ExternalMedia.AUDIO,
+                audio_parameters=RawAudioParameters(
+                    bitrate=SAMPLE_RATE,
+                    channels=CHANNELS,
+                ),
+            )
+            self._play_task = asyncio.create_task(
+                self._accept_call(stream)
+            )
+        except Exception:
+            log.exception(
+                "voice_call.play_failed influencer=%s chat=%s",
+                self.influencer_id,
+                self.chat_id,
+            )
+            self._is_active = False
+            return
+
+
+
+        log.info(
+            "voice_call.started influencer=%s user=%s chat=%s max_duration=%ds",
             self.influencer_id,
             self.telegram_user_id,
+            self.chat_id,
             self.max_duration_secs,
         )
+
+        # Send greeting after a short delay to let WebRTC establish
+        asyncio.create_task(self._send_greeting_delayed())
+
+    async def _accept_call(self, stream: MediaStream):
+        """Background task: call ptg.play() to accept the private call.
+
+        play() sends AcceptCall, performs DH key exchange, and establishes
+        the WebRTC connection. For private calls it may never return its
+        await, so this runs as a background task.
+        """
+        try:
+            await self.ptg.play(
+                self.chat_id,
+                stream=stream,
+                config=CallConfig(timeout=60),
+            )
+            log.info(
+                "voice_call.play_completed influencer=%s chat=%s",
+                self.influencer_id,
+                self.chat_id,
+            )
+
+            # Now that the call is connected, enable incoming audio capture
+            try:
+                await self.ptg.record(
+                    self.chat_id,
+                    RecordStream(
+                        audio=True,
+                        audio_parameters=RawAudioParameters(
+                            bitrate=SAMPLE_RATE,
+                            channels=CHANNELS,
+                        ),
+                    ),
+                )
+                log.info(
+                    "voice_call.record_started influencer=%s chat=%s",
+                    self.influencer_id,
+                    self.chat_id,
+                )
+            except Exception:
+                log.warning(
+                    "voice_call.record_failed influencer=%s chat=%s",
+                    self.influencer_id,
+                    self.chat_id,
+                    exc_info=True,
+                )
+        except Exception:
+            if self._is_active:
+                log.exception(
+                    "voice_call.play_error influencer=%s chat=%s",
+                    self.influencer_id,
+                    self.chat_id,
+                )
+
+    async def _send_greeting_delayed(self):
+        """Wait for WebRTC to establish before sending the TTS greeting."""
+        try:
+            await asyncio.sleep(3)
+            if self._is_active:
+                await self._send_greeting()
+        except asyncio.CancelledError:
+            pass
+        except Exception:
+            log.exception("voice_call.greeting_delayed_error influencer=%s", self.influencer_id)
+
+    def _register_stream_handler(self):
+        """Register pytgcalls handlers for incoming audio and call-end events."""
+
+        @self.ptg.on_update(ptg_filters.stream_frame(Direction.INCOMING, Device.MICROPHONE))
+        async def _on_stream_frames(_, update: StreamFrames):
+            # Only handle frames for our specific call
+            if update.chat_id != self.chat_id:
+                return
+            if not self._is_active:
+                return
+
+            for frame in update.frames:
+                data = frame.frame
+                if data:
+                    self._on_audio_frame(data)
+
+        self._stream_handler = _on_stream_frames
+
+        # Detect when the remote party hangs up at the WebRTC level
+        @self.ptg.on_update(ptg_filters.chat_update(ChatUpdate.Status.LEFT_CALL))
+        async def _on_call_ended(_, update: ChatUpdate):
+            if update.chat_id != self.chat_id:
+                return
+            if not self._is_active:
+                return
+
+            log.info(
+                "voice_call.call_ended_by_remote influencer=%s chat=%s status=%s",
+                self.influencer_id,
+                self.chat_id,
+                update.status,
+            )
+            await self.stop(reason="remote_hangup")
+
+            # Also remove from voice_call_manager
+            from app.telegram.voice_engine import voice_call_manager
+            key = voice_call_manager._call_key(self.influencer_id, self.telegram_user_id)
+            voice_call_manager._active_calls.pop(key, None)
+
+        self._call_ended_handler = _on_call_ended
+        log.info(
+            "voice_call.stream_handler_registered influencer=%s chat=%s",
+            self.influencer_id,
+            self.chat_id,
+        )
+
+    _frame_count: int = 0  # diagnostic counter for received audio frames
+
+    def _on_audio_frame(self, data: bytes):
+        """Receive raw PCM audio from the user and buffer it."""
+        if not self._is_active or not data:
+            return
+
+        self._frame_count += 1
+        if self._frame_count == 1:
+            log.info(
+                "voice_call.first_frame_received influencer=%s chat=%s bytes=%d",
+                self.influencer_id,
+                self.chat_id,
+                len(data),
+            )
+        elif self._frame_count % 500 == 0:
+            log.debug(
+                "voice_call.frames_received influencer=%s count=%d buffer=%d",
+                self.influencer_id,
+                self._frame_count,
+                len(self._audio_buffer),
+            )
+
+        self._audio_buffer.extend(data)
+
+        if len(self._audio_buffer) >= BUFFER_SIZE_BYTES:
+            chunk = bytes(self._audio_buffer[:BUFFER_SIZE_BYTES])
+            self._audio_buffer = self._audio_buffer[BUFFER_SIZE_BYTES:]
+
+            if not _is_speech(chunk):
+                return
+
+            log.debug(
+                "voice_call.speech_detected influencer=%s chunk_bytes=%d",
+                self.influencer_id,
+                len(chunk),
+            )
+            asyncio.create_task(self._process_audio_chunk(chunk))
+
+    async def _playback_loop(self):
+        """Send synthesized audio frames to the user."""
+        try:
+            while self._is_active:
+                try:
+                    pcm_data = await asyncio.wait_for(
+                        self._playback_queue.get(), timeout=0.5
+                    )
+                except asyncio.TimeoutError:
+                    continue
+
+                if not self._is_active:
+                    break
+
+                log.info(
+                    "voice_call.playback_sending influencer=%s pcm_bytes=%d duration=%.1fs",
+                    self.influencer_id,
+                    len(pcm_data),
+                    seconds_of_pcm(pcm_data),
+                )
+
+                # Send audio in ~20ms chunks (960 samples @ 48kHz, stereo/mono, 16-bit)
+                chunk_duration = 0.02
+                chunk_size = int(SAMPLE_RATE * CHANNELS * 2 * chunk_duration)  # 20ms bytes
+                
+                offset = 0
+                start_time = asyncio.get_running_loop().time()
+                frames_sent = 0
+
+                while offset < len(pcm_data) and self._is_active:
+                    end = min(offset + chunk_size, len(pcm_data))
+                    frame_bytes = pcm_data[offset:end]
+
+                    # Pad last chunk if needed to meet exact layout
+                    if len(frame_bytes) < chunk_size:
+                        frame_bytes += b"\x00" * (chunk_size - len(frame_bytes))
+
+                    try:
+                        await self.ptg.send_frame(
+                            self.chat_id,
+                            Device.MICROPHONE,
+                            frame_bytes,
+                            Frame.Info(),
+                        )
+                    except Exception as e:
+                        if self._is_active:
+                            log.warning(
+                                "voice_call.send_frame_error influencer=%s err=%s",
+                                self.influencer_id,
+                                e,
+                            )
+                        break
+
+                    offset = end
+                    frames_sent += 1
+                    
+                    # Precise timing to prevent jitter and static cuts
+                    target_time = start_time + (frames_sent * chunk_duration)
+                    now = asyncio.get_running_loop().time()
+                    sleep_time = target_time - now
+                    if sleep_time > 0:
+                        await asyncio.sleep(sleep_time)
+                    else:
+                        await asyncio.sleep(0)  # Yield to event loop even if we are behind
+
+        except asyncio.CancelledError:
+            pass
+        except Exception:
+            if self._is_active:
+                log.exception("voice_call.playback_loop_error")
 
     async def stop(self, reason: str = "ended"):
         """Stop the call session and clean up."""
@@ -166,20 +421,28 @@ class VoiceCallSession:
         # Cancel tasks
         if self._timer_task and not self._timer_task.done():
             self._timer_task.cancel()
-        if self._io_task and not self._io_task.done():
-            self._io_task.cancel()
+        if self._playback_task and not self._playback_task.done():
+            self._playback_task.cancel()
+        if self._play_task and not self._play_task.done():
+            self._play_task.cancel()
 
-        # Stop PyTgCalls stream
-        calls = voice_call_manager._tgcalls.get(self.influencer_id)
-        if calls:
-            try:
-                await calls.leave_call(self.chat_id)
-            except Exception as e:
-                log.warning("voice_call.leave_error: %s", e)
+        # Leave the call
+        try:
+            await self.ptg.leave_call(self.chat_id)
+        except Exception as e:
+            log.warning("voice_call.leave_error: %s", e)
 
-        # Cleanup FIFOs
-        if os.path.exists(self._in_pipe): os.remove(self._in_pipe)
-        if os.path.exists(self._out_pipe): os.remove(self._out_pipe)
+        # Remove handlers
+        try:
+            if hasattr(self, "_stream_handler"):
+                self.ptg.remove_handler(self._stream_handler)
+        except Exception:
+            pass
+        try:
+            if hasattr(self, "_call_ended_handler"):
+                self.ptg.remove_handler(self._call_ended_handler)
+        except Exception:
+            pass
 
         duration = self.elapsed_seconds
 
@@ -194,100 +457,51 @@ class VoiceCallSession:
             reason,
         )
 
-    def on_recorded_data(self, data: bytes):
-        """Callback for pytgcalls: receives captured PCM audio from the user.
+    async def _send_greeting(self):
+        """Send an immediate TTS greeting so the caller hears the AI voice."""
+        try:
+            log.info(
+                "voice_call.greeting_generating influencer=%s voice_id=%s",
+                self.influencer_id,
+                self.voice_id,
+            )
 
-        Buffers audio and triggers transcription when enough data is collected.
-        """
-        if not self._is_active:
-            return
+            # Generate a short greeting via the LLM
+            greeting_text = await self._generate_response(
+                "[SYSTEM: The call just connected. Greet the caller warmly in 1-2 sentences. "
+                "Be excited and flirty. Do NOT mention you are an AI.]"
+            )
+            if not greeting_text:
+                greeting_text = "Hey! Oh my god, hi! I'm so happy you called me!"
 
-        self._audio_buffer.extend(data)
+            log.info(
+                "voice_call.greeting_text influencer=%s text=%s",
+                self.influencer_id,
+                greeting_text[:100],
+            )
 
-        if len(self._audio_buffer) >= BUFFER_SIZE_BYTES:
-            # Extract buffer and process asynchronously
-            chunk = bytes(self._audio_buffer[:BUFFER_SIZE_BYTES])
-            self._audio_buffer = self._audio_buffer[BUFFER_SIZE_BYTES:]
-
-            # Skip near-silence
-            if not _is_speech(chunk):
+            # Synthesize via ElevenLabs
+            pcm_audio = await elevenlabs_tts_to_pcm(greeting_text, self.voice_id)
+            if not pcm_audio:
+                log.warning("voice_call.greeting_tts_failed influencer=%s", self.influencer_id)
                 return
 
-            asyncio.create_task(self._process_audio_chunk(chunk))
+            duration = seconds_of_pcm(pcm_audio)
+            log.info(
+                "voice_call.greeting_queued influencer=%s duration=%.1fs pcm_bytes=%d",
+                self.influencer_id,
+                duration,
+                len(pcm_audio),
+            )
 
-    def on_played_data(self, length: int) -> bytes:
-        """Callback for pytgcalls: provides PCM audio to play to the user.
+            # Queue for playback
+            await self._playback_queue.put(pcm_audio)
 
-        Returns the next chunk of synthesized audio, or silence if nothing
-        is queued.
-        """
-        if not self._is_active:
-            return b"\x00" * length
-
-        # If we have remaining audio in current playback buffer
-        if self._playback_offset < len(self._current_playback):
-            end = self._playback_offset + length
-            chunk = self._current_playback[self._playback_offset:end]
-            self._playback_offset = end
-
-            # Pad with silence if we're at the end
-            if len(chunk) < length:
-                chunk += b"\x00" * (length - len(chunk))
-            return chunk
-
-        # Try to get next queued audio
-        try:
-            self._current_playback = self._playback_queue.get_nowait()
-            self._playback_offset = length
-            chunk = self._current_playback[:length]
-            if len(chunk) < length:
-                chunk += b"\x00" * (length - len(chunk))
-            return chunk
-        except asyncio.QueueEmpty:
-            # Return silence
-            return b"\x00" * length
-
-    async def _run_io_loops(self):
-        """Run blocking IO for UNIX pipes in thread pool."""
-        read_task = asyncio.to_thread(self._read_loop_sync)
-        write_task = asyncio.to_thread(self._write_loop_sync)
-        await asyncio.gather(read_task, write_task, return_exceptions=True)
-
-    def _read_loop_sync(self):
-        """Read incoming audio from Telegram via FIFO."""
-        try:
-            with open(self._out_pipe, 'rb') as f:
-                while self._is_active:
-                    data = f.read(4000)
-                    if not data:
-                        time.sleep(0.01)
-                        continue
-                    # Safely pass data back to asyncio event loop
-                    self._loop.call_soon_threadsafe(self.on_recorded_data, data)
-        except Exception as e:
-            if self._is_active: log.error("voice_call.read_error: %s", e)
-
-    def _write_loop_sync(self):
-        """Write outgoing synthesized audio to Telegram via FIFO."""
-        try:
-            with open(self._in_pipe, 'wb') as f:
-                while self._is_active:
-                    # Thread-safe since Queue.get_nowait and primitives are async, wait -
-                    # actually on_played_data uses Queue.get_nowait() which is NOT threadsafe!
-                    # So we should run it in the loop and wait for result.
-                    future = asyncio.run_coroutine_threadsafe(self._get_played_data_async(4000), self._loop)
-                    chunk = future.result()
-                    if chunk:
-                        f.write(chunk)
-                        f.flush()
-                    else:
-                        time.sleep(0.01)
-        except Exception as e:
-            if self._is_active: log.error("voice_call.write_error: %s", e)
-
-    async def _get_played_data_async(self, length: int) -> bytes:
-        """Async-safe wrapper for on_played_data for the write thread."""
-        return self.on_played_data(length)
+        except Exception:
+            log.exception(
+                "voice_call.greeting_error influencer=%s",
+                self.influencer_id,
+            )
 
     async def _process_audio_chunk(self, pcm_chunk: bytes):
         """Process a buffered audio chunk through the full AI pipeline.
@@ -299,15 +513,22 @@ class VoiceCallSession:
                 return
 
             try:
-                # 1. Convert PCM → WAV for Whisper
-                wav_bytes = pcm_to_wav(pcm_chunk)
+                # 1. Convert stereo PCM → mono PCM → WAV for Whisper
+                mono_chunk = stereo_to_mono(pcm_chunk)
+                wav_bytes = pcm_to_wav(mono_chunk)
+                log.info(
+                    "voice_call.pipeline.stt_start influencer=%s wav_bytes=%d",
+                    self.influencer_id,
+                    len(wav_bytes),
+                )
 
                 # 2. Transcribe
                 transcript = await transcribe_audio(wav_bytes)
                 if not transcript or len(transcript.strip()) < 2:
-                    return  # Skip empty/noise transcriptions
+                    log.debug("voice_call.pipeline.stt_empty influencer=%s", self.influencer_id)
+                    return
 
-                log.debug(
+                log.info(
                     "voice_call.stt influencer=%s user=%s text=%s",
                     self.influencer_id,
                     self.telegram_user_id,
@@ -317,9 +538,10 @@ class VoiceCallSession:
                 # 3. Generate LLM response
                 response_text = await self._generate_response(transcript)
                 if not response_text:
+                    log.warning("voice_call.pipeline.llm_empty influencer=%s", self.influencer_id)
                     return
 
-                log.debug(
+                log.info(
                     "voice_call.llm influencer=%s response=%s",
                     self.influencer_id,
                     response_text[:80],
@@ -328,7 +550,15 @@ class VoiceCallSession:
                 # 4. Synthesize speech
                 pcm_audio = await elevenlabs_tts_to_pcm(response_text, self.voice_id)
                 if not pcm_audio:
+                    log.warning("voice_call.pipeline.tts_empty influencer=%s", self.influencer_id)
                     return
+
+                duration = seconds_of_pcm(pcm_audio)
+                log.info(
+                    "voice_call.pipeline.tts_done influencer=%s duration=%.1fs",
+                    self.influencer_id,
+                    duration,
+                )
 
                 # 5. Queue for playback
                 await self._playback_queue.put(pcm_audio)
@@ -369,7 +599,7 @@ class VoiceCallSession:
             completion = await openai_client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=messages,
-                max_tokens=150,  # Short for voice
+                max_tokens=150,
                 temperature=0.85,
             )
             response = completion.choices[0].message.content or ""
@@ -423,7 +653,7 @@ class VoiceCallSession:
         try:
             async with SessionLocal() as db:
                 chat_id = f"tg_{self.influencer_id}_{self.telegram_user_id}"
-                
+
                 from app.db.models import Chat
                 existing_chat = await db.get(Chat, chat_id)
                 if not existing_chat:
@@ -437,7 +667,7 @@ class VoiceCallSession:
 
                 record = CallRecord(
                     conversation_id=self._call_record_id,
-                    user_id=0,  # Telegram-only user
+                    user_id=0,
                     influencer_id=self.influencer_id,
                     chat_id=chat_id,
                     status="active",
@@ -464,25 +694,13 @@ class VoiceCallSession:
 
 
 class VoiceCallManager:
-    """Manages active voice call sessions across all influencers."""
+    """Manages active voice call sessions across all influencers.
+
+    Uses PyTgCalls instances from session_manager (not its own).
+    """
 
     def __init__(self):
         self._active_calls: dict[str, VoiceCallSession] = {}
-        self._tgcalls: dict[str, PyTgCalls] = {}
-
-    async def register_client(self, influencer_id: str, client: Client):
-        """Register and start PyTgCalls for an influencer's Pyrogram client."""
-        if influencer_id not in self._tgcalls:
-            calls = PyTgCalls(client)
-            await calls.start()
-            self._tgcalls[influencer_id] = calls
-            log.info("Started PyTgCalls for influencer=%s", influencer_id)
-
-    async def unregister_client(self, influencer_id: str):
-        calls = self._tgcalls.pop(influencer_id, None)
-        if calls:
-           pass  # PyTgCalls doesnt have explicit stop method? Wait it has stop()? Let's assume start handles session logic.
-           log.info("Stopped PyTgCalls for influencer=%s", influencer_id)
 
     def _call_key(self, influencer_id: str, telegram_user_id: int) -> str:
         return f"{influencer_id}:{telegram_user_id}"
@@ -499,6 +717,7 @@ class VoiceCallManager:
     async def start_call(
         self,
         client: Client,
+        ptg: PyTgCalls,
         influencer_id: str,
         telegram_user_id: int,
         chat_id: int,
@@ -510,10 +729,24 @@ class VoiceCallManager:
         """
         key = self._call_key(influencer_id, telegram_user_id)
 
-        # Prevent duplicate calls
+        # Prevent duplicate calls — but clean up stale sessions
         if key in self._active_calls and self._active_calls[key].is_active:
-            log.warning("Call already active for %s", key)
-            return self._active_calls[key]
+            existing = self._active_calls[key]
+            elapsed = existing.elapsed_seconds
+            # If session is older than 45 seconds, consider it stale and clean up
+            if elapsed > 45:
+                log.warning(
+                    "Cleaning up stale call session for %s (elapsed=%.0fs)",
+                    key, elapsed,
+                )
+                try:
+                    await existing.stop(reason="stale_cleanup")
+                except Exception:
+                    log.exception("Error cleaning up stale session %s", key)
+                del self._active_calls[key]
+            else:
+                log.warning("Call already active for %s (elapsed=%.0fs)", key, elapsed)
+                return self._active_calls[key]
 
         # Load influencer data
         async with SessionLocal() as db:
@@ -531,7 +764,7 @@ class VoiceCallManager:
             from app.services.billing import get_remaining_units
             remaining = await get_remaining_units(
                 db,
-                user_id=0,  # Telegram user
+                user_id=0,
                 influencer_id=influencer_id,
                 feature="voice",
                 is_18=False,
@@ -560,6 +793,7 @@ class VoiceCallManager:
 
         session = VoiceCallSession(
             client=client,
+            ptg=ptg,
             influencer_id=influencer_id,
             telegram_user_id=telegram_user_id,
             chat_id=chat_id,
@@ -599,8 +833,6 @@ def _is_speech(pcm_chunk: bytes) -> bool:
     if len(pcm_chunk) < 4:
         return False
 
-    # Calculate RMS of 16-bit PCM samples
-    import struct
     num_samples = len(pcm_chunk) // 2
     total = 0
     for i in range(0, len(pcm_chunk) - 1, 2):

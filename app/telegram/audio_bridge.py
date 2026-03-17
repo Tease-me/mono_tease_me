@@ -26,20 +26,41 @@ from app.core.config import settings
 
 log = logging.getLogger(__name__)
 
-# pytgcalls expects: PCM signed 16-bit LE, 48000 Hz, mono (1 channel)
+# pytgcalls AudioQuality.HIGH = 48000 Hz, 2 channels (stereo).
+# HOWEVER, Telegram Private Voice Calls negotiate WebRTC as Mono (1 channel).
 SAMPLE_RATE = 48000
-CHANNELS = 1
+CHANNELS = 2  # pytgcalls send_frame() natively expects Stereo 48kHz 16-bit
 SAMPLE_WIDTH = 2  # 16-bit = 2 bytes
 BYTES_PER_SECOND = SAMPLE_RATE * CHANNELS * SAMPLE_WIDTH  # 96000 bytes/sec
 
 
-def pcm_to_wav(pcm_bytes: bytes, sample_rate: int = SAMPLE_RATE, channels: int = CHANNELS) -> bytes:
-    """Convert raw PCM bytes to WAV format (for Whisper input).
+def stereo_to_mono(pcm_stereo: bytes) -> bytes:
+    """Convert stereo PCM to mono by averaging left/right channels.
 
     Args:
-        pcm_bytes: Raw PCM 16-bit signed little-endian audio.
+        pcm_stereo: Interleaved stereo PCM 16-bit signed LE.
+
+    Returns:
+        Mono PCM 16-bit signed LE (half the size).
+    """
+    import audioop
+    try:
+        return audioop.tomono(pcm_stereo, 2, 0.5, 0.5)
+    except Exception:
+        # Fallback if somehow it fails
+        return pcm_stereo
+
+
+def pcm_to_wav(pcm_bytes: bytes, sample_rate: int = SAMPLE_RATE, channels: int = 1) -> bytes:
+    """Convert raw PCM bytes to WAV format (for Whisper input).
+
+    Incoming capture frames are stereo; this converts to mono WAV
+    since Whisper works best with mono audio.
+
+    Args:
+        pcm_bytes: Raw PCM 16-bit signed little-endian audio (mono).
         sample_rate: Sample rate in Hz (default 48000).
-        channels: Number of channels (default 1 = mono).
+        channels: Number of channels in the output WAV (default 1 = mono).
 
     Returns:
         WAV file bytes with proper header.
@@ -65,13 +86,15 @@ def pcm_to_wav(pcm_bytes: bytes, sample_rate: int = SAMPLE_RATE, channels: int =
 
 
 def mp3_to_pcm(mp3_bytes: bytes) -> bytes:
-    """Convert MP3 audio to PCM 16-bit 48kHz mono via FFmpeg.
+    """Convert MP3 audio to PCM 16-bit 48kHz stereo via FFmpeg.
+
+    Output format must match AudioQuality.HIGH (48kHz, 2 channels).
 
     Args:
         mp3_bytes: Raw MP3 file bytes.
 
     Returns:
-        PCM bytes in pytgcalls-compatible format.
+        PCM bytes in pytgcalls-compatible format (stereo).
     """
     try:
         result = subprocess.run(
@@ -95,6 +118,52 @@ def mp3_to_pcm(mp3_bytes: bytes) -> bytes:
         return result.stdout
     except subprocess.TimeoutExpired:
         log.error("FFmpeg MP3→PCM timed out")
+        return b""
+    except FileNotFoundError:
+        log.error("FFmpeg not found. Install with: apt-get install ffmpeg")
+        return b""
+
+
+def pcm_resample_to_stereo48k(raw_pcm: bytes, input_rate: int = 24000) -> bytes:
+    """Resample raw mono PCM to 48kHz stereo PCM via FFmpeg.
+
+    Used for ElevenLabs PCM output (24kHz mono 16-bit) → pytgcalls
+    format (48kHz stereo 16-bit).
+
+    Args:
+        raw_pcm: Raw PCM 16-bit signed LE mono audio.
+        input_rate: Sample rate of the input PCM (default 24000 for ElevenLabs).
+
+    Returns:
+        PCM 48kHz stereo 16-bit signed LE bytes.
+    """
+    if not raw_pcm:
+        return b""
+    try:
+        result = subprocess.run(
+            [
+                "ffmpeg", "-hide_banner", "-loglevel", "error",
+                "-f", "s16le",
+                "-ar", str(input_rate),
+                "-ac", "1",
+                "-i", "pipe:0",
+                "-f", "s16le",
+                "-ar", str(SAMPLE_RATE),
+                "-ac", str(CHANNELS),
+                "-acodec", "pcm_s16le",
+                "pipe:1",
+            ],
+            input=raw_pcm,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=30,
+        )
+        if result.returncode != 0:
+            log.error("FFmpeg PCM resample failed: %s", result.stderr.decode()[:500])
+            return b""
+        return result.stdout
+    except subprocess.TimeoutExpired:
+        log.error("FFmpeg PCM resample timed out")
         return b""
     except FileNotFoundError:
         log.error("FFmpeg not found. Install with: apt-get install ffmpeg")
@@ -134,14 +203,16 @@ async def transcribe_audio(wav_bytes: bytes) -> str:
 async def elevenlabs_tts_to_pcm(text: str, voice_id: str) -> bytes:
     """Generate speech using ElevenLabs and convert to PCM for pytgcalls.
 
-    Uses the streaming TTS endpoint for lower latency.
+    Uses raw PCM output from ElevenLabs (24kHz mono 16-bit) to avoid
+    lossy MP3 encoding artifacts. Then resamples to 48kHz stereo via
+    FFmpeg to match pytgcalls AudioQuality.HIGH.
 
     Args:
         text: Text to synthesize.
         voice_id: ElevenLabs voice ID for the influencer.
 
     Returns:
-        PCM bytes in pytgcalls-compatible format (16-bit 48kHz mono).
+        PCM bytes in pytgcalls-compatible format (16-bit 48kHz stereo).
     """
     if not settings.ELEVENLABS_API_KEY:
         log.error("ELEVENLABS_API_KEY not set, cannot synthesize")
@@ -150,15 +221,14 @@ async def elevenlabs_tts_to_pcm(text: str, voice_id: str) -> bytes:
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.post(
-                f"{settings.ELEVEN_BASE_URL}/v1/text-to-speech/{voice_id}/stream",
+                f"{settings.ELEVEN_BASE_URL}/text-to-speech/{voice_id}/stream?output_format=mp3_44100_128",
                 headers={
                     "xi-api-key": settings.ELEVENLABS_API_KEY,
                     "Content-Type": "application/json",
                 },
                 json={
                     "text": text,
-                    "model_id": "eleven_v3_conversational",
-                    "output_format": "mp3_44100_128",
+                    "model_id": "eleven_turbo_v2_5",
                     "voice_settings": {
                         "stability": 0.5,
                         "similarity_boost": 0.75,
@@ -169,11 +239,15 @@ async def elevenlabs_tts_to_pcm(text: str, voice_id: str) -> bytes:
                 log.error("ElevenLabs TTS error %d: %s", resp.status_code, resp.text[:300])
                 return b""
 
-            mp3_bytes = resp.content
+            raw_audio = resp.content
+            log.debug(
+                "elevenlabs.audio_received bytes=%d",
+                len(raw_audio),
+            )
 
-        # Convert MP3 → PCM in a thread to avoid blocking the event loop
+        # Decode MP3 → 48kHz stereo in a thread
         pcm = await asyncio.get_event_loop().run_in_executor(
-            None, mp3_to_pcm, mp3_bytes
+            None, mp3_to_pcm, raw_audio
         )
         return pcm
 
