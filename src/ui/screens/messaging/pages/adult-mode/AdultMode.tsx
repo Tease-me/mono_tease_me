@@ -208,8 +208,26 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
           </div>
         </div>
       ) : (
-        <div className={styles.sessionPage}>
-          <div className={styles.sessionMedia}>
+        <div
+          className={`${styles.sessionPage} ${sessionState === "preview" ? styles.previewSessionPage : styles.activeSessionPage}`}
+        >
+          <div
+            className={`${styles.sessionStage} ${sessionState === "preview" ? styles.previewStage : styles.activeStage}`}
+          >
+            {sessionState === "preview" && (
+              <IconButton
+                type="pill"
+                color="black"
+                leftIcon={
+                  <Suspense fallback={null}>
+                    <SvgPack.CloseSquare className={styles.previewCloseIcon} />
+                  </Suspense>
+                }
+                onClick={handleCloseScenario}
+                className={styles.previewCloseButton}
+              />
+            )}
+            <div className={styles.sessionMedia}>
             {showVideo ? (
               <video
                 poster={selectedScene.video.image ?? undefined}
@@ -238,17 +256,6 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
             {sessionState === "preview" && <div className={styles.previewOverlay} />}
             {sessionState === "preview" ? (
               <>
-                <IconButton
-                  type="pill"
-                  color="black"
-                  leftIcon={
-                    <Suspense fallback={null}>
-                      <SvgPack.CloseSquare className={styles.previewCloseIcon} />
-                    </Suspense>
-                  }
-                  onClick={handleCloseScenario}
-                  className={styles.previewCloseButton}
-                />
                 <div className={styles.sessionName}>{selectedScene.name}</div>
                 <div className={styles.previewPanel}>
                   <div className={styles.subtitle}>Scenario Details</div>
@@ -263,7 +270,7 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
                       className={styles.callButton}
                       leftIcon={
                         <Suspense fallback={null}>
-                          <SvgPack.Call />
+                          <SvgPack.Call className={styles.callButtonIcon} />
                         </Suspense>
                       }
                     />
@@ -286,6 +293,31 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
                       </Suspense>
                     }
                   />
+                </div>
+              </div>
+            )}
+            </div>
+            {sessionState === "preview" && (
+              <div className={styles.previewDesktopPanel}>
+                <div className={styles.desktopSessionName}>{selectedScene.name}</div>
+                <div className={styles.previewDesktopBody}>
+                  <div className={styles.subtitle}>Scenario Details</div>
+                  <div className={styles.sessionDescription}>
+                    {selectedScene.scenarioDetails}
+                  </div>
+                  <div className={styles.previewActions}>
+                    <IconButton
+                      onClick={handleStartCall}
+                      color="green"
+                      type="pill"
+                      className={styles.callButton}
+                      leftIcon={
+                        <Suspense fallback={null}>
+                          <SvgPack.Call className={styles.callButtonIcon} />
+                        </Suspense>
+                      }
+                    />
+                  </div>
                 </div>
               </div>
             )}
