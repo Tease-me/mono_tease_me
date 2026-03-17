@@ -109,6 +109,7 @@ async def _build_influencer_adult_characters(
                 name=character.name,
                 description=character.description,
                 short_description=character.short_description,
+                first_messages=character.first_messages,
                 prompt_template=character.prompt_template,
                 is_active=character.is_active,
                 display_order=character.display_order,

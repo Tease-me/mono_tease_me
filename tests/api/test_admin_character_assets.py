@@ -124,6 +124,7 @@ async def test_list_admin_adult_characters_orders_rows():
         name="Later",
         description=None,
         short_description=None,
+        first_messages=None,
         prompt_template="later-template",
         default_artwork_key=None,
         lottie_text=None,
@@ -138,6 +139,7 @@ async def test_list_admin_adult_characters_orders_rows():
         name="Earlier",
         description="desc",
         short_description="short",
+        first_messages=["Hi there", "Missed you"],
         prompt_template="early-template",
         default_artwork_key="art.png",
         lottie_text="lot.json",
@@ -152,6 +154,7 @@ async def test_list_admin_adult_characters_orders_rows():
 
     assert [item.id for item in items] == [3, 9]
     assert items[0].slug == "earlier"
+    assert items[0].first_messages == ["Hi there", "Missed you"]
     assert items[0].default_artwork_url == "https://cdn.test/art.png"
     assert items[0].lottie_text_url == "https://cdn.test/lot.json"
 
@@ -165,6 +168,7 @@ async def test_create_admin_adult_character_creates_row():
         prompt_template="template",
         description="desc",
         short_description="short desc",
+        first_messages=["Hi there", "Missed you"],
         default_artwork_key="art.png",
         lottie_text="lot.json",
         is_active=True,
@@ -182,8 +186,10 @@ async def test_create_admin_adult_character_creates_row():
     assert isinstance(row, AdultCharacter)
     assert row.slug == "nurse"
     assert row.short_description == "short desc"
+    assert row.first_messages == ["Hi there", "Missed you"]
     assert created.slug == "nurse"
     assert created.id == 1
+    assert created.first_messages == ["Hi there", "Missed you"]
     assert created.default_artwork_url == "https://cdn.test/art.png"
     assert created.lottie_text_url == "https://cdn.test/lot.json"
     assert db.did_commit is True
@@ -234,6 +240,7 @@ async def test_patch_admin_adult_character_updates_row():
         name="Nurse",
         description="old",
         short_description="old-short",
+        first_messages=None,
         prompt_template="old-template",
         default_artwork_key=None,
         lottie_text=None,
@@ -250,6 +257,7 @@ async def test_patch_admin_adult_character_updates_row():
             name="Updated Nurse",
             description="new",
             short_description="new-short",
+            first_messages=["Hello"],
         ),
         current_user=_admin_user(),
         db=db,
@@ -258,6 +266,7 @@ async def test_patch_admin_adult_character_updates_row():
     assert character.name == "Updated Nurse"
     assert character.description == "new"
     assert character.short_description == "new-short"
+    assert character.first_messages == ["Hello"]
     assert result.name == "Updated Nurse"
     assert result.short_description == "new-short"
     assert result.default_artwork_url is None

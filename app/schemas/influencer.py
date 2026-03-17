@@ -77,6 +77,7 @@ class InfluencerAdultCharacterOut(BaseModel):
     name: str
     description: Optional[str] = None
     short_description: Optional[str] = None
+    first_messages: Optional[List[str]] = None
     prompt_template: str
     is_active: bool
     display_order: int

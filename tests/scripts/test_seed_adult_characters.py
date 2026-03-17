@@ -95,6 +95,7 @@ async def test_seed_updates_existing_adult_character_by_slug():
         name="Old Nurse",
         description="old",
         short_description="old short",
+        first_messages=["old hello"],
         prompt_template="old prompt",
         default_artwork_key=None,
         lottie_text=None,
@@ -110,6 +111,12 @@ async def test_seed_updates_existing_adult_character_by_slug():
 
     assert summary["adult_characters_updated"] >= 1
     assert existing.name == "Nurse"
+    assert existing.short_description == "Soft bedside care with a teasing smile."
+    assert existing.first_messages == [
+        "Hey, lie back for me and tell me where you want my attention first.",
+        "You look tense already, sweetheart. Want your nurse to take over?",
+        "Mmm, I have a little time before rounds. Tell me what kind of care you need.",
+    ]
     assert existing.is_active is True
     assert existing.display_order == 1
 
@@ -122,6 +129,7 @@ async def test_seed_preserves_existing_overlay_meta_json_on_rerun():
         name="Nurse",
         description="A caring medical roleplay character with a soft but confident bedside manner.",
         short_description=None,
+        first_messages=None,
         prompt_template="You are playing the role of a flirtatious nurse. Stay in character, speak warmly, and keep the tone playful, intimate, and role-focused.",
         default_artwork_key=None,
         lottie_text="influencer/bella/adult-characters/lotties/adultTitlePlaceholder.json",
@@ -155,6 +163,7 @@ async def test_seed_does_not_delete_unrelated_rows():
         name="Custom",
         description=None,
         short_description=None,
+        first_messages=None,
         prompt_template="custom",
         default_artwork_key=None,
         lottie_text=None,

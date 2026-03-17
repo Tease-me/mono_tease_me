@@ -73,6 +73,7 @@ async def test_build_influencer_adult_characters_includes_lottie_text_key(monkey
         name="Horny Nurse",
         description="A playful nurse character",
         short_description="Quick nurse teaser",
+        first_messages=["Hi there", "Missed you"],
         prompt_template="template",
         is_active=True,
         display_order=7,
@@ -91,6 +92,7 @@ async def test_build_influencer_adult_characters_includes_lottie_text_key(monkey
     assert len(items) == 1
     item = items[0]
     assert item.short_description == "Quick nurse teaser"
+    assert item.first_messages == ["Hi there", "Missed you"]
     assert item.lottie_text == "lottie/nurse.json"
     assert item.default_artwork_url == "https://example.test/base/2/default-artwork.png"
     assert item.lottie_text_url == "https://example.test/base/2/lottie.json"
@@ -143,6 +145,7 @@ async def test_build_influencer_adult_characters_keeps_null_lottie_text(monkeypa
         name="Alpha",
         description=None,
         short_description=None,
+        first_messages=None,
         prompt_template="one",
         is_active=True,
         display_order=2,
@@ -155,6 +158,7 @@ async def test_build_influencer_adult_characters_keeps_null_lottie_text(monkeypa
         name="Beta",
         description=None,
         short_description="Beta short",
+        first_messages=["Only one"],
         prompt_template="two",
         is_active=True,
         display_order=1,
@@ -168,6 +172,8 @@ async def test_build_influencer_adult_characters_keeps_null_lottie_text(monkeypa
     assert [item.id for item in items] == [3, 9]
     assert items[0].short_description == "Beta short"
     assert items[1].short_description is None
+    assert items[0].first_messages == ["Only one"]
+    assert items[1].first_messages is None
     assert items[0].lottie_text == "lottie/beta.json"
     assert items[1].lottie_text is None
     assert items[0].default_artwork_url == "https://example.test/base/artwork/beta.png"

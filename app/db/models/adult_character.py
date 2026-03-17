@@ -3,6 +3,7 @@
 from datetime import datetime, timezone
 
 from sqlalchemy import Boolean, DateTime, Index, Integer, String, Text
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
@@ -18,6 +19,7 @@ class AdultCharacter(Base):
     name: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     short_description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    first_messages: Mapped[list[str] | None] = mapped_column(ARRAY(String), nullable=True)
     prompt_template: Mapped[str] = mapped_column(Text, nullable=False)
     default_artwork_key: Mapped[str | None] = mapped_column(String, nullable=True)
     lottie_text: Mapped[str | None] = mapped_column(Text, nullable=True)
