@@ -9,6 +9,14 @@ import pillow_heif
 
 from app.core.config import settings
 from app.gateways import s3_gateway
+from app.services.asset_cache_service import (
+    get_cached_presence,
+    get_cached_presigned_url,
+    invalidate_presence,
+    invalidate_presigned_urls,
+    set_cached_presence,
+    set_cached_presigned_url,
+)
 
 
 def _character_asset_prefix(influencer_id: str, character_id: int) -> str:
@@ -105,6 +113,7 @@ async def upload_influencer_character_photo(
         key,
         content_type=final_content_type,
     )
+    await invalidate_influencer_character_asset_cache(influencer_id, character_id)
     return key
 
 
@@ -129,6 +138,7 @@ async def upload_influencer_character_video(
         key,
         content_type=content_type,
     )
+    await invalidate_influencer_character_asset_cache(influencer_id, character_id)
     return key
 
 
@@ -142,34 +152,57 @@ def get_influencer_character_asset_keys(influencer_id: str, character_id: int) -
     }
 
 
-def get_influencer_character_asset_presence(influencer_id: str, character_id: int) -> dict[str, bool]:
+async def get_influencer_character_asset_presence(influencer_id: str, character_id: int) -> dict[str, bool]:
+    cache_key = f"{influencer_id}:{character_id}"
+    cached = await get_cached_presence("influencer_character", cache_key)
+    if cached is not None:
+        return {
+            "photo": bool(cached.get("photo")),
+            "photo_2x": bool(cached.get("photo_2x")),
+            "video_mp4": bool(cached.get("video_mp4")),
+            "video_webm": bool(cached.get("video_webm")),
+            "video_preview_png": bool(cached.get("video_preview_png")),
+        }
+
     keys = get_influencer_character_asset_keys(influencer_id, character_id)
-    return {
-        name: s3_gateway.object_exists(bucket=settings.BUCKET_NAME, key=key)
-        for name, key in keys.items()
-    }
+    prefix = _character_asset_prefix(influencer_id, character_id)
+    object_keys = set(s3_gateway.list_objects(bucket=settings.BUCKET_NAME, prefix=prefix))
+    presence = {name: key in object_keys for name, key in keys.items()}
+    await set_cached_presence("influencer_character", cache_key, presence)
+    return presence
 
 
-def get_influencer_character_asset_state(influencer_id: str, character_id: int) -> dict[str, str | bool | None]:
+async def _get_presigned_url_for_key(key: str) -> str:
+    cached = await get_cached_presigned_url(key)
+    if cached:
+        return cached
+
+    url = s3_gateway.generate_presigned_get_url(
+        bucket=settings.BUCKET_NAME,
+        key=key,
+        expires=settings.S3_PRESIGNED_URL_TTL_SECONDS,
+    )
+    await set_cached_presigned_url(key, url)
+    return url
+
+
+async def get_influencer_character_asset_state(influencer_id: str, character_id: int) -> dict[str, str | bool | None]:
     keys = get_influencer_character_asset_keys(influencer_id, character_id)
-    exists = get_influencer_character_asset_presence(influencer_id, character_id)
+    exists = await get_influencer_character_asset_presence(influencer_id, character_id)
     return {
-        "photo_url": s3_gateway.generate_presigned_get_url(bucket=settings.BUCKET_NAME, key=keys["photo"])
+        "photo_url": await _get_presigned_url_for_key(keys["photo"])
         if exists["photo"]
         else None,
-        "photo_2x_url": s3_gateway.generate_presigned_get_url(bucket=settings.BUCKET_NAME, key=keys["photo_2x"])
+        "photo_2x_url": await _get_presigned_url_for_key(keys["photo_2x"])
         if exists["photo_2x"]
         else None,
-        "video_mp4_url": s3_gateway.generate_presigned_get_url(bucket=settings.BUCKET_NAME, key=keys["video_mp4"])
+        "video_mp4_url": await _get_presigned_url_for_key(keys["video_mp4"])
         if exists["video_mp4"]
         else None,
-        "video_webm_url": s3_gateway.generate_presigned_get_url(bucket=settings.BUCKET_NAME, key=keys["video_webm"])
+        "video_webm_url": await _get_presigned_url_for_key(keys["video_webm"])
         if exists["video_webm"]
         else None,
-        "video_preview_png_url": s3_gateway.generate_presigned_get_url(
-            bucket=settings.BUCKET_NAME,
-            key=keys["video_preview_png"],
-        )
+        "video_preview_png_url": await _get_presigned_url_for_key(keys["video_preview_png"])
         if exists["video_preview_png"]
         else None,
         "has_photo": exists["photo"] and exists["photo_2x"],
@@ -181,3 +214,10 @@ def get_influencer_character_asset_state(influencer_id: str, character_id: int) 
 
 async def delete_influencer_character_asset(key: str) -> None:
     s3_gateway.delete_object(bucket=settings.BUCKET_NAME, key=key)
+
+
+async def invalidate_influencer_character_asset_cache(influencer_id: str, character_id: int) -> None:
+    await invalidate_presence("influencer_character", f"{influencer_id}:{character_id}")
+    await invalidate_presigned_urls(
+        list(get_influencer_character_asset_keys(influencer_id, character_id).values())
+    )

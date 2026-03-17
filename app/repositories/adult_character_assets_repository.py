@@ -9,6 +9,14 @@ import pillow_heif
 
 from app.core.config import settings
 from app.gateways import s3_gateway
+from app.services.asset_cache_service import (
+    get_cached_presence,
+    get_cached_presigned_url,
+    invalidate_presence,
+    invalidate_presigned_url,
+    set_cached_presence,
+    set_cached_presigned_url,
+)
 
 
 def _adult_character_asset_prefix(character_id: int) -> str:
@@ -83,6 +91,7 @@ async def upload_adult_character_default_artwork(
         key,
         content_type=final_content_type,
     )
+    await invalidate_adult_character_asset_cache(character_id)
     return key
 
 
@@ -98,32 +107,68 @@ async def upload_adult_character_lottie(
         key,
         content_type="application/json",
     )
+    await invalidate_adult_character_asset_cache(character_id)
     return key
 
 
-def get_adult_character_asset_state(
+async def get_adult_character_asset_presence(
+    character_id: int,
+    default_artwork_key: str | None,
+    lottie_text_key: str | None,
+) -> dict[str, bool]:
+    cache_key = str(character_id)
+    cached = await get_cached_presence("adult_character", cache_key)
+    if cached is not None:
+        return {
+            "default_artwork": bool(cached.get("default_artwork")),
+            "lottie_text": bool(cached.get("lottie_text")),
+        }
+
+    prefix = _adult_character_asset_prefix(character_id)
+    object_keys = set(s3_gateway.list_objects(bucket=settings.BUCKET_NAME, prefix=prefix))
+    presence = {
+        "default_artwork": bool(default_artwork_key) and default_artwork_key in object_keys,
+        "lottie_text": bool(lottie_text_key) and lottie_text_key in object_keys,
+    }
+    await set_cached_presence("adult_character", cache_key, presence)
+    return presence
+
+
+async def _get_presigned_url_for_key(key: str) -> str:
+    cached = await get_cached_presigned_url(key)
+    if cached:
+        return cached
+
+    url = s3_gateway.generate_presigned_get_url(
+        bucket=settings.BUCKET_NAME,
+        key=key,
+        expires=settings.S3_PRESIGNED_URL_TTL_SECONDS,
+    )
+    await set_cached_presigned_url(key, url)
+    return url
+
+
+async def get_adult_character_asset_state(
+    character_id: int,
     default_artwork_key: str | None,
     lottie_text_key: str | None,
 ) -> dict[str, str | None]:
-    artwork_exists = bool(default_artwork_key) and s3_gateway.object_exists(
-        bucket=settings.BUCKET_NAME,
-        key=default_artwork_key,
-    )
-    lottie_exists = bool(lottie_text_key) and s3_gateway.object_exists(
-        bucket=settings.BUCKET_NAME,
-        key=lottie_text_key,
+    presence = await get_adult_character_asset_presence(
+        character_id,
+        default_artwork_key,
+        lottie_text_key,
     )
     return {
-        "default_artwork_url": s3_gateway.generate_presigned_get_url(
-            bucket=settings.BUCKET_NAME,
-            key=default_artwork_key,
-        )
-        if artwork_exists and default_artwork_key
+        "default_artwork_url": await _get_presigned_url_for_key(default_artwork_key)
+        if presence["default_artwork"] and default_artwork_key
         else None,
-        "lottie_text_url": s3_gateway.generate_presigned_get_url(
-            bucket=settings.BUCKET_NAME,
-            key=lottie_text_key,
-        )
-        if lottie_exists and lottie_text_key
+        "lottie_text_url": await _get_presigned_url_for_key(lottie_text_key)
+        if presence["lottie_text"] and lottie_text_key
         else None,
     }
+
+
+async def invalidate_adult_character_asset_cache(character_id: int) -> None:
+    await invalidate_presence("adult_character", str(character_id))
+    await invalidate_presigned_url(build_adult_character_default_artwork_key(character_id))
+    await invalidate_presigned_url(build_adult_character_lottie_key(character_id))

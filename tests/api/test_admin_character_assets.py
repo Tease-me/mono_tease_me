@@ -100,16 +100,19 @@ def _non_admin_user():
 
 @pytest.fixture(autouse=True)
 def _patch_base_asset_state(monkeypatch):
-    monkeypatch.setattr(
-        "app.api.admin.characters.get_adult_character_asset_state",
-        lambda default_artwork_key, lottie_text_key: {
+    async def _asset_state(character_id, default_artwork_key, lottie_text_key):
+        return {
             "default_artwork_url": f"https://cdn.test/{default_artwork_key}"
             if default_artwork_key
             else None,
             "lottie_text_url": f"https://cdn.test/{lottie_text_key}"
             if lottie_text_key
             else None,
-        },
+        }
+
+    monkeypatch.setattr(
+        "app.api.admin.characters.get_adult_character_asset_state",
+        _asset_state,
     )
 
 
@@ -445,9 +448,8 @@ async def test_list_admin_adult_characters_requires_admin():
 
 @pytest.mark.anyio
 async def test_build_admin_influencer_adult_characters_returns_base_override_and_resolved(monkeypatch):
-    monkeypatch.setattr(
-        "app.api.admin.characters.get_influencer_character_asset_state",
-        lambda influencer_id, character_id: {
+    async def _asset_state(influencer_id, character_id):
+        return {
             "photo_url": "https://cdn.test/influencer/juliana/characters/7/photo.png",
             "photo_2x_url": "https://cdn.test/influencer/juliana/characters/7/photo@2x.png",
             "video_mp4_url": "https://cdn.test/influencer/juliana/characters/7/video.mp4",
@@ -455,7 +457,11 @@ async def test_build_admin_influencer_adult_characters_returns_base_override_and
             "video_preview_png_url": "https://cdn.test/influencer/juliana/characters/7/video.png",
             "has_photo": True,
             "has_complete_video_set": True,
-        },
+        }
+
+    monkeypatch.setattr(
+        "app.api.admin.characters.get_influencer_character_asset_state",
+        _asset_state,
     )
 
     character = SimpleNamespace(
@@ -497,13 +503,8 @@ async def test_upsert_admin_influencer_character_assets_uploads_photo_without_ov
     async def _save_photo(*_args, **_kwargs):
         return "influencer/juliana/characters/7/photo.png"
 
-    monkeypatch.setattr(
-        "app.api.admin.characters.upload_influencer_character_photo",
-        _save_photo,
-    )
-    monkeypatch.setattr(
-        "app.api.admin.characters.get_influencer_character_asset_state",
-        lambda influencer_id, character_id: {
+    async def _asset_state(influencer_id, character_id):
+        return {
             "photo_url": "https://cdn.test/influencer/juliana/characters/7/photo.png",
             "photo_2x_url": None,
             "video_mp4_url": None,
@@ -511,7 +512,22 @@ async def test_upsert_admin_influencer_character_assets_uploads_photo_without_ov
             "video_preview_png_url": None,
             "has_photo": False,
             "has_complete_video_set": False,
-        },
+        }
+
+    async def _invalidate(*_args, **_kwargs):
+        return None
+
+    monkeypatch.setattr(
+        "app.api.admin.characters.upload_influencer_character_photo",
+        _save_photo,
+    )
+    monkeypatch.setattr(
+        "app.api.admin.characters.get_influencer_character_asset_state",
+        _asset_state,
+    )
+    monkeypatch.setattr(
+        "app.api.admin.characters.invalidate_influencer_character_asset_cache",
+        _invalidate,
     )
 
     influencer = SimpleNamespace(id="juliana")
@@ -550,6 +566,29 @@ async def test_delete_admin_influencer_character_asset_clears_grouped_video(monk
     async def _delete_file(key):
         deleted_keys.append(key)
 
+    async def _presence(influencer_id, character_id):
+        return {
+            "photo": True,
+            "photo_2x": True,
+            "video_mp4": True,
+            "video_webm": True,
+            "video_preview_png": False,
+        }
+
+    async def _asset_state(influencer_id, character_id):
+        return {
+            "photo_url": "https://cdn.test/influencer/juliana/characters/7/photo.png",
+            "photo_2x_url": "https://cdn.test/influencer/juliana/characters/7/photo@2x.png",
+            "video_mp4_url": None,
+            "video_webm_url": None,
+            "video_preview_png_url": None,
+            "has_photo": True,
+            "has_complete_video_set": False,
+        }
+
+    async def _invalidate(*_args, **_kwargs):
+        return None
+
     monkeypatch.setattr(
         "app.api.admin.characters.delete_influencer_character_asset",
         _delete_file,
@@ -566,25 +605,15 @@ async def test_delete_admin_influencer_character_asset_clears_grouped_video(monk
     )
     monkeypatch.setattr(
         "app.api.admin.characters.get_influencer_character_asset_presence",
-        lambda influencer_id, character_id: {
-            "photo": True,
-            "photo_2x": True,
-            "video_mp4": True,
-            "video_webm": True,
-            "video_preview_png": False,
-        },
+        _presence,
     )
     monkeypatch.setattr(
         "app.api.admin.characters.get_influencer_character_asset_state",
-        lambda influencer_id, character_id: {
-            "photo_url": "https://cdn.test/influencer/juliana/characters/7/photo.png",
-            "photo_2x_url": "https://cdn.test/influencer/juliana/characters/7/photo@2x.png",
-            "video_mp4_url": None,
-            "video_webm_url": None,
-            "video_preview_png_url": None,
-            "has_photo": True,
-            "has_complete_video_set": False,
-        },
+        _asset_state,
+    )
+    monkeypatch.setattr(
+        "app.api.admin.characters.invalidate_influencer_character_asset_cache",
+        _invalidate,
     )
 
     influencer = SimpleNamespace(id="juliana")

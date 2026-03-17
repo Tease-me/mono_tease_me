@@ -96,8 +96,9 @@ async def _build_influencer_adult_characters(
     items: list[InfluencerAdultCharacterOut] = []
     for character in characters:
         overlay = overlays.get(character.id)
-        asset_state = get_influencer_character_asset_state(influencer_id, character.id)
-        base_asset_state = get_adult_character_asset_state(
+        asset_state = await get_influencer_character_asset_state(influencer_id, character.id)
+        base_asset_state = await get_adult_character_asset_state(
+            character.id,
             character.default_artwork_key,
             character.lottie_text,
         )

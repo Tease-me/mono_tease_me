@@ -41,16 +41,14 @@ class _FakeAsyncSession:
 
 @pytest.mark.anyio
 async def test_build_influencer_adult_characters_includes_lottie_text_key(monkeypatch):
-    monkeypatch.setattr(
-        "app.api.influencer.get_adult_character_asset_state",
-        lambda default_artwork_key, lottie_text_key: {
+    async def _base_asset_state(character_id, default_artwork_key, lottie_text_key):
+        return {
             "default_artwork_url": "https://example.test/base/2/default-artwork.png",
             "lottie_text_url": "https://example.test/base/2/lottie.json",
-        },
-    )
-    monkeypatch.setattr(
-        "app.api.influencer.get_influencer_character_asset_state",
-        lambda influencer_id, character_id: {
+        }
+
+    async def _influencer_asset_state(influencer_id, character_id):
+        return {
             "photo_url": f"https://example.test/{influencer_id}/{character_id}/photo.png",
             "photo_2x_url": f"https://example.test/{influencer_id}/{character_id}/photo@2x.png",
             "video_mp4_url": None,
@@ -58,7 +56,15 @@ async def test_build_influencer_adult_characters_includes_lottie_text_key(monkey
             "video_preview_png_url": None,
             "has_photo": True,
             "has_complete_video_set": False,
-        },
+        }
+
+    monkeypatch.setattr(
+        "app.api.influencer.get_adult_character_asset_state",
+        _base_asset_state,
+    )
+    monkeypatch.setattr(
+        "app.api.influencer.get_influencer_character_asset_state",
+        _influencer_asset_state,
     )
 
     character = SimpleNamespace(
@@ -97,20 +103,18 @@ async def test_build_influencer_adult_characters_includes_lottie_text_key(monkey
 
 @pytest.mark.anyio
 async def test_build_influencer_adult_characters_keeps_null_lottie_text(monkeypatch):
-    monkeypatch.setattr(
-        "app.api.influencer.get_adult_character_asset_state",
-        lambda default_artwork_key, lottie_text_key: {
+    async def _base_asset_state(character_id, default_artwork_key, lottie_text_key):
+        return {
             "default_artwork_url": f"https://example.test/base/{default_artwork_key}"
             if default_artwork_key
             else None,
             "lottie_text_url": f"https://example.test/base/{lottie_text_key}"
             if lottie_text_key
             else None,
-        },
-    )
-    monkeypatch.setattr(
-        "app.api.influencer.get_influencer_character_asset_state",
-        lambda influencer_id, character_id: {
+        }
+
+    async def _influencer_asset_state(influencer_id, character_id):
+        return {
             "photo_url": f"https://example.test/{influencer_id}/{character_id}/photo.png"
             if character_id == 3
             else None,
@@ -122,7 +126,15 @@ async def test_build_influencer_adult_characters_keeps_null_lottie_text(monkeypa
             "video_preview_png_url": None,
             "has_photo": character_id == 3,
             "has_complete_video_set": False,
-        },
+        }
+
+    monkeypatch.setattr(
+        "app.api.influencer.get_adult_character_asset_state",
+        _base_asset_state,
+    )
+    monkeypatch.setattr(
+        "app.api.influencer.get_influencer_character_asset_state",
+        _influencer_asset_state,
     )
 
     first = SimpleNamespace(

@@ -11,6 +11,7 @@ from app.db.models import AdultCharacter, Influencer, InfluencerCharacterMeta, U
 from app.db.session import get_db
 from app.repositories.adult_character_assets_repository import (
     get_adult_character_asset_state,
+    invalidate_adult_character_asset_cache,
     upload_adult_character_default_artwork,
     upload_adult_character_lottie,
 )
@@ -19,6 +20,7 @@ from app.repositories.influencer_character_assets_repository import (
     get_influencer_character_asset_keys,
     get_influencer_character_asset_presence,
     get_influencer_character_asset_state,
+    invalidate_influencer_character_asset_cache,
     upload_influencer_character_photo,
     upload_influencer_character_video,
 )
@@ -79,7 +81,7 @@ async def _build_admin_influencer_adult_characters(
     items: list[AdminInfluencerAdultCharacterAssetOut] = []
     for character in characters:
         overlay = overlays.get(character.id)
-        asset_state = get_influencer_character_asset_state(influencer_id, character.id)
+        asset_state = await get_influencer_character_asset_state(influencer_id, character.id)
         items.append(
             AdminInfluencerAdultCharacterAssetOut(
                 id=character.id,
@@ -105,8 +107,9 @@ async def _build_admin_influencer_adult_characters(
     return items
 
 
-def _build_admin_adult_character_out(character: AdultCharacter) -> AdminAdultCharacterOut:
-    asset_state = get_adult_character_asset_state(
+async def _build_admin_adult_character_out(character: AdultCharacter) -> AdminAdultCharacterOut:
+    asset_state = await get_adult_character_asset_state(
+        character.id,
         character.default_artwork_key,
         character.lottie_text,
     )
@@ -133,7 +136,7 @@ async def list_admin_adult_characters(
         result.scalars().all(),
         key=lambda character: (character.display_order, character.id),
     )
-    return [_build_admin_adult_character_out(character) for character in characters]
+    return [await _build_admin_adult_character_out(character) for character in characters]
 
 
 @router.post(
@@ -159,7 +162,7 @@ async def create_admin_adult_character(
     db.add(character)
     await db.commit()
     await db.refresh(character)
-    return _build_admin_adult_character_out(character)
+    return await _build_admin_adult_character_out(character)
 
 
 @router.delete(
@@ -227,7 +230,7 @@ async def patch_admin_adult_character(
     db.add(character)
     await db.commit()
     await db.refresh(character)
-    return _build_admin_adult_character_out(character)
+    return await _build_admin_adult_character_out(character)
 
 
 @router.post(
@@ -275,7 +278,8 @@ async def upsert_admin_adult_character_assets(
     db.add(character)
     await db.commit()
     await db.refresh(character)
-    return _build_admin_adult_character_out(character)
+    await invalidate_adult_character_asset_cache(character_id)
+    return await _build_admin_adult_character_out(character)
 
 
 @router.get(
@@ -418,7 +422,8 @@ async def upsert_admin_influencer_character_assets(
                 log.warning("Failed to cleanup uploaded character asset %s", key, exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to save character assets")
 
-    asset_state = get_influencer_character_asset_state(influencer_id, character_id)
+    await invalidate_influencer_character_asset_cache(influencer_id, character_id)
+    asset_state = await get_influencer_character_asset_state(influencer_id, character_id)
     return AdminInfluencerCharacterAssetMutationOut(
         influencer_id=influencer_id,
         character_id=character_id,
@@ -459,7 +464,7 @@ async def delete_admin_influencer_character_asset(
 
     overlay = await _get_influencer_character_overlay(db, influencer_id, character_id)
     keys = get_influencer_character_asset_keys(influencer_id, character_id)
-    presence = get_influencer_character_asset_presence(influencer_id, character_id)
+    presence = await get_influencer_character_asset_presence(influencer_id, character_id)
     try:
         target_keys = {
             "photo": [keys["photo"]],
@@ -488,7 +493,8 @@ async def delete_admin_influencer_character_asset(
         except Exception:
             log.warning("Failed to delete character asset file %s", key, exc_info=True)
 
-    asset_state = get_influencer_character_asset_state(influencer_id, character_id)
+    await invalidate_influencer_character_asset_cache(influencer_id, character_id)
+    asset_state = await get_influencer_character_asset_state(influencer_id, character_id)
     return AdminInfluencerCharacterAssetMutationOut(
         influencer_id=influencer_id,
         character_id=character_id,
