@@ -119,14 +119,15 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 320ms ease;
 }
 
 .previewVideo {
-  transform: scale(1);
+  transform: scale(1.1);
 }
 
 .activeVideo {
-  transform: scale(1.08);
+  transform: scale(1);
 }
 
 .previewOverlay {
