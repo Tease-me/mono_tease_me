@@ -22,6 +22,7 @@ import useCallWebRTC from "@/hooks/useCallWebRTC";
 import { useChatScroll } from "@/hooks/useChatScroll";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import { DropDownMenuDataModel } from "@/ui/components/inputs/dropdown/DropDownMenu";
+import AdultMode from "../pages/adult-mode/AdultMode";
 import AdultModePage from "../pages/adult-mode/AdultModePage";
 import AdultModeComingSoon from "../pages/adult-mode/AdultModeComingSoon";
 import { ADULT_MODE_AVAILABLE } from "@/constants/adultModeAvailable";
@@ -32,7 +33,6 @@ import SvgPack from "@/utils/SvgPack";
 import ChatInfluencerBar from "./ChatInfluencerBar";
 import ChatHeaderInfo from "./ChatHeaderInfo";
 import CallModePage from "../pages/call-page/CallModePage";
-import AdultConvoStarterCard from "@/ui/components/cards/AdultConvoStarterCard";
 import { mergeCallMessages } from "./messageUtils";
 import UpgradePlanModal from "@/ui/components/modals/subscription/UpgradePlanModal";
 import AddCreditsModal from "@/ui/components/modals/payment-modal/AddCreditsModal";
@@ -179,6 +179,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     handleAdultModeChange,
     handleSubscribePressed,
   } = useSubscriptionState({ influencer, openSubscribe, callStatus: status });
+  const showAdultModeExperience = adultMode && !showSubscriptionPage;
 
   useEffect(() => {
     if (influencer?.id) {
@@ -194,10 +195,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
   );
 
   useEffect(() => {
-    if (adultMode && mode === "call") {
+    if (showAdultModeExperience && mode === "call") {
       dispatch(chatScreenActions.setMode("chat"));
     }
-  }, [adultMode, dispatch, mode]);
+  }, [dispatch, mode, showAdultModeExperience]);
 
   useEffect(() => {
     storage.set(LocalStorageKeys.PreferredChatMode, mode);
@@ -211,9 +212,12 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
   }, [adultMode, dispatch, influencer?.id]);
 
   useEffect(() => {
+    if (showSubscriptionPage || showAdultModeExperience) {
+      return;
+    }
     (async () => {
       if (influencer && user) {
-        const initKey = `${user.id}-${influencer.id}-${adultMode}`;
+        const initKey = `${user.id}-${influencer.id}`;
         if (lastChatInitRef.current === initKey) {
           return;
         }
@@ -222,16 +226,23 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
           initializeChatSession({
             userId: user.id,
             influencerId: influencer.id,
-            adultMode,
             pageSize,
           }),
         );
-        connectChat(influencer.id, chat_id, adultMode);
+        connectChat(influencer.id, chat_id);
         setInfluencerId(influencer.id);
         dispatch(chatScreenActions.setIsLoadingMore(false));
       }
     })();
-  }, [adultMode, dispatch, influencer, setInfluencerId, user]);
+  }, [
+    dispatch,
+    influencer,
+    pageSize,
+    setInfluencerId,
+    showAdultModeExperience,
+    showSubscriptionPage,
+    user,
+  ]);
 
   const { scrollToBottom, handleScroll } = useChatScroll({
     messagesEndRef: messagesEndRef,
@@ -250,7 +261,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
             chatId,
             page: pageNumber + 1,
             pageSize,
-            adultMode,
           }),
         );
         dispatch(chatScreenActions.setPageNumber(pageNumber + 1));
@@ -290,13 +300,15 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
       });
       localAudioUrlsRef.current.clear();
     };
-  }, [adultMode, chatId, influencer?.id]);
+  }, [chatId, influencer?.id, showAdultModeExperience]);
+
+  const chatRealtimeMode =
+    showAdultModeExperience || showSubscriptionPage ? "call" : mode;
 
   const { connectChat, sendMessage } = useChatRealtime({
     dispatch,
     chatId,
-    mode,
-    adultMode,
+    mode: chatRealtimeMode,
     influencerId: influencer?.id,
     inputText,
     inputAudio,
@@ -372,7 +384,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     );
     if (!confirmed) return;
 
-    await dispatch(clearChatHistoryThunk({ chatId, adultMode }));
+    await dispatch(clearChatHistoryThunk({ chatId }));
   };
 
   const handleMenuClick = () => {
@@ -415,6 +427,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
               style={{ color: "hsla(0, 0%, 100%, 0.20)" }}
             />
           </div>
+        ) : showAdultModeExperience ? (
+          <div className={styles["adult-mode-content"]}>
+            <AdultMode influencerId={influencer.id} />
+          </div>
         ) : !showSubscriptionPage ? (
           <>
             {mode !== "call" ? (
@@ -432,7 +448,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
                   relationship={relationship}
                   influencer={influencer}
                   status={isWsConnected ? "Connected" : "Not Connected"}
-                  adultMode={adultMode}
                   showChangeInfluencerButton={hasMultipleInfluencers}
                   onChangeInfluencer={handleChangeInfluencerClicked}
                   isSubscribed={isActiveSubscriber}
@@ -448,13 +463,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
                   {messages ? (
                     <>
                       {isLoadingMore && <LoadingSpinner size="small" />}
-                      <div className={styles.adultConvoCardArea}>
-                        {adultMode && !isLoadingMessages && (
-                          <AdultConvoStarterCard
-                            influencerName={influencer?.name}
-                          />
-                        )}
-                      </div>
                       <MessagesList
                         messages={displayMessages}
                         typing={typing}
@@ -463,7 +471,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
                         influencerName={influencer?.name}
                         showAudioTranscript={isSuperUser}
                         isAudio={Boolean(inputAudio)}
-                        adultMode={adultMode}
                         onAudioPlay={handleAudioPlay}
                         onCallBack={handleCallModeChange}
                       />
@@ -475,7 +482,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
 
                 <div className={styles["chat-input-area"]}>
                   <ChatInputArea
-                    adultMode={adultMode}
                     onSendMessage={sendMessage}
                     inputText={inputText}
                     setInputText={(text) =>
