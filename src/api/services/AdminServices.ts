@@ -323,6 +323,43 @@ export type AdminAdultCharacterAssetsPayload = {
   lottie_text?: File | null;
 };
 
+export type AdminInfluencerCharacter = {
+  id: number;
+  slug: string;
+  name: string;
+  description: string | null;
+  short_description: string | null;
+  is_active: boolean;
+  display_order: number;
+  base_lottie_text: string | null;
+  photo_url: string | null;
+  photo_2x_url: string | null;
+  video_mp4_url: string | null;
+  video_webm_url: string | null;
+  video_preview_png_url: string | null;
+  has_photo: boolean;
+  has_complete_video_set: boolean;
+  resolved_lottie_text: string | null;
+  meta_json: Record<string, unknown> | null;
+  has_influencer_override: boolean;
+};
+
+export type AdminInfluencerCharacterAssetsPayload = {
+  photo?: File | null;
+  photo_2x?: File | null;
+  video_mp4?: File | null;
+  video_webm?: File | null;
+  video_preview_png?: File | null;
+};
+
+export type InfluencerCharacterAssetType =
+  | "photo"
+  | "photo_2x"
+  | "video_mp4"
+  | "video_webm"
+  | "video_preview_png"
+  | "video";
+
 export const AdminServices = (apiClient: AxiosInstance) => ({
   listAdultCharacters: async (): Promise<AdminAdultCharacter[]> => {
     const response = await apiClient.get(Endpoints.admin.adultCharacters.list);
@@ -370,6 +407,56 @@ export const AdminServices = (apiClient: AxiosInstance) => ({
           "Content-Type": "multipart/form-data",
         },
       }
+    );
+    return response.data;
+  },
+
+  listInfluencerAdultCharacters: async (
+    influencerId: string
+  ): Promise<AdminInfluencerCharacter[]> => {
+    const response = await apiClient.get(
+      Endpoints.admin.influencerAdultCharacters.list(influencerId)
+    );
+    return response.data;
+  },
+
+  uploadInfluencerCharacterAssets: async (
+    influencerId: string,
+    characterId: number,
+    payload: AdminInfluencerCharacterAssetsPayload
+  ): Promise<AdminInfluencerCharacter> => {
+    const formData = new FormData();
+    if (payload.photo) formData.append("photo", payload.photo);
+    if (payload.photo_2x) formData.append("photo_2x", payload.photo_2x);
+    if (payload.video_mp4) formData.append("video_mp4", payload.video_mp4);
+    if (payload.video_webm) formData.append("video_webm", payload.video_webm);
+    if (payload.video_preview_png) {
+      formData.append("video_preview_png", payload.video_preview_png);
+    }
+
+    const response = await apiClient.post(
+      Endpoints.admin.influencerAdultCharacters.assets(influencerId, characterId),
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  },
+
+  deleteInfluencerCharacterAsset: async (
+    influencerId: string,
+    characterId: number,
+    assetType: InfluencerCharacterAssetType
+  ): Promise<AdminInfluencerCharacter> => {
+    const response = await apiClient.delete(
+      Endpoints.admin.influencerAdultCharacters.assetByType(
+        influencerId,
+        characterId,
+        assetType
+      )
     );
     return response.data;
   },

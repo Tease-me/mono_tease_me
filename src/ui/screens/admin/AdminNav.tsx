@@ -11,6 +11,7 @@ const NAV_ITEMS: NavItem[] = [
     { to: Paths.admin.analytics, label: "Analytics", icon: <SvgPack.Dashboard /> },
     { to: Paths.admin.relationship, label: "Relationship", icon: <SvgPack.Trust /> },
     { to: Paths.admin.characters, label: "Characters", icon: <SvgPack.StarHollow /> },
+    { to: Paths.admin.influencerCharacter, label: "Influencer Character", icon: <SvgPack.Users /> },
     { to: Paths.admin.influencer, label: "Influencers", icon: <SvgPack.Users /> },
     { to: Paths.admin.preInfluencers, label: "Pre-Influencers", icon: <SvgPack.StarHollow /> },
     { to: Paths.admin.knowledge, label: "Knowledge", icon: <SvgPack.InfoCircle /> },
@@ -46,7 +47,8 @@ const AdminNav: React.FC<AdminNavProps> = ({ isOpen, onClose }) => {
                 <div className={styles["nav-body"]}>
                     <div className={styles["nav-group"]}>
                         {NAV_ITEMS.map((item) => {
-                            const isActive = pathname.startsWith(item.to);
+                            const isActive =
+                                pathname === item.to || pathname.startsWith(`${item.to}/`);
                             return (
                                 <Link
                                     key={item.to + item.label}
