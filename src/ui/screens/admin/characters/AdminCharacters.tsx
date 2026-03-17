@@ -10,6 +10,7 @@ import {
 import LottieAnimation from "@/ui/components/LottieAnimation";
 import AdminLayout from "@/ui/screens/admin/AdminLayout";
 import AdminTwoColumn from "@/ui/screens/admin/AdminTwoColumn";
+import chrome from "@/ui/screens/admin/shared/AdminChrome.module.css";
 import styles from "./AdminCharacters.module.css";
 
 const admin = AdminServices(apiClient);
@@ -20,6 +21,7 @@ type CharacterDraft = {
   prompt_template: string;
   description: string;
   short_description: string;
+  first_messages: string[];
   default_artwork_key: string;
   lottie_text: string;
   is_active: boolean;
@@ -32,6 +34,7 @@ const emptyDraft = (): CharacterDraft => ({
   prompt_template: "",
   description: "",
   short_description: "",
+  first_messages: [],
   default_artwork_key: "",
   lottie_text: "",
   is_active: true,
@@ -44,11 +47,17 @@ const mapCharacterToDraft = (character: AdminAdultCharacter): CharacterDraft => 
   prompt_template: character.prompt_template,
   description: character.description ?? "",
   short_description: character.short_description ?? "",
+  first_messages: character.first_messages ?? [],
   default_artwork_key: character.default_artwork_key ?? "",
   lottie_text: character.lottie_text ?? "",
   is_active: character.is_active,
   display_order: String(character.display_order),
 });
+
+const normalizeFirstMessages = (values: string[]) => {
+  const cleaned = values.map((value) => value.trim()).filter(Boolean);
+  return cleaned.length ? cleaned : null;
+};
 
 const toCreatePayload = (
   draft: CharacterDraft
@@ -58,6 +67,7 @@ const toCreatePayload = (
   prompt_template: draft.prompt_template.trim(),
   description: draft.description.trim() || null,
   short_description: draft.short_description.trim() || null,
+  first_messages: normalizeFirstMessages(draft.first_messages),
   default_artwork_key: draft.default_artwork_key.trim() || null,
   lottie_text: draft.lottie_text.trim() || null,
   is_active: draft.is_active,
@@ -65,17 +75,36 @@ const toCreatePayload = (
 });
 
 const toPatchPayload = (
-  draft: CharacterDraft
+  draft: CharacterDraft,
+  character: AdminAdultCharacter
 ): AdminAdultCharacterPatchPayload => ({
-  slug: draft.slug.trim(),
-  name: draft.name.trim(),
-  prompt_template: draft.prompt_template.trim(),
-  description: draft.description.trim() || null,
-  short_description: draft.short_description.trim() || null,
-  default_artwork_key: draft.default_artwork_key.trim() || null,
-  lottie_text: draft.lottie_text.trim() || null,
-  is_active: draft.is_active,
-  display_order: Number(draft.display_order || 0),
+  ...(draft.slug.trim() !== character.slug ? { slug: draft.slug.trim() } : {}),
+  ...(draft.name.trim() !== character.name ? { name: draft.name.trim() } : {}),
+  ...(draft.prompt_template.trim() !== character.prompt_template
+    ? { prompt_template: draft.prompt_template.trim() }
+    : {}),
+  ...((draft.description.trim() || null) !== (character.description ?? null)
+    ? { description: draft.description.trim() || null }
+    : {}),
+  ...((draft.short_description.trim() || null) !==
+  (character.short_description ?? null)
+    ? { short_description: draft.short_description.trim() || null }
+    : {}),
+  ...(JSON.stringify(normalizeFirstMessages(draft.first_messages)) !==
+  JSON.stringify(character.first_messages ?? null)
+    ? { first_messages: normalizeFirstMessages(draft.first_messages) }
+    : {}),
+  ...((draft.default_artwork_key.trim() || null) !==
+  (character.default_artwork_key ?? null)
+    ? { default_artwork_key: draft.default_artwork_key.trim() || null }
+    : {}),
+  ...((draft.lottie_text.trim() || null) !== (character.lottie_text ?? null)
+    ? { lottie_text: draft.lottie_text.trim() || null }
+    : {}),
+  ...(draft.is_active !== character.is_active ? { is_active: draft.is_active } : {}),
+  ...(Number(draft.display_order || 0) !== character.display_order
+    ? { display_order: Number(draft.display_order || 0) }
+    : {}),
 });
 
 const formatDate = (value?: string | null) => {
@@ -236,6 +265,31 @@ const AdminCharacters: React.FC = () => {
       setAssetFiles((prev) => ({ ...prev, [field]: nextFile }));
     };
 
+  const handleFirstMessageChange =
+    (index: number) => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const nextValue = event.target.value;
+      setDraft((prev) => ({
+        ...prev,
+        first_messages: prev.first_messages.map((value, currentIndex) =>
+          currentIndex === index ? nextValue : value
+        ),
+      }));
+    };
+
+  const handleAddFirstMessage = () => {
+    setDraft((prev) => ({
+      ...prev,
+      first_messages: [...prev.first_messages, ""],
+    }));
+  };
+
+  const handleRemoveFirstMessage = (index: number) => {
+    setDraft((prev) => ({
+      ...prev,
+      first_messages: prev.first_messages.filter((_, currentIndex) => currentIndex !== index),
+    }));
+  };
+
   const validateDraft = () => {
     if (!draft.slug.trim()) return "Slug is required.";
     if (!draft.name.trim()) return "Name is required.";
@@ -272,9 +326,14 @@ const AdminCharacters: React.FC = () => {
         await loadCharacters(created.id);
         setSuccessMsg("Character created.");
       } else if (selectedCharacter) {
+        const patchPayload = toPatchPayload(draft, selectedCharacter);
+        if (Object.keys(patchPayload).length === 0) {
+          setSuccessMsg("No changes to save.");
+          return;
+        }
         const updated = await admin.updateAdultCharacter(
           selectedCharacter.id,
-          toPatchPayload(draft)
+          patchPayload
         );
         await loadCharacters(updated.id);
         setSuccessMsg("Character updated.");
@@ -335,16 +394,16 @@ const AdminCharacters: React.FC = () => {
   };
 
   const sidebar = (
-    <aside className={styles["sidebar"]}>
-      <div className={styles["sidebar-header"]}>
+    <aside className={chrome["sidebar"]}>
+      <div className={chrome["sidebarHeader"]}>
         <div>
-          <div className={styles["sidebar-title"]}>Adult Characters</div>
-          <div className={styles["sidebar-meta"]}>
+          <div className={chrome["sidebarTitle"]}>Adult Characters</div>
+          <div className={chrome["sidebarMeta"]}>
             {loadingList ? "Loading..." : `${characters.length} loaded`}
           </div>
         </div>
       </div>
-      <div className={styles["sidebar-actions"]}>
+      <div className={chrome["sidebarActions"]}>
         <button
           type="button"
           className={styles["primary"]}
@@ -353,13 +412,13 @@ const AdminCharacters: React.FC = () => {
           New character
         </button>
       </div>
-      <div className={styles["sidebar-list"]}>
-        {loadingList && <div className={styles["sidebar-empty"]}>Loading...</div>}
+      <div className={chrome["sidebarList"]}>
+        {loadingList && <div className={chrome["sidebarEmpty"]}>Loading...</div>}
         {!loadingList && listError && (
-          <div className={styles["sidebar-empty"]}>{listError}</div>
+          <div className={chrome["sidebarEmpty"]}>{listError}</div>
         )}
         {!loadingList && !listError && characters.length === 0 && (
-          <div className={styles["sidebar-empty"]}>
+          <div className={chrome["sidebarEmpty"]}>
             No adult characters found. Start by creating the first one.
           </div>
         )}
@@ -367,8 +426,8 @@ const AdminCharacters: React.FC = () => {
           <button
             key={character.id}
             type="button"
-            className={`${styles["sidebar-item"]} ${
-              selectedId === character.id ? styles["sidebar-item--active"] : ""
+            className={`${chrome["sidebarItem"]} ${
+              selectedId === character.id ? chrome["sidebarItemActive"] : ""
             }`}
             onClick={() => setSelectedId(character.id)}
           >
@@ -405,13 +464,13 @@ const AdminCharacters: React.FC = () => {
     >
       <AdminTwoColumn sidebar={sidebar}>
         <section className={styles["main"]}>
-          <div className={styles["panel-header"]}>
+          <div className={chrome["panelHeader"]}>
             <div>
-              <div className={styles["panel-title"]}>
+              <div className={chrome["panelTitle"]}>
                 {isCreateMode ? "Create character" : selectedCharacter?.name ?? "Character editor"}
               </div>
               {!isCreateMode && selectedCharacter && (
-                <div className={styles["meta"]}>
+                <div className={chrome["panelMeta"]}>
                   <span>ID {selectedCharacter.id}</span>
                   {selectedCharacter.created_at && (
                     <span>Created {formatDate(selectedCharacter.created_at)}</span>
@@ -423,12 +482,12 @@ const AdminCharacters: React.FC = () => {
               )}
             </div>
             {!isCreateMode && selectedCharacter && (
-              <div className={styles["pill-row"]}>
+              <div className={chrome["pillRow"]}>
                 <span
                   className={
                     selectedCharacter.is_active
-                      ? styles["pill-active"]
-                      : styles["pill-inactive"]
+                      ? chrome["pillActive"]
+                      : chrome["pillInactive"]
                   }
                 >
                   {selectedCharacter.is_active ? "Active globally" : "Inactive globally"}
@@ -438,19 +497,19 @@ const AdminCharacters: React.FC = () => {
           </div>
 
           {listError && characters.length === 0 ? (
-            <div className={`${styles["banner"]} ${styles["banner--error"]}`}>
+            <div className={`${chrome["message"]} ${chrome["messageError"]}`}>
               {listError}
             </div>
           ) : null}
 
           {successMsg && (
-            <div className={`${styles["message"]} ${styles["message--success"]}`}>
+            <div className={`${chrome["message"]} ${chrome["messageSuccess"]}`}>
               {successMsg}
             </div>
           )}
 
           {error && (
-            <div className={`${styles["message"]} ${styles["message--error"]}`}>
+            <div className={`${chrome["message"]} ${chrome["messageError"]}`}>
               {error}
             </div>
           )}
@@ -585,9 +644,9 @@ const AdminCharacters: React.FC = () => {
                   <div className={styles["button-row"]}>
                     <button
                       type="button"
-                      className={styles["ghost"]}
-                      onClick={handleAssetUpload}
-                      disabled={
+                  className={styles["ghost"]}
+                  onClick={handleAssetUpload}
+                  disabled={
                         isCreateMode ||
                         isBusy ||
                         (!assetFiles.default_artwork && !assetFiles.lottie_text)
@@ -613,6 +672,49 @@ const AdminCharacters: React.FC = () => {
                   />
                 </div>
                 <div className={`${styles["field"]} ${styles["field--wide"]}`}>
+                  <div className={styles["field-header"]}>
+                    <label className={styles["label"]}>First Messages</label>
+                    <button
+                      type="button"
+                      className={styles["ghost"]}
+                      onClick={handleAddFirstMessage}
+                      disabled={isBusy}
+                    >
+                      Add line
+                    </button>
+                  </div>
+                  {draft.first_messages.length > 0 ? (
+                    <div className={styles["message-list"]}>
+                      {draft.first_messages.map((message, index) => (
+                        <div key={index} className={styles["message-row"]}>
+                          <input
+                            className={styles["input"]}
+                            value={message}
+                            onChange={handleFirstMessageChange(index)}
+                            placeholder="Suggested opening line"
+                            disabled={isBusy}
+                          />
+                          <button
+                            type="button"
+                            className={styles["ghost"]}
+                            onClick={() => handleRemoveFirstMessage(index)}
+                            disabled={isBusy}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className={styles["empty-inline"]}>
+                      No opening-line suggestions yet.
+                    </div>
+                  )}
+                  <div className={styles["helper"]}>
+                    Add optional suggested opening lines for call or chat flows.
+                  </div>
+                </div>
+                <div className={`${styles["field"]} ${styles["field--wide"]}`}>
                   <label className={styles["label"]}>Prompt Template</label>
                   <textarea
                     className={styles["textarea"]}
@@ -628,7 +730,7 @@ const AdminCharacters: React.FC = () => {
                 </div>
               </div>
 
-              <div className={styles["button-row"]}>
+              <div className={chrome["actionRow"]}>
                 <button
                   type="button"
                   className={styles["primary"]}
@@ -658,7 +760,7 @@ const AdminCharacters: React.FC = () => {
               {!isCreateMode && selectedCharacter && (
                 <>
                   {!confirmDelete ? (
-                    <div className={styles["button-row"]}>
+                    <div className={chrome["actionRow"]}>
                       <button
                         type="button"
                         className={styles["danger"]}
@@ -669,7 +771,7 @@ const AdminCharacters: React.FC = () => {
                       </button>
                     </div>
                   ) : (
-                    <div className={styles["confirm-row"]}>
+                    <div className={chrome["actionRow"]}>
                       <span className={styles["confirm-label"]}>
                         Delete <strong>{selectedCharacter.name}</strong>? This cannot be undone.
                       </span>
@@ -695,7 +797,7 @@ const AdminCharacters: React.FC = () => {
               )}
             </div>
           ) : (
-            <div className={styles["panel-placeholder"]}>Select a character to edit.</div>
+            <div className={chrome["emptyState"]}>Select a character to edit.</div>
           )}
         </section>
       </AdminTwoColumn>

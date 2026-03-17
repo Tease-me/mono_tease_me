@@ -10,6 +10,7 @@ import { InfluencerServices } from "@/api/services/InfluencerService";
 import { InfluencerResponse } from "@/api/models/influencers";
 import AdminLayout from "@/ui/screens/admin/AdminLayout";
 import AdminTwoColumn from "@/ui/screens/admin/AdminTwoColumn";
+import chrome from "@/ui/screens/admin/shared/AdminChrome.module.css";
 import styles from "./AdminInfluencerCharacter.module.css";
 
 const admin = AdminServices(apiClient);
@@ -201,24 +202,31 @@ const AdminInfluencerCharacter: React.FC = () => {
   );
 
   const sidebar = (
-    <aside className={styles["sidebar"]}>
-      <div className={styles["sidebar-header"]}>Influencers</div>
-      <div className={styles["sidebar-list"]}>
+    <aside className={chrome["sidebar"]}>
+      <div className={chrome["sidebarHeader"]}>
+        <div>
+          <div className={chrome["sidebarTitle"]}>Influencers</div>
+          <div className={chrome["sidebarMeta"]}>
+            {loadingInfluencers ? "Loading..." : `${influencers.length} loaded`}
+          </div>
+        </div>
+      </div>
+      <div className={chrome["sidebarList"]}>
         {loadingInfluencers && (
-          <div className={styles["sidebar-empty"]}>Loading influencers...</div>
+          <div className={chrome["sidebarEmpty"]}>Loading influencers...</div>
         )}
         {!loadingInfluencers && listError && (
-          <div className={styles["sidebar-empty"]}>{listError}</div>
+          <div className={chrome["sidebarEmpty"]}>{listError}</div>
         )}
         {!loadingInfluencers && !listError && influencers.length === 0 && (
-          <div className={styles["sidebar-empty"]}>No influencers found.</div>
+          <div className={chrome["sidebarEmpty"]}>No influencers found.</div>
         )}
         {influencers.map((item) => (
           <button
             key={item.id}
             type="button"
-            className={`${styles["sidebar-item"]} ${
-              item.id === selectedInfluencerId ? styles["sidebar-item--active"] : ""
+            className={`${chrome["sidebarItem"]} ${
+              item.id === selectedInfluencerId ? chrome["sidebarItemActive"] : ""
             }`}
             onClick={() => setSelectedInfluencerId(item.id)}
           >
@@ -235,21 +243,21 @@ const AdminInfluencerCharacter: React.FC = () => {
       subtitle="Manage influencer-scoped adult character assets."
     >
       <AdminTwoColumn sidebar={sidebar}>
-        <section className={styles["main"]}>
+        <section className={chrome["main"]}>
           {!selectedInfluencerId && !loadingInfluencers && (
-            <div className={styles["empty-state"]}>
+            <div className={chrome["emptyState"]}>
               Select an influencer to manage character assets.
             </div>
           )}
 
           {selectedInfluencerId && (
             <>
-              <div className={styles["panel-header"]}>
+              <div className={chrome["panelHeader"]}>
                 <div>
-                  <div className={styles["panel-title"]}>
+                  <div className={chrome["panelTitle"]}>
                     {selectedInfluencer?.display_name || selectedInfluencerId}
                   </div>
-                  <div className={styles["panel-meta"]}>
+                  <div className={chrome["panelMeta"]}>
                     {loadingCharacters
                       ? "Loading character assets..."
                       : `${characters.length} character${characters.length === 1 ? "" : "s"}`}
@@ -258,22 +266,22 @@ const AdminInfluencerCharacter: React.FC = () => {
               </div>
 
               {pageMessage && (
-                <div className={`${styles["message"]} ${styles["message--success"]}`}>
+                <div className={`${chrome["message"]} ${chrome["messageSuccess"]}`}>
                   {pageMessage}
                 </div>
               )}
               {characterError && (
-                <div className={`${styles["message"]} ${styles["message--error"]}`}>
+                <div className={`${chrome["message"]} ${chrome["messageError"]}`}>
                   {characterError}
                 </div>
               )}
 
               {loadingCharacters && (
-                <div className={styles["empty-state"]}>Loading character assets...</div>
+                <div className={chrome["emptyState"]}>Loading character assets...</div>
               )}
 
               {!loadingCharacters && characters.length === 0 && !characterError && (
-                <div className={styles["empty-state"]}>
+                <div className={chrome["emptyState"]}>
                   No characters found for this influencer.
                 </div>
               )}
@@ -317,12 +325,12 @@ const AdminInfluencerCharacter: React.FC = () => {
                               {isExpanded ? "Hide" : "Edit"}
                             </span>
                           </div>
-                          <div className={styles["status-row"]}>
+                          <div className={chrome["pillRow"]}>
                             <span
                               className={
                                 character.has_photo
-                                  ? styles["pill-active"]
-                                  : styles["pill-muted"]
+                                  ? chrome["pillActive"]
+                                  : chrome["pillMuted"]
                               }
                             >
                               {character.has_photo ? "Photo ready" : "Photo missing"}
@@ -330,8 +338,8 @@ const AdminInfluencerCharacter: React.FC = () => {
                             <span
                               className={
                                 character.has_complete_video_set
-                                  ? styles["pill-active"]
-                                  : styles["pill-muted"]
+                                  ? chrome["pillActive"]
+                                  : chrome["pillMuted"]
                               }
                             >
                               {character.has_complete_video_set
@@ -420,8 +428,8 @@ const AdminInfluencerCharacter: React.FC = () => {
                                   <span
                                     className={
                                       character.video_mp4_url
-                                        ? styles["pill-active"]
-                                        : styles["pill-muted"]
+                                        ? chrome["pillActive"]
+                                        : chrome["pillMuted"]
                                     }
                                   >
                                     {character.video_mp4_url ? "MP4" : "No MP4"}
@@ -429,8 +437,8 @@ const AdminInfluencerCharacter: React.FC = () => {
                                   <span
                                     className={
                                       character.video_webm_url
-                                        ? styles["pill-active"]
-                                        : styles["pill-muted"]
+                                        ? chrome["pillActive"]
+                                        : chrome["pillMuted"]
                                     }
                                   >
                                     {character.video_webm_url ? "WEBM" : "No WEBM"}
@@ -438,8 +446,8 @@ const AdminInfluencerCharacter: React.FC = () => {
                                   <span
                                     className={
                                       character.video_preview_png_url
-                                        ? styles["pill-active"]
-                                        : styles["pill-muted"]
+                                        ? chrome["pillActive"]
+                                        : chrome["pillMuted"]
                                     }
                                   >
                                     {character.video_preview_png_url ? "Poster" : "No poster"}
@@ -487,7 +495,7 @@ const AdminInfluencerCharacter: React.FC = () => {
                                 </div>
                                 <span
                                   className={
-                                    stagedFileCount > 0 ? styles["pill-active"] : styles["pill-muted"]
+                                    stagedFileCount > 0 ? chrome["pillActive"] : chrome["pillMuted"]
                                   }
                                 >
                                   {stagedFileCount > 0 ? "Ready" : "Waiting"}
@@ -531,7 +539,7 @@ const AdminInfluencerCharacter: React.FC = () => {
                                 })}
                               </div>
 
-                              <div className={styles["button-row"]}>
+                              <div className={chrome["actionRow"]}>
                                 <button
                                   type="button"
                                   className={styles["primary"]}

@@ -292,6 +292,7 @@ export type AdminAdultCharacter = {
   name: string;
   description: string | null;
   short_description: string | null;
+  first_messages: string[] | null;
   prompt_template: string;
   default_artwork_key: string | null;
   default_artwork_url: string | null;
@@ -309,6 +310,7 @@ export type AdminAdultCharacterCreatePayload = {
   prompt_template: string;
   description?: string | null;
   short_description?: string | null;
+  first_messages?: string[] | null;
   default_artwork_key?: string | null;
   lottie_text?: string | null;
   is_active?: boolean;
