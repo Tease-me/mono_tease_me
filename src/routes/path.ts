@@ -21,6 +21,7 @@ export const Paths = {
     verifyEmail: "/verify-email",
     admin: {
         root: "/admin",
+        characters: "/admin/characters",
         influencer: "/admin/influencer",
         prompts: "/admin/prompts",
         relationship: "/admin/relationship",

@@ -10,6 +10,7 @@ type NavItem = { to: string; label: string; icon: React.ReactNode };
 const NAV_ITEMS: NavItem[] = [
     { to: Paths.admin.analytics, label: "Analytics", icon: <SvgPack.Dashboard /> },
     { to: Paths.admin.relationship, label: "Relationship", icon: <SvgPack.Trust /> },
+    { to: Paths.admin.characters, label: "Characters", icon: <SvgPack.StarHollow /> },
     { to: Paths.admin.influencer, label: "Influencers", icon: <SvgPack.Users /> },
     { to: Paths.admin.preInfluencers, label: "Pre-Influencers", icon: <SvgPack.StarHollow /> },
     { to: Paths.admin.knowledge, label: "Knowledge", icon: <SvgPack.InfoCircle /> },

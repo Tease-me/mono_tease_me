@@ -286,7 +286,98 @@ export type UserDetailResponse = {
   total_api_cost_usd: number;
 };
 
+export type AdminAdultCharacter = {
+  id: number;
+  slug: string;
+  name: string;
+  description: string | null;
+  short_description: string | null;
+  prompt_template: string;
+  default_artwork_key: string | null;
+  default_artwork_url: string | null;
+  lottie_text: string | null;
+  lottie_text_url: string | null;
+  is_active: boolean;
+  display_order: number;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+export type AdminAdultCharacterCreatePayload = {
+  slug: string;
+  name: string;
+  prompt_template: string;
+  description?: string | null;
+  short_description?: string | null;
+  default_artwork_key?: string | null;
+  lottie_text?: string | null;
+  is_active?: boolean;
+  display_order?: number;
+};
+
+export type AdminAdultCharacterPatchPayload =
+  Partial<AdminAdultCharacterCreatePayload>;
+
+export type AdminAdultCharacterAssetsPayload = {
+  default_artwork?: File | null;
+  lottie_text?: File | null;
+};
+
 export const AdminServices = (apiClient: AxiosInstance) => ({
+  listAdultCharacters: async (): Promise<AdminAdultCharacter[]> => {
+    const response = await apiClient.get(Endpoints.admin.adultCharacters.list);
+    return response.data;
+  },
+
+  createAdultCharacter: async (
+    payload: AdminAdultCharacterCreatePayload
+  ): Promise<AdminAdultCharacter> => {
+    const response = await apiClient.post(
+      Endpoints.admin.adultCharacters.list,
+      payload
+    );
+    return response.data;
+  },
+
+  updateAdultCharacter: async (
+    characterId: number,
+    payload: AdminAdultCharacterPatchPayload
+  ): Promise<AdminAdultCharacter> => {
+    const response = await apiClient.patch(
+      Endpoints.admin.adultCharacters.byId(characterId),
+      payload
+    );
+    return response.data;
+  },
+
+  uploadAdultCharacterAssets: async (
+    characterId: number,
+    payload: AdminAdultCharacterAssetsPayload
+  ): Promise<AdminAdultCharacter> => {
+    const formData = new FormData();
+    if (payload.default_artwork) {
+      formData.append("default_artwork", payload.default_artwork);
+    }
+    if (payload.lottie_text) {
+      formData.append("lottie_text", payload.lottie_text);
+    }
+
+    const response = await apiClient.post(
+      Endpoints.admin.adultCharacters.assets(characterId),
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  },
+
+  deleteAdultCharacter: async (characterId: number): Promise<void> => {
+    await apiClient.delete(Endpoints.admin.adultCharacters.byId(characterId));
+  },
+
   getUsers: async (q?: string): Promise<AdminUserRow[]> => {
     const response = await apiClient.get(Endpoints.admin.users(q));
     return response.data;
@@ -523,4 +614,3 @@ export const AdminServices = (apiClient: AxiosInstance) => ({
     return response.data;
   },
 });
-
