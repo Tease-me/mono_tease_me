@@ -181,5 +181,16 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
         catch (error) {
             throw error;
         }
+    },
+    getAdultCharacters: async (id: string) => {
+        try {
+            const response = await apiClient.get(Endpoints.adult_characters(id));
+            return response.data;
+
+        }
+        catch (error) {
+            throw error;
+        }
     }
 })
+
