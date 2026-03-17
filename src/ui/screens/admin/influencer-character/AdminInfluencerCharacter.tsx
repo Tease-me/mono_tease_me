@@ -346,15 +346,17 @@ const AdminInfluencerCharacter: React.FC = () => {
                             <div className={styles["assets-grid"]}>
                               <div className={styles["asset-box"]}>
                                 <div className={styles["asset-label"]}>Photo</div>
-                                {character.photo_url ? (
-                                  <img
-                                    src={character.photo_url}
-                                    alt={`${character.name} photo`}
-                                    className={styles["asset-image"]}
-                                  />
-                                ) : (
-                                  <div className={styles["asset-empty"]}>No photo uploaded</div>
-                                )}
+                                <div className={styles["asset-frame"]}>
+                                  {character.photo_url ? (
+                                    <img
+                                      src={character.photo_url}
+                                      alt={`${character.name} photo`}
+                                      className={styles["asset-image"]}
+                                    />
+                                  ) : (
+                                    <div className={styles["asset-empty"]}>No photo uploaded</div>
+                                  )}
+                                </div>
                                 <div className={styles["delete-row"]}>
                                   <button
                                     type="button"
@@ -380,15 +382,40 @@ const AdminInfluencerCharacter: React.FC = () => {
 
                               <div className={styles["asset-box"]}>
                                 <div className={styles["asset-label"]}>Video</div>
-                                {character.video_preview_png_url ? (
-                                  <img
-                                    src={character.video_preview_png_url}
-                                    alt={`${character.name} video preview`}
-                                    className={styles["asset-image"]}
-                                  />
-                                ) : (
-                                  <div className={styles["asset-empty"]}>No video preview uploaded</div>
-                                )}
+                                <div className={styles["asset-frame"]}>
+                                  {character.video_mp4_url || character.video_webm_url ? (
+                                    <video
+                                      className={styles["asset-video"]}
+                                      autoPlay
+                                      muted
+                                      loop
+                                      playsInline
+                                      controls
+                                      poster={character.video_preview_png_url || undefined}
+                                    >
+                                      {character.video_mp4_url && (
+                                        <source
+                                          src={character.video_mp4_url}
+                                          type="video/mp4"
+                                        />
+                                      )}
+                                      {character.video_webm_url && (
+                                        <source
+                                          src={character.video_webm_url}
+                                          type="video/webm"
+                                        />
+                                      )}
+                                    </video>
+                                  ) : character.video_preview_png_url ? (
+                                    <img
+                                      src={character.video_preview_png_url}
+                                      alt={`${character.name} video preview`}
+                                      className={styles["asset-image"]}
+                                    />
+                                  ) : (
+                                    <div className={styles["asset-empty"]}>No video preview uploaded</div>
+                                  )}
+                                </div>
                                 <div className={styles["source-row"]}>
                                   <span
                                     className={
