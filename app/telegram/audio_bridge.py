@@ -3,12 +3,12 @@ Audio Bridge
 =============
 Format conversion utilities for the Telegram voice call pipeline.
 
-All pytgcalls audio must be PCM 16-bit signed little-endian, 48kHz.
-ElevenLabs outputs MP3 or PCM. Whisper accepts WAV/MP3.
+All pytgcalls audio for private calls must be PCM 16-bit signed LE, 48kHz MONO.
+ElevenLabs outputs raw PCM (24kHz mono). Whisper accepts WAV/MP3.
 
 Conversion chain:
-  Capture:  pytgcalls PCM 48kHz → WAV → Whisper
-  Playback: ElevenLabs MP3 → FFmpeg → PCM 48kHz → pytgcalls
+  Capture:  pytgcalls PCM 48kHz mono → WAV → Whisper
+  Playback: ElevenLabs PCM 24kHz mono → FFmpeg resample → PCM 48kHz mono → pytgcalls
 """
 
 import asyncio
@@ -26,36 +26,15 @@ from app.core.config import settings
 
 log = logging.getLogger(__name__)
 
-# pytgcalls AudioQuality.HIGH = 48000 Hz, 2 channels (stereo).
-# HOWEVER, Telegram Private Voice Calls negotiate WebRTC as Mono (1 channel).
+# Telegram private calls negotiate WebRTC as MONO (1 channel), 48kHz, 16-bit.
 SAMPLE_RATE = 48000
-CHANNELS = 2  # pytgcalls send_frame() natively expects Stereo 48kHz 16-bit
+CHANNELS = 1  # Private calls are mono
 SAMPLE_WIDTH = 2  # 16-bit = 2 bytes
 BYTES_PER_SECOND = SAMPLE_RATE * CHANNELS * SAMPLE_WIDTH  # 96000 bytes/sec
 
 
-def stereo_to_mono(pcm_stereo: bytes) -> bytes:
-    """Convert stereo PCM to mono by averaging left/right channels.
-
-    Args:
-        pcm_stereo: Interleaved stereo PCM 16-bit signed LE.
-
-    Returns:
-        Mono PCM 16-bit signed LE (half the size).
-    """
-    import audioop
-    try:
-        return audioop.tomono(pcm_stereo, 2, 0.5, 0.5)
-    except Exception:
-        # Fallback if somehow it fails
-        return pcm_stereo
-
-
 def pcm_to_wav(pcm_bytes: bytes, sample_rate: int = SAMPLE_RATE, channels: int = 1) -> bytes:
     """Convert raw PCM bytes to WAV format (for Whisper input).
-
-    Incoming capture frames are stereo; this converts to mono WAV
-    since Whisper works best with mono audio.
 
     Args:
         pcm_bytes: Raw PCM 16-bit signed little-endian audio (mono).
@@ -86,15 +65,13 @@ def pcm_to_wav(pcm_bytes: bytes, sample_rate: int = SAMPLE_RATE, channels: int =
 
 
 def mp3_to_pcm(mp3_bytes: bytes) -> bytes:
-    """Convert MP3 audio to PCM 16-bit 48kHz stereo via FFmpeg.
-
-    Output format must match AudioQuality.HIGH (48kHz, 2 channels).
+    """Convert MP3 audio to PCM 16-bit 48kHz mono via FFmpeg.
 
     Args:
         mp3_bytes: Raw MP3 file bytes.
 
     Returns:
-        PCM bytes in pytgcalls-compatible format (stereo).
+        PCM bytes in pytgcalls-compatible format (48kHz mono).
     """
     try:
         result = subprocess.run(
@@ -124,18 +101,19 @@ def mp3_to_pcm(mp3_bytes: bytes) -> bytes:
         return b""
 
 
-def pcm_resample_to_stereo48k(raw_pcm: bytes, input_rate: int = 24000) -> bytes:
-    """Resample raw mono PCM to 48kHz stereo PCM via FFmpeg.
+def pcm_resample_to_48k_mono(raw_pcm: bytes, input_rate: int = 24000) -> bytes:
+    """Resample raw mono PCM to 48kHz mono PCM via FFmpeg.
 
     Used for ElevenLabs PCM output (24kHz mono 16-bit) → pytgcalls
-    format (48kHz stereo 16-bit).
+    format (48kHz mono 16-bit). 24→48kHz is an exact 2x integer ratio
+    so resampling is clean with no artifacts.
 
     Args:
         raw_pcm: Raw PCM 16-bit signed LE mono audio.
         input_rate: Sample rate of the input PCM (default 24000 for ElevenLabs).
 
     Returns:
-        PCM 48kHz stereo 16-bit signed LE bytes.
+        PCM 48kHz mono 16-bit signed LE bytes.
     """
     if not raw_pcm:
         return b""
@@ -204,24 +182,25 @@ async def elevenlabs_tts_to_pcm(text: str, voice_id: str) -> bytes:
     """Generate speech using ElevenLabs and convert to PCM for pytgcalls.
 
     Uses raw PCM output from ElevenLabs (24kHz mono 16-bit) to avoid
-    lossy MP3 encoding artifacts. Then resamples to 48kHz stereo via
-    FFmpeg to match pytgcalls AudioQuality.HIGH.
+    lossy MP3 encoding artifacts. Then resamples to 48kHz mono via
+    FFmpeg (exact 2x integer ratio = artifact-free resampling).
 
     Args:
         text: Text to synthesize.
         voice_id: ElevenLabs voice ID for the influencer.
 
     Returns:
-        PCM bytes in pytgcalls-compatible format (16-bit 48kHz stereo).
+        PCM bytes in pytgcalls-compatible format (16-bit 48kHz mono).
     """
     if not settings.ELEVENLABS_API_KEY:
         log.error("ELEVENLABS_API_KEY not set, cannot synthesize")
         return b""
 
     try:
+        # Request raw PCM 24kHz mono — avoids MP3 compression artifacts entirely
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.post(
-                f"{settings.ELEVEN_BASE_URL}/text-to-speech/{voice_id}/stream?output_format=mp3_44100_128",
+                f"{settings.ELEVEN_BASE_URL}/text-to-speech/{voice_id}/stream?output_format=pcm_24000",
                 headers={
                     "xi-api-key": settings.ELEVENLABS_API_KEY,
                     "Content-Type": "application/json",
@@ -239,15 +218,16 @@ async def elevenlabs_tts_to_pcm(text: str, voice_id: str) -> bytes:
                 log.error("ElevenLabs TTS error %d: %s", resp.status_code, resp.text[:300])
                 return b""
 
-            raw_audio = resp.content
+            raw_pcm_24k = resp.content
             log.debug(
-                "elevenlabs.audio_received bytes=%d",
-                len(raw_audio),
+                "elevenlabs.pcm_received bytes=%d duration=%.1fs",
+                len(raw_pcm_24k),
+                len(raw_pcm_24k) / (24000 * 1 * 2),  # 24kHz mono 16-bit
             )
 
-        # Decode MP3 → 48kHz stereo in a thread
+        # Resample 24kHz mono → 48kHz mono (clean 2x integer ratio)
         pcm = await asyncio.get_event_loop().run_in_executor(
-            None, mp3_to_pcm, raw_audio
+            None, pcm_resample_to_48k_mono, raw_pcm_24k, 24000
         )
         return pcm
 

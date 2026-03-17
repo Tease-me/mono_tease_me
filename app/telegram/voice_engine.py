@@ -48,19 +48,19 @@ from app.db.session import SessionLocal
 from app.db.models import Influencer, CallRecord
 from app.telegram.audio_bridge import (
     pcm_to_wav,
-    stereo_to_mono,
     transcribe_audio,
     elevenlabs_tts_to_pcm,
     seconds_of_pcm,
     BYTES_PER_SECOND,
     SAMPLE_RATE,
+    SAMPLE_WIDTH,
     CHANNELS,
 )
 
 log = logging.getLogger(__name__)
 
-# Buffer ~2.5 seconds of audio before transcribing
-BUFFER_DURATION_SECS = 2.5
+# Buffer ~1.5 seconds of audio before transcribing (lower = faster response)
+BUFFER_DURATION_SECS = 1.5
 BUFFER_SIZE_BYTES = int(BYTES_PER_SECOND * BUFFER_DURATION_SECS)
 
 # Silence threshold: if RMS below this, skip transcription
@@ -72,16 +72,17 @@ DEFAULT_TRIAL_SECS = 120
 # Redirect URL after trial
 TEASEME_URL = "https://www.teaseme.live/"
 
-import audioop
-
 def _is_speech(pcm_data: bytes) -> bool:
-    """Check if the given PCM chunk exceeds the silence threshold."""
-    try:
-        rms = audioop.rms(pcm_data, 2)
-        return rms > SILENCE_RMS_THRESHOLD
-    except Exception:
-        # Fallback: assume it's speech if calculation fails
-        return True
+    """Check if the given PCM chunk exceeds the silence threshold (RMS energy)."""
+    if len(pcm_data) < 4:
+        return False
+    num_samples = len(pcm_data) // 2
+    total = 0
+    for i in range(0, len(pcm_data) - 1, 2):
+        sample = struct.unpack_from("<h", pcm_data, i)[0]
+        total += sample * sample
+    rms = (total / num_samples) ** 0.5
+    return rms > SILENCE_RMS_THRESHOLD
 
 
 class VoiceCallSession:
@@ -161,11 +162,12 @@ class VoiceCallSession:
             type(self.ptg).__name__,
         )
         try:
+            # Private calls are MONO — use 48kHz, 1 channel
             stream = MediaStream(
                 ExternalMedia.AUDIO,
                 audio_parameters=RawAudioParameters(
                     bitrate=SAMPLE_RATE,
-                    channels=CHANNELS,
+                    channels=CHANNELS,  # 1 = mono for private calls
                 ),
             )
             self._play_task = asyncio.create_task(
@@ -212,7 +214,7 @@ class VoiceCallSession:
                 self.chat_id,
             )
 
-            # Now that the call is connected, enable incoming audio capture
+            # Now that the call is connected, enable incoming audio capture (mono)
             try:
                 await self.ptg.record(
                     self.chat_id,
@@ -220,7 +222,7 @@ class VoiceCallSession:
                         audio=True,
                         audio_parameters=RawAudioParameters(
                             bitrate=SAMPLE_RATE,
-                            channels=CHANNELS,
+                            channels=CHANNELS,  # 1 = mono for private calls
                         ),
                     ),
                 )
@@ -361,10 +363,11 @@ class VoiceCallSession:
                     seconds_of_pcm(pcm_data),
                 )
 
-                # Send audio in ~20ms chunks (960 samples @ 48kHz, stereo/mono, 16-bit)
+                # Send audio in ~20ms chunks (960 samples @ 48kHz mono, 16-bit)
+                # 48000 Hz * 1 ch * 2 bytes * 0.02s = 1920 bytes per 20ms frame
                 chunk_duration = 0.02
-                chunk_size = int(SAMPLE_RATE * CHANNELS * 2 * chunk_duration)  # 20ms bytes
-                
+                chunk_size = int(SAMPLE_RATE * CHANNELS * SAMPLE_WIDTH * chunk_duration)
+
                 offset = 0
                 start_time = asyncio.get_running_loop().time()
                 frames_sent = 0
@@ -373,7 +376,7 @@ class VoiceCallSession:
                     end = min(offset + chunk_size, len(pcm_data))
                     frame_bytes = pcm_data[offset:end]
 
-                    # Pad last chunk if needed to meet exact layout
+                    # Pad last chunk if needed to meet exact frame size
                     if len(frame_bytes) < chunk_size:
                         frame_bytes += b"\x00" * (chunk_size - len(frame_bytes))
 
@@ -395,7 +398,7 @@ class VoiceCallSession:
 
                     offset = end
                     frames_sent += 1
-                    
+
                     # Precise timing to prevent jitter and static cuts
                     target_time = start_time + (frames_sent * chunk_duration)
                     now = asyncio.get_running_loop().time()
@@ -403,7 +406,7 @@ class VoiceCallSession:
                     if sleep_time > 0:
                         await asyncio.sleep(sleep_time)
                     else:
-                        await asyncio.sleep(0)  # Yield to event loop even if we are behind
+                        await asyncio.sleep(0)  # Yield to event loop even if behind
 
         except asyncio.CancelledError:
             pass
@@ -506,16 +509,15 @@ class VoiceCallSession:
     async def _process_audio_chunk(self, pcm_chunk: bytes):
         """Process a buffered audio chunk through the full AI pipeline.
 
-        Pipeline: PCM → WAV → Whisper STT → LLM → ElevenLabs TTS → PCM
+        Pipeline: PCM mono → WAV → Whisper STT → LLM → ElevenLabs TTS → PCM mono
         """
         async with self._processing_lock:
             if not self._is_active:
                 return
 
             try:
-                # 1. Convert stereo PCM → mono PCM → WAV for Whisper
-                mono_chunk = stereo_to_mono(pcm_chunk)
-                wav_bytes = pcm_to_wav(mono_chunk)
+                # 1. Convert mono PCM → WAV for Whisper (already mono from private call)
+                wav_bytes = pcm_to_wav(pcm_chunk)
                 log.info(
                     "voice_call.pipeline.stt_start influencer=%s wav_bytes=%d",
                     self.influencer_id,
@@ -823,21 +825,3 @@ class VoiceCallManager:
 
 # Singleton
 voice_call_manager = VoiceCallManager()
-
-
-def _is_speech(pcm_chunk: bytes) -> bool:
-    """Basic voice activity detection using RMS energy.
-
-    Returns True if the audio chunk likely contains speech.
-    """
-    if len(pcm_chunk) < 4:
-        return False
-
-    num_samples = len(pcm_chunk) // 2
-    total = 0
-    for i in range(0, len(pcm_chunk) - 1, 2):
-        sample = struct.unpack_from("<h", pcm_chunk, i)[0]
-        total += sample * sample
-
-    rms = (total / num_samples) ** 0.5
-    return rms > SILENCE_RMS_THRESHOLD
