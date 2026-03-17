@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { apiClient } from "@/api/apis";
 import { InfluencerServices } from "@/api/services/InfluencerService";
 import AdultSceneSelector from "@/ui/components/cards/AdultSceneSelectorCard";
@@ -242,7 +242,9 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
                   type="pill"
                   color="black"
                   leftIcon={
-                    <SvgPack.CloseSquare className={styles.previewCloseIcon} />
+                    <Suspense fallback={null}>
+                      <SvgPack.CloseSquare className={styles.previewCloseIcon} />
+                    </Suspense>
                   }
                   onClick={handleCloseScenario}
                   className={styles.previewCloseButton}
@@ -259,7 +261,11 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
                       color="green"
                       type="pill"
                       className={styles.callButton}
-                      leftIcon={<SvgPack.Call />}
+                      leftIcon={
+                        <Suspense fallback={null}>
+                          <SvgPack.Call />
+                        </Suspense>
+                      }
                     />
                   </div>
                 </div>
@@ -274,7 +280,11 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
                     color="red"
                     type="pill"
                     className={styles.activeCallButton}
-                    leftIcon={<SvgPack.HangupCallIcon />}
+                    leftIcon={
+                      <Suspense fallback={null}>
+                        <SvgPack.HangupCallIcon />
+                      </Suspense>
+                    }
                   />
                 </div>
               </div>

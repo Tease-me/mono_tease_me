@@ -179,7 +179,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     handleAdultModeChange,
     handleSubscribePressed,
   } = useSubscriptionState({ influencer, openSubscribe, callStatus: status });
-  const showAdultModeExperience = adultMode && !showSubscriptionPage;
+  const showAdultModeExperience = adultModeSwitch && !showSubscriptionPage;
 
   useEffect(() => {
     if (influencer?.id) {
