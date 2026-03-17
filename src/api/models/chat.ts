@@ -45,6 +45,18 @@ export interface ConversationTokenResponse {
     unit_price_cents?: number;
 }
 
+export interface AdultConversationTokenResponse {
+    token: string;
+    agent_id: string;
+    credits_remainder_secs: number;
+    prompt: string;
+    greeting_used: string | null;
+    voice_id: string | null;
+    native_language: string;
+    influencer_id: string;
+    character_id: number;
+}
+
 export interface CallTranscriptEntryResponse {
     sender: string;
     text: string;

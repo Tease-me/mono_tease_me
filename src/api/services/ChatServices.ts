@@ -1,5 +1,5 @@
 import { Endpoints } from "../urls";
-import { CallDetailsResponse, ChatAudioResponse, ChatHistoryResponse, ChatIdResponse, ConversationTokenResponse, SignedUrlResponse } from "../models/chat";
+import { AdultConversationTokenResponse, CallDetailsResponse, ChatAudioResponse, ChatHistoryResponse, ChatIdResponse, ConversationTokenResponse, SignedUrlResponse } from "../models/chat";
 import { apiClient } from "../apis";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { storage } from "@/utils/storage";
@@ -102,6 +102,28 @@ export const ChatServices = () => ({
                     params: {
                         influencer_id,
                         user_timezone,
+                    },
+                    signal,
+                }
+            );
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    getAdultConversationToken: async (
+        influencer_id: string,
+        character_id: number,
+        signal?: AbortSignal
+    ): Promise<AdultConversationTokenResponse> => {
+        try {
+            const response = await apiClient.get(
+                Endpoints.adult.conversation_token,
+                {
+                    params: {
+                        influencer_id,
+                        character_id,
                     },
                     signal,
                 }

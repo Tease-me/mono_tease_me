@@ -9,6 +9,19 @@ import { showErrorModal } from "@/utils/errorModal";
 
 export type CallStatus = "connecting" | "connected" | "disconnected" | "idle" | "error";
 
+export type StartConversationOptions =
+  | undefined
+  | { flow?: "default" }
+  | { flow: "adult-character"; characterId: number };
+
+type NormalizedConversationToken = {
+  conversationToken: string;
+  creditsRemaining: number | null;
+  greetingUsed: string;
+  prompt: string;
+  nativeLanguage: string;
+};
+
 export default function useCallWebRTC(options?: {
   onMessage?: (message: any, conversationId: string | null) => void;
   onCreditsExpired?: () => void
@@ -127,7 +140,7 @@ export default function useCallWebRTC(options?: {
     else stopRing();
   }, [status])
 
-  const startConversation = useCallback(async () => {
+  const startConversation = useCallback(async (startOptions?: StartConversationOptions) => {
     if (!influencerId || startInFlightRef.current) {
       return;
     }
@@ -174,12 +187,35 @@ export default function useCallWebRTC(options?: {
       }
       setStatus("connecting");
 
-      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
-      const { token: conversationToken, credits_remainder_secs, greeting_used, prompt, native_language } = await chatRepo.getConversationToken(
-        influencerId,
-        userTimezone,
-        abortController.signal,
-      );
+      let tokenPayload: NormalizedConversationToken;
+      if (startOptions?.flow === "adult-character") {
+        const response = await chatRepo.getAdultConversationToken(
+          influencerId,
+          startOptions.characterId,
+          abortController.signal,
+        );
+        tokenPayload = {
+          conversationToken: response.token,
+          creditsRemaining: response.credits_remainder_secs,
+          greetingUsed: response.greeting_used ?? "",
+          prompt: response.prompt ?? "",
+          nativeLanguage: response.native_language || "en",
+        };
+      } else {
+        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+        const response = await chatRepo.getConversationToken(
+          influencerId,
+          userTimezone,
+          abortController.signal,
+        );
+        tokenPayload = {
+          conversationToken: response.token,
+          creditsRemaining: response.credits_remainder_secs ?? null,
+          greetingUsed: response.greeting_used ?? "",
+          prompt: response.prompt ?? "",
+          nativeLanguage: response.native_language || "en",
+        };
+      }
 
       if (abortController.signal.aborted) {
         if (startAbortControllerRef.current === abortController) {
@@ -189,7 +225,7 @@ export default function useCallWebRTC(options?: {
         return;
       }
 
-      if (!conversationToken) {
+      if (!tokenPayload.conversationToken) {
         setErrorMessage("Unable to start a conversation right now.");
         setStatus("idle");
         if (startAbortControllerRef.current === abortController) {
@@ -199,7 +235,7 @@ export default function useCallWebRTC(options?: {
         return;
       }
 
-      if ((credits_remainder_secs ?? 0) <= 0) {
+      if ((tokenPayload.creditsRemaining ?? 0) <= 0) {
         setErrorMessage("You have no remaining credits.");
         setStatus("idle");
         if (startAbortControllerRef.current === abortController) {
@@ -209,25 +245,28 @@ export default function useCallWebRTC(options?: {
         return;
       }
 
-      const resolvedPrompt = prompt ?? "";
-      const resolvedLanguage = native_language || "en";
-      const resolvedFirstMessage = greeting_used ?? "";
       setAgentSettings({
-        prompt: resolvedPrompt,
-        firstMessage: resolvedFirstMessage,
-        language: resolvedLanguage,
+        prompt: tokenPayload.prompt,
+        firstMessage: tokenPayload.greetingUsed,
+        language: tokenPayload.nativeLanguage,
       });
       pendingStartRef.current = {
-        conversationToken,
-        creditsRemaining: credits_remainder_secs ?? null,
-        greetingUsed: resolvedFirstMessage,
+        conversationToken: tokenPayload.conversationToken,
+        // Adult conversation-token currently returns a compatibility countdown value.
+        creditsRemaining: tokenPayload.creditsRemaining,
+        greetingUsed: tokenPayload.greetingUsed,
         abortController,
       };
       return;
     } catch (error: any) {
       if (!abortController.signal.aborted) {
         setStatus("error");
-        setErrorMessage(error.response?.data?.detail?.error || "Call failed");
+        setErrorMessage(
+          error?.response?.data?.detail?.error ||
+          error?.response?.data?.detail ||
+          error?.message ||
+          "Call failed"
+        );
         logger.error(error);
         errorStatus = error.response?.status ?? null;
       }

@@ -65,6 +65,9 @@ export const Endpoints = {
       )}/register`,
     conversation_token: "/elevenlabs/conversation-token",
   },
+  adult: {
+    conversation_token: "/adult/conversation-token",
+  },
   influencers: "/influencer",
   influencer: (id: string) => `/influencer/${id}`,
   influencerBio: (id: string) => `/influencer/${id}/bio`,

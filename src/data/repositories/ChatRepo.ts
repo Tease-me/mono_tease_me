@@ -1,6 +1,6 @@
 import { ChatServices } from "@/api/services/ChatServices";
 import { Message, MessagePagination } from "../models/MessageDataModel";
-import { CallDetailsResponse, ChatAudioResponse, ChatHistoryResponse, ChatIdResponse, ConversationTokenResponse, SignedUrlResponse } from "@/api/models/chat";
+import { AdultConversationTokenResponse, CallDetailsResponse, ChatAudioResponse, ChatHistoryResponse, ChatIdResponse, ConversationTokenResponse, SignedUrlResponse } from "@/api/models/chat";
 import { formatDateTimeRelative } from "@/utils/DateTimeUtils";
 
 const chatServices = ChatServices();
@@ -65,6 +65,17 @@ export const ChatRepository = () => ({
     },
     getConversationToken: async (influencer_id: string, user_timezone: string, signal?: AbortSignal): Promise<ConversationTokenResponse> => {
         return await chatServices.getConversationToken(influencer_id, user_timezone, signal);
+    },
+    getAdultConversationToken: async (
+        influencer_id: string,
+        character_id: number,
+        signal?: AbortSignal
+    ): Promise<AdultConversationTokenResponse> => {
+        return await chatServices.getAdultConversationToken(
+            influencer_id,
+            character_id,
+            signal
+        );
     },
     getCallDetails: async (conversation_id: string, signal?: AbortSignal): Promise<CallDetailsResponse> => {
         return await chatServices.getCallDetails(conversation_id, signal);
