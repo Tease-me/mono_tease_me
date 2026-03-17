@@ -3,7 +3,7 @@ import asyncio
 import httpx
 from fastapi import HTTPException
 
-from app.services.gateways.adult.elevenlabs_conversation_gateway import ElevenLabsConversationGateway
+from app.gateways.adult.adult_conversation_gateway import ElevenLabsAdultConversationGateway
 
 
 class _FakeResponse:
@@ -38,13 +38,13 @@ def _patch_async_client(monkeypatch, client: _FakeAsyncClient):
         return client
 
     monkeypatch.setattr(
-        "app.services.gateways.adult.elevenlabs_conversation_gateway.httpx.AsyncClient",
+        "app.gateways.adult.adult_conversation_gateway.httpx.AsyncClient",
         _factory,
     )
 
 
 def test_get_conversation_token_success(monkeypatch):
-    gateway = ElevenLabsConversationGateway()
+    gateway = ElevenLabsAdultConversationGateway()
     gateway._api_key = "test-key"
     _patch_async_client(monkeypatch, _FakeAsyncClient(get_response=_FakeResponse(200, {"token": "tok_123"})))
 
@@ -54,7 +54,7 @@ def test_get_conversation_token_success(monkeypatch):
 
 
 def test_get_conversation_token_upstream_error(monkeypatch):
-    gateway = ElevenLabsConversationGateway()
+    gateway = ElevenLabsAdultConversationGateway()
     gateway._api_key = "test-key"
     _patch_async_client(monkeypatch, _FakeAsyncClient(get_response=_FakeResponse(429, text="rate limited")))
 
@@ -66,7 +66,7 @@ def test_get_conversation_token_upstream_error(monkeypatch):
 
 
 def test_get_conversation_token_network_error(monkeypatch):
-    gateway = ElevenLabsConversationGateway()
+    gateway = ElevenLabsAdultConversationGateway()
     gateway._api_key = "test-key"
     _patch_async_client(monkeypatch, _FakeAsyncClient(get_error=httpx.RequestError("boom")))
 

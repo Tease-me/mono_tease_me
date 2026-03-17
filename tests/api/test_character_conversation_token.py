@@ -4,8 +4,8 @@ import pytest
 
 os.environ.setdefault("OPENAI_API_KEY", "test-key")
 
-from app.api.adult.character_conversation import get_character_conversation_token
-from app.data.schemas.adult.character_conversation import CharacterConversationTokenResponse
+from app.api.adult.adult_conversation import get_adult_conversation_token
+from app.schemas.adult.adult_conversation import AdultConversationTokenResponse
 
 
 @pytest.fixture
@@ -14,8 +14,8 @@ def anyio_backend():
 
 
 @pytest.mark.anyio
-async def test_get_character_conversation_token_delegates_to_use_case(monkeypatch):
-    expected = CharacterConversationTokenResponse(
+async def test_get_adult_conversation_token_delegates_to_use_case(monkeypatch):
+    expected = AdultConversationTokenResponse(
         token="tok_123",
         agent_id="agent_123",
         prompt="character prompt",
@@ -34,11 +34,11 @@ async def test_get_character_conversation_token_delegates_to_use_case(monkeypatc
 
     fake_db = object()
     monkeypatch.setattr(
-        "app.api.adult.character_conversation.create_character_conversation_token",
+        "app.api.adult.adult_conversation.create_adult_conversation_token",
         _use_case,
     )
 
-    result = await get_character_conversation_token(
+    result = await get_adult_conversation_token(
         influencer_id="jules",
         character_id=7,
         _current_user=object(),

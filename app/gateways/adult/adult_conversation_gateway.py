@@ -8,7 +8,7 @@ from app.core.config import settings
 log = logging.getLogger(__name__)
 
 
-class ElevenLabsConversationGateway:
+class ElevenLabsAdultConversationGateway:
     def __init__(self) -> None:
         self._base_url = settings.ELEVEN_BASE_URL
         self._api_key = settings.ELEVENLABS_API_KEY
@@ -27,12 +27,12 @@ class ElevenLabsConversationGateway:
                     headers=self._headers(),
                 )
         except httpx.RequestError as exc:
-            log.exception("character_conversation_token.network_error agent=%s err=%s", agent_id, exc)
+            log.exception("adult_conversation_token.network_error agent=%s err=%s", agent_id, exc)
             raise HTTPException(status_code=502, detail="Upstream unavailable")
 
         if resp.status_code >= 400:
             log.error(
-                "character_conversation_token.failed agent=%s status=%s body=%s",
+                "adult_conversation_token.failed agent=%s status=%s body=%s",
                 agent_id,
                 resp.status_code,
                 resp.text[:500] if resp.text else "",

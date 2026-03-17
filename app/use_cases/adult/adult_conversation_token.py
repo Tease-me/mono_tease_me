@@ -2,27 +2,27 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.schemas.adult.character_conversation import (
-    CharacterConversationTokenRequest,
-    CharacterConversationTokenResponse,
+from app.schemas.adult.adult_conversation import (
+    AdultConversationTokenRequest,
+    AdultConversationTokenResponse,
 )
-from app.gateways.adult.elevenlabs_conversation_gateway import (
-    ElevenLabsConversationGateway,
+from app.gateways.adult.adult_conversation_gateway import (
+    ElevenLabsAdultConversationGateway,
 )
-from app.repositories.adult.character_conversation_repository import (
+from app.repositories.adult.adult_conversation_repository import (
     get_active_influencer_character_meta,
     get_adult_character_by_id,
     get_influencer_by_id,
 )
-from app.utils.adult.character_messages import pick_random_first_message
+from app.utils.adult.adult_messages import pick_random_first_message
 
 
-async def create_character_conversation_token(
+async def create_adult_conversation_token(
     *,
     db: AsyncSession,
-    payload: CharacterConversationTokenRequest,
-    gateway: ElevenLabsConversationGateway | None = None,
-) -> CharacterConversationTokenResponse:
+    payload: AdultConversationTokenRequest,
+    gateway: ElevenLabsAdultConversationGateway | None = None,
+) -> AdultConversationTokenResponse:
     influencer = await get_influencer_by_id(db, payload.influencer_id)
     if not influencer:
         raise HTTPException(status_code=404, detail="Influencer not found")
@@ -43,11 +43,11 @@ async def create_character_conversation_token(
     if not agent_id:
         raise HTTPException(status_code=404, detail="Influencer agent_id not found")
 
-    token_gateway = gateway or ElevenLabsConversationGateway()
+    token_gateway = gateway or ElevenLabsAdultConversationGateway()
     token = await token_gateway.get_conversation_token(agent_id)
     greeting_used = pick_random_first_message(character.first_messages)
 
-    return CharacterConversationTokenResponse(
+    return AdultConversationTokenResponse(
         token=token,
         agent_id=agent_id,
         prompt=character.prompt_template,

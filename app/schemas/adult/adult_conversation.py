@@ -1,12 +1,12 @@
 from pydantic import BaseModel
 
 
-class CharacterConversationTokenRequest(BaseModel):
+class AdultConversationTokenRequest(BaseModel):
     influencer_id: str
     character_id: int
 
 
-class CharacterConversationTokenResponse(BaseModel):
+class AdultConversationTokenResponse(BaseModel):
     token: str
     agent_id: str
     prompt: str

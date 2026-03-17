@@ -4,8 +4,8 @@ import pytest
 from fastapi import HTTPException
 
 from app.core.config import settings
-from app.data.schemas.adult.character_conversation import CharacterConversationTokenRequest
-from app.services.use_cases.adult.character_conversation_token import create_character_conversation_token
+from app.schemas.adult.adult_conversation import AdultConversationTokenRequest
+from app.use_cases.adult.adult_conversation_token import create_adult_conversation_token
 
 
 @pytest.fixture
@@ -24,7 +24,7 @@ class _Gateway:
 
 
 @pytest.mark.anyio
-async def test_create_character_conversation_token_success(monkeypatch):
+async def test_create_adult_conversation_token_success(monkeypatch):
     influencer = SimpleNamespace(
         influencer_agent_id_third_part="agent_123",
         voice_id="voice_123",
@@ -52,25 +52,25 @@ async def test_create_character_conversation_token_success(monkeypatch):
         return overlay
 
     monkeypatch.setattr(
-        "app.services.use_cases.adult.character_conversation_token.get_influencer_by_id",
+        "app.use_cases.adult.adult_conversation_token.get_influencer_by_id",
         _get_influencer,
     )
     monkeypatch.setattr(
-        "app.services.use_cases.adult.character_conversation_token.get_adult_character_by_id",
+        "app.use_cases.adult.adult_conversation_token.get_adult_character_by_id",
         _get_character,
     )
     monkeypatch.setattr(
-        "app.services.use_cases.adult.character_conversation_token.get_active_influencer_character_meta",
+        "app.use_cases.adult.adult_conversation_token.get_active_influencer_character_meta",
         _get_overlay,
     )
     monkeypatch.setattr(
-        "app.services.use_cases.adult.character_conversation_token.pick_random_first_message",
+        "app.use_cases.adult.adult_conversation_token.pick_random_first_message",
         lambda messages: messages[1],
     )
 
-    result = await create_character_conversation_token(
+    result = await create_adult_conversation_token(
         db=object(),
-        payload=CharacterConversationTokenRequest(influencer_id="jules", character_id=7),
+        payload=AdultConversationTokenRequest(influencer_id="jules", character_id=7),
         gateway=gateway,
     )
 
@@ -86,7 +86,7 @@ async def test_create_character_conversation_token_success(monkeypatch):
 
 
 @pytest.mark.anyio
-async def test_create_character_conversation_token_returns_null_greeting_when_empty(monkeypatch):
+async def test_create_adult_conversation_token_returns_null_greeting_when_empty(monkeypatch):
     influencer = SimpleNamespace(
         influencer_agent_id_third_part="agent_123",
         voice_id=None,
@@ -109,21 +109,21 @@ async def test_create_character_conversation_token_returns_null_greeting_when_em
         return SimpleNamespace(is_active=True)
 
     monkeypatch.setattr(
-        "app.services.use_cases.adult.character_conversation_token.get_influencer_by_id",
+        "app.use_cases.adult.adult_conversation_token.get_influencer_by_id",
         _get_influencer,
     )
     monkeypatch.setattr(
-        "app.services.use_cases.adult.character_conversation_token.get_adult_character_by_id",
+        "app.use_cases.adult.adult_conversation_token.get_adult_character_by_id",
         _get_character,
     )
     monkeypatch.setattr(
-        "app.services.use_cases.adult.character_conversation_token.get_active_influencer_character_meta",
+        "app.use_cases.adult.adult_conversation_token.get_active_influencer_character_meta",
         _get_overlay,
     )
 
-    result = await create_character_conversation_token(
+    result = await create_adult_conversation_token(
         db=object(),
-        payload=CharacterConversationTokenRequest(influencer_id="jules", character_id=7),
+        payload=AdultConversationTokenRequest(influencer_id="jules", character_id=7),
         gateway=gateway,
     )
 
@@ -133,19 +133,19 @@ async def test_create_character_conversation_token_returns_null_greeting_when_em
 
 
 @pytest.mark.anyio
-async def test_create_character_conversation_token_raises_for_missing_influencer(monkeypatch):
+async def test_create_adult_conversation_token_raises_for_missing_influencer(monkeypatch):
     async def _get_influencer(*_args, **_kwargs):
         return None
 
     monkeypatch.setattr(
-        "app.services.use_cases.adult.character_conversation_token.get_influencer_by_id",
+        "app.use_cases.adult.adult_conversation_token.get_influencer_by_id",
         _get_influencer,
     )
 
     with pytest.raises(HTTPException) as exc:
-        await create_character_conversation_token(
+        await create_adult_conversation_token(
             db=object(),
-            payload=CharacterConversationTokenRequest(influencer_id="jules", character_id=7),
+            payload=AdultConversationTokenRequest(influencer_id="jules", character_id=7),
             gateway=_Gateway("token_123"),
         )
 

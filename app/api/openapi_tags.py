@@ -2,7 +2,7 @@ OPENAPI_TAGS = [
     {"name": "auth", "description": "Authentication, login, logout, token refresh, and account session endpoints."},
     {"name": "chat", "description": "Main chat endpoints for user conversations and chat interactions."},
     {"name": "chat18", "description": "Adult chat endpoints for 18+ conversation flows."},
-    {"name": "adult-character-calls", "description": "Adult character voice token endpoints using character prompts and first-message selection."},
+    {"name": "adult-calls", "description": "Adult character voice token endpoints using character prompts and first-message selection."},
     {"name": "push", "description": "Push notification registration and delivery preference endpoints."},
     {"name": "billing", "description": "Billing and wallet-related endpoints for credits and usage."},
     {"name": "checkout", "description": "Checkout and payment initiation endpoints."},

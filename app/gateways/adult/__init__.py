@@ -1,3 +1,3 @@
-from .elevenlabs_conversation_gateway import ElevenLabsConversationGateway
+from .adult_conversation_gateway import ElevenLabsAdultConversationGateway
 
-__all__ = ["ElevenLabsConversationGateway"]
+__all__ = ["ElevenLabsAdultConversationGateway"]
