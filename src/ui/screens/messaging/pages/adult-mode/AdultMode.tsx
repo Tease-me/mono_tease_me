@@ -6,6 +6,7 @@ import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import styles from "./AdultMode.module.css";
 import SvgPack from "@/utils/SvgPack";
+import useCallWebRTC from "@/hooks/useCallWebRTC";
 
 type Scene = {
   id: number;
@@ -62,6 +63,9 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
   const [sessionState, setSessionState] = useState<SessionState>("preview");
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { setInfluencerId, startConversation, stopConversation, status } =
+    useCallWebRTC();
+  const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
 
   useEffect(() => {
     setSelectedScene(null);
@@ -69,6 +73,10 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
     setIsLoading(true);
     setErrorMessage(null);
   }, [influencerId]);
+
+  useEffect(() => {
+    setInfluencerId(influencerId);
+  }, [influencerId, setInfluencerId]);
 
   useEffect(() => {
     if (!influencerId) {
@@ -154,11 +162,19 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
     setSelectedScene(null);
   };
 
-  const handleStartCall = () => {
+  const handleStartCall = async () => {
+    if (!selectedScene) {
+      return;
+    }
+    await startConversation({
+      flow: "adult-character",
+      characterId: selectedScene.id,
+    });
     setSessionState("active");
   };
 
-  const handleEndCall = () => {
+  const handleEndCall = async () => {
+    await stopConversation();
     setSessionState("preview");
   };
 
@@ -281,7 +297,7 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
             <div
               className={`${styles.activePanel} ${sessionState === "active" ? styles.activePanelVisible : styles.activePanelHidden}`}
             >
-              <div className={styles.subtitle}>Connected</div>
+              <div className={styles.subtitle}>{statusLabel}</div>
               <div className={styles.sessionTimer}>00:00</div>
               <div className={styles.activeActions}>
                 <IconButton
