@@ -32,28 +32,55 @@ type AdultModeProps = {
 };
 
 const influencerServices = InfluencerServices(apiClient);
+const lottieDataCache = new Map<string, Promise<unknown | null>>();
+
+const loadLottieData = async (url: string): Promise<unknown | null> => {
+  const cached = lottieDataCache.get(url);
+  if (cached) {
+    return cached;
+  }
+
+  const request = fetch(url)
+    .then(async (response) => {
+      if (!response.ok) {
+        return null;
+      }
+      return (await response.json()) as unknown;
+    })
+    .catch(() => {
+      lottieDataCache.delete(url);
+      return null;
+    });
+
+  lottieDataCache.set(url, request);
+  return request;
+};
 
 export default function AdultMode({ influencerId }: AdultModeProps) {
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [selectedScene, setSelectedScene] = useState<Scene | null>(null);
   const [sessionState, setSessionState] = useState<SessionState>("preview");
   const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setSelectedScene(null);
     setSessionState("preview");
     setIsLoading(true);
+    setErrorMessage(null);
   }, [influencerId]);
 
   useEffect(() => {
     if (!influencerId) {
       setScenes([]);
       setIsLoading(false);
+      setErrorMessage(null);
       return;
     }
 
-    const abortController = new AbortController();
+    let cancelled = false;
     setIsLoading(true);
+    setErrorMessage(null);
 
     void (async () => {
       try {
@@ -62,29 +89,11 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
           .filter((character) => character.is_active)
           .sort((a, b) => a.display_order - b.display_order);
 
-        const lottieCache = new Map<string, unknown | null>();
-
         const nextScenes = await Promise.all(
           activeCharacters.map(async (character) => {
-            let titlePlaceholderData: unknown | null = null;
-
-            if (character.lottie_text_url) {
-              if (!lottieCache.has(character.lottie_text_url)) {
-                try {
-                  const lottieResponse = await fetch(character.lottie_text_url, {
-                    signal: abortController.signal,
-                  });
-                  const lottieData = lottieResponse.ok
-                    ? ((await lottieResponse.json()) as unknown)
-                    : null;
-                  lottieCache.set(character.lottie_text_url, lottieData);
-                } catch {
-                  lottieCache.set(character.lottie_text_url, null);
-                }
-              }
-              titlePlaceholderData =
-                lottieCache.get(character.lottie_text_url) ?? null;
-            }
+            const titlePlaceholderData = character.lottie_text_url
+              ? await loadLottieData(character.lottie_text_url)
+              : null;
 
             return {
               id: character.id,
@@ -116,22 +125,23 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
           }),
         );
 
-        if (!abortController.signal.aborted) {
+        if (!cancelled) {
           setScenes(nextScenes);
         }
       } catch {
-        if (!abortController.signal.aborted) {
+        if (!cancelled) {
           setScenes([]);
+          setErrorMessage("Unable to load scenarios right now.");
         }
       } finally {
-        if (!abortController.signal.aborted) {
+        if (!cancelled) {
           setIsLoading(false);
         }
       }
     })();
 
     return () => {
-      abortController.abort();
+      cancelled = true;
     };
   }, [influencerId]);
 
@@ -160,6 +170,14 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
       {isLoading ? (
         <div className={styles.loadingState}>
           <LoadingSpinner size="large" />
+        </div>
+      ) : errorMessage ? (
+        <div className={styles.statusState}>
+          <div className={styles.statusText}>{errorMessage}</div>
+        </div>
+      ) : scenes.length === 0 ? (
+        <div className={styles.statusState}>
+          <div className={styles.statusText}>No scenarios available yet.</div>
         </div>
       ) : !selectedScene ? (
         <div className={styles.page1}>

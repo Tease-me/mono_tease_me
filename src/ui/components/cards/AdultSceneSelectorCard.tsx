@@ -4,7 +4,6 @@ import LottieAnimation from "@/ui/components/LottieAnimation";
 
 type Props = {
   name: string;
-  default?: boolean;
   description: string;
   imageSmallSrc: string | null;
   imageLargeSrc: string | null;
@@ -17,7 +16,6 @@ export default function AdultSceneSelector({
   imageSmallSrc,
   imageLargeSrc,
   titlePlaceholderData,
-  default: isDefault = false
 }: Props) {
   const [imageFailed, setImageFailed] = useState(false);
   const resolvedImageSrc = imageSmallSrc ?? imageLargeSrc ?? null;
@@ -34,7 +32,7 @@ export default function AdultSceneSelector({
     <div className={styles.card}>
       <div className={styles.upperBody}>
         <div className={styles.imageArea}>
-          {!isDefault && titlePlaceholderData != null ? (
+          {titlePlaceholderData != null ? (
             <div className={styles.titlePlaceholder} aria-hidden="true">
               <LottieAnimation autoplay loop animationData={titlePlaceholderData} />
             </div>

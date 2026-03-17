@@ -3,11 +3,12 @@
   flex-direction: column;
   align-items: center;
   gap: 12px;
+  border-radius: 16px;
 }
 
 .upperBody {
   display: flex;
-  height: 376px;
+  border-radius: 16px 16px 0 0;
   width: 100%;
   flex: 0 0 376px;
   flex-direction: column;
@@ -23,6 +24,7 @@
   flex: 1 1 auto;
   min-height: 0;
   background: radial-gradient(54.08% 54.08% at 50% 85.74%, #9A2AFF 0%, #000 100%);
+  border-radius: 16px 16px 0 0;
 }
 
 .girlfriend {
