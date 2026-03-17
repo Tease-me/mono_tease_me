@@ -67,16 +67,38 @@ async def test_create_adult_conversation_token_success(monkeypatch):
         "app.use_cases.adult.adult_conversation_token.pick_random_first_message",
         lambda messages: messages[1],
     )
+    async def _can_afford(_db, *, user_id, influencer_id, feature, units, is_18):
+        assert user_id == 11
+        assert influencer_id == "jules"
+        assert feature == "live_chat"
+        assert units == 10
+        assert is_18 is False
+        return True, 0, 3
+    async def _remaining(_db, user_id, influencer_id, feature, is_18):
+        assert user_id == 11
+        assert influencer_id == "jules"
+        assert feature == "live_chat"
+        assert is_18 is False
+        return 120
+    monkeypatch.setattr(
+        "app.use_cases.adult.adult_conversation_token.can_afford",
+        _can_afford,
+    )
+    monkeypatch.setattr(
+        "app.use_cases.adult.adult_conversation_token.get_remaining_units",
+        _remaining,
+    )
 
     result = await create_adult_conversation_token(
         db=object(),
+        user_id=11,
         payload=AdultConversationTokenRequest(influencer_id="jules", character_id=7),
         gateway=gateway,
     )
 
     assert result.token == "token_123"
     assert result.agent_id == "agent_123"
-    assert result.credits_remainder_secs == 2
+    assert result.credits_remainder_secs == 120
     assert result.prompt == "character prompt"
     assert result.greeting_used == "two"
     assert result.voice_id == "voice_123"
@@ -121,14 +143,23 @@ async def test_create_adult_conversation_token_returns_null_greeting_when_empty(
         "app.use_cases.adult.adult_conversation_token.get_active_influencer_character_meta",
         _get_overlay,
     )
+    monkeypatch.setattr(
+        "app.use_cases.adult.adult_conversation_token.can_afford",
+        lambda *_args, **_kwargs: _async_tuple((True, 0, 0)),
+    )
+    monkeypatch.setattr(
+        "app.use_cases.adult.adult_conversation_token.get_remaining_units",
+        lambda *_args, **_kwargs: _async_value(45),
+    )
 
     result = await create_adult_conversation_token(
         db=object(),
+        user_id=11,
         payload=AdultConversationTokenRequest(influencer_id="jules", character_id=7),
         gateway=gateway,
     )
 
-    assert result.credits_remainder_secs == 2
+    assert result.credits_remainder_secs == 45
     assert result.greeting_used is None
     assert result.voice_id == settings.ELEVENLABS_VOICE_ID
     assert result.native_language == "en"
@@ -147,9 +178,64 @@ async def test_create_adult_conversation_token_raises_for_missing_influencer(mon
     with pytest.raises(HTTPException) as exc:
         await create_adult_conversation_token(
             db=object(),
+            user_id=11,
             payload=AdultConversationTokenRequest(influencer_id="jules", character_id=7),
             gateway=_Gateway("token_123"),
         )
 
     assert exc.value.status_code == 404
     assert exc.value.detail == "Influencer not found"
+
+
+async def _async_value(value):
+    return value
+
+
+async def _async_tuple(value):
+    return value
+
+
+@pytest.mark.anyio
+async def test_create_adult_conversation_token_raises_for_insufficient_credits(monkeypatch):
+    influencer = SimpleNamespace(
+        influencer_agent_id_third_part="agent_123",
+        voice_id="voice_123",
+        native_language="en",
+    )
+    character = SimpleNamespace(
+        is_active=True,
+        prompt_template="character prompt",
+        first_messages=["one"],
+    )
+
+    monkeypatch.setattr(
+        "app.use_cases.adult.adult_conversation_token.get_influencer_by_id",
+        lambda *_args, **_kwargs: _async_value(influencer),
+    )
+    monkeypatch.setattr(
+        "app.use_cases.adult.adult_conversation_token.get_adult_character_by_id",
+        lambda *_args, **_kwargs: _async_value(character),
+    )
+    monkeypatch.setattr(
+        "app.use_cases.adult.adult_conversation_token.get_active_influencer_character_meta",
+        lambda *_args, **_kwargs: _async_value(SimpleNamespace(is_active=True)),
+    )
+    monkeypatch.setattr(
+        "app.use_cases.adult.adult_conversation_token.can_afford",
+        lambda *_args, **_kwargs: _async_tuple((False, 250, 0)),
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        await create_adult_conversation_token(
+            db=object(),
+            user_id=11,
+            payload=AdultConversationTokenRequest(influencer_id="jules", character_id=7),
+            gateway=_Gateway("token_123"),
+        )
+
+    assert exc.value.status_code == 402
+    assert exc.value.detail == {
+        "error": "INSUFFICIENT_CREDITS",
+        "needed_cents": 250,
+        "free_left": 0,
+    }

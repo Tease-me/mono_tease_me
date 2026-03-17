@@ -18,7 +18,7 @@ async def test_get_adult_conversation_token_delegates_to_use_case(monkeypatch):
     expected = AdultConversationTokenResponse(
         token="tok_123",
         agent_id="agent_123",
-        credits_remainder_secs=2,
+        credits_remainder_secs=120,
         prompt="character prompt",
         greeting_used="hello there",
         voice_id="voice_123",
@@ -27,10 +27,11 @@ async def test_get_adult_conversation_token_delegates_to_use_case(monkeypatch):
         character_id=7,
     )
 
-    async def _use_case(*, db, payload):
+    async def _use_case(*, db, user_id, payload):
         assert payload.influencer_id == "jules"
         assert payload.character_id == 7
         assert db is fake_db
+        assert user_id == 9
         return expected
 
     fake_db = object()
@@ -42,7 +43,7 @@ async def test_get_adult_conversation_token_delegates_to_use_case(monkeypatch):
     result = await get_adult_conversation_token(
         influencer_id="jules",
         character_id=7,
-        _current_user=object(),
+        _current_user=type("UserObj", (), {"id": 9})(),
         db=fake_db,
     )
 

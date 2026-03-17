@@ -29,4 +29,8 @@ async def get_adult_conversation_token(
         influencer_id=influencer_id,
         character_id=character_id,
     )
-    return await create_adult_conversation_token(db=db, payload=payload)
+    return await create_adult_conversation_token(
+        db=db,
+        user_id=_current_user.id,
+        payload=payload,
+    )

@@ -2,6 +2,7 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.services.billing import can_afford, get_remaining_units
 from app.schemas.adult.adult_conversation import (
     AdultConversationTokenRequest,
     AdultConversationTokenResponse,
@@ -20,6 +21,7 @@ from app.utils.adult.adult_messages import pick_random_first_message
 async def create_adult_conversation_token(
     *,
     db: AsyncSession,
+    user_id: int,
     payload: AdultConversationTokenRequest,
     gateway: ElevenLabsAdultConversationGateway | None = None,
 ) -> AdultConversationTokenResponse:
@@ -43,6 +45,32 @@ async def create_adult_conversation_token(
     if not agent_id:
         raise HTTPException(status_code=404, detail="Influencer agent_id not found")
 
+    ok, cost_cents, free_left = await can_afford(
+        db,
+        user_id=user_id,
+        influencer_id=payload.influencer_id,
+        feature="live_chat",
+        units=10,
+        is_18=False,
+    )
+    if not ok:
+        raise HTTPException(
+            status_code=402,
+            detail={
+                "error": "INSUFFICIENT_CREDITS",
+                "needed_cents": cost_cents,
+                "free_left": free_left,
+            },
+        )
+
+    credits_remainder_secs = await get_remaining_units(
+        db,
+        user_id,
+        payload.influencer_id,
+        feature="live_chat",
+        is_18=False,
+    )
+
     token_gateway = gateway or ElevenLabsAdultConversationGateway()
     token = await token_gateway.get_conversation_token(agent_id)
     greeting_used = pick_random_first_message(character.first_messages)
@@ -50,7 +78,7 @@ async def create_adult_conversation_token(
     return AdultConversationTokenResponse(
         token=token,
         agent_id=agent_id,
-        credits_remainder_secs=2,
+        credits_remainder_secs=credits_remainder_secs,
         prompt=character.prompt_template,
         greeting_used=greeting_used,
         voice_id=influencer.voice_id or settings.ELEVENLABS_VOICE_ID or None,
