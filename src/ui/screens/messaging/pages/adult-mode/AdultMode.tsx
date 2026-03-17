@@ -169,7 +169,7 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
     <div className={styles.container}>
       {isLoading ? (
         <div className={styles.loadingState}>
-          <LoadingSpinner size="large" />
+          <LoadingSpinner size="medium" />
         </div>
       ) : errorMessage ? (
         <div className={styles.statusState}>

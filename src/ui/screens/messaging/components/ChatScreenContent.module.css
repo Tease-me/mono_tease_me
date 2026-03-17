@@ -59,7 +59,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
-    margin-top: -60px;
+    margin-top: 0;
     max-width: var(--max-chat-content-width);
     width: 100%;
     margin-bottom: 9dvh;
