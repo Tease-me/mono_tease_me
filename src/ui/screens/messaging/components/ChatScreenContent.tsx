@@ -429,7 +429,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
           </div>
         ) : showAdultModeExperience ? (
           <div className={styles["adult-mode-content"]}>
-            <AdultMode />
+            <AdultMode influencerId={influencer.id} />
           </div>
         ) : !showSubscriptionPage ? (
           <>

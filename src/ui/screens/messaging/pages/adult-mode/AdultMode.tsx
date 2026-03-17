@@ -1,122 +1,139 @@
-import { useState } from "react";
-import styles from "./AdultMode.module.css";
+import { useEffect, useState } from "react";
+import { apiClient } from "@/api/apis";
+import { InfluencerServices } from "@/api/services/InfluencerService";
 import AdultSceneSelector from "@/ui/components/cards/AdultSceneSelectorCard";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
+import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
+import styles from "./AdultMode.module.css";
 import SvgPack from "@/utils/SvgPack";
-import adultTitlePlaceholder from "@/assets/adult-mode/local-test/adultTitlePlaceholder.json";
-import mainImageDefaultSmall from "@/assets/adult-mode/local-test/images/mainImageDefault.png";
-import mainImageDefaultLarge from "@/assets/adult-mode/local-test/images/mainImageDefault@2x.png";
-import mainImageGymSmall from "@/assets/adult-mode/local-test/images/mainImageGym.png";
-import mainImageGymLarge from "@/assets/adult-mode/local-test/images/mainImageGym@2x.png";
-import mainImageHotTeacherSmall from "@/assets/adult-mode/local-test/images/mainImageHotTeacher.png";
-import mainImageHotTeacherLarge from "@/assets/adult-mode/local-test/images/mainImageHotTeacher@2x.png";
-import mainImageMaidSmall from "@/assets/adult-mode/local-test/images/mainImageMaid.png";
-import mainImageMaidLarge from "@/assets/adult-mode/local-test/images/mainImageMaid@2x.png";
-import mainImageNurseSmall from "@/assets/adult-mode/local-test/images/mainImageNurse.png";
-import mainImageNurseLarge from "@/assets/adult-mode/local-test/images/mainImageNurse@2x.png";
-import mainImagePoliceSmall from "@/assets/adult-mode/local-test/images/mainImagePolice.png";
-import mainImagePoliceLarge from "@/assets/adult-mode/local-test/images/mainImagePolice@2x.png";
-import videoPoster from "@/assets/adult-mode/local-test/video/posterJulianaPolice-min2.png";
-import videoMp4 from "@/assets/adult-mode/local-test/video/videoJulianaPolice-min2.mp4";
-import videoWebm from "@/assets/adult-mode/local-test/video/videoJulianaPolice-min2.webm";
 
 type Scene = {
+  id: number;
+  slug: string;
   name: string;
   description: string;
   scenarioDetails: string;
+  titlePlaceholderData: unknown | null;
   image: {
-    small: string;
-    large: string;
+    small: string | null;
+    large: string | null;
   };
   video: {
-    image: string;
-    mp4: string;
-    webm: string;
+    image: string | null;
+    mp4: string | null;
+    webm: string | null;
   };
-  default?: boolean;
 };
 
 type SessionState = "preview" | "active";
 
-export default function AdultMode() {
+type AdultModeProps = {
+  influencerId: string;
+};
+
+const influencerServices = InfluencerServices(apiClient);
+
+export default function AdultMode({ influencerId }: AdultModeProps) {
+  const [scenes, setScenes] = useState<Scene[]>([]);
   const [selectedScene, setSelectedScene] = useState<Scene | null>(null);
   const [sessionState, setSessionState] = useState<SessionState>("preview");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const sharedVideo = {
-    image: videoPoster,
-    mp4: videoMp4,
-    webm: videoWebm
-  };
+  useEffect(() => {
+    setSelectedScene(null);
+    setSessionState("preview");
+    setIsLoading(true);
+  }, [influencerId]);
 
-  const scenes: Scene[] = [
-    {
-      name: "Default",
-      description: "A playful everyday tease with a familiar, flirty energy.",
-      scenarioDetails:
-        "You settle into something familiar, warm, and teasing. She knows exactly how to get under your skin with a soft voice, close attention, and just enough affection to keep you wanting more.",
-      image: {
-        small: mainImageDefaultSmall,
-        large: mainImageDefaultLarge
-      },
-      video: sharedVideo,
-      default: true
-    },
-    {
-      name: "Gym",
-      description: "Confident, sweaty, and intense. A high-energy workout fantasy.",
-      scenarioDetails:
-        "She corners you after the workout, body still warm and breathing heavy, with a look that dares you to keep up. Every word is playful, competitive, and charged with tension as she pushes you harder.",
-      image: {
-        small: mainImageGymSmall,
-        large: mainImageGymLarge
-      },
-      video: sharedVideo
-    },
-    {
-      name: "Hot Teacher",
-      description: "Strict, seductive, and impossible to ignore after class.",
-      scenarioDetails:
-        "Class is over, but she is not finished with you. She keeps you behind, lowers her voice, and turns every correction into something intimate, deliberate, and impossible to stop thinking about.",
-      image: {
-        small: mainImageHotTeacherSmall,
-        large: mainImageHotTeacherLarge
-      },
-      video: sharedVideo
-    },
-    {
-      name: "Maid",
-      description: "Polite on the surface, but full of teasing tension underneath.",
-      scenarioDetails:
-        "She moves around you with perfect manners and a knowing smile, pretending everything is innocent while making every moment feel charged. The more composed she sounds, the more obvious the teasing becomes.",
-      image: {
-        small: mainImageMaidSmall,
-        large: mainImageMaidLarge
-      },
-      video: sharedVideo
-    },
-    {
-      name: "Nurse",
-      description: "Soft care, close attention, and a dangerously intimate bedside manner.",
-      scenarioDetails:
-        "She checks on you with soft hands, a calm tone, and far too much focus for anything to feel professional. Every reassuring word draws closer, turning comfort into something deeply personal.",
-      image: {
-        small: mainImageNurseSmall,
-        large: mainImageNurseLarge
-      },
-      video: sharedVideo
-    },
-    {
-      name: "Police",
-      description: "Commanding, bold, and ready to take control of the situation.",
-      scenarioDetails:
-        "She takes control the second she steps in, voice firm and eyes locked on you. Every order lands with confidence, turning the whole scene into a tense, playful power game that keeps building.",
-      image: {
-        small: mainImagePoliceSmall,
-        large: mainImagePoliceLarge
-      },
-      video: sharedVideo
+  useEffect(() => {
+    if (!influencerId) {
+      setScenes([]);
+      setIsLoading(false);
+      return;
     }
-  ];
+
+    const abortController = new AbortController();
+    setIsLoading(true);
+
+    void (async () => {
+      try {
+        const response = await influencerServices.getAdultCharacters(influencerId);
+        const activeCharacters = response
+          .filter((character) => character.is_active)
+          .sort((a, b) => a.display_order - b.display_order);
+
+        const lottieCache = new Map<string, unknown | null>();
+
+        const nextScenes = await Promise.all(
+          activeCharacters.map(async (character) => {
+            let titlePlaceholderData: unknown | null = null;
+
+            if (character.lottie_text_url) {
+              if (!lottieCache.has(character.lottie_text_url)) {
+                try {
+                  const lottieResponse = await fetch(character.lottie_text_url, {
+                    signal: abortController.signal,
+                  });
+                  const lottieData = lottieResponse.ok
+                    ? ((await lottieResponse.json()) as unknown)
+                    : null;
+                  lottieCache.set(character.lottie_text_url, lottieData);
+                } catch {
+                  lottieCache.set(character.lottie_text_url, null);
+                }
+              }
+              titlePlaceholderData =
+                lottieCache.get(character.lottie_text_url) ?? null;
+            }
+
+            return {
+              id: character.id,
+              slug: character.slug,
+              name: character.name,
+              description:
+                character.short_description ?? character.description ?? "",
+              scenarioDetails:
+                character.description ?? character.short_description ?? "",
+              titlePlaceholderData,
+              image: {
+                small:
+                  character.photo_url ?? character.default_artwork_url ?? null,
+                large:
+                  character.photo_2x_url ??
+                  character.photo_url ??
+                  character.default_artwork_url ??
+                  null,
+              },
+              video: {
+                image:
+                  character.video_preview_png_url ??
+                  character.default_artwork_url ??
+                  null,
+                mp4: character.video_mp4_url,
+                webm: character.video_webm_url,
+              },
+            } satisfies Scene;
+          }),
+        );
+
+        if (!abortController.signal.aborted) {
+          setScenes(nextScenes);
+        }
+      } catch {
+        if (!abortController.signal.aborted) {
+          setScenes([]);
+        }
+      } finally {
+        if (!abortController.signal.aborted) {
+          setIsLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      abortController.abort();
+    };
+  }, [influencerId]);
 
   const handleSelectScenario = (scene: Scene) => {
     setSelectedScene(scene);
@@ -135,22 +152,30 @@ export default function AdultMode() {
     setSessionState("preview");
   };
 
+  const showVideo =
+    Boolean(selectedScene?.video.webm) || Boolean(selectedScene?.video.mp4);
+
   return (
     <div className={styles.container}>
-      {!selectedScene ? (
+      {isLoading ? (
+        <div className={styles.loadingState}>
+          <LoadingSpinner size="large" />
+        </div>
+      ) : !selectedScene ? (
         <div className={styles.page1}>
           <div className={styles.header}>Select a scenario</div>
           <div className={styles.selectionArea}>
-            <div className={`${styles.scenesList} ${scenes.length > 1 ? styles.edgeFade : ""}`}>
+            <div
+              className={`${styles.scenesList} ${scenes.length > 1 ? styles.edgeFade : ""}`}
+            >
               {scenes.map((scene) => (
-                <div key={scene.name} className={styles.sceneItem}>
+                <div key={scene.id} className={styles.sceneItem}>
                   <AdultSceneSelector
                     name={scene.name}
                     description={scene.description}
                     imageSmallSrc={scene.image.small}
                     imageLargeSrc={scene.image.large}
-                    titlePlaceholderData={adultTitlePlaceholder}
-                    default={Boolean(scene.default)}
+                    titlePlaceholderData={scene.titlePlaceholderData}
                   />
                   <IconButton
                     onClick={() => handleSelectScenario(scene)}
@@ -167,18 +192,30 @@ export default function AdultMode() {
       ) : (
         <div className={styles.sessionPage}>
           <div className={styles.sessionMedia}>
-            <video
-              poster={selectedScene.video.image}
-              className={`${styles.sessionVideo} ${sessionState === "preview" ? styles.previewVideo : styles.activeVideo}`}
-              autoPlay
-              loop
-              muted
-              playsInline
-            >
-              <source src={selectedScene.video.webm} type="video/webm" />
-              <source src={selectedScene.video.mp4} type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
+            {showVideo ? (
+              <video
+                poster={selectedScene.video.image ?? undefined}
+                className={`${styles.sessionVideo} ${sessionState === "preview" ? styles.previewVideo : styles.activeVideo}`}
+                autoPlay
+                loop
+                muted
+                playsInline
+              >
+                {selectedScene.video.webm && (
+                  <source src={selectedScene.video.webm} type="video/webm" />
+                )}
+                {selectedScene.video.mp4 && (
+                  <source src={selectedScene.video.mp4} type="video/mp4" />
+                )}
+                Your browser does not support the video tag.
+              </video>
+            ) : selectedScene.video.image ? (
+              <img
+                src={selectedScene.video.image}
+                alt={selectedScene.name}
+                className={`${styles.sessionVideo} ${sessionState === "preview" ? styles.previewVideo : styles.activeVideo}`}
+              />
+            ) : null}
 
             {sessionState === "preview" && <div className={styles.previewOverlay} />}
             {sessionState === "preview" ? (
@@ -186,14 +223,18 @@ export default function AdultMode() {
                 <IconButton
                   type="pill"
                   color="black"
-                  leftIcon={<SvgPack.CloseSquare className={styles.previewCloseIcon} />}
+                  leftIcon={
+                    <SvgPack.CloseSquare className={styles.previewCloseIcon} />
+                  }
                   onClick={handleCloseScenario}
                   className={styles.previewCloseButton}
                 />
                 <div className={styles.sessionName}>{selectedScene.name}</div>
                 <div className={styles.previewPanel}>
                   <div className={styles.subtitle}>Scenario Details</div>
-                  <div className={styles.sessionDescription}>{selectedScene.scenarioDetails}</div>
+                  <div className={styles.sessionDescription}>
+                    {selectedScene.scenarioDetails}
+                  </div>
                   <div className={styles.previewActions}>
                     <IconButton
                       onClick={handleStartCall}

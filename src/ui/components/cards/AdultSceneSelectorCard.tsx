@@ -6,9 +6,9 @@ type Props = {
   name: string;
   default?: boolean;
   description: string;
-  imageSmallSrc: string;
-  imageLargeSrc: string;
-  titlePlaceholderData: unknown;
+  imageSmallSrc: string | null;
+  imageLargeSrc: string | null;
+  titlePlaceholderData: unknown | null;
 };
 
 export default function AdultSceneSelector({
@@ -20,6 +20,11 @@ export default function AdultSceneSelector({
   default: isDefault = false
 }: Props) {
   const [imageFailed, setImageFailed] = useState(false);
+  const resolvedImageSrc = imageSmallSrc ?? imageLargeSrc ?? null;
+  const resolvedSrcSet =
+    resolvedImageSrc && imageLargeSrc
+      ? `${resolvedImageSrc} 1x, ${imageLargeSrc} 2x`
+      : undefined;
 
   useEffect(() => {
     setImageFailed(false);
@@ -29,17 +34,17 @@ export default function AdultSceneSelector({
     <div className={styles.card}>
       <div className={styles.upperBody}>
         <div className={styles.imageArea}>
-          {!isDefault && (
+          {!isDefault && titlePlaceholderData != null ? (
             <div className={styles.titlePlaceholder} aria-hidden="true">
               <LottieAnimation autoplay loop animationData={titlePlaceholderData} />
             </div>
-          )}
-          {imageFailed ? (
+          ) : null}
+          {imageFailed || !resolvedImageSrc ? (
             <div className={styles.imageFallback} aria-hidden="true" />
           ) : (
             <img
-              src={imageSmallSrc}
-              srcSet={`${imageSmallSrc} 1x, ${imageLargeSrc} 2x`}
+              src={resolvedImageSrc}
+              srcSet={resolvedSrcSet}
               alt={name}
               className={styles.image}
               onError={() => setImageFailed(true)}
