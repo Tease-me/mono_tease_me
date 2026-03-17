@@ -71,6 +71,19 @@ export const Endpoints = {
   relationship_update: `influencer/relationship_update`,
   uploadCsv: "persona/import-csv",
   admin: {
+    adultCharacters: {
+      list: `admin/adult-characters`,
+      byId: (characterId: number) => `admin/adult-characters/${characterId}`,
+      assets: (characterId: number) => `admin/adult-characters/${characterId}/assets`,
+    },
+    influencerAdultCharacters: {
+      list: (influencerId: string) =>
+        `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters`,
+      assets: (influencerId: string, characterId: number) =>
+        `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/assets`,
+      assetByType: (influencerId: string, characterId: number, assetType: string) =>
+        `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/assets/${assetType}`,
+    },
     systemPrompts: {
       list: "admin/system-prompts",
       byKey: (key: string) => `admin/system-prompts/${encodeURIComponent(key)}`,
