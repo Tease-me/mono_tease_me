@@ -9,6 +9,7 @@ class AdultConversationTokenRequest(BaseModel):
 class AdultConversationTokenResponse(BaseModel):
     token: str
     agent_id: str
+    credits_remainder_secs: int
     prompt: str
     greeting_used: str | None = None
     voice_id: str | None = None

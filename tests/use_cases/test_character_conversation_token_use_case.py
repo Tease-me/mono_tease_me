@@ -76,6 +76,7 @@ async def test_create_adult_conversation_token_success(monkeypatch):
 
     assert result.token == "token_123"
     assert result.agent_id == "agent_123"
+    assert result.credits_remainder_secs == 2
     assert result.prompt == "character prompt"
     assert result.greeting_used == "two"
     assert result.voice_id == "voice_123"
@@ -127,6 +128,7 @@ async def test_create_adult_conversation_token_returns_null_greeting_when_empty(
         gateway=gateway,
     )
 
+    assert result.credits_remainder_secs == 2
     assert result.greeting_used is None
     assert result.voice_id == settings.ELEVENLABS_VOICE_ID
     assert result.native_language == "en"

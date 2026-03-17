@@ -50,6 +50,7 @@ async def create_adult_conversation_token(
     return AdultConversationTokenResponse(
         token=token,
         agent_id=agent_id,
+        credits_remainder_secs=2,
         prompt=character.prompt_template,
         greeting_used=greeting_used,
         voice_id=influencer.voice_id or settings.ELEVENLABS_VOICE_ID or None,

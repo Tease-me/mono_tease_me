@@ -18,6 +18,7 @@ async def test_get_adult_conversation_token_delegates_to_use_case(monkeypatch):
     expected = AdultConversationTokenResponse(
         token="tok_123",
         agent_id="agent_123",
+        credits_remainder_secs=2,
         prompt="character prompt",
         greeting_used="hello there",
         voice_id="voice_123",
