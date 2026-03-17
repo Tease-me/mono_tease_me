@@ -1,7 +1,9 @@
 import { InfluencerBioResponse, InfluencerResponse, InfluencerSampleListResponse, InfluencerSampleResponse } from "../models/influencers";
+import { AdultCharactersResponse } from "../models/adultCharacters";
 import { Endpoints } from "../urls";
 import { AxiosInstance } from "axios";
 import { KnowledgeFile } from "../models/knowledgeFiles";
+import { A } from "node_modules/@faker-js/faker/dist/airline-CLphikKp";
 
 export const InfluencerServices = (apiClient: AxiosInstance) => ({
     getInfluencers: async (): Promise<InfluencerResponse[]> => {
@@ -182,7 +184,7 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
             throw error;
         }
     },
-    getAdultCharacters: async (id: string) => {
+    getAdultCharacters: async (id: string): Promise<AdultCharactersResponse> => {
         try {
             const response = await apiClient.get(Endpoints.adult_characters(id));
             return response.data;
