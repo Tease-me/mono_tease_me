@@ -15,6 +15,7 @@ from app.api.checkout import router as checkout_router
 from app.api.notify_ws import router as notify_ws_router
 from app.api.influencer import router as influencer_router
 from app.api.influencer_subscriptions import router as influencer_subscriptions_router
+from app.api.adult import router as adult_router
 from app.api.user import router as user_router
 from app.api.elevenlabs import router as elevenlabs_router
 from app.api.webhooks import router as webhooks_router
@@ -87,6 +88,7 @@ app.include_router(notify_ws_router)
 app.include_router(billing.router)
 app.include_router(checkout_router)
 app.include_router(influencer_router)
+app.include_router(adult_router)
 app.include_router(user_router)
 app.include_router(elevenlabs_router)
 app.include_router(follow_router)
