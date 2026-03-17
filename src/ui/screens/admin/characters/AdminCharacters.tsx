@@ -511,30 +511,6 @@ const AdminCharacters: React.FC = () => {
                   </label>
                 </div>
                 <div className={`${styles["field"]} ${styles["field--wide"]}`}>
-                  <label className={styles["label"]}>Description</label>
-                  <textarea
-                    className={styles["textarea"]}
-                    value={draft.description}
-                    onChange={handleDraftChange("description")}
-                    placeholder="Optional description for admins and catalog display."
-                    disabled={isBusy}
-                  />
-                </div>
-                <div className={`${styles["field"]} ${styles["field--wide"]}`}>
-                  <label className={styles["label"]}>Prompt Template</label>
-                  <textarea
-                    className={styles["textarea"]}
-                    value={draft.prompt_template}
-                    onChange={handleDraftChange("prompt_template")}
-                    placeholder="Base prompt for this character"
-                    disabled={isBusy}
-                  />
-                  <div className={styles["helper"]}>
-                    <code>slug</code>, <code>name</code>, and <code>prompt_template</code> are
-                    treated as required by the editor.
-                  </div>
-                </div>
-                <div className={`${styles["field"]} ${styles["field--wide"]}`}>
                   <label className={styles["label"]}>Base Assets</label>
                   <div className={styles["assets-grid"]}>
                     <div className={styles["asset-card"]}>
@@ -624,6 +600,30 @@ const AdminCharacters: React.FC = () => {
                         Create the character first before uploading base assets.
                       </span>
                     )}
+                  </div>
+                </div>
+                <div className={`${styles["field"]} ${styles["field--wide"]}`}>
+                  <label className={styles["label"]}>Description</label>
+                  <textarea
+                    className={styles["textarea"]}
+                    value={draft.description}
+                    onChange={handleDraftChange("description")}
+                    placeholder="Optional description for admins and catalog display."
+                    disabled={isBusy}
+                  />
+                </div>
+                <div className={`${styles["field"]} ${styles["field--wide"]}`}>
+                  <label className={styles["label"]}>Prompt Template</label>
+                  <textarea
+                    className={styles["textarea"]}
+                    value={draft.prompt_template}
+                    onChange={handleDraftChange("prompt_template")}
+                    placeholder="Base prompt for this character"
+                    disabled={isBusy}
+                  />
+                  <div className={styles["helper"]}>
+                    <code>slug</code>, <code>name</code>, and <code>prompt_template</code> are
+                    treated as required by the editor.
                   </div>
                 </div>
               </div>
