@@ -28,3 +28,4 @@ Thumbs.db
 # Database backups
 backups/db/*
 !backups/db/.gitkeep
+.agent
