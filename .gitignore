@@ -29,3 +29,7 @@ Thumbs.db
 backups/db/*
 !backups/db/.gitkeep
 .agent
+
+# GeoIP database
+data/geoip/*
+!data/geoip/.gitkeep

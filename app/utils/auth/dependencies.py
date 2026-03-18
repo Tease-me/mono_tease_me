@@ -5,6 +5,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models import User, PreInfluencer
 from app.db.session import get_db
 from app.core.config import settings
+from app.utils.infrastructure.country import (
+    RequestCountryContext,
+    get_request_country_context,
+    is_request_country_allowed,
+)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login", auto_error=False)
 
@@ -73,6 +78,14 @@ async def require_age_verification(
     return user
 
 
+def get_request_country_allowed(request: Request) -> bool:
+    return is_request_country_allowed(request)
+
+
+def get_request_country_info(request: Request) -> RequestCountryContext:
+    return get_request_country_context(request)
+
+
 async def get_current_pre_influencer(
     token: str = Query(...),
     temp_password: str = Query(...),
@@ -104,4 +117,3 @@ async def get_current_pre_influencer(
         )
 
     return pre
-

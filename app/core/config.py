@@ -100,6 +100,14 @@ class Settings(BaseSettings):
     LOG_LEVEL: str | None = None
     LOG_TO_CONSOLE: bool = True
 
+    # Country detection
+    GEO_BLOCKED_COUNTRY_CODES: str = ""
+    GEO_COUNTRY_HEADER_PRIORITY: str = (
+        "CF-IPCountry,CloudFront-Viewer-Country,X-Country-Code"
+    )
+    MAXMIND_DB_PATH: str = ""
+    TRUST_X_FORWARDED_FOR: bool = True
+
     # LLM configuration
     DEFAULT_SUMMARIZATION_MODEL: str = "gpt-3.5-turbo"
 
