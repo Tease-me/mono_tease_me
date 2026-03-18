@@ -20,6 +20,12 @@ class AdultCharacter(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     short_description: Mapped[str | None] = mapped_column(Text, nullable=True)
     first_messages: Mapped[list[str] | None] = mapped_column(ARRAY(String), nullable=True)
+    voice_price_millicents: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=3000,
+        server_default="3000",
+    )
     prompt_template: Mapped[str] = mapped_column(Text, nullable=False)
     default_artwork_key: Mapped[str | None] = mapped_column(String, nullable=True)
     lottie_text: Mapped[str | None] = mapped_column(Text, nullable=True)

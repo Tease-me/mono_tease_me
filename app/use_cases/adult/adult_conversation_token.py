@@ -2,7 +2,10 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.services.billing import can_afford, get_remaining_units
+from app.services.adult_character_billing import (
+    can_afford_adult_character_voice,
+    get_remaining_adult_character_voice_secs,
+)
 from app.schemas.adult.adult_conversation import (
     AdultConversationTokenRequest,
     AdultConversationTokenResponse,
@@ -45,13 +48,12 @@ async def create_adult_conversation_token(
     if not agent_id:
         raise HTTPException(status_code=404, detail="Influencer agent_id not found")
 
-    ok, cost_cents, free_left = await can_afford(
+    ok, cost_cents, free_left = await can_afford_adult_character_voice(
         db,
         user_id=user_id,
         influencer_id=payload.influencer_id,
-        feature="live_chat",
+        character=character,
         units=10,
-        is_18=False,
     )
     if not ok:
         raise HTTPException(
@@ -63,12 +65,11 @@ async def create_adult_conversation_token(
             },
         )
 
-    credits_remainder_secs = await get_remaining_units(
+    credits_remainder_secs = await get_remaining_adult_character_voice_secs(
         db,
-        user_id,
-        payload.influencer_id,
-        feature="live_chat",
-        is_18=False,
+        user_id=user_id,
+        influencer_id=payload.influencer_id,
+        character=character,
     )
 
     token_gateway = gateway or ElevenLabsAdultConversationGateway()

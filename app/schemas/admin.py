@@ -46,6 +46,7 @@ class AdminAdultCharacterCreate(BaseModel):
     description: Optional[str] = None
     short_description: Optional[str] = None
     first_messages: Optional[list[str]] = None
+    voice_price_millicents: int = 3000
     default_artwork_key: Optional[str] = None
     lottie_text: Optional[str] = None
     is_active: bool = True
@@ -59,6 +60,7 @@ class AdminAdultCharacterUpdate(BaseModel):
     description: Optional[str] = None
     short_description: Optional[str] = None
     first_messages: Optional[list[str]] = None
+    voice_price_millicents: Optional[int] = None
     default_artwork_key: Optional[str] = None
     lottie_text: Optional[str] = None
     is_active: Optional[bool] = None
@@ -72,6 +74,7 @@ class AdminAdultCharacterOut(BaseModel):
     description: Optional[str] = None
     short_description: Optional[str] = None
     first_messages: Optional[list[str]] = None
+    voice_price_millicents: int
     prompt_template: str
     default_artwork_key: Optional[str] = None
     default_artwork_url: Optional[str] = None

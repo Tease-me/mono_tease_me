@@ -8,6 +8,7 @@ from sqlalchemy.dialects.postgresql import insert
 
 from fastapi import HTTPException
 from app.db.models import InfluencerWallet, InfluencerCreditTransaction, DailyUsage, Pricing, User, Chat, Influencer
+from app.repositories.billing_repository import get_wallet_balance_cents
 from datetime import datetime, date, timezone
 
 async def _get_lifetime_used_units(db: AsyncSession, user_id: int, is_18: bool, feature: str) -> int:
@@ -347,17 +348,12 @@ async def can_afford(
     billable = max(int(units) - free_left, 0)
     cost_cents = billable * int(price.price_cents or 0)
 
-    wallet = await db.scalar(
-        select(InfluencerWallet).where(
-            and_(
-                InfluencerWallet.user_id == user_id,
-                InfluencerWallet.influencer_id == influencer_id,
-                InfluencerWallet.is_18.is_(is_18),
-            )
-        )
+    balance = await get_wallet_balance_cents(
+        db,
+        user_id=user_id,
+        influencer_id=influencer_id,
+        is_18=is_18,
     )
-
-    balance = int(wallet.balance_cents) if wallet and wallet.balance_cents is not None else 0
 
     ok = balance >= cost_cents
     return (ok or cost_cents == 0), cost_cents, free_left
@@ -387,16 +383,12 @@ async def get_remaining_units(
 
     free_left = max(free_allowance - used, 0)
 
-    wallet: InfluencerWallet | None = await db.scalar(
-        select(InfluencerWallet).where(
-            and_(
-                InfluencerWallet.user_id == user_id,
-                InfluencerWallet.influencer_id == influencer_id,
-                InfluencerWallet.is_18.is_(is_18),
-            )
-        )
+    balance_cents = await get_wallet_balance_cents(
+        db,
+        user_id=user_id,
+        influencer_id=influencer_id,
+        is_18=is_18,
     )
-    balance_cents = int(wallet.balance_cents) if wallet and wallet.balance_cents is not None else 0
     paid = (balance_cents // unit_price_cents) if unit_price_cents > 0 else 0
 
     return int(free_left + paid)

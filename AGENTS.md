@@ -1,6 +1,6 @@
 # FastAPI Guidelines for AI Agents
 
-This document defines how to write and organize code in this project. Follow these conventions when adding or modifying code.
+This document defines how to write and organize code in this project. The codebase is organized by layer, with strict separation between transport, business logic, persistence, and integrations.
 
 ## Project Structure
 
@@ -8,38 +8,49 @@ Code is organized by layer, not by domain. New code must go in the correct layer
 
 ```
 app/
-├── api/               # Routes — HTTP/WebSocket handlers only
-├── services/          # Business logic + its direct dependencies
-│   ├── repositories/  # DB queries
-│   ├── gateways/      # External API wrappers
-│   └── use_cases/     # Complex multi-step operations
-├── data/              # Everything data-related
+├── main.py
+├── api/               # Transport layer only
+│   ├── routes/        # HTTP route modules
+│   ├── deps/          # Shared FastAPI dependencies
+│   ├── middleware/    # Middleware registration helpers
+│   └── errors/        # HTTP error mapping and handlers
+├── services/          # Business logic and orchestration
+│   ├── repositories/  # Database access only
+│   ├── gateways/      # External service wrappers
+│   └── use_cases/     # Reusable multi-step workflows
+├── data/              # Data contracts and persistence models
 │   ├── models/        # SQLAlchemy ORM table definitions
-│   └── schemas/       # Pydantic request/response shapes
-├── agents/            # LLM orchestration (prompts, memory, RAG, chains)
-├── core/              # Config, logging, DB session
-└── utils/             # Pure stateless helpers
+│   ├── schemas/       # Pydantic request/response shapes
+│   └── enums/         # Shared contract-level enums
+├── core/              # Config, logging, DB session, app bootstrap
+├── utils/             # Pure stateless helpers
+└── workers/           # Background jobs and async processing
+
+alembic/
+docs/
+scripts/
 ```
 
 ### Layer Rules
 
 | Layer | Does | Does Not |
 |---|---|---|
-| `api/` | Parse request, call service, return schema | DB queries, business logic, LLM calls |
+| `api/` | Parse request, call service, return schema | DB queries, business logic |
 | `services/` | All business logic and decisions | Raw SQL, direct HTTP calls |
 | `services/repositories/` | DB queries (SELECT/INSERT/UPDATE/DELETE) | Business decisions |
 | `services/gateways/` | Wrap external API calls | Business logic |
 | `services/use_cases/` | Multi-step ops reusable across routes and scheduler | — |
 | `data/models/` | SQLAlchemy ORM class definitions | Pydantic, business logic |
 | `data/schemas/` | Pydantic request/response models | DB logic |
-| `agents/` | LLM chains, prompts, memory, RAG | Called from routes directly |
+| `data/enums/` | Shared enums used by schemas and models where appropriate | Business workflows |
 | `core/` | Config, logging, DB session | Business logic |
-| `utils/` | Stateless helpers (JWT, audio, Redis pool) | Business logic, DB access |
+| `utils/` | Pure stateless helpers | Business logic, DB access, app state |
+| `workers/` | Background jobs, scheduled tasks, async processing | HTTP request handling |
 
 ### Request Flow
 
 ```
-Request → api/ → services/ → repositories/ / gateways/ / agents/ → Response
+Request → api/ → services/ → repositories/ / gateways/ → Response
 ```
 
 ### Import Convention
@@ -122,6 +133,8 @@ async def get_chat(chat: Chat = Depends(valid_chat_id)):
     return chat
 ```
 
+Route handlers should call services for business behavior. Use dependency validation only for narrow request-scoped checks such as auth, existence checks, or shared parameter validation.
+
 ---
 
 ## Database
@@ -162,6 +175,8 @@ async def create_chat(...):
     ...
 ```
 
+Routes should stay thin. They should parse input, call a service or use case, and return a schema response. They should not contain business rules or direct persistence logic.
+
 ### WebSocket pattern
 
 ```python
@@ -178,28 +193,6 @@ async def chat_ws(
 
 ---
 
-## Testing
-
-```python
-import pytest
-from httpx import AsyncClient, ASGITransport
-
-@pytest.fixture
-async def client():
-    async with AsyncClient(
-        transport=ASGITransport(app=app),
-        base_url="http://test"
-    ) as client:
-        yield client
-
-@pytest.mark.asyncio
-async def test_create_chat(client: AsyncClient):
-    resp = await client.post("/chats", json={"influencer_id": 1})
-    assert resp.status_code == 201
-```
-
----
-
 ## Quick Reference
 
 | Scenario | Solution |
@@ -207,9 +200,10 @@ async def test_create_chat(client: AsyncClient):
 | Where does business logic go? | `services/` |
 | Where do DB queries go? | `services/repositories/` |
 | Where do external API calls go? | `services/gateways/` |
-| Where do LLM/AI calls go? | `agents/` (called from services) |
 | Where do request/response shapes go? | `data/schemas/` |
 | Where do ORM models go? | `data/models/` |
+| Where do shared data enums go? | `data/enums/` |
+| Where do background jobs go? | `workers/` |
 | Blocking I/O in async context | `run_in_threadpool()` |
-| Shared route validation | `Depends()` with DB check |
+| Shared route validation | `api/deps/` with `Depends()` |
 | Multi-step reusable operation | `services/use_cases/` |
