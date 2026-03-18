@@ -15,7 +15,7 @@ from typing import Any, Dict, List, Optional
 from app.core.config import settings
 from app.db.models import Influencer, Chat, Message, CallRecord, User, PreInfluencer, Memory
 from app.db.session import get_db
-from app.shared.prompting.influencer_bio import extract_influencer_bio_context
+from app.services.prompting.influencer_bio import extract_influencer_bio_context
 from app.utils.auth.dependencies import get_current_user
 from app.schemas.elevenlabs import RegisterConversationBody, UpdatePromptBody
 from app.services.billing import resolve_voice_billing_mode, charge_feature

@@ -7,7 +7,7 @@ import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Influencer
-from app.domain.errors.knowledge_errors import (
+from app.errors.knowledge_errors import (
     KnowledgeNotFoundError,
     KnowledgePersistenceError,
     KnowledgeSyncError,

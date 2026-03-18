@@ -4,7 +4,7 @@ import random
 from typing import Any, Optional
 
 from app.constants import prompt_keys
-from app.shared.prompting.influencer_bio import InfluencerBioContext
+from app.services.prompting.influencer_bio import InfluencerBioContext
 from langchain_core.prompts import (
     ChatPromptTemplate,
 )
