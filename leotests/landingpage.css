@@ -1,17 +1,17 @@
 .topContainer {
     /* outline: 1px solid yellowgreen; */
-    height: 55vh;
+    height: 100%;
     display: grid;
     position: relative;
     align-items: end;
-    max-width: 60rem;
-    margin: 0 auto;
+
+
 }
 
 .mainImage {
     z-index: 4;
     position: relative;
-    max-width: 15rem;
+
     margin: 0 auto;
     animation: bobble 3s ease-in-out infinite;
 
@@ -41,7 +41,7 @@
     /* outline: 1px solid red; */
     overflow: hidden;
     background: radial-gradient(#ef084e, black 60vw);
-    border-radius: 16px;
+
 }
 
 .imagecont {
@@ -121,8 +121,8 @@
 
     position: relative;
     overflow: hidden;
-    width: 13rem;
-    height: 13rem;
+    width: 100%;
+    aspect-ratio: 1 / 1;
     border-radius: 50%;
     margin-bottom: -80px;
     right: -2rem;
@@ -199,21 +199,6 @@
 
 }
 
-.logo {
-    bottom: -2rem;
-    z-index: 6;
-    display: grid;
-    align-items: end;
-    position: absolute;
-    left: 40%;
-    right: 34%;
-    rotate: 12deg;
-    filter: drop-shadow(1px 1px 21px #EF084E);
-}
-
-.logo img {
-    width: 80%;
-}
 
 .namebar {
     background: rgba(0, 0, 0, 0.46);
@@ -221,8 +206,6 @@
     border-radius: 12px;
     min-height: 60px;
     text-align: center;
-    position: relative;
-    top: -4rem;
     max-width: 80%;
     color: white;
     margin: 3rem auto 0 auto;
@@ -233,6 +216,20 @@
     font-size: 1.3rem;
     padding: 3rem 1rem 1rem 1rem;
     line-height: 150%;
+}
+
+.logo {
+
+    z-index: 6;
+    display: grid;
+    align-items: end;
+
+    rotate: 12deg;
+    filter: drop-shadow(1px 1px 21px #EF084E);
+}
+
+.logo img {
+    width: 3rem;
 }
 
 
@@ -247,6 +244,42 @@
 button {
     min-height: 51px;
 }
+
+.heartlottie {
+    opacity: 0.6;
+}
+
+
+
+
+
+
+/*** media query Desktop ***/
+@media (min-width: 32rem) {
+
+    .pageContainer {
+        display: grid;
+        place-items: center;
+        height: 100dvh;
+    }
+
+    .contentContainer {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        max-width: 70rem;
+        margin: 0 auto;
+
+    }
+
+
+}
+
+
+
+
+
+
+
 
 
 /* animation */
