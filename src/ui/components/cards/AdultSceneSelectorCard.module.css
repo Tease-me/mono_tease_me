@@ -10,7 +10,8 @@
   display: flex;
   border-radius: 16px 16px 0 0;
   width: 100%;
-  flex: 0 0 376px;
+  flex: 0 0 auto;
+  aspect-ratio: 560 / 376;
   flex-direction: column;
   justify-content: flex-start;
   align-items: stretch;
@@ -115,7 +116,6 @@
   scrollbar-width: thin;
 }
 
-
 .description {
   color: rgba(255, 255, 255, 0.88);
   text-align: left;
@@ -125,8 +125,9 @@
 
 @media (max-width: 767px) {
   .upperBody {
-    height: 316px;
-    flex-basis: 316px;
+    height: 300px;
+    flex-basis: 300px;
+    aspect-ratio: auto;
   }
 
   .titlePlaceholder {
@@ -135,7 +136,7 @@
   }
 
   .lowerBody {
-    height: 144px;
+    height: 220px;
     padding: 44px 24px 24px;
   }
 

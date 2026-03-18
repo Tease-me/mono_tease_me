@@ -71,12 +71,19 @@
 
 .sceneItem {
   display: flex;
-  flex: 0 0 560px;
-  width: 560px;
-  max-width: 560px;
+  flex: 0 0 clamp(420px, 36vw, 560px);
+  width: clamp(420px, 36vw, 560px);
+  max-width: none;
   flex-direction: column;
   gap: 32px;
   scroll-snap-align: start;
+}
+
+@media (min-width: 1024px) {
+  .sceneItem {
+    flex-basis: clamp(360px, 31vw, 500px);
+    width: clamp(360px, 31vw, 500px);
+  }
 }
 
 .sceneButton {
