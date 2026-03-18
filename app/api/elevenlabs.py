@@ -1235,6 +1235,8 @@ async def save_pending_conversation(
     user_id: int,
     influencer_id: Optional[str],
     sid: Optional[str],
+    is_adult_call: bool = False,
+    adult_character_id: int | None = None,
 ) -> Optional[str]:
     chat_id: Optional[str] = None
     if user_id and influencer_id:
@@ -1257,6 +1259,8 @@ async def save_pending_conversation(
             influencer_id=influencer_id,
             chat_id=chat_id,
             sid=sid,
+            is_adult_call=is_adult_call,
+            adult_character_id=adult_character_id,
             status="pending",
         )
 
@@ -1267,6 +1271,8 @@ async def save_pending_conversation(
                 "influencer_id": influencer_id,
                 "chat_id": chat_id,
                 "sid": sid,
+                "is_adult_call": is_adult_call,
+                "adult_character_id": adult_character_id,
                 "status": "pending",
             },
         )
@@ -1395,7 +1401,13 @@ async def register_conversation(
         raise HTTPException(status_code=403, detail="You must follow the influencer to interact.")
 
     chat_id = await save_pending_conversation(
-        db, conversation_id, current_user.id, body.influencer_id, body.sid
+        db,
+        conversation_id,
+        current_user.id,
+        body.influencer_id,
+        body.sid,
+        body.is_adult_call,
+        body.adult_character_id,
     )
     if not chat_id:
         try:

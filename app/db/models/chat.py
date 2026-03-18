@@ -3,7 +3,7 @@
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Integer, String, Text, ForeignKey, DateTime, JSON, Index, Float
+from sqlalchemy import Integer, String, Text, ForeignKey, DateTime, JSON, Index, Float, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from pgvector.sqlalchemy import Vector
 
@@ -111,6 +111,13 @@ class CallRecord(Base):
         String, ForeignKey("chats.id"), nullable=True, index=True
     )
     sid: Mapped[str | None] = mapped_column(String, nullable=True)
+    is_adult_call: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
+    )
+    adult_character_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     status: Mapped[str] = mapped_column(String, default="pending")
     call_duration_secs: Mapped[float | None] = mapped_column(Float, nullable=True)
     transcript: Mapped[list[dict] | None] = mapped_column(JSON, nullable=True)
