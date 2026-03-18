@@ -9,7 +9,6 @@ import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import BalanceBadge from "@/ui/components/stats/BalanceBadge";
-import AdultModeToggle from "@/ui/components/adult-mode-toggle/AdultModeToggle";
 import { Modal } from "@/ui/components/modals/Modal";
 import { formatDateTimeRelative, minutesToTime } from "@/utils/DateTimeUtils";
 import RelationshipStageProgress from "@/ui/components/stats/RelationshipStageProgress";
@@ -27,6 +26,7 @@ import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { FollowServices } from "@/api/services/FollowServices";
 import { ADULT_MODE_AVAILABLE } from "@/constants/adultModeAvailable";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
+import AdultModeToggle from "@/ui/components/adult-mode-toggle/AdultModeToggle";
 //TODO
 // UNFOLLOW BUTTON IS HIDDEN
 //CHECK STATUS OF SUBSCRIPTION IF CANCELLED OR REACTIVATED ETC
@@ -108,6 +108,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
 
   const [showBalanceDetails, setShowBalanceDetails] = useState(false);
   const [showAdultBalanceDetails, setShowAdultBalanceDetails] = useState(false);
+  const showSubDetails = false;
   const [adultModeChecked, setAdultModeChecked] = useState(
     !!data.hasSubscription && data.subscriptionStatus === "active",
   );
@@ -389,7 +390,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         </div>
         <div className={styles.adultBalanceArea}>
           <div className={styles.adultBalanceInner}>
-            {ADULT_MODE_AVAILABLE && (
+            {ADULT_MODE_AVAILABLE && showSubDetails && (
               <>
                 <NormalButton
                   type="nobg"
@@ -430,23 +431,25 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
                 )}
               </>
             )}
-            <div className={styles.adultToggleArea}>
-              <button type="button" className={styles.adultToggleBtn}>
-                <AdultModeToggle
-                  checked={adultModeChecked}
-                  onChange={handleAdultToggleChange}
-                  minutesLeft={data.adultVoiceMinutes}
-                />
-              </button>
-              {ADULT_MODE_AVAILABLE && isSubscribed && (
-                <p>
-                  Until:{" "}
-                  {data.expiresAt
-                    ? new Date(data.expiresAt).toLocaleDateString()
-                    : "--"}
-                </p>
-              )}
-            </div>
+            {showSubDetails && (
+              <div className={styles.adultToggleArea}>
+                <button type="button" className={styles.adultToggleBtn}>
+                  <AdultModeToggle
+                    checked={adultModeChecked}
+                    onChange={handleAdultToggleChange}
+                    minutesLeft={data.adultVoiceMinutes}
+                  />
+                </button>
+                {ADULT_MODE_AVAILABLE && isSubscribed && (
+                  <p>
+                    Until:{" "}
+                    {data.expiresAt
+                      ? new Date(data.expiresAt).toLocaleDateString()
+                      : "--"}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

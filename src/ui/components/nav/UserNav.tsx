@@ -44,6 +44,7 @@ const UserNav: React.FC<UserNavProps> = ({ onCallClick, onMenuClick, adultMode, 
               checked={theme === 'adult'}
               onChange={(checked) => { onAdultModeChange(checked); }}
               minutesLeft={minutesRemaining}
+              showMinutes={false}
             />
           )}
         </div>
@@ -53,6 +54,7 @@ const UserNav: React.FC<UserNavProps> = ({ onCallClick, onMenuClick, adultMode, 
             checked={theme === 'adult'}
             onChange={(checked) => { onAdultModeChange(checked); }}
             minutesLeft={minutesRemaining}
+            showMinutes={false}
           />
         ) : (
           title
