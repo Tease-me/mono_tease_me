@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { apiClient } from "@/api/apis";
 import { InfluencerServices } from "@/api/services/InfluencerService";
 import AdultSceneSelector from "@/ui/components/cards/AdultSceneSelectorCard";
@@ -8,6 +8,7 @@ import styles from "./AdultMode.module.css";
 import SvgPack from "@/utils/SvgPack";
 import useCallWebRTC from "@/hooks/useCallWebRTC";
 import { formatTime } from "@/utils/time";
+import { showErrorModal } from "@/utils/errorModal";
 
 type Scene = {
   id: number;
@@ -65,9 +66,19 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showCallTime, setShowCallTime] = useState(0);
+  const lastCallErrorRef = useRef<string | null>(null);
   const { setInfluencerId, startConversation, stopConversation, status } =
     useCallWebRTC();
-  const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+  const isCallActive = status === "connecting" || status === "connected";
+  const activeStatusLabel = useMemo(() => {
+    if (status === "connecting") {
+      return "Ringing";
+    }
+    if (status === "connected") {
+      return "Connected";
+    }
+    return "";
+  }, [status]);
 
   useEffect(() => {
     setSelectedScene(null);
@@ -94,6 +105,32 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
 
     return () => clearInterval(interval);
   }, [status]);
+
+  useEffect(() => {
+    if (!selectedScene) {
+      return;
+    }
+
+    setSessionState(isCallActive ? "active" : "preview");
+  }, [isCallActive, selectedScene]);
+
+  useEffect(() => {
+    if (status !== "error") {
+      lastCallErrorRef.current = null;
+      return;
+    }
+
+    const nextMessage = errorMessage || "Unable to start the call right now.";
+    if (lastCallErrorRef.current === nextMessage) {
+      return;
+    }
+
+    lastCallErrorRef.current = nextMessage;
+    showErrorModal({
+      title: "Call Error",
+      message: nextMessage,
+    });
+  }, [errorMessage, status]);
 
   useEffect(() => {
     if (!influencerId) {
@@ -187,12 +224,10 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
       flow: "adult-character",
       characterId: selectedScene.id,
     });
-    setSessionState("active");
   };
 
   const handleEndCall = async () => {
     await stopConversation();
-    setSessionState("preview");
   };
 
   const showVideo =
@@ -314,7 +349,7 @@ export default function AdultMode({ influencerId }: AdultModeProps) {
             <div
               className={`${styles.activePanel} ${sessionState === "active" ? styles.activePanelVisible : styles.activePanelHidden}`}
             >
-              <div className={styles.subtitle}>{statusLabel}</div>
+              <div className={styles.subtitle}>{activeStatusLabel}</div>
               <div className={styles.sessionTimer}>{formatTime(showCallTime)}</div>
               <div className={styles.activeActions}>
                 <IconButton
