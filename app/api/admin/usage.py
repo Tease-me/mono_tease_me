@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy import Integer, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
