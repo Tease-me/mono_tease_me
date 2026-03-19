@@ -57,6 +57,14 @@ export interface AdultConversationTokenResponse {
     character_id: number;
 }
 
+export interface RegisterConversationPayload {
+    user_id: number;
+    influencer_id: string;
+    sid: string;
+    is_adult_call?: boolean;
+    adult_character_id?: number;
+}
+
 export interface CallTranscriptEntryResponse {
     sender: string;
     text: string;

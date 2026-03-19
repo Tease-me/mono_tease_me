@@ -20,6 +20,8 @@ type NormalizedConversationToken = {
   greetingUsed: string;
   prompt: string;
   nativeLanguage: string;
+  registerInfluencerId: string;
+  registerAdultCharacterId?: number;
 };
 
 export default function useCallWebRTC(options?: {
@@ -94,6 +96,8 @@ export default function useCallWebRTC(options?: {
     conversationToken: string;
     creditsRemaining: number | null;
     greetingUsed: string;
+    registerInfluencerId: string;
+    registerAdultCharacterId?: number;
     abortController: AbortController;
   } | null>(null);
 
@@ -200,6 +204,8 @@ export default function useCallWebRTC(options?: {
           greetingUsed: response.greeting_used ?? "",
           prompt: response.prompt ?? "",
           nativeLanguage: response.native_language || "en",
+          registerInfluencerId: response.influencer_id,
+          registerAdultCharacterId: response.character_id,
         };
       } else {
         const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
@@ -214,6 +220,7 @@ export default function useCallWebRTC(options?: {
           greetingUsed: response.greeting_used ?? "",
           prompt: response.prompt ?? "",
           nativeLanguage: response.native_language || "en",
+          registerInfluencerId: influencerId,
         };
       }
 
@@ -255,6 +262,8 @@ export default function useCallWebRTC(options?: {
         // Adult conversation-token currently returns a compatibility countdown value.
         creditsRemaining: tokenPayload.creditsRemaining,
         greetingUsed: tokenPayload.greetingUsed,
+        registerInfluencerId: tokenPayload.registerInfluencerId,
+        registerAdultCharacterId: tokenPayload.registerAdultCharacterId,
         abortController,
       };
       return;
@@ -285,7 +294,14 @@ export default function useCallWebRTC(options?: {
     }
     pendingStartRef.current = null;
     (async () => {
-      const { conversationToken, creditsRemaining, greetingUsed, abortController } = pending;
+      const {
+        conversationToken,
+        creditsRemaining,
+        greetingUsed,
+        registerInfluencerId,
+        registerAdultCharacterId,
+        abortController,
+      } = pending;
       if (abortController.signal.aborted) {
         if (startAbortControllerRef.current === abortController) {
           startAbortControllerRef.current = null;
@@ -308,10 +324,20 @@ export default function useCallWebRTC(options?: {
         }
 
         if (user && user.id) {
+          const registerPayload = {
+            user_id: user?.id ?? 0,
+            influencer_id: registerInfluencerId,
+            sid: crypto.randomUUID(),
+            ...(registerAdultCharacterId !== undefined
+              ? {
+                is_adult_call: true,
+                adult_character_id: registerAdultCharacterId,
+              }
+              : {}),
+          };
           await chatRepo.registerConversation(
             conversationId,
-            user?.id ?? 0,
-            influencerId ?? "",
+            registerPayload,
             abortController.signal,
           );
         }
