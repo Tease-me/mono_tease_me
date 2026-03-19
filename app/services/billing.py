@@ -104,8 +104,8 @@ async def charge_feature(
         db.add(wallet)
 
         new_balance = wallet.balance_cents
-        THRESHOLD = 1000
-        if old_balance >= THRESHOLD and new_balance < THRESHOLD:
+        threshold = 1000
+        if old_balance >= threshold and new_balance < threshold:
             user_obj = await db.get(User, user_id)
             if user_obj and user_obj.email:
                 try:

@@ -67,4 +67,6 @@ select = [
     #"TC",       # Enforce importing certain types in a TYPE_CHECKING block
     #"PTH",      # Use pathlib instead of os.path
     "TD",       # Be diligent with TODO comments
+    #"FBT", # detect boolean traps
+    "N",   # enforce naming conventions, e.g. ClassName vs function_name
 ]

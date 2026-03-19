@@ -1105,8 +1105,8 @@ async def get_conversation_token(
     # ── OPT: Async Redis pool (was creating sync connection per-request) ──
     from app.utils.infrastructure.redis_pool import get_redis
     _rclient = await get_redis()
-    _MEM_SUMMARY_TTL = 86400  # 24h safety — invalidated on write by store_facts_batch
-    _GREETING_TTL = 5      # seconds — skip LLM on rapid reconnects
+    mem_summary_ttl = 86400  # 24h safety — invalidated on write by store_facts_batch
+    greeting_ttl = 5  # seconds — skip LLM on rapid reconnects
     _mem_cache_key = f"mem_summary:{chat_id}"
     _ai_mem_cache_key = f"ai_mem_summary:{chat_id}"
     _greeting_cache_key = f"greeting:{chat_id}"
@@ -1158,7 +1158,7 @@ async def get_conversation_token(
         )
         if g:
             try:
-                await _rclient.setex(_greeting_cache_key, _GREETING_TTL, g)
+                await _rclient.setex(_greeting_cache_key, greeting_ttl, g)
             except Exception as exc:
                 log.warning("get_conversation_token.greeting_cache_set_failed chat=%s err=%s", chat_id, exc)
         return g
@@ -1181,9 +1181,9 @@ async def get_conversation_token(
             _fetch_token(),
         )
         try:
-            await _rclient.setex(_mem_cache_key, _MEM_SUMMARY_TTL, memory)
-            await _rclient.setex(_ai_mem_cache_key, _MEM_SUMMARY_TTL, ai_mem_block)
-            log.info("get_conversation_token.cache_set chat=%s ttl=%d", chat_id, _MEM_SUMMARY_TTL)
+            await _rclient.setex(_mem_cache_key, mem_summary_ttl, memory)
+            await _rclient.setex(_ai_mem_cache_key, mem_summary_ttl, ai_mem_block)
+            log.info("get_conversation_token.cache_set chat=%s ttl=%d", chat_id, mem_summary_ttl)
         except Exception as exc:
             log.warning("get_conversation_token.cache_set_failed chat=%s err=%s", chat_id, exc)
 

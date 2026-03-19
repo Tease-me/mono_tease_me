@@ -271,18 +271,18 @@ async def get_mbti_rules_for_archetype(
     
     return "\n".join(parts)
 
-async def get_base_system(db: AsyncSession, isAudio: bool) -> str:
+async def get_base_system(db: AsyncSession, is_audio: bool) -> str:
     base = await get_system_prompt(db, prompt_keys.BASE_SYSTEM)
-    if isAudio: 
+    if is_audio:
         audio_base = await get_system_prompt(db, prompt_keys.BASE_AUDIO_SYSTEM)
         base += "\n" + audio_base
     return base
 
 async def get_global_prompt(
     db: AsyncSession,
-    isAudio: bool = False,
+    is_audio: bool = False,
 ) -> ChatPromptTemplate:
-    system_prompt = await get_base_system(db, isAudio=isAudio)
+    system_prompt = await get_base_system(db, is_audio=is_audio)
 
     return ChatPromptTemplate.from_messages(
         [
