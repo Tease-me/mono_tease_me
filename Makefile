@@ -63,7 +63,7 @@ alembic-upgrade:
 	$(COMPOSE) exec $(SERVICE) alembic upgrade head
 
 alembic-downgrade:
-	$(COMPOSE) exec $(SERVICE) alembic downgrade -1
+	$(COMPOSE) exec $(SERVICE) alembic downgrade $(if $(REVISION),$(REVISION),-1)
 
 alembic-current:
 	$(COMPOSE) exec $(SERVICE) alembic current
