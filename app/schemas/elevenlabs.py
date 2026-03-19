@@ -9,6 +9,16 @@ class RegisterConversationBody(BaseModel):
     user_id: int
     influencer_id: Optional[str] = None
     sid: Optional[str] = None
+    is_adult_call: bool = False
+    adult_character_id: int | None = None
+
+    @model_validator(mode='after')
+    def validate_adult_call_metadata(self):
+        if self.is_adult_call and self.adult_character_id is None:
+            raise ValueError("'adult_character_id' is required when 'is_adult_call' is true")
+        if not self.is_adult_call and self.adult_character_id is not None:
+            raise ValueError("'adult_character_id' is only allowed when 'is_adult_call' is true")
+        return self
 
 class FinalizeConversationBody(BaseModel):
     user_id: int

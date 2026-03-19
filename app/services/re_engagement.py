@@ -139,38 +139,6 @@ async def generate_reengagement_via_turn_handler(
         log.error(f"[RE-ENGAGE] AI generation failed for user {user_id}: {e}", exc_info=True)
         log.info(f"[RE-ENGAGE] Falling back to static template for user {user_id}")
 
-# TODO: Re-enable when ready to send images/videos
-# async def get_influencer_media(
-#     db: AsyncSession,
-#     influencer_id: str,
-# ) -> Optional[dict]:
-#     """
-#     Replace this with actual media fetching logic / video generation.
-#     """
-#     influencer = await db.get(Influencer, influencer_id)
-#     if not influencer or not influencer.samples:
-#         return None
-#
-#     media_samples = [
-#         s for s in influencer.samples
-#         if s.get("type") in ("image", "video") and s.get("key")
-#     ]
-#
-#     if not media_samples:
-#         if influencer.profile_photo_key:
-#             return {
-#                 "type": "image",
-#                 "url": generate_presigned_url(influencer.profile_photo_key),
-#             }
-#         return None
-#
-#     sample = random.choice(media_samples)
-#     return {
-#         "type": sample.get("type", "image"),
-#         "url": generate_presigned_url(sample["key"]),
-#     }
-
-
 async def send_reengagement_notification(
     db: AsyncSession,
     user_id: int,

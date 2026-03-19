@@ -6,15 +6,29 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Request
 from app.api.webhooks import _process_relationship_update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app.db.models import Influencer, User
+from app.db.models import AdultCharacter, Influencer, InfluencerCharacterMeta, User
 from app.utils.auth.dependencies import get_current_user
 
 from app.db.session import get_db
-from app.schemas.influencer import InfluencerCreate, InfluencerOut, InfluencerUpdate, InfluencerDetail, InfluencerBio, SocialLink
+from app.schemas.influencer import (
+    InfluencerAdultCharacterOut,
+    InfluencerBio,
+    InfluencerCreate,
+    InfluencerDetail,
+    InfluencerOut,
+    InfluencerUpdate,
+    SocialLink,
+)
 from app.services.influencer_cleanup import (
     InfluencerDeleteError,
     InfluencerDeleteNotFoundError,
     delete_influencer_and_chat_history,
+)
+from app.repositories.influencer_character_assets_repository import (
+    get_influencer_character_asset_state,
+)
+from app.repositories.adult_character_assets_repository import (
+    get_adult_character_asset_state,
 )
 from app.utils.storage.s3 import (
     generate_presigned_url,
@@ -52,6 +66,69 @@ async def _build_influencer_detail(influencer: Influencer) -> InfluencerDetail:
     detail.photo_url = photo_url
     detail.video_url = video_url
     return detail
+
+
+async def _build_influencer_adult_characters(
+    db: AsyncSession,
+    influencer_id: str,
+) -> list[InfluencerAdultCharacterOut]:
+    characters_result = await db.execute(
+        select(AdultCharacter)
+        .where(AdultCharacter.is_active.is_(True))
+        .order_by(AdultCharacter.display_order, AdultCharacter.id)
+    )
+    characters = sorted(
+        characters_result.scalars().all(),
+        key=lambda character: (character.display_order, character.id),
+    )
+
+    overlay_result = await db.execute(
+        select(InfluencerCharacterMeta).where(
+            InfluencerCharacterMeta.influencer_id == influencer_id,
+        )
+    )
+    overlays = {
+        overlay.character_id: overlay
+        for overlay in overlay_result.scalars().all()
+        if overlay.is_active
+    }
+
+    items: list[InfluencerAdultCharacterOut] = []
+    for character in characters:
+        overlay = overlays.get(character.id)
+        asset_state = await get_influencer_character_asset_state(influencer_id, character.id)
+        base_asset_state = await get_adult_character_asset_state(
+            character.id,
+            character.default_artwork_key,
+            character.lottie_text,
+        )
+        items.append(
+            InfluencerAdultCharacterOut(
+                id=character.id,
+                slug=character.slug,
+                name=character.name,
+                description=character.description,
+                short_description=character.short_description,
+                first_messages=character.first_messages,
+                prompt_template=character.prompt_template,
+                is_active=character.is_active,
+                display_order=character.display_order,
+                default_artwork_key=character.default_artwork_key,
+                default_artwork_url=base_asset_state["default_artwork_url"],
+                lottie_text=character.lottie_text,
+                lottie_text_url=base_asset_state["lottie_text_url"],
+                photo_url=asset_state["photo_url"],
+                photo_2x_url=asset_state["photo_2x_url"],
+                video_mp4_url=asset_state["video_mp4_url"],
+                video_webm_url=asset_state["video_webm_url"],
+                video_preview_png_url=asset_state["video_preview_png_url"],
+                has_photo=asset_state["has_photo"],
+                has_complete_video_set=asset_state["has_complete_video_set"],
+                meta_json=overlay.meta_json if overlay else None,
+                has_influencer_override=overlay is not None,
+            )
+        )
+    return items
 
 
 @router.get("", response_model=List[InfluencerDetail])
@@ -100,6 +177,19 @@ async def get_influencer(id: str, db: AsyncSession = Depends(get_db)):
         raise HTTPException(404, "Influencer not found")
 
     return await _build_influencer_detail(influencer)
+
+
+@router.get("/{influencer_id}/adult-characters", response_model=List[InfluencerAdultCharacterOut])
+async def get_influencer_adult_characters(
+    influencer_id: str,
+    _current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    influencer = await db.get(Influencer, influencer_id)
+    if not influencer:
+        raise HTTPException(404, "Influencer not found")
+
+    return await _build_influencer_adult_characters(db, influencer_id)
 
 @router.post("", response_model=InfluencerOut, status_code=201)
 async def create_influencer(data: InfluencerCreate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):

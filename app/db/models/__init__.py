@@ -24,6 +24,8 @@ from .user import User
 
 # Influencer models
 from .influencer import Influencer, InfluencerFollower, PreInfluencer
+from .adult_character import AdultCharacter
+from .influencer_character_meta import InfluencerCharacterMeta
 from .knowledge import (
     InfluencerKnowledgeDocument,
     InfluencerKnowledgeChunk,
@@ -72,6 +74,8 @@ __all__ = [
     "Influencer",
     "InfluencerFollower",
     "PreInfluencer",
+    "AdultCharacter",
+    "InfluencerCharacterMeta",
     "InfluencerKnowledgeDocument",
     "InfluencerKnowledgeChunk",
     "InfluencerKnowledgeSync",

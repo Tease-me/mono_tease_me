@@ -9,6 +9,8 @@ __pycache__/
 *.py[cod]
 env/
 .venv/
+.pytest_cache/
+.ruff_cache/
 
 # IDEs
 .vscode/
@@ -29,3 +31,8 @@ backups/db/*
 
 # Telegram Userbot session files
 telegram_sessions/
+.agent
+
+# GeoIP database
+data/geoip/*
+!data/geoip/.gitkeep

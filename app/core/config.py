@@ -64,8 +64,11 @@ class Settings(BaseSettings):
     
     LANDING_PAGE_AGENT_ID: str
     BUCKET_NAME: str
-    INFLUENCER_PREFIX: str
+    INFLUENCER_BUCKET_PREFIX: str
     USER_PREFIX: str = "user-content"  # Default fallback if missing in .env
+    S3_PRESIGNED_URL_TTL_SECONDS: int = 3600
+    ASSET_PRESENCE_CACHE_TTL_SECONDS: int = 120
+    ASSET_URL_CACHE_TTL_SECONDS: int = 300
 
     TWITTER_BEARER_TOKEN: str | None = None
 
