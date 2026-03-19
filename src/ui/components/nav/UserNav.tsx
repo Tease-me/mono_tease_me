@@ -45,24 +45,26 @@ const UserNav: React.FC<UserNavProps> = ({
           )}
         </div>
 
-        {onSwitchInfluencer ? (
-          <SwitchInfluencerButton onClick={onSwitchInfluencer} alwaysExpanded />
-        ) : onClose && onCallClick ? (
-          <IconButton
-            leftIcon={callMode
-              ? <SvgPack.Chat className={clsx(styles.callChatIcon)} />
-              : <SvgPack.Call className={clsx(styles.callCallIcon)} />
-            }
-            onClick={onCallClick}
-            className={styles.callButton}
-            color='black'
-            text={isMobile ? "" : "Mode"}
-          />
-        ) : title ? (
-          <span className={styles.navTitle}>{title}</span>
-        ) : (
-          <div className={styles.logoArea}><TeaseMeLogo variant="full" /></div>
-        )}
+        <div className={styles.centerSlot}>
+          {onSwitchInfluencer ? (
+            <SwitchInfluencerButton onClick={onSwitchInfluencer} alwaysExpanded />
+          ) : onClose && onCallClick ? (
+            <IconButton
+              leftIcon={callMode
+                ? <SvgPack.Chat className={clsx(styles.callChatIcon)} />
+                : <SvgPack.Call className={clsx(styles.callCallIcon)} />
+              }
+              onClick={onCallClick}
+              className={styles.callButton}
+              color='black'
+              text={isMobile ? "" : "Mode"}
+            />
+          ) : title ? (
+            <span className={styles.navTitle}>{title}</span>
+          ) : (
+            <div className={styles.logoArea}><TeaseMeLogo variant="full" /></div>
+          )}
+        </div>
 
         <div className={styles["right-buttons"]}>
           {onCallClick && !onClose && (
@@ -79,7 +81,7 @@ const UserNav: React.FC<UserNavProps> = ({
           )}
           {onClose && (
             <IconButton
-              leftIcon={<SvgPack.Cross className={styles.closeIcon} />}
+              leftIcon={<SvgPack.CloseSquare className={styles.closeIcon} />}
               onClick={onClose}
               className={styles.closeButton}
               color='black'

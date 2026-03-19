@@ -9,16 +9,21 @@
 }
 
 .maxWidthSpacer {
-  display: grid;
-
+  position: relative;
+  display: flex;
+  align-items: center;
   max-width: var(--max-chat-content-width);
-  align-items: center;
   width: 100%;
-  justify-content: space-between;
-  grid-template-columns: 1fr auto 1fr;
+}
+
+.centerSlot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
   align-items: center;
-  justify-items: stretch;
-  gap: 16dvw;
+  justify-content: center;
 }
 
 .callChatIcon {
@@ -52,17 +57,23 @@
   user-select: none;
 }
 
-.closeIcon {
-  width: 20px;
-  height: 20px;
-  color: #fff;
-}
-
 .closeButton {
   margin-left: 4px;
 }
 
+.closeButton :global([class*="left-icon"]) {
+  width: 32px;
+  height: 32px;
+}
+
+.closeIcon {
+  width: 32px;
+  height: 32px;
+  color: #fff;
+}
+
 .right-buttons {
+  margin-left: auto;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -105,27 +116,6 @@
 
   .logoArea {
     display: none;
-  }
-}
-
-/*** media query Desktop ***/
-@media (min-width: 32rem) {
-  .maxWidthSpacer {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-  }
-
-  .leftSlot {
-    justify-self: start;
-  }
-
-  .logoArea,
-  .navTitle {
-    justify-self: center;
-  }
-
-  .right-buttons {
-    justify-self: end;
   }
 }
 
