@@ -72,7 +72,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
   const lastCallErrorRef = useRef<string | null>(null);
   const isCreditsErrorRef = useRef(false);
   const { setInfluencerId, startConversation, stopConversation, status } =
-    useCallWebRTC({ onCreditsExpired: () => setShowTopupModal(true) });
+    useCallWebRTC({ onCreditsExpired: () => { isCreditsErrorRef.current = true; setShowTopupModal(true); } });
   const isCallActive = status === "connecting" || status === "connected";
   const activeStatusLabel = useMemo(() => {
     if (status === "connecting") {

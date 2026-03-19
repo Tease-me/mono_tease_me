@@ -32,10 +32,6 @@
   background: radial-gradient(54.08% 54.08% at 50% 85.74%, #FF0F5F 0%, #000 100%);
 }
 
-.girlfriendName {
-  color: #FF0F5F;
-}
-
 .titlePlaceholder {
   position: absolute;
   top: 18px;
@@ -83,9 +79,9 @@
   display: flex;
   width: 213px;
   max-width: calc(100% - 32px);
-  margin-top: -42px;
-  margin-bottom: -42px;
-  z-index: 1;
+  margin-top: -39px;
+  margin-bottom: -39px;
+  z-index: 2;
   padding: 14px 24px;
   justify-content: center;
   align-items: center;
@@ -103,6 +99,10 @@
   /* 24px */
 }
 
+.girlfriendName {
+  color: #FF0F5F;
+}
+
 .lowerBody {
   display: flex;
   min-height: 156px;
@@ -114,10 +114,12 @@
   gap: 10px;
   align-self: stretch;
   border-radius: 0 0 16px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   overflow-y: auto;
-  background-color: #3b3738;
+  background-color: rgba(12, 12, 12, 0.10);
   scrollbar-width: thin;
+  position: relative;
+  z-index: 1;
 }
 
 .description {
@@ -157,6 +159,8 @@
   .name {
     font-size: 18px;
     max-width: calc(100% - 24px);
+    margin-top: -37px;
+    margin-bottom: -37px;
   }
 
   .description {
