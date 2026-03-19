@@ -259,7 +259,7 @@ export default function HomeScreenSingle() {
     if (isSelectingInfluencer) {
       return (
         <div className={styles.viewWithNav}>
-          <UserNav onMenuClick={toggleSidebar} />
+          <UserNav onMenuClick={toggleSidebar} title="Select Influencer" />
           <InfluencerSelector
             influencers={influencers}
             onItemClick={handleSelect}
