@@ -33,6 +33,7 @@ export default {
     Call: lazy(() => import("@/assets/svg/Call.svg?react")),
     Call2: lazy(() => import("@/assets/svg/Call_2.svg?react")),
     Heart: lazy(() => import("@/assets/svg/Heart.svg?react")),
+    HeartBold: lazy(() => import("@/assets/svg/HeartBold.svg?react")),
     ChatRound: lazy(() => import("@/assets/svg/Chat.svg?react")),
     PlusBox: lazy(() => import("@/assets/svg/PlusBox.svg?react")),
     Menu: lazy(() => import("@/assets/svg/Menu.svg?react")),

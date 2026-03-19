@@ -312,92 +312,92 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
               />
             )}
             <div className={styles.sessionMedia}>
-            {showVideo ? (
-              <video
-                poster={selectedScene.video.image ?? undefined}
-                className={`${styles.sessionVideo} ${sessionState === "preview" ? styles.previewVideo : styles.activeVideo}`}
-                autoPlay
-                loop
-                muted
-                playsInline
-              >
-                {selectedScene.video.webm && (
-                  <source src={selectedScene.video.webm} type="video/webm" />
-                )}
-                {selectedScene.video.mp4 && (
-                  <source src={selectedScene.video.mp4} type="video/mp4" />
-                )}
-                Your browser does not support the video tag.
-              </video>
-            ) : selectedScene.video.image ? (
-              <img
-                src={selectedScene.video.image}
-                alt={selectedScene.name}
-                className={`${styles.sessionVideo} ${sessionState === "preview" ? styles.previewVideo : styles.activeVideo}`}
-              />
-            ) : null}
+              {showVideo ? (
+                <video
+                  poster={selectedScene.video.image ?? undefined}
+                  className={`${styles.sessionVideo} ${sessionState === "preview" ? styles.previewVideo : styles.activeVideo}`}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                >
+                  {selectedScene.video.webm && (
+                    <source src={selectedScene.video.webm} type="video/webm" />
+                  )}
+                  {selectedScene.video.mp4 && (
+                    <source src={selectedScene.video.mp4} type="video/mp4" />
+                  )}
+                  Your browser does not support the video tag.
+                </video>
+              ) : selectedScene.video.image ? (
+                <img
+                  src={selectedScene.video.image}
+                  alt={selectedScene.name}
+                  className={`${styles.sessionVideo} ${sessionState === "preview" ? styles.previewVideo : styles.activeVideo}`}
+                />
+              ) : null}
 
-            {sessionState === "preview" && <div className={styles.previewOverlay} />}
-            {sessionState === "preview" && (
-              <>
-                <div className={styles.sessionName}>{selectedScene.name}</div>
-                <div className={styles.previewPanel}>
-                  <div className={styles.subtitle}>Scenario Details</div>
-                  <div className={styles.sessionDescription}>
-                    {selectedScene.scenarioDetails}
+              {sessionState === "preview" && <div className={styles.previewOverlay} />}
+              {sessionState === "preview" && (
+                <>
+                  <div className={styles.sessionName}>{selectedScene.name}</div>
+                  <div className={styles.previewPanel}>
+                    <div className={styles.subtitle}>Scenario Details</div>
+                    <div className={styles.sessionDescription}>
+                      {selectedScene.scenarioDetails}
+                    </div>
+                    <div className={styles.previewActions}>
+                      {isGirlfriendScene ? (
+                        <IconButton
+                          onClick={onGirlfriendModeSelected}
+                          color="black"
+                          type="pill"
+                          className={styles.callButton}
+                          text="Start Girlfriend Mode"
+                          leftIcon={
+                            <Suspense fallback={null}>
+                              <SvgPack.HeartBold className={styles.callButtonIcon} />
+                            </Suspense>
+                          }
+                        />
+                      ) : (
+                        <IconButton
+                          onClick={handleStartCall}
+                          color="green"
+                          type="pill"
+                          className={styles.callButton}
+                          leftIcon={
+                            <Suspense fallback={null}>
+                              <SvgPack.Call className={styles.callButtonIcon} />
+                            </Suspense>
+                          }
+                        />
+                      )}
+                    </div>
                   </div>
-                  <div className={styles.previewActions}>
-                    {isGirlfriendScene ? (
-                      <IconButton
-                        onClick={onGirlfriendModeSelected}
-                        color="black"
-                        type="pill"
-                        className={styles.callButton}
-                        text="Start Girlfriend Mode"
-                        leftIcon={
-                          <Suspense fallback={null}>
-                            <SvgPack.Heart className={styles.callButtonIcon} />
-                          </Suspense>
-                        }
-                      />
-                    ) : (
-                      <IconButton
-                        onClick={handleStartCall}
-                        color="green"
-                        type="pill"
-                        className={styles.callButton}
-                        leftIcon={
-                          <Suspense fallback={null}>
-                            <SvgPack.Call className={styles.callButtonIcon} />
-                          </Suspense>
-                        }
-                      />
-                    )}
+                </>
+              )}
+              {!isGirlfriendScene && (
+                <div
+                  className={`${styles.activePanel} ${sessionState === "active" ? styles.activePanelVisible : styles.activePanelHidden}`}
+                >
+                  <div className={styles.subtitle}>{activeStatusLabel}</div>
+                  <div className={styles.sessionTimer}>{formatTime(showCallTime)}</div>
+                  <div className={styles.activeActions}>
+                    <IconButton
+                      onClick={handleEndCall}
+                      color="red"
+                      type="pill"
+                      className={styles.activeCallButton}
+                      leftIcon={
+                        <Suspense fallback={null}>
+                          <SvgPack.HangupCallIcon />
+                        </Suspense>
+                      }
+                    />
                   </div>
                 </div>
-              </>
-            )}
-            {!isGirlfriendScene && (
-              <div
-                className={`${styles.activePanel} ${sessionState === "active" ? styles.activePanelVisible : styles.activePanelHidden}`}
-              >
-                <div className={styles.subtitle}>{activeStatusLabel}</div>
-                <div className={styles.sessionTimer}>{formatTime(showCallTime)}</div>
-                <div className={styles.activeActions}>
-                  <IconButton
-                    onClick={handleEndCall}
-                    color="red"
-                    type="pill"
-                    className={styles.activeCallButton}
-                    leftIcon={
-                      <Suspense fallback={null}>
-                        <SvgPack.HangupCallIcon />
-                      </Suspense>
-                    }
-                  />
-                </div>
-              </div>
-            )}
+              )}
             </div>
             <div
               className={`${styles.previewDesktopPanel} ${sessionState === "preview" ? styles.previewDesktopPanelVisible : styles.previewDesktopPanelHidden}`}
@@ -415,9 +415,10 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                       color="black"
                       type="pill"
                       className={styles.callButton}
+                      text="Start Girlfriend Mode"
                       leftIcon={
                         <Suspense fallback={null}>
-                          <SvgPack.Heart className={styles.callButtonIcon} />
+                          <SvgPack.HeartBold className={styles.callButtonIcon} />
                         </Suspense>
                       }
                     />
@@ -440,7 +441,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
           </div>
         </div>
       )}
-    <AddCreditsModal
+      <AddCreditsModal
         isOpen={showTopupModal}
         influencerId={influencerId}
         onClose={() => setShowTopupModal(false)}
