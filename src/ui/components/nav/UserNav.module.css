@@ -52,6 +52,34 @@
   user-select: none;
 }
 
+.switchInfluencerButton {
+  justify-self: center;
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.closeIcon {
+  width: 20px;
+  height: 20px;
+  color: #fff;
+}
+
+.closeButton {
+  margin-left: 4px;
+}
+
+.right-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .leftSlot {
   display: flex;
   align-items: center;

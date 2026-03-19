@@ -199,6 +199,7 @@ function AppRoutes() {
 
 
   const guestRoutes: { path: string; element: JSX.Element }[] = [
+    { path: Paths.root, element: <LandingPage /> },
     { path: Paths.login, element: <LoginScreen /> },
     { path: Paths.register(), element: <RegisterScreen /> },
     { path: Paths.registerVerify, element: <Confirmation /> },

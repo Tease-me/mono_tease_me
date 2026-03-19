@@ -8,6 +8,7 @@ type Props = {
   imageSmallSrc: string | null;
   imageLargeSrc: string | null;
   titlePlaceholderData: unknown | null;
+  isGirlfriend?: boolean;
 };
 
 export default function AdultSceneSelector({
@@ -16,6 +17,7 @@ export default function AdultSceneSelector({
   imageSmallSrc,
   imageLargeSrc,
   titlePlaceholderData,
+  isGirlfriend,
 }: Props) {
   const [imageFailed, setImageFailed] = useState(false);
   const resolvedImageSrc = imageSmallSrc ?? imageLargeSrc ?? null;
@@ -31,7 +33,7 @@ export default function AdultSceneSelector({
   return (
     <div className={styles.card}>
       <div className={styles.upperBody}>
-        <div className={styles.imageArea}>
+        <div className={`${styles.imageArea}${isGirlfriend ? ` ${styles.girlfriend}` : ""}`}>
           {titlePlaceholderData != null ? (
             <div className={styles.titlePlaceholder} aria-hidden="true">
               <LottieAnimation autoplay loop animationData={titlePlaceholderData} />
@@ -50,7 +52,7 @@ export default function AdultSceneSelector({
           )}
         </div>
       </div>
-      <div className={styles.name}>{name}</div>
+      <div className={`${styles.name}${isGirlfriend ? ` ${styles.girlfriendName}` : ""}`}>{name}</div>
       <div className={styles.lowerBody}>
         <div className={styles.description}>{description}</div>
       </div>

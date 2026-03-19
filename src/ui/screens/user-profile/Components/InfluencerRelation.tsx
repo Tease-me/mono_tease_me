@@ -24,12 +24,7 @@ import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 import AdultTermsModal from "@/ui/components/modals/adult-terms/AdultTermsModal";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { FollowServices } from "@/api/services/FollowServices";
-import { ADULT_MODE_AVAILABLE } from "@/constants/adultModeAvailable";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
-import AdultModeToggle from "@/ui/components/adult-mode-toggle/AdultModeToggle";
-//TODO
-// UNFOLLOW BUTTON IS HIDDEN
-//CHECK STATUS OF SUBSCRIPTION IF CANCELLED OR REACTIVATED ETC
 
 const relationshipService = RelationshipServices(apiClient);
 const balanceService = BalanceServices(apiClient);
@@ -107,11 +102,6 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
   const [loading, setLoading] = useState(false);
 
   const [showBalanceDetails, setShowBalanceDetails] = useState(false);
-  const [showAdultBalanceDetails, setShowAdultBalanceDetails] = useState(false);
-  const showSubDetails = false;
-  const [adultModeChecked, setAdultModeChecked] = useState(
-    !!data.hasSubscription && data.subscriptionStatus === "active",
-  );
 
   const [showCallInfoModal, setShowCallInfoModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -196,10 +186,6 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
   const isSubscribed =
     !!data.hasSubscription && data.subscriptionStatus === "active";
 
-  useEffect(() => {
-    setAdultModeChecked(isSubscribed);
-  }, [isSubscribed]);
-
   //Navpayload
   useEffect(() => {
     if (!navPayload.influencerId) return;
@@ -215,45 +201,6 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
     navPayload.influencerId,
   ]);
 
-  const goToSubPage = () => {
-    goTo("subscribe", {
-      influencerId: data.id,
-      influencerImageUrl: data.image,
-      influencerName: data.name,
-      onSubscribe: () =>
-        goTo("subscription", {
-          influencerId: data.id,
-        }),
-    });
-  };
-
-  const handleAdultToggleChange = async () => {
-    if (!ADULT_MODE_AVAILABLE) {
-      goToSubPage();
-      return;
-    }
-    if (!isSubscribed) {
-      //Check if verified
-      try {
-        await subscriptionService.activateMySubscriptionForInfluencer(
-          data.id,
-          true,
-        );
-        goToSubPage();
-      } catch (err: any) {
-        const idVerified =
-          err?.response?.data?.detail?.verification_status
-            ?.is_identity_verified;
-        if (idVerified === false) {
-          setShowTermsModal(true);
-          return;
-        }
-        goToSubPage();
-      }
-    } else {
-      setShowCancelModal(true);
-    }
-  };
 
   const handleCancelSubscription = async () => {
     if (!data.id) {
@@ -271,8 +218,6 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         hasSubscription: false,
         subscriptionStatus: "cancelled",
       }));
-      setAdultModeChecked(false);
-      setShowAdultBalanceDetails(false);
     } catch (e: any) {
       setCancelError("Could not cancel right now.");
       logger.error(e);
@@ -390,66 +335,6 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         </div>
         <div className={styles.adultBalanceArea}>
           <div className={styles.adultBalanceInner}>
-            {ADULT_MODE_AVAILABLE && showSubDetails && (
-              <>
-                <NormalButton
-                  type="nobg"
-                  className={styles.grayBtn}
-                  text={!showAdultBalanceDetails ? "View Details" : "Hide Details"}
-                  onClick={() => setShowAdultBalanceDetails((prev) => !prev)}
-                />
-                {showAdultBalanceDetails && (
-                  <div className={styles.adultBalanceStats}>
-                    <UsageView
-                      label="Voice Minutes"
-                      tone="purple"
-                      value={
-                        data.adultVoiceMinutes != null
-                          ? minutesToTime(data.adultVoiceMinutes)
-                          : "--"
-                      }
-                    />
-                    <UsageView
-                      label="Text Msg"
-                      tone="purple"
-                      value={
-                        data.adultMsgRemaining != null
-                          ? data.adultMsgRemaining.toString()
-                          : "--"
-                      }
-                    />
-                  </div>
-                )}
-                {isSubscribed && showAdultBalanceDetails && (
-                  <button
-                    className={styles.cancelSub}
-                    type="button"
-                    onClick={() => setShowCancelModal(true)}
-                  >
-                    Cancel Subscription
-                  </button>
-                )}
-              </>
-            )}
-            {showSubDetails && (
-              <div className={styles.adultToggleArea}>
-                <button type="button" className={styles.adultToggleBtn}>
-                  <AdultModeToggle
-                    checked={adultModeChecked}
-                    onChange={handleAdultToggleChange}
-                    minutesLeft={data.adultVoiceMinutes}
-                  />
-                </button>
-                {ADULT_MODE_AVAILABLE && isSubscribed && (
-                  <p>
-                    Until:{" "}
-                    {data.expiresAt
-                      ? new Date(data.expiresAt).toLocaleDateString()
-                      : "--"}
-                  </p>
-                )}
-              </div>
-            )}
           </div>
         </div>
       </div>
