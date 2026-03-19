@@ -10,8 +10,7 @@ import httpx
 from fastapi import HTTPException
 
 from app.core.config import settings
-from app.gateways.elevenlabs_endpoints import ElevenLabsEndpoints
-from app.gateways.elevenlabs_naming import apply_environment_label
+from app.gateways.elevenlabs.common import ElevenLabsEndpoints, apply_environment_label
 
 log = logging.getLogger(__name__)
 
@@ -70,7 +69,9 @@ class ElevenLabsAgentsGateway:
         max_tokens: Optional[int] = None,
     ) -> dict[str, Any]:
         if not voice_id:
-            raise HTTPException(400, "voice_id is required to create an ElevenLabs agent.")
+            raise HTTPException(
+                400, "voice_id is required to create an ElevenLabs agent."
+            )
 
         agent_cfg: dict[str, Any] = {
             "first_message": DEFAULT_FIRST_MESSAGE_TEMPLATE,
@@ -89,7 +90,8 @@ class ElevenLabsAgentsGateway:
                         "url": f"{settings.PUBLIC_BASE_URL.rstrip('/')}/webhooks/update_relationship",
                         "method": "POST",
                         "request_headers": {
-                            "X-Webhook-Token": settings.ELEVENLABS_CONVAI_WEBHOOK_SECRET or ""
+                            "X-Webhook-Token": settings.ELEVENLABS_CONVAI_WEBHOOK_SECRET
+                            or ""
                         },
                     },
                 },
@@ -101,7 +103,8 @@ class ElevenLabsAgentsGateway:
                         "url": f"{settings.PUBLIC_BASE_URL.rstrip('/')}/webhooks/memories",
                         "method": "POST",
                         "request_headers": {
-                            "X-Webhook-Token": settings.ELEVENLABS_CONVAI_WEBHOOK_SECRET or ""
+                            "X-Webhook-Token": settings.ELEVENLABS_CONVAI_WEBHOOK_SECRET
+                            or ""
                         },
                     },
                 },
@@ -164,10 +167,14 @@ class ElevenLabsAgentsGateway:
         )
         if post_call_webhook_id:
             payload.setdefault("platform_settings", {})
-            payload["platform_settings"]["post_call_webhook_ids"] = [post_call_webhook_id]
+            payload["platform_settings"]["post_call_webhook_ids"] = [
+                post_call_webhook_id
+            ]
 
         try:
-            async with httpx.AsyncClient(base_url=self._base_url, timeout=20.0) as client:
+            async with httpx.AsyncClient(
+                base_url=self._base_url, timeout=20.0
+            ) as client:
                 resp = await client.post(
                     ElevenLabsEndpoints.CONVAI_AGENTS_CREATE,
                     headers=self._headers(),
@@ -179,7 +186,9 @@ class ElevenLabsAgentsGateway:
 
         if resp.status_code >= 400:
             error_text = resp.text[:500] if resp.text else "No error details"
-            log.error("ElevenLabs agent creation failed: %s %s", resp.status_code, error_text)
+            log.error(
+                "ElevenLabs agent creation failed: %s %s", resp.status_code, error_text
+            )
             error_detail = f"Failed to create ElevenLabs agent: {resp.status_code}"
             try:
                 error_json = resp.json()
@@ -205,13 +214,17 @@ class ElevenLabsAgentsGateway:
         if not agent_id:
             return
         try:
-            async with httpx.AsyncClient(base_url=self._base_url, timeout=20.0) as client:
+            async with httpx.AsyncClient(
+                base_url=self._base_url, timeout=20.0
+            ) as client:
                 resp = await client.delete(
                     f"/convai/agents/{agent_id}",
                     headers=self._headers(),
                 )
         except httpx.RequestError as exc:
-            log.exception("Network error deleting ElevenLabs agent %s: %s", agent_id, exc)
+            log.exception(
+                "Network error deleting ElevenLabs agent %s: %s", agent_id, exc
+            )
             raise HTTPException(status_code=502, detail="Upstream unavailable")
 
         if resp.status_code in (200, 204, 404):
@@ -223,4 +236,6 @@ class ElevenLabsAgentsGateway:
             resp.status_code,
             resp.text[:1000],
         )
-        raise HTTPException(status_code=resp.status_code, detail=resp.text or "Failed to delete agent")
+        raise HTTPException(
+            status_code=resp.status_code, detail=resp.text or "Failed to delete agent"
+        )

@@ -48,8 +48,8 @@ from app.utils.messaging.email import (
 )
 import mimetypes
 from app.api.elevenlabs import _push_prompt_to_elevenlabs
-from app.gateways.elevenlabs_agents_gateway import ElevenLabsAgentsGateway
-from app.gateways.elevenlabs_voices_gateway import ElevenLabsVoicesGateway
+from app.gateways.elevenlabs.agents_gateway import ElevenLabsAgentsGateway
+from app.gateways.elevenlabs.voices_gateway import ElevenLabsVoicesGateway
 from app.utils.storage.s3 import s3,save_influencer_photo_to_s3, generate_presigned_url, delete_file_from_s3, get_s3_object_bytes,list_influencer_audio_keys
 from app.services.firstpromoter import (
     fp_create_promoter,

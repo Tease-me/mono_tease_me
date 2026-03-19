@@ -9,7 +9,7 @@ import httpx
 from fastapi import HTTPException
 
 from app.core.config import settings
-from app.gateways.elevenlabs_naming import apply_environment_label
+from app.gateways.elevenlabs.common import apply_environment_label
 
 log = logging.getLogger(__name__)
 
