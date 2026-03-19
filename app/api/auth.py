@@ -20,7 +20,7 @@ from app.services.firstpromoter import fp_track_signup
 from app.schemas.user import UserOut
 from app.utils.storage.s3 import generate_user_presigned_url, save_user_photo_to_s3, delete_file_from_s3
 from app.services.follow import create_follow_if_missing
-from app.services.influencer import ensure_influencer
+from app.api.deps.influencer import ensure_influencer
 from app.utils.infrastructure.rate_limiter import rate_limit
 
 log = logging.getLogger(__name__)
