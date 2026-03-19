@@ -84,6 +84,12 @@ def configure_logging() -> None:
                 "openai": {"level": "WARNING", "propagate": True},
                 "hpack": {"level": "WARNING", "propagate": True},
                 "hpack.hpack": {"level": "WARNING", "propagate": True},
+                # Telegram voice-call stack — DEBUG dumps every raw protocol message.
+                "pyrogram": {"level": "WARNING", "propagate": True},
+                "pytgcalls": {"level": "WARNING", "propagate": True},
+                "ntgcalls": {"level": "ERROR", "propagate": True},
+                "aiohttp": {"level": "WARNING", "propagate": True},
+                "websockets": {"level": "WARNING", "propagate": True},
             },
             "root": {"handlers": root_handlers, "level": log_level},
         }
