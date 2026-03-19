@@ -52,18 +52,6 @@
   user-select: none;
 }
 
-.switchInfluencerButton {
-  justify-self: center;
-  background: none;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 8px;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 500;
-  padding: 6px 12px;
-  cursor: pointer;
-}
-
 .closeIcon {
   width: 20px;
   height: 20px;
@@ -139,4 +127,8 @@
   .right-buttons {
     justify-self: end;
   }
+}
+
+.callButton {
+  justify-self: center;
 }

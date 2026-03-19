@@ -4,6 +4,7 @@ import styles from './UserNav.module.css'
 import TeaseMeLogo from '../logos/TeaseMeLogo'
 import SvgPack from '@/utils/SvgPack'
 import IconButton from '../inputs/buttons/IconButton'
+import SwitchInfluencerButton from '../inputs/buttons/SwitchInfluencerButton'
 import { useIsDesktopOnly } from '@/hooks/layout/useIsDesktop'
 import { useTheme } from '@/theme/ThemeProvider'
 import clsx from 'clsx'
@@ -45,13 +46,18 @@ const UserNav: React.FC<UserNavProps> = ({
         </div>
 
         {onSwitchInfluencer ? (
-          <button
-            type="button"
-            className={styles.switchInfluencerButton}
-            onClick={onSwitchInfluencer}
-          >
-            Switch
-          </button>
+          <SwitchInfluencerButton onClick={onSwitchInfluencer} alwaysExpanded />
+        ) : onClose && onCallClick ? (
+          <IconButton
+            leftIcon={callMode
+              ? <SvgPack.Chat className={clsx(styles.callChatIcon)} />
+              : <SvgPack.Call className={clsx(styles.callCallIcon)} />
+            }
+            onClick={onCallClick}
+            className={styles.callButton}
+            color='black'
+            text={isMobile ? "" : "Mode"}
+          />
         ) : title ? (
           <span className={styles.navTitle}>{title}</span>
         ) : (
@@ -59,7 +65,7 @@ const UserNav: React.FC<UserNavProps> = ({
         )}
 
         <div className={styles["right-buttons"]}>
-          {onCallClick && (
+          {onCallClick && !onClose && (
             <IconButton
               leftIcon={callMode
                 ? <SvgPack.Chat className={clsx(styles.callChatIcon)} />

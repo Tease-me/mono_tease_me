@@ -374,7 +374,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
             onMenuClick={handleMenuClick}
             onCallClick={influencer ? handleCallModeChange : undefined}
             callMode={mode === "call"}
-            onSwitchInfluencer={hasMultipleInfluencers ? onChangeInfluencer : undefined}
             onClose={handleBackToSceneSelector}
           />
         </div>

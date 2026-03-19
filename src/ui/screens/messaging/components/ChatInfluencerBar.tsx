@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import switchProfileImg from "@/assets/svg/switchProfile.svg";
+import SwitchInfluencerButton from "@/ui/components/inputs/buttons/SwitchInfluencerButton";
 import clsx from "clsx";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import ProfileMedia from "@/ui/components/ProfileMedia";
@@ -133,14 +133,11 @@ export default function ChatInfluencerBar({
           <div onClick={handleProfileImageClick} className={styles.profileImageClick}>
             <ProfileMedia size="medium" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} />
           </div>
-          <button
-            type="button"
-            className={clsx(styles.profileSwitch, !showChangeInfluencerButton && styles.hidden)}
+          <SwitchInfluencerButton
             onClick={onChangeInfluencer}
-            aria-label="Change influencer"
-          >
-            <img src={switchProfileImg} /> <div className={styles.switchProfileLabel}>Switch Influencer</div>
-          </button>
+            size="small"
+            className={clsx(styles.profileSwitch, !showChangeInfluencerButton && styles.hidden)}
+          />
 
         </div>
         <div className={styles.profileRightCol}>
