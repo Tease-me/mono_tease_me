@@ -104,6 +104,10 @@
     position: absolute;
     left: 25px;
   }
+
+  .logoArea {
+    display: none;
+  }
 }
 
 @media (max-width: 768px) {

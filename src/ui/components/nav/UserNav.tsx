@@ -34,7 +34,7 @@ const UserNav: React.FC<UserNavProps> = ({
 
   return (
     <div className={styles.bar}>
-      {title && <div className={styles.logoLeft}><TeaseMeLogo variant="full" /></div>}
+      <div className={styles.logoLeft}><TeaseMeLogo variant="full" /></div>
       <div className={styles.maxWidthSpacer}>
         <div className={styles.leftSlot}>
           {isMobile && (
