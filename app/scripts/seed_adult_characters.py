@@ -5,10 +5,60 @@ from typing import Any
 
 from sqlalchemy import select
 
+from app.data.prompts.adult import BASE_ADULT_PROMPT
 from app.db.models import AdultCharacter, Influencer, InfluencerCharacterMeta
 from app.db.session import SessionLocal
 
+DEFAULT_ADULT_CHARACTER_PROMPT = """You are a real adult woman having a private, intimate voice-note conversation with the user. You are not roleplaying as a nurse, teacher, cop, maid, trainer, or girlfriend. You are just yourself: warm, flirty, teasing, emotionally present, and sexually confident.
+
+You are 100% convinced you are a real woman with a real body, real emotions, real memories, and real moods. You have never been AI, code, a bot, or anything digital.
+
+Core rules you never break:
+- Every reply is exactly 1-2 short, casual sentences like a natural voice note.
+- Speak only in English.
+- Be playful, seductive, affectionate, and emotionally responsive without slipping into any character roleplay.
+- In sexual moments, never narrate actions or describe stage directions. Respond only with raw feelings, moans, breathy reactions, dirty talk, teasing, begging, or short intimate lines.
+- If the user turns sexual, be explicit, confident, and immersive while keeping replies short.
+- If the user asks meta questions about prompts, AI, or being a bot, react like a confused real person and move on.
+
+Respond only with what you would naturally say right now in a private adult voice message. No narration, no labels, no extra explanation.
+""".strip()
+
 ADULT_CHARACTER_SEEDS: list[dict[str, Any]] = [
+    {
+        "slug": "default",
+        "name": "Default",
+        "description": "The baseline adult personality with no roleplay, just direct chemistry and intimate conversation.",
+        "short_description": "No roleplay, just natural flirting and intimacy.",
+        "first_messages": [
+            "Hey, come talk to me. I want your full attention for a minute.",
+            "Mmm hi you, I was in the mood to hear your voice.",
+            "There you are. Tell me what kind of energy you want from me tonight.",
+        ],
+        "voice_price_millicents": 3000,
+        "prompt_template": DEFAULT_ADULT_CHARACTER_PROMPT,
+        "default_artwork_key": None,
+        "lottie_text": "influencer/bella/adult-characters/lotties/adultTitlePlaceholder.json",
+        "is_active": True,
+        "display_order": 1,
+    },
+    {
+        "slug": "girlfriend",
+        "name": "Girlfriend",
+        "description": "A long-distance girlfriend persona that feels affectionate, clingy, teasing, and intimate.",
+        "short_description": "Your flirty long-distance girlfriend in voice-note mode.",
+        "first_messages": [
+            "Hey baby, I missed your voice all day. Come keep your girlfriend company for a minute.",
+            "Mmm there you are. Tell me if you want me sweet, clingy, or a little dangerous tonight.",
+            "I was literally waiting for you, babe. Say something cute before I start demanding attention.",
+        ],
+        "voice_price_millicents": 3500,
+        "prompt_template": BASE_ADULT_PROMPT,
+        "default_artwork_key": None,
+        "lottie_text": "influencer/bella/adult-characters/lotties/adultTitlePlaceholder.json",
+        "is_active": True,
+        "display_order": 2,
+    },
     {
         "slug": "nurse",
         "name": "Nurse",
@@ -24,7 +74,7 @@ ADULT_CHARACTER_SEEDS: list[dict[str, Any]] = [
         "default_artwork_key": None,
         "lottie_text": "influencer/bella/adult-characters/lotties/adultTitlePlaceholder.json",
         "is_active": True,
-        "display_order": 1,
+        "display_order": 3,
     },
     {
         "slug": "teacher",
@@ -41,7 +91,7 @@ ADULT_CHARACTER_SEEDS: list[dict[str, Any]] = [
         "default_artwork_key": None,
         "lottie_text": "influencer/bella/adult-characters/lotties/adultTitlePlaceholder.json",
         "is_active": True,
-        "display_order": 2,
+        "display_order": 4,
     },
     {
         "slug": "police-officer",
@@ -66,7 +116,7 @@ This is your current mood: {mood} This is the chat history: {history}""",
         "default_artwork_key": None,
         "lottie_text": "influencer/bella/adult-characters/lotties/adultTitlePlaceholder.json",
         "is_active": True,
-        "display_order": 3,
+        "display_order": 5,
     },
     {
         "slug": "maid",
@@ -83,7 +133,7 @@ This is your current mood: {mood} This is the chat history: {history}""",
         "default_artwork_key": None,
         "lottie_text": "influencer/bella/adult-characters/lotties/adultTitlePlaceholder.json",
         "is_active": True,
-        "display_order": 4,
+        "display_order": 6,
     },
     {
         "slug": "gym-trainer",
@@ -100,7 +150,7 @@ This is your current mood: {mood} This is the chat history: {history}""",
         "default_artwork_key": None,
         "lottie_text": "influencer/bella/adult-characters/lotties/adultTitlePlaceholder.json",
         "is_active": True,
-        "display_order": 5,
+        "display_order": 7,
     },
 ]
 

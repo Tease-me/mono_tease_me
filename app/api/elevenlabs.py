@@ -22,6 +22,7 @@ from app.services.billing import resolve_voice_billing_mode, charge_feature
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from app.services.billing import can_afford, get_remaining_units
+from app.services.adult_character_billing import charge_adult_character_voice_call
 from app.services.chat_service import get_or_create_chat
 from app.services.follow import get_follow
 from app.agents.turn_handler import (
@@ -328,22 +329,45 @@ async def _poll_and_persist_conversation(
 
                 if await claim_billing_slot(db, conversation_id):
                     try:
-                        feature, is_18 = await resolve_voice_billing_mode(db, user_id, influencer_id)
-                        cost_charged = await charge_feature(
-                            db,
-                            user_id=user_id,
-                            influencer_id=influencer_id,
-                            feature=feature,
-                            units=math.ceil(total_seconds),
-                            is_18=is_18,
-                            meta={
-                                "conversation_id": conversation_id,
-                                "status": status,
-                                "source": "poll",
-                            },
-                            allow_partial=True,
-                            auto_commit=False,
-                        )
+                        call_record = await db.get(CallRecord, conversation_id)
+                        meta = {
+                            "conversation_id": conversation_id,
+                            "status": status,
+                            "source": "poll",
+                        }
+                        if call_record and call_record.is_adult_call:
+                            from app.repositories.adult.adult_conversation_repository import (
+                                get_adult_character_by_id,
+                            )
+
+                            if call_record.adult_character_id is None:
+                                raise HTTPException(400, "Missing adult_character_id for adult call billing")
+                            character = await get_adult_character_by_id(db, call_record.adult_character_id)
+                            if not character:
+                                raise HTTPException(404, "Adult character not found for billing")
+                            cost_charged = await charge_adult_character_voice_call(
+                                db,
+                                user_id=user_id,
+                                influencer_id=influencer_id,
+                                character=character,
+                                units=math.ceil(total_seconds),
+                                meta=meta,
+                                allow_partial=True,
+                                auto_commit=False,
+                            )
+                        else:
+                            feature, is_18 = await resolve_voice_billing_mode(db, user_id, influencer_id)
+                            cost_charged = await charge_feature(
+                                db,
+                                user_id=user_id,
+                                influencer_id=influencer_id,
+                                feature=feature,
+                                units=math.ceil(total_seconds),
+                                is_18=is_18,
+                                meta=meta,
+                                allow_partial=True,
+                                auto_commit=False,
+                            )
                         await mark_billing_done(db, conversation_id)
                         await db.commit()
                         log.info(
