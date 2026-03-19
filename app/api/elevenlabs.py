@@ -1034,14 +1034,6 @@ async def save_pending_conversation(
 
 
 async def claim_billing_slot(db: AsyncSession, conversation_id: str) -> bool:
-    """Atomically mark a conversation as billing-in-progress.
-
-    Returns True if this call won the race (status flipped to 'billing').
-    Returns False if it was already billed/billing (no rows affected).
-
-    NOTE: Does NOT commit — the caller is responsible for committing after
-    a successful charge, or resetting status on failure.
-    """
     from sqlalchemy import update as sa_update
 
     result = await db.execute(
@@ -1080,14 +1072,6 @@ async def reset_billing_slot(db: AsyncSession, conversation_id: str) -> None:
         .values(status="done")
     )
     await db.commit()
-
-
-# Keep a thin backwards-compat wrapper so existing call-sites don't break
-async def was_already_billed(db: AsyncSession, conversation_id: str) -> bool:
-    q = select(CallRecord.status).where(CallRecord.conversation_id == conversation_id)
-    res = await db.execute(q)
-    row = res.first()
-    return bool(row and row[0] == "billed")
 
 
 async def _end_conversation_after_credits(

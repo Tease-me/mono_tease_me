@@ -1,63 +1,67 @@
 import json
 import logging
-import secrets
+import mimetypes
 import re
-from pydantic import ValidationError
-from fastapi.encoders import jsonable_encoder
-
+import secrets
 from datetime import datetime, timezone
 
 from fastapi import (
     APIRouter,
     Depends,
-    HTTPException,
-    UploadFile,
     File,
     Form,
+    HTTPException,
     Query,
     Response,
-    status
+    UploadFile,
+    status,
 )
-from app.utils.auth.dependencies import get_current_pre_influencer
+from fastapi.encoders import jsonable_encoder
+from pydantic import ValidationError
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_
+
+from app.core.config import settings
+from app.db.models import Influencer, PreInfluencer, User
+from app.db.session import get_db
+from app.gateways.elevenlabs.agents_gateway import ElevenLabsAgentsGateway
+from app.gateways.elevenlabs.voices_gateway import ElevenLabsVoicesGateway
+from app.schemas.pre_influencer import (
+    InfluencerAudioDeleteRequest,
+    PreInfluencerAcceptTermsRequest,
+    PreInfluencerRegisterRequest,
+    PreInfluencerRegisterResponse,
+    SurveyPromptResponse,
+    SurveyQuestionsResponse,
+    SurveySaveRequest,
+    SurveyState,
+)
+from app.services.firstpromoter import (
+    fp_create_promoter,
+    fp_extract_email,
+    fp_extract_parent_promoter_id,
+    fp_find_promoter_id_by_ref_token,
+    fp_get_promoter_v2,
+    fp_track_signup,
+)
 from app.use_cases.pre_influencer_survey_prompt import (
     format_survey_markdown,
     generate_prompt_from_markdown,
     load_survey_questions,
 )
-
-from app.db.session import get_db
-from app.db.models import PreInfluencer, Influencer, User
-from app.utils.auth.dependencies import get_current_user
-from app.schemas.pre_influencer import (
-    PreInfluencerRegisterRequest,
-    PreInfluencerRegisterResponse,
-    SurveyQuestionsResponse,
-    PreInfluencerAcceptTermsRequest,
-    SurveyState,
-    SurveySaveRequest,
-    InfluencerAudioDeleteRequest,
-    SurveyPromptResponse,
-)
-from app.core.config import settings
+from app.utils.auth.dependencies import get_current_pre_influencer, get_current_user
 from app.utils.messaging.email import (
+    send_influencer_survey_completed_email_to_promoter,
     send_new_influencer_email_with_picture,
     send_profile_survey_email,
-    send_influencer_survey_completed_email_to_promoter,
 )
-import mimetypes
-from app.api.elevenlabs import _push_prompt_to_elevenlabs
-from app.gateways.elevenlabs.agents_gateway import ElevenLabsAgentsGateway
-from app.gateways.elevenlabs.voices_gateway import ElevenLabsVoicesGateway
-from app.utils.storage.s3 import s3,save_influencer_photo_to_s3, generate_presigned_url, delete_file_from_s3, get_s3_object_bytes,list_influencer_audio_keys
-from app.services.firstpromoter import (
-    fp_create_promoter,
-    fp_find_promoter_id_by_ref_token,
-    fp_get_promoter_v2,
-    fp_extract_email,
-    fp_extract_parent_promoter_id,
-    fp_track_signup,
+from app.utils.storage.s3 import (
+    delete_file_from_s3,
+    generate_presigned_url,
+    get_s3_object_bytes,
+    list_influencer_audio_keys,
+    s3,
+    save_influencer_photo_to_s3,
 )
 
 log = logging.getLogger(__name__)
@@ -65,8 +69,10 @@ router = APIRouter(prefix="/pre-influencers", tags=["pre-influencers"])
 _voices_gateway = ElevenLabsVoicesGateway()
 _agents_gateway = ElevenLabsAgentsGateway()
 
+
 def normalize_influencer_id(username: str) -> str:
     return re.sub(r"[^a-z0-9_]", "", username.lower())
+
 
 @router.get("/me")
 async def get_pre_influencer_me(
@@ -74,17 +80,16 @@ async def get_pre_influencer_me(
 ):
     return _pre_influencer_with_profile_picture_url(current_pre)
 
+
 @router.get("/check-ig/{instagram_username}")
 async def check_instagram_exists(
     instagram_username: str,
     db: AsyncSession = Depends(get_db),
 ):
     search_term = instagram_username.strip().lstrip("@")
-    
+
     result = await db.execute(
-        select(PreInfluencer).where(
-            PreInfluencer.username.ilike(search_term)
-        )
+        select(PreInfluencer).where(PreInfluencer.username.ilike(search_term))
     )
     all_matches = result.scalars().all()
 
@@ -94,26 +99,31 @@ async def check_instagram_exists(
     best_pre = None
     if all_matches:
         best_pre = sorted(
-            all_matches, 
-            key=lambda x: (1 if x.status == "approved" else 0, x.created_at), 
-            reverse=True
+            all_matches,
+            key=lambda x: (1 if x.status == "approved" else 0, x.created_at),
+            reverse=True,
         )[0]
-        
+
         if not existing_influencer:
-             if best_pre.email:
-                 res = await db.execute(select(Influencer).where(Influencer.email == best_pre.email))
-                 existing_influencer = res.scalar_one_or_none()
-        
+            if best_pre.email:
+                res = await db.execute(
+                    select(Influencer).where(Influencer.email == best_pre.email)
+                )
+                existing_influencer = res.scalar_one_or_none()
+
         if not existing_influencer:
             if best_pre.full_name:
-                 res = await db.execute(select(Influencer).where(Influencer.display_name == best_pre.full_name))
-                 existing_influencer = res.scalar_one_or_none()
+                res = await db.execute(
+                    select(Influencer).where(
+                        Influencer.display_name == best_pre.full_name
+                    )
+                )
+                existing_influencer = res.scalar_one_or_none()
 
-    
     if existing_influencer:
         return {
             "exists": True,
-            "instagram_username": existing_influencer.display_name, 
+            "instagram_username": existing_influencer.display_name,
             "pre_influencer_id": best_pre.id if best_pre else None,
             "status": "approved",
             "is_approved": True,
@@ -123,7 +133,7 @@ async def check_instagram_exists(
         }
 
     if best_pre:
-         return {
+        return {
             "exists": True,
             "instagram_username": best_pre.username,
             "pre_influencer_id": best_pre.id,
@@ -176,8 +186,8 @@ async def accept_pre_influencer_terms(
     pre = res.scalar_one_or_none()
     if not pre:
         raise HTTPException(status_code=404, detail="Pre-influencer not found")
-    
-    pre.terms_agreement = True 
+
+    pre.terms_agreement = True
     await db.commit()
     return {"ok": True, "terms_agreement": True}
 
@@ -210,7 +220,9 @@ async def register_pre_influencer(
         email=data.email,
         password=data.password,
         survey_token=verify_token,
-        survey_answers={"__meta": {"parent_ref_id": data.parent_ref_id}} if data.parent_ref_id else None,
+        survey_answers={"__meta": {"parent_ref_id": data.parent_ref_id}}
+        if data.parent_ref_id
+        else None,
         terms_agreement=False,
     )
 
@@ -222,13 +234,19 @@ async def register_pre_influencer(
         if not pre.fp_promoter_id or not pre.fp_ref_id:
             first = (pre.full_name or pre.username or "Influencer").split(" ")[0]
             last = " ".join((pre.full_name or "").split(" ")[1:]) or "TeaseMe"
-            
+
             parent_promoter_id = None
             if data.parent_ref_id:
-                parent_promoter_id = await fp_find_promoter_id_by_ref_token(data.parent_ref_id)
+                parent_promoter_id = await fp_find_promoter_id_by_ref_token(
+                    data.parent_ref_id
+                )
 
-            log.info("LINK DEBUG parent_ref_id=%s parent_promoter_id=%s", data.parent_ref_id, parent_promoter_id)
-            
+            log.info(
+                "LINK DEBUG parent_ref_id=%s parent_promoter_id=%s",
+                data.parent_ref_id,
+                parent_promoter_id,
+            )
+
             promoter = await fp_create_promoter(
                 email=pre.email,
                 first_name=first,
@@ -239,7 +257,9 @@ async def register_pre_influencer(
 
             if promoter:
                 pre.fp_promoter_id = str(promoter.get("id"))
-                pre.fp_ref_id = promoter.get("default_ref_id") or (promoter.get("promotions") or [{}])[0].get("ref_id")
+                pre.fp_ref_id = promoter.get("default_ref_id") or (
+                    promoter.get("promotions") or [{}]
+                )[0].get("ref_id")
             else:
                 log.warning("fp_create_promoter returned None for email=%s", pre.email)
 
@@ -259,8 +279,10 @@ async def register_pre_influencer(
             await db.commit()
             await db.refresh(pre)
 
-            log.info("FP promoter created id=%s ref_id=%s", pre.fp_promoter_id, pre.fp_ref_id)
-            
+            log.info(
+                "FP promoter created id=%s ref_id=%s", pre.fp_promoter_id, pre.fp_ref_id
+            )
+
     except Exception as e:
         log.exception("FirstPromoter create promoter failed: %s", e)
 
@@ -273,7 +295,9 @@ async def register_pre_influencer(
                 tid=data.fp_tid,
             )
         except Exception:
-            log.exception("FirstPromoter track signup failed for pre-influencer %s", pre.id)
+            log.exception(
+                "FirstPromoter track signup failed for pre-influencer %s", pre.id
+            )
 
     send_profile_survey_email(
         pre.email,
@@ -287,6 +311,7 @@ async def register_pre_influencer(
         email=pre.email,
         message="Check your email.",
     )
+
 
 @router.post("/resend-survey")
 async def resend_pre_influencer_survey(
@@ -326,6 +351,7 @@ async def resend_pre_influencer_survey(
         "message": "Survey email resent",
     }
 
+
 @router.get("/survey", response_model=SurveyState)
 async def open_survey(
     token: str,
@@ -352,18 +378,18 @@ async def open_survey(
         survey_step=pre.survey_step or 0,
     )
 
+
 @router.get("/survey/questions", response_model=SurveyQuestionsResponse)
 async def get_survey_questions(db: AsyncSession = Depends(get_db)):
     return SurveyQuestionsResponse(sections=await load_survey_questions(db))
+
 
 @router.get("/{pre_id}/survey/markdown")
 async def get_survey_markdown(
     pre_id: int,
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(PreInfluencer).where(PreInfluencer.id == pre_id)
-    )
+    result = await db.execute(select(PreInfluencer).where(PreInfluencer.id == pre_id))
     pre = result.scalar_one_or_none()
 
     if not pre:
@@ -374,15 +400,14 @@ async def get_survey_markdown(
     markdown = format_survey_markdown(sections, pre.survey_answers or {}, pre.username)
     return Response(content=markdown, media_type="text/markdown")
 
+
 @router.get("/{pre_id}/survey/generate-prompt", response_model=SurveyPromptResponse)
 async def generate_prompt_from_survey(
     pre_id: int,
     additional_prompt: str | None = None,
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(PreInfluencer).where(PreInfluencer.id == pre_id)
-    )
+    result = await db.execute(select(PreInfluencer).where(PreInfluencer.id == pre_id))
     pre = result.scalar_one_or_none()
 
     if not pre:
@@ -390,11 +415,17 @@ async def generate_prompt_from_survey(
 
     sections = await load_survey_questions(db)
     markdown = format_survey_markdown(sections, pre.survey_answers or {}, pre.username)
-    prompt = await generate_prompt_from_markdown(markdown, additional_prompt=additional_prompt, db=db)
+    prompt = await generate_prompt_from_markdown(
+        markdown, additional_prompt=additional_prompt, db=db
+    )
     try:
         return SurveyPromptResponse(**prompt)
     except ValidationError as exc:
-        log.warning("survey_prompt.response_validation_failed errors=%s payload=%s", exc.errors(), prompt)
+        log.warning(
+            "survey_prompt.response_validation_failed errors=%s payload=%s",
+            exc.errors(),
+            prompt,
+        )
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="Prompt generation returned an invalid schema payload.",
@@ -407,7 +438,9 @@ def _survey_is_completed(survey_step: int, total_sections: int) -> bool:
     return int(survey_step) >= max(total_sections - 1, 0)
 
 
-async def _notify_parent_promoter_if_needed(pre: PreInfluencer, db: AsyncSession) -> None:
+async def _notify_parent_promoter_if_needed(
+    pre: PreInfluencer, db: AsyncSession
+) -> None:
     answers = pre.survey_answers or {}
     meta = answers.get("__meta") if isinstance(answers, dict) else None
     if not isinstance(meta, dict):
@@ -424,7 +457,9 @@ async def _notify_parent_promoter_if_needed(pre: PreInfluencer, db: AsyncSession
     if parent_promoter_id is None:
         parent_ref_id = meta.get("parent_ref_id")
         if isinstance(parent_ref_id, str) and parent_ref_id.strip():
-            inferred_parent = await fp_find_promoter_id_by_ref_token(parent_ref_id.strip())
+            inferred_parent = await fp_find_promoter_id_by_ref_token(
+                parent_ref_id.strip()
+            )
             if inferred_parent:
                 parent_promoter_id = inferred_parent
                 meta["parent_promoter_id"] = parent_promoter_id
@@ -459,7 +494,9 @@ async def _notify_parent_promoter_if_needed(pre: PreInfluencer, db: AsyncSession
     )
     if resp:
         meta["parent_promoter_survey_completed_notified"] = True
-        meta["parent_promoter_survey_completed_notified_at"] = datetime.now(timezone.utc).isoformat()
+        meta["parent_promoter_survey_completed_notified_at"] = datetime.now(
+            timezone.utc
+        ).isoformat()
 
     answers["__meta"] = meta
     pre.survey_answers = answers
@@ -475,9 +512,7 @@ async def save_survey_state(
     temp_password: str = Query(...),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(PreInfluencer).where(PreInfluencer.id == pre_id)
-    )
+    result = await db.execute(select(PreInfluencer).where(PreInfluencer.id == pre_id))
     pre = result.scalar_one_or_none()
 
     if not pre:
@@ -487,7 +522,11 @@ async def save_survey_state(
 
     incoming_answers: dict = data.survey_answers or {}
     existing_answers = pre.survey_answers or {}
-    if isinstance(existing_answers, dict) and "__meta" in existing_answers and "__meta" not in incoming_answers:
+    if (
+        isinstance(existing_answers, dict)
+        and "__meta" in existing_answers
+        and "__meta" not in incoming_answers
+    ):
         incoming_answers["__meta"] = existing_answers.get("__meta")
 
     pre.survey_answers = incoming_answers
@@ -506,7 +545,9 @@ async def save_survey_state(
         try:
             await _notify_parent_promoter_if_needed(pre, db)
         except Exception:
-            log.exception("Failed to notify FirstPromoter on survey completion pre_id=%s", pre.id)
+            log.exception(
+                "Failed to notify FirstPromoter on survey completion pre_id=%s", pre.id
+            )
         await db.refresh(pre)
 
     return SurveyState(
@@ -516,6 +557,7 @@ async def save_survey_state(
         survey_step=pre.survey_step or 0,
     )
 
+
 @router.post("/upload-picture")
 async def upload_pre_influencer_picture(
     pre_influencer_id: int = Form(...),
@@ -523,7 +565,6 @@ async def upload_pre_influencer_picture(
     temp_password: str = Query(...),
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
-    
 ):
     result = await db.execute(
         select(PreInfluencer).where(PreInfluencer.id == pre_influencer_id)
@@ -563,16 +604,21 @@ async def upload_pre_influencer_picture(
             try:
                 await delete_file_from_s3(s3_key)
             except Exception:
-                log.warning("Failed to rollback uploaded S3 picture %s", s3_key, exc_info=True)
+                log.warning(
+                    "Failed to rollback uploaded S3 picture %s", s3_key, exc_info=True
+                )
         raise
 
     if previous_key and previous_key != s3_key:
         try:
             await delete_file_from_s3(previous_key)
         except Exception:
-            log.warning("Failed to delete previous S3 picture %s", previous_key, exc_info=True)
+            log.warning(
+                "Failed to delete previous S3 picture %s", previous_key, exc_info=True
+            )
 
     return {"s3_key": s3_key}
+
 
 @router.get("/{pre_id}/picture-url")
 async def get_pre_influencer_picture_url(
@@ -581,9 +627,7 @@ async def get_pre_influencer_picture_url(
     temp_password: str = Query(...),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(PreInfluencer).where(PreInfluencer.id == pre_id)
-    )
+    result = await db.execute(select(PreInfluencer).where(PreInfluencer.id == pre_id))
     pre = result.scalar_one_or_none()
 
     if not pre:
@@ -599,6 +643,7 @@ async def get_pre_influencer_picture_url(
     url = generate_presigned_url(key, expires=3600)
     return {"url": url}
 
+
 @router.delete("/influencer-audio/{influencer_id}")
 async def delete_influencer_audio(
     influencer_id: str,
@@ -609,11 +654,14 @@ async def delete_influencer_audio(
 
     expected_prefix = f"influencer-audio/{influencer_id}/"
     if not key.startswith(expected_prefix):
-      raise HTTPException(status_code=400, detail="Invalid audio key for this influencer")
+        raise HTTPException(
+            status_code=400, detail="Invalid audio key for this influencer"
+        )
 
     await delete_file_from_s3(key)
 
     return {"ok": True}
+
 
 @router.get("/default-voices")
 async def get_default_voices(db: AsyncSession = Depends(get_db)):
@@ -639,16 +687,20 @@ async def get_default_voices(db: AsyncSession = Depends(get_db)):
         if key.endswith("/"):
             continue
 
-        voices.append({
-            "key": key,
-            "filename": key.split("/")[-1],
-            "url": generate_presigned_url(key, expires=3600),
-        })
+        voices.append(
+            {
+                "key": key,
+                "filename": key.split("/")[-1],
+                "url": generate_presigned_url(key, expires=3600),
+            }
+        )
 
     return {
         "count": len(voices),
         "voices": voices,
     }
+
+
 def _pre_influencer_with_profile_picture_url(pre: PreInfluencer) -> dict:
     data = jsonable_encoder(pre)
     answers = data.get("survey_answers") or {}
@@ -658,11 +710,12 @@ def _pre_influencer_with_profile_picture_url(pre: PreInfluencer) -> dict:
     data["survey_answers"] = answers
     return data
 
+
 @router.get("")
 async def list_pre_influencers(
     status: str | None = None,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     if current_user.id != 1:
         raise HTTPException(status_code=403, detail="Admin only")
@@ -687,11 +740,12 @@ async def get_pre_influencer(
         raise HTTPException(status_code=404, detail="PreInfluencer not found")
     return _pre_influencer_with_profile_picture_url(row)
 
+
 @router.post("/{pre_id}/approve")
 async def approve_pre_influencer(
     pre_id: int,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     if current_user.id != 1:
         raise HTTPException(status_code=403, detail="Admin only")
@@ -708,41 +762,58 @@ async def approve_pre_influencer(
 
     influencer = await db.get(Influencer, influencer_id)
     existing_voice_id = influencer.voice_id if influencer else None
-    existing_agent_id = influencer.influencer_agent_id_third_part if influencer else None
+    existing_agent_id = (
+        influencer.influencer_agent_id_third_part if influencer else None
+    )
     created_voice_id: str | None = None
     created_agent_id: str | None = None
 
     try:
         sections = await load_survey_questions(db)
-        markdown = format_survey_markdown(sections, pre.survey_answers or {}, pre.username)
-        prompt = await generate_prompt_from_markdown(markdown, additional_prompt=None, db=db)
-        
+        markdown = format_survey_markdown(
+            sections, pre.survey_answers or {}, pre.username
+        )
+        prompt = await generate_prompt_from_markdown(
+            markdown, additional_prompt=None, db=db
+        )
+
         voice_id = influencer.voice_id if influencer else None
         agent_id = influencer.influencer_agent_id_third_part if influencer else None
         samples_meta = influencer.samples if influencer and influencer.samples else []
-        display_name = influencer.display_name if influencer and influencer.display_name else (pre.full_name or pre.username)
+        display_name = (
+            influencer.display_name
+            if influencer and influencer.display_name
+            else (pre.full_name or pre.username)
+        )
 
         if voice_id:
             voice_exists = await _voices_gateway.voice_exists(voice_id)
             if not voice_exists:
-                log.warning("Stale voice_id %s detected for %s, will recreate", voice_id, influencer_id)
+                log.warning(
+                    "Stale voice_id %s detected for %s, will recreate",
+                    voice_id,
+                    influencer_id,
+                )
                 voice_id = None
-                samples_meta = []  
+                samples_meta = []
         if not voice_id:
             keys = await list_influencer_audio_keys(str(pre_id))
             if not keys:
                 keys = await list_influencer_audio_keys(influencer_id)
             if not keys:
-                raise HTTPException(400, "No audio samples found. Please upload voice samples before approving.")
+                raise HTTPException(
+                    400,
+                    "No audio samples found. Please upload voice samples before approving.",
+                )
             else:
                 multipart_files: list[tuple[str, tuple[str, bytes, str]]] = []
-                new_samples_meta:list[dict] = []
-                
+                new_samples_meta: list[dict] = []
+
                 for key in keys:
                     filename = key.split("/")[-1]
                     content_type = mimetypes.guess_type(filename)[0] or "audio/mpeg"
                     b = await get_s3_object_bytes(key)
-                    if not b :
+                    if not b:
                         continue
                     multipart_files.append(("files", (filename, b, content_type)))
                     new_samples_meta.append(
@@ -753,25 +824,27 @@ async def approve_pre_influencer(
                             "created_at": datetime.now(timezone.utc).isoformat(),
                         }
                     )
-                
+
                 if multipart_files:
                     try:
                         payload = await _voices_gateway.create_voice(
-                            name=display_name or influencer_id, 
-                            description=None, 
-                            labels_str=None, 
+                            name=display_name or influencer_id,
+                            description=None,
+                            labels_str=None,
                             remove_background_noise=True,
-                            multipart_files=multipart_files
+                            multipart_files=multipart_files,
                         )
                         voice_id = payload["voice_id"]
                         created_voice_id = voice_id
-                        samples_meta = new_samples_meta 
+                        samples_meta = new_samples_meta
                     except HTTPException:
                         # Preserve upstream HTTPException (status code and detail)
                         raise
                     except Exception:
                         # Log the full exception and return a generic upstream error
-                        log.exception("Failed to create voice via ElevenLabsVoicesGateway")
+                        log.exception(
+                            "Failed to create voice via ElevenLabsVoicesGateway"
+                        )
                         raise HTTPException(
                             status_code=502,
                             detail="Failed to create voice due to an upstream error.",
@@ -803,8 +876,8 @@ async def approve_pre_influencer(
             if isinstance(bio_payload.get("personality_rules"), str)
             else ""
         )
-        
-        agent_id = await _push_prompt_to_elevenlabs(
+
+        agent_id = await _agents_gateway.upsert_agent_prompt(
             agent_id=agent_id,
             prompt_text=personality_prompt,
             voice_id=voice_id,
@@ -825,13 +898,13 @@ async def approve_pre_influencer(
                 fp_ref_id=pre.fp_ref_id,
                 email=pre.email,
                 influencer_agent_id_third_part=agent_id,
-                samples=samples_meta
+                samples=samples_meta,
             )
             db.add(influencer)
         else:
             if not influencer.display_name:
                 influencer.display_name = display_name
-            
+
             influencer.bio_json = bio_payload
             influencer.prompt_template = personality_prompt
             influencer.voice_id = voice_id
@@ -846,7 +919,6 @@ async def approve_pre_influencer(
         photo_key = answers.get("profile_picture_key")
         if photo_key and not influencer.profile_photo_key:
             influencer.profile_photo_key = photo_key
-
 
         pre.status = "approved"
         db.add(pre)
@@ -869,20 +941,34 @@ async def approve_pre_influencer(
         try:
             await db.rollback()
         except Exception:
-            log.warning("Failed to rollback DB transaction for influencer=%s", influencer_id, exc_info=True)
+            log.warning(
+                "Failed to rollback DB transaction for influencer=%s",
+                influencer_id,
+                exc_info=True,
+            )
 
         if created_agent_id:
             try:
                 await _agents_gateway.delete_agent(created_agent_id)
-                log.info("Cleanup: deleted newly created ElevenLabs agent %s", created_agent_id)
+                log.info(
+                    "Cleanup: deleted newly created ElevenLabs agent %s",
+                    created_agent_id,
+                )
             except Exception:
-                log.warning("Cleanup failed for agent_id=%s", created_agent_id, exc_info=True)
+                log.warning(
+                    "Cleanup failed for agent_id=%s", created_agent_id, exc_info=True
+                )
 
         if created_voice_id and created_voice_id != existing_voice_id:
             try:
                 await _voices_gateway.delete_voice(created_voice_id)
-                log.info("Cleanup: deleted newly created ElevenLabs voice %s", created_voice_id)
+                log.info(
+                    "Cleanup: deleted newly created ElevenLabs voice %s",
+                    created_voice_id,
+                )
             except Exception:
-                log.warning("Cleanup failed for voice_id=%s", created_voice_id, exc_info=True)
+                log.warning(
+                    "Cleanup failed for voice_id=%s", created_voice_id, exc_info=True
+                )
 
         raise
