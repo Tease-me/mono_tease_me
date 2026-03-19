@@ -183,21 +183,33 @@
     background-color: orange;
 }
 
-.name {
-    color: rgba(255, 255, 255, 0.209);
-    font-size: 6rem;
-    bottom: -5%;
-    z-index: 6;
-    left: 15%;
+.nameContainer {
+    container-type: inline-size;
+    width: 100%;
+    font-family: sans-serif;
+    font-weight: 200;
+    z-index: 0;
     display: grid;
-    align-items: end;
-    position: absolute;
-
-    text-align: center;
-    mask-image: linear-gradient(180deg, black 30%, transparent);
+    font-size: 6cqi;
+    white-space: nowrap;
+    justify-content: center;
+    margin: -10rem auto 0 auto;
+    line-height: 100%;
+    background: linear-gradient(hsla(0, 0%, 100%, 0), hsla(0, 0%, 100%, 0.471));
+    color: white;
+    background-clip: text;
+    -webkit-background-clip: text;
+    text-fill-color: transparent;
+    -webkit-text-fill-color: transparent;
+    bottom: -0.75rem;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
 
 
 }
+
+
 
 
 .namebar {
