@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.db.models import InfluencerWallet, Influencer
+from app.repositories.billing_repository import get_wallet_balance_cents
 from app.schemas.billing import (
     TopUpRequest,
     CreateCheckoutRequest,
@@ -9,7 +10,6 @@ from app.schemas.billing import (
     VerifyCheckoutRequest,
 )
 from app.utils.auth.dependencies import get_current_user
-
 from sqlalchemy import select
 from app.core.config import settings
 from app.utils.infrastructure.rate_limiter import rate_limit
@@ -29,17 +29,14 @@ async def get_balance(
     if not infl:
         raise HTTPException(status_code=404, detail="Influencer not found")
 
-    wallet = await db.scalar(
-        select(InfluencerWallet).where(
-            InfluencerWallet.user_id == user.id,
-            InfluencerWallet.influencer_id == influencer_id,
-            InfluencerWallet.is_18.is_(is_18),
-        )
-    )
-
     return {
         "influencer_id": influencer_id,
-        "balance_cents": wallet.balance_cents if wallet else 0,
+        "balance_cents": await get_wallet_balance_cents(
+            db,
+            user_id=user.id,
+            influencer_id=influencer_id,
+            is_18=is_18,
+        ),
     }
 
 @router.post("/topup")

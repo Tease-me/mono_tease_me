@@ -5,7 +5,7 @@ from .chat import (
     get_ai_reply_via_websocket,
     # synthesize_audio_with_elevenlabs,
     format_for_eleven_v3,
-    synthesize_audio_with_elevenlabs_V3,
+    synthesize_audio_with_elevenlabs_v3,
     pcm_bytes_to_wav_bytes,
 )
 from .email import (
@@ -28,7 +28,7 @@ __all__ = [
     "get_ai_reply_via_websocket",
     # "synthesize_audio_with_elevenlabs",
     "format_for_eleven_v3",
-    "synthesize_audio_with_elevenlabs_V3",
+    "synthesize_audio_with_elevenlabs_v3",
     "pcm_bytes_to_wav_bytes",
     # Email
     "send_verification_email",

@@ -176,9 +176,9 @@ def format_for_eleven_v3(message: str, style: str = "neutral") -> str:
     if tags:
         text = f"{tags} {text}"
     
-    MAX_LENGTH = 2990  # a bit of buffer
-    if len(text) > MAX_LENGTH:
-        text = text[:MAX_LENGTH - 3] + "..."
+    max_length = 2990  # a bit of buffer
+    if len(text) > max_length:
+        text = text[:max_length - 3] + "..."
     
     return text
 
@@ -267,7 +267,12 @@ def _ensure_v3_compatibility(text: str, style: str = "neutral") -> str:
     return enhanced_text
 
 
-async def synthesize_audio_with_elevenlabs_V3(text: str, db, influencer_id: str = None, style: str = "neutral"):
+async def synthesize_audio_with_elevenlabs_v3(
+    text: str,
+    db: AsyncSession,
+    influencer_id: str | None = None,
+    style: str = "neutral",
+):
     influencer = await db.get(Influencer, influencer_id)
     if not influencer:
         raise HTTPException(404, "Influencer not found")
