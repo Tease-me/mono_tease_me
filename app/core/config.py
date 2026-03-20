@@ -109,5 +109,6 @@ class Settings(BaseSettings):
     TELEGRAM_SESSION_ENCRYPTION_KEY: str | None = None  # Fernet key for session file encryption
     TELEGRAM_USERBOT_ENABLED: bool = False           # Feature flag to enable/disable
     TELEGRAM_SESSIONS_DIR: str = "./telegram_sessions"
+    FRONTEND_URL: str = "https://www.teaseme.live"  # Web app base URL
 
 settings = Settings()

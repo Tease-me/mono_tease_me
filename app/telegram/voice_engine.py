@@ -70,11 +70,8 @@ from app.telegram.audio_bridge import (
 
 log = logging.getLogger(__name__)
 
-# Default free trial duration
-DEFAULT_TRIAL_SECS = 120
-
-# Redirect URL after trial
-TEASEME_URL = "https://www.teaseme.live/"
+# Import the canonical trial duration from the service
+from app.services.telegram_call_service import DEFAULT_TRIAL_SECS  # noqa: E402
 
 # ElevenLabs ConvAI input: 16kHz mono 16-bit PCM (for STT / user audio capture)
 CONVAI_INPUT_SAMPLE_RATE = 16000
@@ -87,12 +84,12 @@ CONVAI_INPUT_BPS = CONVAI_INPUT_SAMPLE_RATE * CHANNELS * SAMPLE_WIDTH  # 32000
 CONVAI_OUTPUT_SAMPLE_RATE = 16000
 CONVAI_OUTPUT_BPS = CONVAI_OUTPUT_SAMPLE_RATE * CHANNELS * SAMPLE_WIDTH  # 32000
 
-# Send audio to ConvAI every ~100ms for low latency.
-# ConvAI *input* is 16kHz (for STT). 1600 samples @ 16kHz = 100ms.
-CONVAI_CHUNK_SAMPLES = 1600
-CONVAI_CHUNK_BYTES_16K = CONVAI_CHUNK_SAMPLES * SAMPLE_WIDTH  # 3200 bytes @ 16kHz
-# Equivalent in 48kHz bytes (3x more): 100ms * 96000 bytes/sec = 9600 bytes
-CONVAI_CHUNK_BYTES_48K = int(BYTES_PER_SECOND * 0.1)
+# Send audio to ConvAI every ~60ms for low latency.
+# ConvAI *input* is 16kHz (for STT). 960 samples @ 16kHz = 60ms.
+CONVAI_CHUNK_SAMPLES = 960
+CONVAI_CHUNK_BYTES_16K = CONVAI_CHUNK_SAMPLES * SAMPLE_WIDTH  # 1920 bytes @ 16kHz
+# Equivalent in 48kHz bytes (3x more): 60ms * 96000 bytes/sec = 5760 bytes
+CONVAI_CHUNK_BYTES_48K = int(BYTES_PER_SECOND * 0.06)
 
 # Frame size for send_frame: 10ms @ 48kHz mono 16-bit = 960 bytes.
 # NTgCalls AudioSink operates at 10ms intervals (frameRate=100, frameTime=10ms),
@@ -104,12 +101,12 @@ FRAME_SIZE = int(SAMPLE_RATE * CHANNELS * SAMPLE_WIDTH * 0.01)
 # missing packets cause Telegram to report "poor connection".
 SILENCE_FRAME = b'\x00' * FRAME_SIZE
 
-# Jitter buffer: pre-fill 80ms of audio before starting playback.
-# This absorbs ConvAI network jitter and prevents buffer underruns.
-# Browser WebRTC uses 50-200ms adaptive; 80ms is a good balance
-# between latency and stability for voice conversation.
-JITTER_BUFFER_MS = 80
-JITTER_BUFFER_FRAMES = max(1, JITTER_BUFFER_MS // 10)  # 8 frames of 10ms
+# Jitter buffer: pre-fill 40ms of audio before starting playback.
+# This absorbs ConvAI network jitter while keeping response latency
+# as low as possible. 40ms is tight but viable for conversational AI;
+# increase to 60-80ms if buffer underruns cause audible glitches.
+JITTER_BUFFER_MS = 40
+JITTER_BUFFER_FRAMES = max(1, JITTER_BUFFER_MS // 10)  # 4 frames of 10ms
 
 
 def _upsample_by_ratio(pcm: bytes, ratio: int) -> bytes:
@@ -605,6 +602,11 @@ class VoiceCallSession:
                         "tts": {
                             "voice_id": self.voice_id,
                         },
+                        "turn_detection": {
+                            "type": "server_vad",
+                            "silence_duration_ms": 300,
+                            "threshold": 0.5,
+                        },
                     },
                     "custom_llm_extra_body": {},
                 }
@@ -942,17 +944,16 @@ class VoiceCallSession:
 
             await self.stop(reason="trial_expired")
 
-            # 1) Send text CTA
+            # 1) Send promo media + text CTA with invite link
             try:
-                await self.client.send_message(
-                    chat_id=self.chat_id,
-                    text=(
-                        "💋 Your Trial Has Ended\n\n"
-                        "Continue the fun here:\n"
-                        f"👉 {TEASEME_URL}\n\n"
-                        "See you there babe 😘"
-                    ),
-                )
+                from app.db.session import SessionLocal as _SessionFactory
+                from app.services.telegram_call_service import send_trial_expired_messages
+
+                async with _SessionFactory() as _db:
+                    await send_trial_expired_messages(
+                        self.client, _db, self.chat_id,
+                        self.telegram_user_id, self.influencer_id,
+                    )
             except Exception:
                 log.exception("Failed to send trial redirect message")
 
@@ -964,7 +965,7 @@ class VoiceCallSession:
 
     async def _send_trial_voice_note(self):
         """Generate TTS voice note via ElevenLabs and send as Telegram voice message."""
-        farewell_text = "I'll see you in teaseme mi amor... don't make me wait"
+        farewell_text = "I'll see you in tease-me ......mi amor....... don't make me wait"
         try:
             import httpx
             import io
@@ -985,9 +986,10 @@ class VoiceCallSession:
                 "text": farewell_text,
                 "model_id": "eleven_turbo_v2",
                 "voice_settings": {
-                    "stability": 0.5,
+                    "stability": 0.7,
                     "similarity_boost": 0.75,
                     "style": 0.4,
+                    "speed": 1,
                 },
             }
 
@@ -1019,24 +1021,18 @@ class VoiceCallSession:
     # ── DB helpers ──────────────────────────────────────────────────
 
     async def _create_call_record(self):
-        self._call_record_id = f"tg_call_{uuid.uuid4().hex[:16]}"
+        """Create a CallRecord via the repository (is_adult_call=True)."""
         try:
+            from app.services.repositories.call_record_repository import (
+                create_call_record,
+            )
             async with SessionLocal() as db:
-                chat_id = f"tg_{self.influencer_id}_{self.telegram_user_id}"
-                from app.db.models import Chat
-                existing_chat = await db.get(Chat, chat_id)
-                if not existing_chat:
-                    db.add(Chat(id=chat_id, user_id=0, influencer_id=self.influencer_id))
-                    await db.flush()
-                db.add(CallRecord(
-                    conversation_id=self._call_record_id,
-                    user_id=0,
+                self._call_record_id = await create_call_record(
+                    db,
                     influencer_id=self.influencer_id,
-                    chat_id=chat_id,
                     telegram_user_id=self.telegram_user_id,
-                    status="active",
-                ))
-                await db.commit()
+                    is_adult_call=True,
+                )
         except Exception:
             log.exception("Failed to create call record")
 
@@ -1044,12 +1040,11 @@ class VoiceCallSession:
         if not self._call_record_id:
             return
         try:
+            from app.services.repositories.call_record_repository import (
+                finalize_call_record,
+            )
             async with SessionLocal() as db:
-                record = await db.get(CallRecord, self._call_record_id)
-                if record:
-                    record.status = "completed"
-                    record.call_duration_secs = duration_secs
-                    await db.commit()
+                await finalize_call_record(db, self._call_record_id, duration_secs)
         except Exception:
             log.exception("Failed to finalize call record")
 
@@ -1122,32 +1117,18 @@ class VoiceCallManager:
                 return None
 
             # Check cumulative trial usage for this Telegram user
-            from sqlalchemy import select, func
-            total_used = await db.scalar(
-                select(func.coalesce(func.sum(CallRecord.call_duration_secs), 0.0))
-                .where(
-                    CallRecord.telegram_user_id == telegram_user_id,
-                    CallRecord.status == "completed",
-                )
-            ) or 0.0
-            remaining = max(0, DEFAULT_TRIAL_SECS - int(total_used))
-            log.info(
-                "voice_call.trial_check tg_user=%s used=%.1fs remaining=%ds",
-                telegram_user_id, total_used, remaining,
+            from app.services.telegram_call_service import (
+                check_telegram_trial_eligibility,
+                send_trial_expired_messages,
             )
 
+            remaining = await check_telegram_trial_eligibility(db, telegram_user_id)
+
             if remaining <= 0:
-                log.info("Trial exhausted for tg_user=%s (used %.1fs)", telegram_user_id, total_used)
-                # Send trial-ended messages directly
+                log.info("Trial exhausted for tg_user=%s", telegram_user_id)
                 try:
-                    await client.send_message(
-                        chat_id=chat_id,
-                        text=(
-                            "💋 Your Trial Has Ended\n\n"
-                            "Continue the fun here:\n"
-                            f"👉 {TEASEME_URL}\n\n"
-                            "See you there babe 😘"
-                        ),
+                    await send_trial_expired_messages(
+                        client, db, chat_id, telegram_user_id, influencer_id,
                     )
                 except Exception:
                     log.exception("Failed to send trial-exhausted message")

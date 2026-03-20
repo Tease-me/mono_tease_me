@@ -61,6 +61,9 @@ from .system import SystemPrompt
 # Verification models
 from .verification import IdentityVerification
 
+# Telegram invite models
+from .telegram_invite import TelegramInvite
+
 # API usage tracking
 from .api_usage import ApiUsageLog
 
@@ -109,4 +112,6 @@ __all__ = [
     # API Usage
     "ApiUsageLog",
     "ApiUsageMonthly",
+    # Telegram
+    "TelegramInvite",
 ]

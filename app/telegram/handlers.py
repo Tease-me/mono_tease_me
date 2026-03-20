@@ -103,14 +103,17 @@ class TelegramMessageHandler:
             caller_id,
         )
 
-        from app.telegram.voice_engine import voice_call_manager, TEASEME_URL
-        from app.services.billing import get_remaining_units
+        from app.telegram.voice_engine import voice_call_manager
+        from app.services.telegram_call_service import (
+            check_telegram_trial_eligibility,
+            send_trial_expired_messages,
+        )
         from app.db.session import SessionLocal as _SessionLocal
 
         from sqlalchemy import select, func
         from app.db.models import Influencer
 
-        # Check billing eligibility
+        # Resolve case-insensitive influencer ID
         try:
             async with _SessionLocal() as db:
                 result = await db.execute(
@@ -121,29 +124,18 @@ class TelegramMessageHandler:
                 
                 actual_id = inf_record.id if inf_record else self.influencer_id
 
-                remaining = await get_remaining_units(
-                    db,
-                    user_id=0,  # Telegram-only user
-                    influencer_id=actual_id,
-                    feature="voice",
-                    is_18=False,
-                )
-        except Exception as e:
+                remaining = await check_telegram_trial_eligibility(db, caller_id)
+        except Exception:
             log.exception("telegram.incoming_call failed during DB query")
             return
 
         if remaining <= 0:
-            # No free trial left — send redirect
+            # No free trial left — send promo media + redirect with unique invite link
             try:
-                await self.client.send_message(
-                    chat_id=caller_id,
-                    text=(
-                        "💕 You've used your free call time!\n\n"
-                        "Get more time with me here:\n"
-                        f"👉 {TEASEME_URL}\n\n"
-                        "Can't wait to hear from you again! 😘"
-                    ),
-                )
+                async with _SessionLocal() as db2:
+                    await send_trial_expired_messages(
+                        self.client, db2, caller_id, caller_id, actual_id,
+                    )
             except Exception:
                 log.exception("Failed to send trial-expired redirect")
             return
