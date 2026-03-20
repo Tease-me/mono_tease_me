@@ -19,12 +19,10 @@ import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import clsx from "clsx";
 import logger from "@/utils/logger";
 import useCallWebRTC from "@/hooks/useCallWebRTC";
+import type { CallStatus } from "@/hooks/useCallWebRTC";
 import { useChatScroll } from "@/hooks/useChatScroll";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import { DropDownMenuDataModel } from "@/ui/components/inputs/dropdown/DropDownMenu";
-import AdultModePage from "../pages/adult-mode/AdultModePage";
-import AdultModeComingSoon from "../pages/adult-mode/AdultModeComingSoon";
-import { ADULT_MODE_AVAILABLE } from "@/constants/adultModeAvailable";
 import UserNav from "@/ui/components/nav/UserNav";
 import { Modal } from "@/ui/components/modals/Modal";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
@@ -32,16 +30,10 @@ import SvgPack from "@/utils/SvgPack";
 import ChatInfluencerBar from "./ChatInfluencerBar";
 import ChatHeaderInfo from "./ChatHeaderInfo";
 import CallModePage from "../pages/call-page/CallModePage";
-import AdultConvoStarterCard from "@/ui/components/cards/AdultConvoStarterCard";
 import { mergeCallMessages } from "./messageUtils";
 import UpgradePlanModal from "@/ui/components/modals/subscription/UpgradePlanModal";
 import AddCreditsModal from "@/ui/components/modals/payment-modal/AddCreditsModal";
-import AdultTermsModal from "@/ui/components/modals/adult-terms/AdultTermsModal";
 import { useSidebar } from "@/hooks/useSidebar";
-import InfluencerSelector from "@/ui/screens/influencer/InfluencerSelector";
-import { useInfluencerSelection } from "@/hooks/messaging/useInfluencerSelection";
-import { useSubscriptionState } from "@/hooks/messaging/useSubscriptionState";
-import { useChatRealtime } from "@/hooks/messaging/useChatRealtime";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   chatScreenActions,
@@ -53,18 +45,31 @@ import {
   updateRelationshipFromText,
 } from "@/store/chatScreenSlice";
 import { showErrorModal } from "@/utils/errorModal";
+import { useChatRealtime } from "@/hooks/messaging/useChatRealtime";
+import type { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
+
 
 interface ChatScreenContentProps {
-  defaultInfluencerId?: string;
-  onBackPressed?: () => void;
-  menuItems?: DropDownMenuDataModel[];
   onMenuClick?: () => void;
-  openSubscribe?: boolean;
+  menuItems?: DropDownMenuDataModel[];
+  // Influencer data lifted from HomeScreenSingle
+  influencer: InfluencerDataModel | undefined;
+  influencers: InfluencerDataModel[];
+  hasMultipleInfluencers: boolean;
+  isSelectingInfluencer: boolean;
+  onSelectInfluencer: (id: string) => void;
+  onChangeInfluencer: () => void;
+  onBackToSceneSelector: () => void;
+  onCallStatusChange: (status: CallStatus) => void;
 }
+
 const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
-  defaultInfluencerId,
   onMenuClick,
-  openSubscribe,
+  influencer,
+  hasMultipleInfluencers,
+  onChangeInfluencer,
+  onBackToSceneSelector,
+  onCallStatusChange,
 }) => {
   const dispatch = useAppDispatch();
 
@@ -83,13 +88,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     mode,
     relationship,
     creditsRemaining,
-    minutesRemaining,
     showUpgradeModal,
     showTopupModal,
     callTime,
   } = useAppSelector((state) => state.chatScreen);
 
   const [inputAudio, setInputAudio] = useState<Blob>();
+  const [showErrorAlert, setShowErrorAlert] = useState<string | undefined>();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -144,6 +149,10 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
 
   const prevStatusRef = useRef(status);
 
+  useEffect(() => {
+    onCallStatusChange(status);
+  }, [onCallStatusChange, status]);
+
   const blockIfCallActive = useCallback(() => {
     const isCallActive = status === "connected" || status === "connecting";
     if (isCallActive) {
@@ -155,30 +164,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     }
     return false;
   }, [status]);
-
-  const {
-    influencer,
-    influencers,
-    hasMultipleInfluencers,
-    isSelectingInfluencer,
-    handleSelect,
-    handleChangeInfluencerClicked,
-  } = useInfluencerSelection(status, defaultInfluencerId);
-
-  const {
-    adultMode,
-    adultModeSwitch,
-    setAdultModeSwitch,
-    isActiveSubscriber,
-    showSubscriptionPage,
-    setShowSubscriptionPage,
-    showTermsModal,
-    setShowTermsModal,
-    showErrorAlert,
-    setShowErrorAlert,
-    handleAdultModeChange,
-    handleSubscribePressed,
-  } = useSubscriptionState({ influencer, openSubscribe, callStatus: status });
 
   useEffect(() => {
     if (influencer?.id) {
@@ -194,12 +179,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
   );
 
   useEffect(() => {
-    if (adultMode && mode === "call") {
-      dispatch(chatScreenActions.setMode("chat"));
-    }
-  }, [adultMode, dispatch, mode]);
-
-  useEffect(() => {
     storage.set(LocalStorageKeys.PreferredChatMode, mode);
   }, [mode]);
 
@@ -207,13 +186,13 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     if (!influencer?.id) {
       return;
     }
-    dispatch(fetchChatUsage({ influencerId: influencer.id, adultMode }));
-  }, [adultMode, dispatch, influencer?.id]);
+    dispatch(fetchChatUsage({ influencerId: influencer.id, adultMode: false }));
+  }, [dispatch, influencer?.id]);
 
   useEffect(() => {
     (async () => {
       if (influencer && user) {
-        const initKey = `${user.id}-${influencer.id}-${adultMode}`;
+        const initKey = `${user.id}-${influencer.id}`;
         if (lastChatInitRef.current === initKey) {
           return;
         }
@@ -222,16 +201,21 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
           initializeChatSession({
             userId: user.id,
             influencerId: influencer.id,
-            adultMode,
             pageSize,
           }),
         );
-        connectChat(influencer.id, chat_id, adultMode);
+        connectChat(influencer.id, chat_id);
         setInfluencerId(influencer.id);
         dispatch(chatScreenActions.setIsLoadingMore(false));
       }
     })();
-  }, [adultMode, dispatch, influencer, setInfluencerId, user]);
+  }, [
+    dispatch,
+    influencer,
+    pageSize,
+    setInfluencerId,
+    user,
+  ]);
 
   const { scrollToBottom, handleScroll } = useChatScroll({
     messagesEndRef: messagesEndRef,
@@ -250,7 +234,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
             chatId,
             page: pageNumber + 1,
             pageSize,
-            adultMode,
           }),
         );
         dispatch(chatScreenActions.setPageNumber(pageNumber + 1));
@@ -290,13 +273,12 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
       });
       localAudioUrlsRef.current.clear();
     };
-  }, [adultMode, chatId, influencer?.id]);
+  }, [chatId, influencer?.id]);
 
   const { connectChat, sendMessage } = useChatRealtime({
     dispatch,
     chatId,
     mode,
-    adultMode,
     influencerId: influencer?.id,
     inputText,
     inputAudio,
@@ -323,13 +305,12 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     const prev = prevStatusRef.current;
     prevStatusRef.current = status;
     if (prev === "connected" && status !== "connected" && influencer?.id) {
-      // Small delay to allow the webhook to process the charge
       const timer = setTimeout(() => {
-        dispatch(fetchChatUsage({ influencerId: influencer.id, adultMode }));
+        dispatch(fetchChatUsage({ influencerId: influencer.id, adultMode: false }));
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [status, influencer?.id, adultMode, dispatch]);
+  }, [status, influencer?.id, dispatch]);
 
   const handleStartConversation = React.useCallback(async () => {
     const result = await startConversation();
@@ -346,7 +327,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
       return;
     }
     dispatch(chatScreenActions.setMode("call"));
-  }, [mode, stopConversation]);
+  }, [mode, stopConversation, blockIfCallActive, dispatch]);
 
   const handleScrollEvent = () => {
     handleScroll(containerRef.current);
@@ -372,7 +353,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     );
     if (!confirmed) return;
 
-    await dispatch(clearChatHistoryThunk({ chatId, adultMode }));
+    await dispatch(clearChatHistoryThunk({ chatId }));
   };
 
   const handleMenuClick = () => {
@@ -380,34 +361,23 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     onMenuClick?.();
   };
 
+  const handleBackToSceneSelector = useCallback(() => {
+    if (blockIfCallActive()) return;
+    onBackToSceneSelector();
+  }, [blockIfCallActive, onBackToSceneSelector]);
+
   return (
     <div className={styles["container"]}>
       <div className={styles["chat-screen-content"]}>
         <div className={styles["chat-header"]}>
           <UserNav
             onMenuClick={handleMenuClick}
-            title={isSelectingInfluencer ? "Select Influencer" : undefined}
-            onCallClick={
-              !isSelectingInfluencer && influencer
-                ? handleCallModeChange
-                : undefined
-            }
+            onCallClick={influencer ? handleCallModeChange : undefined}
             callMode={mode === "call"}
-            adultMode={adultModeSwitch}
-            onAdultModeChange={
-              !isSelectingInfluencer && influencer
-                ? handleAdultModeChange
-                : undefined
-            }
-            minutesRemaining={minutesRemaining}
+            onClose={handleBackToSceneSelector}
           />
         </div>
-        {isSelectingInfluencer ? (
-          <InfluencerSelector
-            influencers={influencers}
-            onItemClick={handleSelect}
-          />
-        ) : !influencer ? (
+        {!influencer ? (
           <div className={styles["empty-chat-screen"]}>
             <TeaseMeLogo
               size="xlarge"
@@ -415,122 +385,86 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
               style={{ color: "hsla(0, 0%, 100%, 0.20)" }}
             />
           </div>
-        ) : !showSubscriptionPage ? (
+        ) : mode !== "call" ? (
           <>
-            {mode !== "call" ? (
-              <>
-                {isSuperUser && (
-                  <ChatHeaderInfo
-                    isSuperUser={isSuperUser}
-                    chatId={chatId}
-                    isClearingHistory={isClearingHistory}
-                    onChangeInfluencer={handleChangeInfluencerClicked}
-                    onClearHistory={handleClearHistory}
-                  />
-                )}
-                <ChatInfluencerBar
-                  relationship={relationship}
-                  influencer={influencer}
-                  status={isWsConnected ? "Connected" : "Not Connected"}
-                  adultMode={adultMode}
-                  showChangeInfluencerButton={hasMultipleInfluencers}
-                  onChangeInfluencer={handleChangeInfluencerClicked}
-                  isSubscribed={isActiveSubscriber}
-                />
-                <div
-                  className={clsx(
-                    styles["chat-messages-container"],
-                    isLoadingMessages && styles["loading"],
-                  )}
-                  ref={containerRef}
-                  onScroll={handleScrollEvent}
-                >
-                  {messages ? (
-                    <>
-                      {isLoadingMore && <LoadingSpinner size="small" />}
-                      <div className={styles.adultConvoCardArea}>
-                        {adultMode && !isLoadingMessages && (
-                          <AdultConvoStarterCard
-                            influencerName={influencer?.name}
-                          />
-                        )}
-                      </div>
-                      <MessagesList
-                        messages={displayMessages}
-                        typing={typing}
-                        messagesEndRef={messagesEndRef}
-                        containerRef={containerRef}
-                        influencerName={influencer?.name}
-                        showAudioTranscript={isSuperUser}
-                        isAudio={Boolean(inputAudio)}
-                        adultMode={adultMode}
-                        onAudioPlay={handleAudioPlay}
-                        onCallBack={handleCallModeChange}
-                      />
-                    </>
-                  ) : (
-                    <LoadingSpinner />
-                  )}
-                </div>
-
-                <div className={styles["chat-input-area"]}>
-                  <ChatInputArea
-                    adultMode={adultMode}
-                    onSendMessage={sendMessage}
-                    inputText={inputText}
-                    setInputText={(text) =>
-                      dispatch(chatScreenActions.setInputText(text))
-                    }
-                    setInputAudio={setInputAudio}
-                    // disabled={error ? true : false}
-                    error={error}
-                    creditsRemaining={creditsRemaining}
-                    inputAudio={inputAudio}
-                  />
-                </div>
-              </>
-            ) : (
-              <CallModePage
-                cancelCall={cancelCall}
-                toggleMute={toggleMute}
-                status={status}
-                callTime={callTime}
-                micMute={micMuted}
-                startConversation={handleStartConversation}
-                stopConversation={stopConversation}
-                relationship={relationship}
-                influencer={influencer}
-                errorMessage={errorMessage || "Something went wrong!"}
-                conversationId={conversationId}
-                onChangeInfluencer={
-                  hasMultipleInfluencers
-                    ? handleChangeInfluencerClicked
-                    : undefined
-                }
-                isSubscribed={isActiveSubscriber}
+            {isSuperUser && (
+              <ChatHeaderInfo
+                isSuperUser={isSuperUser}
+                chatId={chatId}
+                isClearingHistory={isClearingHistory}
+                onChangeInfluencer={onChangeInfluencer}
+                onClearHistory={handleClearHistory}
               />
             )}
+            <ChatInfluencerBar
+              relationship={relationship}
+              influencer={influencer}
+              status={isWsConnected ? "Connected" : "Not Connected"}
+              showChangeInfluencerButton={hasMultipleInfluencers}
+              onChangeInfluencer={onChangeInfluencer}
+              isSubscribed={false}
+            />
+            <div
+              className={clsx(
+                styles["chat-messages-container"],
+                isLoadingMessages && styles["loading"],
+              )}
+              ref={containerRef}
+              onScroll={handleScrollEvent}
+            >
+              {messages ? (
+                <>
+                  {isLoadingMore && <LoadingSpinner size="small" />}
+                  <MessagesList
+                    messages={displayMessages}
+                    typing={typing}
+                    messagesEndRef={messagesEndRef}
+                    containerRef={containerRef}
+                    influencerName={influencer?.name}
+                    showAudioTranscript={isSuperUser}
+                    isAudio={Boolean(inputAudio)}
+                    onAudioPlay={handleAudioPlay}
+                    onCallBack={handleCallModeChange}
+                  />
+                </>
+              ) : (
+                <LoadingSpinner />
+              )}
+            </div>
+
+            <div className={styles["chat-input-area"]}>
+              <ChatInputArea
+                onSendMessage={sendMessage}
+                inputText={inputText}
+                setInputText={(text) =>
+                  dispatch(chatScreenActions.setInputText(text))
+                }
+                setInputAudio={setInputAudio}
+                error={error}
+                creditsRemaining={creditsRemaining}
+                inputAudio={inputAudio}
+              />
+            </div>
           </>
-        ) : ADULT_MODE_AVAILABLE ? (
-          <AdultModePage
-            onSubscribePressed={handleSubscribePressed}
-            onBackClicked={() => {
-              setShowSubscriptionPage(false);
-              setAdultModeSwitch(false);
-            }}
-            influencerId={influencer?.id ?? ""}
-            influencerImageUrl={influencer?.img ?? null}
-            influencerName={influencer?.name ?? null}
-          />
         ) : (
-          <AdultModeComingSoon
-            onBackClicked={() => {
-              setShowSubscriptionPage(false);
-              setAdultModeSwitch(false);
-            }}
-            influencerId={influencer?.id ?? ""}
-            influencerImageUrl={influencer?.img ?? null}
-            influencerName={influencer?.name ?? null}
+          <CallModePage
+            cancelCall={cancelCall}
+            toggleMute={toggleMute}
+            status={status}
+            callTime={callTime}
+            micMute={micMuted}
+            startConversation={handleStartConversation}
+            stopConversation={stopConversation}
+            relationship={relationship}
+            influencer={influencer}
+            errorMessage={errorMessage || "Something went wrong!"}
+            conversationId={conversationId}
+            onChangeInfluencer={
+              hasMultipleInfluencers
+                ? onChangeInfluencer
+                : undefined
+            }
+            isSubscribed={false}
           />
         )}
       </div>
@@ -572,12 +506,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
           </>
         </div>
       </Modal>
-      <AdultTermsModal
-        isOpen={showTermsModal}
-        onClose={() => setShowTermsModal(false)}
-        influencerId={influencer?.id || ""}
-        onAgree={() => setShowTermsModal(false)}
-      />
     </div>
   );
 };

@@ -1,1 +1,1 @@
-export const ADULT_MODE_AVAILABLE = false;
+export const ADULT_MODE_AVAILABLE = true;

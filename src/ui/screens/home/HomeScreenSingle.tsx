@@ -7,7 +7,6 @@ import React, {
   useState,
 } from "react";
 import { SidebarContext } from "@/hooks/useSidebar";
-import { useLocation } from "react-router-dom";
 import ChatScreenContent from "../messaging/components/ChatScreenContent";
 import SlideDrawerLayout from "@/ui/templates/SlideDrawerLayout";
 import clsx from "clsx";
@@ -15,9 +14,11 @@ import styles from "./HomeScreenSingle.module.css";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { startInfluencerSubscription } from "@/store/subscriptionSlice";
-import { ADULT_MODE_AVAILABLE } from "@/constants/adultModeAvailable";
-import { storage } from "@/utils/storage";
-import { LocalStorageKeys } from "@/constants/localStorageKeys";
+import { chatScreenActions } from "@/store/chatScreenSlice";
+import { useInfluencerSelection } from "@/hooks/messaging/useInfluencerSelection";
+import type { CallStatus } from "@/hooks/useCallWebRTC";
+import InfluencerSelector from "@/ui/screens/influencer/InfluencerSelector";
+import UserNav from "@/ui/components/nav/UserNav";
 
 const UserMenu = React.lazy(() => import("../user-profile/UserMenu"));
 const UserProfile = React.lazy(
@@ -38,14 +39,14 @@ const AddCredits = React.lazy(
 const AdultModePage = React.lazy(
   () => import("../messaging/pages/adult-mode/AdultModePage"),
 );
-const AdultModeComingSoon = React.lazy(
-  () => import("../messaging/pages/adult-mode/AdultModeComingSoon"),
-);
 const PaymentCheck = React.lazy(
   () => import("../user-profile/Components/PaymentCheck"),
 );
 const Subscription = React.lazy(
   () => import("../user-profile/Components/Subscription"),
+);
+const SceneSelector = React.lazy(
+  () => import("../messaging/pages/scene-selector/SceneSelector"),
 );
 
 type SidebarPageId = string;
@@ -63,6 +64,8 @@ type SidebarPage = {
   background?: string;
 };
 
+type ActiveView = "scene-selector" | "girlfriend-mode";
+
 export default function HomeScreenSingle() {
   const dispatch = useAppDispatch();
   const { isSubscribing } = useAppSelector((state) => state.subscription);
@@ -75,9 +78,6 @@ export default function HomeScreenSingle() {
   const currentInfluencerName = currentInfluencerId
     ? influencerById[currentInfluencerId]?.name
     : undefined;
-  const [openSubscribeInfluencerId, setOpenSubscribeInfluencerId] = useState<
-    string | undefined
-  >();
   const [showSidebar, setShowSidebar] = useState(false);
   const [currentPage, setCurrentPage] = useState<SidebarPageId>("home");
 
@@ -87,8 +87,29 @@ export default function HomeScreenSingle() {
   const currentPageRef = useRef<SidebarPageId>("home");
   const navPayloadRef = useRef<NavPayload>({});
 
-  const location = useLocation();
-  const [openSubscribe, setOpenSubscribe] = useState(false);
+  const [activeView, setActiveView] = useState<ActiveView>("scene-selector");
+  const callStatusRef = useRef<CallStatus>("idle");
+
+  const {
+    influencer,
+    influencers,
+    hasMultipleInfluencers,
+    isSelectingInfluencer,
+    handleSelect,
+    handleChangeInfluencerClicked,
+  } = useInfluencerSelection(callStatusRef.current);
+
+  const handleCallStatusChange = useCallback((status: CallStatus) => {
+    callStatusRef.current = status;
+  }, []);
+
+  useEffect(() => {
+    if (influencer) {
+      dispatch(chatScreenActions.setCurrentInfluencer(influencer));
+    } else {
+      dispatch(chatScreenActions.setCurrentInfluencer(undefined));
+    }
+  }, [dispatch, influencer]);
 
   useEffect(() => {
     currentPageRef.current = currentPage;
@@ -171,24 +192,14 @@ export default function HomeScreenSingle() {
     { id: "add_credits", label: "Add Credits", render: ({ goTo, navPayload }) => <AddCredits goTo={goTo} navpayload={navPayload} /> },
     {
       id: "subscribe", label: "Adult Mode", render: ({ navPayload, goBack }) => (
-        ADULT_MODE_AVAILABLE ? (
-          <AdultModePage
-            influencerId={navPayload.influencerId}
-            influencerImageUrl={navPayload.influencerImageUrl}
-            influencerName={navPayload.influencerName}
-            onSubscribePressed={() => handleSidebarSubscribe(navPayload.influencerId, goBack)}
-            onBackClicked={goBack}
-            nobg
-          />
-        ) : (
-          <AdultModeComingSoon
-            onBackClicked={goBack}
-            nobg
-            influencerId={navPayload.influencerId}
-            influencerImageUrl={navPayload.influencerImageUrl}
-            influencerName={navPayload.influencerName}
-          />
-        )
+        <AdultModePage
+          influencerId={navPayload.influencerId}
+          influencerImageUrl={navPayload.influencerImageUrl}
+          influencerName={navPayload.influencerName}
+          onSubscribePressed={() => handleSidebarSubscribe(navPayload.influencerId, goBack)}
+          onBackClicked={goBack}
+          nobg
+        />
       )
     },
     { id: "subscription", label: "Subscription", render: ({ goTo, navPayload }) => <Subscription goTo={goTo} navPayload={navPayload} />, background: "linear-gradient(0deg, #131313 0%, #131313 100%), url(<path-to-image>) lightgray -60.714px 0px / 130.206% 89.736% no-repeat" },
@@ -236,33 +247,74 @@ export default function HomeScreenSingle() {
     </div>
   );
 
-  useEffect(() => {
-    if (!location.state?.openSubscribe) return;
-    const raw = storage.get(LocalStorageKeys.AdultVerificationTarget);
-    if (!raw) return;
-    try {
-      const target = JSON.parse(raw);
-      storage.remove(LocalStorageKeys.AdultVerificationTarget);
-      if (target.influencerId) {
-        setOpenSubscribeInfluencerId(target.influencerId);
-        setOpenSubscribe(true);
-      }
-    } catch {
-      // invalid JSON, ignore
-    }
-    window.history.replaceState({}, "");
-  }, [location.state]);
+  const handleGirlfriendModeSelected = useCallback(() => {
+    setActiveView("girlfriend-mode");
+  }, []);
 
-  const chatContent = useMemo(
-    () => (
-      <ChatScreenContent
-        defaultInfluencerId={openSubscribeInfluencerId}
-        onMenuClick={toggleSidebar}
-        openSubscribe={openSubscribe}
-      />
-    ),
-    [openSubscribeInfluencerId, toggleSidebar, openSubscribe],
-  );
+  const handleBackToSceneSelector = useCallback(() => {
+    setActiveView("scene-selector");
+  }, []);
+
+  const mainContent = useMemo(() => {
+    if (isSelectingInfluencer) {
+      return (
+        <div className={styles.viewWithNav}>
+          <UserNav onMenuClick={toggleSidebar} title="Select Influencer" />
+          <InfluencerSelector
+            influencers={influencers}
+            onItemClick={handleSelect}
+          />
+        </div>
+      );
+    }
+
+    if (activeView === "girlfriend-mode") {
+      return (
+        <ChatScreenContent
+          onMenuClick={toggleSidebar}
+          influencer={influencer}
+          influencers={influencers}
+          hasMultipleInfluencers={hasMultipleInfluencers}
+          isSelectingInfluencer={false}
+          onSelectInfluencer={handleSelect}
+          onChangeInfluencer={handleChangeInfluencerClicked}
+          onBackToSceneSelector={handleBackToSceneSelector}
+          onCallStatusChange={handleCallStatusChange}
+        />
+      );
+    }
+
+    return (
+      <div className={styles.viewWithNav}>
+        <UserNav
+          onMenuClick={toggleSidebar}
+          onSwitchInfluencer={hasMultipleInfluencers ? handleChangeInfluencerClicked : undefined}
+        />
+        {influencer ? (
+          <Suspense fallback={<div className={styles.loadingSpinner}><LoadingSpinner /></div>}>
+            <SceneSelector
+              influencerId={influencer.id}
+              onGirlfriendModeSelected={handleGirlfriendModeSelected}
+            />
+          </Suspense>
+        ) : (
+          <div className={styles.loadingSpinner}><LoadingSpinner /></div>
+        )}
+      </div>
+    );
+  }, [
+    activeView,
+    handleBackToSceneSelector,
+    handleCallStatusChange,
+    handleChangeInfluencerClicked,
+    handleGirlfriendModeSelected,
+    handleSelect,
+    hasMultipleInfluencers,
+    influencer,
+    influencers,
+    isSelectingInfluencer,
+    toggleSidebar,
+  ]);
 
   return (
     <SidebarContext.Provider value={{ openSidebar }}>
@@ -281,7 +333,7 @@ export default function HomeScreenSingle() {
         }
         background={active.background}
       >
-        {chatContent}
+        {mainContent}
       </SlideDrawerLayout>
     </SidebarContext.Provider>
   );

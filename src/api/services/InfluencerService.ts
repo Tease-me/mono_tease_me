@@ -1,4 +1,5 @@
 import { InfluencerBioResponse, InfluencerResponse, InfluencerSampleListResponse, InfluencerSampleResponse } from "../models/influencers";
+import { AdultCharactersResponse } from "../models/adultCharacters";
 import { Endpoints } from "../urls";
 import { AxiosInstance } from "axios";
 import { KnowledgeFile } from "../models/knowledgeFiles";
@@ -181,5 +182,13 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
         catch (error) {
             throw error;
         }
+    },
+    getAdultCharacters: async (id: string): Promise<AdultCharactersResponse> => {
+        try {
+            const response = await apiClient.get<AdultCharactersResponse>(Endpoints.adult_characters(id));
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
     }
-})
+});

@@ -1,5 +1,5 @@
 import { Endpoints } from "../urls";
-import { CallDetailsResponse, ChatAudioResponse, ChatHistoryResponse, ChatIdResponse, ConversationTokenResponse, SignedUrlResponse } from "../models/chat";
+import { AdultConversationTokenResponse, CallDetailsResponse, ChatAudioResponse, ChatHistoryResponse, ChatIdResponse, ConversationTokenResponse, RegisterConversationPayload, SignedUrlResponse } from "../models/chat";
 import { apiClient } from "../apis";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { storage } from "@/utils/storage";
@@ -112,6 +112,28 @@ export const ChatServices = () => ({
         }
     },
 
+    getAdultConversationToken: async (
+        influencer_id: string,
+        character_id: number,
+        signal?: AbortSignal
+    ): Promise<AdultConversationTokenResponse> => {
+        try {
+            const response = await apiClient.get(
+                Endpoints.adult.conversation_token,
+                {
+                    params: {
+                        influencer_id,
+                        character_id,
+                    },
+                    signal,
+                }
+            );
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
     getCallDetails: async (conversation_id: string, signal?: AbortSignal): Promise<CallDetailsResponse> => {
         try {
             const response = await apiClient.get(
@@ -126,7 +148,11 @@ export const ChatServices = () => ({
         }
     },
 
-    registerConversation: async (conversation_id: string, user_id: number, influencer_id: string, signal?: AbortSignal) => {
+    registerConversation: async (
+        conversation_id: string,
+        payload: RegisterConversationPayload,
+        signal?: AbortSignal
+    ) => {
         let attempt = 0;
         let delay = 400;
         let maxRetries = 3;
@@ -134,11 +160,7 @@ export const ChatServices = () => ({
             try {
                 await apiClient.post(
                     Endpoints.elevenlabs.register(conversation_id),
-                    {
-                        user_id: user_id,
-                        influencer_id: influencer_id,
-                        sid: crypto.randomUUID()
-                    },
+                    payload,
                     {
                         signal,
                     }
