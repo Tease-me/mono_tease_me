@@ -5,7 +5,6 @@ Business decisions belong in the service layer.
 """
 
 from datetime import datetime, timezone
-from typing import Optional
 
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession

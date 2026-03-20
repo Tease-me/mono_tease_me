@@ -18,9 +18,6 @@ import io
 import logging
 import struct
 import subprocess
-import tempfile
-import os
-from typing import Optional
 
 import httpx
 

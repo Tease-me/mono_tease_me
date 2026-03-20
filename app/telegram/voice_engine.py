@@ -21,9 +21,7 @@ import base64
 import json
 import logging
 import re
-import struct
 import time
-import uuid
 from typing import Optional
 
 import httpx
@@ -58,10 +56,9 @@ except ImportError:
 
 from app.core.config import settings
 from app.db.session import SessionLocal
-from app.db.models import Influencer, CallRecord
+from app.db.models import Influencer
 from app.telegram.audio_bridge import (
     downsample_48k_to_16k,
-    pcm_resample_to_48k_mono,
     BYTES_PER_SECOND,
     SAMPLE_RATE,
     SAMPLE_WIDTH,

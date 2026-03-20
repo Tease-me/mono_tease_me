@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import os
 from pathlib import Path
 
 try:
@@ -34,10 +33,10 @@ try:
 except ImportError:
     import pyrogram.errors as _pe
 
-    class _GroupcallForbidden(Exception):
+    class _GroupcallForbiddenError(Exception):
         pass
 
-    _pe.GroupcallForbidden = _GroupcallForbidden  # type: ignore[attr-defined]
+    _pe.GroupcallForbidden = _GroupcallForbiddenError  # type: ignore[attr-defined]
 
 try:
     from pytgcalls import PyTgCalls
