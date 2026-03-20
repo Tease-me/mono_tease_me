@@ -1,4 +1,4 @@
-.PHONY: seed-adult-characters seed-influencers seed-pricing seed-users seed-all seed-prompts seed-subscription-plans rename-influencer-id
+.PHONY: seed-adult-characters seed-influencers seed-pricing seed-users seed-all seed-prompts seed-subscription-plans rename-influencer-id fake-topup
 .PHONY: lint lint-fix format format-check lint-docker lint-docker-fix format-docker format-docker-check
 .PHONY: db-backup db-restore db-backup-list
 
@@ -36,6 +36,18 @@ rename-influencer-id:
 		exit 1; \
 	fi
 	$(COMPOSE) exec $(SERVICE) python scripts/rename_influencer_id.py --old-id "$(OLD_ID)" --new-id "$(NEW_ID)" $(if $(filter yes,$(EXECUTE)),--execute,) $(if $(filter yes,$(SKIP_S3)),--skip-s3,)
+
+fake-topup:
+	@if [ -z "$(USER_ID)" ] || [ -z "$(INFLUENCER_ID)" ] || [ -z "$(CENTS)" ]; then \
+		echo "Usage: make fake-topup USER_ID=<id> INFLUENCER_ID=<id> CENTS=<cents> [IS_18=yes] [SOURCE=value]"; \
+		exit 1; \
+	fi
+	$(COMPOSE) exec $(SERVICE) python scripts/fake_topup.py \
+		--user-id "$(USER_ID)" \
+		--influencer-id "$(INFLUENCER_ID)" \
+		--cents "$(CENTS)" \
+		$(if $(filter yes,$(IS_18)),--is-18,) \
+		$(if $(SOURCE),--source "$(SOURCE)",)
 
 .PHONY: db-wipe-conversations
 db-wipe-conversations:

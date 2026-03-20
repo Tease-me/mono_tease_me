@@ -9,17 +9,41 @@ from app.db.models import (
     DailyUsage,
     InfluencerCreditTransaction,
     InfluencerWallet,
+    Pricing,
     User,
 )
 from app.repositories.billing_repository import get_wallet_balance_cents
 
 
-def _compute_adult_character_voice_cost_cents(
+async def _resolve_adult_character_voice_pricing(
+    db: AsyncSession,
     *,
     character: AdultCharacter,
+) -> tuple[int, str]:
+    unit_price_millicents = max(int(character.voice_price_millicents or 0), 0)
+    if unit_price_millicents > 0:
+        return unit_price_millicents, "character"
+
+    live_chat_18 = await db.scalar(
+        select(Pricing).where(
+            Pricing.feature == "live_chat_18",
+            Pricing.is_active.is_(True),
+        )
+    )
+    if live_chat_18 and int(live_chat_18.price_cents or 0) > 0:
+        return int(live_chat_18.price_cents or 0) * 1000, "live_chat_18"
+
+    raise HTTPException(
+        status_code=500,
+        detail="Adult character pricing is unavailable and live_chat_18 pricing is not configured",
+    )
+
+
+def _compute_cost_from_millicents(
+    *,
+    unit_price_millicents: int,
     units: int,
 ) -> int:
-    unit_price_millicents = max(int(character.voice_price_millicents or 0), 0)
     cost_millicents = max(int(units), 0) * unit_price_millicents
     return (cost_millicents + 999) // 1000 if cost_millicents > 0 else 0
 
@@ -32,8 +56,12 @@ async def can_afford_adult_character_voice(
     character: AdultCharacter,
     units: int,
 ) -> tuple[bool, int, int]:
-    cost_cents = _compute_adult_character_voice_cost_cents(
+    unit_price_millicents, _pricing_source = await _resolve_adult_character_voice_pricing(
+        db,
         character=character,
+    )
+    cost_cents = _compute_cost_from_millicents(
+        unit_price_millicents=unit_price_millicents,
         units=units,
     )
     balance_cents = await get_wallet_balance_cents(
@@ -60,7 +88,7 @@ async def _record_adult_character_voice_usage(
         if getattr(usage, field, None) is None:
             setattr(usage, field, 0)
 
-    usage.voice_secs += max(int(units), 0)
+    usage.live_secs += max(int(units), 0)
     db.add(usage)
 
 
@@ -81,8 +109,12 @@ async def charge_adult_character_voice_call(
         units=units,
     )
 
-    cost = _compute_adult_character_voice_cost_cents(
+    unit_price_millicents, pricing_source = await _resolve_adult_character_voice_pricing(
+        db,
         character=character,
+    )
+    cost = _compute_cost_from_millicents(
+        unit_price_millicents=unit_price_millicents,
         units=units,
     )
     if cost:
@@ -130,12 +162,13 @@ async def charge_adult_character_voice_call(
 
     tx_meta = dict(meta or {})
     tx_meta.setdefault("adult_character_id", character.id)
-    tx_meta.setdefault("voice_price_millicents", int(character.voice_price_millicents or 0))
+    tx_meta.setdefault("pricing_source", pricing_source)
+    tx_meta.setdefault("voice_price_millicents", unit_price_millicents)
     db.add(
         InfluencerCreditTransaction(
             user_id=user_id,
             influencer_id=influencer_id,
-            feature="adult_character_voice",
+            feature="live_chat_18",
             units=-max(int(units), 0),
             amount_cents=-cost,
             meta=tx_meta,
@@ -157,9 +190,10 @@ async def get_remaining_adult_character_voice_secs(
     influencer_id: str,
     character: AdultCharacter,
 ) -> int:
-    unit_price_millicents = max(int(character.voice_price_millicents or 0), 0)
-    if unit_price_millicents <= 0:
-        return 0
+    unit_price_millicents, _pricing_source = await _resolve_adult_character_voice_pricing(
+        db,
+        character=character,
+    )
 
     balance_cents = await get_wallet_balance_cents(
         db,

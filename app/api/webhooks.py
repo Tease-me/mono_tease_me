@@ -16,8 +16,9 @@ from app.core.config import settings
 from app.db.session import get_db, SessionLocal
 from app.services.billing import charge_feature, _get_influencer_id_from_chat, resolve_voice_billing_mode
 from app.services.adult_character_billing import charge_adult_character_voice_call
-from app.api.elevenlabs import claim_billing_slot, mark_billing_done, reset_billing_slot
-from app.api.elevenlabs import _extract_total_seconds, _persist_transcript_to_chat
+from app.repositories.call_record import claim_billing_slot, mark_billing_done, reset_billing_slot
+from app.use_cases.elevenlabs_transcript_persistence import persist_transcript_to_chat
+from app.utils.elevenlabs_conversation import extract_total_seconds
 from sqlalchemy import select
 from app.db.models import CallRecord, Chat, Influencer
 from app.agents.turn_handler import  handle_turn, redis_history, _messages_since_session_break
@@ -168,7 +169,7 @@ async def elevenlabs_post_call(request: Request, db: AsyncSession = Depends(get_
 
     conversation_id = data.get("conversation_id")
     status = (data.get("status") or "done").lower()
-    total_seconds = _extract_total_seconds(data)
+    total_seconds = extract_total_seconds(data)
     transcript = data.get("transcript") or []
 
     log.info(
@@ -314,7 +315,7 @@ async def elevenlabs_post_call(request: Request, db: AsyncSession = Depends(get_
 
         async def _bg_persist_transcript():
             async with SessionLocal() as bg_db:
-                await _persist_transcript_to_chat(
+                await persist_transcript_to_chat(
                     bg_db,
                     conversation_json=data,
                     chat_id=chat_id,
