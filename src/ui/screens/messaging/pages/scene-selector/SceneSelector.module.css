@@ -1,0 +1,534 @@
+.container {
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-dark-1);
+}
+
+.loadingState {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.statusState {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.statusText {
+  color: #fff;
+  text-align: center;
+  font-family: Urbanist;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 140%;
+  letter-spacing: 0.2px;
+}
+
+.page1 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 24px;
+  padding: 24px 20px 40px;
+}
+
+.header {
+  color: #fff;
+  font-size: 32px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.selectionArea {
+  width: 100%;
+  max-width: 100%;
+}
+
+.scenesList {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  gap: 24px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+  justify-content: safe center;
+  padding: 0 20px 16px;
+}
+
+.scenesList::-webkit-scrollbar {
+  display: none;
+}
+
+.sceneItem {
+  display: flex;
+  flex: 0 0 clamp(420px, 36vw, 560px);
+  width: clamp(420px, 36vw, 560px);
+  max-width: none;
+  flex-direction: column;
+  gap: 32px;
+  scroll-snap-align: start;
+}
+
+@media (min-width: 1024px) {
+  .sceneItem {
+    flex-basis: clamp(360px, 31vw, 500px);
+    width: clamp(360px, 31vw, 500px);
+  }
+}
+
+.sceneButton {
+  flex: 0 0 auto;
+  width: fit-content;
+  min-height: 64px;
+  height: 64px;
+  align-self: center;
+}
+
+.girlfriendSceneItem .sceneButton {
+  background:
+    linear-gradient(250deg, var(----tm-black-color06, rgba(33, 33, 33, 0.70)) 8.83%, var(----tm-black-color03, rgba(46, 46, 46, 0.70)) 13.08%, var(----tm-black-color02, rgba(51, 51, 51, 0.70)) 23.52%, var(----tm-black-color03, rgba(46, 46, 46, 0.70)) 35.88%, var(----tm-black-color08, rgba(20, 20, 20, 0.70)) 61.39%, var(----tm-black-color05, rgba(35, 37, 42, 0.70)) 89.22%),
+    linear-gradient(82deg, var(----tm-purple-color12, #19042E) 11.75%, var(----tm-purple-color11, #2C084D) 25.54%, var(----tm-purple-color12, #19042E) 46.73%, var(----tm-purple-color11, #2C084D) 65.34%, var(----tm-pink-color09, #E0004B) 82.28%, var(----tm-purple-color12, #19042E) 90.95%) !important;
+}
+
+.girlfriendSceneItem .sceneButton :global([class*="button-cta-inner"]) {
+  background: transparent !important;
+}
+
+.girlfriendSceneItem .sceneButton :global([class*="circle-shine"]) {
+  opacity: 0.05 !important;
+  mix-blend-mode: inherit;
+}
+
+.edgeFade {
+  mask-image: linear-gradient(90deg, black 0%, black 90%, transparent 100%);
+}
+
+.sessionPage {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  justify-content: center;
+  align-items: center;
+  padding: 24px 20px 40px;
+}
+
+.sessionStage {
+  position: relative;
+  display: flex;
+  width: 100%;
+  max-width: 560px;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.previewStage {
+  max-width: 560px;
+}
+
+.activeStage {
+  width: min(100%, 560px);
+  max-width: 560px;
+}
+
+.sessionMedia {
+  position: relative;
+  display: flex;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  transition:
+    width 320ms ease,
+    flex-basis 320ms ease;
+}
+
+.sessionVideo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 320ms ease;
+}
+
+
+.previewOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.34);
+  pointer-events: none;
+}
+
+.previewCloseButton {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 3;
+  width: 52px !important;
+  height: 52px !important;
+  flex: 0 0 52px;
+}
+
+
+
+.previewCloseButton>div>div>div {
+  width: 32px;
+  height: 32px;
+}
+
+.previewCloseIcon {
+  width: 32px;
+  height: 32px;
+}
+
+.previewDesktopPanel {
+  display: none;
+}
+
+.previewDesktopPanelVisible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.previewDesktopPanelHidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-56px);
+}
+
+.callButtonIcon {
+  color: #fff;
+}
+
+
+.sessionName {
+  position: absolute;
+  left: 50%;
+  bottom: calc(48% - 24px);
+  transform: translateX(-50%);
+  display: flex;
+  width: 213px;
+  max-width: calc(100% - 32px);
+  z-index: 1;
+  padding: 14px 24px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(24, 24, 28, 0.82);
+  backdrop-filter: blur(14px);
+  color: #fff;
+  text-align: center;
+  font-family: "Abril Fatface";
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 120%;
+}
+
+.desktopSessionName {
+  display: flex;
+  width: 213px;
+  max-width: 100%;
+  padding: 14px 24px;
+  justify-content: center;
+  align-items: center;
+  align-self: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(24, 24, 28, 0.82);
+  backdrop-filter: blur(14px);
+  color: #fff;
+  text-align: center;
+  font-family: "Abril Fatface";
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 120%;
+}
+
+.previewPanel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  width: 100%;
+  height: 48%;
+  min-height: 213px;
+  padding: 48px 48px 24px;
+  box-sizing: border-box;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 16px;
+  border-radius: 0 0 16px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+  background: #222429;
+  overflow: hidden;
+}
+
+.previewDesktopBody {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+}
+
+.subtitle {
+  color: var(--Greyscale-600, #757575);
+  text-align: center;
+  font-family: Urbanist;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 140%;
+  letter-spacing: 0.2px;
+}
+
+.sessionDescription {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  color: var(--Others-White, #FFF);
+  font-family: Urbanist;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 140%;
+  letter-spacing: 0.2px;
+}
+
+.previewActions {
+  display: flex;
+  width: 100%;
+  margin-top: auto;
+  justify-content: center;
+}
+
+.sessionTimer {
+  width: 100%;
+  color: #fff;
+  text-align: center;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 120%;
+}
+
+.activePanel {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  display: flex;
+  width: 330px;
+  max-width: calc(100% - 28px);
+  padding: 15px 9px;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  border-radius: var(--radius-radius-xl, 20px);
+  border: 1px solid rgba(66, 66, 66, 0.50);
+  background: rgba(33, 33, 33, 0.80);
+  backdrop-filter: blur(5px);
+}
+
+.activePanelVisible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.activePanelHidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(32px);
+}
+
+.callButton {
+  min-width: 180px;
+  width: auto;
+  min-height: 56px;
+  flex: 0 0 auto;
+  justify-content: center;
+}
+
+.activeActions {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.activeCallButton {
+  width: 180px;
+  flex: 0 0 180px;
+  justify-content: center;
+}
+
+@media (max-width: 767px) {
+  .page1 {
+    padding: 20px 16px 32px;
+  }
+
+  .header {
+    font-size: 26px;
+  }
+
+  .scenesList {
+    gap: 14px;
+    padding: 0 16px 16px;
+    scroll-snap-type: none;
+    justify-content: flex-start;
+  }
+
+  .sceneItem {
+    flex: 0 0 min(320px, calc(100vw - 88px));
+    width: min(320px, calc(100vw - 88px));
+    max-width: none;
+    scroll-snap-align: unset;
+  }
+
+  .sessionPage {
+    padding: 0px 8px 8px;
+  }
+
+  .activeSessionPage {
+    padding: 0 20px 20px;
+  }
+
+  .sessionStage {
+    max-width: 100%;
+  }
+
+  .sessionMedia {
+    max-width: 100%;
+  }
+
+  .previewSessionPage .sessionStage {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100%;
+    margin-inline: calc(50% - 50vw);
+  }
+
+  .activeSessionPage .sessionStage {
+    height: 100%;
+  }
+
+  .previewPanel {
+    height: 46%;
+    min-height: 184px;
+    padding: 44px 24px 24px;
+  }
+
+  .previewVideo {
+    transform: scale(1.1);
+  }
+
+  .sessionName {
+    bottom: calc(46% - 24px);
+    font-size: 18px;
+    max-width: calc(100% - 24px);
+  }
+
+  .sessionDescription {
+    font-size: 16px;
+  }
+}
+
+@media (min-width: 768px) {
+  .previewSessionPage {
+    padding: 24px 20px 40px;
+  }
+
+  .previewStage {
+    width: 100%;
+    max-width: 1000px;
+    height: min(100%, 720px);
+    min-height: 500px;
+    overflow: hidden;
+    border-radius: 16px;
+    background: #222429;
+    transition:
+      width 320ms ease,
+      max-width 320ms ease;
+  }
+
+  .previewStage .sessionMedia {
+    width: 50%;
+    flex: 0 0 50%;
+    border-radius: 16px 0 0 16px;
+  }
+
+  .previewStage .previewCloseButton {
+    top: 16px;
+    right: 16px;
+  }
+
+  .previewStage .sessionName,
+  .previewStage .previewPanel {
+    display: none;
+  }
+
+  .previewDesktopPanel {
+    display: flex;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 50%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    padding: 88px 32px 32px;
+    box-sizing: border-box;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 24px;
+    background: #222429;
+    border-radius: 0 16px 16px 0;
+    transition:
+      opacity 320ms ease,
+      transform 320ms ease;
+  }
+
+  .previewDesktopPanel .subtitle,
+  .previewDesktopPanel .sessionDescription {
+    text-align: left;
+  }
+
+  .activeStage {
+    width: min(100%, 560px);
+    max-width: 560px;
+    height: min(100%, 720px);
+    transition:
+      width 320ms ease,
+      max-width 320ms ease;
+  }
+
+  .activeStage .sessionMedia {
+    border-radius: 16px;
+  }
+
+  .activePanel {
+    transition:
+      opacity 320ms ease,
+      transform 320ms ease;
+  }
+}
