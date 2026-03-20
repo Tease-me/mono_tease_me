@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import styles from "./AdultSceneSelectorCard.module.css";
 import LottieAnimation from "@/ui/components/LottieAnimation";
+import AudioSamplePlayer from "@/ui/components/audio-player/AudioSamplePlayer";
 
 type Props = {
   name: string;
@@ -55,6 +56,9 @@ export default function AdultSceneSelector({
       <div className={`${styles.name}${isGirlfriend ? ` ${styles.girlfriendName}` : ""}`}>{name}</div>
       <div className={styles.lowerBody}>
         <div className={styles.description}>{description}</div>
+        <div className={styles.samplePlayer}>
+          <AudioSamplePlayer url="" size="large" />
+        </div>
       </div>
     </div>
   );
