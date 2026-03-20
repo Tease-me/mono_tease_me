@@ -54,7 +54,7 @@ export default function AudioSamplePlayer({ url, size = "large" }: AudioSamplePl
         {isPlaying ? <PauseIcon /> : <PlayIcon />}
       </button>
 
-      <div className={clsx(styles.waveform, isPlaying && styles.waveformPlaying)} aria-hidden="true">
+      <div className={clsx(styles.waveform, styles.waveformPlaying)} aria-hidden="true">
         {bars.map((_, i) => (
           <span key={i} />
         ))}

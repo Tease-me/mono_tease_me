@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useIsMobile } from "@/hooks/layout/useIsDesktop";
 import styles from "./AdultSceneSelectorCard.module.css";
 import LottieAnimation from "@/ui/components/LottieAnimation";
 import AudioSamplePlayer from "@/ui/components/audio-player/AudioSamplePlayer";
@@ -20,6 +21,7 @@ export default function AdultSceneSelector({
   titlePlaceholderData,
   isGirlfriend,
 }: Props) {
+  const isMobile = useIsMobile();
   const [imageFailed, setImageFailed] = useState(false);
   const resolvedImageSrc = imageSmallSrc ?? imageLargeSrc ?? null;
   const resolvedSrcSet =
@@ -57,7 +59,7 @@ export default function AdultSceneSelector({
       <div className={styles.lowerBody}>
         <div className={styles.description}>{description}</div>
         <div className={styles.samplePlayer}>
-          <AudioSamplePlayer url="" size="large" />
+          <AudioSamplePlayer url="" size={isMobile ? "small" : "large"} />
         </div>
       </div>
     </div>
