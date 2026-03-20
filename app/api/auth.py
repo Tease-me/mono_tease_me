@@ -141,6 +141,18 @@ async def register(
             log.error(f"Failed to upload profile photo during registration: {e}", exc_info=True)
             raise HTTPException(500, "Failed to upload profile photo")
 
+    # Claim Telegram invite code and bind telegram_id
+    if data.invite_code:
+        try:
+            from app.services.telegram_invite_service import claim_and_bind_telegram
+            bind_result = await claim_and_bind_telegram(
+                db, data.invite_code, user, data.influencer_id,
+            )
+            if bind_result:
+                data.influencer_id = bind_result.influencer_id
+        except Exception:
+            log.exception("register.invite_claim_error code=%s", data.invite_code)
+
     if data.influencer_id:
         await create_follow_if_missing(db, data.influencer_id, user.id)
 

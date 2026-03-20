@@ -103,4 +103,12 @@ class Settings(BaseSettings):
     # LLM configuration
     DEFAULT_SUMMARIZATION_MODEL: str = "gpt-3.5-turbo"
 
+    # Telegram Userbot (pytgcalls) configuration
+    TELEGRAM_API_ID: int | None = None              # From https://my.telegram.org
+    TELEGRAM_API_HASH: str | None = None            # From https://my.telegram.org
+    TELEGRAM_SESSION_ENCRYPTION_KEY: str | None = None  # Fernet key for session file encryption
+    TELEGRAM_USERBOT_ENABLED: bool = False           # Feature flag to enable/disable
+    TELEGRAM_SESSIONS_DIR: str = "./telegram_sessions"
+    FRONTEND_URL: str = "https://www.teaseme.live"  # Web app base URL
+
 settings = Settings()

@@ -16,6 +16,7 @@ class RegisterRequest(BaseModel):
     gender: str | None = None
     date_of_birth: date | None = None
     fp_tid: str | None = None
+    invite_code: str | None = None
 
     @classmethod
     def as_form(
@@ -28,6 +29,7 @@ class RegisterRequest(BaseModel):
         gender: str | None = Form(default=None),
         date_of_birth: date | None = Form(default=None),
         fp_tid: str | None = Form(default=None),
+        invite_code: str | None = Form(default=None),
     ) -> "RegisterRequest":
         return cls(
             password=password,
@@ -38,6 +40,7 @@ class RegisterRequest(BaseModel):
             gender=gender,
             date_of_birth=date_of_birth,
             fp_tid=fp_tid,
+            invite_code=invite_code,
         )
     
 class Token(BaseModel):
