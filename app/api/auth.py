@@ -22,6 +22,9 @@ from app.utils.storage.s3 import generate_user_presigned_url, save_user_photo_to
 from app.services.follow import create_follow_if_missing
 from app.api.common.influencer import ensure_influencer
 from app.utils.infrastructure.rate_limiter import rate_limit
+from app.utils.infrastructure.country import (
+    is_request_from_age_verification_required_country,
+)
 
 log = logging.getLogger(__name__)
 
@@ -275,8 +278,15 @@ async def logout(response: Response) -> dict:
     return {"ok": True, "message": "Logged out"}
 
 @router.get("/me", response_model=UserOut)
-async def get_me(user: User = Depends(get_current_user)):
+async def get_me(request: Request, user: User = Depends(get_current_user)):
+    is_age_verified = user.is_age_verified or (
+        user.is_identity_verified and user.verification_level in ["full", "premium"]
+    )
+    verification_required = (not is_age_verified) and (
+        is_request_from_age_verification_required_country(request)
+    )
     user_out = UserOut.model_validate(user)
+    user_out.verification_required = verification_required
     if user.profile_photo_key:
         user_out.profile_photo_url = generate_user_presigned_url(user.profile_photo_key)
     return user_out
