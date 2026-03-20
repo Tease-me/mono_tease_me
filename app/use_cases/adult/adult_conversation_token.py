@@ -10,9 +10,7 @@ from app.schemas.adult.adult_conversation import (
     AdultConversationTokenRequest,
     AdultConversationTokenResponse,
 )
-from app.gateways.adult.adult_conversation_gateway import (
-    ElevenLabsAdultConversationGateway,
-)
+from app.gateways.elevenlabs.conversation_gateway import ElevenLabsConversationGateway
 from app.repositories.adult.adult_conversation_repository import (
     get_active_influencer_character_meta,
     get_adult_character_by_id,
@@ -26,7 +24,7 @@ async def create_adult_conversation_token(
     db: AsyncSession,
     user_id: int,
     payload: AdultConversationTokenRequest,
-    gateway: ElevenLabsAdultConversationGateway | None = None,
+    gateway: ElevenLabsConversationGateway | None = None,
 ) -> AdultConversationTokenResponse:
     influencer = await get_influencer_by_id(db, payload.influencer_id)
     if not influencer:
@@ -72,7 +70,7 @@ async def create_adult_conversation_token(
         character=character,
     )
 
-    token_gateway = gateway or ElevenLabsAdultConversationGateway()
+    token_gateway = gateway or ElevenLabsConversationGateway()
     token = await token_gateway.get_conversation_token(agent_id)
     greeting_used = pick_random_first_message(character.first_messages)
 

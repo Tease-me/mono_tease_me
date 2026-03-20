@@ -13,7 +13,7 @@ from app.errors.knowledge_errors import (
     KnowledgeSyncError,
     KnowledgeValidationError,
 )
-from app.gateways.elevenlabs_knowledge_gateway import ElevenLabsKnowledgeGateway
+from app.gateways.elevenlabs.knowledge_gateway import ElevenLabsKnowledgeGateway
 from app.repositories.knowledge_repository import (
     delete_document_and_chunks,
     get_document_with_count,

@@ -40,6 +40,13 @@ PRICING_ROWS = [
         "free_allowance": 120,
         "is_active": True,
     },
+    {
+        "feature": "live_chat_18",
+        "unit": "second",
+        "price_cents": 2,   # aligned with current adult live-call pricing concept
+        "free_allowance": 120,
+        "is_active": True,
+    },
 ]
 
 

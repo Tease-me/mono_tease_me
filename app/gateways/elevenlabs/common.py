@@ -1,6 +1,10 @@
-"""Shared naming helpers for ElevenLabs resources."""
+"""Shared helpers for ElevenLabs gateways."""
 
 from app.core.config import settings
+
+
+class ElevenLabsEndpoints:
+    CONVAI_AGENTS_CREATE = "/convai/agents/create"
 
 
 def apply_environment_label(name: str) -> str:
