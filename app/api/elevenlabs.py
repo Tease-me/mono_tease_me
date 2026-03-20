@@ -80,13 +80,10 @@ async def _poll_and_persist_conversation(
 ) -> None:
     async with SessionLocal() as db:
         try:
-            client = await get_elevenlabs_client()
             snapshot = await _wait_until_terminal_status(
-                client, conversation_id, max_wait_secs=180
+                conversation_id, max_wait_secs=180
             )
-            snapshot = await _ensure_transcript_snapshot(
-                client, conversation_id, snapshot
-            )
+            snapshot = await _ensure_transcript_snapshot(conversation_id, snapshot)
         except Exception as exc:
             log.warning(
                 "background.wait_failed conv=%s err=%s",
