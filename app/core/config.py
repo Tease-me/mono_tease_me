@@ -102,6 +102,7 @@ class Settings(BaseSettings):
 
     # Country detection
     GEO_BLOCKED_COUNTRY_CODES: str = ""
+    AGE_VERIFICATION_REQUIRED_COUNTRY_CODES: str = ""
     GEO_COUNTRY_HEADER_PRIORITY: str = (
         "CF-IPCountry,CloudFront-Viewer-Country,X-Country-Code"
     )

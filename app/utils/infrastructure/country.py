@@ -41,6 +41,10 @@ def _get_blocked_country_codes() -> set[str]:
     return _parse_csv_upper(settings.GEO_BLOCKED_COUNTRY_CODES)
 
 
+def _get_age_verification_required_country_codes() -> set[str]:
+    return _parse_csv_upper(settings.AGE_VERIFICATION_REQUIRED_COUNTRY_CODES)
+
+
 def _normalize_country_code(value: str | None) -> str | None:
     if not value:
         return None
@@ -182,3 +186,29 @@ def is_request_from_blocked_country(request: Request) -> bool:
 
 def is_request_country_allowed(request: Request) -> bool:
     return not is_request_from_blocked_country(request)
+
+
+def is_request_from_age_verification_required_country(request: Request) -> bool:
+    context = get_request_country_context(request)
+    country_code = context["country_code"]
+    ip_value = extract_client_ip(request)
+    if not country_code:
+        log.info(
+            "country_detection.age_verification_check path=%s ip=%s country=%s source=%s required=%s",
+            request.url.path,
+            ip_value,
+            None,
+            context["source_header"],
+            False,
+        )
+        return False
+    required = country_code in _get_age_verification_required_country_codes()
+    log.info(
+        "country_detection.age_verification_check path=%s ip=%s country=%s source=%s required=%s",
+        request.url.path,
+        ip_value,
+        country_code,
+        context["source_header"],
+        required,
+    )
+    return required
