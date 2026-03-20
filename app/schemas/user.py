@@ -50,6 +50,7 @@ class UserRead(UserBase):
     username: Optional[str] = None
     profile_photo_url: Optional[str] = None
     is_verified: bool
+    verification_required: bool = False
     
     class Config:
         from_attributes = True
