@@ -60,7 +60,7 @@ async def _record_adult_character_voice_usage(
         if getattr(usage, field, None) is None:
             setattr(usage, field, 0)
 
-    usage.voice_secs += max(int(units), 0)
+    usage.live_secs += max(int(units), 0)
     db.add(usage)
 
 
