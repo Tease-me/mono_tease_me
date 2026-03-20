@@ -6,7 +6,6 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
-from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.memory import (
@@ -31,15 +30,16 @@ from app.agents.turn_handler import (
 from app.core.config import settings
 from app.db.models import CallRecord, Chat, Influencer, Memory, Message, User
 from app.db.session import SessionLocal, get_db
-from app.gateways.elevenlabs.agents_gateway import (
-    compute_max_duration,
-)
-from app.gateways.elevenlabs.client import get_elevenlabs_client
 from app.gateways.elevenlabs.conversation_gateway import ElevenLabsConversationGateway
 from app.moderation import handle_violation, moderate_message
 from app.relationship.dtr import plan_dtr_goal
 from app.relationship.inactivity import apply_inactivity_decay
 from app.relationship.repo import get_or_create_relationship
+from app.repositories.call_record import (
+    claim_billing_slot,
+    mark_billing_done,
+    reset_billing_slot,
+)
 from app.schemas.elevenlabs import RegisterConversationBody
 from app.services.adult_character_billing import charge_adult_character_voice_call
 from app.services.billing import (
@@ -51,6 +51,8 @@ from app.services.billing import (
 from app.services.chat_service import get_or_create_chat
 from app.services.follow import get_follow
 from app.services.prompting.influencer_bio import extract_influencer_bio_context
+from app.use_cases.elevenlabs_call_lifecycle import save_pending_conversation
+from app.use_cases.elevenlabs_credit_guard import end_conversation_after_credits
 from app.use_cases.elevenlabs_greeting import build_call_greeting
 from app.utils.auth.dependencies import get_current_user
 from app.utils.logging.prompt_logging import log_prompt
@@ -978,153 +980,6 @@ async def get_signed_url_free_landing(db: AsyncSession = Depends(get_db)):
     }
 
 
-async def save_pending_conversation(
-    db: AsyncSession,
-    conversation_id: str,
-    user_id: int,
-    influencer_id: Optional[str],
-    sid: Optional[str],
-    is_adult_call: bool = False,
-    adult_character_id: int | None = None,
-) -> Optional[str]:
-    chat_id: Optional[str] = None
-    if user_id and influencer_id:
-        try:
-            chat_id = await get_or_create_chat(db, user_id, influencer_id)
-        except Exception as exc:
-            log.warning(
-                "save_pending_conversation.get_or_create_chat_failed user=%s infl=%s err=%s",
-                user_id,
-                influencer_id,
-                exc,
-            )
-            chat_id = f"{user_id}_{influencer_id}"
-
-    stmt = (
-        pg_insert(CallRecord)
-        .values(
-            conversation_id=conversation_id,
-            user_id=user_id,
-            influencer_id=influencer_id,
-            chat_id=chat_id,
-            sid=sid,
-            is_adult_call=is_adult_call,
-            adult_character_id=adult_character_id,
-            status="pending",
-        )
-        .on_conflict_do_update(
-            index_elements=[CallRecord.conversation_id],
-            set_={
-                "user_id": user_id,
-                "influencer_id": influencer_id,
-                "chat_id": chat_id,
-                "sid": sid,
-                "is_adult_call": is_adult_call,
-                "adult_character_id": adult_character_id,
-                "status": "pending",
-            },
-        )
-    )
-    await db.execute(stmt)
-    await db.commit()
-    return chat_id
-
-
-async def claim_billing_slot(db: AsyncSession, conversation_id: str) -> bool:
-    from sqlalchemy import update as sa_update
-
-    result = await db.execute(
-        sa_update(CallRecord)
-        .where(
-            CallRecord.conversation_id == conversation_id,
-            CallRecord.status.notin_(["billing", "billed"]),
-        )
-        .values(status="billing")
-    )
-    await db.flush()
-    return (result.rowcount or 0) > 0
-
-
-async def mark_billing_done(db: AsyncSession, conversation_id: str) -> None:
-    """Flip status from 'billing' → 'billed' after successful charge."""
-    from sqlalchemy import update as sa_update
-
-    await db.execute(
-        sa_update(CallRecord)
-        .where(CallRecord.conversation_id == conversation_id)
-        .values(status="billed")
-    )
-
-
-async def reset_billing_slot(db: AsyncSession, conversation_id: str) -> None:
-    """Reset status back to 'done' when charge fails, allowing retry."""
-    from sqlalchemy import update as sa_update
-
-    await db.execute(
-        sa_update(CallRecord)
-        .where(
-            CallRecord.conversation_id == conversation_id,
-            CallRecord.status == "billing",
-        )
-        .values(status="done")
-    )
-    await db.commit()
-
-
-async def _end_conversation_after_credits(
-    conversation_id: str,
-    user_id: int,
-    influencer_id: str,
-) -> None:
-    """Sleep until the user's credit balance is exhausted, then end the call via ElevenLabs API."""
-    try:
-        async with SessionLocal() as db:
-            feature, is_18 = await resolve_voice_billing_mode(
-                db, user_id, influencer_id
-            )
-            remaining = await get_remaining_units(
-                db, user_id, influencer_id, feature=feature, is_18=is_18
-            )
-
-        max_secs = compute_max_duration(remaining)
-        if max_secs <= 0:
-            max_secs = 1  # end immediately
-
-        log.info(
-            "credit_guard.scheduled conv=%s user=%s secs=%d",
-            conversation_id,
-            user_id,
-            max_secs,
-        )
-        await asyncio.sleep(max_secs)
-        try:
-            snapshot = await _conversation_gateway.get_conversation_snapshot(
-                conversation_id
-            )
-            status = (snapshot.get("status") or "").lower()
-            if status in ("done", "failed"):
-                log.info(
-                    "credit_guard.already_ended conv=%s status=%s",
-                    conversation_id,
-                    status,
-                )
-                return
-        except Exception:
-            pass  # If we can't check status, try to end it anyway
-
-        try:
-            status_code = await _conversation_gateway.end_conversation(conversation_id)
-            log.info(
-                "credit_guard.ended conv=%s status=%d",
-                conversation_id,
-                status_code,
-            )
-        except Exception as exc:
-            log.warning("credit_guard.end_failed conv=%s err=%s", conversation_id, exc)
-    except Exception as exc:
-        log.exception("credit_guard.fatal conv=%s err=%s", conversation_id, exc)
-
-
 @router.post("/conversations/{conversation_id}/register")
 async def register_conversation(
     conversation_id: str,
@@ -1183,7 +1038,7 @@ async def register_conversation(
     if body.influencer_id:
         try:
             asyncio.create_task(
-                _end_conversation_after_credits(
+                end_conversation_after_credits(
                     conversation_id,
                     user_id=body.user_id,
                     influencer_id=body.influencer_id,

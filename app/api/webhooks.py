@@ -16,8 +16,8 @@ from app.core.config import settings
 from app.db.session import get_db, SessionLocal
 from app.services.billing import charge_feature, _get_influencer_id_from_chat, resolve_voice_billing_mode
 from app.services.adult_character_billing import charge_adult_character_voice_call
-from app.api.elevenlabs import claim_billing_slot, mark_billing_done, reset_billing_slot
 from app.api.elevenlabs import _extract_total_seconds, _persist_transcript_to_chat
+from app.repositories.call_record import claim_billing_slot, mark_billing_done, reset_billing_slot
 from sqlalchemy import select
 from app.db.models import CallRecord, Chat, Influencer
 from app.agents.turn_handler import  handle_turn, redis_history, _messages_since_session_break
