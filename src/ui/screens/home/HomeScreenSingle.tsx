@@ -90,6 +90,7 @@ export default function HomeScreenSingle() {
   const [activeView, setActiveView] = useState<ActiveView>("scene-selector");
   const callStatusRef = useRef<CallStatus>("idle");
 
+
   const {
     influencer,
     influencers,
