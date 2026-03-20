@@ -97,6 +97,37 @@ async def send_code(
         raise HTTPException(status_code=500, detail=f"Send code failed: {str(e)}")
 
 
+class ResendCodeRequest(BaseModel):
+    influencer_id: str
+
+
+@router.post("/sessions/resend-code")
+async def resend_code(
+    payload: ResendCodeRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Resend the verification code via the fallback delivery method.
+
+    Call this after send-code if the initial code wasn't received.
+    Telegram will try the next delivery method (e.g. SMS instead of in-app).
+    """
+    _require_admin(current_user)
+    _require_enabled()
+
+    try:
+        result = await session_manager.resend_code(
+            influencer_id=payload.influencer_id,
+        )
+        return {"ok": True, **result}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        log.exception("Failed to resend code for %s", payload.influencer_id)
+        raise HTTPException(status_code=500, detail=f"Resend code failed: {str(e)}")
+
+
 @router.post("/sessions/verify-code")
 async def verify_code(
     payload: VerifyCodeRequest,

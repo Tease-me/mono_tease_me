@@ -121,6 +121,19 @@ class TelegramSessionManager:
 
     # ─────────────────── 2-step headless auth ───────────────────
 
+    @staticmethod
+    def _describe_code_type(sent_code) -> str:
+        """Extract a human-readable delivery method from a SentCode object."""
+        code_type = getattr(sent_code, "type", None)
+        if code_type is None:
+            return "unknown"
+        # Pyrogram SentCodeType class name, e.g. "SentCodeTypeApp"
+        name = type(code_type).__name__
+        # Strip prefix for readability: "SentCodeTypeApp" -> "app"
+        if name.startswith("SentCodeType"):
+            return name[len("SentCodeType"):].lower()
+        return name.lower()
+
     async def send_code(
         self,
         influencer_id: str,
@@ -160,6 +173,12 @@ class TelegramSessionManager:
             await client.connect()
             sent_code = await client.send_code(phone_number)
 
+            # Parse delivery info from the SentCode object
+            delivery_type = self._describe_code_type(sent_code)
+            next_type = getattr(sent_code, "next_type", None)
+            next_type_str = type(next_type).__name__ if next_type else None
+            timeout = getattr(sent_code, "timeout", None)
+
             self._pending_auth[influencer_id] = {
                 "client": client,
                 "phone_number": phone_number,
@@ -167,15 +186,90 @@ class TelegramSessionManager:
             }
 
             log.info(
-                "Verification code sent for influencer=%s to phone=%s",
+                "Verification code sent for influencer=%s to phone=%s "
+                "delivery_type=%s next_type=%s timeout=%s",
                 influencer_id,
                 phone_number[:6] + "****",
+                delivery_type,
+                next_type_str,
+                timeout,
+            )
+
+            # Build user-facing delivery message
+            delivery_messages = {
+                "app": "Code sent as an in-app message in Telegram. Check the 'Telegram' chat.",
+                "sms": "Code sent via SMS to the phone number.",
+                "call": "Code will be delivered via a phone call.",
+                "flashcall": "Code will arrive as a flash call (the code is in the phone number).",
+                "missedcall": "Code will arrive as a missed call (the code is the last digits of the caller number).",
+                "fragmentsms": "Code sent via Fragment SMS.",
+                "emailcode": "Code sent to the associated email address.",
+            }
+            delivery_msg = delivery_messages.get(
+                delivery_type,
+                "Verification code sent. Check your Telegram app or phone.",
             )
 
             return {
                 "status": "code_sent",
-                "message": "Verification code sent to Telegram app. Use /verify-code to complete.",
+                "delivery_type": delivery_type,
+                "next_type": next_type_str,
+                "timeout_seconds": timeout,
+                "message": f"{delivery_msg} Use /verify-code to complete.",
+                "hint": (
+                    f"If you don't receive it, you can call /resend-code after "
+                    f"{timeout or 60}s to try the fallback method ({next_type_str or 'none available'})."
+                ) if next_type_str else None,
             }
+
+    async def resend_code(
+        self,
+        influencer_id: str,
+    ) -> dict:
+        """Resend the verification code using the fallback delivery method.
+
+        Must be called after send_code(). Uses Pyrogram's resend_code()
+        which switches to the next_type delivery method (e.g. SMS).
+
+        Returns:
+            dict with new delivery status info.
+        """
+        self._require_pyrogram()
+
+        pending = self._pending_auth.get(influencer_id)
+        if not pending:
+            raise ValueError(
+                f"No pending auth for '{influencer_id}'. Call send-code first."
+            )
+
+        client = pending["client"]
+        phone_number = pending["phone_number"]
+        phone_code_hash = pending["phone_code_hash"]
+
+        resent = await client.resend_code(phone_number, phone_code_hash)
+
+        # Update the stored hash in case it changed
+        new_hash = getattr(resent, "phone_code_hash", phone_code_hash)
+        pending["phone_code_hash"] = new_hash
+
+        delivery_type = self._describe_code_type(resent)
+        next_type = getattr(resent, "next_type", None)
+        next_type_str = type(next_type).__name__ if next_type else None
+        timeout = getattr(resent, "timeout", None)
+
+        log.info(
+            "Verification code re-sent for influencer=%s delivery_type=%s",
+            influencer_id,
+            delivery_type,
+        )
+
+        return {
+            "status": "code_resent",
+            "delivery_type": delivery_type,
+            "next_type": next_type_str,
+            "timeout_seconds": timeout,
+            "message": f"Code re-sent via {delivery_type}. Use /verify-code to complete.",
+        }
 
     async def verify_code(
         self,
