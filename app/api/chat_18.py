@@ -19,7 +19,7 @@ from app.services.follow import get_follow
 from app.utils.auth.dependencies import get_current_user
 
 from app.core.config import settings
-from app.utils.messaging.chat import transcribe_audio, synthesize_audio_with_elevenlabs_V3
+from app.utils.messaging.chat import transcribe_audio, synthesize_audio_with_elevenlabs_v3
 from app.utils.storage.s3 import save_audio_to_s3, save_ia_audio_to_s3, generate_presigned_url, message18_to_schema_with_presigned
 from app.services.billing import charge_feature, get_duration_seconds, can_afford
 from app.services.influencer_subscriptions import get_valid_subscription
@@ -107,8 +107,8 @@ async def websocket_chat(
             "error": "VALID_SUBSCRIPTION_REQUIRED",
             "message": "You need an active subscription for this influencer.",
         })
-        SUBSCRIPTION_REQUIRED_CLOSE_CODE = 4403
-        await ws.close(code=SUBSCRIPTION_REQUIRED_CLOSE_CODE)
+        subscription_required_close_code = 4403
+        await ws.close(code=subscription_required_close_code)
         return
 
     try:
@@ -339,7 +339,7 @@ async def chat_audio(
         if not ai_reply:
             raise HTTPException(status_code=500, detail="No AI reply")
 
-        audio_bytes, _ = await synthesize_audio_with_elevenlabs_V3(ai_reply, db, influencer_id)
+        audio_bytes, _ = await synthesize_audio_with_elevenlabs_v3(ai_reply, db, influencer_id)
         if not audio_bytes:
             raise HTTPException(status_code=500, detail="No audio returned from any TTS provider")
 

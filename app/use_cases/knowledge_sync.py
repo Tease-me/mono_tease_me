@@ -7,13 +7,13 @@ import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Influencer
-from app.domain.errors.knowledge_errors import (
+from app.errors.knowledge_errors import (
     KnowledgeNotFoundError,
     KnowledgePersistenceError,
     KnowledgeSyncError,
     KnowledgeValidationError,
 )
-from app.gateways.elevenlabs_knowledge_gateway import ElevenLabsKnowledgeGateway
+from app.gateways.elevenlabs.knowledge_gateway import ElevenLabsKnowledgeGateway
 from app.repositories.knowledge_repository import (
     delete_document_and_chunks,
     get_document_with_count,

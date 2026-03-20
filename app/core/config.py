@@ -64,8 +64,11 @@ class Settings(BaseSettings):
     
     LANDING_PAGE_AGENT_ID: str
     BUCKET_NAME: str
-    INFLUENCER_PREFIX: str
+    INFLUENCER_BUCKET_PREFIX: str
     USER_PREFIX: str = "user-content"  # Default fallback if missing in .env
+    S3_PRESIGNED_URL_TTL_SECONDS: int = 3600
+    ASSET_PRESENCE_CACHE_TTL_SECONDS: int = 120
+    ASSET_URL_CACHE_TTL_SECONDS: int = 300
 
     TWITTER_BEARER_TOKEN: str | None = None
 
@@ -99,5 +102,13 @@ class Settings(BaseSettings):
 
     # LLM configuration
     DEFAULT_SUMMARIZATION_MODEL: str = "gpt-3.5-turbo"
+
+    # Telegram Userbot (pytgcalls) configuration
+    TELEGRAM_API_ID: int | None = None              # From https://my.telegram.org
+    TELEGRAM_API_HASH: str | None = None            # From https://my.telegram.org
+    TELEGRAM_SESSION_ENCRYPTION_KEY: str | None = None  # Fernet key for session file encryption
+    TELEGRAM_USERBOT_ENABLED: bool = False           # Feature flag to enable/disable
+    TELEGRAM_SESSIONS_DIR: str = "./telegram_sessions"
+    FRONTEND_URL: str = "https://www.teaseme.live"  # Web app base URL
 
 settings = Settings()

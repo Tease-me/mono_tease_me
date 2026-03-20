@@ -24,6 +24,8 @@ from .user import User
 
 # Influencer models
 from .influencer import Influencer, InfluencerFollower, PreInfluencer
+from .adult_character import AdultCharacter
+from .influencer_character_meta import InfluencerCharacterMeta
 from .knowledge import (
     InfluencerKnowledgeDocument,
     InfluencerKnowledgeChunk,
@@ -59,6 +61,9 @@ from .system import SystemPrompt
 # Verification models
 from .verification import IdentityVerification
 
+# Telegram invite models
+from .telegram_invite import TelegramInvite
+
 # API usage tracking
 from .api_usage import ApiUsageLog
 
@@ -72,6 +77,8 @@ __all__ = [
     "Influencer",
     "InfluencerFollower",
     "PreInfluencer",
+    "AdultCharacter",
+    "InfluencerCharacterMeta",
     "InfluencerKnowledgeDocument",
     "InfluencerKnowledgeChunk",
     "InfluencerKnowledgeSync",
@@ -105,4 +112,6 @@ __all__ = [
     # API Usage
     "ApiUsageLog",
     "ApiUsageMonthly",
+    # Telegram
+    "TelegramInvite",
 ]

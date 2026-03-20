@@ -15,8 +15,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.db.session import get_db, SessionLocal
 from app.services.billing import charge_feature, _get_influencer_id_from_chat, resolve_voice_billing_mode
-from app.api.elevenlabs import claim_billing_slot, mark_billing_done, reset_billing_slot
-from app.api.elevenlabs import _extract_total_seconds, _persist_transcript_to_chat
+from app.services.adult_character_billing import charge_adult_character_voice_call
+from app.repositories.call_record import claim_billing_slot, mark_billing_done, reset_billing_slot
+from app.use_cases.elevenlabs_transcript_persistence import persist_transcript_to_chat
+from app.utils.elevenlabs_conversation import extract_total_seconds
 from sqlalchemy import select
 from app.db.models import CallRecord, Chat, Influencer
 from app.agents.turn_handler import  handle_turn, redis_history, _messages_since_session_break
@@ -167,7 +169,7 @@ async def elevenlabs_post_call(request: Request, db: AsyncSession = Depends(get_
 
     conversation_id = data.get("conversation_id")
     status = (data.get("status") or "done").lower()
-    total_seconds = _extract_total_seconds(data)
+    total_seconds = extract_total_seconds(data)
     transcript = data.get("transcript") or []
 
     log.info(
@@ -220,19 +222,41 @@ async def elevenlabs_post_call(request: Request, db: AsyncSession = Depends(get_
                 )
             else:
                 try:
-                    feature, is_18 = await resolve_voice_billing_mode(db, user_id, influencer_id)
+                    call_record = await db.get(CallRecord, conversation_id)
+                    if call_record and call_record.is_adult_call:
+                        from app.repositories.adult.adult_conversation_repository import (
+                            get_adult_character_by_id,
+                        )
 
-                    await charge_feature(
-                        db,
-                        user_id=user_id,
-                        influencer_id=influencer_id,
-                        feature=feature,
-                        units=math.ceil(total_seconds),
-                        is_18=is_18,
-                        meta=meta,
-                        allow_partial=True,
-                        auto_commit=False,
-                    )
+                        if call_record.adult_character_id is None:
+                            raise HTTPException(400, "Missing adult_character_id for adult call billing")
+                        character = await get_adult_character_by_id(db, call_record.adult_character_id)
+                        if not character:
+                            raise HTTPException(404, "Adult character not found for billing")
+                        await charge_adult_character_voice_call(
+                            db,
+                            user_id=user_id,
+                            influencer_id=influencer_id,
+                            character=character,
+                            units=math.ceil(total_seconds),
+                            meta=meta,
+                            allow_partial=True,
+                            auto_commit=False,
+                        )
+                    else:
+                        feature, is_18 = await resolve_voice_billing_mode(db, user_id, influencer_id)
+
+                        await charge_feature(
+                            db,
+                            user_id=user_id,
+                            influencer_id=influencer_id,
+                            feature=feature,
+                            units=math.ceil(total_seconds),
+                            is_18=is_18,
+                            meta=meta,
+                            allow_partial=True,
+                            auto_commit=False,
+                        )
                     await mark_billing_done(db, conversation_id)
                     await db.commit()
                 except Exception as charge_exc:
@@ -291,7 +315,7 @@ async def elevenlabs_post_call(request: Request, db: AsyncSession = Depends(get_
 
         async def _bg_persist_transcript():
             async with SessionLocal() as bg_db:
-                await _persist_transcript_to_chat(
+                await persist_transcript_to_chat(
                     bg_db,
                     conversation_json=data,
                     chat_id=chat_id,
@@ -713,4 +737,3 @@ async def eleven_webhook_reply(
         reply = reply[:317] + "…"
 
     return {"text": reply}
-

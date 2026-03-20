@@ -152,7 +152,7 @@ def generate_presigned_urls_for_keys(keys: list[str], expires: int = 3600) -> li
     return [generate_presigned_url(key, expires) for key in keys]
         
 def _influencer_key(influencer_id: str, suffix: str) -> str:
-    return f"{settings.INFLUENCER_PREFIX}/{influencer_id}/{suffix}"
+    return f"{settings.INFLUENCER_BUCKET_PREFIX}/{influencer_id}/{suffix}"
 
 def _is_heic(filename: str | None, content_type: str | None) -> bool:
     """Check if the file is HEIC/HEIF format."""
@@ -224,7 +224,6 @@ async def save_influencer_video_to_s3(file_obj, filename: str | None, content_ty
     file_obj.seek(0)
     s3.upload_fileobj(file_obj, settings.BUCKET_NAME, key, ExtraArgs={"ContentType": content_type})
     return key
-
 async def save_influencer_profile_to_s3(
     influencer_id: str,
     *,

@@ -20,7 +20,7 @@ from app.agents.prompt_utils import (
     get_relationship_stage_prompts,
 )
 from app.db.models import Influencer, User
-from app.shared.prompting.influencer_bio import extract_influencer_bio_context
+from app.services.prompting.influencer_bio import extract_influencer_bio_context
 from app.utils.messaging.tts_sanitizer import sanitize_tts_text
 from app.utils.logging.prompt_logging import log_prompt
 from app.agents.callbacks import UsageTrackingCallback

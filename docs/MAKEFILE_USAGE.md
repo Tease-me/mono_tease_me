@@ -14,6 +14,7 @@ COMPOSE="docker-compose" make seed-all
 ```
 
 ## Seeding data
+- `make seed-adult-characters` — seeds the base adult character catalog and influencer character overlays.
 - `make seed-influencers` — updates influencer prompt templates/voice config.
 - `make seed-pricing` — seeds or updates pricing rows.
 - `make seed-users` — seeds default users (e.g., admin).

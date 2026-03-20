@@ -80,7 +80,9 @@ async def get_user_usage(
         .where(
             InfluencerCreditTransaction.user_id == id,
             InfluencerCreditTransaction.units < 0,
-            InfluencerCreditTransaction.feature.in_(["live_chat", "voice_18"]),
+            InfluencerCreditTransaction.feature.in_(
+                ["live_chat", "voice_18", "live_chat_18"]
+            ),
         )
         .order_by(InfluencerCreditTransaction.created_at.desc())
     )
@@ -214,7 +216,9 @@ async def get_user_usage(
             if wallet.is_18:
                 adult_wallet = build_adult_wallet(
                     balance,
-                    last_call_seconds=last_call_secs_by_influencer_feature.get((influencer_id, "voice_18"), 0),
+                    last_call_seconds=last_call_secs_by_influencer_feature.get(
+                        (influencer_id, "live_chat_18"), 0
+                    ),
                 )
             else:
                 normal_wallet = build_normal_wallet(
@@ -230,7 +234,9 @@ async def get_user_usage(
         if adult_wallet is None:
             adult_wallet = build_adult_wallet(
                 0,
-                last_call_seconds=last_call_secs_by_influencer_feature.get((influencer_id, "voice_18"), 0),
+                last_call_seconds=last_call_secs_by_influencer_feature.get(
+                    (influencer_id, "live_chat_18"), 0
+                ),
             )
 
         return {
@@ -250,7 +256,9 @@ async def get_user_usage(
         if wallet.is_18:
             influencer_wallets[inf_id]["adult"] = build_adult_wallet(
                 balance,
-                last_call_seconds=last_call_secs_by_influencer_feature.get((inf_id, "voice_18"), 0),
+                last_call_seconds=last_call_secs_by_influencer_feature.get(
+                    (inf_id, "live_chat_18"), 0
+                ),
             )
         else:
             influencer_wallets[inf_id]["normal"] = build_normal_wallet(
