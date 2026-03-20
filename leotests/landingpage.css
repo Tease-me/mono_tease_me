@@ -1,3 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Abril+Fatface&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
+
+
+.outerContainer {display: grid;
+grid-template-rows: 55vh auto;
+    height: 100dvh;
+overflow-y: auto;}
+
+
 .profileContainer {
     /* outline: 1px dotted yellow; */
     display: flex;
@@ -5,8 +14,7 @@
     justify-content: center;
     color: white;
     position: relative;
-    height: 55dvh;
-    overflow: hidden;
+      overflow: hidden;
     mask-image: linear-gradient(black 94%, hsl(0deg 0% 0% / 77%) 97%, #00000054 100%);
 }
 
@@ -29,8 +37,6 @@
     height: 100%;
 }
 
-
-
 .bglpvideo {
     width: 100%;
     height: 100%;
@@ -40,7 +46,6 @@
     position: relative;
     overflow: hidden;
     top: 20%;
-
 }
 
 .bglpvideo video {
@@ -81,15 +86,13 @@
     background: linear-gradient(223deg, #161616 21.45%, var(--colors-tm-primary-color12, #602) 51.75%, #161616 75.53%);
     box-shadow: -3px 5px 2px -3px rgba(0, 0, 0, 0.50), -7px 9px 9px 0 rgba(0, 0, 0, 0.40);
     animation: tile02 1s ease 1.2s forwards;
-
 }
 
 .image01 img {
     width: 115%;
     position: absolute;
     object-fit: cover;
-    animation: tile02Inner  0.6s ease-in 1.21s forwards;
-    
+    animation: tile02Inner 0.6s ease-in 1.21s forwards;
 }
 
 .image02 {
@@ -110,7 +113,9 @@
     animation: tile01 1s ease 1.3s forwards;
 }
 
-.image02 img {  animation: tile01Inner  1s ease-in 1.32s forwards;}
+.image02 img {
+    animation: tile01Inner 1s ease-in 1.32s forwards;
+}
 
 .image03 {
     z-index: 1;
@@ -128,8 +133,8 @@
     border: 1px solid rgba(255, 143, 180, 0.15);
     background: linear-gradient(223deg, #161616 21.45%, #3B1348 51.75%, #161616 75.53%);
     box-shadow: -3px 5px 2px -3px rgba(0, 0, 0, 0.50), -7px 9px 9px 0 rgba(0, 0, 0, 0.40);
-   animation: tile05 1s ease 1.4s forwards;
-   transform-origin: left;
+    animation: tile05 1s ease 1.4s forwards;
+    transform-origin: left;
 }
 
 .image03 img {
@@ -137,7 +142,7 @@
     object-fit: cover;
     width: 110%;
     position: absolute;
-     animation: tile03Inner  0.6s ease-in 1.1s forwards;
+    animation: tile03Inner 0.6s ease-in 1.1s forwards;
 }
 
 .lpvideo01 {
@@ -154,8 +159,8 @@
     border-radius: var(--spacing-space-px-12, 0.75rem);
     background: linear-gradient(223deg, var(--colors-tm-warning-color06, #FF9A0D) 0%, #FF2A71 96.98%);
     box-shadow: -3px 5px 2px -3px rgba(0, 0, 0, 0.50), -7px 9px 9px 0 rgba(0, 0, 0, 0.40);
-     animation: tile03 1s ease 1.4s forwards;
-     transform-origin: right;
+    animation: tile03 1s ease 1.4s forwards;
+    transform-origin: right;
 }
 
 .lpvideo02 {
@@ -172,8 +177,8 @@
     border-radius: var(--spacing-space-px-12, 0.75rem);
     background: linear-gradient(223deg, var(--colors-tm-warning-color06, #FF9A0D) 0%, #FF2A71 96.98%);
     box-shadow: -3px 5px 2px -3px rgba(0, 0, 0, 0.50), -7px 9px 9px 0 rgba(0, 0, 0, 0.40);
-       animation: tile04 1s ease 1.5s forwards;
-       transform-origin: left;
+    animation: tile04 1s ease 1.5s forwards;
+    transform-origin: left;
 }
 
 .audioLottie {
@@ -195,8 +200,118 @@
     bottom: 9%;
     box-shadow: inset -6px 6.3px 1px -6px oklch(1 0 0 / 0.5);
     opacity: 0;
-      animation: audiolottie 1s ease 1.6s forwards;
+    animation: audiolottie 1s ease 1.6s forwards;
 }
+
+
+
+
+.contentContainer {
+    display: flex;
+    flex-direction: column;
+    padding: 0 1.5rem;
+}
+
+.greetingContainer {
+    display: flex;
+    flex-direction: column;
+    color: white;
+    width: 100%;
+    align-items: center;
+    margin-top: -1.2rem;
+}
+
+.greetingContainer .row01 {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    z-index: 1;
+}
+
+.greetingContainer .row01 img {
+    width: 4rem;
+    translate: 1px -2px;
+    rotate: 6deg;
+}
+
+.greetingContainer .row02 {
+    display: flex;
+    flex-direction: row;
+    font-family: "Abril Fatface", serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 28px;
+    gap: 0.33rem;
+    margin-top: -0.8rem;
+    z-index: 2;
+}
+
+.greetingContainer .row04 {
+    display: flex;
+    flex-direction: row;
+    color: var(--colors-tm-text-color10, #5E5E5E);
+    font-family: "DM Sans", sans-serif;
+    font-weight: 600;
+    font-style: normal;
+    font-size: 0.875rem;
+    line-height: 250%;
+
+}
+
+.modelName {
+    display: inline-flex;
+    background: -webkit-linear-gradient(118deg, #FFF 6.49%, #BFBFBF 22.83%, #FFF 46.92%, #DEDEDE 46.93%, #929292 91.43%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(-4px -2px 2px #000);
+    font-size: 36px;
+    translate: 0px -7.5px;
+}
+
+.orRow {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+}
+
+.orRowCol02 {
+    font-family: "DM Sans", sans-serif;
+    color: white;
+    font-size: 1rem;
+}
+
+.orDivider {
+    background-color: #35383F;
+    width: 100%;
+    height: 1px;
+}
+
+.ctaContainer {
+    display: flex;
+    flex-direction: column;
+    color: white;
+    width: 100%;
+    align-items: center;
+}
+
+.ctaContainer .row01 {
+    font-family: "DM Sans", sans-serif;
+    color: var(----tm-pink-color07, #FF0F5F);
+    text-align: center;
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 280%;
+    letter-spacing: 0.0125rem;
+}
+
+.ctaContainer .row03 { font-family: "DM Sans", sans-serif; display: flex; flex-direction: row; gap: 0.5rem; margin-top:
+0.75rem; font-size: 1rem;}
+.ctaContainer .row03 .loginButton {color: var(----tm-pink-color07, #FF0F5F);}
+
 
 /*** animations **/
 
@@ -218,9 +333,9 @@
 }
 
 @keyframes tile01Inner {
-    0% {       
-     translate: -5% 8%; 
-      }
+    0% {
+        translate: -5% 8%;
+    }
 }
 
 @keyframes tile02 {
@@ -234,9 +349,9 @@
 }
 
 @keyframes tile02Inner {
-    0% {       
-     translate: 5% 1%; 
-      }
+    0% {
+        translate: 5% 1%;
+    }
 }
 
 @keyframes tile03 {
@@ -246,14 +361,14 @@
         filter: blur(10px);
         opacity: 0.6;
         scale: 0.8;
-       transform: rotate(0deg);
+        transform: rotate(0deg);
     }
 }
 
 @keyframes tile03Inner {
-    0% {       
-     translate: 10% 5%; 
-      }
+    0% {
+        translate: 10% 5%;
+    }
 }
 
 @keyframes tile04 {
@@ -263,7 +378,7 @@
         filter: blur(3px);
         opacity: 0.6;
         scale: 0.8;
-       transform: rotate(0deg);
+        transform: rotate(0deg);
     }
 }
 
@@ -274,14 +389,14 @@
         filter: blur(8px);
         opacity: 0.3;
         scale: 0.2;
-       rotate: 20deg;
+        rotate: 20deg;
     }
 }
 
 @keyframes audiolottie {
     100% {
         bottom: 6.5%;
-        opacity: 1;      
-      
+        opacity: 1;
+
     }
 }
