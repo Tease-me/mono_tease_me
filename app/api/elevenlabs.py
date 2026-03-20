@@ -1,15 +1,13 @@
 import asyncio
 import logging
-import math
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from datetime import datetime, timezone
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.memory import (
-    extract_memories_from_transcript,
     get_memory_only_list,
     summarize_ai_memory_list,
     summarize_memory_list,
@@ -28,23 +26,15 @@ from app.agents.turn_handler import (
     redis_history,
 )
 from app.core.config import settings
-from app.db.models import CallRecord, Chat, Influencer, Memory, Message, User
+from app.db.models import CallRecord, Chat, Influencer, Memory, User
 from app.db.session import SessionLocal, get_db
 from app.gateways.elevenlabs.conversation_gateway import ElevenLabsConversationGateway
-from app.moderation import handle_violation, moderate_message
 from app.relationship.dtr import plan_dtr_goal
 from app.relationship.inactivity import apply_inactivity_decay
 from app.relationship.repo import get_or_create_relationship
-from app.repositories.call_record import (
-    claim_billing_slot,
-    mark_billing_done,
-    reset_billing_slot,
-)
 from app.schemas.elevenlabs import RegisterConversationBody
-from app.services.adult_character_billing import charge_adult_character_voice_call
 from app.services.billing import (
     can_afford,
-    charge_feature,
     get_remaining_units,
     resolve_voice_billing_mode,
 )
@@ -52,9 +42,14 @@ from app.services.chat_service import get_or_create_chat
 from app.services.follow import get_follow
 from app.services.prompting.influencer_bio import extract_influencer_bio_context
 from app.use_cases.elevenlabs_call_lifecycle import save_pending_conversation
+from app.use_cases.elevenlabs_call_persistence import poll_and_persist_conversation
 from app.use_cases.elevenlabs_credit_guard import end_conversation_after_credits
 from app.use_cases.elevenlabs_greeting import build_call_greeting
 from app.utils.auth.dependencies import get_current_user
+from app.utils.elevenlabs_conversation import (
+    extract_total_seconds,
+    normalize_transcript,
+)
 from app.utils.logging.prompt_logging import log_prompt
 
 router = APIRouter(prefix="/elevenlabs", tags=["elevenlabs"])
@@ -71,527 +66,6 @@ async def get_agent_id_from_influencer(db: AsyncSession, influencer_id: str) -> 
     if influencer and getattr(influencer, "influencer_agent_id_third_part", None):
         return influencer.influencer_agent_id_third_part
     raise HTTPException(404, "Influencer or influencer_agent_id_third_part not found")
-
-
-async def _poll_and_persist_conversation(
-    conversation_id: str,
-    *,
-    user_id: Optional[int],
-    influencer_id: Optional[str],
-    chat_id: Optional[str],
-) -> None:
-    async with SessionLocal() as db:
-        try:
-            snapshot = await _wait_until_terminal_status(
-                conversation_id, max_wait_secs=180
-            )
-            snapshot = await _ensure_transcript_snapshot(conversation_id, snapshot)
-        except Exception as exc:
-            log.warning(
-                "background.wait_failed conv=%s err=%s",
-                conversation_id,
-                exc,
-            )
-            return
-
-        status = (snapshot.get("status") or "").lower()
-        total_seconds = _extract_total_seconds(snapshot)
-        normalized_transcript = _normalize_transcript(snapshot)
-
-        if not chat_id and user_id and influencer_id:
-            try:
-                chat_id = await get_or_create_chat(db, user_id, influencer_id)
-            except Exception as exc:
-                log.warning(
-                    "background.chat_id_fallback_failed conv=%s user=%s infl=%s err=%s",
-                    conversation_id,
-                    user_id,
-                    influencer_id,
-                    exc,
-                )
-
-        # ── Billing (poll-driven, no webhook needed) ─────────────
-        if status == "done" and user_id and chat_id:
-            try:
-                if not influencer_id:
-                    from app.services.billing import _get_influencer_id_from_chat
-
-                    influencer_id = await _get_influencer_id_from_chat(db, chat_id)
-
-                if await claim_billing_slot(db, conversation_id):
-                    try:
-                        call_record = await db.get(CallRecord, conversation_id)
-                        meta = {
-                            "conversation_id": conversation_id,
-                            "status": status,
-                            "source": "poll",
-                        }
-                        if call_record and call_record.is_adult_call:
-                            from app.repositories.adult.adult_conversation_repository import (
-                                get_adult_character_by_id,
-                            )
-
-                            if call_record.adult_character_id is None:
-                                raise HTTPException(
-                                    400,
-                                    "Missing adult_character_id for adult call billing",
-                                )
-                            character = await get_adult_character_by_id(
-                                db, call_record.adult_character_id
-                            )
-                            if not character:
-                                raise HTTPException(
-                                    404, "Adult character not found for billing"
-                                )
-                            cost_charged = await charge_adult_character_voice_call(
-                                db,
-                                user_id=user_id,
-                                influencer_id=influencer_id,
-                                character=character,
-                                units=math.ceil(total_seconds),
-                                meta=meta,
-                                allow_partial=True,
-                                auto_commit=False,
-                            )
-                        else:
-                            feature, is_18 = await resolve_voice_billing_mode(
-                                db, user_id, influencer_id
-                            )
-                            cost_charged = await charge_feature(
-                                db,
-                                user_id=user_id,
-                                influencer_id=influencer_id,
-                                feature=feature,
-                                units=math.ceil(total_seconds),
-                                is_18=is_18,
-                                meta=meta,
-                                allow_partial=True,
-                                auto_commit=False,
-                            )
-                        await mark_billing_done(db, conversation_id)
-                        await db.commit()
-                        log.info(
-                            "poll.billing.success conv=%s user=%s secs=%s cost=%s",
-                            conversation_id,
-                            user_id,
-                            total_seconds,
-                            cost_charged,
-                        )
-
-                        # Track ElevenLabs cost from snapshot metadata
-                        from app.api.webhooks import _extract_cost_micros
-                        from app.services.token_tracker import track_usage_bg
-
-                        cost_micros = _extract_cost_micros(snapshot)
-                        track_usage_bg(
-                            category="voice",
-                            provider="elevenlabs",
-                            model="elevenlabs_convai",
-                            purpose="call_conversation",
-                            user_id=user_id,
-                            influencer_id=influencer_id,
-                            chat_id=chat_id,
-                            duration_secs=float(total_seconds),
-                            latency_ms=0,
-                            exact_cost_micros=cost_micros,
-                        )
-
-                        # Push updated balance to client via WebSocket
-                        try:
-                            from sqlalchemy import and_
-                            from sqlalchemy import select as sa_select
-
-                            from app.api.notify_ws import notify_call_billed
-                            from app.db.models import InfluencerWallet
-                            from app.db.models import User as UserModel
-
-                            user_obj = await db.get(UserModel, user_id)
-                            wallet = await db.scalar(
-                                sa_select(InfluencerWallet).where(
-                                    and_(
-                                        InfluencerWallet.user_id == user_id,
-                                        InfluencerWallet.influencer_id == influencer_id,
-                                        InfluencerWallet.is_18.is_(is_18),
-                                    )
-                                )
-                            )
-                            if user_obj and user_obj.email:
-                                await notify_call_billed(
-                                    user_obj.email,
-                                    balance_cents=int(wallet.balance_cents)
-                                    if wallet
-                                    else 0,
-                                    cost_cents=cost_charged,
-                                    duration_secs=total_seconds,
-                                    conversation_id=conversation_id,
-                                )
-                        except Exception as ws_exc:
-                            log.warning(
-                                "poll.billing.ws_notify_failed conv=%s err=%s",
-                                conversation_id,
-                                ws_exc,
-                            )
-
-                    except Exception as charge_exc:
-                        log.exception(
-                            "poll.billing.charge_failed conv=%s err=%s — resetting billing slot",
-                            conversation_id,
-                            charge_exc,
-                        )
-                        await reset_billing_slot(db, conversation_id)
-                else:
-                    log.info(
-                        "poll.billing.skipped already_billed conv=%s", conversation_id
-                    )
-            except Exception as billing_exc:
-                log.exception(
-                    "poll.billing.error conv=%s user=%s err=%s",
-                    conversation_id,
-                    user_id,
-                    billing_exc,
-                )
-
-        try:
-            if chat_id:
-                await _persist_transcript_to_chat(
-                    db,
-                    conversation_json=snapshot,
-                    chat_id=chat_id,
-                    conversation_id=conversation_id,
-                    influencer_id=influencer_id,
-                )
-        except Exception as exc:
-            log.warning(
-                "background.persist_transcript_failed conv=%s chat=%s err=%s",
-                conversation_id,
-                chat_id,
-                exc,
-            )
-
-        try:
-            call_record = await db.get(CallRecord, conversation_id)
-            if not call_record:
-                call_record = CallRecord(
-                    conversation_id=conversation_id,
-                    user_id=user_id,
-                    influencer_id=influencer_id,
-                    chat_id=chat_id,
-                )
-            call_record.status = (
-                status if status != "done" else (call_record.status or status)
-            )
-            call_record.call_duration_secs = total_seconds
-            call_record.transcript = normalized_transcript or call_record.transcript
-            if influencer_id:
-                call_record.influencer_id = influencer_id
-            if chat_id:
-                call_record.chat_id = chat_id
-            db.add(call_record)
-            await db.commit()
-        except Exception as exc:
-            log.warning(
-                "background.update_call_record_failed conv=%s err=%s",
-                conversation_id,
-                exc,
-            )
-
-
-async def _ensure_transcript_snapshot(
-    conversation_id: str,
-    snapshot: Dict[str, Any],
-) -> Dict[str, Any]:
-    """
-    Some snapshots omit transcript; try a follow-up fetch to populate it.
-    """
-    if snapshot.get("transcript"):
-        return snapshot
-    try:
-        refreshed = await _conversation_gateway.get_conversation_snapshot(
-            conversation_id
-        )
-        if refreshed.get("transcript"):
-            return refreshed
-    except Exception as exc:
-        log.warning(
-            "ensure_transcript.refetch_failed conv=%s err=%s", conversation_id, exc
-        )
-    return snapshot
-
-
-async def _wait_until_terminal_status(
-    conversation_id: str,
-    *,
-    max_wait_secs: int = 180,
-    initial_delay: float = 0.8,
-    max_delay: float = 5.0,
-) -> Dict[str, Any]:
-    """
-    Poll until status ∈ {done, failed} or timeout. Returns the last snapshot.
-    """
-    elapsed = 0.0
-    delay = initial_delay
-    last = await _conversation_gateway.get_conversation_snapshot(conversation_id)
-    status = (last.get("status") or "").lower()
-
-    while status not in {"done", "failed"} and elapsed < max_wait_secs:
-        await asyncio.sleep(delay)
-        elapsed += delay
-        delay = min(max_delay, delay * 1.7)
-        last = await _conversation_gateway.get_conversation_snapshot(conversation_id)
-        status = (last.get("status") or "").lower()
-    return last
-
-
-def _extract_total_seconds(conversation_json: Dict[str, Any]) -> float:
-    """
-    Primary: metadata.call_duration_secs
-    Fallback: max transcript[*].time_in_call_secs
-    """
-    md = conversation_json.get("metadata") or {}
-    dur = md.get("call_duration_secs")
-    if isinstance(dur, (int, float)) and dur >= 0:
-        return float(dur)
-    transcript = conversation_json.get("transcript") or []
-    try:
-        max_sec = (
-            max(int(t.get("time_in_call_secs") or 0) for t in transcript)
-            if transcript
-            else 0
-        )
-    except Exception:
-        max_sec = 0
-    return float(max_sec) if max_sec else 0.0
-
-
-def _normalize_transcript(conversation_json: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Return a simple transcript list with sender/text/time_in_call_secs."""
-    transcript = conversation_json.get("transcript") or []
-    normalized: List[Dict[str, Any]] = []
-    for entry in transcript:
-        text = str(
-            entry.get("text") or entry.get("content") or entry.get("message") or ""
-        ).strip()
-        if not text:
-            continue
-        role_raw = str(
-            entry.get("sender") or entry.get("role") or entry.get("speaker") or ""
-        ).lower()
-        is_user_flag = entry.get("is_user") or entry.get("from_user")
-        if role_raw in {"user", "human", "caller", "client"} or is_user_flag:
-            sender = "user"
-        elif role_raw in {"ai", "assistant", "agent", "bot", "system"}:
-            sender = "ai"
-        else:
-            sender = "ai"
-
-        normalized.append(
-            {
-                "sender": sender,
-                "text": text,
-                "time_in_call_secs": entry.get("time_in_call_secs"),
-            }
-        )
-    return normalized
-
-
-async def _persist_transcript_to_chat(
-    db: AsyncSession,
-    *,
-    conversation_json: Dict[str, Any],
-    chat_id: str,
-    conversation_id: str,
-    influencer_id: str | None = None,
-) -> int:
-    """
-    Store ElevenLabs transcript messages into our Message table for that chat.
-    Returns how many messages were inserted.
-    """
-    transcript = conversation_json.get("transcript") or []
-    if not transcript:
-        return 0
-    chat = await db.get(Chat, chat_id)
-    user_id = chat.user_id if chat else None
-    resolved_influencer_id = influencer_id or (chat.influencer_id if chat else None)
-    if not chat:
-        log.warning(
-            log.warning(
-                "_persist_transcript.chat_not_found conv=%s chat=%s",
-                conversation_id,
-                chat_id,
-            )
-        )
-    moderation_enabled = bool(user_id and resolved_influencer_id)
-    start_ts = (conversation_json.get("metadata") or {}).get("start_time_unix_secs")
-    base_dt = (
-        datetime.utcfromtimestamp(start_ts)
-        if isinstance(start_ts, (int, float))
-        else datetime.utcnow()
-    )
-
-    recent_res = await db.execute(
-        select(Message)
-        .where(Message.chat_id == chat_id)
-        .order_by(Message.created_at.desc())
-        .limit(25)
-    )
-    recent = list(recent_res.scalars().all())
-    context_lines: List[str] = []
-    new_messages: List[Message] = []
-    seen: set[tuple[str, str]] = set()
-
-    def _is_dup(sender: str, text: str) -> bool:
-        if (sender, text) in seen:
-            return True
-        for msg in recent:
-            if msg.sender == sender and (msg.content or "").strip() == text:
-                return True
-        return False
-
-    # PHASE 1: Collect all message data without embedding
-    pending_entries: List[Dict[str, Any]] = []
-
-    for entry in transcript:
-        text = str(
-            entry.get("text") or entry.get("content") or entry.get("message") or ""
-        ).strip()
-        if not text:
-            continue
-
-        role_raw = str(
-            entry.get("sender") or entry.get("role") or entry.get("speaker") or ""
-        ).lower()
-        is_user_flag = entry.get("is_user") or entry.get("from_user")
-        if role_raw in {"user", "human", "caller", "client"} or is_user_flag:
-            sender = "user"
-        elif role_raw in {"ai", "assistant", "agent", "bot", "system"}:
-            sender = "ai"
-        else:
-            sender = "ai"
-
-        if _is_dup(sender, text):
-            continue
-        if moderation_enabled and sender == "user":
-            context = "\n".join(context_lines[-6:]) if context_lines else ""
-            try:
-                mod_result = await moderate_message(text, context, db)
-                if mod_result.action == "FLAG":
-                    await handle_violation(
-                        db=db,
-                        user_id=user_id,
-                        chat_id=chat_id,
-                        influencer_id=resolved_influencer_id,
-                        message=text,
-                        context=context,
-                        result=mod_result,
-                    )
-                    log.logging.warning(
-                        "persist_transcript.violation chat=%s conv=%s msg=%s",
-                        chat_id,
-                        conversation_id,
-                        text,
-                    )
-            except Exception as exc:
-                log.exception(
-                    "presist_transcript.moderation_failed chat=%s conv=%s err=%s",
-                    chat_id,
-                    conversation_id,
-                    exc,
-                )
-        t_secs = entry.get("time_in_call_secs")
-        created_at = (
-            base_dt + timedelta(seconds=float(t_secs))
-            if isinstance(t_secs, (int, float))
-            else datetime.utcnow()
-        )
-
-        seen.add((sender, text))
-        pending_entries.append(
-            {
-                "sender": sender,
-                "text": text,
-                "created_at": created_at,
-            }
-        )
-        speaker = "User" if sender == "user" else "AI"
-        context_lines.append(f"{speaker}: {text}")
-
-    if not pending_entries:
-        return 0
-
-    # PHASE 2: Batch embed all texts in ONE API call (70-80% faster)
-    texts_to_embed = [e["text"] for e in pending_entries]
-    embeddings: List[Optional[List[float]]] = []
-    try:
-        from app.services.embeddings import get_embeddings_batch
-
-        embeddings = await get_embeddings_batch(texts_to_embed)
-    except Exception as exc:
-        log.warning(
-            "persist_transcript.batch_embed_failed chat=%s err=%s", chat_id, exc
-        )
-        embeddings = [None] * len(pending_entries)
-
-    # PHASE 3: Create Message objects with embeddings
-    for i, entry in enumerate(pending_entries):
-        embedding = embeddings[i] if i < len(embeddings) else None
-        new_messages.append(
-            Message(
-                chat_id=chat_id,
-                sender=entry["sender"],
-                channel="call",
-                content=entry["text"],
-                created_at=entry["created_at"],
-                embedding=embedding,
-                conversation_id=conversation_id,
-            )
-        )
-
-    if not new_messages:
-        return 0
-
-    db.add_all(new_messages)
-    await db.commit()
-    try:
-        history = redis_history(chat_id)
-        for msg in new_messages:
-            if msg.sender == "user":
-                history.add_user_message(msg.content)
-            else:
-                history.add_ai_message(msg.content)
-        try:
-            max_len = settings.MAX_HISTORY_WINDOW
-            if max_len and len(history.messages) > max_len:
-                trimmed = history.messages[-max_len:]
-                history.clear()
-                history.add_messages(trimmed)
-        except Exception:
-            pass
-    except Exception as exc:
-        log.warning("persist_transcript.redis_sync_failed chat=%s err=%s", chat_id, exc)
-
-    log.info(
-        "persisted.transcript chat=%s conv=%s inserted=%d",
-        chat_id,
-        conversation_id,
-        len(new_messages),
-    )
-
-    if transcript and chat_id:
-        asyncio.create_task(
-            extract_memories_from_transcript(
-                chat_id=chat_id,
-                transcript_entries=transcript,
-                conversation_id=conversation_id,
-            )
-        )
-        log.info(
-            "[MEMORY-BG] scheduled from persist_transcript chat=%s conv=%s turns=%d",
-            chat_id,
-            conversation_id,
-            len(transcript),
-        )
-
-    return len(new_messages)
 
 
 @router.get("/signed-url")
@@ -1022,7 +496,7 @@ async def register_conversation(
 
     try:
         asyncio.create_task(
-            _poll_and_persist_conversation(
+            poll_and_persist_conversation(
                 conversation_id,
                 user_id=body.user_id,
                 influencer_id=body.influencer_id,
@@ -1075,9 +549,9 @@ async def get_call_details(
         )
         agent_id = snapshot.get("agent_id")
         if not transcript:
-            transcript = _normalize_transcript(snapshot)
+            transcript = normalize_transcript(snapshot)
         if duration is None:
-            duration = _extract_total_seconds(snapshot)
+            duration = extract_total_seconds(snapshot)
         status = snapshot.get("status", status)
 
     return {
