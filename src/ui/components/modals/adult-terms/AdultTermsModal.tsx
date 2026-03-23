@@ -18,19 +18,26 @@ type AdultTermsModalProps = {
   influencerId: string;
   influencerName?: string | null;
   influencerImageUrl?: string | null;
+  idVerificationRequired?: boolean;
 };
 
 export default function AdultTermsModal({
   isOpen,
   onClose,
+  onAgree,
   onDecline,
   influencerId,
   influencerName,
   influencerImageUrl,
+  idVerificationRequired = true,
 }: AdultTermsModalProps) {
   const verificationService = AdultVerificationSerivces(apiClient);
 
   const handleAgree = async () => {
+    if (!idVerificationRequired) {
+      onAgree();
+      return;
+    }
     try {
       const verificationSession =
         await verificationService.startVerificationSession();
@@ -173,7 +180,7 @@ export default function AdultTermsModal({
       <div className={styles.actions}>
         <PrimaryButton
           variant="purple"
-          text="I Agree, Let’s Verify My Age"
+          text={idVerificationRequired ? "I Agree, Let’s Verify My Age" : "I’m 18+, Let Me In"}
           onClick={handleAgree}
           className={styles.primaryBtn}
         />
