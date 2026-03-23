@@ -18,6 +18,9 @@ _reader_failed = False
 class RequestCountryContext(TypedDict):
     country_code: str | None
     source_header: str | None
+    header_country_code: str | None
+    header_source: str | None
+    maxmind_country_code: str | None
     is_blocked: bool
 
 
@@ -143,17 +146,38 @@ def lookup_country_code_from_ip(ip_value: str | None) -> str | None:
     return _lookup_country_from_ip(ip_value)
 
 
-def extract_country_code_from_request(request: Request) -> str | None:
+def _get_header_country_context(request: Request) -> tuple[str | None, str | None]:
     for header_name in _get_country_header_priority():
         raw_value = request.headers.get(header_name)
         normalized = _normalize_country_code(raw_value)
         if normalized:
-            return normalized
+            return normalized, header_name
 
+    return None, None
+
+
+def extract_country_code_from_request(request: Request) -> str | None:
+    return get_request_country_context(request)["country_code"]
+
+
+def get_request_country_context(request: Request) -> RequestCountryContext:
+    blocked = _get_blocked_country_codes()
     ip_value = extract_client_ip(request)
-    geoip_country = _lookup_country_from_ip(ip_value)
-    if geoip_country:
-        return geoip_country
+    header_country, header_source = _get_header_country_context(request)
+    maxmind_country = _lookup_country_from_ip(ip_value)
+
+    country_code = maxmind_country or header_country
+    source_header = "maxmind" if maxmind_country else header_source
+
+    if country_code:
+        return {
+            "country_code": country_code,
+            "source_header": source_header,
+            "header_country_code": header_country,
+            "header_source": header_source,
+            "maxmind_country_code": maxmind_country,
+            "is_blocked": country_code in blocked,
+        }
 
     log.info(
         "country_detection.missing headers=%s path=%s ip=%s",
@@ -161,33 +185,12 @@ def extract_country_code_from_request(request: Request) -> str | None:
         request.url.path,
         ip_value,
     )
-    return None
-
-
-def get_request_country_context(request: Request) -> RequestCountryContext:
-    blocked = _get_blocked_country_codes()
-    for header_name in _get_country_header_priority():
-        raw_value = request.headers.get(header_name)
-        normalized = _normalize_country_code(raw_value)
-        if normalized:
-            return {
-                "country_code": normalized,
-                "source_header": header_name,
-                "is_blocked": normalized in blocked,
-            }
-
-    ip_value = extract_client_ip(request)
-    geoip_country = _lookup_country_from_ip(ip_value)
-    if geoip_country:
-        return {
-            "country_code": geoip_country,
-            "source_header": "maxmind",
-            "is_blocked": geoip_country in blocked,
-        }
-
     return {
         "country_code": None,
         "source_header": None,
+        "header_country_code": header_country,
+        "header_source": header_source,
+        "maxmind_country_code": maxmind_country,
         "is_blocked": False,
     }
 
@@ -206,9 +209,12 @@ def is_request_from_age_verification_required_country(request: Request) -> bool:
     ip_value = extract_client_ip(request)
     if not country_code:
         log.info(
-            "country_detection.age_verification_check path=%s ip=%s country=%s source=%s required=%s",
+            "country_detection.age_verification_check path=%s ip=%s header_country=%s header_source=%s maxmind_country=%s final_country=%s final_source=%s required=%s",
             request.url.path,
             ip_value,
+            context["header_country_code"],
+            context["header_source"],
+            context["maxmind_country_code"],
             None,
             context["source_header"],
             False,
@@ -216,9 +222,12 @@ def is_request_from_age_verification_required_country(request: Request) -> bool:
         return False
     required = country_code in _get_age_verification_required_country_codes()
     log.info(
-        "country_detection.age_verification_check path=%s ip=%s country=%s source=%s required=%s",
+        "country_detection.age_verification_check path=%s ip=%s header_country=%s header_source=%s maxmind_country=%s final_country=%s final_source=%s required=%s",
         request.url.path,
         ip_value,
+        context["header_country_code"],
+        context["header_source"],
+        context["maxmind_country_code"],
         country_code,
         context["source_header"],
         required,
