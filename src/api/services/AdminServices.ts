@@ -362,6 +362,103 @@ export type InfluencerCharacterAssetType =
   | "video_preview_png"
   | "video";
 
+// Telegram Funnel Types
+export interface FunnelStage {
+  stage: string;
+  users: number;
+}
+
+export interface FunnelConversionRate {
+  from: string;
+  to: string;
+  from_count: number;
+  to_count: number;
+  rate: number;
+  percentage: number;
+}
+
+export interface FunnelOverviewResponse {
+  period: string;
+  stages: FunnelStage[];
+  conversion_rates: FunnelConversionRate[];
+}
+
+export interface FunnelInfluencerData {
+  influencer_id: string;
+  stages: FunnelStage[];
+  conversion_rates: FunnelConversionRate[];
+}
+
+export interface FunnelByInfluencerResponse {
+  period: string;
+  influencers: FunnelInfluencerData[];
+}
+
+export interface FunnelDropoffItem {
+  from: string;
+  to: string;
+  from_count: number;
+  to_count: number;
+  drop_count: number;
+  drop_percentage: number;
+}
+
+export interface FunnelDropoffResponse {
+  period: string;
+  dropoffs: FunnelDropoffItem[];
+}
+
+export interface FunnelRevenueInfluencer {
+  influencer_id: string;
+  topup_cents: number;
+  subscription_cents: number;
+  total_cents: number;
+  total_usd: number;
+  topup_count: number;
+  subscription_payment_count: number;
+}
+
+export interface FunnelRevenueResponse {
+  period: string;
+  total_cents: number;
+  total_usd: number;
+  influencers: FunnelRevenueInfluencer[];
+}
+
+export interface FunnelEvent {
+  id: number;
+  event_type: string;
+  influencer_id: string;
+  user_id: number | null;
+  invite_code: string | null;
+  session_id: string | null;
+  meta: Record<string, any> | null;
+  occurred_at: string;
+}
+
+export interface FunnelUserJourneyResponse {
+  telegram_user_id: number;
+  event_count: number;
+  events: FunnelEvent[];
+}
+
+export interface FunnelCohortStage {
+  stage: string;
+  users: number;
+  percentage: number;
+}
+
+export interface FunnelCohort {
+  cohort_start: string;
+  total_users: number;
+  stages: FunnelCohortStage[];
+}
+
+export interface FunnelCohortsResponse {
+  cohort_days: number;
+  cohorts: FunnelCohort[];
+}
+
 export const AdminServices = (apiClient: AxiosInstance) => ({
   listAdultCharacters: async (): Promise<AdminAdultCharacter[]> => {
     const response = await apiClient.get(Endpoints.admin.adultCharacters.list);
@@ -700,6 +797,38 @@ export const AdminServices = (apiClient: AxiosInstance) => ({
 
   getUserDetail: async (userId: number): Promise<UserDetailResponse> => {
     const response = await apiClient.get(Endpoints.admin.analytics.userDetail(userId));
+    return response.data;
+  },
+
+  /* ── Telegram Funnel ──────────────────────────────────── */
+
+  getTelegramFunnelOverview: async (period: string = "30d"): Promise<FunnelOverviewResponse> => {
+    const response = await apiClient.get(Endpoints.admin.analytics.telegramFunnelOverview(period));
+    return response.data;
+  },
+
+  getTelegramFunnelByInfluencer: async (period: string = "30d"): Promise<FunnelByInfluencerResponse> => {
+    const response = await apiClient.get(Endpoints.admin.analytics.telegramFunnelByInfluencer(period));
+    return response.data;
+  },
+
+  getTelegramFunnelDropoff: async (period: string = "30d"): Promise<FunnelDropoffResponse> => {
+    const response = await apiClient.get(Endpoints.admin.analytics.telegramFunnelDropoff(period));
+    return response.data;
+  },
+
+  getTelegramFunnelRevenue: async (period: string = "30d"): Promise<FunnelRevenueResponse> => {
+    const response = await apiClient.get(Endpoints.admin.analytics.telegramFunnelRevenue(period));
+    return response.data;
+  },
+
+  getTelegramFunnelCohorts: async (cohortDays: number = 7): Promise<FunnelCohortsResponse> => {
+    const response = await apiClient.get(Endpoints.admin.analytics.telegramFunnelCohorts(cohortDays));
+    return response.data;
+  },
+
+  getTelegramFunnelUser: async (telegramUserId: number): Promise<FunnelUserJourneyResponse> => {
+    const response = await apiClient.get(Endpoints.admin.analytics.telegramFunnelUser(telegramUserId));
     return response.data;
   },
 });
