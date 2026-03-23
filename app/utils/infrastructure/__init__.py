@@ -6,6 +6,7 @@ from .country import (
     get_request_country_context,
     is_request_country_allowed,
     is_request_from_blocked_country,
+    lookup_country_code_from_ip,
 )
 from .idempotency import IdempotencyLock, idempotent
 from .rate_limiter import check_rate_limit, rate_limit, get_user_key
@@ -21,6 +22,7 @@ __all__ = [
     "get_request_country_context",
     "is_request_country_allowed",
     "is_request_from_blocked_country",
+    "lookup_country_code_from_ip",
     # Idempotency
     "IdempotencyLock",
     "idempotent",
