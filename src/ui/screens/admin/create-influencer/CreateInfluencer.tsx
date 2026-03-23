@@ -30,7 +30,6 @@ type InfluencerFormState = {
   notes: string;
   voice_id: string;
   prompt_template: string;
-  custom_adult_prompt: string;
   influencer_agent_id_third_part: string;
   bio_json: PersonaProfile;
   fp_ref_id?: string | null;
@@ -230,7 +229,6 @@ const createDefaultFormState = (): InfluencerFormState => ({
   notes: "",
   voice_id: "",
   prompt_template: "",
-  custom_adult_prompt: "",
   influencer_agent_id_third_part: "",
   bio_json: createDefaultPersonaProfile(),
 });
@@ -255,7 +253,6 @@ function createFormStateFromInfluencer(
     notes: "",
     voice_id: influencer.voice_id ?? "",
     prompt_template: influencer.prompt_template ?? "",
-    custom_adult_prompt: influencer.custom_adult_prompt ?? "",
     influencer_agent_id_third_part:
       influencer.influencer_agent_id_third_part ?? "",
     bio_json: extractPersonaProfile(influencer.bio_json ?? ""),
@@ -277,7 +274,7 @@ const CreateInfluencer: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(
-    () => new Set(["basic-info", "prompt-overrides", "relationship-stages", "knowledge"])
+    () => new Set(["basic-info", "relationship-stages", "knowledge"])
   );
   const toggleSection = (id: string) =>
     setCollapsedSections((prev) => {
@@ -355,7 +352,6 @@ const CreateInfluencer: React.FC = () => {
       earnings: existing.earnings ?? 0,
       isSelected: false,
       voice_id: formState.voice_id || existing.voice_id || "",
-      custom_adult_prompt: formState.custom_adult_prompt || existing.custom_adult_prompt || "",
       prompt_template: formState.prompt_template || existing.prompt_template || "",
       influencer_agent_id_third_part: formState.influencer_agent_id_third_part || existing.influencer_agent_id_third_part || "",
       bio_json: personaProfileToJson(formState.bio_json),
@@ -371,12 +367,10 @@ const CreateInfluencer: React.FC = () => {
         base.influencer_agent_id_third_part,
         base.bio_json,
         base.voice_id,
-        base.custom_adult_prompt
       );
       const merged = {
         ...base,
         ...serverInfluencer,
-        custom_adult_prompt: serverInfluencer.custom_adult_prompt ?? base.custom_adult_prompt,
       };
       setInfluencers((prev) => prev.map((inf) => inf.id === merged.id ? merged : inf));
       setSectionMsg((prev) => ({ ...prev, [sectionId]: { type: "success", msg: "Saved" } }));
@@ -742,48 +736,6 @@ const CreateInfluencer: React.FC = () => {
                       disabled={!!sectionSaving["basic-info"] || !selectedId}
                     >
                       {sectionSaving["basic-info"] ? "Saving…" : "Save"}
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div className={`${styles["section-card"]} ${styles["hidden"]}`}>
-                <div
-                  className={styles["section-card__header"]}
-                  onClick={() => toggleSection("prompt-overrides")}
-                >
-                  <div>
-                    <h3>18+ Prompt overrides</h3>
-                    <p>Customize 18+ prompt text used for adult content workflows.</p>
-                  </div>
-                  <span className={`${styles["section-chevron"]} ${collapsedSections.has("prompt-overrides") ? "" : styles["section-chevron--open"]}`}>▼</span>
-                </div>
-                {!collapsedSections.has("prompt-overrides") && (
-                  <div className={styles["section-card__body"]}>
-                    <div className={styles["field"]}>
-                      <label htmlFor="influencer-custom-adult-prompt">
-                        Custom adult prompt (For Voice Message 18+ Only)
-                      </label>
-                      <textarea
-                        id="influencer-custom-adult-prompt"
-                        value={formState.custom_adult_prompt}
-                        onChange={handleFieldChange("custom_adult_prompt")}
-                        placeholder="Provide a custom adult prompt override."
-                        rows={6}
-                      />
-                    </div>
-                    {sectionMsg["prompt-overrides"] && (
-                      <div className={`${styles["save-status"]} ${styles[`save-status--${sectionMsg["prompt-overrides"]!.type}`]}`}>
-                        {sectionMsg["prompt-overrides"]!.msg}
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      className={styles["primary-button"]}
-                      onClick={() => patchSection("prompt-overrides")}
-                      disabled={!!sectionSaving["prompt-overrides"] || !selectedId}
-                    >
-                      {sectionSaving["prompt-overrides"] ? "Saving…" : "Save"}
                     </button>
                   </div>
                 )}
