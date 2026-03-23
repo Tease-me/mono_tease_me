@@ -7,7 +7,7 @@ import OnBoardingTopNav from "@/ui/components/nav/OnBoardingTopNav";
 import HeadingText from "@/ui/components/typography/HeadingText";
 import FullWidthLayout from "@/ui/templates/FullWidthLayout";
 import React, { useContext, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import BackgroundGradient from "../../templates/BackgroundGradient";
 import styles from "./RegisterScreen.module.css";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
@@ -58,6 +58,8 @@ export default function RegisterScreen() {
 
   const navigate = useNavigate();
   const { username } = useParams<{ username: string }>();
+  const [searchParams] = useSearchParams();
+  const inviteCode = searchParams.get("invite");
 
   if (isSignedIn) navigate(Paths.home);
 
@@ -214,6 +216,7 @@ export default function RegisterScreen() {
         profile.userName,
         profile.dateOfBirth,
         profile.profilePhotoFile,
+        inviteCode,
       );
       const detailMessage =
         typeof (response as any)?.detail === "string"

@@ -122,6 +122,13 @@ export const Endpoints = {
       userSpending: (period: string = "30d") => `admin/analytics/user-spending?period=${period}`,
       userRetention: (period: string = "30d") => `admin/analytics/user-retention?period=${period}`,
       userDetail: (userId: number) => `admin/analytics/user-detail/${userId}`,
+      // Telegram funnel
+      telegramFunnelOverview: (period: string = "30d") => `admin/telegram-funnel/overview?period=${period}`,
+      telegramFunnelByInfluencer: (period: string = "30d") => `admin/telegram-funnel/by-influencer?period=${period}`,
+      telegramFunnelDropoff: (period: string = "30d") => `admin/telegram-funnel/dropoff?period=${period}`,
+      telegramFunnelRevenue: (period: string = "30d") => `admin/telegram-funnel/revenue?period=${period}`,
+      telegramFunnelCohorts: (cohortDays: number = 7) => `admin/telegram-funnel/cohorts?cohort_days=${cohortDays}`,
+      telegramFunnelUser: (telegramUserId: number) => `admin/telegram-funnel/user/${telegramUserId}`,
     },
     knowledge: {
       get: (influencerId: string) => `admin/influencers/${encodeURIComponent(influencerId)}/knowledge`,
