@@ -95,6 +95,7 @@ async def claim_and_bind_telegram(
     Returns None if the code is invalid or already claimed.
     """
     from app.services.repositories.user_repository import bind_telegram_id
+    from app.services.repositories.call_record_repository import backfill_user_id_for_telegram_user
 
     invite = await claim_invite_code(db, invite_code, user.id)
     if not invite:
@@ -109,6 +110,16 @@ async def claim_and_bind_telegram(
         log.warning(
             "telegram_invite.bind_failed code=%s user=%s telegram_id=%s",
             invite_code, user.id, invite.telegram_user_id,
+        )
+
+    # Backfill user_id on pre-signup chat/call records
+    backfilled = await backfill_user_id_for_telegram_user(
+        db, invite.telegram_user_id, user.id,
+    )
+    if backfilled:
+        log.info(
+            "register.backfilled_telegram_records user=%s tg_user=%s count=%d",
+            user.id, invite.telegram_user_id, backfilled,
         )
 
     influencer_id = provided_influencer_id or invite.influencer_id
