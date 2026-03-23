@@ -7,6 +7,7 @@ No text messaging — voice calls only.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 
 try:
@@ -131,6 +132,8 @@ class TelegramMessageHandler:
 
         if remaining <= 0:
             # No free trial left — send promo media + redirect with unique invite link
+            from app.services.funnel_tracking_service import track_trial_exhausted
+            asyncio.create_task(track_trial_exhausted(caller_id, actual_id))
             try:
                 async with _SessionLocal() as db2:
                     await send_trial_expired_messages(
@@ -166,6 +169,11 @@ class TelegramMessageHandler:
             phone_call_id=getattr(phone_call, "id", None),
             phone_call_access_hash=getattr(phone_call, "access_hash", None),
         )
+
+        if session:
+            from app.services.funnel_tracking_service import track_call_started
+            session_id = getattr(session, "conversation_id", None)
+            asyncio.create_task(track_call_started(caller_id, actual_id, session_id=session_id))
 
         if not session:
             log.error(

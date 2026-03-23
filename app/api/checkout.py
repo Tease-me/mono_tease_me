@@ -1,4 +1,5 @@
 
+import asyncio
 import hmac
 import logging
 from hashlib import sha256
@@ -91,6 +92,11 @@ async def payment_webhook(
         topup.credited = True
         db.add(topup)
         await db.commit()
+
+        # Fire-and-forget funnel tracking for first payment
+        if topup.influencer_id:
+            from app.services.funnel_tracking_service import track_first_payment
+            asyncio.create_task(track_first_payment(topup.user_id, topup.influencer_id, topup.cents))
     except HTTPException:
         await db.rollback()
         raise

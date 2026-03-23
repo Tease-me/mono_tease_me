@@ -1,3 +1,4 @@
+import asyncio
 import secrets
 import logging
 
@@ -95,7 +96,7 @@ async def register(
         select(User).where((User.email == data.email))
     )
     if existing_user.scalar():
-        raise HTTPException(status_code=200, detail="Username or email already registered")
+        raise HTTPException(status_code=409, detail="Username or email already registered")
 
     if data.influencer_id:
         influencer = await ensure_influencer(db, data.influencer_id)
@@ -153,6 +154,14 @@ async def register(
             )
             if bind_result:
                 data.influencer_id = bind_result.influencer_id
+                if bind_result.bound:
+                    from app.services.funnel_tracking_service import track_registration_completed
+                    asyncio.create_task(track_registration_completed(
+                        bind_result.telegram_id,
+                        bind_result.influencer_id,
+                        user.id,
+                        data.invite_code,
+                    ))
         except Exception:
             log.exception("register.invite_claim_error code=%s", data.invite_code)
 
@@ -176,38 +185,21 @@ async def register(
     except Exception:
         log.exception("FirstPromoter track/signup failed")
     
-    await send_verification_email(
-        user.email,
-        verify_token,
-        influencer_id=data.influencer_id,
-        influencer_profile_photo_key=getattr(influencer, "profile_photo_key", None),
-    )
+    try:
+        await send_verification_email(
+            user.email,
+            verify_token,
+            influencer_id=data.influencer_id,
+            influencer_profile_photo_key=getattr(influencer, "profile_photo_key", None),
+        )
+    except Exception:
+        log.exception("Failed to send verification email for user %s", user.id)
 
     return {
         "ok": True,
         "user_id": user.id,
         "email": user.email,
         "message": "Check your email to verify your account before logging in."
-    }
-
-@router.get("/confirm-email")
-async def confirm_email(token: str, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.email_token == token))
-    user = result.scalar_one_or_none()
-    if not user:
-        raise HTTPException(status_code=404, detail="Invalid or expired token")
-    if user.email_token_expires_at and user.email_token_expires_at < datetime.utcnow():
-        raise HTTPException(status_code=410, detail="Verification link has expired. Please request a new one.")
-    user.is_verified = True
-    user.email_token = None
-    user.email_token_expires_at = None
-    await db.commit()
-   
-    await notify_email_verified(user.email)
-
-    return {
-        "ok": True,
-        "message": "Email verified successfully! You can now log in.",
     }
 
 
@@ -220,7 +212,7 @@ async def login(
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(select(User).where(User.email == data.email))
-    user = result.scalar()
+    user = result.scalar_one_or_none()
 
     if not user or not pwd_context.verify(data.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
@@ -303,6 +295,15 @@ async def verify_email(token: str, db: AsyncSession = Depends(get_db)):
     user.email_token = None
     user.email_token_expires_at = None
     await db.commit()
+
+    await notify_email_verified(user.email)
+
+    try:
+        from app.services.funnel_tracking_service import track_email_verified
+        asyncio.create_task(track_email_verified(user.id))
+    except Exception:
+        log.exception("Failed to schedule track_email_verified for user %s", user.id)
+
     return {"ok": True, "message": "Email verified! You can now login."}
 
 @router.post("/resend-verification-email")
@@ -341,7 +342,11 @@ async def forgot_password(request: Request, email: str, db: AsyncSession = Depen
         user.password_reset_token_expires_at = datetime.utcnow() + timedelta(hours=1)
         await db.commit()
 
-        send_password_reset_email(user.email, reset_token)
+        try:
+            from fastapi.concurrency import run_in_threadpool
+            await run_in_threadpool(send_password_reset_email, user.email, reset_token)
+        except Exception:
+            log.exception("Failed to send password reset email for user %s", user.id)
 
     return {"ok": True, "message": "If an account exists, we've sent a reset link."}
 
@@ -350,7 +355,7 @@ async def reset_password(data: PasswordResetRequest, db: AsyncSession = Depends(
     result = await db.execute(select(User).where(User.password_reset_token == data.token))
     user = result.scalar_one_or_none()
 
-    if not user or user.password_reset_token_expires_at < datetime.utcnow():
+    if not user or not user.password_reset_token_expires_at or user.password_reset_token_expires_at < datetime.utcnow():
         raise HTTPException(status_code=400, detail="Token inválido ou expirado.")
 
     user.password_hash = pwd_context.hash(data.new_password)

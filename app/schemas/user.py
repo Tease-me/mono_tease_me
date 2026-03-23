@@ -51,7 +51,10 @@ class UserRead(UserBase):
     profile_photo_url: Optional[str] = None
     is_verified: bool
     verification_required: bool = False
-    
+    is_identity_verified: bool = False
+    is_age_verified: bool = False
+    verification_level: Optional[str] = None
+
     class Config:
         from_attributes = True
 # Alias for backward compatibility or clarity

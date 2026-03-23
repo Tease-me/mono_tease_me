@@ -63,6 +63,7 @@ from .verification import IdentityVerification
 
 # Telegram invite models
 from .telegram_invite import TelegramInvite
+from .funnel import TelegramFunnelEvent
 
 # API usage tracking
 from .api_usage import ApiUsageLog
@@ -111,7 +112,7 @@ __all__ = [
     "IdentityVerification",
     # API Usage
     "ApiUsageLog",
-    "ApiUsageMonthly",
     # Telegram
     "TelegramInvite",
+    "TelegramFunnelEvent",
 ]

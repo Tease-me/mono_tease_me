@@ -1,6 +1,7 @@
 import logging
 import boto3
 from botocore.exceptions import ClientError
+from fastapi.concurrency import run_in_threadpool
 from app.core.config import settings
 from datetime import datetime
 from typing import Optional
@@ -113,7 +114,7 @@ async def send_verification_email(
 """
 
     body_text = f"Welcome to TeaseMe!\nPlease confirm your email by clicking this link: {confirm_url}"
-    return send_email_via_ses(to_email, subject, body_html, body_text)
+    return await run_in_threadpool(send_email_via_ses, to_email, subject, body_html, body_text)
 
 def send_profile_survey_email(to_email: str, token: str, temp_password: str):
     subject = "Complete Your TeaseMe Profile Survey"

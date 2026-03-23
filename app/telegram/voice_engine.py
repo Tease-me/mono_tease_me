@@ -501,8 +501,33 @@ class VoiceCallSession:
 
         self._frame_count += 1
         if self._frame_count == 1:
-            log.info("voice_call.first_frame_received influencer=%s bytes=%d",
-                     self.influencer_id, len(data))
+            # Log first frame details for debugging audio format issues
+            peak = 0
+            if len(data) >= 2:
+                import struct as _struct
+                n = len(data) // 2
+                samples = _struct.unpack(f"<{n}h", data[:n * 2])
+                peak = max(abs(s) for s in samples)
+            log.info(
+                "voice_call.first_frame_received influencer=%s bytes=%d peak=%d "
+                "type=%s first_8=%s",
+                self.influencer_id, len(data), peak,
+                type(data).__name__,
+                data[:8].hex() if data else "empty",
+            )
+        elif self._frame_count == 50:
+            # Log audio levels after ~0.5s to confirm real audio vs silence
+            import struct as _struct
+            n = len(data) // 2
+            if n > 0:
+                samples = _struct.unpack(f"<{n}h", data[:n * 2])
+                peak = max(abs(s) for s in samples)
+                rms = int((sum(s * s for s in samples) / n) ** 0.5)
+                log.info(
+                    "voice_call.audio_level_check influencer=%s frame=50 "
+                    "peak=%d rms=%d (silence if peak<50, real_audio if peak>500)",
+                    self.influencer_id, peak, rms,
+                )
         elif self._frame_count % 250 == 0:
             log.info("voice_call.frames_received influencer=%s total=%d buf=%d",
                      self.influencer_id, self._frame_count,
@@ -939,6 +964,12 @@ class VoiceCallSession:
             log.info("voice_call.trial_expired influencer=%s after=%ds",
                      self.influencer_id, self.max_duration_secs)
 
+            # Track trial exhaustion (mid-call timer expiry)
+            from app.services.funnel_tracking_service import track_trial_exhausted
+            asyncio.create_task(track_trial_exhausted(
+                self.telegram_user_id, self.influencer_id,
+            ))
+
             await self.stop(reason="trial_expired")
 
             # 1) Send promo media + text CTA with invite link
@@ -962,7 +993,7 @@ class VoiceCallSession:
 
     async def _send_trial_voice_note(self):
         """Generate TTS voice note via ElevenLabs and send as Telegram voice message."""
-        farewell_text = "I'll see you in tease-me ......mi amor....... don't make me wait"
+        farewell_text = "I'll see you in tease-me mi amor....... don't make me wait"
         try:
             import httpx
             import io
@@ -1123,6 +1154,8 @@ class VoiceCallManager:
 
             if remaining <= 0:
                 log.info("Trial exhausted for tg_user=%s", telegram_user_id)
+                from app.services.funnel_tracking_service import track_trial_exhausted
+                asyncio.create_task(track_trial_exhausted(telegram_user_id, influencer_id))
                 try:
                     await send_trial_expired_messages(
                         client, db, chat_id, telegram_user_id, influencer_id,

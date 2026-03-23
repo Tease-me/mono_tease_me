@@ -35,4 +35,4 @@ telegram_sessions/
 
 # GeoIP database
 data/geoip/*
-!data/geoip/.gitkeep
+!data/geoip/.gitkeepCLAUDE.md
