@@ -36,7 +36,6 @@ class InfluencerUpdate(BaseModel):
     influencer_agent_id_third_part: Optional[str] = None
     native_language: Optional[str] = None
     date_of_birth: Optional[datetime] = None
-    custom_adult_prompt: Optional[str] = None
 
 
 class InfluencerOut(InfluencerBase):
@@ -52,7 +51,6 @@ class InfluencerDetail(InfluencerOut):
     about: Optional[str] = None
     photo_url: Optional[str] = None
     video_url: Optional[str] = None
-    custom_adult_prompt: Optional[str] = None
 
 
 class SocialLink(BaseModel):

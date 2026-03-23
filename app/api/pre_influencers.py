@@ -892,7 +892,6 @@ async def approve_pre_influencer(
                 prompt_template=personality_prompt,
                 display_name=display_name,
                 bio_json=bio_payload,
-                owner_id=None,
                 voice_id=voice_id,
                 fp_promoter_id=pre.fp_promoter_id,
                 fp_ref_id=pre.fp_ref_id,

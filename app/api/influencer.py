@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 from typing import List, Optional
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Request, BackgroundTasks
+from app.api.admin.common import ensure_admin
 from app.api.webhooks import _process_relationship_update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -207,10 +208,10 @@ async def get_influencer_adult_characters(
 
 @router.post("", response_model=InfluencerOut, status_code=201)
 async def create_influencer(data: InfluencerCreate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    ensure_admin(current_user)
     if await db.get(Influencer, data.id):
         raise HTTPException(400, "Influencer with this id already exists")
     influencer = Influencer(**data.model_dump())
-    influencer.owner_id = current_user.id
     db.add(influencer)
     await db.flush()
     await db.commit()
@@ -237,13 +238,10 @@ async def update_influencer(
 
 @router.delete("/{id}")
 async def delete_influencer(id: str, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    ensure_admin(current_user)
     influencer = await db.get(Influencer, id)
     if not influencer:
         raise HTTPException(status_code=404, detail="Influencer not found")
-
-    # Only the owner of the influencer (or an admin, if supported) may delete it
-    if influencer.owner_id != current_user.id and not getattr(current_user, "is_admin", False):
-        raise HTTPException(status_code=403, detail="Not authorized to delete this influencer")
     try:
         result = await delete_influencer_and_chat_history(db, influencer_id=id)
     except InfluencerDeleteNotFoundError as exc:
