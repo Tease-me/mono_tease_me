@@ -426,11 +426,16 @@ export type AdminInfluencerLandingAssetsPayload = {
   background_image_3_2x?: File | null;
 };
 
-export type AdminTelegramWelcomeAudioResponse = {
+export type AdminTelegramWelcomeMediaResponse = {
   influencer_id: string;
-  key: string;
-  url: string;
-  content_type: string | null;
+  telegram_audio_key: string | null;
+  telegram_audio_url: string | null;
+  telegram_audio_content_type: string | null;
+  telegram_video_key: string | null;
+  telegram_video_url: string | null;
+  telegram_video_content_type: string | null;
+  has_audio: boolean;
+  has_video: boolean;
   updated_at: string | null;
 };
 
@@ -713,23 +718,27 @@ export const AdminServices = (apiClient: AxiosInstance) => ({
     return response.data;
   },
 
-  getTelegramWelcomeAudio: async (
+  getTelegramWelcomeMedia: async (
     influencerId: string
-  ): Promise<AdminTelegramWelcomeAudioResponse> => {
+  ): Promise<AdminTelegramWelcomeMediaResponse> => {
     const response = await apiClient.get(
-      Endpoints.admin.telegramWelcomeAudio(influencerId)
+      Endpoints.admin.telegramWelcomeMedia(influencerId)
     );
     return response.data;
   },
 
-  uploadTelegramWelcomeAudio: async (
+  uploadTelegramWelcomeMedia: async (
     influencerId: string,
-    audio: File
-  ): Promise<AdminTelegramWelcomeAudioResponse> => {
+    payload: {
+      audio?: File | null;
+      video?: File | null;
+    }
+  ): Promise<AdminTelegramWelcomeMediaResponse> => {
     const formData = new FormData();
-    formData.append("audio", audio);
+    if (payload.audio) formData.append("audio", payload.audio);
+    if (payload.video) formData.append("video", payload.video);
     const response = await apiClient.post(
-      Endpoints.admin.telegramWelcomeAudio(influencerId),
+      Endpoints.admin.telegramWelcomeMedia(influencerId),
       formData,
       {
         headers: {

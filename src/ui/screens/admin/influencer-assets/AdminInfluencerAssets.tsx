@@ -4,7 +4,7 @@ import {
   AdminInfluencerLandingAssetsPayload,
   AdminInfluencerLandingAssetsResponse,
   AdminServices,
-  AdminTelegramWelcomeAudioResponse,
+  AdminTelegramWelcomeMediaResponse,
 } from "@/api/services/AdminServices";
 import { InfluencerServices } from "@/api/services/InfluencerService";
 import { InfluencerResponse } from "@/api/models/influencers";
@@ -314,14 +314,16 @@ const AdminInfluencerAssets: React.FC = () => {
   >({});
   const [uploadingLanding, setUploadingLanding] = useState(false);
 
-  const [telegramAudio, setTelegramAudio] =
-    useState<AdminTelegramWelcomeAudioResponse | null>(null);
-  const [loadingTelegramAudio, setLoadingTelegramAudio] = useState(false);
-  const [telegramAudioError, setTelegramAudioError] = useState<string | null>(null);
-  const [telegramAudioMissing, setTelegramAudioMissing] = useState(false);
+  const [telegramMedia, setTelegramMedia] =
+    useState<AdminTelegramWelcomeMediaResponse | null>(null);
+  const [loadingTelegramMedia, setLoadingTelegramMedia] = useState(false);
+  const [telegramMediaError, setTelegramMediaError] = useState<string | null>(null);
+  const [telegramMediaMissing, setTelegramMediaMissing] = useState(false);
   const [pendingTelegramAudio, setPendingTelegramAudio] = useState<File | null>(null);
+  const [pendingTelegramVideo, setPendingTelegramVideo] = useState<File | null>(null);
   const [telegramAudioReplaceMode, setTelegramAudioReplaceMode] = useState(false);
-  const [uploadingTelegramAudio, setUploadingTelegramAudio] = useState(false);
+  const [telegramVideoReplaceMode, setTelegramVideoReplaceMode] = useState(false);
+  const [uploadingTelegramMedia, setUploadingTelegramMedia] = useState(false);
 
   const [pageMessage, setPageMessage] = useState<string | null>(null);
 
@@ -358,12 +360,14 @@ const AdminInfluencerAssets: React.FC = () => {
   useEffect(() => {
     if (!selectedInfluencerId) {
       setLandingAssets(null);
-      setTelegramAudio(null);
-      setTelegramAudioMissing(false);
+      setTelegramMedia(null);
+      setTelegramMediaMissing(false);
       setPendingLandingUploads({});
       setLandingReplaceMode({});
       setPendingTelegramAudio(null);
+      setPendingTelegramVideo(null);
       setTelegramAudioReplaceMode(false);
+      setTelegramVideoReplaceMode(false);
       return;
     }
 
@@ -387,30 +391,30 @@ const AdminInfluencerAssets: React.FC = () => {
         setLoadingLandingAssets(false);
       });
 
-    setLoadingTelegramAudio(true);
-    setTelegramAudioError(null);
-    setTelegramAudioMissing(false);
+    setLoadingTelegramMedia(true);
+    setTelegramMediaError(null);
+    setTelegramMediaMissing(false);
     admin
-      .getTelegramWelcomeAudio(selectedInfluencerId)
+      .getTelegramWelcomeMedia(selectedInfluencerId)
       .then((data) => {
         if (!active) return;
-        setTelegramAudio(data);
+        setTelegramMedia(data);
       })
       .catch((e) => {
         if (!active) return;
         if (e?.response?.status === 404) {
-          setTelegramAudio(null);
-          setTelegramAudioMissing(true);
+          setTelegramMedia(null);
+          setTelegramMediaMissing(true);
           return;
         }
-        setTelegramAudio(null);
-        setTelegramAudioError(
-          getErrorMessage(e, "Failed to load telegram welcome audio.")
+        setTelegramMedia(null);
+        setTelegramMediaError(
+          getErrorMessage(e, "Failed to load Telegram welcome media.")
         );
       })
       .finally(() => {
         if (!active) return;
-        setLoadingTelegramAudio(false);
+        setLoadingTelegramMedia(false);
       });
 
     return () => {
@@ -473,30 +477,35 @@ const AdminInfluencerAssets: React.FC = () => {
     }
   };
 
-  const handleUploadTelegramAudio = async () => {
+  const handleUploadTelegramMedia = async () => {
     if (!selectedInfluencerId) return;
-    if (!pendingTelegramAudio) {
-      setTelegramAudioError("Select an audio file before uploading.");
+    if (!pendingTelegramAudio && !pendingTelegramVideo) {
+      setTelegramMediaError("Select an audio file, a video file, or both before uploading.");
       return;
     }
 
-    setUploadingTelegramAudio(true);
-    setTelegramAudioError(null);
+    setUploadingTelegramMedia(true);
+    setTelegramMediaError(null);
     setPageMessage(null);
     try {
-      const updated = await admin.uploadTelegramWelcomeAudio(
+      const updated = await admin.uploadTelegramWelcomeMedia(
         selectedInfluencerId,
-        pendingTelegramAudio
+        {
+          audio: pendingTelegramAudio,
+          video: pendingTelegramVideo,
+        }
       );
-      setTelegramAudio(updated);
-      setTelegramAudioMissing(false);
+      setTelegramMedia(updated);
+      setTelegramMediaMissing(false);
       setPendingTelegramAudio(null);
+      setPendingTelegramVideo(null);
       setTelegramAudioReplaceMode(false);
-      setPageMessage("Telegram welcome audio updated.");
+      setTelegramVideoReplaceMode(false);
+      setPageMessage("Telegram welcome media updated.");
     } catch (e: any) {
-      setTelegramAudioError(getErrorMessage(e, "Telegram audio upload failed."));
+      setTelegramMediaError(getErrorMessage(e, "Telegram media upload failed."));
     } finally {
-      setUploadingTelegramAudio(false);
+      setUploadingTelegramMedia(false);
     }
   };
 
@@ -525,15 +534,20 @@ const AdminInfluencerAssets: React.FC = () => {
     }));
   };
 
-  const closeTelegramReplaceMode = (hasPreview: boolean) => {
+  const closeTelegramAudioReplaceMode = (hasPreview: boolean) => {
     setPendingTelegramAudio(null);
     setTelegramAudioReplaceMode(!hasPreview);
+  };
+
+  const closeTelegramVideoReplaceMode = (hasPreview: boolean) => {
+    setPendingTelegramVideo(null);
+    setTelegramVideoReplaceMode(!hasPreview);
   };
 
   return (
     <AdminLayout
       title="Influencer Assets Manager"
-      subtitle="Manage landing hero assets, background media, signatures, and Telegram welcome audio."
+      subtitle="Manage landing hero assets, background media, signatures, and Telegram welcome audio and video."
     >
       <div className={styles["page"]}>
         <AdminTwoColumn
@@ -604,13 +618,13 @@ const AdminInfluencerAssets: React.FC = () => {
                   <div>
                     <h2>{selectedInfluencer?.display_name || selectedInfluencerId}</h2>
                     <p>
-                      Landing asset previews, staged uploads, and Telegram welcome audio.
+                      Landing asset previews, staged uploads, and Telegram welcome audio and video.
                     </p>
                   </div>
                   <div className={styles["detail-meta"]}>
                     <span>@{selectedInfluencerId}</span>
                     <span>
-                      Updated {formatDate(landingAssets?.updated_at || telegramAudio?.updated_at)}
+                      Updated {formatDate(landingAssets?.updated_at || telegramMedia?.updated_at)}
                     </span>
                   </div>
                 </div>
@@ -783,101 +797,192 @@ const AdminInfluencerAssets: React.FC = () => {
                 <div className={styles["section-card"]}>
                   <div className={styles["section-header"]}>
                     <div>
-                      <h3>Telegram Welcome Audio</h3>
-                      <p>Upload or replace the audio used for Telegram welcome flows.</p>
+                      <h3>Telegram Welcome Media</h3>
+                      <p>Upload or replace the Telegram welcome audio, video, or both together.</p>
                     </div>
                     <div className={styles["pill-row"]}>
-                      <span className={telegramAudio ? styles["pill-active"] : styles["pill-muted"]}>
-                        {telegramAudio ? "Audio ready" : "No audio"}
+                      <span className={telegramMedia?.has_audio ? styles["pill-active"] : styles["pill-muted"]}>
+                        {telegramMedia?.has_audio ? "Audio ready" : "No audio"}
+                      </span>
+                      <span className={telegramMedia?.has_video ? styles["pill-active"] : styles["pill-muted"]}>
+                        {telegramMedia?.has_video ? "Video ready" : "No video"}
                       </span>
                     </div>
                   </div>
 
-                  {telegramAudioError && (
+                  {telegramMediaError && (
                     <div className={`${styles["message"]} ${styles["message--error"]}`}>
-                      {telegramAudioError}
+                      {telegramMediaError}
                     </div>
                   )}
 
-                  {loadingTelegramAudio ? (
-                    <div className={styles["empty-state"]}>Loading telegram welcome audio…</div>
+                  {loadingTelegramMedia ? (
+                    <div className={styles["empty-state"]}>Loading Telegram welcome media…</div>
                   ) : (
                     <div className={styles["audio-card"]}>
-                      {telegramAudio && !telegramAudioReplaceMode && !pendingTelegramAudio ? (
-                        <>
-                          <div className={styles["audio-preview-header"]}>
-                            <div className={styles["audio-meta"]}>
-                              Updated {formatDate(telegramAudio.updated_at)}
-                            </div>
-                            <button
-                              type="button"
-                              className={styles["slot-toggle"]}
-                              onClick={() => setTelegramAudioReplaceMode(true)}
-                              disabled={uploadingTelegramAudio}
-                              aria-label="Replace telegram welcome audio"
-                            >
-                              <span className={styles["slot-toggle-x"]}>×</span>
-                            </button>
-                          </div>
-                          <audio controls className={styles["audio-player"]}>
-                            <source src={telegramAudio.url} type={telegramAudio.content_type || undefined} />
-                          </audio>
-                        </>
-                      ) : telegramAudioMissing ? (
+                      {telegramMediaMissing ? (
                         <div className={styles["empty-state"]}>
-                          No telegram welcome audio uploaded yet.
+                          No Telegram welcome audio or video uploaded yet.
                         </div>
                       ) : null}
 
-                      {(!telegramAudio || telegramAudioReplaceMode || pendingTelegramAudio) && (
-                        <>
-                          <div className={styles["replace-header"]}>
-                            <div className={styles["asset-label"]}>
-                              {telegramAudio ? "Replace Telegram Welcome Audio" : "Telegram Welcome Audio"}
-                            </div>
-                            {telegramAudio && (
-                              <button
-                                type="button"
-                                className={styles["replace-cancel"]}
-                                onClick={() => closeTelegramReplaceMode(Boolean(telegramAudio))}
-                                disabled={uploadingTelegramAudio}
-                              >
-                                Cancel
-                              </button>
-                            )}
-                          </div>
-                          <FileDropzone
-                            title="Upload Telegram Welcome Audio"
-                            description="Drag and drop an audio file here, or browse to stage a replacement."
-                            accept="audio/*"
-                            file={pendingTelegramAudio}
-                            onFileChange={(file) => {
-                              setPendingTelegramAudio(file);
-                              if (file) {
-                                setTelegramAudioReplaceMode(true);
-                              }
-                            }}
-                            onFileRemove={() => setPendingTelegramAudio(null)}
-                            browseLabel="Browse"
-                            disabled={uploadingTelegramAudio}
-                            metaText="Accepted: audio/*"
-                          />
-                        </>
-                      )}
+                      <div className={`${styles["group-slots"]} ${styles["group-slots--two"]}`}>
+                        <div className={styles["slot-card"]}>
+                          {telegramMedia?.telegram_audio_url &&
+                          !telegramAudioReplaceMode &&
+                          !pendingTelegramAudio ? (
+                            <>
+                              <div className={styles["audio-preview-header"]}>
+                                <div className={styles["audio-meta"]}>
+                                  Updated {formatDate(telegramMedia.updated_at)}
+                                </div>
+                                <button
+                                  type="button"
+                                  className={styles["slot-toggle"]}
+                                  onClick={() => setTelegramAudioReplaceMode(true)}
+                                  disabled={uploadingTelegramMedia}
+                                  aria-label="Replace Telegram welcome audio"
+                                >
+                                  <span className={styles["slot-toggle-x"]}>×</span>
+                                </button>
+                              </div>
+                              <div className={styles["slot-label-row"]}>
+                                <div className={styles["asset-label"]}>Telegram Welcome Audio</div>
+                              </div>
+                              <audio controls className={styles["audio-player"]}>
+                                <source
+                                  src={telegramMedia.telegram_audio_url}
+                                  type={telegramMedia.telegram_audio_content_type || undefined}
+                                />
+                              </audio>
+                            </>
+                          ) : (
+                            <>
+                              <div className={styles["replace-header"]}>
+                                <div className={styles["asset-label"]}>
+                                  {telegramMedia?.telegram_audio_url
+                                    ? "Replace Telegram Welcome Audio"
+                                    : "Telegram Welcome Audio"}
+                                </div>
+                                {telegramMedia?.telegram_audio_url && (
+                                  <button
+                                    type="button"
+                                    className={styles["replace-cancel"]}
+                                    onClick={() =>
+                                      closeTelegramAudioReplaceMode(Boolean(telegramMedia?.telegram_audio_url))
+                                    }
+                                    disabled={uploadingTelegramMedia}
+                                  >
+                                    Cancel
+                                  </button>
+                                )}
+                              </div>
+                              <FileDropzone
+                                title="Upload Telegram Welcome Audio"
+                                description="Drag and drop an audio file here, or browse to stage a replacement."
+                                accept="audio/*"
+                                file={pendingTelegramAudio}
+                                onFileChange={(file) => {
+                                  setPendingTelegramAudio(file);
+                                  if (file) {
+                                    setTelegramAudioReplaceMode(true);
+                                  }
+                                }}
+                                onFileRemove={() => setPendingTelegramAudio(null)}
+                                browseLabel="Browse"
+                                disabled={uploadingTelegramMedia}
+                                metaText="Accepted: audio/*"
+                              />
+                            </>
+                          )}
+                        </div>
+
+                        <div className={styles["slot-card"]}>
+                          {telegramMedia?.telegram_video_url &&
+                          !telegramVideoReplaceMode &&
+                          !pendingTelegramVideo ? (
+                            <>
+                              <div className={styles["audio-preview-header"]}>
+                                <div className={styles["audio-meta"]}>
+                                  Updated {formatDate(telegramMedia.updated_at)}
+                                </div>
+                                <button
+                                  type="button"
+                                  className={styles["slot-toggle"]}
+                                  onClick={() => setTelegramVideoReplaceMode(true)}
+                                  disabled={uploadingTelegramMedia}
+                                  aria-label="Replace Telegram welcome video"
+                                >
+                                  <span className={styles["slot-toggle-x"]}>×</span>
+                                </button>
+                              </div>
+                              <AssetPreview
+                                label="Telegram Welcome Video"
+                                url={telegramMedia.telegram_video_url}
+                                type="video"
+                                emptyLabel="No Telegram welcome video uploaded"
+                                contentType={telegramMedia.telegram_video_content_type}
+                                frame="vertical"
+                              />
+                            </>
+                          ) : (
+                            <>
+                              <div className={styles["replace-header"]}>
+                                <div className={styles["asset-label"]}>
+                                  {telegramMedia?.telegram_video_url
+                                    ? "Replace Telegram Welcome Video"
+                                    : "Telegram Welcome Video"}
+                                </div>
+                                {telegramMedia?.telegram_video_url && (
+                                  <button
+                                    type="button"
+                                    className={styles["replace-cancel"]}
+                                    onClick={() =>
+                                      closeTelegramVideoReplaceMode(Boolean(telegramMedia?.telegram_video_url))
+                                    }
+                                    disabled={uploadingTelegramMedia}
+                                  >
+                                    Cancel
+                                  </button>
+                                )}
+                              </div>
+                              <FileDropzone
+                                title="Upload Telegram Welcome Video"
+                                description="Drag and drop a video file here, or browse to stage a replacement."
+                                accept="video/*"
+                                file={pendingTelegramVideo}
+                                onFileChange={(file) => {
+                                  setPendingTelegramVideo(file);
+                                  if (file) {
+                                    setTelegramVideoReplaceMode(true);
+                                  }
+                                }}
+                                onFileRemove={() => setPendingTelegramVideo(null)}
+                                browseLabel="Browse"
+                                disabled={uploadingTelegramMedia}
+                                metaText="Accepted: video/*"
+                              />
+                            </>
+                          )}
+                        </div>
+                      </div>
 
                       <div className={styles["action-row"]}>
                         <div className={styles["action-copy"]}>
-                          {pendingTelegramAudio
-                            ? "One replacement audio file is staged."
-                            : "Stage a single audio file, then upload it manually."}
+                          {pendingTelegramAudio || pendingTelegramVideo
+                            ? `${Number(Boolean(pendingTelegramAudio)) + Number(Boolean(pendingTelegramVideo))} Telegram file${pendingTelegramAudio && pendingTelegramVideo ? "s" : ""} staged for upload.`
+                            : "Stage audio, video, or both, then upload them together."}
                         </div>
                         <button
                           type="button"
                           className={styles["primary"]}
-                          onClick={handleUploadTelegramAudio}
-                          disabled={uploadingTelegramAudio || !pendingTelegramAudio}
+                          onClick={handleUploadTelegramMedia}
+                          disabled={
+                            uploadingTelegramMedia ||
+                            (!pendingTelegramAudio && !pendingTelegramVideo)
+                          }
                         >
-                          {uploadingTelegramAudio ? "Uploading..." : "Upload telegram welcome audio"}
+                          {uploadingTelegramMedia ? "Uploading..." : "Upload Telegram welcome media"}
                         </button>
                       </div>
                     </div>

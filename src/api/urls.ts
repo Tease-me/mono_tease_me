@@ -90,8 +90,8 @@ export const Endpoints = {
     },
     influencerLandingAssets: (influencerId: string) =>
       `admin/influencer/${encodeURIComponent(influencerId)}/landing-assets`,
-    telegramWelcomeAudio: (influencerId: string) =>
-      `admin/influencer/${encodeURIComponent(influencerId)}/telegram-welcome-audio`,
+    telegramWelcomeMedia: (influencerId: string) =>
+      `admin/influencer/${encodeURIComponent(influencerId)}/telegram-welcome-media`,
     systemPrompts: {
       list: "admin/system-prompts",
       byKey: (key: string) => `admin/system-prompts/${encodeURIComponent(key)}`,
