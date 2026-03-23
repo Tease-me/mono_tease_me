@@ -13,7 +13,9 @@ from app.db.models import Influencer
 from app.repositories.influencer_landing_assets_repository import (
     LANDING_IMAGE_SLOTS,
     LANDING_VIDEO_SLOTS,
+    LEGACY_TELEGRAM_MEDIA_SLOT,
     TELEGRAM_AUDIO_SLOT,
+    TELEGRAM_VIDEO_SLOT,
     delete_asset,
     get_landing_asset_entry,
     get_landing_asset_key,
@@ -21,9 +23,13 @@ from app.repositories.influencer_landing_assets_repository import (
     object_exists,
     upload_landing_binary,
     upload_landing_image,
+    upload_landing_poster_jpg,
 )
 
 LANDING_ALL_SLOTS = tuple(LANDING_IMAGE_SLOTS) + tuple(LANDING_VIDEO_SLOTS)
+TELEGRAM_ALL_SLOTS = (TELEGRAM_AUDIO_SLOT, TELEGRAM_VIDEO_SLOT)
+_AUDIO_EXTENSIONS = {"mp3", "wav", "webm", "ogg", "aac", "m4a"}
+_VIDEO_EXTENSIONS = {"mp4", "webm", "mov", "avi", "mpeg", "mpg", "m4v"}
 
 
 def _utcnow_iso() -> str:
@@ -50,6 +56,45 @@ async def _resolve_entry(entry: dict[str, Any] | None) -> dict[str, Any] | None:
     return resolved
 
 
+def _get_telegram_audio_entry(assets_json: dict[str, Any] | None) -> dict[str, Any] | None:
+    return get_landing_asset_entry(assets_json, TELEGRAM_AUDIO_SLOT)
+
+
+def _get_telegram_video_entry(assets_json: dict[str, Any] | None) -> dict[str, Any] | None:
+    return (
+        get_landing_asset_entry(assets_json, TELEGRAM_VIDEO_SLOT)
+        or get_landing_asset_entry(assets_json, LEGACY_TELEGRAM_MEDIA_SLOT)
+    )
+
+
+def _get_telegram_key(assets_json: dict[str, Any] | None, slot: str) -> str | None:
+    return get_landing_asset_key(assets_json, slot)
+
+
+def _is_audio_upload(media: UploadFile) -> bool:
+    content_type = (media.content_type or "").split(";", 1)[0].strip().lower()
+    if content_type:
+        return content_type.startswith("audio/")
+
+    filename = media.filename or ""
+    if "." not in filename:
+        return False
+    extension = filename.rsplit(".", 1)[-1].lower()
+    return extension in _AUDIO_EXTENSIONS
+
+
+def _is_video_upload(media: UploadFile) -> bool:
+    content_type = (media.content_type or "").split(";", 1)[0].strip().lower()
+    if content_type:
+        return content_type.startswith("video/")
+
+    filename = media.filename or ""
+    if "." not in filename:
+        return False
+    extension = filename.rsplit(".", 1)[-1].lower()
+    return extension in _VIDEO_EXTENSIONS
+
+
 async def build_admin_landing_assets_out(influencer: Influencer) -> dict[str, Any]:
     assets_json = influencer.assets_json if isinstance(influencer.assets_json, dict) else {}
 
@@ -65,19 +110,43 @@ async def build_admin_landing_assets_out(influencer: Influencer) -> dict[str, An
         "background_image_3",
         "background_image_3_2x",
     )
+    hero_slots = ("hero_png", "hero_png_2x")
+    signature_slots = ("signature_png", "signature_png_2x")
+    background_video_slots = (
+        "background_video_1_mp4",
+        "background_video_1_webm",
+        "background_video_1_poster_jpg",
+        "background_video_2_mp4",
+        "background_video_2_webm",
+        "background_video_2_poster_jpg",
+    )
 
     return {
         "influencer_id": influencer.id,
         "hero_png_key": resolved_entries["hero_png"]["s3_key"] if resolved_entries["hero_png"] else None,
         "hero_png_url": resolved_entries["hero_png"]["url"] if resolved_entries["hero_png"] else None,
+        "hero_png_2x_key": resolved_entries["hero_png_2x"]["s3_key"] if resolved_entries["hero_png_2x"] else None,
+        "hero_png_2x_url": resolved_entries["hero_png_2x"]["url"] if resolved_entries["hero_png_2x"] else None,
         "signature_png_key": resolved_entries["signature_png"]["s3_key"] if resolved_entries["signature_png"] else None,
         "signature_png_url": resolved_entries["signature_png"]["url"] if resolved_entries["signature_png"] else None,
-        "background_video_1_key": resolved_entries["background_video_1"]["s3_key"] if resolved_entries["background_video_1"] else None,
-        "background_video_1_url": resolved_entries["background_video_1"]["url"] if resolved_entries["background_video_1"] else None,
-        "background_video_1_content_type": resolved_entries["background_video_1"]["content_type"] if resolved_entries["background_video_1"] else None,
-        "background_video_2_key": resolved_entries["background_video_2"]["s3_key"] if resolved_entries["background_video_2"] else None,
-        "background_video_2_url": resolved_entries["background_video_2"]["url"] if resolved_entries["background_video_2"] else None,
-        "background_video_2_content_type": resolved_entries["background_video_2"]["content_type"] if resolved_entries["background_video_2"] else None,
+        "signature_png_2x_key": resolved_entries["signature_png_2x"]["s3_key"] if resolved_entries["signature_png_2x"] else None,
+        "signature_png_2x_url": resolved_entries["signature_png_2x"]["url"] if resolved_entries["signature_png_2x"] else None,
+        "background_video_1_mp4_key": resolved_entries["background_video_1_mp4"]["s3_key"] if resolved_entries["background_video_1_mp4"] else None,
+        "background_video_1_mp4_url": resolved_entries["background_video_1_mp4"]["url"] if resolved_entries["background_video_1_mp4"] else None,
+        "background_video_1_mp4_content_type": resolved_entries["background_video_1_mp4"]["content_type"] if resolved_entries["background_video_1_mp4"] else None,
+        "background_video_1_webm_key": resolved_entries["background_video_1_webm"]["s3_key"] if resolved_entries["background_video_1_webm"] else None,
+        "background_video_1_webm_url": resolved_entries["background_video_1_webm"]["url"] if resolved_entries["background_video_1_webm"] else None,
+        "background_video_1_webm_content_type": resolved_entries["background_video_1_webm"]["content_type"] if resolved_entries["background_video_1_webm"] else None,
+        "background_video_1_poster_jpg_key": resolved_entries["background_video_1_poster_jpg"]["s3_key"] if resolved_entries["background_video_1_poster_jpg"] else None,
+        "background_video_1_poster_jpg_url": resolved_entries["background_video_1_poster_jpg"]["url"] if resolved_entries["background_video_1_poster_jpg"] else None,
+        "background_video_2_mp4_key": resolved_entries["background_video_2_mp4"]["s3_key"] if resolved_entries["background_video_2_mp4"] else None,
+        "background_video_2_mp4_url": resolved_entries["background_video_2_mp4"]["url"] if resolved_entries["background_video_2_mp4"] else None,
+        "background_video_2_mp4_content_type": resolved_entries["background_video_2_mp4"]["content_type"] if resolved_entries["background_video_2_mp4"] else None,
+        "background_video_2_webm_key": resolved_entries["background_video_2_webm"]["s3_key"] if resolved_entries["background_video_2_webm"] else None,
+        "background_video_2_webm_url": resolved_entries["background_video_2_webm"]["url"] if resolved_entries["background_video_2_webm"] else None,
+        "background_video_2_webm_content_type": resolved_entries["background_video_2_webm"]["content_type"] if resolved_entries["background_video_2_webm"] else None,
+        "background_video_2_poster_jpg_key": resolved_entries["background_video_2_poster_jpg"]["s3_key"] if resolved_entries["background_video_2_poster_jpg"] else None,
+        "background_video_2_poster_jpg_url": resolved_entries["background_video_2_poster_jpg"]["url"] if resolved_entries["background_video_2_poster_jpg"] else None,
         "background_image_1_key": resolved_entries["background_image_1"]["s3_key"] if resolved_entries["background_image_1"] else None,
         "background_image_1_url": resolved_entries["background_image_1"]["url"] if resolved_entries["background_image_1"] else None,
         "background_image_1_2x_key": resolved_entries["background_image_1_2x"]["s3_key"] if resolved_entries["background_image_1_2x"] else None,
@@ -90,11 +159,10 @@ async def build_admin_landing_assets_out(influencer: Influencer) -> dict[str, An
         "background_image_3_url": resolved_entries["background_image_3"]["url"] if resolved_entries["background_image_3"] else None,
         "background_image_3_2x_key": resolved_entries["background_image_3_2x"]["s3_key"] if resolved_entries["background_image_3_2x"] else None,
         "background_image_3_2x_url": resolved_entries["background_image_3_2x"]["url"] if resolved_entries["background_image_3_2x"] else None,
-        "has_hero": resolved_entries["hero_png"] is not None,
-        "has_signature": resolved_entries["signature_png"] is not None,
-        "has_background_videos": (
-            resolved_entries["background_video_1"] is not None
-            and resolved_entries["background_video_2"] is not None
+        "has_hero": all(resolved_entries[slot] is not None for slot in hero_slots),
+        "has_signature": all(resolved_entries[slot] is not None for slot in signature_slots),
+        "has_background_videos": all(
+            resolved_entries[slot] is not None for slot in background_video_slots
         ),
         "has_complete_background_images": all(
             resolved_entries[slot] is not None for slot in background_image_slots
@@ -110,74 +178,121 @@ async def build_admin_landing_assets_out(influencer: Influencer) -> dict[str, An
     }
 
 
-async def get_admin_telegram_welcome_audio_out(influencer: Influencer) -> dict[str, Any]:
-    entry = await _resolve_entry(get_landing_asset_entry(influencer.assets_json, TELEGRAM_AUDIO_SLOT))
-    if not entry:
-        raise HTTPException(status_code=404, detail="Telegram welcome audio not found")
+async def build_admin_telegram_welcome_media_out(influencer: Influencer) -> dict[str, Any]:
+    audio_entry = await _resolve_entry(_get_telegram_audio_entry(influencer.assets_json))
+    video_entry = await _resolve_entry(_get_telegram_video_entry(influencer.assets_json))
+    if not audio_entry and not video_entry:
+        raise HTTPException(status_code=404, detail="Telegram welcome media not found")
 
     return {
         "influencer_id": influencer.id,
-        "key": entry["s3_key"],
-        "url": entry["url"],
-        "content_type": entry.get("content_type"),
-        "updated_at": entry.get("updated_at"),
+        "telegram_audio_key": audio_entry["s3_key"] if audio_entry else None,
+        "telegram_audio_url": audio_entry["url"] if audio_entry else None,
+        "telegram_audio_content_type": audio_entry.get("content_type") if audio_entry else None,
+        "telegram_video_key": video_entry["s3_key"] if video_entry else None,
+        "telegram_video_url": video_entry["url"] if video_entry else None,
+        "telegram_video_content_type": video_entry.get("content_type") if video_entry else None,
+        "has_audio": audio_entry is not None,
+        "has_video": video_entry is not None,
+        "updated_at": max(
+            (
+                str(entry.get("updated_at"))
+                for entry in (audio_entry, video_entry)
+                if entry and entry.get("updated_at")
+            ),
+            default=None,
+        ),
     }
 
 
-async def upsert_admin_telegram_welcome_audio(
+async def upsert_admin_telegram_welcome_media(
     db: AsyncSession,
     influencer: Influencer,
-    audio: UploadFile,
+    audio: UploadFile | None,
+    video: UploadFile | None,
 ) -> dict[str, Any]:
-    audio_bytes = await audio.read()
-    if not audio_bytes:
-        raise HTTPException(status_code=400, detail="Empty audio file")
+    provided_files = {
+        slot: file
+        for slot, file in {
+            TELEGRAM_AUDIO_SLOT: audio,
+            TELEGRAM_VIDEO_SLOT: video,
+        }.items()
+        if file is not None
+    }
+    if not provided_files:
+        raise HTTPException(status_code=400, detail="At least one telegram media file is required")
 
-    previous_key = get_landing_asset_key(influencer.assets_json, TELEGRAM_AUDIO_SLOT)
-    uploaded_key: str | None = None
+    previous_keys = {
+        TELEGRAM_AUDIO_SLOT: _get_telegram_key(influencer.assets_json, TELEGRAM_AUDIO_SLOT),
+        TELEGRAM_VIDEO_SLOT: (
+            _get_telegram_key(influencer.assets_json, TELEGRAM_VIDEO_SLOT)
+            or _get_telegram_key(influencer.assets_json, LEGACY_TELEGRAM_MEDIA_SLOT)
+        ),
+    }
+    uploaded_keys: dict[str, str] = {}
     try:
-        uploaded_key, content_type = await upload_landing_binary(
-            io.BytesIO(audio_bytes),
-            audio.filename,
-            audio.content_type,
-            influencer.id,
-            TELEGRAM_AUDIO_SLOT,
-            fallback_extension="mp3",
-        )
         assets_json = _clone_assets_json(influencer)
-        assets_json[TELEGRAM_AUDIO_SLOT] = {
-            "s3_key": uploaded_key,
-            "content_type": content_type,
-            "updated_at": _utcnow_iso(),
-        }
+        for slot, file in provided_files.items():
+            if slot == TELEGRAM_AUDIO_SLOT and not _is_audio_upload(file):
+                raise HTTPException(status_code=400, detail="Telegram welcome audio must be an audio file")
+            if slot == TELEGRAM_VIDEO_SLOT and not _is_video_upload(file):
+                raise HTTPException(status_code=400, detail="Telegram welcome video must be a video file")
+
+            file_bytes = await file.read()
+            if not file_bytes:
+                raise HTTPException(status_code=400, detail=f"Empty {slot} file")
+
+            fallback_extension = "mp3" if slot == TELEGRAM_AUDIO_SLOT else "mp4"
+            s3_key, content_type = await upload_landing_binary(
+                io.BytesIO(file_bytes),
+                file.filename,
+                file.content_type,
+                influencer.id,
+                slot,
+                fallback_extension=fallback_extension,
+            )
+            uploaded_keys[slot] = s3_key
+            assets_json[slot] = {
+                "s3_key": s3_key,
+                "content_type": content_type,
+                "updated_at": _utcnow_iso(),
+            }
+
+        if TELEGRAM_VIDEO_SLOT in provided_files:
+            assets_json.pop(LEGACY_TELEGRAM_MEDIA_SLOT, None)
+
         influencer.assets_json = assets_json
         db.add(influencer)
         await db.commit()
         await db.refresh(influencer)
     except HTTPException:
-        if uploaded_key and uploaded_key != previous_key:
-            try:
-                await delete_asset(uploaded_key)
-            except Exception:
-                pass
         await db.rollback()
+        for slot, s3_key in uploaded_keys.items():
+            if s3_key != previous_keys.get(slot):
+                try:
+                    await delete_asset(s3_key)
+                except Exception:
+                    pass
         raise
     except Exception as exc:
         await db.rollback()
-        if uploaded_key and uploaded_key != previous_key:
+        for slot, s3_key in uploaded_keys.items():
+            if s3_key != previous_keys.get(slot):
+                try:
+                    await delete_asset(s3_key)
+                except Exception:
+                    pass
+        raise HTTPException(status_code=500, detail="Failed to save telegram welcome media") from exc
+
+    for slot, previous_key in previous_keys.items():
+        new_key = uploaded_keys.get(slot)
+        if previous_key and new_key and previous_key != new_key:
             try:
-                await delete_asset(uploaded_key)
+                await delete_asset(previous_key)
             except Exception:
                 pass
-        raise HTTPException(status_code=500, detail="Failed to save telegram welcome audio") from exc
 
-    if previous_key and previous_key != uploaded_key:
-        try:
-            await delete_asset(previous_key)
-        except Exception:
-            pass
-
-    return await get_admin_telegram_welcome_audio_out(influencer)
+    return await build_admin_telegram_welcome_media_out(influencer)
 
 
 async def upsert_admin_landing_assets(
@@ -201,7 +316,15 @@ async def upsert_admin_landing_assets(
             if not file_bytes:
                 raise HTTPException(status_code=400, detail=f"Empty {slot} file")
 
-            if slot in LANDING_IMAGE_SLOTS:
+            if slot in {"background_video_1_poster_jpg", "background_video_2_poster_jpg"}:
+                s3_key, content_type = await upload_landing_poster_jpg(
+                    io.BytesIO(file_bytes),
+                    file.filename,
+                    file.content_type,
+                    influencer.id,
+                    slot,
+                )
+            elif slot in LANDING_IMAGE_SLOTS:
                 s3_key, content_type = await upload_landing_image(
                     io.BytesIO(file_bytes),
                     file.filename,
