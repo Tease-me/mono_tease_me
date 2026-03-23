@@ -33,7 +33,7 @@ from app.schemas.admin import (
     AdminInfluencerCharacterAssetMutationOut,
 )
 from app.utils.auth.dependencies import get_current_user
-from app.utils.storage.s3 import delete_file_from_s3, generate_presigned_url, save_sample_audio_to_s3
+from app.utils.storage.s3 import delete_file_from_s3, generate_presigned_url, save_sample_audio_to_s3, save_character_sample_audio_to_s3
 
 router = APIRouter(tags=["admin-characters"])
 log = logging.getLogger(__name__)
@@ -592,6 +592,134 @@ async def delete_influencer_sample(
         await delete_file_from_s3(sample_id)
     except Exception:
         log.warning("Failed to delete S3 sample file %s", sample_id, exc_info=True)
+
+    await db.commit()
+    return {"ok": True, "deleted_id": sample_id}
+
+
+@router.post(
+    "/influencer/{influencer_id}/adult-characters/{character_id}/samples",
+    summary="Upload character scene sample audio",
+    description="Upload a normal or explicit audio sample for a specific influencer + scene (adult character) combo.",
+)
+async def upload_character_scene_sample(
+    influencer_id: str,
+    character_id: int,
+    file: UploadFile = File(...),
+    sample_type: str = "normal",
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    ensure_admin(current_user)
+
+    if sample_type not in ("normal", "explicit"):
+        raise HTTPException(status_code=400, detail="sample_type must be 'normal' or 'explicit'")
+
+    influencer = await db.get(Influencer, influencer_id)
+    if not influencer:
+        raise HTTPException(status_code=404, detail="Influencer not found")
+
+    character = await db.get(AdultCharacter, character_id)
+    if not character or not character.is_active:
+        raise HTTPException(status_code=404, detail="Character not found")
+
+    allowed_audio_types = {"audio/mpeg", "audio/mp4", "audio/wav", "audio/webm", "audio/ogg"}
+    if file.content_type not in allowed_audio_types:
+        raise HTTPException(status_code=400, detail="Invalid file type. Allowed: mp3, mp4, wav, webm, ogg")
+
+    file_bytes = await file.read()
+    if not file_bytes:
+        raise HTTPException(status_code=400, detail="Empty file")
+
+    s3_key = await save_character_sample_audio_to_s3(
+        io.BytesIO(file_bytes),
+        file.filename or "sample.mp3",
+        file.content_type or "audio/mpeg",
+        influencer_id,
+        character_id,
+        sample_type,
+    )
+
+    overlay = await _get_influencer_character_overlay(db, influencer_id, character_id)
+    if not overlay:
+        overlay = InfluencerCharacterMeta(
+            influencer_id=influencer_id,
+            character_id=character_id,
+            meta_json={},
+        )
+        db.add(overlay)
+
+    sample_entry = {
+        "s3_key": s3_key,
+        "original_filename": file.filename,
+        "content_type": file.content_type,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    meta = dict(overlay.meta_json or {})
+    samples = dict(meta.get("samples", {}))
+    existing = list(samples.get(sample_type, []))
+    existing.append(sample_entry)
+    samples[sample_type] = existing
+    meta["samples"] = samples
+    overlay.meta_json = meta
+
+    try:
+        await db.commit()
+    except Exception:
+        try:
+            await delete_file_from_s3(s3_key)
+        except Exception:
+            log.warning("Failed to cleanup S3 after DB error for key %s", s3_key, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to save sample")
+
+    return {
+        "s3_key": s3_key,
+        "sample_type": sample_type,
+        "url": generate_presigned_url(s3_key),
+        "original_filename": file.filename,
+        "created_at": sample_entry["created_at"],
+    }
+
+
+@router.delete(
+    "/influencer/{influencer_id}/adult-characters/{character_id}/samples/{sample_type}/{sample_id:path}",
+    summary="Delete character scene sample audio",
+    description="Delete a normal or explicit audio sample for a specific influencer + scene combo.",
+)
+async def delete_character_scene_sample(
+    influencer_id: str,
+    character_id: int,
+    sample_type: str,
+    sample_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    ensure_admin(current_user)
+
+    if sample_type not in ("normal", "explicit"):
+        raise HTTPException(status_code=400, detail="sample_type must be 'normal' or 'explicit'")
+
+    overlay = await _get_influencer_character_overlay(db, influencer_id, character_id)
+    if not overlay or not overlay.meta_json:
+        raise HTTPException(status_code=404, detail="No samples found")
+
+    samples = dict(overlay.meta_json.get("samples", {}))
+    current = samples.get(sample_type, [])
+    updated = [s for s in current if s.get("s3_key") != sample_id]
+
+    if len(updated) == len(current):
+        raise HTTPException(status_code=404, detail="Sample not found")
+
+    samples[sample_type] = updated
+    meta = dict(overlay.meta_json)
+    meta["samples"] = samples
+    overlay.meta_json = meta
+
+    try:
+        await delete_file_from_s3(sample_id)
+    except Exception:
+        log.warning("Failed to delete S3 character sample %s", sample_id, exc_info=True)
 
     await db.commit()
     return {"ok": True, "deleted_id": sample_id}
