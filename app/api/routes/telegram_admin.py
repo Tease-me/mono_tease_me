@@ -13,11 +13,15 @@ import logging
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 
-from app.db.models import User
+from sqlalchemy import delete, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db.models import User, CallRecord
+from app.db.session import get_db
 from app.utils.auth.dependencies import get_current_user
 from app.core.config import settings
-from app.telegram.session_manager import session_manager
-from app.telegram import lifecycle as tg_lifecycle
+from app.services.gateways.telegram.session_manager import session_manager
+from app.services.gateways.telegram import lifecycle as tg_lifecycle
 
 log = logging.getLogger(__name__)
 
@@ -82,7 +86,7 @@ async def send_code(
         if result.get("status") == "resumed":
             client = await session_manager.get_session(payload.influencer_id)
             if client:
-                from app.telegram.handlers import TelegramMessageHandler
+                from app.services.gateways.telegram.handlers import TelegramMessageHandler
                 handler = TelegramMessageHandler(client, payload.influencer_id)
                 handler.register()
                 log.info("Handlers registered for resumed session %s", payload.influencer_id)
@@ -150,7 +154,7 @@ async def verify_code(
         me = await client.get_me()
 
         # Register handlers on the new session
-        from app.telegram.handlers import TelegramMessageHandler
+        from app.services.gateways.telegram.handlers import TelegramMessageHandler
         handler = TelegramMessageHandler(client, payload.influencer_id)
         handler.register()
 
@@ -276,5 +280,44 @@ async def get_telegram_session_status(
         "influencer_id": influencer_id,
         "connected": False,
         "has_session_file": influencer_id in session_manager.list_saved_sessions(),
+    }
+
+
+# ─────────────────────── trial management ───────────────────────
+
+@router.post("/trials/reset")
+async def reset_all_telegram_trials(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete all Telegram call records, resetting every user's trial budget."""
+    _require_admin(current_user)
+
+    # Show usage before wiping
+    rows = (await db.execute(
+        select(
+            CallRecord.telegram_user_id,
+            func.count().label("calls"),
+            func.coalesce(func.sum(CallRecord.call_duration_secs), 0).label("total_secs"),
+        )
+        .where(CallRecord.telegram_user_id.isnot(None))
+        .group_by(CallRecord.telegram_user_id)
+    )).all()
+
+    result = await db.execute(
+        delete(CallRecord).where(CallRecord.telegram_user_id.isnot(None))
+    )
+    await db.commit()
+
+    deleted = result.rowcount or 0
+    log.info("admin.reset_all_trials deleted=%d by_user=%s", deleted, current_user.id)
+
+    return {
+        "ok": True,
+        "deleted": deleted,
+        "users_reset": [
+            {"telegram_user_id": tg_id, "calls": calls, "used_secs": round(secs, 1)}
+            for tg_id, calls, secs in rows
+        ],
     }
 
