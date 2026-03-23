@@ -104,6 +104,12 @@
   font-size: 10px;
 }
 
+.disabled {
+  background: linear-gradient(120deg, #3a3a3a 0%, #4a4a4a 50%, #2e2e2e 100%);
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 @keyframes wavePulse {
   0%, 100% {
     transform: scaleY(0.8);

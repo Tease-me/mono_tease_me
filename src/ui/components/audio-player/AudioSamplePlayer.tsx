@@ -12,9 +12,10 @@ const BARS_SMALL = new Array(14).fill(0);
 interface AudioSamplePlayerProps {
   url: string;
   size?: "small" | "large";
+  disabled?: boolean;
 }
 
-export default function AudioSamplePlayer({ url, size = "large" }: AudioSamplePlayerProps) {
+export default function AudioSamplePlayer({ url, size = "large", disabled = false }: AudioSamplePlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState<string | null>(null);
@@ -22,7 +23,7 @@ export default function AudioSamplePlayer({ url, size = "large" }: AudioSamplePl
   const bars = size === "small" ? BARS_SMALL : BARS_LARGE;
 
   const handleToggle = () => {
-    if (!audioRef.current) return;
+    if (!audioRef.current || disabled) return;
     if (isPlaying) {
       audioRef.current.pause();
     } else {
@@ -44,12 +45,13 @@ export default function AudioSamplePlayer({ url, size = "large" }: AudioSamplePl
   };
 
   return (
-    <div className={clsx(styles.pill, styles[size])}>
+    <div className={clsx(styles.pill, styles[size], disabled && styles.disabled)}>
       <button
         type="button"
         className={styles.playButton}
         onClick={handleToggle}
         aria-label={isPlaying ? "Pause" : "Play"}
+        disabled={disabled}
       >
         {isPlaying ? <PauseIcon /> : <PlayIcon />}
       </button>

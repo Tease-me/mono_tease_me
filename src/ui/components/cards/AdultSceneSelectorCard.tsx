@@ -12,6 +12,7 @@ type Props = {
   titlePlaceholderData: unknown | null;
   isGirlfriend?: boolean;
   samples?: { normal: string[]; explicit: string[] };
+  ageVerified?: boolean;
 };
 
 export default function AdultSceneSelector({
@@ -22,6 +23,7 @@ export default function AdultSceneSelector({
   titlePlaceholderData,
   isGirlfriend,
   samples,
+  ageVerified = false,
 }: Props) {
   const isMobile = useIsMobile();
   const [imageFailed, setImageFailed] = useState(false);
@@ -69,7 +71,7 @@ export default function AdultSceneSelector({
               <AudioSamplePlayer url={normalUrl} size={isMobile ? "small" : "large"} />
             )}
             {explicitUrl && (
-              <AudioSamplePlayer url={explicitUrl} size={isMobile ? "small" : "large"} />
+              <AudioSamplePlayer url={explicitUrl} size={isMobile ? "small" : "large"} disabled={!ageVerified} />
             )}
           </div>
         )}

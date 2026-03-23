@@ -140,6 +140,8 @@
   width: 100%;
 }
 
+
+
 @media (min-width: 768px) {
   .upperBody {
     min-height: 282px;
