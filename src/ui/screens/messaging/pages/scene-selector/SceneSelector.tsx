@@ -27,6 +27,10 @@ type Scene = {
     mp4: string | null;
     webm: string | null;
   };
+  samples: {
+    normal: string[];
+    explicit: string[];
+  };
 };
 
 type SessionState = "preview" | "active";
@@ -38,6 +42,13 @@ type SceneSelectorProps = {
 
 const influencerServices = InfluencerServices(apiClient);
 const lottieDataCache = new Map<string, Promise<unknown | null>>();
+
+const parseSampleUrls = (metaJson: Record<string, unknown> | null): { normal: string[]; explicit: string[] } => {
+  const raw = metaJson?.samples as { normal?: unknown[]; explicit?: unknown[] } | undefined;
+  const pluck = (list: unknown[] | undefined) =>
+    (list ?? []).map((s: any) => s?.url as string | undefined).filter((u): u is string => Boolean(u));
+  return { normal: pluck(raw?.normal), explicit: pluck(raw?.explicit) };
+};
 
 const loadLottieData = async (url: string): Promise<unknown | null> => {
   const cached = lottieDataCache.get(url);
@@ -192,6 +203,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                 mp4: character.video_mp4_url,
                 webm: character.video_webm_url,
               },
+              samples: parseSampleUrls(character.meta_json),
             } satisfies Scene;
           }),
         );
@@ -278,6 +290,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                     imageLargeSrc={scene.image.large}
                     titlePlaceholderData={scene.titlePlaceholderData}
                     isGirlfriend={scene.slug === "girlfriend"}
+                    samples={scene.samples}
                   />
                   <IconButton
                     onClick={() => handleSelectScenario(scene)}

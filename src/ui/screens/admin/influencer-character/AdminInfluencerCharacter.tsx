@@ -1,11 +1,13 @@
-import React, { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
+import React, { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { apiClient } from "@/api/apis";
 import {
   AdminInfluencerCharacterAssetsPayload,
   AdminServices,
+  AudioSampleType,
   InfluencerCharacterAssetType,
 } from "@/api/services/AdminServices";
 import type { AdminInfluencerCharacter as AdminInfluencerCharacterRow } from "@/api/services/AdminServices";
+import type { CharacterAudioSample, CharacterSamples } from "@/api/models/adultCharacters";
 import { InfluencerServices } from "@/api/services/InfluencerService";
 import { InfluencerResponse } from "@/api/models/influencers";
 import AdminLayout from "@/ui/screens/admin/AdminLayout";
@@ -15,6 +17,11 @@ import styles from "./AdminInfluencerCharacter.module.css";
 
 const admin = AdminServices(apiClient);
 const influencerSvc = InfluencerServices(apiClient);
+
+const parseSamples = (meta: Record<string, unknown> | null): CharacterSamples => {
+  const raw = meta?.samples as { normal?: CharacterAudioSample[]; explicit?: CharacterAudioSample[] } | undefined;
+  return { normal: raw?.normal ?? [], explicit: raw?.explicit ?? [] };
+};
 
 const UPLOAD_SLOTS: Array<{
   field: keyof AdminInfluencerCharacterAssetsPayload;
@@ -49,6 +56,14 @@ const AdminInfluencerCharacter: React.FC = () => {
   >({});
   const [busyUploads, setBusyUploads] = useState<Record<number, boolean>>({});
   const [busyDeletes, setBusyDeletes] = useState<Record<string, boolean>>({});
+
+  // Sample management
+  const [pendingSamples, setPendingSamples] = useState<
+    Record<number, { normal: File | null; explicit: File | null }>
+  >({});
+  const [busySampleUploads, setBusySampleUploads] = useState<Record<string, boolean>>({});
+  const [busySampleDeletes, setBusySampleDeletes] = useState<Record<string, boolean>>({});
+  const sampleInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
     let active = true;
@@ -196,6 +211,61 @@ const AdminInfluencerCharacter: React.FC = () => {
     }
   };
 
+  const handleSampleFileChange =
+    (characterId: number, sampleType: AudioSampleType) =>
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0] ?? null;
+      setPendingSamples((prev) => ({
+        ...prev,
+        [characterId]: { ...(prev[characterId] ?? { normal: null, explicit: null }), [sampleType]: file },
+      }));
+    };
+
+  const handleSampleUpload = async (characterId: number, sampleType: AudioSampleType) => {
+    if (!selectedInfluencerId) return;
+    const file = pendingSamples[characterId]?.[sampleType];
+    if (!file) return;
+
+    const key = `${characterId}:${sampleType}`;
+    setBusySampleUploads((prev) => ({ ...prev, [key]: true }));
+    setPageMessage(null);
+    setCharacterError(null);
+    try {
+      await admin.uploadInfluencerCharacterSample(selectedInfluencerId, characterId, sampleType, file);
+      await loadCharacters(selectedInfluencerId);
+      setExpandedCharacterId(characterId);
+      setPageMessage("Sample uploaded.");
+      setPendingSamples((prev) => ({
+        ...prev,
+        [characterId]: { ...(prev[characterId] ?? { normal: null, explicit: null }), [sampleType]: null },
+      }));
+      const ref = sampleInputRefs.current[key];
+      if (ref) ref.value = "";
+    } catch (e: any) {
+      setCharacterError(getErrorMessage(e, "Sample upload failed."));
+    } finally {
+      setBusySampleUploads((prev) => ({ ...prev, [key]: false }));
+    }
+  };
+
+  const handleSampleDelete = async (characterId: number, sampleType: AudioSampleType, s3Key: string) => {
+    if (!selectedInfluencerId) return;
+    const key = `${characterId}:${sampleType}:${s3Key}`;
+    setBusySampleDeletes((prev) => ({ ...prev, [key]: true }));
+    setPageMessage(null);
+    setCharacterError(null);
+    try {
+      await admin.deleteInfluencerCharacterSample(selectedInfluencerId, characterId, sampleType, s3Key);
+      await loadCharacters(selectedInfluencerId);
+      setExpandedCharacterId(characterId);
+      setPageMessage("Sample deleted.");
+    } catch (e: any) {
+      setCharacterError(getErrorMessage(e, "Sample delete failed."));
+    } finally {
+      setBusySampleDeletes((prev) => ({ ...prev, [key]: false }));
+    }
+  };
+
   const selectedInfluencer = useMemo(
     () => influencers.find((item) => item.id === selectedInfluencerId) ?? null,
     [influencers, selectedInfluencerId]
@@ -297,6 +367,9 @@ const AdminInfluencerCharacter: React.FC = () => {
                     const stagedFileCount = UPLOAD_SLOTS.filter(
                       ({ field }) => pending?.[field]
                     ).length;
+                    const samples = parseSamples(character.meta_json);
+                    const normalCount = samples.normal.length;
+                    const explicitCount = samples.explicit.length;
                     return (
                       <article key={character.id} className={styles["card"]}>
                         <button
@@ -326,25 +399,17 @@ const AdminInfluencerCharacter: React.FC = () => {
                             </span>
                           </div>
                           <div className={chrome["pillRow"]}>
-                            <span
-                              className={
-                                character.has_photo
-                                  ? chrome["pillActive"]
-                                  : chrome["pillMuted"]
-                              }
-                            >
+                            <span className={character.has_photo ? chrome["pillActive"] : chrome["pillMuted"]}>
                               {character.has_photo ? "Photo ready" : "Photo missing"}
                             </span>
-                            <span
-                              className={
-                                character.has_complete_video_set
-                                  ? chrome["pillActive"]
-                                  : chrome["pillMuted"]
-                              }
-                            >
-                              {character.has_complete_video_set
-                                ? "Video ready"
-                                : "Video incomplete"}
+                            <span className={character.has_complete_video_set ? chrome["pillActive"] : chrome["pillMuted"]}>
+                              {character.has_complete_video_set ? "Video ready" : "Video incomplete"}
+                            </span>
+                            <span className={normalCount > 0 ? chrome["pillActive"] : chrome["pillMuted"]}>
+                              {normalCount > 0 ? `Normal audio: ${normalCount}` : "No normal audio"}
+                            </span>
+                            <span className={explicitCount > 0 ? chrome["pillActive"] : chrome["pillMuted"]}>
+                              {explicitCount > 0 ? `Explicit audio: ${explicitCount}` : "No explicit audio"}
                             </span>
                           </div>
                         </button>
@@ -548,6 +613,79 @@ const AdminInfluencerCharacter: React.FC = () => {
                                 >
                                   {uploadBusy ? "Uploading..." : "Upload selected assets"}
                                 </button>
+                              </div>
+                            </div>
+
+                            <div className={styles["samples-panel"]}>
+                              <div className={styles["upload-panel-header"]}>
+                                <div className={styles["upload-panel-title"]}>Audio Samples</div>
+                              </div>
+                              <div className={styles["samples-grid"]}>
+                                {(["normal", "explicit"] as AudioSampleType[]).map((sampleType) => {
+                                  const list: CharacterAudioSample[] = samples[sampleType];
+                                  const pendingFile = pendingSamples[character.id]?.[sampleType] ?? null;
+                                  const uploadKey = `${character.id}:${sampleType}`;
+                                  const uploadBusyForType = !!busySampleUploads[uploadKey];
+                                  return (
+                                    <div key={sampleType} className={styles["sample-type-box"]}>
+                                      <div className={styles["asset-label"]}>{sampleType}</div>
+
+                                      {list.length === 0 ? (
+                                        <div className={styles["sample-empty"]}>No {sampleType} samples uploaded</div>
+                                      ) : (
+                                        <div className={styles["sample-list"]}>
+                                          {list.map((sample) => {
+                                            const deleteKey = `${character.id}:${sampleType}:${sample.s3_key}`;
+                                            return (
+                                              <div key={sample.s3_key} className={styles["sample-row"]}>
+                                                <div className={styles["sample-info"]}>
+                                                  <span className={styles["sample-filename"]}>{sample.original_filename}</span>
+                                                  <span className={styles["sample-date"]}>{sample.created_at.slice(0, 10)}</span>
+                                                </div>
+                                                <button
+                                                  type="button"
+                                                  className={styles["ghost"]}
+                                                  onClick={() => handleSampleDelete(character.id, sampleType, sample.s3_key)}
+                                                  disabled={!!busySampleDeletes[deleteKey]}
+                                                >
+                                                  {busySampleDeletes[deleteKey] ? "Deleting..." : "Delete"}
+                                                </button>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      )}
+
+                                      <div className={styles["upload-slot"]}>
+                                        <div className={styles["upload-slot-copy"]}>
+                                          <div className={styles["upload-hint"]}>mp3, wav, webm, ogg</div>
+                                        </div>
+                                        <div className={styles["upload-slot-actions"]}>
+                                          <span className={styles["upload-name"]}>{pendingFile?.name ?? "No file selected"}</span>
+                                          <label className={styles["upload-picker"]}>
+                                            <input
+                                              className={styles["upload-native-input"]}
+                                              type="file"
+                                              accept=".mp3,.mp4,.wav,.webm,.ogg"
+                                              ref={(el) => { sampleInputRefs.current[uploadKey] = el; }}
+                                              onChange={handleSampleFileChange(character.id, sampleType)}
+                                              disabled={uploadBusyForType}
+                                            />
+                                            {pendingFile ? "Replace" : "Choose file"}
+                                          </label>
+                                          <button
+                                            type="button"
+                                            className={styles["primary"]}
+                                            onClick={() => handleSampleUpload(character.id, sampleType)}
+                                            disabled={!pendingFile || uploadBusyForType}
+                                          >
+                                            {uploadBusyForType ? "Uploading..." : "Upload"}
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
                               </div>
                             </div>
                           </div>

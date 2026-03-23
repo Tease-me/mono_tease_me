@@ -11,6 +11,7 @@ type Props = {
   imageLargeSrc: string | null;
   titlePlaceholderData: unknown | null;
   isGirlfriend?: boolean;
+  samples?: { normal: string[]; explicit: string[] };
 };
 
 export default function AdultSceneSelector({
@@ -20,9 +21,13 @@ export default function AdultSceneSelector({
   imageLargeSrc,
   titlePlaceholderData,
   isGirlfriend,
+  samples,
 }: Props) {
   const isMobile = useIsMobile();
   const [imageFailed, setImageFailed] = useState(false);
+  const normalUrl = samples?.normal[0] ?? null;
+  const explicitUrl = samples?.explicit[0] ?? null;
+  const hasSamples = normalUrl !== null || explicitUrl !== null;
   const resolvedImageSrc = imageSmallSrc ?? imageLargeSrc ?? null;
   const resolvedSrcSet =
     resolvedImageSrc && imageLargeSrc
@@ -58,9 +63,16 @@ export default function AdultSceneSelector({
       <div className={`${styles.name}${isGirlfriend ? ` ${styles.girlfriendName}` : ""}`}>{name}</div>
       <div className={styles.lowerBody}>
         <div className={styles.description}>{description}</div>
-        <div className={styles.samplePlayer}>
-          <AudioSamplePlayer url="" size={isMobile ? "small" : "large"} />
-        </div>
+        {hasSamples && (
+          <div className={styles.samplesList}>
+            {normalUrl && (
+              <AudioSamplePlayer url={normalUrl} size={isMobile ? "small" : "large"} />
+            )}
+            {explicitUrl && (
+              <AudioSamplePlayer url={explicitUrl} size={isMobile ? "small" : "large"} />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
