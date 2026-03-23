@@ -68,6 +68,20 @@ async def _build_influencer_detail(influencer: Influencer) -> InfluencerDetail:
     return detail
 
 
+def _resolve_sample_urls(meta_json: dict | None) -> dict | None:
+    if not meta_json or "samples" not in meta_json:
+        return meta_json
+    resolved = dict(meta_json)
+    resolved["samples"] = {
+        sample_type: [
+            {**entry, "url": generate_presigned_url(entry["s3_key"])} if entry.get("s3_key") else entry
+            for entry in entries
+        ]
+        for sample_type, entries in meta_json["samples"].items()
+    }
+    return resolved
+
+
 async def _build_influencer_adult_characters(
     db: AsyncSession,
     influencer_id: str,
@@ -124,7 +138,7 @@ async def _build_influencer_adult_characters(
                 video_preview_png_url=asset_state["video_preview_png_url"],
                 has_photo=asset_state["has_photo"],
                 has_complete_video_set=asset_state["has_complete_video_set"],
-                meta_json=overlay.meta_json if overlay else None,
+                meta_json=_resolve_sample_urls(overlay.meta_json) if overlay else None,
                 has_influencer_override=overlay is not None,
             )
         )
