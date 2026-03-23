@@ -30,7 +30,7 @@ class Chat(Base):
     __tablename__ = "chats"
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     influencer_id: Mapped[str] = mapped_column(ForeignKey("influencers.id"))
     started_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
@@ -117,7 +117,7 @@ class CallRecord(Base):
     __tablename__ = "calls"
 
     conversation_id: Mapped[str] = mapped_column(String, primary_key=True)
-    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    user_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     influencer_id: Mapped[str | None] = mapped_column(String, nullable=True)
     chat_id: Mapped[str | None] = mapped_column(
         String, ForeignKey("chats.id"), nullable=True, index=True

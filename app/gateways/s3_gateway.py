@@ -15,7 +15,9 @@ s3_client = boto3.client(
 )
 
 
-def upload_fileobj(file_obj, bucket: str, key: str, *, content_type: str | None = None) -> None:
+def upload_fileobj(
+    file_obj, bucket: str, key: str, *, content_type: str | None = None
+) -> None:
     extra_args = {"ContentType": content_type} if content_type else None
     if extra_args:
         s3_client.upload_fileobj(file_obj, bucket, key, ExtraArgs=extra_args)

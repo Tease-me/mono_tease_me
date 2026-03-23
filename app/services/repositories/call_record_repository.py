@@ -37,12 +37,12 @@ async def create_call_record(
 
     existing_chat = await db.get(Chat, chat_id)
     if not existing_chat:
-        db.add(Chat(id=chat_id, user_id=0, influencer_id=influencer_id))
+        db.add(Chat(id=chat_id, user_id=None, influencer_id=influencer_id))
         await db.flush()
 
     db.add(CallRecord(
         conversation_id=conversation_id,
-        user_id=0,
+        user_id=None,
         influencer_id=influencer_id,
         chat_id=chat_id,
         telegram_user_id=telegram_user_id,
@@ -56,6 +56,41 @@ async def create_call_record(
         conversation_id, influencer_id, telegram_user_id, is_adult_call,
     )
     return conversation_id
+
+
+async def backfill_user_id_for_telegram_user(
+    db: AsyncSession,
+    telegram_user_id: int,
+    user_id: int,
+) -> int:
+    """Backfill user_id on Chat and CallRecord rows for a Telegram user.
+
+    Called when a Telegram caller registers a web account, linking their
+    pre-signup call/chat records to the new user.
+    Returns total number of rows updated.
+    """
+    chat_id_prefix = f"tg_%_{telegram_user_id}"
+
+    chats_result = await db.execute(
+        update(Chat)
+        .where(Chat.id.like(chat_id_prefix), Chat.user_id.is_(None))
+        .values(user_id=user_id)
+    )
+
+    calls_result = await db.execute(
+        update(CallRecord)
+        .where(CallRecord.telegram_user_id == telegram_user_id, CallRecord.user_id.is_(None))
+        .values(user_id=user_id)
+    )
+
+    total = (chats_result.rowcount or 0) + (calls_result.rowcount or 0)
+    if total:
+        log.info(
+            "backfill_user_id: tg_user=%s user_id=%s chats=%d calls=%d",
+            telegram_user_id, user_id,
+            chats_result.rowcount, calls_result.rowcount,
+        )
+    return total
 
 
 async def finalize_call_record(
