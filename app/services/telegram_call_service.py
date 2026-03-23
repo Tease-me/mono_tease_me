@@ -5,6 +5,7 @@ trial-expired messaging. Delegates DB access to repositories
 and external calls to gateways/utils.
 """
 
+import asyncio
 import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -58,6 +59,10 @@ async def send_trial_expired_messages(
     invite_code = await get_or_create_invite_code(
         db, telegram_user_id, influencer_id,
     )
+
+    from app.services.funnel_tracking_service import track_invite_sent
+    asyncio.create_task(track_invite_sent(telegram_user_id, influencer_id, invite_code))
+
     cta_html = build_telegram_cta_html(invite_code, influencer_id)
 
     # Fetch influencer media keys for promo content

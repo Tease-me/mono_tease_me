@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter, Depends, Path, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,6 +21,10 @@ async def follow_influencer(
     await ensure_influencer(db, influencer_id)
 
     follow = await create_follow_if_missing(db, influencer_id, user.id)
+
+    from app.services.funnel_tracking_service import track_influencer_followed
+    asyncio.create_task(track_influencer_followed(user.id, influencer_id))
+
     return FollowActionResponse(
         influencer_id=influencer_id,
         user_id=user.id,

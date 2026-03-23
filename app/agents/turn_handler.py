@@ -445,6 +445,13 @@ async def handle_turn(
     except Exception as ex:
         log.error("[%s] Failed to schedule fact extraction: %s", cid, ex, exc_info=True)
 
+    # Fire-and-forget funnel tracking for first chat event
+    try:
+        from app.services.funnel_tracking_service import track_first_chat
+        asyncio.create_task(track_first_chat(int(user_id), influencer_id))
+    except Exception as ex:
+        log.warning("[%s] Failed to schedule first_chat tracking: %s", cid, ex)
+
     if is_audio:
         return sanitize_tts_text(reply)
 

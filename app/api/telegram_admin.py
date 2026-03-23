@@ -223,21 +223,34 @@ async def stop_telegram_session(
 @router.delete("/sessions/{influencer_id}")
 async def delete_telegram_session(
     influencer_id: str,
+    terminate_on_telegram: bool = False,
     current_user: User = Depends(get_current_user),
 ):
     """Fully wipe a session: stop connection, delete session file, clear pending auth.
+
+    Pass ``terminate_on_telegram=true`` to also call Telegram's log_out API,
+    which terminates the session on Telegram's servers and frees up the
+    active-sessions slot (max 10 per account).  Without this flag the session
+    is only removed locally.
 
     After deletion, the influencer will need to go through send-code/verify-code again.
     """
     _require_admin(current_user)
     _require_enabled()
 
-    result = await session_manager.delete_session(influencer_id)
+    result = await session_manager.delete_session(
+        influencer_id, terminate_on_telegram=terminate_on_telegram,
+    )
+    msg = (
+        "Session terminated on Telegram and wiped locally."
+        if result.get("logged_out_from_telegram")
+        else "Session wiped locally. Use send-code to re-authenticate."
+    )
     return {
         "ok": True,
         "influencer_id": influencer_id,
         **result,
-        "message": "Session fully wiped. Use send-code to re-authenticate.",
+        "message": msg,
     }
 
 @router.get("/sessions/{influencer_id}")

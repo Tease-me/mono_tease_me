@@ -7,7 +7,10 @@ and graceful shutdown.
 """
 
 import logging
+
 from app.core.config import settings
+from app.db.session import SessionLocal
+from app.services.repositories.call_record_repository import cleanup_stale_active_calls
 from app.telegram.session_manager import session_manager
 from app.telegram.handlers import TelegramMessageHandler
 
@@ -33,6 +36,14 @@ async def start_all_sessions():
             "are not configured. Skipping session startup."
         )
         return
+
+    # Mark any calls that were still 'active' from a prior crash as 'abandoned'
+    # so they count toward the user's trial budget.
+    try:
+        async with SessionLocal() as db:
+            await cleanup_stale_active_calls(db)
+    except Exception:
+        log.exception("Failed to clean up stale active calls on startup")
 
     saved = session_manager.list_saved_sessions()
     if not saved:
