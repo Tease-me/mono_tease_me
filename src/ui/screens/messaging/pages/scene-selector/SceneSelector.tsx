@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import { apiClient } from "@/api/apis";
 import { InfluencerServices } from "@/api/services/InfluencerService";
 import AdultSceneSelector from "@/ui/components/cards/AdultSceneSelectorCard";
@@ -10,6 +10,9 @@ import useCallWebRTC from "@/hooks/useCallWebRTC";
 import { formatTime } from "@/utils/time";
 import { showErrorModal } from "@/utils/errorModal";
 import AddCreditsModal from "@/ui/components/modals/payment-modal/AddCreditsModal";
+import { useAgeVerification } from "@/hooks/useAgeVerification";
+
+const AdultTermsModal = lazy(() => import("@/ui/components/modals/adult-terms/AdultTermsModal"));
 
 type Scene = {
   id: number;
@@ -80,6 +83,8 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showCallTime, setShowCallTime] = useState(0);
   const [showTopupModal, setShowTopupModal] = useState(false);
+  const [pendingScene, setPendingScene] = useState<Scene | null>(null);
+  const { needsGate, verificationRequired, markConfirmed } = useAgeVerification();
   const lastCallErrorRef = useRef<string | null>(null);
   const isCreditsErrorRef = useRef(false);
   const { setInfluencerId, startConversation, stopConversation, status } =
@@ -229,8 +234,21 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
   }, [influencerId]);
 
   const handleSelectScenario = (scene: Scene) => {
+    if (scene.slug !== "girlfriend" && needsGate) {
+      setPendingScene(scene);
+      return;
+    }
     setSelectedScene(scene);
     setSessionState("preview");
+  };
+
+  const handleAgeConfirmed = () => {
+    markConfirmed();
+    if (pendingScene) {
+      setSelectedScene(pendingScene);
+      setSessionState("preview");
+      setPendingScene(null);
+    }
   };
 
   const handleCloseScenario = () => {
@@ -459,6 +477,17 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
         influencerId={influencerId}
         onClose={() => setShowTopupModal(false)}
       />
+      {pendingScene && (
+        <Suspense fallback={null}>
+          <AdultTermsModal
+            isOpen
+            onClose={() => setPendingScene(null)}
+            onAgree={handleAgeConfirmed}
+            influencerId={influencerId}
+            idVerificationRequired={verificationRequired}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
