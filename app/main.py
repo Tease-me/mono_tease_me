@@ -27,7 +27,7 @@ from app.api.admin import router as admin_router
 from app.api.relationship import router as relationship_router
 from app.api.re_engagement import router as re_engagement_router
 from app.api.verification import router as verification_router
-from app.api.telegram_admin import router as telegram_admin_router
+from app.api.routes.telegram_admin import router as telegram_admin_router
 from app.api.funnel import router as funnel_router
 
 from app.api import system_prompts as system_prompts_router
@@ -39,7 +39,7 @@ from app.gateways.elevenlabs.client import close_elevenlabs_client
 from app.utils.infrastructure.redis_pool import close_redis
 from app.core.logging import configure_logging
 from app.services.checkout import close_checkout_client
-from app.telegram import lifecycle as telegram_lifecycle
+from app.services.gateways.telegram import lifecycle as telegram_lifecycle
 
 configure_logging()
 log = logging.getLogger(__name__)

@@ -104,7 +104,7 @@ class TelegramMessageHandler:
             caller_id,
         )
 
-        from app.telegram.voice_engine import voice_call_manager
+        from app.services.gateways.telegram.voice_engine import voice_call_manager
         from app.services.telegram_call_service import (
             check_telegram_trial_eligibility,
             send_trial_expired_messages,
@@ -144,7 +144,7 @@ class TelegramMessageHandler:
             return
 
         # Start voice call session
-        from app.telegram.session_manager import session_manager
+        from app.services.gateways.telegram.session_manager import session_manager
         ptg = session_manager.get_pytgcalls(self.influencer_id)
         if not ptg:
             log.error(
@@ -195,7 +195,7 @@ class TelegramMessageHandler:
         PhoneCallDiscarded often lacks admin_id, so we also search active
         sessions by influencer_id prefix to find and clean up the right one.
         """
-        from app.telegram.voice_engine import voice_call_manager
+        from app.services.gateways.telegram.voice_engine import voice_call_manager
 
         caller_id = getattr(phone_call, "admin_id", None)
         reason_obj = getattr(phone_call, "reason", None)

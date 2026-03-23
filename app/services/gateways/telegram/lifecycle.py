@@ -11,8 +11,8 @@ import logging
 from app.core.config import settings
 from app.db.session import SessionLocal
 from app.services.repositories.call_record_repository import cleanup_stale_active_calls
-from app.telegram.session_manager import session_manager
-from app.telegram.handlers import TelegramMessageHandler
+from app.services.gateways.telegram.session_manager import session_manager
+from app.services.gateways.telegram.handlers import TelegramMessageHandler
 
 log = logging.getLogger(__name__)
 
@@ -81,7 +81,7 @@ async def stop_session(influencer_id: str) -> bool:
     """
     # End any active voice calls for this influencer
     try:
-        from app.telegram.voice_engine import voice_call_manager
+        from app.services.gateways.telegram.voice_engine import voice_call_manager
         for key, session in list(voice_call_manager._active_calls.items()):
             if key.startswith(f"{influencer_id}:") and session.is_active:
                 await session.stop(reason="session_stopped")
@@ -99,7 +99,7 @@ async def stop_all_sessions():
 
     # End all active voice calls first
     try:
-        from app.telegram.voice_engine import voice_call_manager
+        from app.services.gateways.telegram.voice_engine import voice_call_manager
         await voice_call_manager.end_all_calls()
     except Exception:
         log.exception("Error stopping voice calls during shutdown")
