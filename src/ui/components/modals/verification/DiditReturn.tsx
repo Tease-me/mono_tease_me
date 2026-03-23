@@ -1,9 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Paths } from "@/routes/path";
 import styles from "@/ui/components/modals/payment-modal/PayPalReturn.module.css";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import VerificationResult from "@/ui/components/verification/VerificationResult";
+import { AuthContext } from "@/context/AuthContext";
+import { storage } from "@/utils/storage";
+import { LocalStorageKeys } from "@/constants/localStorageKeys";
+
 type VerificationStatus = "loading" | "success" | "error";
 
 const normalizeStatus = (value?: string | null) =>
@@ -19,11 +23,11 @@ const isDeclined = (value?: string | null) =>
     normalizeStatus(value),
   );
 
-
 export default function DiditReturn() {
   const [status, setStatus] = useState<VerificationStatus>("loading");
   const navigate = useNavigate();
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
+  const { user, refreshUser } = useContext(AuthContext);
 
   useEffect(() => {
     const statusParam = params.get("status");
@@ -32,11 +36,12 @@ export default function DiditReturn() {
 
     if (isApproved(statusParam)) {
       setStatus("success");
-      setTimeout(() => {
-        navigate(Paths.home, {
-          replace: true,
-          state: { openSubscribe: true },
-        });
+      setTimeout(async () => {
+        await refreshUser();
+        if (user) {
+          storage.set(`${LocalStorageKeys.AdultConfirmed}_${user.id}` as LocalStorageKeys, "1");
+        }
+        navigate(Paths.home, { replace: true });
       }, 1500);
       return;
     }
@@ -52,7 +57,7 @@ export default function DiditReturn() {
     }
 
     setStatus("error");
-  }, [navigate, params]);
+  }, [navigate, params, refreshUser, user]);
 
   return (
     <div className={styles.container}>

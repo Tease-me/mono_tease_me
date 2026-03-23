@@ -8,6 +8,7 @@ export interface UserDataModel {
     phone?: string;
     bio?: string;
     is_verified: boolean;
+    verification_required?: boolean;
     first_time_login?: boolean;
     createdAt: string;
     updatedAt: string;
