@@ -57,7 +57,7 @@ except ImportError:
 from app.core.config import settings
 from app.db.session import SessionLocal
 from app.db.models import Influencer
-from app.telegram.audio_bridge import (
+from app.services.gateways.telegram.audio_bridge import (
     downsample_48k_to_16k,
     BYTES_PER_SECOND,
     SAMPLE_RATE,
@@ -215,6 +215,14 @@ class VoiceCallSession:
         # Actual ConvAI output sample rate — updated from session metadata.
         # Default to the requested rate; overridden once ConvAI negotiates.
         self._convai_output_rate = CONVAI_OUTPUT_SAMPLE_RATE
+
+        # ── No-interrupt mode ──
+        # While the AI is speaking, hold user audio locally instead of
+        # sending it to ConvAI (which would trigger server-side VAD and
+        # cut the AI response). Once the AI finishes, flush the held
+        # audio so the user's speech is processed as the next turn.
+        self._ai_speaking = False
+        self._held_audio_queue: list[bytes] = []
 
         # Stream handler references
         self._stream_handler = None
@@ -394,7 +402,7 @@ class VoiceCallSession:
         except Exception as exc:
             log.warning("voice_call.play_error influencer=%s err=%s", self.influencer_id, exc)
             self._is_active = False
-            from app.telegram.voice_engine import voice_call_manager
+            from app.services.gateways.telegram.voice_engine import voice_call_manager
             key = voice_call_manager._call_key(self.influencer_id, self.telegram_user_id)
             voice_call_manager._active_calls.pop(key, None)
             return
@@ -468,7 +476,7 @@ class VoiceCallSession:
                 return
             log.info("voice_call.call_ended_by_remote influencer=%s", self.influencer_id)
             await self.stop(reason="remote_hangup")
-            from app.telegram.voice_engine import voice_call_manager
+            from app.services.gateways.telegram.voice_engine import voice_call_manager
             key = voice_call_manager._call_key(self.influencer_id, self.telegram_user_id)
             voice_call_manager._active_calls.pop(key, None)
 
@@ -480,7 +488,7 @@ class VoiceCallSession:
                 return
             log.info("voice_call.call_discarded influencer=%s", self.influencer_id)
             await self.stop(reason="remote_hangup")
-            from app.telegram.voice_engine import voice_call_manager
+            from app.services.gateways.telegram.voice_engine import voice_call_manager
             key = voice_call_manager._call_key(self.influencer_id, self.telegram_user_id)
             voice_call_manager._active_calls.pop(key, None)
 
@@ -550,6 +558,13 @@ class VoiceCallSession:
                 if self._early_audio_dropped == 1:
                     log.info("voice_call.queuing_early_audio influencer=%s",
                              self.influencer_id)
+                continue
+
+            if self._ai_speaking:
+                # AI is still talking — hold user audio to avoid
+                # triggering ConvAI's server-side VAD interruption.
+                # Will be flushed once the AI finishes its response.
+                self._held_audio_queue.append(chunk_16k)
                 continue
 
             # Schedule the async send on the event loop (thread-safe)
@@ -626,8 +641,8 @@ class VoiceCallSession:
                         },
                         "turn_detection": {
                             "type": "server_vad",
-                            "silence_duration_ms": 300,
-                            "threshold": 0.5,
+                            "silence_duration_ms": 200,
+                            "threshold": 0.6,
                         },
                     },
                     "custom_llm_extra_body": {},
@@ -754,6 +769,7 @@ class VoiceCallSession:
             return
 
         self._audio_chunks_received += 1
+        self._ai_speaking = True
 
         # Decode base64 → raw PCM at whatever rate ConvAI sent
         pcm_raw = base64.b64decode(audio_b64)
@@ -866,6 +882,20 @@ class VoiceCallSession:
                         frame = remaining_bytes + b'\x00' * (FRAME_SIZE - len(remaining_bytes))
                     else:
                         frame = SILENCE_FRAME
+
+                    # AI just finished speaking — flush held user audio
+                    if self._ai_speaking:
+                        self._ai_speaking = False
+                        self._jitter_filled = False  # reset for next response
+                        if self._held_audio_queue:
+                            held = self._held_audio_queue
+                            self._held_audio_queue = []
+                            log.info(
+                                "playback.flushing_held_audio influencer=%s chunks=%d",
+                                self.influencer_id, len(held),
+                            )
+                            for chunk in held:
+                                await self._send_audio_to_convai(chunk)
 
                 # ── Send the frame (on event loop — required) ──
                 try:
