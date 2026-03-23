@@ -378,12 +378,16 @@ export type AdminInfluencerLandingAssetsResponse = {
   background_video_1_webm_key: string | null;
   background_video_1_webm_url: string | null;
   background_video_1_webm_content_type: string | null;
+  background_video_1_poster_jpg_key: string | null;
+  background_video_1_poster_jpg_url: string | null;
   background_video_2_mp4_key: string | null;
   background_video_2_mp4_url: string | null;
   background_video_2_mp4_content_type: string | null;
   background_video_2_webm_key: string | null;
   background_video_2_webm_url: string | null;
   background_video_2_webm_content_type: string | null;
+  background_video_2_poster_jpg_key: string | null;
+  background_video_2_poster_jpg_url: string | null;
   background_image_1_key: string | null;
   background_image_1_url: string | null;
   background_image_1_2x_key: string | null;
@@ -410,8 +414,10 @@ export type AdminInfluencerLandingAssetsPayload = {
   signature_png_2x?: File | null;
   background_video_1_mp4?: File | null;
   background_video_1_webm?: File | null;
+  background_video_1_poster_jpg?: File | null;
   background_video_2_mp4?: File | null;
   background_video_2_webm?: File | null;
+  background_video_2_poster_jpg?: File | null;
   background_image_1?: File | null;
   background_image_1_2x?: File | null;
   background_image_2?: File | null;
@@ -658,11 +664,23 @@ export const AdminServices = (apiClient: AxiosInstance) => ({
     if (payload.background_video_1_webm) {
       formData.append("background_video_1_webm", payload.background_video_1_webm);
     }
+    if (payload.background_video_1_poster_jpg) {
+      formData.append(
+        "background_video_1_poster_jpg",
+        payload.background_video_1_poster_jpg
+      );
+    }
     if (payload.background_video_2_mp4) {
       formData.append("background_video_2_mp4", payload.background_video_2_mp4);
     }
     if (payload.background_video_2_webm) {
       formData.append("background_video_2_webm", payload.background_video_2_webm);
+    }
+    if (payload.background_video_2_poster_jpg) {
+      formData.append(
+        "background_video_2_poster_jpg",
+        payload.background_video_2_poster_jpg
+      );
     }
     if (payload.background_image_1) {
       formData.append("background_image_1", payload.background_image_1);

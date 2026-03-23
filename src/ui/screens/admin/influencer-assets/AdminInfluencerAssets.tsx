@@ -36,6 +36,7 @@ type LandingSlotConfig = {
 type LandingGroupConfig = {
   title: string;
   description: string;
+  columns?: 2 | 3;
   slots: LandingSlotConfig[];
 };
 
@@ -43,6 +44,7 @@ const LANDING_GROUPS: LandingGroupConfig[] = [
   {
     title: "Hero",
     description: "Upload the 1x and 2x hero artwork used on the landing page.",
+    columns: 2,
     slots: [
       {
         field: "hero_png",
@@ -71,6 +73,7 @@ const LANDING_GROUPS: LandingGroupConfig[] = [
   {
     title: "Signature",
     description: "Upload the 1x and 2x signature overlays used on landing surfaces.",
+    columns: 2,
     slots: [
       {
         field: "signature_png",
@@ -98,8 +101,20 @@ const LANDING_GROUPS: LandingGroupConfig[] = [
   },
   {
     title: "Background Video 1",
-    description: "Manage the first landing background video in both supported formats.",
+    description: "Manage the first landing background video in both supported formats, plus its poster.",
+    columns: 3,
     slots: [
+      {
+        field: "background_video_1_poster_jpg",
+        label: "Video 1 Poster",
+        hint: "Poster JPG shown before video playback.",
+        accept: "image/jpeg,image/jpg,image/*",
+        previewKind: "image",
+        previewFrame: "square",
+        responseUrlKey: "background_video_1_poster_jpg_url",
+        emptyLabel: "No poster uploaded",
+        metaText: "JPG poster image",
+      },
       {
         field: "background_video_1_mp4",
         label: "Video 1 MP4",
@@ -128,8 +143,20 @@ const LANDING_GROUPS: LandingGroupConfig[] = [
   },
   {
     title: "Background Video 2",
-    description: "Manage the second landing background video in both supported formats.",
+    description: "Manage the second landing background video in both supported formats, plus its poster.",
+    columns: 3,
     slots: [
+      {
+        field: "background_video_2_poster_jpg",
+        label: "Video 2 Poster",
+        hint: "Poster JPG shown before video playback.",
+        accept: "image/jpeg,image/jpg,image/*",
+        previewKind: "image",
+        previewFrame: "square",
+        responseUrlKey: "background_video_2_poster_jpg_url",
+        emptyLabel: "No poster uploaded",
+        metaText: "JPG poster image",
+      },
       {
         field: "background_video_2_mp4",
         label: "Video 2 MP4",
@@ -159,6 +186,7 @@ const LANDING_GROUPS: LandingGroupConfig[] = [
   {
     title: "Background Image 1",
     description: "Upload both image-density variants for background image slot 1.",
+    columns: 2,
     slots: [
       {
         field: "background_image_1",
@@ -187,6 +215,7 @@ const LANDING_GROUPS: LandingGroupConfig[] = [
   {
     title: "Background Image 2",
     description: "Upload both image-density variants for background image slot 2.",
+    columns: 2,
     slots: [
       {
         field: "background_image_2",
@@ -215,6 +244,7 @@ const LANDING_GROUPS: LandingGroupConfig[] = [
   {
     title: "Background Image 3",
     description: "Upload both image-density variants for background image slot 3.",
+    columns: 2,
     slots: [
       {
         field: "background_image_3",
@@ -633,7 +663,12 @@ const AdminInfluencerAssets: React.FC = () => {
                               </div>
                             </div>
 
-                            <div className={styles["group-slots"]}>
+                            <div
+                              className={`${styles["group-slots"]} ${group.columns === 3
+                                  ? styles["group-slots--three"]
+                                  : styles["group-slots--two"]
+                                }`}
+                            >
                               {group.slots.map((slot) => {
                                 const previewUrl = landingAssets?.[
                                   slot.responseUrlKey
