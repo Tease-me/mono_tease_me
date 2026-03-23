@@ -40,6 +40,7 @@ Database migrations run automatically in the backend container, so no local tool
 ## Development with Docker
 
 - The backend mounts your repo (`.:/usr/src/app`) for hot reload via `uvicorn --reload`.
+- `MAXMIND_DB_PATH` may be set as a repo-relative path like `data/geoip/GeoLite2-Country.mmdb`; inside Docker that resolves under the mounted repo at `/usr/src/app`.
 - With Docker Compose v2.22+, you can also use the built-in watcher to sync and rebuild on changes:
   ```bash
   docker compose up --watch
