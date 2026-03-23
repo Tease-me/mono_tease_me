@@ -3,7 +3,7 @@
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Integer, String
+from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Index, Integer, String, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
@@ -17,6 +17,15 @@ class TelegramInvite(Base):
     """
 
     __tablename__ = "telegram_invite"
+    __table_args__ = (
+        Index(
+            "ix_telegram_invite_unclaimed_unique",
+            "telegram_user_id",
+            "influencer_id",
+            unique=True,
+            postgresql_where=text("is_claimed = false"),
+        ),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     code: Mapped[str] = mapped_column(String(32), unique=True, index=True, nullable=False)

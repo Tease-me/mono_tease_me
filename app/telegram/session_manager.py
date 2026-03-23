@@ -109,12 +109,19 @@ class TelegramSessionManager:
         ptg = self._pytgcalls.pop(influencer_id, None)
         if ptg:
             try:
-                # Leave any active calls before stopping
-                for call_id in list(ptg.private_calls or []):
-                    try:
-                        await ptg.leave_call(call_id)
-                    except Exception:
-                        pass
+                # Leave any active calls before stopping.
+                # In pytgcalls >=2.2.11, private_calls is a coroutine.
+                try:
+                    calls = ptg.private_calls
+                    if asyncio.iscoroutine(calls):
+                        calls = await calls
+                    for call_id in list(calls or []):
+                        try:
+                            await ptg.leave_call(call_id)
+                        except Exception:
+                            pass
+                except Exception:
+                    pass  # Best-effort cleanup
                 log.info("PyTgCalls stopped for influencer=%s", influencer_id)
             except Exception:
                 log.exception("Error stopping PyTgCalls for influencer=%s", influencer_id)
@@ -171,7 +178,16 @@ class TelegramSessionManager:
             )
 
             await client.connect()
-            sent_code = await client.send_code(phone_number)
+            try:
+                sent_code = await client.send_code(phone_number)
+            except Exception:
+                # Clean up the connected client if send_code fails
+                # (e.g. SEND_CODE_UNAVAILABLE, FloodWait)
+                try:
+                    await client.disconnect()
+                except Exception:
+                    pass
+                raise
 
             # Parse delivery info from the SentCode object
             delivery_type = self._describe_code_type(sent_code)
@@ -497,20 +513,46 @@ class TelegramSessionManager:
                 log.exception("Error stopping session for influencer=%s", influencer_id)
                 return False
 
-    async def delete_session(self, influencer_id: str) -> dict:
-        """Fully wipe a session: stop connection, delete file, clear pending auth."""
+    async def delete_session(
+        self, influencer_id: str, *, terminate_on_telegram: bool = False,
+    ) -> dict:
+        """Fully wipe a session: stop connection, delete file, clear pending auth.
+
+        Args:
+            terminate_on_telegram: If True, call client.log_out() to terminate
+                the session on Telegram's servers (frees the active-sessions slot).
+                Without this, Telegram still counts the session as active.
+        """
         async with self._get_lock(influencer_id):
             stopped = False
+            logged_out = False
             file_deleted = False
 
             # Stop active connection
             client = self._sessions.pop(influencer_id, None)
             if client:
-                try:
-                    await client.stop()
-                    stopped = True
-                except Exception:
-                    log.exception("Error stopping session during delete for %s", influencer_id)
+                if terminate_on_telegram:
+                    try:
+                        await client.log_out()
+                        logged_out = True
+                        stopped = True
+                        log.info(
+                            "Telegram session terminated on server for influencer=%s",
+                            influencer_id,
+                        )
+                    except Exception:
+                        log.exception(
+                            "Error logging out from Telegram for %s, falling back to stop",
+                            influencer_id,
+                        )
+                        # Fall through to stop() below
+
+                if not stopped:
+                    try:
+                        await client.stop()
+                        stopped = True
+                    except Exception:
+                        log.exception("Error stopping session during delete for %s", influencer_id)
 
             # Delete session file
             session_name = f"influencer_{influencer_id}"
@@ -525,6 +567,7 @@ class TelegramSessionManager:
 
             return {
                 "connection_stopped": stopped,
+                "logged_out_from_telegram": logged_out,
                 "file_deleted": file_deleted,
             }
 

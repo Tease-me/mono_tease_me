@@ -7,6 +7,7 @@ from .knowledge import router as knowledge_router
 from .logs import router as logs_router
 from .moderation import router as moderation_router
 from .relationships import router as relationships_router
+from .telegram_funnel import router as telegram_funnel_router
 from .usage import router as usage_router
 from .users import router as users_router
 
@@ -20,3 +21,4 @@ router.include_router(characters_router)
 router.include_router(knowledge_router)
 router.include_router(usage_router)
 router.include_router(analytics_router)
+router.include_router(telegram_funnel_router)
