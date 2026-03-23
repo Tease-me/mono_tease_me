@@ -205,6 +205,20 @@ async def build_admin_telegram_welcome_media_out(influencer: Influencer) -> dict
     }
 
 
+async def build_public_telegram_welcome_media_out(influencer: Influencer) -> dict[str, Any]:
+    admin_out = await build_admin_telegram_welcome_media_out(influencer)
+    return {
+        "influencer_id": admin_out["influencer_id"],
+        "telegram_audio_url": admin_out["telegram_audio_url"],
+        "telegram_audio_content_type": admin_out["telegram_audio_content_type"],
+        "telegram_video_url": admin_out["telegram_video_url"],
+        "telegram_video_content_type": admin_out["telegram_video_content_type"],
+        "has_audio": admin_out["has_audio"],
+        "has_video": admin_out["has_video"],
+        "updated_at": admin_out["updated_at"],
+    }
+
+
 async def upsert_admin_telegram_welcome_media(
     db: AsyncSession,
     influencer: Influencer,
