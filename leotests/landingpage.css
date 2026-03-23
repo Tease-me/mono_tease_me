@@ -45,7 +45,7 @@ body {
   position: absolute;
   transform-origin: bottom center;
   filter: drop-shadow(-3px 3px 2px rgb(0, 0, 0));
-  mask-image: linear-gradient(black 60%, #00000096 90%, #00000000 99%);
+  mask-image: linear-gradient(black 92%, #00000096 96%, #00000000 99%);
   animation: kenburns 2s ease-in-out infinite;
 }
 
@@ -498,6 +498,7 @@ body {
   .lpbodyshot {
     width: 17.5625rem;
     height: 30.84394rem;
+    mask-image: linear-gradient(black 80%, #00000096 92%, #00000000 99%);
   }
 
   
