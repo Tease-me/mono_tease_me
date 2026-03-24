@@ -1,3 +1,16 @@
+export interface CharacterAudioSample {
+  s3_key: string;
+  original_filename: string;
+  content_type: string;
+  created_at: string;
+  url?: string;
+}
+
+export interface CharacterSamples {
+  normal: CharacterAudioSample[];
+  explicit: CharacterAudioSample[];
+}
+
 export interface AdultCharacterResponse {
   id: number;
   slug: string;
