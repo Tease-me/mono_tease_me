@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from starlette.requests import Request
 
-from app.api import health_router
+from app.api.routes import health_router
 from app.utils.infrastructure import country
 
 

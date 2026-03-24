@@ -2,7 +2,7 @@
 
 import json
 
-from app.constants import prompt_keys
+from app.data.enums import prompt_keys
 
 # Core system prompt with relationship metrics
 BASE_SYSTEM = """Your name is {influencer_name}

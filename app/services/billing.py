@@ -9,7 +9,7 @@ from sqlalchemy import and_, func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import (
+from app.data.models import (
     Chat,
     DailyUsage,
     Influencer,
@@ -18,7 +18,7 @@ from app.db.models import (
     Pricing,
     User,
 )
-from app.repositories.billing_repository import get_wallet_balance_cents
+from app.services.repositories.billing_repository import get_wallet_balance_cents
 
 
 async def _get_lifetime_used_units(
@@ -121,7 +121,7 @@ async def charge_feature(
             user_obj = await db.get(User, user_id)
             if user_obj and user_obj.email:
                 try:
-                    from app.api.notify_ws import notify_low_balance
+                    from app.api.routes.notify_ws import notify_low_balance
 
                     await notify_low_balance(user_obj.email, new_balance)
                 except Exception as e:
@@ -438,7 +438,7 @@ async def resolve_voice_billing_mode(
 
     Centralises the subscription lookup so every billing path uses identical logic.
     """
-    from app.db.models import InfluencerSubscription
+    from app.data.models import InfluencerSubscription
 
     sub = await db.scalar(
         select(InfluencerSubscription).where(

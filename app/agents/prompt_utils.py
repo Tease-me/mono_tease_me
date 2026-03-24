@@ -3,15 +3,15 @@ from datetime import date, datetime
 import random
 from typing import Any, Optional
 
-from app.constants import prompt_keys
+from app.data.enums import prompt_keys
 from app.services.prompting.influencer_bio import InfluencerBioContext
 from langchain_core.prompts import (
     ChatPromptTemplate,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.models import Influencer
+from app.data.models import Influencer
 from fastapi import Depends, HTTPException
-from app.db.session import get_db
+from app.core.session import get_db
 from app.services.system_prompt_service import get_system_prompt
 from app.utils.time import (
     check_is_weekend,

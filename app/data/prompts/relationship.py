@@ -2,7 +2,7 @@
 
 import json
 from pathlib import Path
-from app.constants import prompt_keys
+from app.data.enums import prompt_keys
 
 # Relationship signal extraction
 RELATIONSHIP_SIGNAL_PROMPT = """You are analyzing a user's message in a relationship simulation. Return ONLY valid JSON — no markdown, no explanation.

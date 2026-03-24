@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from app.db.models import Influencer
+from app.data.models import Influencer
 
 
 @dataclass(slots=True)

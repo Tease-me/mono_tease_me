@@ -10,7 +10,7 @@ import time
 
 from fastapi import HTTPException
 from app.core.config import settings
-from app.db.models import Influencer
+from app.data.models import Influencer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
@@ -283,7 +283,7 @@ async def synthesize_audio_with_elevenlabs_v3(
     text = _ensure_v3_compatibility(text, style=style)
 
     voice_id = influencer.voice_id
-    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+    url = f"{settings.ELEVENLABS_TTS_BASE_URL}/{voice_id}"
     headers = {
         "xi-api-key": ELEVENLABS_API_KEY,
         "Accept": "audio/mpeg",

@@ -20,7 +20,13 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    op.add_column('paypal_topups', sa.Column('provider', sa.String(), nullable=True))
+    conn = op.get_bind()
+    result = conn.execute(sa.text(
+        "SELECT 1 FROM information_schema.columns "
+        "WHERE table_name='paypal_topups' AND column_name='provider'"
+    ))
+    if result.fetchone() is None:
+        op.add_column('paypal_topups', sa.Column('provider', sa.String(), nullable=True))
 
 
 def downgrade() -> None:

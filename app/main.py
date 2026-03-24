@@ -5,41 +5,41 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.openapi_tags import OPENAPI_TAGS
-from app.api.chat import router
-from app.api.chat_18 import router as chat_18_router
-from app.api.auth import router as auth_router
-from app.api.push import router as push_router 
-from app.api import billing
-from app.api.checkout import router as checkout_router
+from app.api.routes.chat import router
+from app.api.routes.chat_18 import router as chat_18_router
+from app.api.routes.auth import router as auth_router
+from app.api.routes.push import router as push_router
+from app.api.routes import billing
+from app.api.routes.checkout import router as checkout_router
 
-from app.api.notify_ws import router as notify_ws_router
-from app.api.influencer import router as influencer_router
-from app.api.influencer_subscriptions import router as influencer_subscriptions_router
+from app.api.routes.notify_ws import router as notify_ws_router
+from app.api.routes.influencer import router as influencer_router
+from app.api.routes.influencer_subscriptions import router as influencer_subscriptions_router
 from app.api.adult import router as adult_router
-from app.api.user import router as user_router
-from app.api.elevenlabs import router as elevenlabs_router
-from app.api.webhooks import router as webhooks_router
+from app.api.routes.user import router as user_router
+from app.api.routes.elevenlabs import router as elevenlabs_router
+from app.api.routes.webhooks import router as webhooks_router
 
-from app.api.follow import router as follow_router
-from app.api.pre_influencers import router as pre_influencers_router
-from app.api.social import router as social_router
+from app.api.routes.follow import router as follow_router
+from app.api.routes.pre_influencers import router as pre_influencers_router
+from app.api.routes.social import router as social_router
 from app.api.admin import router as admin_router
-from app.api.relationship import router as relationship_router
-from app.api.re_engagement import router as re_engagement_router
-from app.api.verification import router as verification_router
-from app.api.telegram_admin import router as telegram_admin_router
-from app.api.funnel import router as funnel_router
+from app.api.routes.relationship import router as relationship_router
+from app.api.routes.re_engagement import router as re_engagement_router
+from app.api.routes.verification import router as verification_router
+from app.api.routes.telegram_admin import router as telegram_admin_router
+from app.api.routes.funnel import router as funnel_router
 
-from app.api import system_prompts as system_prompts_router
+from app.api.routes import system_prompts as system_prompts_router
 
-from .api import health_router
-from app.scheduler import start_scheduler, stop_scheduler
+from app.api.routes import health_router
+from app.workers.scheduler import start_scheduler, stop_scheduler
 
-from app.gateways.elevenlabs.client import close_elevenlabs_client
+from app.services.gateways.elevenlabs.client import close_elevenlabs_client
 from app.utils.infrastructure.redis_pool import close_redis
 from app.core.logging import configure_logging
 from app.services.checkout import close_checkout_client
-from app.telegram import lifecycle as telegram_lifecycle
+from app.services.gateways.telegram import lifecycle as telegram_lifecycle
 
 configure_logging()
 log = logging.getLogger(__name__)

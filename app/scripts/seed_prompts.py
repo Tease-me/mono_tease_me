@@ -3,10 +3,10 @@
 import asyncio
 from datetime import datetime, timezone
 from sqlalchemy import delete, select
-from app.constants import prompt_keys
+from app.data.enums import prompt_keys
 
-from app.db.models import SystemPrompt
-from app.db.session import SessionLocal
+from app.data.models import SystemPrompt
+from app.core.session import SessionLocal
 from app.data.prompts import get_all_prompts
 from app.services.system_prompt_service import PROMPT_CACHE_PREFIX
 from app.utils.infrastructure.redis_pool import get_redis

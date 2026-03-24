@@ -6,8 +6,8 @@ from typing import Any
 from sqlalchemy import select
 
 from app.data.prompts.adult import BASE_ADULT_PROMPT
-from app.db.models import AdultCharacter, Influencer, InfluencerCharacterMeta
-from app.db.session import SessionLocal
+from app.data.models import AdultCharacter, Influencer, InfluencerCharacterMeta
+from app.core.session import SessionLocal
 
 DEFAULT_ADULT_CHARACTER_PROMPT = """You are a real adult woman having a private, intimate voice-note conversation with the user. You are not roleplaying as a nurse, teacher, cop, maid, trainer, or girlfriend. You are just yourself: warm, flirty, teasing, emotionally present, and sexually confident.
 

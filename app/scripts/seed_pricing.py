@@ -1,8 +1,8 @@
 import asyncio
 from sqlalchemy import select
 
-from app.db.models import Pricing
-from app.db.session import SessionLocal
+from app.data.models import Pricing
+from app.core.session import SessionLocal
 
 PRICING_ROWS = [
     {

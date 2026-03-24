@@ -8,8 +8,8 @@ from sqlalchemy import select
 # Ensure app is in path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.db.models import Influencer, InfluencerCreditTransaction, InfluencerWallet, User
-from app.db.session import SessionLocal
+from app.data.models import Influencer, InfluencerCreditTransaction, InfluencerWallet, User
+from app.core.session import SessionLocal
 
 
 def build_parser() -> argparse.ArgumentParser:
