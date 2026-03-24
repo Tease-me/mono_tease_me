@@ -362,22 +362,6 @@ export type InfluencerCharacterAssetType =
   | "video_preview_png"
   | "video";
 
-<<<<<<< HEAD
-export type AudioSampleType = "normal" | "explicit";
-
-export interface AudioSampleUploadResponse {
-  s3_key: string;
-  sample_type: AudioSampleType;
-  url: string;
-  original_filename: string;
-  created_at: string;
-}
-
-export interface AudioSampleDeleteResponse {
-  ok: boolean;
-  deleted_id: string;
-}
-=======
 export type AdminInfluencerLandingAssetsResponse = {
   influencer_id: string;
   hero_png_key: string | null;
@@ -454,7 +438,21 @@ export type AdminTelegramWelcomeMediaResponse = {
   has_video: boolean;
   updated_at: string | null;
 };
->>>>>>> f1d5222c93203d7af21da6740816f06354e179b7
+
+export type AudioSampleType = "normal" | "explicit";
+
+export interface AudioSampleUploadResponse {
+  s3_key: string;
+  sample_type: AudioSampleType;
+  url: string;
+  original_filename: string;
+  created_at: string;
+}
+
+export interface AudioSampleDeleteResponse {
+  ok: boolean;
+  deleted_id: string;
+}
 
 // Telegram Funnel Types
 export interface FunnelStage {
