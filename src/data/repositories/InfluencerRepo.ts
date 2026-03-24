@@ -21,7 +21,6 @@ const toInfluencerDataModel = (response: InfluencerResponse, existing?: Influenc
   videoUrl: response.video_url,
   daily_scripts: response.daily_scripts,
   prompt_template: response.prompt_template,
-  custom_adult_prompt: response.custom_adult_prompt,
   influencer_agent_id_third_part: response.influencer_agent_id_third_part,
   bio_json: response.bio_json,
   voice_id: response.voice_id,
@@ -73,7 +72,6 @@ export const InfluencerRepo = () => ({
     influencer_agent_id_third_part?: string,
     bio_json?: unknown,
     voice_id?: string,
-    custom_adult_prompt?: string,
   ) => {
     try {
       const response: InfluencerResponse = await influencerServices.patchInfluencer(
@@ -84,7 +82,6 @@ export const InfluencerRepo = () => ({
         (influencer_agent_id_third_part ?? influencer.influencer_agent_id_third_part),
         (bio_json ?? influencer.bio_json),
         (voice_id ?? influencer.voice_id),
-        (custom_adult_prompt ?? influencer.custom_adult_prompt),
       );
       return {
         id: response.id,
@@ -94,7 +91,6 @@ export const InfluencerRepo = () => ({
         videoUrl: response.video_url,
         daily_scripts: response.daily_scripts,
         prompt_template: response.prompt_template,
-        custom_adult_prompt: response.custom_adult_prompt,
         influencer_agent_id_third_part: response.influencer_agent_id_third_part,
         bio_json: response.bio_json,
         voice_id: response.voice_id,
@@ -102,48 +98,6 @@ export const InfluencerRepo = () => ({
         earnings: influencer.earnings,
         isSelected: influencer.isSelected,
       }
-    } catch (e) {
-      throw e
-    }
-  },
-  createInfluencer: async (influencer: InfluencerDataModel) => {
-    try {
-      const response: InfluencerResponse = await influencerServices.createInfluencer(
-        influencer.id,
-        influencer.prompt_template ?? "",
-        influencer.name,
-        influencer.daily_scripts,
-        influencer.influencer_agent_id_third_part,
-        influencer.bio_json,
-        influencer.voice_id,
-        influencer.custom_adult_prompt,
-      );
-      return {
-        id: response.id,
-        name: response.display_name,
-        username: response.id,
-        img: response.photo_url,
-        videoUrl: response.video_url,
-        daily_scripts: response.daily_scripts,
-        prompt_template: response.prompt_template,
-        custom_adult_prompt: response.custom_adult_prompt,
-        influencer_agent_id_third_part: response.influencer_agent_id_third_part,
-        bio_json: response.bio_json,
-        voice_id: response.voice_id,
-        created_at: response.created_at,
-        earnings: influencer.earnings,
-        isSelected: influencer.isSelected,
-      }
-    } catch (e) {
-      throw e
-    }
-  },
-  uploadCsv: async (file: File, save: boolean): Promise<void> => {
-    try {
-      await influencerServices.uploadCsv(
-        file,
-        save
-      );
     } catch (e) {
       throw e
     }

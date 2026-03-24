@@ -92,6 +92,10 @@ export const Endpoints = {
       deleteSample: (influencerId: string, characterId: number, sampleType: string, s3Key: string) =>
         `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/samples/${sampleType}/${s3Key}`,
     },
+    influencerLandingAssets: (influencerId: string) =>
+      `admin/influencer/${encodeURIComponent(influencerId)}/landing-assets`,
+    telegramWelcomeMedia: (influencerId: string) =>
+      `admin/influencer/${encodeURIComponent(influencerId)}/telegram-welcome-media`,
     systemPrompts: {
       list: "admin/system-prompts",
       byKey: (key: string) => `admin/system-prompts/${encodeURIComponent(key)}`,
