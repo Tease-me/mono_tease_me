@@ -11,8 +11,8 @@ import sys
 
 from sqlalchemy import update
 
-from app.db.session import SessionLocal
-from app.db.models.chat import CallRecord
+from app.core.session import SessionLocal
+from app.data.models.chat import CallRecord
 
 
 async def reset_trial(tg_user_id: int):

@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.schemas.adult.adult_conversation import (
+from app.data.schemas.adult.adult_conversation import (
     AdultConversationTokenRequest,
     AdultConversationTokenResponse,
 )
-from app.db.models import User
-from app.db.session import get_db
-from app.use_cases.adult.adult_conversation_token import (
+from app.data.models import User
+from app.core.session import get_db
+from app.services.use_cases.adult.adult_conversation_token import (
     create_adult_conversation_token,
 )
 from app.utils.auth.dependencies import get_current_user

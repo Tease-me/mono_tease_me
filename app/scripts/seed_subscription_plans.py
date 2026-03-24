@@ -6,8 +6,8 @@ Usage:
 """
 import asyncio
 from sqlalchemy import select
-from app.db.session import SessionLocal
-from app.db.models import InfluencerSubscriptionPlan
+from app.core.session import SessionLocal
+from app.data.models import InfluencerSubscriptionPlan
 
 
 async def main():

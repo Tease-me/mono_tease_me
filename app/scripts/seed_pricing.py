@@ -1,8 +1,8 @@
 import asyncio
 from sqlalchemy import select
 
-from app.db.models import Pricing
-from app.db.session import SessionLocal
+from app.data.models import Pricing
+from app.core.session import SessionLocal
 
 PRICING_ROWS = [
     {
@@ -16,7 +16,7 @@ PRICING_ROWS = [
         "feature": "voice",
         "unit": "second",
         "price_cents": 2,   # $0.02 per second of audio
-        "free_allowance": 120,  # e.g., first 2 minutes/day free
+        "free_allowance": 0,
         "is_active": True,
     },
      {
@@ -30,21 +30,21 @@ PRICING_ROWS = [
         "feature": "voice_18",
         "unit": "second",
         "price_cents": 2,   # $0.02 per second of audio
-        "free_allowance": 120,  # e.g., first 2 minutes/day free
+        "free_allowance": 0,
         "is_active": True,
     },
     {
         "feature": "live_chat",
         "unit": "second",
         "price_cents": 3,   # $0.03 per second of live chat
-        "free_allowance": 120,
+        "free_allowance": 0,
         "is_active": True,
     },
     {
         "feature": "live_chat_18",
         "unit": "second",
         "price_cents": 2,   # aligned with current adult live-call pricing concept
-        "free_allowance": 120,
+        "free_allowance": 0,
         "is_active": True,
     },
 ]

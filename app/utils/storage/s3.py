@@ -9,7 +9,7 @@ from PIL import Image
 import pillow_heif
 
 from app.core.config import settings
-from app.schemas.chat import MessageSchema
+from app.data.schemas.chat import MessageSchema
 
  
 log = logging.getLogger(__name__)
@@ -260,3 +260,12 @@ async def save_user_photo_to_s3(file_obj, filename: str, content_type: str, user
 
 def generate_user_presigned_url(key: str, expires: int = 3600) -> str:
     return generate_presigned_url(key, expires)
+
+async def save_character_sample_audio_to_s3(
+    file_obj, filename: str | None, content_type: str, influencer_id: str, character_id: int, sample_type: str
+) -> str:
+    ext = (filename.split(".")[-1].lower() if filename and "." in filename else "mp3")
+    key = f"character-samples/{influencer_id}/{character_id}/{sample_type}/{uuid.uuid4()}.{ext}"
+    file_obj.seek(0)
+    s3.upload_fileobj(file_obj, settings.BUCKET_NAME, key, ExtraArgs={"ContentType": content_type})
+    return key

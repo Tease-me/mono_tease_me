@@ -27,7 +27,7 @@ class DiditService:
 
     def __init__(self):
         # v3 API base URL
-        self.base_url = "https://verification.didit.me/v3"
+        self.base_url = settings.DIDIT_BASE_URL
         self.api_key = settings.DIDIT_API_KEY
         self.timeout = 30.0
 

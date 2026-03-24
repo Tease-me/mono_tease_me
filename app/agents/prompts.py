@@ -4,7 +4,7 @@ from langchain_openai import ChatOpenAI
 from langchain_xai import ChatXAI
 from app.core.config import settings
 from app.services.system_prompt_service import get_system_prompt
-from app.constants import prompt_keys
+from app.data.enums import prompt_keys
 from langchain_core.runnables import Runnable
 
 log = logging.getLogger(__name__)

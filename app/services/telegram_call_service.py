@@ -5,11 +5,13 @@ trial-expired messaging. Delegates DB access to repositories
 and external calls to gateways/utils.
 """
 
+import asyncio
+import io
 import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import Influencer
+from app.data.models import Influencer
 from app.services.repositories.call_record_repository import (
     get_cumulative_trial_usage,
 )
@@ -58,20 +60,31 @@ async def send_trial_expired_messages(
     invite_code = await get_or_create_invite_code(
         db, telegram_user_id, influencer_id,
     )
+
+    from app.services.funnel_tracking_service import track_invite_sent
+    asyncio.create_task(track_invite_sent(telegram_user_id, influencer_id, invite_code))
+
     cta_html = build_telegram_cta_html(invite_code, influencer_id)
 
-    # Fetch influencer media keys for promo content
+    # Fetch influencer for media
     influencer = await db.get(Influencer, influencer_id)
-    video_key = influencer.profile_video_key if influencer else None
-    photo_key = influencer.profile_photo_key if influencer else None
 
-    # Send promo video/photo from S3
-    await send_influencer_promo_media(
-        client,
-        chat_id,
-        profile_video_key=video_key,
-        profile_photo_key=photo_key,
-    )
+    # Try welcome video first, fall back to profile promo
+    welcome_video_sent = False
+    if influencer:
+        welcome_video_sent = await send_telegram_welcome_video(
+            client, chat_id, influencer,
+        )
+
+    if not welcome_video_sent:
+        video_key = influencer.profile_video_key if influencer else None
+        photo_key = influencer.profile_photo_key if influencer else None
+        await send_influencer_promo_media(
+            client,
+            chat_id,
+            profile_video_key=video_key,
+            profile_photo_key=photo_key,
+        )
 
     await client.send_message(
         chat_id=chat_id,
@@ -88,3 +101,89 @@ async def send_trial_expired_messages(
         "trial_expired_messages_sent tg_user=%s influencer=%s",
         telegram_user_id, influencer_id,
     )
+
+
+async def send_telegram_welcome_video(
+    client,
+    chat_id: int,
+    influencer: Influencer,
+) -> bool:
+    """Send telegram welcome video from assets_json.
+
+    Checks telegram_welcome_video slot first, falls back to legacy slot.
+    Returns True if video was sent.
+    """
+    from app.services.repositories.influencer_landing_assets_repository import (
+        LEGACY_TELEGRAM_MEDIA_SLOT,
+        TELEGRAM_VIDEO_SLOT,
+        get_landing_asset_key,
+    )
+    from app.utils.storage.s3 import get_s3_object_bytes
+
+    assets_json = influencer.assets_json if isinstance(influencer.assets_json, dict) else {}
+
+    video_key = (
+        get_landing_asset_key(assets_json, TELEGRAM_VIDEO_SLOT)
+        or get_landing_asset_key(assets_json, LEGACY_TELEGRAM_MEDIA_SLOT)
+    )
+    if not video_key:
+        return False
+
+    try:
+        video_bytes = await get_s3_object_bytes(video_key)
+        if video_bytes:
+            if not client.me:
+                await client.get_me()
+            await client.send_video(
+                chat_id=chat_id,
+                video=io.BytesIO(video_bytes),
+                file_name="welcome.mp4",
+            )
+            log.info("welcome_video_sent chat=%s key=%s", chat_id, video_key)
+            return True
+        log.warning("S3 returned empty bytes for welcome video key=%s", video_key)
+    except Exception:
+        log.exception("Failed to send welcome video (key=%s)", video_key)
+
+    return False
+
+
+async def send_telegram_welcome_audio(
+    client,
+    chat_id: int,
+    influencer: Influencer,
+) -> bool:
+    """Send telegram welcome audio as a voice note from assets_json.
+
+    Returns True if audio was sent.
+    """
+    from app.services.repositories.influencer_landing_assets_repository import (
+        TELEGRAM_AUDIO_SLOT,
+        get_landing_asset_key,
+    )
+    from app.utils.storage.s3 import get_s3_object_bytes
+
+    assets_json = influencer.assets_json if isinstance(influencer.assets_json, dict) else {}
+
+    audio_key = get_landing_asset_key(assets_json, TELEGRAM_AUDIO_SLOT)
+    if not audio_key:
+        return False
+
+    try:
+        audio_bytes = await get_s3_object_bytes(audio_key)
+        if audio_bytes:
+            if not client.me:
+                await client.get_me()
+            voice_file = io.BytesIO(audio_bytes)
+            voice_file.name = "welcome.mp3"
+            await client.send_voice(
+                chat_id=chat_id,
+                voice=voice_file,
+            )
+            log.info("welcome_audio_sent chat=%s key=%s", chat_id, audio_key)
+            return True
+        log.warning("S3 returned empty bytes for welcome audio key=%s", audio_key)
+    except Exception:
+        log.exception("Failed to send welcome audio (key=%s)", audio_key)
+
+    return False

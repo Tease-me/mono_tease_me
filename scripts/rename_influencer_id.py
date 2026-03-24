@@ -15,7 +15,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.core.config import settings
-from app.db.models import (
+from app.data.models import (
     ApiUsageLog,
     CallRecord,
     Chat,
@@ -35,7 +35,7 @@ from app.db.models import (
     ReEngagementLog,
     RelationshipState,
 )
-from app.db.session import SessionLocal
+from app.core.session import SessionLocal
 from app.utils.storage.s3 import s3
 
 

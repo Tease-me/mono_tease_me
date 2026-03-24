@@ -10,7 +10,7 @@ from langchain_community.chat_message_histories import RedisChatMessageHistory
 from app.core.config import settings
 from app.agents.memory import find_similar_memories, store_facts_batch
 from app.agents.prompts import MODEL, FACT_EXTRACTOR, CONVO_ANALYZER, get_fact_prompt
-from app.db.session import SessionLocal
+from app.core.session import SessionLocal
 from app.services.knowledge_rag import retrieve_knowledge_chunks
 from app.agents.prompt_utils import (
     get_global_prompt,
@@ -19,13 +19,13 @@ from app.agents.prompt_utils import (
     get_mbti_rules_for_archetype,
     get_relationship_stage_prompts,
 )
-from app.db.models import Influencer, User
+from app.data.models import Influencer, User
 from app.services.prompting.influencer_bio import extract_influencer_bio_context
 from app.utils.messaging.tts_sanitizer import sanitize_tts_text
 from app.utils.logging.prompt_logging import log_prompt
 from app.agents.callbacks import UsageTrackingCallback
 
-from app.relationship.processor import process_relationship_turn
+from app.services.relationship.processor import process_relationship_turn
 
 log = logging.getLogger(__name__)
 
@@ -444,6 +444,13 @@ async def handle_turn(
         )
     except Exception as ex:
         log.error("[%s] Failed to schedule fact extraction: %s", cid, ex, exc_info=True)
+
+    # Fire-and-forget funnel tracking for first chat event
+    try:
+        from app.services.funnel_tracking_service import track_first_chat
+        asyncio.create_task(track_first_chat(int(user_id), influencer_id))
+    except Exception as ex:
+        log.warning("[%s] Failed to schedule first_chat tracking: %s", cid, ex)
 
     if is_audio:
         return sanitize_tts_text(reply)

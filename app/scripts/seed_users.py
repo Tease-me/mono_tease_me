@@ -4,8 +4,8 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from passlib.context import CryptContext
 
-from app.db.models import User
-from app.db.session import SessionLocal
+from app.data.models import User
+from app.core.session import SessionLocal
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

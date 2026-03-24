@@ -12,12 +12,11 @@ from dataclasses import dataclass
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import TelegramInvite, User
+from app.data.models import TelegramInvite, User
 from app.services.repositories.telegram_invite_repository import (
     get_unclaimed_invite,
     create_invite,
-    get_unclaimed_by_code,
-    mark_claimed,
+    claim_invite_atomic,
 )
 
 log = logging.getLogger(__name__)
@@ -56,13 +55,14 @@ async def claim_invite_code(
 
     Returns the invite record (with telegram_user_id and influencer_id)
     if successful, or None if the code is invalid/already claimed.
+
+    Uses an atomic UPDATE ... WHERE is_claimed = false pattern to prevent
+    race conditions where two concurrent requests claim the same code.
     """
-    invite = await get_unclaimed_by_code(db, code)
+    invite = await claim_invite_atomic(db, code, user_id)
     if not invite:
         log.warning("telegram_invite.claim_failed code=%s (not found or already claimed)", code)
         return None
-
-    invite = await mark_claimed(db, invite, user_id)
 
     log.info(
         "telegram_invite.claimed code=%s user_id=%s tg_user=%s",
@@ -76,6 +76,7 @@ class TelegramBindResult:
     """Result of claiming an invite and binding a Telegram user."""
     telegram_id: int
     influencer_id: str
+    bound: bool  # True if telegram_id was actually written to the user
 
 
 async def claim_and_bind_telegram(
@@ -94,6 +95,7 @@ async def claim_and_bind_telegram(
     Returns None if the code is invalid or already claimed.
     """
     from app.services.repositories.user_repository import bind_telegram_id
+    from app.services.repositories.call_record_repository import backfill_user_id_for_telegram_user
 
     invite = await claim_invite_code(db, invite_code, user.id)
     if not invite:
@@ -103,16 +105,32 @@ async def claim_and_bind_telegram(
         )
         return None
 
-    await bind_telegram_id(db, user, invite.telegram_user_id)
+    bound = await bind_telegram_id(db, user, invite.telegram_user_id)
+    if not bound:
+        log.warning(
+            "telegram_invite.bind_failed code=%s user=%s telegram_id=%s",
+            invite_code, user.id, invite.telegram_user_id,
+        )
+
+    # Backfill user_id on pre-signup chat/call records
+    backfilled = await backfill_user_id_for_telegram_user(
+        db, invite.telegram_user_id, user.id,
+    )
+    if backfilled:
+        log.info(
+            "register.backfilled_telegram_records user=%s tg_user=%s count=%d",
+            user.id, invite.telegram_user_id, backfilled,
+        )
 
     influencer_id = provided_influencer_id or invite.influencer_id
 
     log.info(
-        "register.telegram_bound user=%s telegram_id=%s invite=%s influencer=%s",
-        user.id, invite.telegram_user_id, invite_code, influencer_id,
+        "register.telegram_bound user=%s telegram_id=%s invite=%s influencer=%s bound=%s",
+        user.id, invite.telegram_user_id, invite_code, influencer_id, bound,
     )
     return TelegramBindResult(
         telegram_id=invite.telegram_user_id,
         influencer_id=influencer_id,
+        bound=bound,
     )
 
