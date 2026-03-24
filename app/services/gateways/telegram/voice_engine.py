@@ -1198,7 +1198,7 @@ class VoiceCallManager:
 
             # Build system prompt — fetch the adult prompt from DB
             from app.services.system_prompt_service import get_system_prompt
-            from app.constants import prompt_keys
+            from app.data.enums import prompt_keys
 
             base_prompt = await get_system_prompt(db, prompt_keys.BASE_ADULT_PROMPT)
             audio_prompt = await get_system_prompt(db, prompt_keys.BASE_ADULT_AUDIO_PROMPT)

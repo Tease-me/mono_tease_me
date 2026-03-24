@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.admin.common import ensure_admin
-from app.constants.relationship_stages import STAGE_POINTS_MAX, STAGE_POINTS_MIN
+from app.data.enums.relationship_stages import STAGE_POINTS_MAX, STAGE_POINTS_MIN
 from app.db.models import RelationshipState, User
 from app.db.session import get_db
 from app.utils.auth.dependencies import get_current_user

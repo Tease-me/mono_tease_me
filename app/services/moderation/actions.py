@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import User, ContentViolation
-from app.moderation.detector import ModerationResult
+from app.services.moderation.detector import ModerationResult
 
 log = logging.getLogger(__name__)
 

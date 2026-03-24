@@ -11,7 +11,7 @@ from app.agents.prompt_utils import get_time_context
 from app.utils.messaging.tts_sanitizer import sanitize_tts_text
 from app.utils.logging.prompt_logging import log_prompt
 from app.services.system_prompt_service import get_system_prompt
-from app.constants import prompt_keys
+from app.data.enums import prompt_keys
 from langchain_core.prompts import ChatPromptTemplate
 from app.agents.callbacks import UsageTrackingCallback
 log = logging.getLogger(__name__)

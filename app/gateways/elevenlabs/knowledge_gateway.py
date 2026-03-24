@@ -9,7 +9,7 @@ from typing import Any
 import httpx
 
 from app.core.config import settings
-from app.errors.knowledge_errors import KnowledgeSyncError
+from app.api.errors.knowledge_errors import KnowledgeSyncError
 
 log = logging.getLogger(__name__)
 

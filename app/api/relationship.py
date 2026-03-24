@@ -9,7 +9,7 @@ from app.services.relationship_dimension_service import (
     get_dimension_descriptions,
     get_stage_requirements
 )
-from app.constants.relationship_stages import STAGE_RANGES
+from app.data.enums.relationship_stages import STAGE_RANGES
 
 router = APIRouter(prefix="/relationship", tags=["relationship"])
 

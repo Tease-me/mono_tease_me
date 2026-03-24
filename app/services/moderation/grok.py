@@ -8,7 +8,7 @@ from langchain_core.messages import SystemMessage, HumanMessage
 
 from app.services.system_prompt_service import get_system_prompt
 from app.services.token_tracker import track_usage_bg
-from app.constants import prompt_keys
+from app.data.enums import prompt_keys
 from app.agents.prompts import get_grok_model
 
 log = logging.getLogger(__name__)

@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.agents.prompt_utils import get_time_context
 from app.agents.prompts import GREETING_GENERATOR
 from app.agents.turn_handler import _build_user_name_block, redis_history
-from app.constants import prompt_keys
+from app.data.enums import prompt_keys
 from app.db.models import CallRecord, Chat, Influencer, Message, User
 from app.db.models.chat import Memory
 from app.db.session import SessionLocal

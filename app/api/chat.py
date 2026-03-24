@@ -21,7 +21,7 @@ from app.core.config import settings
 from app.utils.messaging.chat import transcribe_audio, synthesize_audio_with_elevenlabs_v3, get_ai_reply_via_websocket
 from app.utils.storage.s3 import save_audio_to_s3, save_ia_audio_to_s3, generate_presigned_url, message_to_schema_with_presigned
 from app.services.billing import charge_feature, get_duration_seconds, can_afford
-from app.moderation import moderate_message, handle_violation
+from app.services.moderation import moderate_message, handle_violation
 
 # Import shared buffer service
 from app.services.chat_buffer_service import (

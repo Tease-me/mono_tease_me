@@ -11,7 +11,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.prompts import SURVEY_SUMMARIZER
-from app.constants import prompt_keys
+from app.data.enums import prompt_keys
 from app.services.system_prompt_service import get_system_prompt
 from app.services.token_tracker import track_usage_bg
 

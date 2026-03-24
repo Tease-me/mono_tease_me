@@ -1,7 +1,7 @@
 import json
 import time
 from app.services.system_prompt_service import get_system_prompt
-from app.constants import prompt_keys
+from app.data.enums import prompt_keys
 
 DEFAULT = {
     "support": 0.0, "affection": 0.0, "flirt": 0.0, "respect": 0.0,

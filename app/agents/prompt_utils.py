@@ -3,7 +3,7 @@ from datetime import date, datetime
 import random
 from typing import Any, Optional
 
-from app.constants import prompt_keys
+from app.data.enums import prompt_keys
 from app.services.prompting.influencer_bio import InfluencerBioContext
 from langchain_core.prompts import (
     ChatPromptTemplate,

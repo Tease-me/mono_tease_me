@@ -33,7 +33,7 @@ from app.api.funnel import router as funnel_router
 from app.api import system_prompts as system_prompts_router
 
 from .api import health_router
-from app.scheduler import start_scheduler, stop_scheduler
+from app.workers.scheduler import start_scheduler, stop_scheduler
 
 from app.gateways.elevenlabs.client import close_elevenlabs_client
 from app.utils.infrastructure.redis_pool import close_redis

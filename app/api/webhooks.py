@@ -24,7 +24,7 @@ from app.db.models import CallRecord, Chat, Influencer
 from app.agents.turn_handler import  handle_turn, redis_history, _messages_since_session_break
 from app.agents.memory import find_similar_memories
 
-from app.relationship.processor import process_relationship_turn
+from app.services.relationship.processor import process_relationship_turn
 
 
 log = logging.getLogger(__name__)

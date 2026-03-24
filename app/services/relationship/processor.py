@@ -4,12 +4,12 @@ from typing import Any, Dict
 
 from app.db.models import Influencer
 from app.services.prompting.influencer_bio import extract_influencer_bio_context
-from app.relationship.repo import get_or_create_relationship
-from app.relationship.inactivity import apply_inactivity_decay, check_and_trigger_reengagement
-from app.relationship.signals import classify_signals
-from app.relationship.engine import Signals, update_relationship
-from app.relationship.dtr import plan_dtr_goal
-from app.constants.relationship_stages import (
+from app.services.relationship.repo import get_or_create_relationship
+from app.services.relationship.inactivity import apply_inactivity_decay, check_and_trigger_reengagement
+from app.services.relationship.signals import classify_signals
+from app.services.relationship.engine import Signals, update_relationship
+from app.services.relationship.dtr import plan_dtr_goal
+from app.data.enums.relationship_stages import (
     STAGES,
     STAGE_RANGES,
     STAGE_THRESHOLDS,

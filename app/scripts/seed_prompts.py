@@ -3,7 +3,7 @@
 import asyncio
 from datetime import datetime, timezone
 from sqlalchemy import delete, select
-from app.constants import prompt_keys
+from app.data.enums import prompt_keys
 
 from app.db.models import SystemPrompt
 from app.db.session import SessionLocal

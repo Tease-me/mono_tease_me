@@ -29,9 +29,9 @@ from app.core.config import settings
 from app.db.models import CallRecord, Chat, Influencer, Memory, User
 from app.db.session import SessionLocal, get_db
 from app.gateways.elevenlabs.conversation_gateway import ElevenLabsConversationGateway
-from app.relationship.dtr import plan_dtr_goal
-from app.relationship.inactivity import apply_inactivity_decay
-from app.relationship.repo import get_or_create_relationship
+from app.services.relationship.dtr import plan_dtr_goal
+from app.services.relationship.inactivity import apply_inactivity_decay
+from app.services.relationship.repo import get_or_create_relationship
 from app.schemas.elevenlabs import RegisterConversationBody
 from app.services.billing import (
     can_afford,

@@ -4,8 +4,8 @@ from typing import Literal, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.moderation.keywords import check_keywords
-from app.moderation.grok import verify_with_grok
+from app.services.moderation.keywords import check_keywords
+from app.services.moderation.grok import verify_with_grok
 
 log = logging.getLogger(__name__)
 
