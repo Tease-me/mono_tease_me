@@ -87,6 +87,10 @@ export const Endpoints = {
         `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/assets`,
       assetByType: (influencerId: string, characterId: number, assetType: string) =>
         `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/assets/${assetType}`,
+      uploadSample: (influencerId: string, characterId: number, sampleType: string) =>
+        `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/samples?sample_type=${sampleType}`,
+      deleteSample: (influencerId: string, characterId: number, sampleType: string, s3Key: string) =>
+        `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/samples/${sampleType}/${s3Key}`,
     },
     influencerLandingAssets: (influencerId: string) =>
       `admin/influencer/${encodeURIComponent(influencerId)}/landing-assets`,

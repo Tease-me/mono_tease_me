@@ -439,6 +439,21 @@ export type AdminTelegramWelcomeMediaResponse = {
   updated_at: string | null;
 };
 
+export type AudioSampleType = "normal" | "explicit";
+
+export interface AudioSampleUploadResponse {
+  s3_key: string;
+  sample_type: AudioSampleType;
+  url: string;
+  original_filename: string;
+  created_at: string;
+}
+
+export interface AudioSampleDeleteResponse {
+  ok: boolean;
+  deleted_id: string;
+}
+
 // Telegram Funnel Types
 export interface FunnelStage {
   stage: string;
@@ -633,6 +648,34 @@ export const AdminServices = (apiClient: AxiosInstance) => ({
         characterId,
         assetType
       )
+    );
+    return response.data;
+  },
+
+  uploadInfluencerCharacterSample: async (
+    influencerId: string,
+    characterId: number,
+    sampleType: AudioSampleType,
+    file: File
+  ): Promise<AudioSampleUploadResponse> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await apiClient.post(
+      Endpoints.admin.influencerAdultCharacters.uploadSample(influencerId, characterId, sampleType),
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+    return response.data;
+  },
+
+  deleteInfluencerCharacterSample: async (
+    influencerId: string,
+    characterId: number,
+    sampleType: AudioSampleType,
+    s3Key: string
+  ): Promise<AudioSampleDeleteResponse> => {
+    const response = await apiClient.delete(
+      Endpoints.admin.influencerAdultCharacters.deleteSample(influencerId, characterId, sampleType, s3Key)
     );
     return response.data;
   },
