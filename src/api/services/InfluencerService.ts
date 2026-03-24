@@ -1,4 +1,4 @@
-import { InfluencerBioResponse, InfluencerResponse, InfluencerSampleListResponse, InfluencerSampleResponse } from "../models/influencers";
+import { InfluencerBioResponse, InfluencerLandingAssetsResponse, InfluencerResponse, InfluencerSampleListResponse, InfluencerSampleResponse } from "../models/influencers";
 import { AdultCharactersResponse } from "../models/adultCharacters";
 import { Endpoints } from "../urls";
 import { AxiosInstance } from "axios";
@@ -128,6 +128,16 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
             return response.data;
         }
         catch (error) {
+            throw error;
+        }
+    },
+    getLandingAssets: async (influencer_id: string): Promise<InfluencerLandingAssetsResponse> => {
+        try {
+            const response = await apiClient.get<InfluencerLandingAssetsResponse>(
+                Endpoints.influencerLandingAssets(influencer_id),
+            );
+            return response.data;
+        } catch (error) {
             throw error;
         }
     },
