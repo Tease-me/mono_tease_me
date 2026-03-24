@@ -167,6 +167,8 @@ async def register(
 
     if data.influencer_id:
         await create_follow_if_missing(db, data.influencer_id, user.id)
+        from app.services.funnel_tracking_service import track_influencer_followed
+        asyncio.create_task(track_influencer_followed(user.id, data.influencer_id))
 
     try:
         log.info(
