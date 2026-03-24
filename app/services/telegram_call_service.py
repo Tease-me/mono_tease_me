@@ -132,6 +132,8 @@ async def send_telegram_welcome_video(
     try:
         video_bytes = await get_s3_object_bytes(video_key)
         if video_bytes:
+            if not client.me:
+                await client.get_me()
             await client.send_video(
                 chat_id=chat_id,
                 video=io.BytesIO(video_bytes),
@@ -170,6 +172,8 @@ async def send_telegram_welcome_audio(
     try:
         audio_bytes = await get_s3_object_bytes(audio_key)
         if audio_bytes:
+            if not client.me:
+                await client.get_me()
             voice_file = io.BytesIO(audio_bytes)
             voice_file.name = "welcome.mp3"
             await client.send_voice(

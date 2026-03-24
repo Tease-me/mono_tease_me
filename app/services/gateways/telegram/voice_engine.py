@@ -1086,6 +1086,8 @@ class VoiceCallSession:
             voice_file = io.BytesIO(audio_bytes)
             voice_file.name = "farewell.mp3"
 
+            if not self.client.me:
+                await self.client.get_me()
             await self.client.send_voice(
                 chat_id=self.chat_id,
                 voice=voice_file,
