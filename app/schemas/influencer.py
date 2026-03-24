@@ -36,7 +36,6 @@ class InfluencerUpdate(BaseModel):
     influencer_agent_id_third_part: Optional[str] = None
     native_language: Optional[str] = None
     date_of_birth: Optional[datetime] = None
-    custom_adult_prompt: Optional[str] = None
 
 
 class InfluencerOut(InfluencerBase):
@@ -52,7 +51,6 @@ class InfluencerDetail(InfluencerOut):
     about: Optional[str] = None
     photo_url: Optional[str] = None
     video_url: Optional[str] = None
-    custom_adult_prompt: Optional[str] = None
 
 
 class SocialLink(BaseModel):
@@ -94,3 +92,14 @@ class InfluencerAdultCharacterOut(BaseModel):
     has_complete_video_set: bool = False
     meta_json: Optional[Dict[str, Any]] = None
     has_influencer_override: bool
+
+
+class InfluencerTelegramWelcomeMediaOut(BaseModel):
+    influencer_id: str
+    telegram_audio_url: Optional[str] = None
+    telegram_audio_content_type: Optional[str] = None
+    telegram_video_url: Optional[str] = None
+    telegram_video_content_type: Optional[str] = None
+    has_audio: bool = False
+    has_video: bool = False
+    updated_at: Optional[str] = None

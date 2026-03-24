@@ -21,7 +21,6 @@ class Influencer(Base):
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
     display_name: Mapped[str] = mapped_column(String, nullable=False)
-    owner_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     voice_id: Mapped[str | None] = mapped_column(String, nullable=True)  # ElevenLabs, etc.
     prompt_template: Mapped[str] = mapped_column(Text, nullable=False)
 
@@ -32,14 +31,12 @@ class Influencer(Base):
     date_of_birth: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     daily_scripts: Mapped[List[str] | None] = mapped_column(JSON, nullable=True)
     samples: Mapped[list[dict] | None] = mapped_column(JSONB, nullable=True)
+    assets_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     influencer_agent_id_third_part: Mapped[str | None] = mapped_column(String, nullable=True)
     
     fp_promoter_id: Mapped[str | None] = mapped_column(String, nullable=True)
     fp_ref_id: Mapped[str | None] = mapped_column(String, nullable=True)
     email: Mapped[str] = mapped_column(String, unique=True, nullable=True)
-    custom_adult_prompt: Mapped[str | None] = mapped_column(Text, nullable=True)
-    custom_audio_prompt: Mapped[str | None] = mapped_column(Text, nullable=True)
-
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
