@@ -27,16 +27,16 @@ import image02 from "@/assets/adult/juliana/landingpage/image02.png";
 import image02x2 from "@/assets/adult/juliana/landingpage/image02@2x.png";
 import image03 from "@/assets/adult/juliana/landingpage/image03.png";
 import image03x2 from "@/assets/adult/juliana/landingpage/image03@2x.png";
-import lpBgMinWebm from "@/assets/adult/juliana/video/lpbgmin.webm";
-import lpBgMinMp4 from "@/assets/adult/juliana/video/lpbgmin.mp4";
-import lpBgMinPoster from "@/assets/adult/juliana/video/lpbgminPoster.jpg";
+import lpBgMinWebm from "@/assets/influencerWelcome/video/lpbgmin.webm";
+import lpBgMinMp4 from "@/assets/influencerWelcome/video/lpbgmin.mp4";
+import lpBgMinPoster from "@/assets/influencerWelcome/video/lpbgminPoster.jpg";
 import lpVideo01Webm from "@/assets/adult/juliana/video/lpvideo01min.webm";
 import lpVideo01Mp4 from "@/assets/adult/juliana/video/lpvideo01min.mp4";
 import lpVideo01Poster from "@/assets/adult/juliana/video/lpvideo01minPoster.jpg";
 import lpVideo02Webm from "@/assets/adult/juliana/video/lpvideo02min.webm";
 import lpVideo02Mp4 from "@/assets/adult/juliana/video/lpvideo02min.mp4";
 import lpVideo02Poster from "@/assets/adult/juliana/video/lpvideo02minPoster.jpg";
-import lottieAudioWave from "@/assets/adult/juliana/lottie/lottieAudiowave.json";
+import lottieAudioWave from "@/assets/influencerWelcome/lottie/lottieAudiowave.json";
 import teaseMeIcon3D from "@/assets/logos/3D-IconTeaseMe-Dark.svg";
 
 export interface WelcomeScreenProps {
