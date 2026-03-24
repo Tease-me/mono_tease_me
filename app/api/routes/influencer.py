@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import List, Optional
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Request, BackgroundTasks
 from app.api.admin.common import ensure_admin
-from app.api.webhooks import _process_relationship_update
+from app.api.routes.webhooks import _process_relationship_update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.data.models import AdultCharacter, Influencer, InfluencerCharacterMeta, User

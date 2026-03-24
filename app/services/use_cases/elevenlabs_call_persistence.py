@@ -170,7 +170,7 @@ async def poll_and_persist_conversation(
                             cost_charged,
                         )
 
-                        from app.api.webhooks import _extract_cost_micros
+                        from app.api.routes.webhooks import _extract_cost_micros
                         from app.services.token_tracker import track_usage_bg
 
                         cost_micros = _extract_cost_micros(snapshot)
@@ -191,7 +191,7 @@ async def poll_and_persist_conversation(
                             from sqlalchemy import and_
                             from sqlalchemy import select as sa_select
 
-                            from app.api.notify_ws import notify_call_billed
+                            from app.api.routes.notify_ws import notify_call_billed
                             from app.data.models import InfluencerWallet
                             from app.data.models import User as UserModel
 
