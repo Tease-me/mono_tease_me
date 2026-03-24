@@ -178,6 +178,38 @@ async def build_admin_landing_assets_out(influencer: Influencer) -> dict[str, An
     }
 
 
+async def build_public_landing_assets_out(influencer: Influencer) -> dict[str, Any]:
+    admin_out = await build_admin_landing_assets_out(influencer)
+    return {
+        "influencer_id": admin_out["influencer_id"],
+        "hero_png_url": admin_out["hero_png_url"],
+        "hero_png_2x_url": admin_out["hero_png_2x_url"],
+        "signature_png_url": admin_out["signature_png_url"],
+        "signature_png_2x_url": admin_out["signature_png_2x_url"],
+        "background_video_1_mp4_url": admin_out["background_video_1_mp4_url"],
+        "background_video_1_mp4_content_type": admin_out["background_video_1_mp4_content_type"],
+        "background_video_1_webm_url": admin_out["background_video_1_webm_url"],
+        "background_video_1_webm_content_type": admin_out["background_video_1_webm_content_type"],
+        "background_video_1_poster_jpg_url": admin_out["background_video_1_poster_jpg_url"],
+        "background_video_2_mp4_url": admin_out["background_video_2_mp4_url"],
+        "background_video_2_mp4_content_type": admin_out["background_video_2_mp4_content_type"],
+        "background_video_2_webm_url": admin_out["background_video_2_webm_url"],
+        "background_video_2_webm_content_type": admin_out["background_video_2_webm_content_type"],
+        "background_video_2_poster_jpg_url": admin_out["background_video_2_poster_jpg_url"],
+        "background_image_1_url": admin_out["background_image_1_url"],
+        "background_image_1_2x_url": admin_out["background_image_1_2x_url"],
+        "background_image_2_url": admin_out["background_image_2_url"],
+        "background_image_2_2x_url": admin_out["background_image_2_2x_url"],
+        "background_image_3_url": admin_out["background_image_3_url"],
+        "background_image_3_2x_url": admin_out["background_image_3_2x_url"],
+        "has_hero": admin_out["has_hero"],
+        "has_signature": admin_out["has_signature"],
+        "has_background_videos": admin_out["has_background_videos"],
+        "has_complete_background_images": admin_out["has_complete_background_images"],
+        "updated_at": admin_out["updated_at"],
+    }
+
+
 async def build_admin_telegram_welcome_media_out(influencer: Influencer) -> dict[str, Any]:
     audio_entry = await _resolve_entry(_get_telegram_audio_entry(influencer.assets_json))
     video_entry = await _resolve_entry(_get_telegram_video_entry(influencer.assets_json))
