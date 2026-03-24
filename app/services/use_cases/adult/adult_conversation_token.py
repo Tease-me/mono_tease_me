@@ -15,8 +15,24 @@ from app.services.repositories.adult.adult_conversation_repository import (
     get_active_influencer_character_meta,
     get_adult_character_by_id,
     get_influencer_by_id,
+    get_user_by_id,
 )
 from app.utils.adult.adult_messages import pick_random_first_message
+from app.utils.prompt_template import render_template, validate_required_template_variables
+
+
+ADULT_REQUIRED_PROMPT_VARIABLES = frozenset({"influencer_name", "user_name"})
+
+
+def _resolve_user_name(*, full_name: str | None, username: str | None) -> str:
+    if full_name and full_name.strip():
+        return full_name.strip()
+    if username and username.strip():
+        return username.strip()
+    raise HTTPException(
+        status_code=400,
+        detail="User name is required to render adult prompt",
+    )
 
 
 async def create_adult_conversation_token(
@@ -46,6 +62,10 @@ async def create_adult_conversation_token(
     if not agent_id:
         raise HTTPException(status_code=404, detail="Influencer agent_id not found")
 
+    user = await get_user_by_id(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
     ok, cost_cents, free_left = await can_afford_adult_character_voice(
         db,
         user_id=user_id,
@@ -73,12 +93,30 @@ async def create_adult_conversation_token(
     token_gateway = gateway or ElevenLabsConversationGateway()
     token = await token_gateway.get_conversation_token(agent_id)
     greeting_used = pick_random_first_message(character.first_messages)
+    try:
+        validate_required_template_variables(
+            character.prompt_template,
+            ADULT_REQUIRED_PROMPT_VARIABLES,
+        )
+        prompt = render_template(
+            character.prompt_template,
+            {
+                "influencer_name": influencer.display_name.strip(),
+                "user_name": _resolve_user_name(
+                    full_name=user.full_name,
+                    username=user.username,
+                ),
+            },
+            required=ADULT_REQUIRED_PROMPT_VARIABLES,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     return AdultConversationTokenResponse(
         token=token,
         agent_id=agent_id,
         credits_remainder_secs=credits_remainder_secs,
-        prompt=character.prompt_template,
+        prompt=prompt,
         greeting_used=greeting_used,
         voice_id=influencer.voice_id or settings.ELEVENLABS_VOICE_ID or None,
         native_language=influencer.native_language or "en",

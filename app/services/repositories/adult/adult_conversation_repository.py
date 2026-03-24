@@ -1,11 +1,15 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.data.models import AdultCharacter, Influencer, InfluencerCharacterMeta
+from app.data.models import AdultCharacter, Influencer, InfluencerCharacterMeta, User
 
 
 async def get_influencer_by_id(db: AsyncSession, influencer_id: str) -> Influencer | None:
     return await db.get(Influencer, influencer_id)
+
+
+async def get_user_by_id(db: AsyncSession, user_id: int) -> User | None:
+    return await db.get(User, user_id)
 
 
 async def get_adult_character_by_id(

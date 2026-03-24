@@ -32,11 +32,13 @@ from app.data.schemas.admin import (
     AdminInfluencerAdultCharacterAssetOut,
     AdminInfluencerCharacterAssetMutationOut,
 )
+from app.utils.prompt_template import validate_required_template_variables
 from app.utils.auth.dependencies import get_current_user
 from app.utils.storage.s3 import delete_file_from_s3, generate_presigned_url, save_sample_audio_to_s3, save_character_sample_audio_to_s3
 
 router = APIRouter(tags=["admin-characters"])
 log = logging.getLogger(__name__)
+ADULT_REQUIRED_PROMPT_VARIABLES = frozenset({"influencer_name", "user_name"})
 
 
 async def _get_influencer_character_overlay(
@@ -152,6 +154,14 @@ async def create_admin_adult_character(
     db: AsyncSession = Depends(get_db),
 ):
     ensure_admin(current_user)
+    try:
+        validate_required_template_variables(
+            payload.prompt_template,
+            ADULT_REQUIRED_PROMPT_VARIABLES,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
     existing = await db.execute(
         select(AdultCharacter).where(AdultCharacter.slug == payload.slug)
     )
@@ -204,6 +214,16 @@ async def patch_admin_adult_character(
         raise HTTPException(status_code=404, detail="Adult character not found")
 
     update_payload = payload.model_dump(exclude_unset=True)
+    next_prompt_template = update_payload.get("prompt_template")
+    if next_prompt_template is not None:
+        try:
+            validate_required_template_variables(
+                next_prompt_template,
+                ADULT_REQUIRED_PROMPT_VARIABLES,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
     next_slug = update_payload.get("slug")
     if next_slug and next_slug != character.slug:
         existing = await db.execute(
