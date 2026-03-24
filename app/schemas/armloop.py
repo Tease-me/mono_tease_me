@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 class ArmloopSessionRequest(BaseModel):
     """Request to create Armloop payment session."""
     transactionId: str = Field(..., description="Unique transaction reference")
-    amount: int = Field(..., ge=0, description="Payment amount in cents")
+    amount: int = Field(..., ge=1, description="Payment amount in cents")
     returnUrl: str | None = Field(None, max_length=8000, description="URL to redirect after payment")
     surchargeAmount: int | None = Field(None, ge=0, description="Surcharge/tip amount in cents")
     mode: str = Field(default="hosted", description="Integration mode: embedded or hosted")

@@ -258,10 +258,10 @@ async def armloop_webhook(
         )
         if not topup:
             log.error(
-                "armloop.webhook no PayPalTopUp for merchantReference=%s",
+                "armloop.webhook no PayPalTopUp for merchantReference=%s — skipping",
                 notification.merchantReference
             )
-            raise HTTPException(404, "Unknown transaction reference")
+            continue
         
         if topup.credited:
             log.info(
@@ -269,7 +269,18 @@ async def armloop_webhook(
                 notification.merchantReference
             )
             continue
-        
+
+        # ── 3b. Cross-check amount against our record ───────────────
+        if notification.amount.value != topup.cents:
+            log.error(
+                "armloop.webhook amount mismatch for ref=%s: "
+                "expected %d cents, got %d %s — skipping to prevent mis-crediting",
+                notification.merchantReference,
+                topup.cents,
+                notification.amount.value, notification.amount.currency,
+            )
+            continue
+
         # ── 4. Resolve user & influencer from our DB ────────────────
         user = await db.get(User, topup.user_id)
         if not user:
