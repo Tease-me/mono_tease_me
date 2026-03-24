@@ -165,7 +165,11 @@ async def create_armloop_session(
     """
     if request.amount_cents <= 0:
         raise HTTPException(400, "Amount must be positive")
-    
+
+    influencer = await db.get(Influencer, request.influencer_id)
+    if not influencer:
+        raise HTTPException(404, "Influencer not found")
+
     # Generate unique transaction ID
     import uuid
     transaction_id = f"topup_{current_user.id}_{uuid.uuid4().hex[:12]}"
