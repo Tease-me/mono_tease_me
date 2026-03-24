@@ -27,7 +27,8 @@ class Settings(BaseSettings):
     COOKIE_SAMESITE: str = "lax"
 
     ELEVENLABS_API_KEY: str
-    ELEVEN_BASE_URL: str 
+    ELEVENLABS_TTS_BASE_URL: str = "https://api.elevenlabs.io/v1/text-to-speech"
+    ELEVEN_BASE_URL: str
     ELEVENLABS_AGENT_BRANCH_ID: str | None = None
     ELEVENLABS_VOICE_ID: str
     ELEVENLABS_CONVAI_WEBHOOK_SECRET: str | None = None
@@ -64,6 +65,7 @@ class Settings(BaseSettings):
     
     LANDING_PAGE_AGENT_ID: str
     BUCKET_NAME: str
+    BUCKET_PUBLIC_URL: str = "https://bucket-image-tease-me.s3.us-east-1.amazonaws.com"
     INFLUENCER_BUCKET_PREFIX: str
     USER_PREFIX: str = "user-content"  # Default fallback if missing in .env
     S3_PRESIGNED_URL_TTL_SECONDS: int = 3600
@@ -80,9 +82,13 @@ class Settings(BaseSettings):
     FIRSTPROMOTER_TOKEN: str | None = None
     FIRSTPROMOTER_ACCOUNT_ID: str | None = None
     FIRSTPROMOTER_API_KEY: str | None = None
+    FIRSTPROMOTER_API_BASE_URL: str = "https://v2.firstpromoter.com/api/v2"
+    FIRSTPROMOTER_API_V1_BASE_URL: str = "https://firstpromoter.com/api/v1"
+    FIRSTPROMOTER_COMPANY_API_BASE_URL: str = "https://api.firstpromoter.com/api/v2"
     FIRSTPROMOTER_NOTIFY_EMAIL: str | None = None
 
     # Didit Identity Verification (v3 API)
+    DIDIT_BASE_URL: str = "https://verification.didit.me/v3"
     DIDIT_API_KEY: str | None = None  # x-api-key for v3 API
     DIDIT_WEBHOOK_SECRET: str | None = None  # Webhook secret key from Didit console
     DIDIT_WORKFLOW_ID_KYC: str | None = None  # KYC workflow ID from Didit console

@@ -44,7 +44,7 @@ async def fp_get_promoter_v2(promoter_id: int | str) -> dict | None:
 
     async with httpx.AsyncClient(timeout=20) as client:
         r = await client.get(
-            f"https://api.firstpromoter.com/api/v2/company/promoters/{promoter_id}",
+            f"{settings.FIRSTPROMOTER_COMPANY_API_BASE_URL}/company/promoters/{promoter_id}",
             headers={
                 "Authorization": f"Bearer {token}",
                 "Account-ID": account_id,
@@ -94,7 +94,7 @@ async def fp_track_sale_v2(*, email: str | None, uid: str | None, amount_cents: 
 
     async with httpx.AsyncClient(timeout=20) as client:
         r = await client.post(
-            "https://v2.firstpromoter.com/api/v2/track/sale",
+            f"{settings.FIRSTPROMOTER_API_BASE_URL}/track/sale",
             json=payload,
             headers={
                 "Content-Type": "application/json",
@@ -124,7 +124,7 @@ async def fp_track_signup(
 
     async with httpx.AsyncClient(timeout=10) as client:
         r = await client.post(
-            "https://v2.firstpromoter.com/api/v2/track/signup",
+            f"{settings.FIRSTPROMOTER_API_BASE_URL}/track/signup",
             json=payload,
             headers={
                 "Authorization": f"Bearer {settings.FIRSTPROMOTER_TOKEN}",
@@ -145,14 +145,14 @@ async def fp_create_promoter(*, email: str, first_name: str, last_name: str, cus
             "first_name": first_name,
             "last_name": last_name,
             "cust_id": cust_id,
-            "website": "https://teaseme.live/join"
+            "website": f"{settings.FRONTEND_URL.rstrip('/')}/join"
     }
     if parent_promoter_id:
         payload["parent_promoter_id"] = int(parent_promoter_id) 
 
     async with httpx.AsyncClient(timeout=30) as client:
         r = await client.post(
-            "https://firstpromoter.com/api/v1/promoters/create",
+            f"{settings.FIRSTPROMOTER_API_V1_BASE_URL}/promoters/create",
             json=payload,
             headers={"X-API-KEY": api_key, "Content-Type": "application/json"},
         )
@@ -191,7 +191,7 @@ async def fp_track_refund(
 
     async with httpx.AsyncClient(timeout=20) as client:
         r = await client.post(
-            "https://v2.firstpromoter.com/api/v2/track/refund",
+            f"{settings.FIRSTPROMOTER_API_BASE_URL}/track/refund",
             json=payload,
             headers={
                 "Content-Type": "application/json",
@@ -211,7 +211,7 @@ async def fp_find_promoter_id_by_ref_token(ref_token: str) -> int | None:
 
     async with httpx.AsyncClient(timeout=20) as client:
         r = await client.get(
-            "https://api.firstpromoter.com/api/v2/company/promoters",
+            f"{settings.FIRSTPROMOTER_COMPANY_API_BASE_URL}/company/promoters",
             params={"search": ref_token},
             headers={
                 "Authorization": f"Bearer {token}",

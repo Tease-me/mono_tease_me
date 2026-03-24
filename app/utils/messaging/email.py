@@ -23,9 +23,10 @@ AWS_SECRET_ACCESS_KEY = settings.SES_AWS_SECRET_ACCESS_KEY
 
 ses_client = boto3.client("ses", region_name=AWS_REGION)
 
-EMAIL_VERIFY_HEADER_URL = "https://bucket-image-tease-me.s3.us-east-1.amazonaws.com/email_verify_header.png"
-EMAIL_RESET_HEADER_URL = "https://bucket-image-tease-me.s3.us-east-1.amazonaws.com/reset_password_header.png"
-EMAIL_INFLUENCER_HEADER_BG_URL = "https://bucket-image-tease-me.s3.us-east-1.amazonaws.com/influencer_header_background.png"
+_BUCKET_URL = settings.BUCKET_PUBLIC_URL.rstrip("/")
+EMAIL_VERIFY_HEADER_URL = f"{_BUCKET_URL}/email_verify_header.png"
+EMAIL_RESET_HEADER_URL = f"{_BUCKET_URL}/reset_password_header.png"
+EMAIL_INFLUENCER_HEADER_BG_URL = f"{_BUCKET_URL}/influencer_header_background.png"
 # Email hero image size (width is fixed by template). Increase height here without changing face size
 # because we render the overlay at a fixed scale (fit-to-width) and only crop vertically.
 EMAIL_HEADER_SIZE = (520, 150)  # (width, height)
@@ -489,7 +490,7 @@ def send_new_influencer_email(
     fp_ref_id: str | None = None,
 ):
     subject = "🎉 Your TeaseMe profile is live!"
-    public_url = f"https://teaseme.live/{influencer.id}"
+    public_url = f"{settings.FRONTEND_URL.rstrip('/')}/{influencer.id}"
     referral_url = f"{public_url}?fpr={fp_ref_id}" if fp_ref_id else None
 
     logo_url = EMAIL_VERIFY_HEADER_URL
@@ -600,8 +601,8 @@ def send_new_influencer_email_with_picture(
     influencer: Influencer,
 ):
     subject = "🎉 Your TeaseMe profile is live!"
-    public_url = f"https://teaseme.live/{influencer.id}"
-    image_background_url = "https://bucket-image-tease-me.s3.us-east-1.amazonaws.com/influencer_header_background.png"
+    public_url = f"{settings.FRONTEND_URL.rstrip('/')}/{influencer.id}"
+    image_background_url = EMAIL_INFLUENCER_HEADER_BG_URL
     key = getattr(influencer, "profile_photo_key", None)
     log.info(
         f"send_new_influencer_email_with_picture: building email influencer_id={influencer.id} has_profile_photo_key={bool(key)}",
@@ -718,7 +719,7 @@ def send_influencer_survey_completed_email_to_promoter(
     influencer_email: str | None = None,
 ):
     subject = "Influencer completed TeaseMe survey"
-    public_url = f"https://teaseme.live/{influencer_username}"
+    public_url = f"{settings.FRONTEND_URL.rstrip('/')}/{influencer_username}"
 
     influencer_line = influencer_username
     if influencer_full_name:

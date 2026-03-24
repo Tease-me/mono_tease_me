@@ -1034,7 +1034,7 @@ class VoiceCallSession:
                 log.warning("No ELEVENLABS_API_KEY — skipping trial voice note")
                 return
 
-            url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+            url = f"{settings.ELEVENLABS_TTS_BASE_URL}/{voice_id}"
             headers = {
                 "xi-api-key": api_key,
                 "Content-Type": "application/json",
