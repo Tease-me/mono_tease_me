@@ -5,8 +5,8 @@ from __future__ import annotations
 import io
 from collections.abc import Mapping
 
-from PIL import Image, UnidentifiedImageError
 import pillow_heif
+from PIL import Image, UnidentifiedImageError
 
 from app.core.config import settings
 from app.gateways import s3_gateway
@@ -66,7 +66,12 @@ def _is_heic(filename: str | None, content_type: str | None) -> bool:
         return True
     if content_type:
         ct = content_type.lower().split(";", 1)[0].strip()
-        if ct in {"image/heic", "image/heif", "image/heic-sequence", "image/heif-sequence"}:
+        if ct in {
+            "image/heic",
+            "image/heif",
+            "image/heic-sequence",
+            "image/heif-sequence",
+        }:
             return True
     return False
 
@@ -112,7 +117,10 @@ def _convert_to_jpeg(
     content_type: str | None,
 ) -> tuple[io.BytesIO, str]:
     normalized_type = (content_type or "").split(";", 1)[0].strip().lower()
-    if not _is_heic(filename, content_type) and normalized_type in {"image/jpeg", "image/jpg"}:
+    if not _is_heic(filename, content_type) and normalized_type in {
+        "image/jpeg",
+        "image/jpg",
+    }:
         file_obj.seek(0)
         return file_obj, "image/jpeg"
 
@@ -132,7 +140,9 @@ def _convert_to_jpeg(
         file_obj.seek(0)
         return file_obj, content_type or "image/jpeg"
 
-    if image.mode in ("RGBA", "LA") or (image.mode == "P" and "transparency" in image.info):
+    if image.mode in ("RGBA", "LA") or (
+        image.mode == "P" and "transparency" in image.info
+    ):
         image = image.convert("RGB")
     elif image.mode != "RGB":
         image = image.convert("RGB")
@@ -143,7 +153,9 @@ def _convert_to_jpeg(
     return output, "image/jpeg"
 
 
-def _normalize_binary_extension(filename: str | None, content_type: str | None, fallback: str) -> str:
+def _normalize_binary_extension(
+    filename: str | None, content_type: str | None, fallback: str
+) -> str:
     if filename and "." in filename:
         ext = filename.rsplit(".", 1)[-1].lower()
         if ext:
@@ -155,7 +167,13 @@ def _normalize_binary_extension(filename: str | None, content_type: str | None, 
     return fallback
 
 
-def build_landing_asset_key(influencer_id: str, slot: str, *, filename: str | None = None, content_type: str | None = None) -> str:
+def build_landing_asset_key(
+    influencer_id: str,
+    slot: str,
+    *,
+    filename: str | None = None,
+    content_type: str | None = None,
+) -> str:
     if slot in LANDING_IMAGE_SLOTS:
         return f"{_asset_prefix(influencer_id)}/{LANDING_IMAGE_SLOTS[slot]}"
 
@@ -181,7 +199,9 @@ async def upload_landing_image(
     slot: str,
 ) -> tuple[str, str]:
     key = build_landing_asset_key(influencer_id, slot)
-    normalized_file, final_content_type = _convert_to_png(file_obj, filename, content_type)
+    normalized_file, final_content_type = _convert_to_png(
+        file_obj, filename, content_type
+    )
     normalized_file.seek(0)
     s3_gateway.upload_fileobj(
         normalized_file,
@@ -200,7 +220,9 @@ async def upload_landing_poster_jpg(
     slot: str,
 ) -> tuple[str, str]:
     key = build_landing_asset_key(influencer_id, slot)
-    normalized_file, final_content_type = _convert_to_jpeg(file_obj, filename, content_type)
+    normalized_file, final_content_type = _convert_to_jpeg(
+        file_obj, filename, content_type
+    )
     normalized_file.seek(0)
     s3_gateway.upload_fileobj(
         normalized_file,
@@ -232,7 +254,7 @@ async def upload_landing_binary(
         file_obj,
         settings.BUCKET_NAME,
         key,
-        content_type=normalized_type or f"application/octet-stream",
+        content_type=normalized_type or "application/octet-stream",
     )
     final_type = normalized_type
     if not final_type:
@@ -246,14 +268,18 @@ async def upload_landing_binary(
     return key, final_type
 
 
-def get_landing_asset_entry(meta_json: Mapping[str, object] | None, slot: str) -> dict | None:
+def get_landing_asset_entry(
+    meta_json: Mapping[str, object] | None, slot: str
+) -> dict | None:
     if not isinstance(meta_json, Mapping):
         return None
     value = meta_json.get(slot)
     return value if isinstance(value, dict) else None
 
 
-def get_landing_asset_key(meta_json: Mapping[str, object] | None, slot: str) -> str | None:
+def get_landing_asset_key(
+    meta_json: Mapping[str, object] | None, slot: str
+) -> str | None:
     entry = get_landing_asset_entry(meta_json, slot)
     key = entry.get("s3_key") if entry else None
     return key if isinstance(key, str) and key else None
