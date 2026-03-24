@@ -263,7 +263,6 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
                     <div className={styles.ctaRow02}>
                       <IconButton
                         type="square"
-                        color="pink-glass"
                         text="Sign up for FREE"
                         onClick={handleSignUpClick}
                         className={styles.fullBtn}
