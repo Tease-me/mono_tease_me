@@ -4,6 +4,7 @@ export interface UserDetailResponse {
   username?: string;
   email: string;
   is_varified: boolean;
+  verification_required?: boolean;
   profile_photo_url?: string;
 }
 

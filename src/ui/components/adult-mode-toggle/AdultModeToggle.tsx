@@ -11,9 +11,17 @@ interface AdultModeToggleProps {
   disabled?: boolean;
   className?: string;
   minutesLeft?: number;
+  showMinutes?: boolean;
 }
 
-const AdultModeToggle: React.FC<AdultModeToggleProps> = ({ minutesLeft, checked, onChange, disabled, className }) => {
+const AdultModeToggle: React.FC<AdultModeToggleProps> = ({
+  minutesLeft,
+  checked,
+  onChange,
+  disabled,
+  className,
+  showMinutes = true,
+}) => {
   const handleToggle = () => {
     if (!disabled) {
       onChange(!checked);
@@ -21,8 +29,8 @@ const AdultModeToggle: React.FC<AdultModeToggleProps> = ({ minutesLeft, checked,
   };
 
   return (
-    <div className={clsx(styles.adultModeToggleContainer, !ADULT_MODE_AVAILABLE && styles.toggleOnly)}>
-      {ADULT_MODE_AVAILABLE && (
+    <div className={clsx(styles.adultModeToggleContainer, (!ADULT_MODE_AVAILABLE || !showMinutes) && styles.toggleOnly)}>
+      {ADULT_MODE_AVAILABLE && showMinutes && (
         <div className={clsx(styles.minutesArea, checked ? styles.minutesEnabled : styles.minutesDisabled)}>
           <span>{minutesLeft ? minutesToTime(minutesLeft) : "0"} mins</span>
         </div>

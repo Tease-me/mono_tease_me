@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styles from "./IconButton.module.css"
 import clsx from 'clsx';
 export type IconButtonType = "pill" | "square";
-export type IconButtonColor = "black" | "green" | "pink" | "red" | "yellow" | "pink-glass" | "purple";
+export type IconButtonColor = "black" | "green" | "pink" | "red" | "yellow" | "pink-glass" | "purple" | "purple-glass";
 export type IconButtonOrientation = "horizontal" | "vertical";
 
 export interface IconButtonProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -115,7 +115,7 @@ const IconButton: React.FC<IconButtonProps> = ({ type = "pill", color = "pink", 
 
                 </div>
             </div>
-            {(!disabled && color === "pink-glass") && (
+            {(!disabled && (color === "pink-glass" || color === "purple-glass")) && (
                 <>
                     <div className={styles["circle-shine"]}></div>
                     <div className={styles["circle-shine-02"]}></div>

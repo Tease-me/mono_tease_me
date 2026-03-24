@@ -14,7 +14,8 @@ export default {
     Profile: lazy(() => import("@/assets/mj-dashboard/svg/Profile.svg?react")),
     Users: lazy(() => import("@/assets/mj-dashboard/svg/Users.svg?react")),
     MoreCircle: lazy(() => import("@/assets/svg/MoreCircle.svg?react")),
-    CloseSquare: lazy(() => import("@/assets/mj-dashboard/svg/CloseSquare.svg?react")),
+    CloseSquare: lazy(() => import("@/assets/svg/CloseSquare.svg?react")),
+
     CloseSquareSolid: lazy(() => import("@/assets/CloseSquare.svg?react")),
     DangerTriangleSmall: lazy(() => import("@/assets/mj-dashboard/svg/Danger.svg?react")),
     DangerCircleSmall: lazy(() => import("@/assets/mj-dashboard/svg/DangerCircle.svg?react")),
@@ -32,6 +33,7 @@ export default {
     Call: lazy(() => import("@/assets/svg/Call.svg?react")),
     Call2: lazy(() => import("@/assets/svg/Call_2.svg?react")),
     Heart: lazy(() => import("@/assets/svg/Heart.svg?react")),
+    HeartBold: lazy(() => import("@/assets/svg/HeartBold.svg?react")),
     ChatRound: lazy(() => import("@/assets/svg/Chat.svg?react")),
     PlusBox: lazy(() => import("@/assets/svg/PlusBox.svg?react")),
     Menu: lazy(() => import("@/assets/svg/Menu.svg?react")),

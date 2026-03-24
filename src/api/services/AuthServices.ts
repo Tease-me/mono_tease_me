@@ -26,7 +26,8 @@ export const AuthServices = (apiClient: AxiosInstance) => ({
     gender: string,
     user_name: string,
     date_of_birth: string,
-    file?: File | null
+    file?: File | null,
+    invite_code?: string | null
   ): Promise<RegisterResponse> => {
     try {
       const formData = new FormData();
@@ -40,6 +41,7 @@ export const AuthServices = (apiClient: AxiosInstance) => ({
       if (file) {
         formData.append("file", file);
       }
+      if (invite_code) formData.append("invite_code", invite_code);
       const response = await apiClient.post(Endpoints.auth.register, formData, {
         headers: {
           "Content-Type": "multipart/form-data",

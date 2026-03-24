@@ -17,7 +17,7 @@ import { getRelationshipStatusIcon, getRelationshipStatusLabel, RelationshipStat
 import { BalanceServices } from "@/api/services/BalanceServices";
 import { apiClient } from "@/api/apis";
 import { formatDateTimeRelative, formatDate } from "@/utils/DateTimeUtils";
-import switchProfileImg from "@/assets/svg/switchProfile.svg";
+import SwitchInfluencerButton from "@/ui/components/inputs/buttons/SwitchInfluencerButton";
 import RelationshipPopup from "../../components/RelationshipPopup";
 import ProfilePopup from "../../components/ProfilePopup";
 import { RelationshipServices } from "@/api/services/RelationshipServices";
@@ -179,14 +179,7 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
                     }}>
                         <ProfileMedia active size={isMobile ? "large" : "xlarge"} videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} glow />
                     </div>
-                    {onChangeInfluencer && <button
-                        type="button"
-                        className={styles.profileSwitch}
-                        onClick={onChangeInfluencer}
-                        aria-label="Change influencer"
-                    >
-                        <img src={switchProfileImg} alt="Switch" /> <div className={styles.switchProfileLabel}>Switch Influencer</div>
-                    </button>}
+                    {onChangeInfluencer && <SwitchInfluencerButton onClick={onChangeInfluencer} className={styles.profileSwitch} />}
                 </div>
                 <div className={styles.name}>{influencer?.name}</div>
 

@@ -9,7 +9,6 @@ import logger from "@/utils/logger";
 import type { AppDispatch } from "./store";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { ChatRepository } from "@/data/repositories/ChatRepo";
-import { AdultChatRepo } from "@/data/repositories/AdultChatRepo";
 import { RelationshipServices } from "@/api/services/RelationshipServices";
 import { InfluencerServices } from "@/api/services/InfluencerService";
 import type { MessagePagination } from "@/data/models/MessageDataModel";
@@ -26,19 +25,16 @@ type LoadMessagesPayload = {
   chatId: string;
   page: number;
   pageSize: number;
-  adultMode: boolean;
 };
 
 type InitChatPayload = {
   userId: number;
   influencerId: string;
-  adultMode: boolean;
   pageSize: number;
 };
 
 type ClearHistoryPayload = {
   chatId: string;
-  adultMode: boolean;
 };
 
 interface ChatScreenState {
@@ -96,7 +92,6 @@ const initialState: ChatScreenState = {
 };
 
 const chatRepository = ChatRepository();
-const adultChatRepo = AdultChatRepo();
 const relationshipServices = RelationshipServices(apiClient);
 const influencerServices = InfluencerServices(apiClient);
 
@@ -269,16 +264,15 @@ export const updateRelationshipFromText =
     };
 
 export const loadChatMessages =
-  ({ chatId, page, pageSize, adultMode }: LoadMessagesPayload) =>
+  ({ chatId, page, pageSize }: LoadMessagesPayload) =>
     async (dispatch: AppDispatch) => {
       try {
         if (page === 1) {
           dispatch(chatScreenActions.setIsLoadingMessages(true));
         }
 
-        const responseMessagesPagination: MessagePagination = await (
-          adultMode ? adultChatRepo.getChatHistory(chatId, page, pageSize) : chatRepository.getChatHistory(chatId, page, pageSize)
-        );
+        const responseMessagesPagination: MessagePagination =
+          await chatRepository.getChatHistory(chatId, page, pageSize);
         const totalPages = Math.ceil(responseMessagesPagination.total / pageSize);
         const localMessages = responseMessagesPagination.messages ?? [];
 
@@ -304,28 +298,26 @@ export const loadChatMessages =
     };
 
 export const initializeChatSession =
-  ({ userId, influencerId, adultMode, pageSize }: InitChatPayload) =>
+  ({ userId, influencerId, pageSize }: InitChatPayload) =>
     async (dispatch: AppDispatch) => {
       dispatch(chatScreenActions.resetChatSession());
 
-      const chatId = await (
-        adultMode ? adultChatRepo.getChatId(userId, influencerId) : chatRepository.getChatId(userId, influencerId)
-      );
+      const chatId = await chatRepository.getChatId(userId, influencerId);
       dispatch(chatScreenActions.setChatId(chatId));
       dispatch(chatScreenActions.setPageNumber(1));
       dispatch(chatScreenActions.setHasMore(true));
       dispatch(chatScreenActions.setIsLoadingMore(false));
-      await dispatch(loadChatMessages({ chatId, page: 1, pageSize, adultMode }));
+      await dispatch(loadChatMessages({ chatId, page: 1, pageSize }));
       await dispatch(fetchRelationshipForInfluencer(influencerId, true));
       return chatId;
     };
 
 export const clearChatHistoryThunk =
-  ({ chatId, adultMode }: ClearHistoryPayload) =>
+  ({ chatId }: ClearHistoryPayload) =>
     async (dispatch: AppDispatch) => {
       dispatch(chatScreenActions.setIsClearingHistory(true));
       try {
-        await chatRepository.clearChatHistory(chatId, adultMode);
+        await chatRepository.clearChatHistory(chatId, false);
         dispatch(chatScreenActions.setMessages([]));
         dispatch(chatScreenActions.setHasMore(false));
         dispatch(chatScreenActions.setPageNumber(1));

@@ -74,6 +74,15 @@ const HomeScreenSingle = lazy(() => import("@/ui/screens/home/HomeScreenSingle")
 const CreateInfluencer = lazy(
   () => import("@/ui/screens/admin/create-influencer/CreateInfluencer")
 );
+const AdminCharacters = lazy(
+  () => import("@/ui/screens/admin/characters/AdminCharacters")
+);
+const AdminInfluencerCharacter = lazy(
+  () => import("@/ui/screens/admin/influencer-character/AdminInfluencerCharacter")
+);
+const AdminInfluencerAssets = lazy(
+  () => import("@/ui/screens/admin/influencer-assets/AdminInfluencerAssets")
+);
 const PromptEditorAdmin = lazy(
   () => import("@/ui/screens/admin/PromptEditorAdmin")
 );
@@ -193,6 +202,7 @@ function AppRoutes() {
 
 
   const guestRoutes: { path: string; element: JSX.Element }[] = [
+    { path: Paths.root, element: <LandingPage /> },
     { path: Paths.login, element: <LoginScreen /> },
     { path: Paths.register(), element: <RegisterScreen /> },
     { path: Paths.registerVerify, element: <Confirmation /> },
@@ -207,6 +217,9 @@ function AppRoutes() {
       path: Paths.admin.root,
       element: <Navigate to={Paths.admin.analytics} replace />,
     },
+    { path: Paths.admin.characters, element: <AdminCharacters /> },
+    { path: Paths.admin.influencerCharacter, element: <AdminInfluencerCharacter /> },
+    { path: Paths.admin.influencerAssets, element: <AdminInfluencerAssets /> },
     { path: Paths.admin.influencer, element: <CreateInfluencer /> },
     { path: Paths.admin.prompts, element: <PromptEditorAdmin /> },
     { path: Paths.admin.relationship, element: <RelationshipDashboard /> },

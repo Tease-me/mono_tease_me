@@ -1,0 +1,350 @@
+.card {
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.card {
+    padding: 16px;
+}
+
+.card-toggle {
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.card-body {
+    margin-top: 14px;
+}
+
+.card-title-row,
+.source-row,
+.delete-row,
+.button-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.card-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.card-meta {
+    margin-top: 4px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.58);
+}
+
+.card-summary {
+    margin-top: 8px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.78);
+    line-height: 1.45;
+}
+
+.accordion-indicator {
+    min-width: 52px;
+    text-align: right;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.assets-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.asset-box,
+.upload-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.18);
+}
+
+.asset-label,
+.upload-label {
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.56);
+}
+
+.upload-panel {
+    margin-top: 14px;
+}
+
+.upload-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.upload-panel-title {
+    font-size: 13px;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.upload-panel-meta {
+    margin-top: 4px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.58);
+}
+
+.upload-slot-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.upload-slot {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    align-items: center;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.upload-slot-copy {
+    min-width: 0;
+}
+
+.upload-slot-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.asset-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.asset-empty {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.52);
+    font-size: 12px;
+    padding: 18px;
+}
+
+.asset-frame {
+    position: relative;
+    width: 100%;
+    max-width: 260px;
+    aspect-ratio: 9 / 16;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.03);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.asset-video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #000;
+}
+
+.upload-name {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.62);
+    max-width: 220px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.upload-hint {
+    margin-top: 4px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.54);
+}
+
+.upload-picker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0 18px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.07);
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.upload-native-input {
+    display: none;
+}
+
+.primary,
+.ghost {
+    min-height: 42px;
+    padding: 0 18px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.primary {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: linear-gradient(135deg, var(--color-primary), #ff8395);
+    color: #fff;
+    box-shadow: 0 10px 22px rgba(255, 77, 103, 0.18);
+}
+
+.ghost {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.07);
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.primary:disabled,
+.ghost:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.samples-panel {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.18);
+}
+
+.samples-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.sample-type-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.sample-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sample-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.sample-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.sample-filename {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.85);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sample-date {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.42);
+}
+
+.sample-empty {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.42);
+    padding: 6px 0;
+}
+
+@media (max-width: 900px) {
+    .assets-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .samples-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .upload-slot {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .upload-slot-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
