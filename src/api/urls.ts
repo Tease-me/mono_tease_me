@@ -28,6 +28,9 @@ export const Endpoints = {
     createCheckout: "/billing/create-checkout",
     verifyCheckout: "/billing/verify-checkout",
   },
+  armloop: {
+    createSession: "/checkout/armloop/session",
+  },
   chat: {
     start: "/chat",
     history: (chat_id: string) => `/chat/history/${chat_id}`,

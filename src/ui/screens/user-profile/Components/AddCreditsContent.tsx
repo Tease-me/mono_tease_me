@@ -4,90 +4,46 @@ import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import styles from "./AddCredits.module.css";
 import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
-import { BillingServices } from "@/api/services/BillingServices";
-import { apiClient } from "@/api/apis";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
-import { storage } from "@/utils/storage";
-import { LocalStorageKeys } from "@/constants/localStorageKeys";
-import PayPalLogoUrl from "@/assets/svg/PayPalLogo.svg";
-import CreditCardUrl from "@/assets/svg/CreditCard.svg";
-
-
-const billing = BillingServices(apiClient);
+import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
+import { useArmloopCheckout } from "@/hooks/useArmloopCheckout";
 
 type AddCreditsContentProps = {
   influencerId: string;
+  influencerName?: string;
   image?: string;
   video?: string;
   onCancel: () => void;
 };
 
-type Presets = {
-  label: string;
-  value: number;
-};
-
-const presets: Presets[] = [
+const presets = [
   { label: "10$", value: 10 },
   { label: "$50", value: 50 },
   { label: "$100", value: 100 },
 ];
 
+const MIN_AMOUNT = 5;
+
 export default function AddCreditsContent({
   influencerId,
+  influencerName,
   image,
   video,
   onCancel,
-}: AddCreditsContentProps) {
-  const initialAmount = 0;
-
-  const [amount, setAmount] = useState(initialAmount);
+}: Readonly<AddCreditsContentProps>) {
+  const [amount, setAmount] = useState(0);
+  const { startCheckout, loading, error } = useArmloopCheckout();
 
   const handleDecrease = () => setAmount((a) => Math.max(0, a - 10));
   const handleIncrease = () => setAmount((a) => a + 10);
 
-  const handleConfirmPayment = () => {
-    startCheckout();
-  };
-
-  // Payment state
-  const [isPaying, setIsPaying] = useState(false);
-  const [payError, setPayError] = useState<string | null>(null);
-  const [provider, setProvider] = useState<"stripe" | "paypal">("stripe");
-  const minCustomAmout = 5;
-
-  const startCheckout = async () => {
-    try {
-      setIsPaying(true);
-      setPayError(null);
-
-      const dollars = Number(amount || 0);
-      if (!Number.isFinite(dollars) || dollars < minCustomAmout) {
-        setPayError(`Minimum top up is $${minCustomAmout}.`);
-        return;
-      }
-
-      const cents = Math.round(dollars * 100);
-
-      const { payment_url, checkout_id } = await billing.createCheckout({
-        amount_cents: cents,
-        influencer_id: influencerId,
-        purpose: "topup",
-        provider,
-      });
-
-      // store for return page
-      storage.set(LocalStorageKeys.CheckoutId, checkout_id);
-      storage.set(LocalStorageKeys.TopUpInfluencerId, influencerId);
-      storage.set(LocalStorageKeys.TopUpAmount, String(dollars));
-
-      // redirect user to payment page
-      window.location.href = payment_url;
-    } catch (e: any) {
-      setPayError(e?.message || "Payment failed. Please try again.");
-    } finally {
-      setIsPaying(false);
-    }
+  const handleConfirm = async () => {
+    if (amount < MIN_AMOUNT) return;
+    await startCheckout({
+      influencerId,
+      amountCents: Math.round(amount * 100),
+      influencerName,
+    });
   };
 
   return (
@@ -104,9 +60,7 @@ export default function AddCreditsContent({
                 text={p.label}
                 color="black"
                 type="pill"
-                onClick={() => {
-                  setAmount(p.value);
-                }}
+                onClick={() => setAmount(p.value)}
               />
             ))}
           </div>
@@ -139,56 +93,29 @@ export default function AddCreditsContent({
           />
         </div>
 
-
-        <div className={styles.payWithSection}>
-          <div className={styles.payWithRow01}>
-            {" "}
-            <h4
-              style={{
-                textAlign: "center",
-                marginBlock: "16px",
-
-              }}    >
-              Pay with:
-            </h4>
+        {loading ? (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, marginTop: 16 }}>
+            <LoadingSpinner />
+            <div style={{ color: "#bdbdbd", fontSize: 14 }}>Redirecting to payment…</div>
           </div>
-          <div className={styles.payWithRow02}>
-            {false && <NormalButton
-              color="black"
-
-              leftIcon={<img src={PayPalLogoUrl} alt="PayPal" className={styles.paypalImg} />}
-              className={styles.quickCreditButton}
-              selected={provider === "paypal"}
-              onClick={() => setProvider("paypal")}
-            />}
-            <NormalButton
-
-              color="black"
-              leftIcon={<img src={CreditCardUrl} alt="Credit Card" className={styles.creditCardImg} />}
-              text="Credit Card"
-              className={styles.quickCreditCardButton}
-              selected={provider === "stripe"}
-              onClick={() => setProvider("stripe")}
+        ) : (
+          <>
+            <PrimaryButton
+              text="Confirm"
+              disabled={amount < MIN_AMOUNT}
+              className={styles.confirmBtn}
+              onClick={handleConfirm}
             />
-
-          </div>
-        </div>
-
-
-        <PrimaryButton
-          text="Confirm"
-          disabled={amount <= 0 || isPaying}
-          className={styles.confirmBtn}
-          onClick={handleConfirmPayment}
-        />
-        <NormalButton
-          text="Cancel"
-          type="nobg"
-          className={styles.confirmBtn}
-          onClick={onCancel}
-        />
-        {payError && (
-          <div className={styles.payError}>{isPaying ? "" : payError}</div>
+            <NormalButton
+              text="Cancel"
+              type="nobg"
+              className={styles.confirmBtn}
+              onClick={onCancel}
+            />
+            {error && (
+              <div className={styles.payError}>{error}</div>
+            )}
+          </>
         )}
       </div>
     </div>
