@@ -94,6 +94,14 @@ class Settings(BaseSettings):
     TMSERVICE_CIPHER_KEY: str = "TEASEME"  # Vigenère cipher key for password obfuscation
     TMSERVICE_REDIRECT_URL: str = "https://localhost:3000/home"
 
+    # Armloop Payment Gateway
+    ARMLOOP_API_KEY: str | None = None
+    ARMLOOP_SECRET_KEY: str | None = None
+    ARMLOOP_BASE_URL: str = "https://ctscan0.armloop.com.au/CTScan/pro/payment/online"
+    ARMLOOP_MERCHANT_ACCOUNT: str | None = None  # Merchant account code from OA console
+    ARMLOOP_WEBHOOK_HMAC_KEY: str | None = None  # Hex-encoded HMAC key from OA console
+    ARMLOOP_RETURN_URL: str | None = None  # Frontend URL to return after payment
+
     # Logging configuration
     APP_ENV: str = "local"  # local | staging | production
     LOG_FILE_PATH: str = "./logs/app.log"

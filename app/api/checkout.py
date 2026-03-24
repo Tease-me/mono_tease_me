@@ -4,6 +4,7 @@ import logging
 from hashlib import sha256
 
 from fastapi import APIRouter, Depends, HTTPException, Header, Request
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,8 +12,11 @@ from app.core.config import settings
 from app.db.models import User, PayPalTopUp, Influencer
 from app.db.session import get_db
 from app.schemas.checkout import PaymentWebhookPayload
+from app.schemas.armloop import ArmloopWebhookPayload, ArmloopSessionResponse
 from app.services.billing import topup_wallet
 from app.services.firstpromoter import fp_track_sale_v2
+from app.gateways import armloop_gateway
+from app.utils.auth.dependencies import get_current_user
 
 log = logging.getLogger(__name__)
 
@@ -134,3 +138,205 @@ async def payment_webhook(
         "credited_cents": topup.cents,
         "new_balance_cents": new_balance,
     }
+
+
+# ══════════════════════════════════════════════════════════════════════
+# Armloop Payment Integration
+# ══════════════════════════════════════════════════════════════════════
+
+
+class ArmloopCheckoutRequest(BaseModel):
+    """Request to create Armloop checkout session."""
+    influencer_id: str
+    amount_cents: int
+    return_url: str | None = None
+
+
+@router.post("/armloop/session", response_model=ArmloopSessionResponse)
+async def create_armloop_session(
+    request: ArmloopCheckoutRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Create Armloop payment session for wallet top-up.
+    
+    Creates a hosted checkout session and stores pending payment record.
+    User will be redirected to Armloop's checkout page to complete payment.
+    """
+    if request.amount_cents <= 0:
+        raise HTTPException(400, "Amount must be positive")
+    
+    # Generate unique transaction ID
+    import uuid
+    transaction_id = f"topup_{current_user.id}_{uuid.uuid4().hex[:12]}"
+    
+    # Create payment session via Armloop
+    session_data = await armloop_gateway.create_payment_session(
+        transaction_id=transaction_id,
+        amount_cents=request.amount_cents,
+        return_url=request.return_url,
+        mode="hosted",
+    )
+    
+    # Store pending payment record
+    topup = PayPalTopUp(
+        user_id=current_user.id,
+        influencer_id=request.influencer_id,
+        order_id=transaction_id,
+        cents=request.amount_cents,
+        provider="armloop",
+        status="CREATED",
+        credited=False,
+    )
+    db.add(topup)
+    await db.commit()
+    
+    log.info(
+        "armloop.session_created user=%s influencer=%s amount=%d transaction_id=%s",
+        current_user.id, request.influencer_id, request.amount_cents, transaction_id,
+    )
+    
+    return ArmloopSessionResponse(**session_data)
+
+
+@router.post("/armloop/webhook")
+async def armloop_webhook(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    x_signature: str | None = Header(default=None, alias="X-Signature"),
+):
+    """Handle Armloop AUTHORISATION webhook notifications.
+    
+    Armloop sends payment completion notifications via webhook.
+    Verifies HMAC signature and credits user wallet upon successful payment.
+    """
+    # ── 1. Read raw body & verify HMAC ──────────────────────────────
+    raw_body = await request.body()
+    
+    if not x_signature:
+        log.warning("armloop.webhook missing X-Signature header")
+        raise HTTPException(401, "Missing X-Signature header")
+    
+    if not armloop_gateway.verify_webhook_signature(raw_body, x_signature):
+        log.error("armloop.webhook invalid signature")
+        raise HTTPException(401, "Invalid webhook signature")
+    
+    # ── 2. Parse & validate payload ─────────────────────────────────
+    try:
+        payload = ArmloopWebhookPayload.model_validate_json(raw_body)
+    except Exception as exc:
+        log.warning("armloop.webhook payload validation failed: %s", exc)
+        raise HTTPException(422, "Invalid payload") from exc
+    
+    # Process each notification item
+    for item in payload.notificationItems:
+        notification = item.NotificationRequestItem
+        
+        # Only process AUTHORISATION events
+        if notification.eventCode != "AUTHORISATION":
+            log.info("armloop.webhook ignoring event: %s", notification.eventCode)
+            continue
+        
+        # Check if payment was successful
+        if notification.success != "true":
+            log.warning(
+                "armloop.webhook payment failed: ref=%s reason=%s",
+                notification.merchantReference, notification.reason
+            )
+            continue
+        
+        # ── 3. Look up our local checkout record ────────────────────
+        topup = await db.scalar(
+            select(PayPalTopUp).where(PayPalTopUp.order_id == notification.merchantReference)
+        )
+        if not topup:
+            log.error(
+                "armloop.webhook no PayPalTopUp for merchantReference=%s",
+                notification.merchantReference
+            )
+            raise HTTPException(404, "Unknown transaction reference")
+        
+        if topup.credited:
+            log.info(
+                "armloop.webhook duplicate for ref=%s — already processed",
+                notification.merchantReference
+            )
+            continue
+        
+        # ── 4. Resolve user & influencer from our DB ────────────────
+        user = await db.get(User, topup.user_id)
+        if not user:
+            raise HTTPException(404, "User not found")
+        
+        influencer = await db.get(Influencer, topup.influencer_id)
+        
+        source = f"armloop:{notification.pspReference}"
+        
+        # ── 5. Credit the wallet ────────────────────────────────────
+        try:
+            new_balance = await topup_wallet(
+                db,
+                user_id=topup.user_id,
+                influencer_id=topup.influencer_id,
+                cents=topup.cents,
+                source=source,
+                is_18=False,
+            )
+            
+            topup.status = "COMPLETED"
+            topup.credited = True
+            db.add(topup)
+            await db.commit()
+        except HTTPException:
+            await db.rollback()
+            raise
+        except Exception:
+            await db.rollback()
+            log.exception(
+                "armloop.webhook failed to credit wallet for ref=%s",
+                notification.merchantReference
+            )
+            raise HTTPException(500, "Internal error processing payment")
+        
+        log.info(
+            "armloop.webhook credited user=%s influencer=%s cents=%s balance=%s ref=%s",
+            topup.user_id, topup.influencer_id, topup.cents, new_balance,
+            notification.merchantReference,
+        )
+        
+        # ── 6. FirstPromoter tracking ───────────────────────────────
+        if not topup.fp_tracked:
+            if not influencer:
+                log.warning(
+                    "FP tracking skipped: influencer %s not found for ref=%s",
+                    topup.influencer_id, notification.merchantReference
+                )
+            elif not influencer.fp_ref_id:
+                log.warning(
+                    "FP tracking skipped: influencer %s has no fp_ref_id",
+                    topup.influencer_id
+                )
+            else:
+                try:
+                    await fp_track_sale_v2(
+                        email=user.email,
+                        uid=str(user.id),
+                        amount_cents=topup.cents,
+                        event_id=notification.merchantReference,
+                        ref_id=influencer.fp_ref_id,
+                        plan="wallet_topup",
+                    )
+                    topup.fp_tracked = True
+                    db.add(topup)
+                    await db.commit()
+                    log.info(
+                        "FP sale tracked for ref=%s ref_id=%s amount=%s",
+                        notification.merchantReference, influencer.fp_ref_id, topup.cents
+                    )
+                except Exception as e:
+                    log.warning(
+                        "FP track sale failed for ref=%s: %s",
+                        notification.merchantReference, e
+                    )
+    
+    return {"ok": True, "accepted": True}

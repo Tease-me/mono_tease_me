@@ -38,6 +38,7 @@ from app.gateways.elevenlabs.client import close_elevenlabs_client
 from app.utils.infrastructure.redis_pool import close_redis
 from app.core.logging import configure_logging
 from app.services.checkout import close_checkout_client
+from app.gateways.armloop_gateway import close_armloop_client
 from app.telegram import lifecycle as telegram_lifecycle
 
 configure_logging()
@@ -71,6 +72,9 @@ async def lifespan(app: FastAPI):
     
     log.info("Closing checkout HTTP client...")
     await close_checkout_client()
+    
+    log.info("Closing Armloop HTTP client...")
+    await close_armloop_client()
 
 app = FastAPI(
     title="TeaseMe API",
