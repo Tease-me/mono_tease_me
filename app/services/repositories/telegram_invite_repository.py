@@ -11,7 +11,7 @@ from sqlalchemy import select, update, and_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import TelegramInvite
+from app.data.models import TelegramInvite
 
 log = logging.getLogger(__name__)
 

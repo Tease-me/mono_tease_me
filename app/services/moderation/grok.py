@@ -1,0 +1,147 @@
+import logging
+import json
+import time
+from dataclasses import dataclass
+from typing import Optional
+
+from langchain_core.messages import SystemMessage, HumanMessage
+
+from app.services.system_prompt_service import get_system_prompt
+from app.services.token_tracker import track_usage_bg
+from app.data.enums import prompt_keys
+from app.agents.prompts import get_grok_model
+
+log = logging.getLogger(__name__)
+
+
+@dataclass
+class GrokVerification:
+    confirmed: bool
+    confidence: float
+    category: str
+    reasoning: str
+
+
+def parse_grok_response(content: str) -> Optional[dict]:
+    content = content.strip()
+    
+    if "```" in content:
+        parts = content.split("```")
+        for part in parts:
+            part = part.strip()
+            if part.startswith("json"):
+                part = part[4:].strip()
+            if part.startswith("{"):
+                try:
+                    return json.loads(part)
+                except (json.JSONDecodeError, TypeError):
+                    continue
+    
+    start = content.find("{")
+    end = content.rfind("}") + 1
+    if start != -1 and end > start:
+        try:
+            return json.loads(content[start:end])
+        except (json.JSONDecodeError, TypeError):
+            pass
+    
+    try:
+        return json.loads(content)
+    except (json.JSONDecodeError, TypeError):
+        pass
+    
+    return None
+
+
+async def verify_with_grok(
+    message: str,
+    context: str,
+    suspected_category: str,
+    matched_keyword: str,
+    db=None
+) -> GrokVerification:
+
+    if not db:
+        return GrokVerification(
+            confirmed=True,
+            confidence=0.5,
+            category=suspected_category,
+            reasoning="Moderation prompts unavailable - defaulting to confirmed"
+        )
+
+    system_prompt = await get_system_prompt(db, prompt_keys.GROK_SYSTEM_PROMPT)
+    user_prompt_template = await get_system_prompt(db, prompt_keys.GROK_USER_PROMPT_TEMPLATE)
+
+    if not system_prompt or not user_prompt_template:
+        return GrokVerification(
+            confirmed=True,
+            confidence=0.5,
+            category=suspected_category,
+            reasoning="Moderation prompts missing - defaulting to confirmed"
+        )
+
+    try:
+        user_prompt = user_prompt_template.format(
+            category=suspected_category,
+            keyword=matched_keyword,
+            context=context[:500] if context else "(no context)",
+            message=message[:500]
+        )
+    except (KeyError, ValueError):
+        return GrokVerification(
+            confirmed=True,
+            confidence=0.5,
+            category=suspected_category,
+            reasoning="Moderation prompt template invalid - defaulting to confirmed"
+        )
+    
+    try:
+        grok_model = get_grok_model()
+
+        messages = [
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=user_prompt)
+        ]
+
+        # Track timing and usage
+        t0 = time.perf_counter()
+        response = await grok_model.ainvoke(messages)
+        mod_ms = int((time.perf_counter() - t0) * 1000)
+
+        # Track moderation API usage
+        usage = getattr(response, "usage_metadata", None) or {}
+        track_usage_bg(
+            "moderation", "xai", "grok-4-1-fast-reasoning", "moderation",
+            input_tokens=usage.get("input_tokens"),
+            output_tokens=usage.get("output_tokens"),
+            total_tokens=usage.get("total_tokens"),
+            latency_ms=mod_ms,
+        )
+
+        content = response.content
+
+        result = parse_grok_response(content)
+        
+        if result:
+            return GrokVerification(
+                confirmed=result.get("confirmed", True),
+                confidence=float(result.get("confidence", 0.5)),
+                category=suspected_category,
+                reasoning=result.get("reasoning", "No reasoning provided")
+            )
+        else:
+            return GrokVerification(
+                confirmed=True,
+                confidence=0.5,
+                category=suspected_category,
+                reasoning="Failed to parse AI response - defaulting to confirmed"
+            )
+                
+    except Exception:
+        log.exception("Grok API exception")
+        return GrokVerification(
+            confirmed=True,
+            confidence=0.5,
+            category=suspected_category,
+            reasoning="AI verification failed - defaulting to confirmed"
+        )

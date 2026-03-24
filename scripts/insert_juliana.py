@@ -11,8 +11,8 @@ import os
 # Add project root to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from app.db.session import SessionLocal
-from app.db.models import Influencer
+from app.core.session import SessionLocal
+from app.data.models import Influencer
 
 
 BIO_JSON = {

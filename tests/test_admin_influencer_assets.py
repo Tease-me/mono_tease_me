@@ -7,8 +7,8 @@ from types import SimpleNamespace
 import pytest
 from fastapi import HTTPException
 
-from app.repositories import influencer_landing_assets_repository as asset_repo
-from app.use_cases import admin_influencer_assets as asset_use_case
+from app.services.repositories import influencer_landing_assets_repository as asset_repo
+from app.services.use_cases import admin_influencer_assets as asset_use_case
 
 
 class DummyUploadFile:

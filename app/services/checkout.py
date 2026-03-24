@@ -15,7 +15,7 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.db.models import User
+from app.data.models import User
 from app.utils.crypto import vigenere_cipher
 
 log = logging.getLogger(__name__)
@@ -116,7 +116,7 @@ async def create_checkout(
     payment_url = data["payment_url"]
 
     # ── Store pending PayPalTopUp ──────────────────────────────────────────
-    from app.db.models import PayPalTopUp
+    from app.data.models import PayPalTopUp
     tx = PayPalTopUp(
         user_id=user.id,
         influencer_id=influencer_id,

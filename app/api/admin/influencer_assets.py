@@ -4,13 +4,13 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.admin.common import ensure_admin
-from app.db.models import Influencer, User
-from app.db.session import get_db
-from app.schemas.admin import (
+from app.data.models import Influencer, User
+from app.core.session import get_db
+from app.data.schemas.admin import (
     AdminInfluencerLandingAssetsOut,
     AdminInfluencerTelegramWelcomeMediaAssetsOut,
 )
-from app.use_cases.admin_influencer_assets import (
+from app.services.use_cases.admin_influencer_assets import (
     build_admin_landing_assets_out,
     build_admin_telegram_welcome_media_out,
     upsert_admin_landing_assets,

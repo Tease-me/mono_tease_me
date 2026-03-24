@@ -17,7 +17,7 @@ async def run_with_summary(
 ) -> int:
     try:
         from app.agents.memory import get_all_memory_list, get_summarized_memories
-        from app.db.session import SessionLocal
+        from app.core.session import SessionLocal
 
         async with SessionLocal() as db:
             memories = await get_all_memory_list(db, user_id, influencer_id)

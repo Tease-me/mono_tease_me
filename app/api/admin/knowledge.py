@@ -5,16 +5,16 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.admin.common import ensure_admin
-from app.db.models import Influencer, User
-from app.db.session import get_db
-from app.errors.knowledge_errors import (
+from app.data.models import Influencer, User
+from app.core.session import get_db
+from app.api.errors.knowledge_errors import (
     KnowledgeNotFoundError,
     KnowledgePersistenceError,
     KnowledgeSyncError,
     KnowledgeValidationError,
 )
-from app.schemas.knowledge import KnowledgeUpsertInput
-from app.use_cases.knowledge_sync import (
+from app.data.schemas.knowledge import KnowledgeUpsertInput
+from app.services.use_cases.knowledge_sync import (
     delete_knowledge_remote_first,
     get_knowledge_for_admin,
     upsert_knowledge_remote_first,

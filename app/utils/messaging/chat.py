@@ -10,7 +10,7 @@ import time
 
 from fastapi import HTTPException
 from app.core.config import settings
-from app.db.models import Influencer
+from app.data.models import Influencer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)

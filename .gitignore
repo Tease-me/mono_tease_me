@@ -35,4 +35,12 @@ telegram_sessions/
 
 # GeoIP database
 data/geoip/*
-!data/geoip/.gitkeepCLAUDE.md
+!data/geoip/.gitkeep
+
+# Claude Code (personal — never commit)
+.claude/
+CLAUDE.md
+STRUCTURE.md
+MEMORY.md
+GOTCHAS.md
+PROGRESS.md

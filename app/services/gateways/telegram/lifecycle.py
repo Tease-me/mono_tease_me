@@ -9,7 +9,7 @@ and graceful shutdown.
 import logging
 
 from app.core.config import settings
-from app.db.session import SessionLocal
+from app.core.session import SessionLocal
 from app.services.repositories.call_record_repository import cleanup_stale_active_calls
 from app.services.gateways.telegram.session_manager import session_manager
 from app.services.gateways.telegram.handlers import TelegramMessageHandler

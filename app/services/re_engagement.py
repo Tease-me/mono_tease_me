@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, and_, not_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import (
+from app.data.models import (
     Influencer,
     InfluencerWallet,
     RelationshipState,
@@ -16,7 +16,7 @@ from app.utils.messaging.push import send_push_rich
 from app.agents.turn_handler import handle_turn
 from app.services.chat_service import get_or_create_chat
 from app.services.system_prompt_service import get_system_prompt
-from app.constants import prompt_keys
+from app.data.enums import prompt_keys
 # from app.utils.s3 import generate_presigned_url  # - text only for now
 
 log = logging.getLogger(__name__)

@@ -1,12 +1,12 @@
 from app.services.embeddings import get_embedding, get_embeddings_batch, search_similar_memories, search_similar_messages, search_similar_memories_and_messages, upsert_memory
 from sqlalchemy import select, union_all
 from sqlalchemy.sql import func
-from app.db.models import Memory, Chat, Message
+from app.data.models import Memory, Chat, Message
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_xai import ChatXAI
 from app.core.config import settings
 import logging
-from app.db.session import SessionLocal
+from app.core.session import SessionLocal
 from app.agents.callbacks import UsageTrackingCallback
 
 log = logging.getLogger(__name__)

@@ -4,9 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.admin.common import ensure_admin
-from app.db.models import User
-from app.db.session import get_db
-from app.use_cases.admin_telegram_funnel_analytics import (
+from app.data.models import User
+from app.core.session import get_db
+from app.services.use_cases.admin_telegram_funnel_analytics import (
     get_cohort_analysis,
     get_funnel_by_influencer,
     get_funnel_dropoff,

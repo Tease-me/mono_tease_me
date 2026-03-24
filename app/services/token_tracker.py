@@ -47,8 +47,8 @@ import re
 import time
 from typing import Optional
 
-from app.db.models.api_usage import ApiUsageLog
-from app.db.session import SessionLocal
+from app.data.models.api_usage import ApiUsageLog
+from app.core.session import SessionLocal
 
 log = logging.getLogger(__name__)
 

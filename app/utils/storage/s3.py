@@ -9,7 +9,7 @@ from PIL import Image
 import pillow_heif
 
 from app.core.config import settings
-from app.schemas.chat import MessageSchema
+from app.data.schemas.chat import MessageSchema
 
  
 log = logging.getLogger(__name__)

@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import (
+from app.data.models import (
     AdultCharacter,
     DailyUsage,
     InfluencerCreditTransaction,
@@ -12,7 +12,7 @@ from app.db.models import (
     Pricing,
     User,
 )
-from app.repositories.billing_repository import get_wallet_balance_cents
+from app.services.repositories.billing_repository import get_wallet_balance_cents
 
 
 async def _resolve_adult_character_voice_pricing(
@@ -154,7 +154,7 @@ async def charge_adult_character_voice_call(
             user_obj = await db.get(User, user_id)
             if user_obj and user_obj.email:
                 try:
-                    from app.api.notify_ws import notify_low_balance
+                    from app.api.routes.notify_ws import notify_low_balance
 
                     await notify_low_balance(user_obj.email, new_balance)
                 except Exception as exc:

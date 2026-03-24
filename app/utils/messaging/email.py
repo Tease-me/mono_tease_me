@@ -5,7 +5,7 @@ from fastapi.concurrency import run_in_threadpool
 from app.core.config import settings
 from datetime import datetime
 from typing import Optional
-from app.db.models import Influencer
+from app.data.models import Influencer
 import io
 import uuid
 import urllib.request

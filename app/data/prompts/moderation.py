@@ -1,6 +1,6 @@
 """Content moderation and safety prompts."""
 
-from app.constants import prompt_keys
+from app.data.enums import prompt_keys
 
 GROK_SYSTEM_PROMPT = """You are a content safety classifier API. You MUST respond with ONLY valid JSON, no other text.
 
