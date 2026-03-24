@@ -9,7 +9,7 @@ export const Endpoints = {
     register: "/auth/register",
     refreshToken: "/auth/refresh",
     forgotPassword: "/auth/forgot-password",
-    confirmEmail: "/auth/confirm-email",
+    confirmEmail: "/auth/verify-email",
     resendVerificationEmail: "/auth/resend-verification-email",
     me: "/auth/me",
     resetPassword: "/auth/reset-password"
