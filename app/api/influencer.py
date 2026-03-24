@@ -21,16 +21,16 @@ from app.data.schemas.influencer import (
     InfluencerUpdate,
     SocialLink,
 )
-from app.use_cases.admin_influencer_assets import build_public_telegram_welcome_media_out
+from app.services.use_cases.admin_influencer_assets import build_public_telegram_welcome_media_out
 from app.services.influencer_cleanup import (
     InfluencerDeleteError,
     InfluencerDeleteNotFoundError,
     delete_influencer_and_chat_history,
 )
-from app.repositories.influencer_character_assets_repository import (
+from app.services.repositories.influencer_character_assets_repository import (
     get_influencer_character_asset_state,
 )
-from app.repositories.adult_character_assets_repository import (
+from app.services.repositories.adult_character_assets_repository import (
     get_adult_character_asset_state,
 )
 from app.utils.storage.s3 import (

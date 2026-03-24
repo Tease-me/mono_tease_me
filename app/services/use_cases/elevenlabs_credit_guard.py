@@ -4,8 +4,8 @@ import asyncio
 import logging
 
 from app.core.session import SessionLocal
-from app.gateways.elevenlabs.agents_gateway import compute_max_duration
-from app.gateways.elevenlabs.conversation_gateway import ElevenLabsConversationGateway
+from app.services.gateways.elevenlabs.agents_gateway import compute_max_duration
+from app.services.gateways.elevenlabs.conversation_gateway import ElevenLabsConversationGateway
 from app.services.billing import get_remaining_units, resolve_voice_billing_mode
 
 log = logging.getLogger(__name__)

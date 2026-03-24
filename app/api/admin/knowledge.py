@@ -14,7 +14,7 @@ from app.api.errors.knowledge_errors import (
     KnowledgeValidationError,
 )
 from app.data.schemas.knowledge import KnowledgeUpsertInput
-from app.use_cases.knowledge_sync import (
+from app.services.use_cases.knowledge_sync import (
     delete_knowledge_remote_first,
     get_knowledge_for_admin,
     upsert_knowledge_remote_first,

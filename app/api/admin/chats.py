@@ -9,12 +9,12 @@ from app.agents.turn_handler import redis_history
 from app.api.admin.common import ensure_admin
 from app.data.models import CallRecord, Message, Memory, Message18, User
 from app.core.session import get_db
-from app.use_cases.admin_chat_info import (
+from app.services.use_cases.admin_chat_info import (
     AdminChatInfoError,
     AdminChatInfoValidationError,
     get_admin_chat_info,
 )
-from app.use_cases.admin_history_cleanup import (
+from app.services.use_cases.admin_history_cleanup import (
     AdminHistoryClearError,
     AdminHistoryNotFoundError,
     HistoryClearMode,

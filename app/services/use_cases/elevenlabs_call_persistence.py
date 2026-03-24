@@ -9,8 +9,8 @@ from fastapi import HTTPException
 
 from app.data.models import CallRecord
 from app.core.session import SessionLocal
-from app.gateways.elevenlabs.conversation_gateway import ElevenLabsConversationGateway
-from app.repositories.call_record import (
+from app.services.gateways.elevenlabs.conversation_gateway import ElevenLabsConversationGateway
+from app.services.repositories.call_record import (
     claim_billing_slot,
     mark_billing_done,
     reset_billing_slot,
@@ -18,7 +18,7 @@ from app.repositories.call_record import (
 from app.services.adult_character_billing import charge_adult_character_voice_call
 from app.services.billing import charge_feature, resolve_voice_billing_mode
 from app.services.chat_service import get_or_create_chat
-from app.use_cases.elevenlabs_transcript_persistence import persist_transcript_to_chat
+from app.services.use_cases.elevenlabs_transcript_persistence import persist_transcript_to_chat
 from app.utils.elevenlabs_conversation import extract_total_seconds, normalize_transcript
 
 log = logging.getLogger(__name__)
@@ -119,7 +119,7 @@ async def poll_and_persist_conversation(
                             "source": "poll",
                         }
                         if call_record and call_record.is_adult_call:
-                            from app.repositories.adult.adult_conversation_repository import (
+                            from app.services.repositories.adult.adult_conversation_repository import (
                                 get_adult_character_by_id,
                             )
 

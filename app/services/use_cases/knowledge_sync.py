@@ -13,13 +13,13 @@ from app.api.errors.knowledge_errors import (
     KnowledgeSyncError,
     KnowledgeValidationError,
 )
-from app.gateways.elevenlabs.knowledge_gateway import ElevenLabsKnowledgeGateway
-from app.repositories.knowledge_repository import (
+from app.services.gateways.elevenlabs.knowledge_gateway import ElevenLabsKnowledgeGateway
+from app.services.repositories.knowledge_repository import (
     delete_document_and_chunks,
     get_document_with_count,
     upsert_document_and_chunks,
 )
-from app.repositories.knowledge_sync_repository import (
+from app.services.repositories.knowledge_sync_repository import (
     delete_sync_record,
     get_sync_record,
     upsert_sync_record,

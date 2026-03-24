@@ -9,7 +9,7 @@ import logging
 
 from app.core.session import SessionLocal
 from app.data.models import TelegramInvite
-from app.repositories.funnel_repository import (
+from app.services.repositories.funnel_repository import (
     record_event,
     event_exists,
     get_invite_by_code,

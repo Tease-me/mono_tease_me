@@ -10,7 +10,7 @@ from fastapi import HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.data.models import Influencer
-from app.repositories.influencer_landing_assets_repository import (
+from app.services.repositories.influencer_landing_assets_repository import (
     LANDING_IMAGE_SLOTS,
     LANDING_VIDEO_SLOTS,
     LEGACY_TELEGRAM_MEDIA_SLOT,

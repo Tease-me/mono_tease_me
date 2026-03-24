@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.turn_handler import redis_history
 from app.utils.infrastructure.redis_pool import get_redis
-from app.repositories.history_cleanup_repository import (
+from app.services.repositories.history_cleanup_repository import (
     delete_calls_by_chat_ids_or_orphans,
     delete_calls_orphans_only,
     delete_chats18_by_ids,

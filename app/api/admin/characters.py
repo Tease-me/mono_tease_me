@@ -9,13 +9,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.admin.common import ensure_admin
 from app.data.models import AdultCharacter, Influencer, InfluencerCharacterMeta, User
 from app.core.session import get_db
-from app.repositories.adult_character_assets_repository import (
+from app.services.repositories.adult_character_assets_repository import (
     get_adult_character_asset_state,
     invalidate_adult_character_asset_cache,
     upload_adult_character_default_artwork,
     upload_adult_character_lottie,
 )
-from app.repositories.influencer_character_assets_repository import (
+from app.services.repositories.influencer_character_assets_repository import (
     delete_influencer_character_asset,
     get_influencer_character_asset_keys,
     get_influencer_character_asset_presence,

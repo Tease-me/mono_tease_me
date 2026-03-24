@@ -8,7 +8,7 @@ from PIL import Image, UnidentifiedImageError
 import pillow_heif
 
 from app.core.config import settings
-from app.gateways import s3_gateway
+from app.services.gateways import s3_gateway
 from app.services.asset_cache_service import (
     get_cached_presence,
     get_cached_presigned_url,

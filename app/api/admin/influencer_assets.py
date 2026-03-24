@@ -10,7 +10,7 @@ from app.data.schemas.admin import (
     AdminInfluencerLandingAssetsOut,
     AdminInfluencerTelegramWelcomeMediaAssetsOut,
 )
-from app.use_cases.admin_influencer_assets import (
+from app.services.use_cases.admin_influencer_assets import (
     build_admin_landing_assets_out,
     build_admin_telegram_welcome_media_out,
     upsert_admin_landing_assets,

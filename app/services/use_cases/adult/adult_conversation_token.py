@@ -10,8 +10,8 @@ from app.data.schemas.adult.adult_conversation import (
     AdultConversationTokenRequest,
     AdultConversationTokenResponse,
 )
-from app.gateways.elevenlabs.conversation_gateway import ElevenLabsConversationGateway
-from app.repositories.adult.adult_conversation_repository import (
+from app.services.gateways.elevenlabs.conversation_gateway import ElevenLabsConversationGateway
+from app.services.repositories.adult.adult_conversation_repository import (
     get_active_influencer_character_meta,
     get_adult_character_by_id,
     get_influencer_by_id,

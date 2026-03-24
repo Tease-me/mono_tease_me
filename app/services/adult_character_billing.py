@@ -12,7 +12,7 @@ from app.data.models import (
     Pricing,
     User,
 )
-from app.repositories.billing_repository import get_wallet_balance_cents
+from app.services.repositories.billing_repository import get_wallet_balance_cents
 
 
 async def _resolve_adult_character_voice_pricing(

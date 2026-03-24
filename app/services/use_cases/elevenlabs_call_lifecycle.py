@@ -4,7 +4,7 @@ import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.repositories.call_record import upsert_pending_call_record
+from app.services.repositories.call_record import upsert_pending_call_record
 from app.services.chat_service import get_or_create_chat
 
 log = logging.getLogger(__name__)

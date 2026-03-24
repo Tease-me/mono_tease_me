@@ -24,8 +24,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.data.models import Influencer, PreInfluencer, User
 from app.core.session import get_db
-from app.gateways.elevenlabs.agents_gateway import ElevenLabsAgentsGateway
-from app.gateways.elevenlabs.voices_gateway import ElevenLabsVoicesGateway
+from app.services.gateways.elevenlabs.agents_gateway import ElevenLabsAgentsGateway
+from app.services.gateways.elevenlabs.voices_gateway import ElevenLabsVoicesGateway
 from app.data.schemas.pre_influencer import (
     InfluencerAudioDeleteRequest,
     PreInfluencerAcceptTermsRequest,
@@ -44,7 +44,7 @@ from app.services.firstpromoter import (
     fp_get_promoter_v2,
     fp_track_signup,
 )
-from app.use_cases.pre_influencer_survey_prompt import (
+from app.services.use_cases.pre_influencer_survey_prompt import (
     format_survey_markdown,
     generate_prompt_from_markdown,
     load_survey_questions,

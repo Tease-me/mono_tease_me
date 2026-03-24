@@ -9,7 +9,7 @@ import pillow_heif
 from PIL import Image, UnidentifiedImageError
 
 from app.core.config import settings
-from app.gateways import s3_gateway
+from app.services.gateways import s3_gateway
 
 LANDING_IMAGE_SLOTS = {
     "hero_png": "landing/hero.png",

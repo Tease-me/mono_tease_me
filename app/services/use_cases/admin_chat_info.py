@@ -8,7 +8,7 @@ from datetime import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.repositories.admin_chat_info_repository import (
+from app.services.repositories.admin_chat_info_repository import (
     count_adult_chats,
     count_adult_messages,
     count_calls,

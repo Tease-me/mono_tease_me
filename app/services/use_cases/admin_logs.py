@@ -16,7 +16,7 @@ from typing import Literal
 
 from app.core.config import settings
 from app.core.live_logs import get_latest_event_id, get_live_events_after
-from app.repositories.admin_logs_repository import (
+from app.services.repositories.admin_logs_repository import (
     RepoLogFileMeta,
     list_allowed_log_files,
     read_file_lines,

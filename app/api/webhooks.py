@@ -16,8 +16,8 @@ from app.core.config import settings
 from app.core.session import get_db, SessionLocal
 from app.services.billing import charge_feature, _get_influencer_id_from_chat, resolve_voice_billing_mode
 from app.services.adult_character_billing import charge_adult_character_voice_call
-from app.repositories.call_record import claim_billing_slot, mark_billing_done, reset_billing_slot
-from app.use_cases.elevenlabs_transcript_persistence import persist_transcript_to_chat
+from app.services.repositories.call_record import claim_billing_slot, mark_billing_done, reset_billing_slot
+from app.services.use_cases.elevenlabs_transcript_persistence import persist_transcript_to_chat
 from app.utils.elevenlabs_conversation import extract_total_seconds
 from sqlalchemy import select
 from app.data.models import CallRecord, Chat, Influencer
@@ -224,7 +224,7 @@ async def elevenlabs_post_call(request: Request, db: AsyncSession = Depends(get_
                 try:
                     call_record = await db.get(CallRecord, conversation_id)
                     if call_record and call_record.is_adult_call:
-                        from app.repositories.adult.adult_conversation_repository import (
+                        from app.services.repositories.adult.adult_conversation_repository import (
                             get_adult_character_by_id,
                         )
 

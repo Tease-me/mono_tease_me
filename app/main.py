@@ -35,7 +35,7 @@ from app.api import system_prompts as system_prompts_router
 from .api import health_router
 from app.workers.scheduler import start_scheduler, stop_scheduler
 
-from app.gateways.elevenlabs.client import close_elevenlabs_client
+from app.services.gateways.elevenlabs.client import close_elevenlabs_client
 from app.utils.infrastructure.redis_pool import close_redis
 from app.core.logging import configure_logging
 from app.services.checkout import close_checkout_client

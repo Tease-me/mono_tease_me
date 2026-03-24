@@ -28,7 +28,7 @@ from app.agents.turn_handler import (
 from app.core.config import settings
 from app.data.models import CallRecord, Chat, Influencer, Memory, User
 from app.core.session import SessionLocal, get_db
-from app.gateways.elevenlabs.conversation_gateway import ElevenLabsConversationGateway
+from app.services.gateways.elevenlabs.conversation_gateway import ElevenLabsConversationGateway
 from app.services.relationship.dtr import plan_dtr_goal
 from app.services.relationship.inactivity import apply_inactivity_decay
 from app.services.relationship.repo import get_or_create_relationship
@@ -41,10 +41,10 @@ from app.services.billing import (
 from app.services.chat_service import get_or_create_chat
 from app.services.follow import get_follow
 from app.services.prompting.influencer_bio import extract_influencer_bio_context
-from app.use_cases.elevenlabs_call_lifecycle import save_pending_conversation
-from app.use_cases.elevenlabs_call_persistence import poll_and_persist_conversation
-from app.use_cases.elevenlabs_credit_guard import end_conversation_after_credits
-from app.use_cases.elevenlabs_greeting import build_call_greeting
+from app.services.use_cases.elevenlabs_call_lifecycle import save_pending_conversation
+from app.services.use_cases.elevenlabs_call_persistence import poll_and_persist_conversation
+from app.services.use_cases.elevenlabs_credit_guard import end_conversation_after_credits
+from app.services.use_cases.elevenlabs_greeting import build_call_greeting
 from app.utils.auth.dependencies import get_current_user
 from app.utils.elevenlabs_conversation import (
     extract_total_seconds,
