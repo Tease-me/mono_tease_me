@@ -1022,7 +1022,27 @@ class VoiceCallSession:
             pass
 
     async def _send_trial_voice_note(self):
-        """Generate TTS voice note via ElevenLabs and send as Telegram voice message."""
+        """Send welcome audio from assets_json, falling back to ElevenLabs TTS."""
+        # Try welcome audio from assets_json first
+        try:
+            from app.services.telegram_call_service import send_telegram_welcome_audio
+
+            async with SessionLocal() as db:
+                influencer = await db.get(Influencer, self.influencer_id)
+                if influencer:
+                    audio_sent = await send_telegram_welcome_audio(
+                        self.client, self.chat_id, influencer,
+                    )
+                    if audio_sent:
+                        log.info(
+                            "voice_call.welcome_audio_sent influencer=%s user=%s",
+                            self.influencer_id, self.telegram_user_id,
+                        )
+                        return
+        except Exception:
+            log.exception("Failed to send welcome audio, falling back to TTS")
+
+        # Fallback: generate TTS voice note via ElevenLabs
         farewell_text = "I'll see you in tease-me mi amor....... don't make me wait"
         try:
             import httpx
