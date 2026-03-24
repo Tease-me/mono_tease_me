@@ -158,8 +158,8 @@ async def create_payment_session(
         )
 
         log.debug(
-            "armloop.response status=%s body=%s",
-            resp.status_code, resp.text[:1000],
+            "armloop.response status=%s body_len=%s",
+            resp.status_code, len(resp.text or ""),
         )
 
         resp.raise_for_status()
@@ -213,8 +213,11 @@ def verify_webhook_signature(raw_body: bytes, signature_header: str) -> bool:
         True if signature is valid, False otherwise
     """
     if not settings.ARMLOOP_WEBHOOK_HMAC_KEY:
-        log.warning("ARMLOOP_WEBHOOK_HMAC_KEY not configured — skipping signature verification")
-        return True
+        log.error("ARMLOOP_WEBHOOK_HMAC_KEY not configured — refusing to verify webhook signature")
+        raise HTTPException(
+            status_code=500,
+            detail="Webhook signature verification is not configured",
+        )
     
     try:
         # Hex-decode the HMAC key from config
