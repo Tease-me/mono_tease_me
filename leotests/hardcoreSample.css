@@ -1,0 +1,116 @@
+/*** import Font**/
+@import url("https://fonts.googleapis.com/css2?family=Abril+Fatface&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap");
+
+/* ::::::::::::::::::: Mobile styles ::::::::::::::::::: */
+
+body {
+  margin: 0;
+  padding: 1rem;
+}
+
+.hcSampleContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-space-px-12, 0.75rem);
+}
+
+.hcTopSection {
+  display: grid;
+  grid-template-columns: 3rem auto;
+
+  width: 100%;
+  height: 4rem;
+  max-width: 20rem;
+  border-radius: var(--radius-radius-m, 0.5rem);
+  background: var(--colors-tm-neutral-color08, #141414);
+  align-items: center;
+  align-content: center;
+  gap: 1rem;
+  padding: 0 0.5rem;
+  overflow: hidden;
+}
+
+.unlockContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.unlockContainer dotlottie-wc {
+  width: 3.75rem;
+
+}
+
+.textContainer {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+}
+
+.audioWave {
+  width: 100%;
+  position: absolute;
+  z-index: 0;
+
+}
+
+.flames {
+  width: 100%;
+  height: 7rem;
+  position: absolute;
+  z-index: 1;
+  top: -80%;
+  opacity: 0.7;
+  mask-image: linear-gradient(180deg, #00000036 57%, transparent 80%);
+  filter: hue-rotate(279deg);
+}
+
+.flames dotlottie-wc {
+  height: 6rem;
+}
+
+.hcButton {
+  height: 80%;
+  width: 100%;
+  border-radius: 6.25rem;
+  border: 1px solid oklch(100% 0.00011 271.152 / 0.1);
+  background: linear-gradient(90deg, var(--colors-tm-secondary-color04, oklch(59.991% 0.25768 306.376 / 0.67)) 0%, var(--colors-tm-secondary-color10, oklch(0.31 0.15 300.74 / 0.37)) 3.37%, var(--colors-tm-secondary-color08, oklch(0.43 0.21 301.14 / 0.54)) 29.33%, var(--colors-tm-secondary-color09, oklch(0.37 0.18 300.17 / 0.63)) 82.69%, var(--colors-tm-secondary-color10, oklch(0.31 0.15 300.74 / 0.71)) 96.63%, var(--colors-tm-secondary-color04, oklch(0.6 0.26 306.39 / 0.57)) 100%);
+  backdrop-filter: blur(2px);
+  z-index: 2;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 0.8rem;
+
+}
+
+.hcTitle {
+  color: white;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 900;
+  font-style: normal;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.bottomSection {
+  color: var(--colors-tm-text-color04, #D6D6D6);
+  font-family: "DM Sans";
+  font-size: 0.875rem;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 140%;
+  text-align: center;
+}
+
+/* :::End Mobile styles:::*/
+
+/*::::::::::::::::::: Desktop Styles :::::::::::::::::::*/
+@media (min-width: 32rem) {}
