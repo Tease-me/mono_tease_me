@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import InfluencerKnowledgeSync
+from app.data.models import InfluencerKnowledgeSync
 
 
 async def get_sync_record(db: AsyncSession, influencer_id: str) -> InfluencerKnowledgeSync | None:

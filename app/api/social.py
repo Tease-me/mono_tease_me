@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.db.session import get_db
-from app.db.models import PreInfluencer
+from app.core.session import get_db
+from app.data.models import PreInfluencer
 from app.core.config import settings
 from typing import Optional
 

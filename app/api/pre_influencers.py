@@ -22,11 +22,11 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.db.models import Influencer, PreInfluencer, User
-from app.db.session import get_db
+from app.data.models import Influencer, PreInfluencer, User
+from app.core.session import get_db
 from app.gateways.elevenlabs.agents_gateway import ElevenLabsAgentsGateway
 from app.gateways.elevenlabs.voices_gateway import ElevenLabsVoicesGateway
-from app.schemas.pre_influencer import (
+from app.data.schemas.pre_influencer import (
     InfluencerAudioDeleteRequest,
     PreInfluencerAcceptTermsRequest,
     PreInfluencerRegisterRequest,

@@ -4,9 +4,9 @@ from sqlalchemy import select, update
 from datetime import datetime, timezone
 from pydantic import BaseModel
 
-from app.db.session import get_db
+from app.core.session import get_db
 from app.utils.auth.dependencies import get_current_user, require_age_verification
-from app.db.models import (
+from app.data.models import (
     InfluencerSubscription,
     InfluencerSubscriptionPlan,
     InfluencerSubscriptionAddonPurchase,
@@ -35,7 +35,7 @@ async def start_subscription(
     db: AsyncSession = Depends(get_db),
     user=Depends(get_current_user),
 ):
-    from app.db.models import Influencer
+    from app.data.models import Influencer
     influencer = await db.get(Influencer, influencer_id)
     if not influencer:
         raise HTTPException(

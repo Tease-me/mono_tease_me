@@ -21,11 +21,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import desc
 
-from app.db.session import get_db
-from app.db.models import User, IdentityVerification
+from app.core.session import get_db
+from app.data.models import User, IdentityVerification
 from app.utils.auth.dependencies import get_current_user
 from app.services.didit import didit_service
-from app.schemas.verification import (
+from app.data.schemas.verification import (
     VerificationSessionCreateRequest,
     VerificationSessionResponse,
     VerificationStatusResponse,

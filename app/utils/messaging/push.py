@@ -2,8 +2,8 @@ import json
 from pywebpush import webpush, WebPushException
 from sqlalchemy import delete
 
-from app.db.models import Subscription
-from app.db.session import SessionLocal
+from app.data.models import Subscription
+from app.core.session import SessionLocal
 from app.core.config import settings
 
 VAPID_PUBLIC_KEY = settings.VAPID_PUBLIC_KEY

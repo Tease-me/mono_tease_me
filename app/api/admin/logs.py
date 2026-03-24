@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import FileResponse, StreamingResponse
 
 from app.api.admin.common import ensure_admin
-from app.db.models import User
+from app.data.models import User
 from app.use_cases.admin_logs import (
     AdminLogsAccessError,
     AdminLogsValidationError,

@@ -16,8 +16,8 @@ from typing import Any
 from sqlalchemy import select, func, distinct
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models.funnel import TelegramFunnelEvent
-from app.db.models.billing import PayPalTopUp, InfluencerSubscriptionPayment
+from app.data.models.funnel import TelegramFunnelEvent
+from app.data.models.billing import PayPalTopUp, InfluencerSubscriptionPayment
 
 log = logging.getLogger(__name__)
 

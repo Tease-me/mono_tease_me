@@ -16,8 +16,8 @@ from pydantic import BaseModel
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import User, CallRecord
-from app.db.session import get_db
+from app.data.models import User, CallRecord
+from app.core.session import get_db
 from app.utils.auth.dependencies import get_current_user
 from app.core.config import settings
 from app.services.gateways.telegram.session_manager import session_manager

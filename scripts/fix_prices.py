@@ -5,8 +5,8 @@ import sys
 # Ensure app is in path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from app.db.session import SessionLocal
-from app.db.models.api_usage import ApiUsageLog
+from app.core.session import SessionLocal
+from app.data.models.api_usage import ApiUsageLog
 from sqlalchemy import select
 
 async def fix_prices():

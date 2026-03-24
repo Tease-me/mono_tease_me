@@ -6,7 +6,7 @@ import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import Influencer
+from app.data.models import Influencer
 from app.api.errors.knowledge_errors import (
     KnowledgeNotFoundError,
     KnowledgePersistenceError,
@@ -24,7 +24,7 @@ from app.repositories.knowledge_sync_repository import (
     get_sync_record,
     upsert_sync_record,
 )
-from app.schemas.knowledge import KnowledgeDeleteResult, KnowledgeUpsertInput, KnowledgeUpsertResult
+from app.data.schemas.knowledge import KnowledgeDeleteResult, KnowledgeUpsertInput, KnowledgeUpsertResult
 
 log = logging.getLogger(__name__)
 

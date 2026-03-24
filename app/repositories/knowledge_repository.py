@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from sqlalchemy import delete, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import InfluencerKnowledgeChunk, InfluencerKnowledgeDocument
+from app.data.models import InfluencerKnowledgeChunk, InfluencerKnowledgeDocument
 from app.services.embeddings import get_embeddings_batch
 from app.services.knowledge_rag import chunk_text
 

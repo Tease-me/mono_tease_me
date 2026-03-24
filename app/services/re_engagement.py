@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, and_, not_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import (
+from app.data.models import (
     Influencer,
     InfluencerWallet,
     RelationshipState,

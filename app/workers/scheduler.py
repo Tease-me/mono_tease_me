@@ -3,7 +3,7 @@ import logging
 import os
 from datetime import datetime, timezone
 
-from app.db.session import SessionLocal
+from app.core.session import SessionLocal
 from app.services.re_engagement import run_reengagement_job
 
 log = logging.getLogger(__name__)

@@ -18,7 +18,7 @@ from fastapi import WebSocket
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import Message, Message18, Chat, Chat18
+from app.data.models import Message, Message18, Chat, Chat18
 from app.services.embeddings import get_embedding
 from app.services.billing import charge_feature
 from app.services.relationship import get_relationship_payload

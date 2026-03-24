@@ -13,7 +13,7 @@ All models are organized by domain for better maintainability:
 - verification: Identity verification
 
 Import any model from this module:
-    from app.db.models import User, Influencer, Chat, Message
+    from app.data.models import User, Influencer, Chat, Message
 """
 
 # Base class (must be imported first)

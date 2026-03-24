@@ -9,9 +9,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.db.models import User, PayPalTopUp, Influencer
-from app.db.session import get_db
-from app.schemas.checkout import PaymentWebhookPayload
+from app.data.models import User, PayPalTopUp, Influencer
+from app.core.session import get_db
+from app.data.schemas.checkout import PaymentWebhookPayload
 from app.services.billing import topup_wallet
 from app.services.firstpromoter import fp_track_sale_v2
 

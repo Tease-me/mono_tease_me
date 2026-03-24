@@ -7,8 +7,8 @@ from typing import Any
 
 from fastapi import HTTPException
 
-from app.db.models import CallRecord
-from app.db.session import SessionLocal
+from app.data.models import CallRecord
+from app.core.session import SessionLocal
 from app.gateways.elevenlabs.conversation_gateway import ElevenLabsConversationGateway
 from app.repositories.call_record import (
     claim_billing_slot,
@@ -192,8 +192,8 @@ async def poll_and_persist_conversation(
                             from sqlalchemy import select as sa_select
 
                             from app.api.notify_ws import notify_call_billed
-                            from app.db.models import InfluencerWallet
-                            from app.db.models import User as UserModel
+                            from app.data.models import InfluencerWallet
+                            from app.data.models import User as UserModel
 
                             user_obj = await db.get(UserModel, user_id)
                             wallet = await db.scalar(

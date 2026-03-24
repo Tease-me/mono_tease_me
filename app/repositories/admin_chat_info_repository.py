@@ -7,7 +7,7 @@ from datetime import datetime
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import CallRecord, Chat, Chat18, Memory, Message, Message18
+from app.data.models import CallRecord, Chat, Chat18, Memory, Message, Message18
 
 
 def _apply_time_bounds(stmt, column, from_dt: datetime | None, to_dt: datetime | None):

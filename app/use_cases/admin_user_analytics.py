@@ -15,7 +15,7 @@ from typing import Any
 from sqlalchemy import select, func, desc, case, distinct
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import (
+from app.data.models import (
     User,
     Chat,
     Chat18,

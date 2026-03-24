@@ -4,8 +4,8 @@ import asyncio, sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from sqlalchemy import select, delete, func
-from app.db.session import SessionLocal
-from app.db.models import CallRecord
+from app.core.session import SessionLocal
+from app.data.models import CallRecord
 
 
 async def main():

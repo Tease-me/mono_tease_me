@@ -1,7 +1,7 @@
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import InfluencerWallet
+from app.data.models import InfluencerWallet
 
 
 async def get_influencer_wallet(

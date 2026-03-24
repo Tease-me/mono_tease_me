@@ -2,8 +2,8 @@ from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, Request, status, Query
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.models import User, PreInfluencer
-from app.db.session import get_db
+from app.data.models import User, PreInfluencer
+from app.core.session import get_db
 from app.core.config import settings
 from app.utils.infrastructure.country import (
     RequestCountryContext,
@@ -91,7 +91,7 @@ async def get_current_pre_influencer(
     temp_password: str = Query(...),
     db: AsyncSession = Depends(get_db),
 ) -> PreInfluencer:
-    from app.db.models import PreInfluencer
+    from app.data.models import PreInfluencer
     from sqlalchemy import select
     import secrets
     

@@ -9,7 +9,7 @@ from typing import Any
 from fastapi import HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import Influencer
+from app.data.models import Influencer
 from app.repositories.influencer_landing_assets_repository import (
     LANDING_IMAGE_SLOTS,
     LANDING_VIDEO_SLOTS,

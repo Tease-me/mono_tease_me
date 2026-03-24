@@ -5,9 +5,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import func
-from app.db.models import User, InfluencerWallet, DailyUsage, Pricing, InfluencerCreditTransaction
-from app.db.session import get_db
-from app.schemas.user import UserOut, UserUpdate, UserAdultPromptUpdate, UserAdultPromptOut
+from app.data.models import User, InfluencerWallet, DailyUsage, Pricing, InfluencerCreditTransaction
+from app.core.session import get_db
+from app.data.schemas.user import UserOut, UserUpdate, UserAdultPromptUpdate, UserAdultPromptOut
 from app.utils.auth.dependencies import get_current_user
 from app.utils.storage.s3 import (
     generate_user_presigned_url,

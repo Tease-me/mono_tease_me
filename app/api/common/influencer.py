@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import Influencer
+from app.data.models import Influencer
 
 async def ensure_influencer(
     db: AsyncSession,

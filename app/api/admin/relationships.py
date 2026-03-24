@@ -8,8 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.admin.common import ensure_admin
 from app.data.enums.relationship_stages import STAGE_POINTS_MAX, STAGE_POINTS_MIN
-from app.db.models import RelationshipState, User
-from app.db.session import get_db
+from app.data.models import RelationshipState, User
+from app.core.session import get_db
 from app.utils.auth.dependencies import get_current_user
 
 router = APIRouter(tags=["admin-relationships"])

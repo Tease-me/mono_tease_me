@@ -55,8 +55,8 @@ except ImportError:
     HAS_PYTGCALLS = False
 
 from app.core.config import settings
-from app.db.session import SessionLocal
-from app.db.models import Influencer
+from app.core.session import SessionLocal
+from app.data.models import Influencer
 from app.services.gateways.telegram.audio_bridge import (
     downsample_48k_to_16k,
     BYTES_PER_SECOND,
@@ -1004,7 +1004,7 @@ class VoiceCallSession:
 
             # 1) Send promo media + text CTA with invite link
             try:
-                from app.db.session import SessionLocal as _SessionFactory
+                from app.core.session import SessionLocal as _SessionFactory
                 from app.services.telegram_call_service import send_trial_expired_messages
 
                 async with _SessionFactory() as _db:

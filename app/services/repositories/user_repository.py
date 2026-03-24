@@ -9,7 +9,7 @@ import logging
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import User
+from app.data.models import User
 
 log = logging.getLogger(__name__)
 

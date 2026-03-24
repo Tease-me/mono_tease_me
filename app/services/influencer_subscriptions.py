@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 
-from app.db.models import InfluencerSubscription
+from app.data.models import InfluencerSubscription
 
 def _now():
     return datetime.now(timezone.utc)

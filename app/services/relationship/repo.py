@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import RelationshipState
+from app.data.models import RelationshipState
 
 
 async def get_or_create_relationship(db, user_id: int, influencer_id: str) -> RelationshipState:

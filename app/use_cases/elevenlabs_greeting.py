@@ -13,9 +13,9 @@ from app.agents.prompt_utils import get_time_context
 from app.agents.prompts import GREETING_GENERATOR
 from app.agents.turn_handler import _build_user_name_block, redis_history
 from app.data.enums import prompt_keys
-from app.db.models import CallRecord, Chat, Influencer, Message, User
-from app.db.models.chat import Memory
-from app.db.session import SessionLocal
+from app.data.models import CallRecord, Chat, Influencer, Message, User
+from app.data.models.chat import Memory
+from app.core.session import SessionLocal
 from app.services.system_prompt_service import get_system_prompt
 from app.utils.logging.prompt_logging import log_prompt
 

@@ -7,8 +7,8 @@ never raise — a tracking failure must never break user-facing flows.
 
 import logging
 
-from app.db.session import SessionLocal
-from app.db.models import TelegramInvite
+from app.core.session import SessionLocal
+from app.data.models import TelegramInvite
 from app.repositories.funnel_repository import (
     record_event,
     event_exists,

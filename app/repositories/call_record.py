@@ -4,7 +4,7 @@ from sqlalchemy import update as sa_update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import CallRecord
+from app.data.models import CallRecord
 
 
 async def upsert_pending_call_record(

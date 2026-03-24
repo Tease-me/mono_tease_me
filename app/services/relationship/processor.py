@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict
 
-from app.db.models import Influencer
+from app.data.models import Influencer
 from app.services.prompting.influencer_bio import extract_influencer_bio_context
 from app.services.relationship.repo import get_or_create_relationship
 from app.services.relationship.inactivity import apply_inactivity_decay, check_and_trigger_reengagement

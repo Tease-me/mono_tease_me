@@ -8,7 +8,7 @@ import logging
 
 from fastapi import APIRouter, BackgroundTasks, Request
 
-from app.schemas.funnel import FunnelEventReport
+from app.data.schemas.funnel import FunnelEventReport
 from app.services.funnel_tracking_service import track, lookup_invite
 from app.utils.infrastructure.rate_limiter import rate_limit
 

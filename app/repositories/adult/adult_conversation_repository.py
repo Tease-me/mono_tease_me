@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import AdultCharacter, Influencer, InfluencerCharacterMeta
+from app.data.models import AdultCharacter, Influencer, InfluencerCharacterMeta
 
 
 async def get_influencer_by_id(db: AsyncSession, influencer_id: str) -> Influencer | None:

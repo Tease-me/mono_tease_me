@@ -3,8 +3,8 @@ from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.admin.common import ensure_admin
-from app.db.models import ContentViolation, User
-from app.db.session import get_db
+from app.data.models import ContentViolation, User
+from app.core.session import get_db
 from app.utils.auth.dependencies import get_current_user
 
 router = APIRouter(tags=["admin-moderation"])

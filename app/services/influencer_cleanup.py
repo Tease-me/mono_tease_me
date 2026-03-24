@@ -9,7 +9,7 @@ from sqlalchemy import delete, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.turn_handler import redis_history
-from app.db.models import CallRecord, Chat, Chat18, Influencer, Memory, Message, Message18
+from app.data.models import CallRecord, Chat, Chat18, Influencer, Memory, Message, Message18
 
 log = logging.getLogger(__name__)
 

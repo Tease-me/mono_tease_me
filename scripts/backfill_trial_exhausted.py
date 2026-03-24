@@ -22,9 +22,9 @@ TRIAL_LIMIT = 60.0
 
 
 async def main():
-    from app.db.session import SessionLocal
-    from app.db.models.chat import CallRecord
-    from app.db.models.funnel import TelegramFunnelEvent
+    from app.core.session import SessionLocal
+    from app.data.models.chat import CallRecord
+    from app.data.models.funnel import TelegramFunnelEvent
 
     async with SessionLocal() as db:
         # Find telegram users who used >= 60s of trial time

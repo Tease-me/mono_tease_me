@@ -46,7 +46,7 @@ async def check_and_trigger_reengagement(
         return False
 
     from sqlalchemy import select
-    from app.db.models import InfluencerWallet, ReEngagementLog, Influencer, Subscription
+    from app.data.models import InfluencerWallet, ReEngagementLog, Influencer, Subscription
 
     wallet_result = await db.execute(
         select(InfluencerWallet).where(
@@ -61,7 +61,7 @@ async def check_and_trigger_reengagement(
     if total_balance < REENGAGEMENT_MIN_BALANCE_CENTS:
         return False
 
-    from app.db.models import RelationshipState
+    from app.data.models import RelationshipState
     rel_result = await db.execute(
         select(RelationshipState.last_interaction_at).where(
             RelationshipState.user_id == user_id,

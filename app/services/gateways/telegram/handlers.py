@@ -109,10 +109,10 @@ class TelegramMessageHandler:
             check_telegram_trial_eligibility,
             send_trial_expired_messages,
         )
-        from app.db.session import SessionLocal as _SessionLocal
+        from app.core.session import SessionLocal as _SessionLocal
 
         from sqlalchemy import select, func
-        from app.db.models import Influencer
+        from app.data.models import Influencer
 
         # Resolve case-insensitive influencer ID
         try:
@@ -210,8 +210,8 @@ class TelegramMessageHandler:
 
         # Resolve actual influencer ID (case-insensitive)
         from sqlalchemy import select, func
-        from app.db.models import Influencer
-        from app.db.session import SessionLocal as _SessionLocal
+        from app.data.models import Influencer
+        from app.core.session import SessionLocal as _SessionLocal
 
         try:
             async with _SessionLocal() as db:

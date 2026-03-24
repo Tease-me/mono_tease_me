@@ -1,7 +1,7 @@
 import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
-from app.db.models import Chat, Chat18
+from app.data.models import Chat, Chat18
 from datetime import datetime, timezone
 
 

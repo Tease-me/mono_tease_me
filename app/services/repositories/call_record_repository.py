@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import CallRecord, Chat
+from app.data.models import CallRecord, Chat
 
 log = logging.getLogger(__name__)
 

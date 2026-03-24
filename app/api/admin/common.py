@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 
-from app.db.models import User
+from app.data.models import User
 
 
 def ensure_admin(current_user: User) -> None:

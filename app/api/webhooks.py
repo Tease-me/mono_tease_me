@@ -13,14 +13,14 @@ from app.agents.prompts import CONVO_ANALYZER
 from fastapi import APIRouter, Depends, HTTPException, Request, Header, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
-from app.db.session import get_db, SessionLocal
+from app.core.session import get_db, SessionLocal
 from app.services.billing import charge_feature, _get_influencer_id_from_chat, resolve_voice_billing_mode
 from app.services.adult_character_billing import charge_adult_character_voice_call
 from app.repositories.call_record import claim_billing_slot, mark_billing_done, reset_billing_slot
 from app.use_cases.elevenlabs_transcript_persistence import persist_transcript_to_chat
 from app.utils.elevenlabs_conversation import extract_total_seconds
 from sqlalchemy import select
-from app.db.models import CallRecord, Chat, Influencer
+from app.data.models import CallRecord, Chat, Influencer
 from app.agents.turn_handler import  handle_turn, redis_history, _messages_since_session_break
 from app.agents.memory import find_similar_memories
 
@@ -538,7 +538,7 @@ async def eleven_webhook_get_memories(
         user_id = call.user_id
     else:
         # Fallback: Check if there's a Message with this conversation_id
-        from app.db.models import Message
+        from app.data.models import Message
         q = (
             select(Chat.id, Chat.influencer_id, Chat.user_id)
             .join(Message, Message.chat_id == Chat.id)

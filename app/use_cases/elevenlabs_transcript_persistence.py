@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.agents.memory import extract_memories_from_transcript
 from app.agents.turn_handler import redis_history
 from app.core.config import settings
-from app.db.models import Chat, Message
+from app.data.models import Chat, Message
 from app.services.moderation import handle_violation, moderate_message
 
 log = logging.getLogger(__name__)

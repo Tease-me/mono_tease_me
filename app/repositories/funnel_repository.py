@@ -9,8 +9,8 @@ import logging
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models.funnel import TelegramFunnelEvent
-from app.db.models.telegram_invite import TelegramInvite
+from app.data.models.funnel import TelegramFunnelEvent
+from app.data.models.telegram_invite import TelegramInvite
 
 log = logging.getLogger(__name__)
 

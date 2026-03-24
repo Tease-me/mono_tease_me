@@ -6,7 +6,7 @@ from app.services.adult_character_billing import (
     can_afford_adult_character_voice,
     get_remaining_adult_character_voice_secs,
 )
-from app.schemas.adult.adult_conversation import (
+from app.data.schemas.adult.adult_conversation import (
     AdultConversationTokenRequest,
     AdultConversationTokenResponse,
 )

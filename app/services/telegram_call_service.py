@@ -10,7 +10,7 @@ import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import Influencer
+from app.data.models import Influencer
 from app.services.repositories.call_record_repository import (
     get_cumulative_trial_usage,
 )

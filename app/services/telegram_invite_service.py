@@ -12,7 +12,7 @@ from dataclasses import dataclass
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import TelegramInvite, User
+from app.data.models import TelegramInvite, User
 from app.services.repositories.telegram_invite_repository import (
     get_unclaimed_invite,
     create_invite,

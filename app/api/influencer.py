@@ -7,11 +7,11 @@ from app.api.admin.common import ensure_admin
 from app.api.webhooks import _process_relationship_update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app.db.models import AdultCharacter, Influencer, InfluencerCharacterMeta, User
+from app.data.models import AdultCharacter, Influencer, InfluencerCharacterMeta, User
 from app.utils.auth.dependencies import get_current_user
 
-from app.db.session import get_db
-from app.schemas.influencer import (
+from app.core.session import get_db
+from app.data.schemas.influencer import (
     InfluencerAdultCharacterOut,
     InfluencerBio,
     InfluencerCreate,

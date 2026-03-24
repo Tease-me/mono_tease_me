@@ -1,6 +1,6 @@
 import asyncio
-from app.db.models import Influencer
-from app.db.session import SessionLocal
+from app.data.models import Influencer
+from app.core.session import SessionLocal
 
 PERSONAS = {
     "loli": {

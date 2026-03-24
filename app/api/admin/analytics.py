@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.admin.common import ensure_admin
-from app.db.models import User
-from app.db.session import get_db
+from app.data.models import User
+from app.core.session import get_db
 from app.use_cases.admin_user_analytics import (
     get_analytics_overview,
     get_user_detail,

@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 
-from app.db.session import SessionLocal
+from app.core.session import SessionLocal
 from app.gateways.elevenlabs.agents_gateway import compute_max_duration
 from app.gateways.elevenlabs.conversation_gateway import ElevenLabsConversationGateway
 from app.services.billing import get_remaining_units, resolve_voice_billing_mode

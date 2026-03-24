@@ -5,15 +5,15 @@ import logging
 
 from fastapi import APIRouter, WebSocket, Depends, File, UploadFile, HTTPException, Form, Query
 from app.agents.turn_handler import handle_turn
-from app.db.session import get_db
-from app.db.models import Message, Chat, User
+from app.core.session import get_db
+from app.data.models import Message, Chat, User
 from jose import jwt
 
 from starlette.websockets import WebSocketDisconnect
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.services.chat_service import get_or_create_chat
-from app.schemas.chat import ChatCreateRequest, PaginatedMessages
+from app.data.schemas.chat import ChatCreateRequest, PaginatedMessages
 from app.services.follow import get_follow
 from app.utils.auth.dependencies import get_current_user
 

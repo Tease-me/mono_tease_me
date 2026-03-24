@@ -7,8 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.turn_handler import redis_history
 from app.api.admin.common import ensure_admin
-from app.db.models import CallRecord, Message, Memory, Message18, User
-from app.db.session import get_db
+from app.data.models import CallRecord, Message, Memory, Message18, User
+from app.core.session import get_db
 from app.use_cases.admin_chat_info import (
     AdminChatInfoError,
     AdminChatInfoValidationError,

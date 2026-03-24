@@ -7,8 +7,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.admin.common import ensure_admin
-from app.db.models import AdultCharacter, Influencer, InfluencerCharacterMeta, User
-from app.db.session import get_db
+from app.data.models import AdultCharacter, Influencer, InfluencerCharacterMeta, User
+from app.core.session import get_db
 from app.repositories.adult_character_assets_repository import (
     get_adult_character_asset_state,
     invalidate_adult_character_asset_cache,
@@ -24,7 +24,7 @@ from app.repositories.influencer_character_assets_repository import (
     upload_influencer_character_photo,
     upload_influencer_character_video,
 )
-from app.schemas.admin import (
+from app.data.schemas.admin import (
     AdminAdultCharacterCreate,
     AdminAdultCharacterOut,
     AdminAdultCharacterUpdate,

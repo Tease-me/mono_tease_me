@@ -9,7 +9,7 @@ from sqlalchemy import and_, func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import (
+from app.data.models import (
     Chat,
     DailyUsage,
     Influencer,
@@ -438,7 +438,7 @@ async def resolve_voice_billing_mode(
 
     Centralises the subscription lookup so every billing path uses identical logic.
     """
-    from app.db.models import InfluencerSubscription
+    from app.data.models import InfluencerSubscription
 
     sub = await db.scalar(
         select(InfluencerSubscription).where(

@@ -5,7 +5,7 @@ from __future__ import annotations
 from sqlalchemy import and_, delete, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import CallRecord, Chat, Chat18, Memory, Message, Message18
+from app.data.models import CallRecord, Chat, Chat18, Memory, Message, Message18
 
 
 async def get_normal_chat_ids(db: AsyncSession, influencer_id: str, user_id: int) -> list[str]:

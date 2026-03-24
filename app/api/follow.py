@@ -3,9 +3,9 @@ import asyncio
 from fastapi import APIRouter, Depends, Path, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.models import InfluencerFollower, User
-from app.db.session import get_db
-from app.schemas.follow import FollowActionResponse, FollowListResponse, FollowStatus
+from app.data.models import InfluencerFollower, User
+from app.core.session import get_db
+from app.data.schemas.follow import FollowActionResponse, FollowListResponse, FollowStatus
 from app.services.follow import create_follow_if_missing, get_follow
 from app.api.common.influencer import ensure_influencer
 from app.utils.auth.dependencies import get_current_user
