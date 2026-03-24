@@ -8,6 +8,7 @@ import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import WelcomeCallModal from "@/ui/components/modals/welcome-call/WelcomeCallModal";
 import ValidationPill from "@/ui/components/inputs/buttons/ValidationPill";
 import LottieAnimation from "@/ui/components/LottieAnimation";
+import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import { FollowServices } from "@/api/services/FollowServices";
 import { apiClient } from "@/api/apis";
 import { Paths } from "@/routes/path";
@@ -49,6 +50,7 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
   const [error, setError] = useState<string | null>(null);
   const [waiting, setWaiting] = useState(false);
   const [landingAssets, setLandingAssets] = useState<InfluencerLandingAssetsResponse | null>(null);
+  const [heroReady, setHeroReady] = useState(false);
 
   const syncIsFirstTimeFromStorage = () => {
     setIsFirstTime(!storage.getBoolean(LocalStorageKeys.VisitedWelcome));
@@ -72,15 +74,19 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
 
   useEffect(() => {
     setInfluencerId(influencer?.id);
+    setHeroReady(false);
   }, [influencer]);
 
   useEffect(() => {
     if (!influencer?.id) return;
     let cancelled = false;
     void influencerServices.getLandingAssets(influencer.id).then((data) => {
-      if (!cancelled) setLandingAssets(data);
+      if (!cancelled) {
+        setLandingAssets(data);
+        if (!data.hero_png_url) setHeroReady(true);
+      }
     }).catch(() => {
-      // assets will simply not render if unavailable
+      if (!cancelled) setHeroReady(true);
     });
     return () => { cancelled = true; };
   }, [influencer?.id]);
@@ -123,6 +129,25 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
   };
 
   const incomingCall = status === "idle" && onTryClicked;
+
+  if (!heroReady) {
+    return (
+      <div className={styles.pageContainer}>
+        <div className={styles.loadingState}>
+          <LoadingSpinner size="medium" />
+        </div>
+        {landingAssets?.hero_png_url && (
+          <img
+            src={landingAssets.hero_png_url}
+            srcSet={landingAssets.hero_png_2x_url ? `${landingAssets.hero_png_url} 1x, ${landingAssets.hero_png_2x_url} 2x` : undefined}
+            onLoad={() => setHeroReady(true)}
+            className={styles.hiddenPreload}
+            alt=""
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className={styles.pageContainer}>
@@ -211,6 +236,7 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
                 src={landingAssets.hero_png_url}
                 alt={influencer?.name}
                 srcSet={landingAssets.hero_png_2x_url ? `${landingAssets.hero_png_url} 1x, ${landingAssets.hero_png_2x_url} 2x` : undefined}
+                onLoad={() => setHeroReady(true)}
               />
             </div>
           )}
