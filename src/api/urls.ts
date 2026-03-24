@@ -88,6 +88,10 @@ export const Endpoints = {
       assetByType: (influencerId: string, characterId: number, assetType: string) =>
         `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/assets/${assetType}`,
     },
+    influencerLandingAssets: (influencerId: string) =>
+      `admin/influencer/${encodeURIComponent(influencerId)}/landing-assets`,
+    telegramWelcomeMedia: (influencerId: string) =>
+      `admin/influencer/${encodeURIComponent(influencerId)}/telegram-welcome-media`,
     systemPrompts: {
       list: "admin/system-prompts",
       byKey: (key: string) => `admin/system-prompts/${encodeURIComponent(key)}`,

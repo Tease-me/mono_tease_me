@@ -2,16 +2,13 @@ import defaultAvatar from "@/assets/image/avatar.png";
 import mbtiData from "@/data/mbti.json";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
-import { Modal } from "@/ui/components/modals/Modal";
 import { splitName } from "@/utils/StringUtils";
 import SvgPack from "@/utils/SvgPack";
 import React, {
   ChangeEvent,
-  FormEvent,
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import { apiClient } from "@/api/apis";
@@ -33,13 +30,10 @@ type InfluencerFormState = {
   notes: string;
   voice_id: string;
   prompt_template: string;
-  custom_adult_prompt: string;
   influencer_agent_id_third_part: string;
   bio_json: PersonaProfile;
   fp_ref_id?: string | null;
 };
-
-type UploadRecord = Record<string, unknown>;
 
 type MbtiPersonality = {
   code: string;
@@ -75,107 +69,6 @@ type PersonaProfile = {
   tone: string;
   stages: PersonaStages;
   stages_focus?: keyof PersonaStages | "";
-};
-const formatRecordKey = (key: string) =>
-  key.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
-
-const formatRecordValue = (value: unknown): string => {
-  if (value === null || value === undefined) return "";
-  if (Array.isArray(value)) {
-    return value
-      .map((item) =>
-        typeof item === "object" ? JSON.stringify(item) : String(item)
-      )
-      .join(", ");
-  }
-  if (typeof value === "object") {
-    return JSON.stringify(value, null, 2);
-  }
-  return String(value);
-};
-
-const isRecord = (value: unknown): value is UploadRecord =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
-
-const parseCsvText = (text: string): UploadRecord[] => {
-  const rows: string[][] = [];
-  let currentRow: string[] = [];
-  let currentValue = "";
-  let inQuotes = false;
-
-  for (let i = 0; i < text.length; i += 1) {
-    const char = text[i];
-    if (char === '"') {
-      if (inQuotes && text[i + 1] === '"') {
-        currentValue += '"';
-        i += 1;
-      } else {
-        inQuotes = !inQuotes;
-      }
-      continue;
-    }
-
-    if ((char === "\n" || char === "\r") && !inQuotes) {
-      if (char === "\r" && text[i + 1] === "\n") {
-        i += 1;
-      }
-      currentRow.push(currentValue.trim());
-      currentValue = "";
-      if (currentRow.some((value) => value.length > 0)) {
-        rows.push(currentRow);
-      }
-      currentRow = [];
-      continue;
-    }
-
-    if (char === "," && !inQuotes) {
-      currentRow.push(currentValue.trim());
-      currentValue = "";
-      continue;
-    }
-    currentValue += char;
-  }
-
-  currentRow.push(currentValue.trim());
-  if (currentRow.some((value) => value.length > 0)) {
-    rows.push(currentRow);
-  }
-
-  if (rows.length < 1) {
-    return [];
-  }
-
-  const headers = rows[0];
-  if (rows.length === 1) {
-    return [];
-  }
-
-  return rows.slice(1).map((row) => {
-    return headers.reduce<UploadRecord>((acc, header, index) => {
-      const key = header || `column_${index + 1}`;
-      acc[key] = row[index] ?? "";
-      return acc;
-    }, {});
-  });
-};
-
-const parseUploadFileContent = (content: string): UploadRecord[] => {
-  const trimmed = content.trim();
-  if (!trimmed) {
-    return [];
-  }
-  try {
-    const parsed = JSON.parse(trimmed);
-    if (Array.isArray(parsed)) {
-      return parsed.filter(isRecord);
-    }
-    if (isRecord(parsed)) {
-      return [parsed];
-    }
-  } catch {
-    // Fallback to CSV parsing if JSON parsing fails
-  }
-  return parseCsvText(content);
 };
 
 function toDateInputValue(value: string | undefined | null) {
@@ -336,7 +229,6 @@ const createDefaultFormState = (): InfluencerFormState => ({
   notes: "",
   voice_id: "",
   prompt_template: "",
-  custom_adult_prompt: "",
   influencer_agent_id_third_part: "",
   bio_json: createDefaultPersonaProfile(),
 });
@@ -361,7 +253,6 @@ function createFormStateFromInfluencer(
     notes: "",
     voice_id: influencer.voice_id ?? "",
     prompt_template: influencer.prompt_template ?? "",
-    custom_adult_prompt: influencer.custom_adult_prompt ?? "",
     influencer_agent_id_third_part:
       influencer.influencer_agent_id_third_part ?? "",
     bio_json: extractPersonaProfile(influencer.bio_json ?? ""),
@@ -376,25 +267,14 @@ const CreateInfluencer: React.FC = () => {
     : [];
 
   const [influencers, setInfluencers] = useState<InfluencerDataModel[]>([]);
-  const [selectedId, setSelectedId] = useState<string | "new" | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [formState, setFormState] = useState<InfluencerFormState>(() =>
     createDefaultFormState()
   );
   const [searchTerm, setSearchTerm] = useState("");
-  const [csvFileName, setCsvFileName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [saveState, setSaveState] = useState<
-    "idle" | "saving" | "success" | "error"
-  >("idle");
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [uploadRecords, setUploadRecords] = useState<UploadRecord[]>([]);
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [uploadParseError, setUploadParseError] = useState<string | null>(null);
-  const [expandedRecords, setExpandedRecords] = useState<Set<number>>(
-    () => new Set<number>()
-  );
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(
-    () => new Set(["basic-info", "prompt-overrides", "relationship-stages", "knowledge"])
+    () => new Set(["basic-info", "relationship-stages", "knowledge"])
   );
   const toggleSection = (id: string) =>
     setCollapsedSections((prev) => {
@@ -410,7 +290,6 @@ const CreateInfluencer: React.FC = () => {
     dislikes: "",
   });
   const influencerRepo = useMemo(() => InfluencerRepo(), []);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ── Knowledge base state ──────────────────────────────────────
   const [kbText, setKbText]       = useState("");
@@ -440,12 +319,12 @@ const CreateInfluencer: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedId && selectedId !== "new") loadKb(selectedId);
+    if (selectedId) loadKb(selectedId);
     else { setKbText(""); setKbData(null); setHasKb(false); }
   }, [selectedId, loadKb]);
 
   const handleKbSave = async () => {
-    if (!selectedId || selectedId === "new" || !kbText.trim()) {
+    if (!selectedId || !kbText.trim()) {
       setKbError("Knowledge text is required."); return;
     }
     setSavingKb(true); setKbError(null); setKbSuccess(null);
@@ -461,9 +340,9 @@ const CreateInfluencer: React.FC = () => {
 
   const patchSection = async (sectionId: string) => {
     const existing = influencers.find((inf) => inf.id === selectedId);
-    if (!selectedId || selectedId === "new" || !existing) return;
+    if (!selectedId || !existing) return;
     const nameFromFields = `${formState.firstName} ${formState.lastName}`.trim();
-    const fullName = nameFromFields || existing.name || "New Influencer";
+    const fullName = nameFromFields || existing.name;
     const base: InfluencerDataModel = {
       id: existing.id,
       name: fullName,
@@ -473,7 +352,6 @@ const CreateInfluencer: React.FC = () => {
       earnings: existing.earnings ?? 0,
       isSelected: false,
       voice_id: formState.voice_id || existing.voice_id || "",
-      custom_adult_prompt: formState.custom_adult_prompt || existing.custom_adult_prompt || "",
       prompt_template: formState.prompt_template || existing.prompt_template || "",
       influencer_agent_id_third_part: formState.influencer_agent_id_third_part || existing.influencer_agent_id_third_part || "",
       bio_json: personaProfileToJson(formState.bio_json),
@@ -489,12 +367,10 @@ const CreateInfluencer: React.FC = () => {
         base.influencer_agent_id_third_part,
         base.bio_json,
         base.voice_id,
-        base.custom_adult_prompt
       );
       const merged = {
         ...base,
         ...serverInfluencer,
-        custom_adult_prompt: serverInfluencer.custom_adult_prompt ?? base.custom_adult_prompt,
       };
       setInfluencers((prev) => prev.map((inf) => inf.id === merged.id ? merged : inf));
       setSectionMsg((prev) => ({ ...prev, [sectionId]: { type: "success", msg: "Saved" } }));
@@ -506,22 +382,6 @@ const CreateInfluencer: React.FC = () => {
     }
   };
 
-  const getRecordLabel = (record: UploadRecord, index: number) => {
-    const candidateKeys: Array<keyof UploadRecord> = [
-      "display_name",
-      "name",
-      "username",
-      "id",
-    ];
-    for (const key of candidateKeys) {
-      const value = record[key];
-      if (typeof value === "string" && value.trim().length > 0) {
-        return value;
-      }
-    }
-    return `Row ${index + 1}`;
-  };
-
   useEffect(() => {
     let isMounted = true;
     (async () => {
@@ -530,7 +390,7 @@ const CreateInfluencer: React.FC = () => {
         const data = await influencerRepo.getInfluencers();
         if (!isMounted) return;
         setInfluencers(data);
-        setSelectedId(data.length ? data[0].id : "new");
+        setSelectedId(data.length ? data[0].id : null);
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -544,12 +404,8 @@ const CreateInfluencer: React.FC = () => {
   }, [influencerRepo]);
 
   useEffect(() => {
-    if (selectedId === "new") {
-      setFormState(createDefaultFormState());
-      return;
-    }
-
     if (selectedId === null) {
+      setFormState(createDefaultFormState());
       return;
     }
 
@@ -664,193 +520,12 @@ const CreateInfluencer: React.FC = () => {
         }));
       };
 
-  useEffect(() => {
-    if (saveState === "success" || saveState === "error") {
-      const timeout = setTimeout(() => {
-        setSaveState("idle");
-        setSaveError(null);
-      }, 3000);
-      return () => clearTimeout(timeout);
-    }
-    return undefined;
-  }, [saveState]);
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const existing =
-      selectedId !== "new"
-        ? influencers.find((influencer) => influencer.id === selectedId)
-        : undefined;
-    const nameFromFields =
-      `${formState.firstName} ${formState.lastName}`.trim();
-    const normalizedNameForUsername = nameFromFields
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "_")
-      .replace(/^_+|_+$/g, "");
-    const username =
-      existing?.username || normalizedNameForUsername || "new_influencer";
-    const fullName = nameFromFields || existing?.name || "New Influencer";
-    const thirdPartyAgentId =
-      formState.influencer_agent_id_third_part ||
-      existing?.influencer_agent_id_third_part ||
-      "";
-    const base: InfluencerDataModel = {
-      id: formState.id || existing?.id || Date.now().toString(),
-      name: fullName,
-      username,
-      img: resolveAvatarSrc(formState.avatarUrl),
-      created_at:
-        formState.created_at ||
-        existing?.created_at ||
-        new Date().toISOString().slice(0, 10),
-      earnings: existing?.earnings ?? 0,
-      isSelected: false,
-      voice_id: formState.voice_id || existing?.voice_id || "",
-      custom_adult_prompt:
-        formState.custom_adult_prompt || existing?.custom_adult_prompt || "",
-      prompt_template:
-        formState.prompt_template || existing?.prompt_template || "",
-      influencer_agent_id_third_part: thirdPartyAgentId,
-      bio_json: personaProfileToJson(formState.bio_json),
-      daily_scripts: existing?.daily_scripts ?? [],
-    };
-    const isNewInfluencer = selectedId === "new" || !existing;
-    setSaveState("saving");
-    setSaveError(null);
-    try {
-      const serverInfluencer = isNewInfluencer
-        ? await influencerRepo.createInfluencer(base)
-        : await influencerRepo.patchInfluencer(
-          base,
-          base.prompt_template,
-          existing?.daily_scripts || [],
-          base.influencer_agent_id_third_part,
-          base.bio_json,
-          base.voice_id,
-          base.custom_adult_prompt
-        );
-      const mergedInfluencer = {
-        ...base,
-        ...serverInfluencer,
-        custom_adult_prompt:
-          serverInfluencer.custom_adult_prompt ?? base.custom_adult_prompt,
-      };
-      setInfluencers((prev) => {
-        const index = prev.findIndex(
-          (influencer) => influencer.id === mergedInfluencer.id
-        );
-        if (index === -1) {
-          return [mergedInfluencer, ...prev];
-        }
-        const next = [...prev];
-        next[index] = mergedInfluencer;
-        return next;
-      });
-      setSelectedId(mergedInfluencer.id);
-      setSaveState("success");
-    } catch (err) {
-      console.error("Failed to save influencer:", err);
-      setSaveState("error");
-      setSaveError(err instanceof Error ? err.message : "Unknown error");
-    }
-  };
-
-  const handleCreateNew = () => {
-    setSelectedId("new");
-    setFormState(createDefaultFormState());
-  };
-
-  const handleReset = () => {
-    if (selectedId === "new" || selectedId === null) {
-      setFormState(createDefaultFormState());
-      return;
-    }
-    const selected = influencers.find(
-      (influencer) => influencer.id === selectedId
-    );
-    if (selected) {
-      setFormState(createFormStateFromInfluencer(selected));
-    }
-  };
-
-  const handleUploadClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) {
-      setCsvFileName(null);
-      setUploadRecords([]);
-      setIsUploadModalOpen(false);
-      return;
-    }
-    setCsvFileName(file.name);
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const text = String(reader.result ?? "");
-        const parsed = parseUploadFileContent(text);
-        if (parsed.length === 0) {
-          throw new Error("No rows detected in the uploaded file.");
-        }
-        setUploadRecords(parsed);
-        setExpandedRecords(new Set<number>());
-        setUploadParseError(null);
-        setIsUploadModalOpen(true);
-      } catch (err) {
-        console.error("Failed to parse uploaded file:", err);
-        setUploadRecords([]);
-        setIsUploadModalOpen(false);
-        setUploadParseError(
-          err instanceof Error
-            ? err.message
-            : "Unable to parse the uploaded file."
-        );
-      }
-    };
-    reader.onerror = () => {
-      console.error("Failed to read uploaded file:", reader.error);
-      setUploadParseError("Failed to read the selected file.");
-    };
-    reader.readAsText(file);
-    event.target.value = "";
-  };
-
-  const toggleRecordExpansion = (index: number) => {
-    setExpandedRecords((prev) => {
-      const next = new Set(prev);
-      if (next.has(index)) {
-        next.delete(index);
-      } else {
-        next.add(index);
-      }
-      return next;
-    });
-  };
-
-  const closeUploadModal = () => {
-    setIsUploadModalOpen(false);
-  };
-
   const avatarPreviewSrc = resolveAvatarSrc(formState.avatarUrl);
 
   return (
     <AdminLayout
-      title="Influencer Manager"
-      subtitle="Create or edit influencer profiles and prompts."
-      headerRight={
-        <div className={styles["upload-status-group"]}>
-          {csvFileName && (
-            <span className={styles["upload-feedback"]}>
-              Imported: {csvFileName}
-            </span>
-          )}
-          {uploadParseError && (
-            <span className={styles["upload-error"]}>{uploadParseError}</span>
-          )}
-        </div>
-      }
+      title="Influencer Prompt Manager"
+      subtitle="Edit influencer prompts, persona profiles, relationship-stage behavior, and knowledge."
     >
       <div className={styles["create-ai"]}>
         <AdminTwoColumn sidebar={<aside className={styles["sidebar"]}>
@@ -858,33 +533,12 @@ const CreateInfluencer: React.FC = () => {
               <div>
                 <h2 className={styles["sidebar-title"]}>Influencers</h2>
                 <p className={styles["sidebar-subtitle"]}>
-                  Select to edit or create a new profile.
+                  Select an influencer to edit their profile.
                 </p>
               </div>
-              <button
-                type="button"
-                className={styles["upload-button"]}
-                onClick={handleUploadClick}
-              >
-                Upload CSV
-              </button>
-              <input
-                className={styles["file-input"]}
-                ref={fileInputRef}
-                type="file"
-                accept=".csv"
-                onChange={handleFileChange}
-              />
             </div>
 
             <div className={styles["sidebar-actions"]}>
-              <button
-                type="button"
-                className={styles["new-button"]}
-                onClick={handleCreateNew}
-              >
-                + New Influencer
-              </button>
               <div className={styles["search"]}>
                 <input
                   value={searchTerm}
@@ -943,14 +597,10 @@ const CreateInfluencer: React.FC = () => {
             </div>
           </aside>}>
           <section className={styles["detail-panel"]}>
-            <form className={styles["detail-card"]} onSubmit={handleSubmit}>
+            <div className={styles["detail-card"]}>
               <div className={styles["detail-header"]}>
                 <div>
-                  <h2>
-                    {selectedId === "new"
-                      ? "Create new influencer"
-                      : "Edit influencer"}
-                  </h2>
+                  <h2>Edit influencer</h2>
                   <p>Fill out the profile details and save your changes.</p>
                 </div>
                 <div className={styles["avatar-preview"]}>
@@ -1083,51 +733,9 @@ const CreateInfluencer: React.FC = () => {
                       type="button"
                       className={styles["primary-button"]}
                       onClick={() => patchSection("basic-info")}
-                      disabled={!!sectionSaving["basic-info"] || !selectedId || selectedId === "new"}
+                      disabled={!!sectionSaving["basic-info"] || !selectedId}
                     >
                       {sectionSaving["basic-info"] ? "Saving…" : "Save"}
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div className={`${styles["section-card"]} ${styles["hidden"]}`}>
-                <div
-                  className={styles["section-card__header"]}
-                  onClick={() => toggleSection("prompt-overrides")}
-                >
-                  <div>
-                    <h3>18+ Prompt overrides</h3>
-                    <p>Customize 18+ prompt text used for adult content workflows.</p>
-                  </div>
-                  <span className={`${styles["section-chevron"]} ${collapsedSections.has("prompt-overrides") ? "" : styles["section-chevron--open"]}`}>▼</span>
-                </div>
-                {!collapsedSections.has("prompt-overrides") && (
-                  <div className={styles["section-card__body"]}>
-                    <div className={styles["field"]}>
-                      <label htmlFor="influencer-custom-adult-prompt">
-                        Custom adult prompt (For Voice Message 18+ Only)
-                      </label>
-                      <textarea
-                        id="influencer-custom-adult-prompt"
-                        value={formState.custom_adult_prompt}
-                        onChange={handleFieldChange("custom_adult_prompt")}
-                        placeholder="Provide a custom adult prompt override."
-                        rows={6}
-                      />
-                    </div>
-                    {sectionMsg["prompt-overrides"] && (
-                      <div className={`${styles["save-status"]} ${styles[`save-status--${sectionMsg["prompt-overrides"]!.type}`]}`}>
-                        {sectionMsg["prompt-overrides"]!.msg}
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      className={styles["primary-button"]}
-                      onClick={() => patchSection("prompt-overrides")}
-                      disabled={!!sectionSaving["prompt-overrides"] || !selectedId || selectedId === "new"}
-                    >
-                      {sectionSaving["prompt-overrides"] ? "Saving…" : "Save"}
                     </button>
                   </div>
                 )}
@@ -1275,7 +883,7 @@ const CreateInfluencer: React.FC = () => {
                       type="button"
                       className={styles["primary-button"]}
                       onClick={() => patchSection("persona-profile")}
-                      disabled={!!sectionSaving["persona-profile"] || !selectedId || selectedId === "new"}
+                      disabled={!!sectionSaving["persona-profile"] || !selectedId}
                     >
                       {sectionSaving["persona-profile"] ? "Saving…" : "Save"}
                     </button>
@@ -1361,7 +969,7 @@ const CreateInfluencer: React.FC = () => {
                       type="button"
                       className={styles["primary-button"]}
                       onClick={() => patchSection("relationship-stages")}
-                      disabled={!!sectionSaving["relationship-stages"] || !selectedId || selectedId === "new"}
+                      disabled={!!sectionSaving["relationship-stages"] || !selectedId}
                     >
                       {sectionSaving["relationship-stages"] ? "Saving…" : "Save"}
                     </button>
@@ -1417,7 +1025,7 @@ const CreateInfluencer: React.FC = () => {
                         type="button"
                         className={styles["primary-button"]}
                         onClick={handleKbSave}
-                        disabled={savingKb || !kbText.trim() || !selectedId || selectedId === "new"}
+                        disabled={savingKb || !kbText.trim() || !selectedId}
                       >
                         {savingKb ? "Saving…" : "Save knowledge"}
                       </button>
@@ -1425,136 +1033,16 @@ const CreateInfluencer: React.FC = () => {
                   </div>
                 )}
               </div>
-
-              {(selectedId === "new" || !influencers.find((inf) => inf.id === selectedId)) && (
+              {!selectedId && (
                 <div className={styles["form-footer"]}>
-                  {saveState !== "idle" && (
-                    <span
-                      className={`${styles["save-status"]} ${saveState === "success"
-                        ? styles["save-status--success"]
-                        : ""
-                        } ${saveState === "error" ? styles["save-status--error"] : ""
-                        }`}
-                    >
-                      {saveState === "success" && "Changes saved"}
-                      {saveState === "error" &&
-                        (saveError || "Failed to save changes")}
-                      {saveState === "saving" && "Saving…"}
-                    </span>
-                  )}
-                  <button
-                    type="button"
-                    className={styles["secondary-button"]}
-                    onClick={handleReset}
-                  >
-                    Reset
-                  </button>
-                  <button
-                    type="submit"
-                    className={styles["primary-button"]}
-                    disabled={saveState === "saving"}
-                  >
-                    {saveState === "saving" ? "Saving…" : "Create influencer"}
-                  </button>
+                  <span className={styles["save-status"]}>
+                    No influencers found to edit.
+                  </span>
                 </div>
               )}
-            </form>
+            </div>
           </section>
         </AdminTwoColumn>
-        <Modal
-          isOpen={isUploadModalOpen}
-          onClose={closeUploadModal}
-          size="lg"
-          ariaLabel="Uploaded influencer data preview"
-          closeOnOverlayClick
-        >
-          <div className={styles["upload-modal"]}>
-            <div className={styles["upload-modal__header"]}>
-              <div>
-                <h3>Imported records</h3>
-                <p>
-                  {csvFileName ? `${csvFileName} • ` : ""}
-                  {uploadRecords.length} row
-                  {uploadRecords.length === 1 ? "" : "s"}
-                </p>
-              </div>
-              <button
-                type="button"
-                className={styles["upload-modal__close"]}
-                onClick={closeUploadModal}
-              >
-                Close
-              </button>
-            </div>
-            {uploadRecords.length === 0 ? (
-              <div className={styles["upload-modal__empty"]}>
-                No data to preview yet.
-              </div>
-            ) : (
-              <ul className={styles["upload-modal__list"]}>
-                {uploadRecords.map((record, index) => {
-                  const isExpanded = expandedRecords.has(index);
-                  const label = getRecordLabel(record, index);
-                  const entries = Object.entries(record);
-                  return (
-                    <li
-                      key={`${label}-${index}`}
-                      className={styles["upload-modal__item"]}
-                    >
-                      <button
-                        type="button"
-                        className={`${styles["upload-modal__toggle"]} ${isExpanded
-                          ? styles["upload-modal__toggle--expanded"]
-                          : ""
-                          }`}
-                        onClick={() => toggleRecordExpansion(index)}
-                        aria-expanded={isExpanded}
-                      >
-                        <span>{label}</span>
-                        <span className={styles["upload-modal__chevron"]}>
-                          {isExpanded ? "-" : "+"}
-                        </span>
-                      </button>
-                      {isExpanded && (
-                        <div className={styles["upload-modal__body"]}>
-                          {entries.map(([key, value]) => {
-                            const formattedValue = formatRecordValue(value);
-                            const isMultiline = /\n/.test(formattedValue);
-                            return (
-                              <div
-                                key={key}
-                                className={styles["upload-modal__row"]}
-                              >
-                                <span className={styles["upload-modal__key"]}>
-                                  {formatRecordKey(key)}
-                                </span>
-                                {isMultiline ? (
-                                  <pre
-                                    className={
-                                      styles["upload-modal__value-pre"]
-                                    }
-                                  >
-                                    {formattedValue}
-                                  </pre>
-                                ) : (
-                                  <span
-                                    className={styles["upload-modal__value"]}
-                                  >
-                                    {formattedValue}
-                                  </span>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
-        </Modal>
       </div>
     </AdminLayout>
   );
