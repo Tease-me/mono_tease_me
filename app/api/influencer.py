@@ -16,12 +16,16 @@ from app.schemas.influencer import (
     InfluencerBio,
     InfluencerCreate,
     InfluencerDetail,
+    InfluencerLandingAssetsOut,
     InfluencerOut,
     InfluencerTelegramWelcomeMediaOut,
     InfluencerUpdate,
     SocialLink,
 )
-from app.use_cases.admin_influencer_assets import build_public_telegram_welcome_media_out
+from app.use_cases.admin_influencer_assets import (
+    build_public_landing_assets_out,
+    build_public_telegram_welcome_media_out,
+)
 from app.services.influencer_cleanup import (
     InfluencerDeleteError,
     InfluencerDeleteNotFoundError,
@@ -207,6 +211,21 @@ async def get_influencer_adult_characters(
         raise HTTPException(404, "Influencer not found")
 
     return await _build_influencer_adult_characters(db, influencer_id)
+
+
+@router.get(
+    "/{influencer_id}/landing-assets",
+    response_model=InfluencerLandingAssetsOut,
+)
+async def get_influencer_landing_assets(
+    influencer_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    influencer = await db.get(Influencer, influencer_id)
+    if not influencer:
+        raise HTTPException(status_code=404, detail="Influencer not found")
+
+    return await build_public_landing_assets_out(influencer)
 
 
 @router.get(
