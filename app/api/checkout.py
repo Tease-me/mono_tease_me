@@ -17,6 +17,7 @@ from app.services.billing import topup_wallet
 from app.services.firstpromoter import fp_track_sale_v2
 from app.gateways import armloop_gateway
 from app.utils.auth.dependencies import get_current_user
+from app.utils.infrastructure.rate_limiter import rate_limit
 
 log = logging.getLogger(__name__)
 
@@ -153,8 +154,10 @@ class ArmloopCheckoutRequest(BaseModel):
 
 
 @router.post("/armloop/session", response_model=ArmloopSessionResponse)
+@rate_limit(max_requests=settings.RATE_LIMIT_BILLING_MAX, window_seconds=settings.RATE_LIMIT_BILLING_WINDOW, key_prefix="armloop:session")
 async def create_armloop_session(
-    request: ArmloopCheckoutRequest,
+    request: Request,
+    body: ArmloopCheckoutRequest,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -163,10 +166,10 @@ async def create_armloop_session(
     Creates a hosted checkout session and stores pending payment record.
     User will be redirected to Armloop's checkout page to complete payment.
     """
-    if request.amount_cents <= 0:
+    if body.amount_cents <= 0:
         raise HTTPException(400, "Amount must be positive")
 
-    influencer = await db.get(Influencer, request.influencer_id)
+    influencer = await db.get(Influencer, body.influencer_id)
     if not influencer:
         raise HTTPException(404, "Influencer not found")
 
@@ -177,17 +180,17 @@ async def create_armloop_session(
     # Create payment session via Armloop
     session_data = await armloop_gateway.create_payment_session(
         transaction_id=transaction_id,
-        amount_cents=request.amount_cents,
-        return_url=request.return_url,
+        amount_cents=body.amount_cents,
+        return_url=body.return_url,
         mode="hosted",
     )
     
     # Store pending payment record
     topup = PayPalTopUp(
         user_id=current_user.id,
-        influencer_id=request.influencer_id,
+        influencer_id=body.influencer_id,
         order_id=transaction_id,
-        cents=request.amount_cents,
+        cents=body.amount_cents,
         provider="armloop",
         status="CREATED",
         credited=False,
@@ -197,7 +200,7 @@ async def create_armloop_session(
     
     log.info(
         "armloop.session_created user=%s influencer=%s amount=%d transaction_id=%s",
-        current_user.id, request.influencer_id, request.amount_cents, transaction_id,
+        current_user.id, body.influencer_id, body.amount_cents, transaction_id,
     )
     
     return ArmloopSessionResponse(**session_data)
