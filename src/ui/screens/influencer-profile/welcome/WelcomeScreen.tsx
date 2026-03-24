@@ -17,27 +17,15 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Howl } from "howler";
 import styles from "./WelcomeScreen.module.css";
 
-import lpBodyShot from "@/assets/adult/juliana/landingpage/lpbodyshot.png";
-import lpBodyShot2x from "@/assets/adult/juliana/landingpage/lpbodyshot@2x.png";
-import signatureImg from "@/assets/adult/juliana/landingpage/signature.png";
-import signatureImg2x from "@/assets/adult/juliana/landingpage/signature@2x.png";
-import image01 from "@/assets/adult/juliana/landingpage/image01.png";
-import image01x2 from "@/assets/adult/juliana/landingpage/image01@2x.png";
-import image02 from "@/assets/adult/juliana/landingpage/image02.png";
-import image02x2 from "@/assets/adult/juliana/landingpage/image02@2x.png";
-import image03 from "@/assets/adult/juliana/landingpage/image03.png";
-import image03x2 from "@/assets/adult/juliana/landingpage/image03@2x.png";
 import lpBgMinWebm from "@/assets/influencerWelcome/video/lpbgmin.webm";
 import lpBgMinMp4 from "@/assets/influencerWelcome/video/lpbgmin.mp4";
 import lpBgMinPoster from "@/assets/influencerWelcome/video/lpbgminPoster.jpg";
-import lpVideo01Webm from "@/assets/adult/juliana/video/lpvideo01min.webm";
-import lpVideo01Mp4 from "@/assets/adult/juliana/video/lpvideo01min.mp4";
-import lpVideo01Poster from "@/assets/adult/juliana/video/lpvideo01minPoster.jpg";
-import lpVideo02Webm from "@/assets/adult/juliana/video/lpvideo02min.webm";
-import lpVideo02Mp4 from "@/assets/adult/juliana/video/lpvideo02min.mp4";
-import lpVideo02Poster from "@/assets/adult/juliana/video/lpvideo02minPoster.jpg";
 import lottieAudioWave from "@/assets/influencerWelcome/lottie/lottieAudiowave.json";
 import teaseMeIcon3D from "@/assets/logos/3D-IconTeaseMe-Dark.svg";
+import { InfluencerServices } from "@/api/services/InfluencerService";
+import { InfluencerLandingAssetsResponse } from "@/api/models/influencers";
+
+const influencerServices = InfluencerServices(apiClient);
 
 export interface WelcomeScreenProps {
   influencer: InfluencerDataModel;
@@ -60,6 +48,7 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
 
   const [error, setError] = useState<string | null>(null);
   const [waiting, setWaiting] = useState(false);
+  const [landingAssets, setLandingAssets] = useState<InfluencerLandingAssetsResponse | null>(null);
 
   const syncIsFirstTimeFromStorage = () => {
     setIsFirstTime(!storage.getBoolean(LocalStorageKeys.VisitedWelcome));
@@ -84,6 +73,17 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
   useEffect(() => {
     setInfluencerId(influencer?.id);
   }, [influencer]);
+
+  useEffect(() => {
+    if (!influencer?.id) return;
+    let cancelled = false;
+    void influencerServices.getLandingAssets(influencer.id).then((data) => {
+      if (!cancelled) setLandingAssets(data);
+    }).catch(() => {
+      // assets will simply not render if unavailable
+    });
+    return () => { cancelled = true; };
+  }, [influencer?.id]);
 
   const handleSignInClick = () => {
     navigate(Paths.login, { state: { from: location.pathname } });
@@ -138,52 +138,82 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
           </div>
 
           <div className={styles.tileHolder}>
-            <div className={styles.imageSignature}>
-              <img
-                src={signatureImg}
-                alt=""
-                srcSet={`${signatureImg} 1x, ${signatureImg2x} 2x`}
-              />
-            </div>
+            {landingAssets?.signature_png_url && (
+              <div className={styles.imageSignature}>
+                <img
+                  src={landingAssets.signature_png_url}
+                  alt=""
+                  srcSet={landingAssets.signature_png_2x_url ? `${landingAssets.signature_png_url} 1x, ${landingAssets.signature_png_2x_url} 2x` : undefined}
+                />
+              </div>
+            )}
 
-            <div className={styles.image01}>
-              <img src={image01} alt="" srcSet={`${image01} 1x, ${image01x2} 2x`} />
-            </div>
+            {landingAssets?.background_image_1_url && (
+              <div className={styles.image01}>
+                <img
+                  src={landingAssets.background_image_1_url}
+                  alt=""
+                  srcSet={landingAssets.background_image_1_2x_url ? `${landingAssets.background_image_1_url} 1x, ${landingAssets.background_image_1_2x_url} 2x` : undefined}
+                />
+              </div>
+            )}
 
-            <div className={styles.image02}>
-              <img src={image02} alt="" srcSet={`${image02} 1x, ${image02x2} 2x`} />
-            </div>
+            {landingAssets?.background_image_2_url && (
+              <div className={styles.image02}>
+                <img
+                  src={landingAssets.background_image_2_url}
+                  alt=""
+                  srcSet={landingAssets.background_image_2_2x_url ? `${landingAssets.background_image_2_url} 1x, ${landingAssets.background_image_2_2x_url} 2x` : undefined}
+                />
+              </div>
+            )}
 
-            <div className={styles.lpVideo01}>
-              <video autoPlay muted playsInline loop poster={lpVideo01Poster}>
-                <source src={lpVideo01Webm} type="video/webm" />
-                <source src={lpVideo01Mp4} type="video/mp4" />
-              </video>
-            </div>
+            {landingAssets?.background_video_1_mp4_url && (
+              <div className={styles.lpVideo01}>
+                <video autoPlay muted playsInline loop poster={landingAssets.background_video_1_poster_jpg_url ?? undefined}>
+                  {landingAssets.background_video_1_webm_url && (
+                    <source src={landingAssets.background_video_1_webm_url} type="video/webm" />
+                  )}
+                  <source src={landingAssets.background_video_1_mp4_url} type="video/mp4" />
+                </video>
+              </div>
+            )}
 
-            <div className={styles.lpVideo02}>
-              <video autoPlay muted playsInline loop poster={lpVideo02Poster}>
-                <source src={lpVideo02Webm} type="video/webm" />
-                <source src={lpVideo02Mp4} type="video/mp4" />
-              </video>
-            </div>
+            {landingAssets?.background_video_2_mp4_url && (
+              <div className={styles.lpVideo02}>
+                <video autoPlay muted playsInline loop poster={landingAssets.background_video_2_poster_jpg_url ?? undefined}>
+                  {landingAssets.background_video_2_webm_url && (
+                    <source src={landingAssets.background_video_2_webm_url} type="video/webm" />
+                  )}
+                  <source src={landingAssets.background_video_2_mp4_url} type="video/mp4" />
+                </video>
+              </div>
+            )}
 
-            <div className={styles.image03}>
-              <img src={image03} alt="" srcSet={`${image03} 1x, ${image03x2} 2x`} />
-            </div>
+            {landingAssets?.background_image_3_url && (
+              <div className={styles.image03}>
+                <img
+                  src={landingAssets.background_image_3_url}
+                  alt=""
+                  srcSet={landingAssets.background_image_3_2x_url ? `${landingAssets.background_image_3_url} 1x, ${landingAssets.background_image_3_2x_url} 2x` : undefined}
+                />
+              </div>
+            )}
 
             <div className={styles.audioLottie}>
               <LottieAnimation loop autoplay animationData={lottieAudioWave} />
             </div>
           </div>
 
-          <div className={styles.lpBodyShot}>
-            <img
-              src={lpBodyShot}
-              alt={influencer?.name}
-              srcSet={`${lpBodyShot} 1x, ${lpBodyShot2x} 2x`}
-            />
-          </div>
+          {landingAssets?.hero_png_url && (
+            <div className={styles.lpBodyShot}>
+              <img
+                src={landingAssets.hero_png_url}
+                alt={influencer?.name}
+                srcSet={landingAssets.hero_png_2x_url ? `${landingAssets.hero_png_url} 1x, ${landingAssets.hero_png_2x_url} 2x` : undefined}
+              />
+            </div>
+          )}
         </div>
 
         {/* Right panel — content */}
