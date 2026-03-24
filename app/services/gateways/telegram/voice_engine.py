@@ -616,7 +616,7 @@ class VoiceCallSession:
 
             async with websockets.connect(
                 ws_url,
-                additional_headers={"Origin": "https://teaseme.live"},
+                additional_headers={"Origin": settings.FRONTEND_URL},
                 ping_interval=20,
                 ping_timeout=10,
             ) as ws:
