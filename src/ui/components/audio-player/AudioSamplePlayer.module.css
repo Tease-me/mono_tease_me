@@ -4,6 +4,13 @@
   border-radius: 16px;
   background: linear-gradient(120deg, #6d25ff 0%, #8e3bff 50%, #5c21d8 100%);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  justify-content: space-between;
+}
+
+@media (max-width: 767px) {
+  .pill {
+    width: 100%;
+  }
 }
 
 .large {
@@ -210,10 +217,13 @@
 }
 
 @keyframes wavePulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scaleY(0.8);
     opacity: 0.6;
   }
+
   50% {
     transform: scaleY(1.3);
     opacity: 1;
