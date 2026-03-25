@@ -383,11 +383,11 @@
 
 @media (max-width: 767px) {
   .page1 {
-    padding: 20px 16px 32px;
+    padding: 4px 16px 4px;
   }
 
   .header {
-    font-size: 26px;
+    font-size: 1.5rem;
   }
 
   .scenesList {
