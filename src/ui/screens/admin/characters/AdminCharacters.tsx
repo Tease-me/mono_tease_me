@@ -1,5 +1,6 @@
 import React, { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { PlusIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/outline";
+const DotLottieWC = "dotlottie-wc" as unknown as React.ComponentType<{ src?: string; speed?: string; mode?: string; loop?: boolean; autoplay?: boolean; width?: string }>;
 import { apiClient } from "@/api/apis";
 import {
   AdminAdultCharacter,
@@ -123,6 +124,18 @@ const formatDate = (value?: string | null) => {
 const getErrorMessage = (error: any, fallback: string) =>
   error?.response?.data?.detail || error?.message || fallback;
 
+const getLottieAssetFormat = (url?: string | null): "json" | "lottie" | null => {
+  if (!url) return null;
+  try {
+    const normalized = url.split("?")[0]?.toLowerCase() ?? "";
+    if (normalized.endsWith(".lottie")) return "lottie";
+    if (normalized.endsWith(".json")) return "json";
+  } catch {
+    return null;
+  }
+  return null;
+};
+
 const AdminCharacters: React.FC = () => {
   const [characters, setCharacters] = useState<AdminAdultCharacter[]>([]);
   const [loadingList, setLoadingList] = useState(true);
@@ -208,11 +221,15 @@ const AdminCharacters: React.FC = () => {
         : null,
     [characters, selectedId]
   );
+  const selectedLottieFormat = useMemo(
+    () => getLottieAssetFormat(selectedCharacter?.lottie_text_url ?? null),
+    [selectedCharacter?.lottie_text_url]
+  );
 
   useEffect(() => {
     let ignore = false;
 
-    if (!selectedCharacter?.lottie_text_url) {
+    if (!selectedCharacter?.lottie_text_url || selectedLottieFormat !== "json") {
       setLottieData(null);
       setLottieError(null);
       setLoadingLottie(false);
@@ -248,7 +265,7 @@ const AdminCharacters: React.FC = () => {
     return () => {
       ignore = true;
     };
-  }, [selectedCharacter?.id, selectedCharacter?.lottie_text_url]);
+  }, [selectedCharacter?.id, selectedCharacter?.lottie_text_url, selectedLottieFormat]);
 
   const isCreateMode = selectedId === "new";
   const isBusy = saving || deleting || uploadingAssets;
@@ -685,6 +702,10 @@ const AdminCharacters: React.FC = () => {
                                   <div className={styles["asset-empty"]}>
                                     Loading lottie preview...
                                   </div>
+                                ) : selectedLottieFormat === "lottie" && lottieUrl ? (
+                                  <div className={styles["asset-lottie"]}>
+                                    <DotLottieWC src={lottieUrl} speed="1" mode="forward" loop autoplay width="100%" />
+                                  </div>
                                 ) : lottieData ? (
                                   <div className={styles["asset-lottie"]}>
                                     <LottieAnimation autoplay loop animationData={lottieData} />
@@ -716,19 +737,19 @@ const AdminCharacters: React.FC = () => {
                               </div>
                               <FileDropzone
                                 title="Upload Lottie Text"
-                                description="Drag and drop the lottie JSON here, or browse to stage a replacement."
-                                accept=".json,application/json"
+                                description="Drag and drop the lottie file here, or browse to stage a replacement."
+                                accept=".json,.lottie,application/json"
                                 file={pendingLottie}
                                 onFileChange={(file) => setAssetFile("lottie_text", file)}
                                 onFileRemove={() => setAssetFile("lottie_text", null)}
                                 browseLabel="Browse"
                                 disabled={isCreateMode || isBusy}
-                                metaText="Accepted: .json, application/json"
+                                metaText="Accepted: .json, .lottie, application/json"
                               />
                             </>
                           )}
                           <div className={styles["helper"]}>
-                            Upload the global lottie JSON for this character.
+                            Upload the global lottie asset for this character as `.json` or `.lottie`.
                           </div>
                         </div>
                       );
