@@ -58,9 +58,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
   // Payment state
   const [isPaying, setIsPaying] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
-  const [provider, setProvider] = useState<"stripe" | "paypal" | "armloop">(
-    "armloop",
-  );
+  const [provider, setProvider] = useState<"armloop" | "stripe">("armloop");
 
   const startCheckout = async () => {
     try {
@@ -217,17 +215,23 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
         </h3>
         <div className={styles.quickCreditButtonArea}>
           <NormalButton
+            text="Armloop"
+            className={styles.quickCreditButton}
+            selected={provider === "armloop"}
+            onClick={() => setProvider("armloop")}
+          />
+          {/* <NormalButton
             text="Stripe"
             className={styles.quickCreditButton}
             selected={provider === "stripe"}
             onClick={() => setProvider("stripe")}
-          />
-          <NormalButton
+          /> */}
+          {/* <NormalButton
             text="PayPal"
             className={styles.quickCreditButton}
             selected={provider === "paypal"}
             onClick={() => setProvider("paypal")}
-          />
+          /> */}
         </div>
       </div>
     );
