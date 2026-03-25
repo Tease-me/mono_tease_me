@@ -150,8 +150,8 @@
 
 @media (max-width: 767px) {
   .upperBody {
-    height: 300px;
-    flex-basis: 300px;
+    height: 250px;
+    flex-basis: 250px;
     aspect-ratio: auto;
   }
 
@@ -161,7 +161,7 @@
   }
 
   .lowerBody {
-    height: 248px;
+    height: auto;
     padding: 44px 24px 20px;
     gap: 12px;
   }
@@ -179,5 +179,6 @@
 
   .description {
     font-size: 16px;
+    min-height: 48px;
   }
 }
