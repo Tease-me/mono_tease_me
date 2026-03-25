@@ -52,14 +52,14 @@ Create the fixed deployment directory:
 mkdir -p "$HOME/tease-me-staging"
 ```
 
-Copy the launchd plist into your user LaunchAgents directory and load it in your user launchd domain:
+The deploy script can auto-install the launch agent if it is missing. If you want to preload it manually, use:
 
 ```bash
 mkdir -p "$HOME/Library/LaunchAgents"
 cp deploy/macos/com.teaseme.staging-web.plist "$HOME/Library/LaunchAgents/com.teaseme.staging-web.plist"
-launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/com.teaseme.staging-web.plist"
-launchctl enable "gui/$(id -u)/com.teaseme.staging-web"
-launchctl kickstart -k "gui/$(id -u)/com.teaseme.staging-web"
+launchctl bootstrap "user/$(id -u)" "$HOME/Library/LaunchAgents/com.teaseme.staging-web.plist"
+launchctl enable "user/$(id -u)/com.teaseme.staging-web"
+launchctl kickstart -k "user/$(id -u)/com.teaseme.staging-web"
 ```
 
 The service runs `scripts/serve-dist.sh`, which serves the latest built `dist` directory over HTTP on port `4173`.
@@ -69,12 +69,14 @@ The service runs `scripts/serve-dist.sh`, which serves the latest built `dist` d
 The staging deploy step now restarts the app service in the runner user’s launchd domain:
 
 ```bash
-launchctl print "gui/$(id -u)/com.teaseme.staging-web"
+launchctl print "user/$(id -u)/com.teaseme.staging-web"
 launchctl setenv PORT 4173
-launchctl kickstart -k "gui/$(id -u)/com.teaseme.staging-web"
+launchctl kickstart -k "user/$(id -u)/com.teaseme.staging-web"
 ```
 
 No `sudoers` entry is needed as long as the GitHub runner and the launch agent both run under the same macOS user account.
+
+If the service is missing during deployment, `scripts/deploy-staging.sh` now copies `deploy/macos/com.teaseme.staging-web.plist` into `~/Library/LaunchAgents/`, bootstraps it in `user/$(id -u)`, enables it, and then restarts it.
 
 ## 5. Deployment flow
 
@@ -104,7 +106,7 @@ cd "$HOME/actions-runner"
 Check the app service:
 
 ```bash
-launchctl print "gui/$(id -u)/com.teaseme.staging-web"
+launchctl print "user/$(id -u)/com.teaseme.staging-web"
 curl http://localhost:4173
 ```
 
