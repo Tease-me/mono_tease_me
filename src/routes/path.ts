@@ -57,6 +57,7 @@ export const Paths = {
     paypalReturn: "/paypal/return",
     paypalCancel: "/paypal/cancel",
     diditReturn: "/didit/return",
+    armloopReturn: "/armloop/return",
     profileSelector: "/profile-selector",
     adultMode: "/adult-mode",
     underage: "/underage",

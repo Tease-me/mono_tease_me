@@ -12,8 +12,8 @@ import styles from "./TopUpModal.module.css";
 
 import { apiClient } from "@/api/apis";
 import { BillingServices } from "@/api/services/BillingServices";
-import { storage } from "@/utils/storage";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
+import { storage } from "@/utils/storage";
 
 //MAKE SURE TO PASS INFLUENCER
 const influencerTEMPORARY = "";
@@ -58,7 +58,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
   // Payment state
   const [isPaying, setIsPaying] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
-  const [provider, setProvider] = useState<"stripe" | "paypal">("stripe");
+  const [provider, setProvider] = useState<"armloop" | "stripe">("armloop");
 
   const startCheckout = async () => {
     try {
@@ -210,20 +210,28 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
           </div>
         )}
 
-        <h3 className={styles.mdText} style={{ marginTop: 16 }}>Payment Method</h3>
+        <h3 className={styles.mdText} style={{ marginTop: 16 }}>
+          Payment Method
+        </h3>
         <div className={styles.quickCreditButtonArea}>
           <NormalButton
+            text="Armloop"
+            className={styles.quickCreditButton}
+            selected={provider === "armloop"}
+            onClick={() => setProvider("armloop")}
+          />
+          {/* <NormalButton
             text="Stripe"
             className={styles.quickCreditButton}
             selected={provider === "stripe"}
             onClick={() => setProvider("stripe")}
-          />
-          <NormalButton
+          /> */}
+          {/* <NormalButton
             text="PayPal"
             className={styles.quickCreditButton}
             selected={provider === "paypal"}
             onClick={() => setProvider("paypal")}
-          />
+          /> */}
         </div>
       </div>
     );
@@ -303,7 +311,7 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
           <TabsLayout
             tabs={tabItems}
             activeTab={activeTab}
-            setActiveTab={() => { }}
+            setActiveTab={() => {}}
           />
         </div>
       )}
