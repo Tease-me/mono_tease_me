@@ -1,4 +1,5 @@
 import React, { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { PlusIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { apiClient } from "@/api/apis";
 import {
   AdminAdultCharacter,
@@ -8,6 +9,9 @@ import {
   AdminServices,
 } from "@/api/services/AdminServices";
 import LottieAnimation from "@/ui/components/LottieAnimation";
+import MaximizableTextEditor from "@/ui/components/inputs/text-inputs/MaximizableTextEditor";
+import AssetPreview from "@/ui/components/uploads/AssetPreview";
+import FileDropzone from "@/ui/components/uploads/FileDropzone";
 import AdminLayout from "@/ui/screens/admin/AdminLayout";
 import AdminTwoColumn from "@/ui/screens/admin/AdminTwoColumn";
 import chrome from "@/ui/screens/admin/shared/AdminChrome.module.css";
@@ -133,6 +137,9 @@ const AdminCharacters: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [assetFiles, setAssetFiles] = useState<AdminAdultCharacterAssetsPayload>({});
+  const [assetReplaceMode, setAssetReplaceMode] = useState<
+    Partial<Record<keyof AdminAdultCharacterAssetsPayload, boolean>>
+  >({});
   const [lottieData, setLottieData] = useState<any | null>(null);
   const [loadingLottie, setLoadingLottie] = useState(false);
   const [lottieError, setLottieError] = useState<string | null>(null);
@@ -178,6 +185,7 @@ const AdminCharacters: React.FC = () => {
     setError(null);
     setSuccessMsg(null);
     setAssetFiles({});
+    setAssetReplaceMode({});
     if (selectedId === "new") {
       setDraft(emptyDraft());
       return;
@@ -258,12 +266,23 @@ const AdminCharacters: React.FC = () => {
       setDraft((prev) => ({ ...prev, [field]: nextValue }));
     };
 
-  const handleAssetFileChange =
-    (field: keyof AdminAdultCharacterAssetsPayload) =>
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const nextFile = event.target.files?.[0] ?? null;
-      setAssetFiles((prev) => ({ ...prev, [field]: nextFile }));
-    };
+  const setAssetFile = (
+    field: keyof AdminAdultCharacterAssetsPayload,
+    nextFile: File | null
+  ) => {
+    setAssetFiles((prev) => ({ ...prev, [field]: nextFile }));
+  };
+
+  const openAssetReplaceMode = (field: keyof AdminAdultCharacterAssetsPayload) => {
+    setAssetReplaceMode((prev) => ({ ...prev, [field]: true }));
+  };
+
+  const closeAssetReplaceMode = (
+    field: keyof AdminAdultCharacterAssetsPayload
+  ) => {
+    setAssetFile(field, null);
+    setAssetReplaceMode((prev) => ({ ...prev, [field]: false }));
+  };
 
   const handleFirstMessageChange =
     (index: number) => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -384,6 +403,7 @@ const AdminCharacters: React.FC = () => {
         assetFiles
       );
       setAssetFiles({});
+      setAssetReplaceMode({});
       await loadCharacters(updated.id);
       setSuccessMsg("Character assets updated.");
     } catch (e: any) {
@@ -462,7 +482,7 @@ const AdminCharacters: React.FC = () => {
       title="Characters"
       subtitle="Manage the global adult character catalog used across the system."
     >
-      <AdminTwoColumn sidebar={sidebar}>
+      <AdminTwoColumn sidebar={sidebar} mainScrollable={false}>
         <section className={styles["main"]}>
           <div className={chrome["panelHeader"]}>
             <div>
@@ -572,74 +592,147 @@ const AdminCharacters: React.FC = () => {
                 <div className={`${styles["field"]} ${styles["field--wide"]}`}>
                   <label className={styles["label"]}>Base Assets</label>
                   <div className={styles["assets-grid"]}>
-                    <div className={styles["asset-card"]}>
-                      <div className={styles["asset-card-header"]}>
-                        <span>Default Artwork</span>
-                        <span className={styles["asset-state"]}>
-                          {selectedCharacter?.default_artwork_url ? "Ready" : "Missing"}
-                        </span>
-                      </div>
-                      <div className={styles["asset-preview"]}>
-                        {selectedCharacter?.default_artwork_url ? (
-                          <img
-                            src={selectedCharacter.default_artwork_url}
-                            alt={`${selectedCharacter.name} artwork`}
-                            className={styles["asset-image"]}
-                          />
-                        ) : (
-                          <div className={styles["asset-empty"]}>
-                            No artwork uploaded yet.
+                    {(() => {
+                      const artworkUrl = selectedCharacter?.default_artwork_url ?? null;
+                      const pendingArtwork = assetFiles.default_artwork ?? null;
+                      const showArtworkDropzone =
+                        Boolean(pendingArtwork) ||
+                        Boolean(assetReplaceMode.default_artwork) ||
+                        !artworkUrl;
+                      return (
+                        <div className={styles["asset-card"]}>
+                          {!showArtworkDropzone && (
+                            <AssetPreview
+                              label="Default Artwork"
+                              url={artworkUrl}
+                              type="image"
+                              frame="vertical"
+                              emptyLabel="No artwork uploaded yet."
+                              action={
+                                <button
+                                  type="button"
+                                  className={styles["icon-button"]}
+                                  onClick={() => openAssetReplaceMode("default_artwork")}
+                                  disabled={isCreateMode || isBusy}
+                                  aria-label="Replace default artwork"
+                                  title="Replace default artwork"
+                                >
+                                  <XMarkIcon className={styles["icon"]} aria-hidden="true" />
+                                </button>
+                              }
+                            />
+                          )}
+                          {showArtworkDropzone && (
+                            <>
+                              <div className={styles["asset-card-header"]}>
+                                <span>Default Artwork</span>
+                                {artworkUrl && (
+                                  <button
+                                    type="button"
+                                    className={styles["ghost"]}
+                                    onClick={() => closeAssetReplaceMode("default_artwork")}
+                                    disabled={isCreateMode || isBusy}
+                                  >
+                                    Cancel
+                                  </button>
+                                )}
+                              </div>
+                              <FileDropzone
+                                title="Upload Default Artwork"
+                                description="Drag and drop the base artwork here, or browse to stage a replacement."
+                                accept="image/*"
+                                file={pendingArtwork}
+                                onFileChange={(file) => setAssetFile("default_artwork", file)}
+                                onFileRemove={() => setAssetFile("default_artwork", null)}
+                                browseLabel="Browse"
+                                disabled={isCreateMode || isBusy}
+                                metaText="Accepted: image/*"
+                              />
+                            </>
+                          )}
+                          <div className={styles["helper"]}>
+                            Upload a base image used when no influencer-specific artwork exists.
                           </div>
-                        )}
-                      </div>
-                      <input
-                        className={styles["file-input"]}
-                        type="file"
-                        accept="image/*"
-                        onChange={handleAssetFileChange("default_artwork")}
-                        disabled={isCreateMode || isBusy}
-                      />
-                      <div className={styles["helper"]}>
-                        Upload a base image used when no influencer-specific artwork exists.
-                      </div>
-                    </div>
-                    <div className={styles["asset-card"]}>
-                      <div className={styles["asset-card-header"]}>
-                        <span>Lottie Text</span>
-                        <span className={styles["asset-state"]}>
-                          {selectedCharacter?.lottie_text_url ? "Ready" : "Missing"}
-                        </span>
-                      </div>
-                      <div className={styles["asset-preview"]}>
-                        {loadingLottie ? (
-                          <div className={styles["asset-empty"]}>
-                            Loading lottie preview...
+                        </div>
+                      );
+                    })()}
+                    {(() => {
+                      const lottieUrl = selectedCharacter?.lottie_text_url ?? null;
+                      const pendingLottie = assetFiles.lottie_text ?? null;
+                      const showLottieDropzone =
+                        Boolean(pendingLottie) ||
+                        Boolean(assetReplaceMode.lottie_text) ||
+                        !lottieUrl;
+                      return (
+                        <div className={styles["asset-card"]}>
+                          {!showLottieDropzone && (
+                            <>
+                              <div className={styles["asset-card-header"]}>
+                                <span>Lottie Text</span>
+                                <button
+                                  type="button"
+                                  className={styles["icon-button"]}
+                                  onClick={() => openAssetReplaceMode("lottie_text")}
+                                  disabled={isCreateMode || isBusy}
+                                  aria-label="Replace lottie text"
+                                  title="Replace lottie text"
+                                >
+                                  <XMarkIcon className={styles["icon"]} aria-hidden="true" />
+                                </button>
+                              </div>
+                              <div className={styles["asset-preview"]}>
+                                {loadingLottie ? (
+                                  <div className={styles["asset-empty"]}>
+                                    Loading lottie preview...
+                                  </div>
+                                ) : lottieData ? (
+                                  <div className={styles["asset-lottie"]}>
+                                    <LottieAnimation autoplay loop animationData={lottieData} />
+                                  </div>
+                                ) : lottieError ? (
+                                  <div className={styles["asset-empty"]}>{lottieError}</div>
+                                ) : (
+                                  <div className={styles["asset-empty"]}>
+                                    No lottie file uploaded yet.
+                                  </div>
+                                )}
+                              </div>
+                            </>
+                          )}
+                          {showLottieDropzone && (
+                            <>
+                              <div className={styles["asset-card-header"]}>
+                                <span>Lottie Text</span>
+                                {lottieUrl && (
+                                  <button
+                                    type="button"
+                                    className={styles["ghost"]}
+                                    onClick={() => closeAssetReplaceMode("lottie_text")}
+                                    disabled={isCreateMode || isBusy}
+                                  >
+                                    Cancel
+                                  </button>
+                                )}
+                              </div>
+                              <FileDropzone
+                                title="Upload Lottie Text"
+                                description="Drag and drop the lottie JSON here, or browse to stage a replacement."
+                                accept=".json,application/json"
+                                file={pendingLottie}
+                                onFileChange={(file) => setAssetFile("lottie_text", file)}
+                                onFileRemove={() => setAssetFile("lottie_text", null)}
+                                browseLabel="Browse"
+                                disabled={isCreateMode || isBusy}
+                                metaText="Accepted: .json, application/json"
+                              />
+                            </>
+                          )}
+                          <div className={styles["helper"]}>
+                            Upload the global lottie JSON for this character.
                           </div>
-                        ) : lottieData ? (
-                          <div className={styles["asset-lottie"]}>
-                            <LottieAnimation autoplay loop animationData={lottieData} />
-                          </div>
-                        ) : lottieError ? (
-                          <div className={styles["asset-empty"]}>
-                            {lottieError}
-                          </div>
-                        ) : (
-                          <div className={styles["asset-empty"]}>
-                            No lottie file uploaded yet.
-                          </div>
-                        )}
-                      </div>
-                      <input
-                        className={styles["file-input"]}
-                        type="file"
-                        accept=".json,application/json"
-                        onChange={handleAssetFileChange("lottie_text")}
-                        disabled={isCreateMode || isBusy}
-                      />
-                      <div className={styles["helper"]}>
-                        Upload the global lottie JSON for this character.
-                      </div>
-                    </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                   <div className={styles["button-row"]}>
                     <button
@@ -664,7 +757,7 @@ const AdminCharacters: React.FC = () => {
                 <div className={`${styles["field"]} ${styles["field--wide"]}`}>
                   <label className={styles["label"]}>Description</label>
                   <textarea
-                    className={styles["textarea"]}
+                    className={`${styles["textarea"]} ${styles["textarea--compact"]}`}
                     value={draft.description}
                     onChange={handleDraftChange("description")}
                     placeholder="Optional description for admins and catalog display."
@@ -676,11 +769,13 @@ const AdminCharacters: React.FC = () => {
                     <label className={styles["label"]}>First Messages</label>
                     <button
                       type="button"
-                      className={styles["ghost"]}
+                      className={styles["icon-button"]}
                       onClick={handleAddFirstMessage}
                       disabled={isBusy}
+                      aria-label="Add first message line"
+                      title="Add first message line"
                     >
-                      Add line
+                      <PlusIcon className={styles["icon"]} aria-hidden="true" />
                     </button>
                   </div>
                   {draft.first_messages.length > 0 ? (
@@ -696,11 +791,13 @@ const AdminCharacters: React.FC = () => {
                           />
                           <button
                             type="button"
-                            className={styles["ghost"]}
+                            className={`${styles["icon-button"]} ${styles["icon-button--danger"]}`}
                             onClick={() => handleRemoveFirstMessage(index)}
                             disabled={isBusy}
+                            aria-label={`Remove first message line ${index + 1}`}
+                            title="Remove first message line"
                           >
-                            Remove
+                            <TrashIcon className={styles["icon"]} aria-hidden="true" />
                           </button>
                         </div>
                       ))}
@@ -715,63 +812,46 @@ const AdminCharacters: React.FC = () => {
                   </div>
                 </div>
                 <div className={`${styles["field"]} ${styles["field--wide"]}`}>
-                  <label className={styles["label"]}>Prompt Template</label>
-                  <textarea
-                    className={styles["textarea"]}
+                  <MaximizableTextEditor
+                    label="Prompt Template"
                     value={draft.prompt_template}
                     onChange={handleDraftChange("prompt_template")}
                     placeholder="Base prompt for this character"
                     disabled={isBusy}
+                    rows={10}
+                    inlineExpandedRows={22}
+                    modalTitle={`${draft.name.trim() || "Character"} Prompt Template`}
+                    helperText="slug, name, and prompt_template are treated as required by the editor."
                   />
-                  <div className={styles["helper"]}>
-                    <code>slug</code>, <code>name</code>, and <code>prompt_template</code> are
-                    treated as required by the editor.
-                  </div>
                 </div>
               </div>
 
-              <div className={chrome["actionRow"]}>
-                <button
-                  type="button"
-                  className={styles["primary"]}
-                  onClick={handleSave}
-                  disabled={isBusy}
-                >
-                  {saving
-                    ? isCreateMode
-                      ? "Creating..."
-                      : "Saving..."
-                    : isCreateMode
-                    ? "Create character"
-                    : "Save changes"}
-                </button>
-                <button
-                  type="button"
-                  className={styles["ghost"]}
-                  onClick={() =>
-                    setDraft(selectedCharacter ? mapCharacterToDraft(selectedCharacter) : emptyDraft())
-                  }
-                  disabled={isBusy}
-                >
-                  Reset form
-                </button>
-              </div>
+              <div className={styles["footer-actions"]}>
+                <div className={styles["footer-actions-left"]}>
+                  <button
+                    type="button"
+                    className={styles["ghost"]}
+                    onClick={() =>
+                      setDraft(selectedCharacter ? mapCharacterToDraft(selectedCharacter) : emptyDraft())
+                    }
+                    disabled={isBusy}
+                  >
+                    Reset form
+                  </button>
 
-              {!isCreateMode && selectedCharacter && (
-                <>
-                  {!confirmDelete ? (
-                    <div className={chrome["actionRow"]}>
-                      <button
-                        type="button"
-                        className={styles["danger"]}
-                        onClick={() => setConfirmDelete(true)}
-                        disabled={isBusy}
-                      >
-                        Delete character
-                      </button>
-                    </div>
-                  ) : (
-                    <div className={chrome["actionRow"]}>
+                  {!isCreateMode && selectedCharacter && !confirmDelete && (
+                    <button
+                      type="button"
+                      className={styles["danger"]}
+                      onClick={() => setConfirmDelete(true)}
+                      disabled={isBusy}
+                    >
+                      Delete character
+                    </button>
+                  )}
+
+                  {!isCreateMode && selectedCharacter && confirmDelete && (
+                    <>
                       <span className={styles["confirm-label"]}>
                         Delete <strong>{selectedCharacter.name}</strong>? This cannot be undone.
                       </span>
@@ -791,10 +871,27 @@ const AdminCharacters: React.FC = () => {
                       >
                         Cancel
                       </button>
-                    </div>
+                    </>
                   )}
-                </>
-              )}
+                </div>
+
+                <div className={styles["footer-actions-right"]}>
+                  <button
+                    type="button"
+                    className={styles["primary"]}
+                    onClick={handleSave}
+                    disabled={isBusy}
+                  >
+                    {saving
+                      ? isCreateMode
+                        ? "Creating..."
+                        : "Saving..."
+                      : isCreateMode
+                      ? "Create character"
+                      : "Save changes"}
+                  </button>
+                </div>
+              </div>
             </div>
           ) : (
             <div className={chrome["emptyState"]}>Select a character to edit.</div>

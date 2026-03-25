@@ -5,9 +5,15 @@ on:
   push:
     branches:
       - main
+      - staging
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  lint:
+  lint-pr:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -25,5 +31,34 @@ jobs:
         run: yarn build
       - name: Run lint
         run: yarn lint
+
+  deploy-staging:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    runs-on:
+      - self-hosted
+      - macos
+      - staging
+    env:
+      STAGING_APP_DIR: /Users/runner/tease-me-staging
+      STAGING_SERVICE_LABEL: com.teaseme.staging-web
+      STAGING_PORT: 4173
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - name: Run build
+        run: yarn build
+      - name: Run lint
+        run: yarn lint
+      - name: Deploy staging app
+        run: ./scripts/deploy-staging.sh
 
       
