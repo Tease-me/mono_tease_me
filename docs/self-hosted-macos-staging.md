@@ -52,28 +52,29 @@ Create the fixed deployment directory:
 mkdir -p "$HOME/tease-me-staging"
 ```
 
-Copy the launchd plist into `/Library/LaunchDaemons` and load it:
+Copy the launchd plist into your user LaunchAgents directory and load it in your user launchd domain:
 
 ```bash
-sudo cp deploy/macos/com.teaseme.staging-web.plist /Library/LaunchDaemons/com.teaseme.staging-web.plist
-sudo launchctl bootstrap system /Library/LaunchDaemons/com.teaseme.staging-web.plist
-sudo launchctl enable system/com.teaseme.staging-web
-sudo launchctl kickstart -k system/com.teaseme.staging-web
+mkdir -p "$HOME/Library/LaunchAgents"
+cp deploy/macos/com.teaseme.staging-web.plist "$HOME/Library/LaunchAgents/com.teaseme.staging-web.plist"
+launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/com.teaseme.staging-web.plist"
+launchctl enable "gui/$(id -u)/com.teaseme.staging-web"
+launchctl kickstart -k "gui/$(id -u)/com.teaseme.staging-web"
 ```
 
 The service runs `scripts/serve-dist.sh`, which serves the latest built `dist` directory over HTTP on port `4173`.
 
 ## 4. Allow the runner to restart the app service
 
-The staging deploy step restarts the app service with `sudo -n launchctl kickstart -k system/com.teaseme.staging-web`.
+The staging deploy step now restarts the app service in the runner user’s launchd domain:
 
-Grant the runner user passwordless access for that command in `sudoers`. Example:
-
-```text
-runner ALL=(root) NOPASSWD: /bin/launchctl print system/com.teaseme.staging-web, /bin/launchctl setenv PORT *, /bin/launchctl kickstart -k system/com.teaseme.staging-web
+```bash
+launchctl print "gui/$(id -u)/com.teaseme.staging-web"
+launchctl setenv PORT 4173
+launchctl kickstart -k "gui/$(id -u)/com.teaseme.staging-web"
 ```
 
-Adjust the username if the runner does not run as `runner`.
+No `sudoers` entry is needed as long as the GitHub runner and the launch agent both run under the same macOS user account.
 
 ## 5. Deployment flow
 
@@ -103,7 +104,7 @@ cd "$HOME/actions-runner"
 Check the app service:
 
 ```bash
-sudo launchctl print system/com.teaseme.staging-web
+launchctl print "gui/$(id -u)/com.teaseme.staging-web"
 curl http://localhost:4173
 ```
 
