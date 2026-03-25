@@ -11,6 +11,7 @@ import { formatTime } from "@/utils/time";
 import { showErrorModal } from "@/utils/errorModal";
 import AddCreditsModal from "@/ui/components/modals/payment-modal/AddCreditsModal";
 import { useAgeVerification } from "@/hooks/useAgeVerification";
+import { RELATIONSHIP_MODE_AVAILABLE } from "@/constants/featureFlags";
 
 const AdultTermsModal = lazy(() => import("@/ui/components/modals/adult-terms/AdultTermsModal"));
 
@@ -234,7 +235,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
   }, [influencerId]);
 
   const handleSelectScenario = (scene: Scene) => {
-    if (scene.slug !== "girlfriend" && needsGate) {
+    if (scene.slug !== "relationship" && needsGate) {
       setPendingScene(scene);
       return;
     }
@@ -273,7 +274,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
     await stopConversation();
   };
 
-  const isGirlfriendScene = selectedScene?.slug === "girlfriend";
+  const isRelationshipScene = selectedScene?.slug === "relationship";
 
   const showVideo =
     Boolean(selectedScene?.video.webm) || Boolean(selectedScene?.video.mp4);
@@ -299,17 +300,18 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
             <div
               className={`${styles.scenesList} ${scenes.length > 1 ? styles.edgeFade : ""}`}
             >
-              {scenes.map((scene) => (
-                <div key={scene.id} className={`${styles.sceneItem}${scene.slug === "girlfriend" ? ` ${styles.girlfriendSceneItem}` : ""}`}>
+              {scenes.filter((scene) => RELATIONSHIP_MODE_AVAILABLE || scene.slug !== "relationship").map((scene) => (
+                <div key={scene.id} className={`${styles.sceneItem}${scene.slug === "relationship" ? ` ${styles.relationshipSceneItem}` : ""}`}>
                   <AdultSceneSelector
                     name={scene.name}
                     description={scene.description}
                     imageSmallSrc={scene.image.small}
                     imageLargeSrc={scene.image.large}
                     titlePlaceholderData={scene.titlePlaceholderData}
-                    isGirlfriend={scene.slug === "girlfriend"}
+                    isRelationship={scene.slug === "relationship"}
                     samples={scene.samples}
                     ageVerified={!needsGate && !verificationRequired}
+                    onLockedClick={() => setPendingScene(scene)}
                   />
                   <IconButton
                     onClick={() => handleSelectScenario(scene)}
@@ -379,7 +381,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                       {selectedScene.scenarioDetails}
                     </div>
                     <div className={styles.previewActions}>
-                      {isGirlfriendScene ? (
+                      {isRelationshipScene ? (
                         <IconButton
                           onClick={onGirlfriendModeSelected}
                           color="black"
@@ -409,7 +411,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                   </div>
                 </>
               )}
-              {!isGirlfriendScene && (
+              {!isRelationshipScene && (
                 <div
                   className={`${styles.activePanel} ${sessionState === "active" ? styles.activePanelVisible : styles.activePanelHidden}`}
                 >
@@ -441,7 +443,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                   {selectedScene.scenarioDetails}
                 </div>
                 <div className={styles.previewActions}>
-                  {isGirlfriendScene ? (
+                  {isRelationshipScene ? (
                     <IconButton
                       onClick={onGirlfriendModeSelected}
                       color="black"

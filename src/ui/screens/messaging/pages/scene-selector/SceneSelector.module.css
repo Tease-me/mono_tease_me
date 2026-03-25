@@ -95,17 +95,17 @@
   align-self: center;
 }
 
-.girlfriendSceneItem .sceneButton {
+.relationshipSceneItem .sceneButton {
   background:
     linear-gradient(250deg, var(----tm-black-color06, rgba(33, 33, 33, 0.70)) 8.83%, var(----tm-black-color03, rgba(46, 46, 46, 0.70)) 13.08%, var(----tm-black-color02, rgba(51, 51, 51, 0.70)) 23.52%, var(----tm-black-color03, rgba(46, 46, 46, 0.70)) 35.88%, var(----tm-black-color08, rgba(20, 20, 20, 0.70)) 61.39%, var(----tm-black-color05, rgba(35, 37, 42, 0.70)) 89.22%),
     linear-gradient(82deg, var(----tm-purple-color12, #19042E) 11.75%, var(----tm-purple-color11, #2C084D) 25.54%, var(----tm-purple-color12, #19042E) 46.73%, var(----tm-purple-color11, #2C084D) 65.34%, var(----tm-pink-color09, #E0004B) 82.28%, var(----tm-purple-color12, #19042E) 90.95%) !important;
 }
 
-.girlfriendSceneItem .sceneButton :global([class*="button-cta-inner"]) {
+.relationshipSceneItem .sceneButton :global([class*="button-cta-inner"]) {
   background: transparent !important;
 }
 
-.girlfriendSceneItem .sceneButton :global([class*="circle-shine"]) {
+.relationshipSceneItem .sceneButton :global([class*="circle-shine"]) {
   opacity: 0.05 !important;
   mix-blend-mode: inherit;
 }
@@ -383,11 +383,11 @@
 
 @media (max-width: 767px) {
   .page1 {
-    padding: 20px 16px 32px;
+    padding: 4px 16px 4px;
   }
 
   .header {
-    font-size: 26px;
+    font-size: 1.5rem;
   }
 
   .scenesList {
@@ -398,8 +398,8 @@
   }
 
   .sceneItem {
-    flex: 0 0 min(320px, calc(100vw - 88px));
-    width: min(320px, calc(100vw - 88px));
+    flex: 0 0 min(320px, calc(100vw - 60px));
+    width: min(320px, calc(100vw - 60px));
     max-width: none;
     scroll-snap-align: unset;
   }
