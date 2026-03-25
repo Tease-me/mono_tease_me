@@ -29,10 +29,10 @@ mkdir -p /Users/runner/actions-runner
 cd /Users/runner/actions-runner
 ```
 
-Download and configure the GitHub self-hosted runner for this repository. When prompted for labels, include:
+Download and configure the GitHub self-hosted runner for this repository. The runner should have these labels:
 
 ```text
-self-hosted,macos,staging
+self-hosted,macOS,X64
 ```
 
 Install and start the runner as a service:
@@ -77,7 +77,12 @@ Adjust the username if the runner does not run as `runner`.
 
 ## 5. Deployment flow
 
-The workflow in `.github/workflows/lint.yml` does this on a push to `staging`:
+The repo now uses two workflows:
+
+- `.github/workflows/lint.yml` for PR validation on opened, synchronized, and reopened pull requests
+- `.github/workflows/deploy-staging.yml` for merged pull requests whose base branch is `staging`
+
+The staging deploy workflow does this when a PR is merged into `staging`:
 
 1. Run checkout, install, build, and lint on the self-hosted runner.
 2. Sync the checked out repo into `/Users/runner/tease-me-staging`.
