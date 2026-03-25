@@ -310,6 +310,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                     isGirlfriend={scene.slug === "girlfriend"}
                     samples={scene.samples}
                     ageVerified={!needsGate && !verificationRequired}
+                    onLockedClick={() => setPendingScene(scene)}
                   />
                   <IconButton
                     onClick={() => handleSelectScenario(scene)}
