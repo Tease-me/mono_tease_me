@@ -28,7 +28,7 @@
   border-radius: 16px 16px 0 0;
 }
 
-.girlfriend {
+.relationship {
   background: radial-gradient(54.08% 54.08% at 50% 85.74%, #FF0F5F 0%, #000 100%);
 }
 
@@ -64,7 +64,7 @@
   padding: 20px 20px 0;
 }
 
-.girlfriend .image {
+.relationship .image {
   object-position: center bottom;
 }
 
@@ -99,7 +99,7 @@
   /* 24px */
 }
 
-.girlfriendName {
+.relationshipName {
   color: #FF0F5F;
 }
 

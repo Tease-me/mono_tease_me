@@ -10,7 +10,7 @@ type Props = {
   imageSmallSrc: string | null;
   imageLargeSrc: string | null;
   titlePlaceholderData: unknown | null;
-  isGirlfriend?: boolean;
+  isRelationship?: boolean;
   samples?: { normal: string[]; explicit: string[] };
   ageVerified?: boolean;
   onLockedClick?: () => void;
@@ -22,7 +22,7 @@ export default function AdultSceneSelector({
   imageSmallSrc,
   imageLargeSrc,
   titlePlaceholderData,
-  isGirlfriend,
+  isRelationship,
   samples,
   ageVerified = false,
   onLockedClick,
@@ -45,7 +45,7 @@ export default function AdultSceneSelector({
   return (
     <div className={styles.card}>
       <div className={styles.upperBody}>
-        <div className={`${styles.imageArea}${isGirlfriend ? ` ${styles.girlfriend}` : ""}`}>
+        <div className={`${styles.imageArea}${isRelationship ? ` ${styles.relationship}` : ""}`}>
           {titlePlaceholderData != null ? (
             <div className={styles.titlePlaceholder} aria-hidden="true">
               <LottieAnimation autoplay loop animationData={titlePlaceholderData} />
@@ -64,7 +64,7 @@ export default function AdultSceneSelector({
           )}
         </div>
       </div>
-      <div className={`${styles.name}${isGirlfriend ? ` ${styles.girlfriendName}` : ""}`}>{name}</div>
+      <div className={`${styles.name}${isRelationship ? ` ${styles.relationshipName}` : ""}`}>{name}</div>
       <div className={styles.lowerBody}>
         <div className={styles.description}>{description}</div>
         {hasSamples && (
