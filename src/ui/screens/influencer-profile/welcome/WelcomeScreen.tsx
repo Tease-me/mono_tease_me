@@ -37,9 +37,6 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [isFirstTime, setIsFirstTime] = useState(
-    () => !storage.getBoolean(LocalStorageKeys.VisitedWelcome),
-  );
   const [onTryClicked, setOnTryClicked] = useState(false);
   const { status, startConversation, stopConversation, setInfluencerId } = useCall();
 
@@ -52,18 +49,6 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
   const [landingAssets, setLandingAssets] = useState<InfluencerLandingAssetsResponse | null>(null);
   const [heroReady, setHeroReady] = useState(false);
 
-  const syncIsFirstTimeFromStorage = () => {
-    setIsFirstTime(!storage.getBoolean(LocalStorageKeys.VisitedWelcome));
-  };
-
-  useEffect(() => {
-    if (status === "connected") {
-      storage.setBoolean(LocalStorageKeys.VisitedWelcome, true);
-      syncIsFirstTimeFromStorage();
-    } else if (status === "disconnected") {
-      syncIsFirstTimeFromStorage();
-    }
-  }, [status]);
 
   useEffect(() => {
     return () => {
@@ -108,8 +93,6 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
   const handleHangUpCall = () => {
     audioRef.current.stop();
     stopConversation();
-    storage.setBoolean(LocalStorageKeys.VisitedWelcome, true);
-    syncIsFirstTimeFromStorage();
     setOnTryClicked(false);
   };
 
@@ -273,7 +256,7 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
                   Hi, I'm your <div className={styles.modelName}>{influencer?.name}</div>
                 </div>
                 <div className={styles.greetingRow03}>
-                  {showFollowBtn ? (
+                  {showFollowBtn && (
                     <IconButton
                       color="pink-glass"
                       text={waiting ? "Connecting.." : "Follow me now"}
@@ -281,37 +264,13 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
                       disabled={waiting}
                       className={styles.fullBtn}
                     />
-                  ) : isFirstTime ? (
-                    <IconButton
-                      color="pink-glass"
-                      text="Talk dirty to me"
-                      leftIcon={<CallIcon />}
-                      onClick={() => {
-                        startConversation();
-                        setOnTryClicked(true);
-                      }}
-                      className={styles.autoBtn}
-                    />
-                  ) : (
-                    <IconButton
-                      color="pink-glass"
-                      text="Sign in with email"
-                      onClick={handleSignInClick}
-                      className={styles.autoBtn}
-                    />
                   )}
                 </div>
-                <div className={styles.greetingRow04}>Free 30 Second Trial. Try Now.</div>
+                {!showFollowBtn && <div className={styles.greetingRow04}>Sign up for free to unlock exclusive access and let me whisper what you need when the lights go down.</div>}
               </div>
 
               {!showFollowBtn && (
                 <>
-                  <div className={styles.orRow}>
-                    <div className={styles.orDivider} />
-                    <div className={styles.orRowCol02}>or</div>
-                    <div className={styles.orDivider} />
-                  </div>
-
                   <div className={styles.ctaContainer}>
                     <div className={styles.ctaRow01}>
                       <p>No payment or credit card required</p>
