@@ -78,6 +78,15 @@ No `sudoers` entry is needed as long as the GitHub runner and the launch agent b
 
 If the service is missing during deployment, `scripts/deploy-staging.sh` now copies `deploy/macos/com.teaseme.staging-web.plist` into `~/Library/LaunchAgents/`, bootstraps it in `user/$(id -u)`, enables it, and then restarts it.
 
+If the runner cannot use a user launchd domain, the deploy script also falls back to a system daemon at `/Library/LaunchDaemons/com.teaseme.staging-web.plist`. That fallback requires passwordless `sudo` for:
+
+```text
+/bin/launchctl print system/com.teaseme.staging-web
+/bin/launchctl bootstrap system /Library/LaunchDaemons/com.teaseme.staging-web.plist
+/bin/launchctl enable system/com.teaseme.staging-web
+/bin/launchctl kickstart -k system/com.teaseme.staging-web
+```
+
 ## 5. Deployment flow
 
 The repo now uses two workflows:
