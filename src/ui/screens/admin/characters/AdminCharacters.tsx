@@ -136,6 +136,42 @@ const getLottieAssetFormat = (url?: string | null): "json" | "lottie" | null => 
   return null;
 };
 
+const detectLottieFormatFromResponse = async (
+  response: Response,
+  urlHint: "json" | "lottie" | null
+): Promise<{ format: "json" | "lottie"; jsonData?: any }> => {
+  const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
+  const buffer = await response.arrayBuffer();
+  const bytes = new Uint8Array(buffer.slice(0, 8));
+
+  if (bytes[0] === 0x50 && bytes[1] === 0x4b) {
+    return { format: "lottie" };
+  }
+
+  const text = new TextDecoder("utf-8").decode(buffer);
+  const trimmed = text.trim();
+  if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+    return {
+      format: "json",
+      jsonData: JSON.parse(text),
+    };
+  }
+
+  if (
+    contentType.includes("application/zip") ||
+    contentType.includes("application/octet-stream") ||
+    contentType.includes("application/x-zip") ||
+    contentType.includes("application/x-zip-compressed") ||
+    contentType.includes("application/vnd.lottie") ||
+    urlHint === "lottie" ||
+    trimmed.startsWith("PK")
+  ) {
+    return { format: "lottie" };
+  }
+
+  throw new Error("Failed to detect lottie preview format.");
+};
+
 const AdminCharacters: React.FC = () => {
   const [characters, setCharacters] = useState<AdminAdultCharacter[]>([]);
   const [loadingList, setLoadingList] = useState(true);
@@ -154,6 +190,7 @@ const AdminCharacters: React.FC = () => {
     Partial<Record<keyof AdminAdultCharacterAssetsPayload, boolean>>
   >({});
   const [lottieData, setLottieData] = useState<any | null>(null);
+  const [resolvedLottieFormat, setResolvedLottieFormat] = useState<"json" | "lottie" | null>(null);
   const [loadingLottie, setLoadingLottie] = useState(false);
   const [lottieError, setLottieError] = useState<string | null>(null);
 
@@ -233,25 +270,34 @@ const AdminCharacters: React.FC = () => {
       setLottieData(null);
       setLottieError(null);
       setLoadingLottie(false);
-      return;
+      setResolvedLottieFormat(selectedLottieFormat);
+      if (selectedLottieFormat === "lottie") {
+        return;
+      }
+      if (!selectedCharacter?.lottie_text_url) {
+        return;
+      }
     }
 
     const loadLottie = async () => {
       setLoadingLottie(true);
       setLottieError(null);
       setLottieData(null);
+      setResolvedLottieFormat(selectedLottieFormat);
       try {
         const response = await fetch(selectedCharacter.lottie_text_url as string);
         if (!response.ok) {
           throw new Error("Failed to load lottie preview.");
         }
-        const data = await response.json();
+        const detected = await detectLottieFormatFromResponse(response, selectedLottieFormat);
         if (!ignore) {
-          setLottieData(data);
+          setResolvedLottieFormat(detected.format);
+          setLottieData(detected.format === "json" ? detected.jsonData ?? null : null);
         }
       } catch (e: any) {
         if (!ignore) {
           setLottieError(e?.message || "Failed to load lottie preview.");
+          setResolvedLottieFormat(null);
         }
       } finally {
         if (!ignore) {
@@ -702,7 +748,7 @@ const AdminCharacters: React.FC = () => {
                                   <div className={styles["asset-empty"]}>
                                     Loading lottie preview...
                                   </div>
-                                ) : selectedLottieFormat === "lottie" && lottieUrl ? (
+                                ) : resolvedLottieFormat === "lottie" && lottieUrl ? (
                                   <div className={styles["asset-lottie"]}>
                                     <DotLottieWC src={lottieUrl} speed="1" mode="forward" loop autoplay width="100%" />
                                   </div>
