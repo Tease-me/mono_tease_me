@@ -28,6 +28,9 @@ export const Endpoints = {
     createCheckout: "/billing/create-checkout",
     verifyCheckout: "/billing/verify-checkout",
   },
+  armloop: {
+    createSession: "/checkout/armloop/session",
+  },
   chat: {
     start: "/chat",
     history: (chat_id: string) => `/chat/history/${chat_id}`,
@@ -71,6 +74,7 @@ export const Endpoints = {
   influencers: "/influencer",
   influencer: (id: string) => `/influencer/${id}`,
   influencerBio: (id: string) => `/influencer/${id}/bio`,
+  influencerLandingAssets: (id: string) => `/influencer/${id}/landing-assets`,
   relationship_update: `influencer/relationship_update`,
   adult_characters: (id: string) => `/influencer/${id}/adult-characters`,
   uploadCsv: "persona/import-csv",

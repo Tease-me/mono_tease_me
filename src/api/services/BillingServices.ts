@@ -19,9 +19,10 @@ export type TopUpRes = {
 export type CreateCheckoutReq = {
   influencer_id: string;
   purpose: "subscription" | "addon" | "topup";
-  provider: "stripe" | "paypal";
+  provider: "stripe" | "paypal" | "armloop";
   plan_id?: number;
   amount_cents?: number;
+  return_url?: string;
 };
 
 export type CreateCheckoutRes = {
@@ -34,6 +35,8 @@ export type CreateCheckoutRes = {
 
 export type VerifyCheckoutReq = {
   checkout_id: string;
+  session_id?: string;
+  session_result?: string;
 };
 
 export type VerifyCheckoutRes = {
