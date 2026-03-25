@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { apiClient } from "@/api/apis";
 import {
   AdminInfluencerCharacterAssetsPayload,
@@ -10,8 +10,10 @@ import type { AdminInfluencerCharacter as AdminInfluencerCharacterRow } from "@/
 import type { CharacterAudioSample, CharacterSamples } from "@/api/models/adultCharacters";
 import { InfluencerServices } from "@/api/services/InfluencerService";
 import { InfluencerResponse } from "@/api/models/influencers";
+import AssetPreview, { AssetPreviewType } from "@/ui/components/uploads/AssetPreview";
 import AdminLayout from "@/ui/screens/admin/AdminLayout";
 import AdminTwoColumn from "@/ui/screens/admin/AdminTwoColumn";
+import FileDropzone from "@/ui/components/uploads/FileDropzone";
 import chrome from "@/ui/screens/admin/shared/AdminChrome.module.css";
 import styles from "./AdminInfluencerCharacter.module.css";
 
@@ -28,12 +30,61 @@ const UPLOAD_SLOTS: Array<{
   label: string;
   hint: string;
   accept: string;
+  previewKind: AssetPreviewType;
+  previewUrlKey: keyof AdminInfluencerCharacterRow;
+  emptyLabel: string;
+  metaText: string;
 }> = [
-  { field: "photo", label: "Photo", hint: "Main character image", accept: "image/*" },
-  { field: "photo_2x", label: "Photo 2x", hint: "Retina image variant", accept: "image/*" },
-  { field: "video_mp4", label: "Video MP4", hint: "Primary video source", accept: "video/mp4" },
-  { field: "video_webm", label: "Video WEBM", hint: "Alternative video source", accept: "video/webm" },
-  { field: "video_preview_png", label: "Video Poster", hint: "Poster image for preview", accept: "image/*" },
+  {
+    field: "photo",
+    label: "Photo",
+    hint: "Main character image.",
+    accept: "image/*",
+    previewKind: "image",
+    previewUrlKey: "photo_url",
+    emptyLabel: "No photo uploaded",
+    metaText: "Accepted: image/*",
+  },
+  {
+    field: "photo_2x",
+    label: "Photo 2x",
+    hint: "Retina image variant.",
+    accept: "image/*",
+    previewKind: "image",
+    previewUrlKey: "photo_2x_url",
+    emptyLabel: "No 2x photo uploaded",
+    metaText: "Accepted: image/*",
+  },
+  {
+    field: "video_mp4",
+    label: "Video MP4",
+    hint: "Primary video source.",
+    accept: "video/mp4",
+    previewKind: "video",
+    previewUrlKey: "video_mp4_url",
+    emptyLabel: "No MP4 video uploaded",
+    metaText: "Accepted: video/mp4",
+  },
+  {
+    field: "video_webm",
+    label: "Video WEBM",
+    hint: "Alternative video source.",
+    accept: "video/webm",
+    previewKind: "video",
+    previewUrlKey: "video_webm_url",
+    emptyLabel: "No WEBM video uploaded",
+    metaText: "Accepted: video/webm",
+  },
+  {
+    field: "video_preview_png",
+    label: "Video Poster",
+    hint: "Poster image for preview.",
+    accept: "image/*",
+    previewKind: "image",
+    previewUrlKey: "video_preview_png_url",
+    emptyLabel: "No video poster uploaded",
+    metaText: "Accepted: image/*",
+  },
 ];
 
 const getErrorMessage = (error: any, fallback: string) =>
@@ -54,6 +105,9 @@ const AdminInfluencerCharacter: React.FC = () => {
   const [pendingUploads, setPendingUploads] = useState<
     Record<number, AdminInfluencerCharacterAssetsPayload>
   >({});
+  const [assetReplaceMode, setAssetReplaceMode] = useState<
+    Record<number, Partial<Record<keyof AdminInfluencerCharacterAssetsPayload, boolean>>>
+  >({});
   const [busyUploads, setBusyUploads] = useState<Record<number, boolean>>({});
   const [busyDeletes, setBusyDeletes] = useState<Record<string, boolean>>({});
 
@@ -63,7 +117,6 @@ const AdminInfluencerCharacter: React.FC = () => {
   >({});
   const [busySampleUploads, setBusySampleUploads] = useState<Record<string, boolean>>({});
   const [busySampleDeletes, setBusySampleDeletes] = useState<Record<string, boolean>>({});
-  const sampleInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
     let active = true;
@@ -98,6 +151,7 @@ const AdminInfluencerCharacter: React.FC = () => {
       const data = await admin.listInfluencerAdultCharacters(influencerId);
       setCharacters(data || []);
       setPendingUploads({});
+      setAssetReplaceMode({});
     } catch (e: any) {
       setCharacters([]);
       setCharacterError(
@@ -118,10 +172,12 @@ const AdminInfluencerCharacter: React.FC = () => {
     }
   }, [selectedInfluencerId, loadCharacters]);
 
-  const handleFileChange =
-    (characterId: number, field: keyof AdminInfluencerCharacterAssetsPayload) =>
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const nextFile = event.target.files?.[0] ?? null;
+  const setPendingFile = useCallback(
+    (
+      characterId: number,
+      field: keyof AdminInfluencerCharacterAssetsPayload,
+      nextFile: File | null
+    ) => {
       setPendingUploads((prev) => ({
         ...prev,
         [characterId]: {
@@ -129,7 +185,9 @@ const AdminInfluencerCharacter: React.FC = () => {
           [field]: nextFile,
         },
       }));
-    };
+    },
+    []
+  );
 
   const clearPendingFile = (
     characterId: number,
@@ -149,6 +207,36 @@ const AdminInfluencerCharacter: React.FC = () => {
       };
     });
   };
+
+  const openAssetReplaceMode = useCallback(
+    (characterId: number, field: keyof AdminInfluencerCharacterAssetsPayload) => {
+      setAssetReplaceMode((prev) => ({
+        ...prev,
+        [characterId]: {
+          ...(prev[characterId] || {}),
+          [field]: true,
+        },
+      }));
+    },
+    []
+  );
+
+  const closeAssetReplaceMode = useCallback(
+    (
+      characterId: number,
+      field: keyof AdminInfluencerCharacterAssetsPayload
+    ) => {
+      clearPendingFile(characterId, field);
+      setAssetReplaceMode((prev) => ({
+        ...prev,
+        [characterId]: {
+          ...(prev[characterId] || {}),
+          [field]: false,
+        },
+      }));
+    },
+    []
+  );
 
   const hasPendingFiles = (payload?: AdminInfluencerCharacterAssetsPayload) =>
     Boolean(
@@ -211,42 +299,48 @@ const AdminInfluencerCharacter: React.FC = () => {
     }
   };
 
-  const handleSampleFileChange =
-    (characterId: number, sampleType: AudioSampleType) =>
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0] ?? null;
+  const setPendingSampleFile = useCallback(
+    (characterId: number, sampleType: AudioSampleType, file: File | null) => {
       setPendingSamples((prev) => ({
         ...prev,
-        [characterId]: { ...(prev[characterId] ?? { normal: null, explicit: null }), [sampleType]: file },
+        [characterId]: {
+          ...(prev[characterId] ?? { normal: null, explicit: null }),
+          [sampleType]: file,
+        },
       }));
-    };
+    },
+    []
+  );
 
-  const handleSampleUpload = async (characterId: number, sampleType: AudioSampleType) => {
-    if (!selectedInfluencerId) return;
-    const file = pendingSamples[characterId]?.[sampleType];
-    if (!file) return;
+  const handleSampleUpload = useCallback(
+    async (characterId: number, sampleType: AudioSampleType) => {
+      if (!selectedInfluencerId) return;
+      const file = pendingSamples[characterId]?.[sampleType];
+      if (!file) return;
 
-    const key = `${characterId}:${sampleType}`;
-    setBusySampleUploads((prev) => ({ ...prev, [key]: true }));
-    setPageMessage(null);
-    setCharacterError(null);
-    try {
-      await admin.uploadInfluencerCharacterSample(selectedInfluencerId, characterId, sampleType, file);
-      await loadCharacters(selectedInfluencerId);
-      setExpandedCharacterId(characterId);
-      setPageMessage("Sample uploaded.");
-      setPendingSamples((prev) => ({
-        ...prev,
-        [characterId]: { ...(prev[characterId] ?? { normal: null, explicit: null }), [sampleType]: null },
-      }));
-      const ref = sampleInputRefs.current[key];
-      if (ref) ref.value = "";
-    } catch (e: any) {
-      setCharacterError(getErrorMessage(e, "Sample upload failed."));
-    } finally {
-      setBusySampleUploads((prev) => ({ ...prev, [key]: false }));
-    }
-  };
+      const key = `${characterId}:${sampleType}`;
+      setBusySampleUploads((prev) => ({ ...prev, [key]: true }));
+      setPageMessage(null);
+      setCharacterError(null);
+      try {
+        await admin.uploadInfluencerCharacterSample(
+          selectedInfluencerId,
+          characterId,
+          sampleType,
+          file
+        );
+        await loadCharacters(selectedInfluencerId);
+        setExpandedCharacterId(characterId);
+        setPageMessage("Sample uploaded.");
+        setPendingSampleFile(characterId, sampleType, null);
+      } catch (e: any) {
+        setCharacterError(getErrorMessage(e, "Sample upload failed."));
+      } finally {
+        setBusySampleUploads((prev) => ({ ...prev, [key]: false }));
+      }
+    },
+    [loadCharacters, pendingSamples, selectedInfluencerId, setPendingSampleFile]
+  );
 
   const handleSampleDelete = async (characterId: number, sampleType: AudioSampleType, s3Key: string) => {
     if (!selectedInfluencerId) return;
@@ -416,146 +510,16 @@ const AdminInfluencerCharacter: React.FC = () => {
 
                         {isExpanded && (
                           <div className={styles["card-body"]}>
-                            <div className={styles["assets-grid"]}>
-                              <div className={styles["asset-box"]}>
-                                <div className={styles["asset-label"]}>Photo</div>
-                                <div className={styles["asset-frame"]}>
-                                  {character.photo_url ? (
-                                    <img
-                                      src={character.photo_url}
-                                      alt={`${character.name} photo`}
-                                      className={styles["asset-image"]}
-                                    />
-                                  ) : (
-                                    <div className={styles["asset-empty"]}>No photo uploaded</div>
-                                  )}
-                                </div>
-                                <div className={styles["delete-row"]}>
-                                  <button
-                                    type="button"
-                                    className={styles["ghost"]}
-                                    onClick={() => handleDelete(character.id, "photo")}
-                                    disabled={!character.photo_url || !!busyDeletes[`${character.id}:photo`]}
-                                  >
-                                    Delete photo
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className={styles["ghost"]}
-                                    onClick={() => handleDelete(character.id, "photo_2x")}
-                                    disabled={
-                                      !character.photo_2x_url ||
-                                      !!busyDeletes[`${character.id}:photo_2x`]
-                                    }
-                                  >
-                                    Delete 2x photo
-                                  </button>
-                                </div>
-                              </div>
-
-                              <div className={styles["asset-box"]}>
-                                <div className={styles["asset-label"]}>Video</div>
-                                <div className={styles["asset-frame"]}>
-                                  {character.video_mp4_url || character.video_webm_url ? (
-                                    <video
-                                      className={styles["asset-video"]}
-                                      autoPlay
-                                      muted
-                                      loop
-                                      playsInline
-                                      controls
-                                      poster={character.video_preview_png_url || undefined}
-                                    >
-                                      {character.video_mp4_url && (
-                                        <source
-                                          src={character.video_mp4_url}
-                                          type="video/mp4"
-                                        />
-                                      )}
-                                      {character.video_webm_url && (
-                                        <source
-                                          src={character.video_webm_url}
-                                          type="video/webm"
-                                        />
-                                      )}
-                                    </video>
-                                  ) : character.video_preview_png_url ? (
-                                    <img
-                                      src={character.video_preview_png_url}
-                                      alt={`${character.name} video preview`}
-                                      className={styles["asset-image"]}
-                                    />
-                                  ) : (
-                                    <div className={styles["asset-empty"]}>No video preview uploaded</div>
-                                  )}
-                                </div>
-                                <div className={styles["source-row"]}>
-                                  <span
-                                    className={
-                                      character.video_mp4_url
-                                        ? chrome["pillActive"]
-                                        : chrome["pillMuted"]
-                                    }
-                                  >
-                                    {character.video_mp4_url ? "MP4" : "No MP4"}
-                                  </span>
-                                  <span
-                                    className={
-                                      character.video_webm_url
-                                        ? chrome["pillActive"]
-                                        : chrome["pillMuted"]
-                                    }
-                                  >
-                                    {character.video_webm_url ? "WEBM" : "No WEBM"}
-                                  </span>
-                                  <span
-                                    className={
-                                      character.video_preview_png_url
-                                        ? chrome["pillActive"]
-                                        : chrome["pillMuted"]
-                                    }
-                                  >
-                                    {character.video_preview_png_url ? "Poster" : "No poster"}
-                                  </span>
-                                </div>
-                                <div className={styles["delete-row"]}>
-                                  <button
-                                    type="button"
-                                    className={styles["ghost"]}
-                                    onClick={() => handleDelete(character.id, "video")}
-                                    disabled={
-                                      !character.video_mp4_url &&
-                                      !character.video_webm_url &&
-                                      !character.video_preview_png_url
-                                    }
-                                  >
-                                    Delete video set
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className={styles["ghost"]}
-                                    onClick={() => handleDelete(character.id, "video_preview_png")}
-                                    disabled={
-                                      !character.video_preview_png_url ||
-                                      !!busyDeletes[`${character.id}:video_preview_png`]
-                                    }
-                                  >
-                                    Delete poster
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-
                             <div className={styles["upload-panel"]}>
                               <div className={styles["upload-panel-header"]}>
                                 <div>
                                   <div className={styles["upload-panel-title"]}>
-                                    Staged Uploads
+                                    Character Assets
                                   </div>
                                   <div className={styles["upload-panel-meta"]}>
                                     {stagedFileCount > 0
                                       ? `${stagedFileCount} file${stagedFileCount === 1 ? "" : "s"} ready to upload`
-                                      : "Select one or more files to stage an upload"}
+                                      : "Preview current media, then replace any subset of files before uploading."}
                                   </div>
                                 </div>
                                 <span
@@ -567,41 +531,108 @@ const AdminInfluencerCharacter: React.FC = () => {
                                 </span>
                               </div>
 
-                              <div className={styles["upload-slot-list"]}>
+                              <div className={styles["asset-slot-grid"]}>
                                 {UPLOAD_SLOTS.map((slot) => {
                                   const selectedFile = pending?.[slot.field];
+                                  const previewUrl = character[slot.previewUrlKey] as string | null;
+                                  const deleteKey = `${character.id}:${slot.field}`;
+                                  const isReplaceMode =
+                                    Boolean(selectedFile) ||
+                                    Boolean(assetReplaceMode[character.id]?.[slot.field]) ||
+                                    !previewUrl;
                                   return (
-                                    <div key={slot.field} className={styles["upload-slot"]}>
-                                      <div className={styles["upload-slot-copy"]}>
-                                        <div className={styles["upload-label"]}>{slot.label}</div>
-                                        <div className={styles["upload-hint"]}>{slot.hint}</div>
-                                      </div>
-                                      <div className={styles["upload-slot-actions"]}>
-                                        <span className={styles["upload-name"]}>
-                                          {selectedFile?.name || "No file selected"}
-                                        </span>
-                                        <label className={styles["upload-picker"]}>
-                                          <input
-                                            className={styles["upload-native-input"]}
-                                            type="file"
+                                    <div key={slot.field} className={styles["slot-card"]}>
+                                      {previewUrl && !isReplaceMode && (
+                                        <AssetPreview
+                                          label={slot.label}
+                                          url={previewUrl}
+                                          type={slot.previewKind}
+                                          frame="vertical"
+                                          emptyLabel={slot.emptyLabel}
+                                          action={
+                                            <button
+                                              type="button"
+                                              className={styles["slot-toggle"]}
+                                              onClick={() =>
+                                                openAssetReplaceMode(character.id, slot.field)
+                                              }
+                                              disabled={uploadBusy}
+                                              aria-label={`Replace ${slot.label}`}
+                                            >
+                                              <span className={styles["slot-toggle-x"]}>×</span>
+                                            </button>
+                                          }
+                                        />
+                                      )}
+
+                                      {isReplaceMode && (
+                                        <>
+                                          <div className={styles["replace-header"]}>
+                                            <div className={styles["asset-label"]}>
+                                              {previewUrl ? `Replace ${slot.label}` : slot.label}
+                                            </div>
+                                            {previewUrl && (
+                                              <button
+                                                type="button"
+                                                className={styles["replace-cancel"]}
+                                                onClick={() =>
+                                                  closeAssetReplaceMode(character.id, slot.field)
+                                                }
+                                                disabled={uploadBusy}
+                                              >
+                                                Cancel
+                                              </button>
+                                            )}
+                                          </div>
+                                          <FileDropzone
+                                            title={`Upload ${slot.label}`}
+                                            description={slot.hint}
                                             accept={slot.accept}
-                                            onChange={handleFileChange(character.id, slot.field)}
+                                            file={selectedFile ?? null}
+                                            onFileChange={(file) =>
+                                              setPendingFile(character.id, slot.field, file)
+                                            }
+                                            onFileRemove={() =>
+                                              clearPendingFile(character.id, slot.field)
+                                            }
+                                            browseLabel="Browse"
                                             disabled={uploadBusy}
+                                            metaText={slot.metaText}
                                           />
-                                          {selectedFile ? "Replace file" : "Choose file"}
-                                        </label>
+                                        </>
+                                      )}
+
+                                      <div className={styles["slot-actions"]}>
                                         <button
                                           type="button"
                                           className={styles["ghost"]}
-                                          onClick={() => clearPendingFile(character.id, slot.field)}
-                                          disabled={!selectedFile || uploadBusy}
+                                          onClick={() => handleDelete(character.id, slot.field)}
+                                          disabled={!previewUrl || !!busyDeletes[deleteKey]}
                                         >
-                                          Remove selection
+                                          {busyDeletes[deleteKey] ? "Deleting..." : `Delete ${slot.label}`}
                                         </button>
                                       </div>
                                     </div>
                                   );
                                 })}
+                              </div>
+
+                              <div className={styles["delete-row"]}>
+                                <button
+                                  type="button"
+                                  className={styles["ghost"]}
+                                  onClick={() => handleDelete(character.id, "video")}
+                                  disabled={
+                                    (!character.video_mp4_url &&
+                                      !character.video_webm_url &&
+                                      !character.video_preview_png_url) ||
+                                    !!busyDeletes[`${character.id}:video`]
+                                  }
+                                >
+                                  {busyDeletes[`${character.id}:video`]
+                                    ? "Deleting..."
+                                    : "Delete video set"}
+                                </button>
                               </div>
 
                               <div className={chrome["actionRow"]}>
@@ -637,7 +668,8 @@ const AdminInfluencerCharacter: React.FC = () => {
                                           {list.map((sample) => {
                                             const deleteKey = `${character.id}:${sampleType}:${sample.s3_key}`;
                                             return (
-                                              <div key={sample.s3_key} className={styles["sample-row"]}>
+                                            <div key={sample.s3_key} className={styles["sample-row"]}>
+                                              <div className={styles["sample-row-top"]}>
                                                 <div className={styles["sample-info"]}>
                                                   <span className={styles["sample-filename"]}>{sample.original_filename}</span>
                                                   <span className={styles["sample-date"]}>{sample.created_at.slice(0, 10)}</span>
@@ -651,6 +683,15 @@ const AdminInfluencerCharacter: React.FC = () => {
                                                   {busySampleDeletes[deleteKey] ? "Deleting..." : "Delete"}
                                                 </button>
                                               </div>
+                                              {sample.url && (
+                                                <audio controls className={styles["audio-player"]}>
+                                                  <source
+                                                    src={sample.url}
+                                                    type={sample.content_type || undefined}
+                                                  />
+                                                </audio>
+                                              )}
+                                            </div>
                                             );
                                           })}
                                         </div>
@@ -658,21 +699,26 @@ const AdminInfluencerCharacter: React.FC = () => {
 
                                       <div className={styles["upload-slot"]}>
                                         <div className={styles["upload-slot-copy"]}>
-                                          <div className={styles["upload-hint"]}>mp3, wav, webm, ogg</div>
+                                          <div className={styles["upload-hint"]}>mp3, mp4, wav, webm, ogg</div>
+                                        </div>
+                                        <div className={styles["upload-slot-dropzone"]}>
+                                          <FileDropzone
+                                            title={`Upload ${sampleType} sample`}
+                                            description={`Drag and drop a ${sampleType} sample here, or browse to stage it.`}
+                                            accept=".mp3,.mp4,.wav,.webm,.ogg"
+                                            file={pendingFile}
+                                            onFileChange={(file) =>
+                                              setPendingSampleFile(character.id, sampleType, file)
+                                            }
+                                            onFileRemove={() =>
+                                              setPendingSampleFile(character.id, sampleType, null)
+                                            }
+                                            browseLabel="Browse"
+                                            disabled={uploadBusyForType}
+                                            metaText="Accepted: .mp3, .mp4, .wav, .webm, .ogg"
+                                          />
                                         </div>
                                         <div className={styles["upload-slot-actions"]}>
-                                          <span className={styles["upload-name"]}>{pendingFile?.name ?? "No file selected"}</span>
-                                          <label className={styles["upload-picker"]}>
-                                            <input
-                                              className={styles["upload-native-input"]}
-                                              type="file"
-                                              accept=".mp3,.mp4,.wav,.webm,.ogg"
-                                              ref={(el) => { sampleInputRefs.current[uploadKey] = el; }}
-                                              onChange={handleSampleFileChange(character.id, sampleType)}
-                                              disabled={uploadBusyForType}
-                                            />
-                                            {pendingFile ? "Replace" : "Choose file"}
-                                          </label>
                                           <button
                                             type="button"
                                             className={styles["primary"]}

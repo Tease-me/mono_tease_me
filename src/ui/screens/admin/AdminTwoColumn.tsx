@@ -11,6 +11,7 @@ type AdminTwoColumnProps = {
     children: ReactNode;
     sidebarStyled?: boolean;
     mainStyled?: boolean;
+    mainScrollable?: boolean;
 };
 
 const AdminTwoColumn: React.FC<AdminTwoColumnProps> = ({
@@ -18,6 +19,7 @@ const AdminTwoColumn: React.FC<AdminTwoColumnProps> = ({
     children,
     sidebarStyled = true,
     mainStyled = true,
+    mainScrollable = true,
 }) => {
     const hasSidebar = sidebar !== undefined && sidebar !== null;
     const [width, setWidth] = useState(() => {
@@ -79,7 +81,9 @@ const AdminTwoColumn: React.FC<AdminTwoColumnProps> = ({
                     onMouseDown={onMouseDown}
                 />
             ) : null}
-            <div className={`${styles["main"]} ${mainStyled ? styles["main--card"] : ""}`}>
+            <div
+                className={`${styles["main"]} ${mainStyled ? styles["main--card"] : ""} ${!mainScrollable ? styles["main--no-scroll"] : ""}`}
+            >
                 {children}
             </div>
         </div>
