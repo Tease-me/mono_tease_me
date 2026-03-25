@@ -3,7 +3,7 @@
 set -euo pipefail
 
 SOURCE_DIR="${GITHUB_WORKSPACE:-$(pwd)}"
-TARGET_DIR="${STAGING_APP_DIR:-/Users/runner/tease-me-staging}"
+TARGET_DIR="${STAGING_APP_DIR:-$HOME/tease-me-staging}"
 SERVICE_LABEL="${STAGING_SERVICE_LABEL:-com.teaseme.staging-web}"
 PORT="${STAGING_PORT:-4173}"
 

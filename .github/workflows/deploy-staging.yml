@@ -19,7 +19,6 @@ jobs:
       - macOS
       - X64
     env:
-      STAGING_APP_DIR: /Users/runner/tease-me-staging
       STAGING_SERVICE_LABEL: com.teaseme.staging-web
       STAGING_PORT: 4173
     steps:

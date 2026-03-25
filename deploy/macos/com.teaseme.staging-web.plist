@@ -8,7 +8,8 @@
     <key>ProgramArguments</key>
     <array>
       <string>/bin/zsh</string>
-      <string>/Users/runner/tease-me-staging/scripts/serve-dist.sh</string>
+      <string>-lc</string>
+      <string>$HOME/tease-me-staging/scripts/serve-dist.sh</string>
     </array>
 
     <key>EnvironmentVariables</key>
@@ -17,12 +18,7 @@
       <string>4173</string>
       <key>HOST</key>
       <string>0.0.0.0</string>
-      <key>DIST_DIR</key>
-      <string>/Users/runner/tease-me-staging/dist</string>
     </dict>
-
-    <key>WorkingDirectory</key>
-    <string>/Users/runner/tease-me-staging</string>
 
     <key>RunAtLoad</key>
     <true/>
@@ -30,8 +26,8 @@
     <true/>
 
     <key>StandardOutPath</key>
-    <string>/Users/runner/Library/Logs/tease-me-staging-web.log</string>
+    <string>/tmp/tease-me-staging-web.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/runner/Library/Logs/tease-me-staging-web.log</string>
+    <string>/tmp/tease-me-staging-web.log</string>
   </dict>
 </plist>

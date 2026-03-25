@@ -6,7 +6,7 @@ This repo can deploy the `staging` branch to a self-hosted macOS runner that als
 
 - GitHub Actions runner as an always-on service
 - Staging app service as a separate `launchd` service
-- Built app served from `/Users/runner/tease-me-staging/dist` on port `4173`
+- Built app served from `$HOME/tease-me-staging/dist` on port `4173`
 
 ## 1. Install prerequisites
 
@@ -25,8 +25,8 @@ python3 --version
 Create a dedicated runner directory outside the repo, for example:
 
 ```bash
-mkdir -p /Users/runner/actions-runner
-cd /Users/runner/actions-runner
+mkdir -p "$HOME/actions-runner"
+cd "$HOME/actions-runner"
 ```
 
 Download and configure the GitHub self-hosted runner for this repository. The runner should have these labels:
@@ -49,7 +49,7 @@ After this, the runner should appear as `Idle` in the GitHub repository runner s
 Create the fixed deployment directory:
 
 ```bash
-mkdir -p /Users/runner/tease-me-staging
+mkdir -p "$HOME/tease-me-staging"
 ```
 
 Copy the launchd plist into `/Library/LaunchDaemons` and load it:
@@ -85,7 +85,7 @@ The repo now uses two workflows:
 The staging deploy workflow does this when a PR is merged into `staging`:
 
 1. Run checkout, install, build, and lint on the self-hosted runner.
-2. Sync the checked out repo into `/Users/runner/tease-me-staging`.
+2. Sync the checked out repo into `$HOME/tease-me-staging` for the runner account.
 3. Run `yarn install --frozen-lockfile` and `yarn build` in that fixed directory.
 4. Restart `com.teaseme.staging-web` so it serves the new `dist` output.
 
@@ -96,7 +96,7 @@ PRs still build and lint on `ubuntu-latest`.
 Check the runner:
 
 ```bash
-cd /Users/runner/actions-runner
+cd "$HOME/actions-runner"
 ./svc.sh status
 ```
 
@@ -110,5 +110,5 @@ curl http://localhost:4173
 Check logs:
 
 ```bash
-tail -f /Users/runner/Library/Logs/tease-me-staging-web.log
+tail -f /tmp/tease-me-staging-web.log
 ```
