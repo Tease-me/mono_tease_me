@@ -5,12 +5,18 @@ This repo can deploy the `staging` branch to a self-hosted macOS runner that als
 ## What runs on the Mac
 
 - GitHub Actions runner as an always-on service
-- Staging app service as a separate `launchd` service
+- Staging app service as a PM2-managed process under the runner user
 - Built app served from `$HOME/tease-me-staging/dist` on port `4173`
 
 ## 1. Install prerequisites
 
 Install Node.js 20, Yarn 1.x, and Xcode command line tools on the Mac.
+
+Install PM2 globally for the same macOS user that runs the GitHub runner:
+
+```bash
+npm install -g pm2
+```
 
 Verify:
 
@@ -18,6 +24,7 @@ Verify:
 node -v
 yarn -v
 python3 --version
+pm2 -v
 ```
 
 ## 2. Configure the GitHub runner
@@ -52,40 +59,26 @@ Create the fixed deployment directory:
 mkdir -p "$HOME/tease-me-staging"
 ```
 
-The deploy script can auto-install the launch agent if it is missing. If you want to preload it manually, use:
+Initialize PM2 startup persistence for the runner user:
 
 ```bash
-mkdir -p "$HOME/Library/LaunchAgents"
-cp deploy/macos/com.teaseme.staging-web.plist "$HOME/Library/LaunchAgents/com.teaseme.staging-web.plist"
-launchctl bootstrap "user/$(id -u)" "$HOME/Library/LaunchAgents/com.teaseme.staging-web.plist"
-launchctl enable "user/$(id -u)/com.teaseme.staging-web"
-launchctl kickstart -k "user/$(id -u)/com.teaseme.staging-web"
+pm2 startup
+pm2 save
 ```
 
-The service runs `scripts/serve-dist.sh`, which serves the latest built `dist` directory over HTTP on port `4173`.
+The staging deploy script uses the PM2 app definition in `deploy/pm2/ecosystem.staging.config.cjs` and serves the built frontend via `scripts/serve-dist.sh`.
 
 ## 4. Allow the runner to restart the app service
 
-The staging deploy step now restarts the app service in the runner user’s launchd domain:
+The staging deploy step now manages the app with PM2:
 
 ```bash
-launchctl print "user/$(id -u)/com.teaseme.staging-web"
-launchctl setenv PORT 4173
-launchctl kickstart -k "user/$(id -u)/com.teaseme.staging-web"
+pm2 list
+STAGING_APP_DIR="$HOME/tease-me-staging" STAGING_PORT=4173 pm2 startOrReload deploy/pm2/ecosystem.staging.config.cjs --only tease-me-staging --update-env
+pm2 save
 ```
 
-No `sudoers` entry is needed as long as the GitHub runner and the launch agent both run under the same macOS user account.
-
-If the service is missing during deployment, `scripts/deploy-staging.sh` now copies `deploy/macos/com.teaseme.staging-web.plist` into `~/Library/LaunchAgents/`, bootstraps it in `user/$(id -u)`, enables it, and then restarts it.
-
-If the runner cannot use a user launchd domain, the deploy script also falls back to a system daemon at `/Library/LaunchDaemons/com.teaseme.staging-web.plist`. That fallback requires passwordless `sudo` for:
-
-```text
-/bin/launchctl print system/com.teaseme.staging-web
-/bin/launchctl bootstrap system /Library/LaunchDaemons/com.teaseme.staging-web.plist
-/bin/launchctl enable system/com.teaseme.staging-web
-/bin/launchctl kickstart -k system/com.teaseme.staging-web
-```
+No `sudoers` entry or `launchctl` management is required for the deploy path as long as PM2 is installed for the runner user.
 
 ## 5. Deployment flow
 
@@ -99,7 +92,7 @@ The staging deploy workflow does this when a PR is merged into `staging`:
 1. Run checkout, install, build, and lint on the self-hosted runner.
 2. Sync the checked out repo into `$HOME/tease-me-staging` for the runner account.
 3. Run `yarn install --frozen-lockfile` and `yarn build` in that fixed directory.
-4. Restart `com.teaseme.staging-web` so it serves the new `dist` output.
+4. Start or reload the `tease-me-staging` PM2 process so it serves the new `dist` output.
 
 PRs still build and lint on `ubuntu-latest`.
 
@@ -115,12 +108,13 @@ cd "$HOME/actions-runner"
 Check the app service:
 
 ```bash
-launchctl print "user/$(id -u)/com.teaseme.staging-web"
+pm2 list
+pm2 logs tease-me-staging --lines 50
 curl http://localhost:4173
 ```
 
 Check logs:
 
 ```bash
-tail -f /tmp/tease-me-staging-web.log
+pm2 logs tease-me-staging
 ```
