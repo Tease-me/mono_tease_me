@@ -2,18 +2,19 @@ name: Lint & Build
 
 on:
   pull_request:
-  push:
-    branches:
-      - main
-      - staging
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - closed
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.base.ref || github.ref }}
   cancel-in-progress: true
 
 jobs:
   lint-pr:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -33,7 +34,7 @@ jobs:
         run: yarn lint
 
   deploy-staging:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'staging'
     runs-on:
       - self-hosted
       - macos
