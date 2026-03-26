@@ -13,6 +13,8 @@ The backend staging deploy is a self-hosted GitHub Actions workflow that:
 5. rebuilds the backend Docker image inside that fixed directory
 6. runs a staging-only Postgres, Redis, and backend stack
 7. exposes the backend container on port `8001`
+6. runs a staging-only Postgres, Redis, and backend stack
+7. exposes the backend container on port `8001`
 
 The current backend staging path is:
 
@@ -24,6 +26,12 @@ The current staging port is:
 
 ```bash
 8001
+```
+
+The current host-exposed staging database port is:
+
+```bash
+5433
 ```
 
 The current staging container name is:
@@ -144,6 +152,7 @@ Current staging runtime model:
 
 - database service: `db`
 - database container: `teaseme-backend-staging-db`
+- database host port: `5433` mapped to container `5432`
 - redis service: `redis`
 - redis container: `teaseme-backend-staging-redis`
 - service name: `backend`
