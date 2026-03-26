@@ -2,6 +2,7 @@ import io
 import logging
 from datetime import datetime
 from typing import List, Optional
+
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Request, BackgroundTasks
 from app.api.admin.common import ensure_admin
 from app.api.routes.webhooks import _process_relationship_update
@@ -48,10 +49,15 @@ from app.utils.storage.s3 import (
     save_influencer_video_to_s3,
     delete_file_from_s3,
 )
+from app.utils.character_name import (
+    build_character_template_context,
+    render_character_ui_text,
+)
 
 log = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/influencer", tags=["influencer"])
+
 
 def _parse_iso_datetime(value: Optional[str]) -> Optional[datetime]:
     if not value:
@@ -92,6 +98,8 @@ def _resolve_sample_urls(meta_json: dict | None) -> dict | None:
 async def _build_influencer_adult_characters(
     db: AsyncSession,
     influencer_id: str,
+    influencer_display_name: str | None,
+    current_user: User,
 ) -> list[InfluencerAdultCharacterOut]:
     characters_result = await db.execute(
         select(AdultCharacter)
@@ -115,6 +123,12 @@ async def _build_influencer_adult_characters(
     }
 
     items: list[InfluencerAdultCharacterOut] = []
+    template_context = build_character_template_context(
+        influencer_display_name=influencer_display_name,
+        user_full_name=current_user.full_name,
+        user_username=current_user.username,
+        user_gender=current_user.gender,
+    )
     for character in characters:
         overlay = overlays.get(character.id)
         asset_state = await get_influencer_character_asset_state(influencer_id, character.id)
@@ -127,10 +141,22 @@ async def _build_influencer_adult_characters(
             InfluencerAdultCharacterOut(
                 id=character.id,
                 slug=character.slug,
-                name=character.name,
-                description=character.description,
-                short_description=character.short_description,
-                first_messages=character.first_messages,
+                name=render_character_ui_text(
+                    character.name,
+                    context=template_context,
+                ) or character.name,
+                description=render_character_ui_text(
+                    character.description,
+                    context=template_context,
+                ),
+                short_description=render_character_ui_text(
+                    character.short_description,
+                    context=template_context,
+                ),
+                first_messages=[
+                    render_character_ui_text(message, context=template_context) or message
+                    for message in (character.first_messages or [])
+                ] or None,
                 prompt_template=character.prompt_template,
                 is_active=character.is_active,
                 display_order=character.display_order,
@@ -203,14 +229,19 @@ async def get_influencer(id: str, db: AsyncSession = Depends(get_db)):
 @router.get("/{influencer_id}/adult-characters", response_model=List[InfluencerAdultCharacterOut])
 async def get_influencer_adult_characters(
     influencer_id: str,
-    _current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     influencer = await db.get(Influencer, influencer_id)
     if not influencer:
         raise HTTPException(404, "Influencer not found")
 
-    return await _build_influencer_adult_characters(db, influencer_id)
+    return await _build_influencer_adult_characters(
+        db,
+        influencer_id,
+        influencer.display_name,
+        current_user,
+    )
 
 
 @router.get(

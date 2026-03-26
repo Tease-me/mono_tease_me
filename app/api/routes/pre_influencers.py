@@ -230,61 +230,20 @@ async def register_pre_influencer(
     await db.commit()
     await db.refresh(pre)
 
-    try:
-        if not pre.fp_promoter_id or not pre.fp_ref_id:
-            first = (pre.full_name or pre.username or "Influencer").split(" ")[0]
-            last = " ".join((pre.full_name or "").split(" ")[1:]) or "TeaseMe"
-
-            parent_promoter_id = None
-            if data.parent_ref_id:
-                parent_promoter_id = await fp_find_promoter_id_by_ref_token(
-                    data.parent_ref_id
-                )
-
-            log.info(
-                "LINK DEBUG parent_ref_id=%s parent_promoter_id=%s",
-                data.parent_ref_id,
-                parent_promoter_id,
-            )
-
-            promoter = await fp_create_promoter(
-                email=pre.email,
-                first_name=first,
-                last_name=last,
-                cust_id=f"preinf-{pre.id}",
-                parent_promoter_id=parent_promoter_id,
-            )
-
-            if promoter:
-                pre.fp_promoter_id = str(promoter.get("id"))
-                pre.fp_ref_id = promoter.get("default_ref_id") or (
-                    promoter.get("promotions") or [{}]
-                )[0].get("ref_id")
-            else:
-                log.warning("fp_create_promoter returned None for email=%s", pre.email)
-
-            answers = pre.survey_answers or {}
-            if isinstance(answers, dict):
-                meta = answers.get("__meta")
-                if not isinstance(meta, dict):
-                    meta = {}
-                if data.parent_ref_id and "parent_ref_id" not in meta:
-                    meta["parent_ref_id"] = data.parent_ref_id
-                if parent_promoter_id and "parent_promoter_id" not in meta:
-                    meta["parent_promoter_id"] = parent_promoter_id
-                answers["__meta"] = meta
-                pre.survey_answers = answers
-
+    # Store parent_ref_id in survey_answers metadata for later use at approval
+    if data.parent_ref_id:
+        answers = pre.survey_answers or {}
+        if isinstance(answers, dict):
+            meta = answers.get("__meta")
+            if not isinstance(meta, dict):
+                meta = {}
+            if "parent_ref_id" not in meta:
+                meta["parent_ref_id"] = data.parent_ref_id
+            answers["__meta"] = meta
+            pre.survey_answers = answers
             db.add(pre)
             await db.commit()
             await db.refresh(pre)
-
-            log.info(
-                "FP promoter created id=%s ref_id=%s", pre.fp_promoter_id, pre.fp_ref_id
-            )
-
-    except Exception as e:
-        log.exception("FirstPromoter create promoter failed: %s", e)
 
     # Track pre-influencer signup in FirstPromoter (if fp_tid provided)
     if data.fp_tid:
@@ -885,6 +844,43 @@ async def approve_pre_influencer(
         )
         if agent_id and agent_id != existing_agent_id:
             created_agent_id = agent_id
+
+        # ── FirstPromoter: create promoter on approval ──────────────
+        if not pre.fp_promoter_id:
+            try:
+                first = (pre.full_name or pre.username or "Influencer").split(" ")[0]
+                last = " ".join((pre.full_name or "").split(" ")[1:]) or "TeaseMe"
+
+                parent_promoter_id = None
+                answers_meta = (pre.survey_answers or {}).get("__meta") or {}
+                parent_ref_id = answers_meta.get("parent_ref_id")
+                if parent_ref_id:
+                    parent_promoter_id = await fp_find_promoter_id_by_ref_token(
+                        parent_ref_id
+                    )
+
+                promoter = await fp_create_promoter(
+                    email=pre.email,
+                    first_name=first,
+                    last_name=last,
+                    cust_id=f"preinf-{pre.id}",
+                    parent_promoter_id=parent_promoter_id,
+                )
+                if promoter:
+                    pre.fp_promoter_id = str(promoter.get("id"))
+                    pre.fp_ref_id = promoter.get("default_ref_id") or (
+                        promoter.get("promotions") or [{}]
+                    )[0].get("ref_id")
+                    log.info(
+                        "FP promoter created on approval id=%s ref_id=%s",
+                        pre.fp_promoter_id,
+                        pre.fp_ref_id,
+                    )
+            except Exception:
+                log.exception(
+                    "FirstPromoter create promoter failed on approval for pre_id=%s",
+                    pre.id,
+                )
 
         if not influencer:
             influencer = Influencer(
