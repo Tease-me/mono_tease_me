@@ -43,6 +43,7 @@
   flex: 1 0 auto;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   width: 100%;
   gap: 24px;
   padding: 24px 20px 40px;
@@ -91,8 +92,8 @@
 
 @media (min-width: 1024px) {
   .sceneItem {
-    flex-basis: clamp(360px, 31vw, 500px);
-    width: clamp(360px, 31vw, 500px);
+    flex-basis: clamp(280px, 26vw, 400px);
+    width: clamp(280px, 26vw, 400px);
   }
 }
 
