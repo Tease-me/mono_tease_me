@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useIsMobile } from "@/hooks/layout/useIsDesktop";
 import styles from "./AdultSceneSelectorCard.module.css";
 import LottieAnimation from "@/ui/components/LottieAnimation";
 import AudioSamplePlayer from "@/ui/components/audio-player/AudioSamplePlayer";
@@ -27,7 +26,6 @@ export default function AdultSceneSelector({
   ageVerified = false,
   onLockedClick,
 }: Props) {
-  const isMobile = useIsMobile();
   const [imageFailed, setImageFailed] = useState(false);
   const normalUrl = samples?.normal[0] ?? null;
   const explicitUrl = samples?.explicit[0] ?? null;
@@ -70,10 +68,10 @@ export default function AdultSceneSelector({
         {hasSamples && (
           <div className={styles.samplesList}>
             {normalUrl && (
-              <AudioSamplePlayer url={normalUrl} size={isMobile ? "small" : "large"} />
+              <AudioSamplePlayer url={normalUrl} size="small" />
             )}
             {explicitUrl && (
-              <AudioSamplePlayer url={explicitUrl} size={isMobile ? "small" : "large"} isExplicit={!ageVerified} onLockedClick={onLockedClick} />
+              <AudioSamplePlayer url={explicitUrl} size="small" isExplicit={!ageVerified} onLockedClick={onLockedClick} />
             )}
           </div>
         )}

@@ -145,7 +145,11 @@
 
 @media (min-width: 768px) {
   .upperBody {
-    min-height: 282px;
+    min-height: 180px;
+  }
+
+  .lowerBody {
+    padding: 32px 32px 20px;
   }
 }
 
