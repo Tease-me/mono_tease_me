@@ -2,13 +2,16 @@ import { useEffect, useState } from "react";
 import styles from "./AdultSceneSelectorCard.module.css";
 import LottieAnimation from "@/ui/components/LottieAnimation";
 import AudioSamplePlayer from "@/ui/components/audio-player/AudioSamplePlayer";
+import type { SceneTitlePlaceholder } from "@/ui/screens/messaging/pages/scene-selector/SceneSelector";
+
+const DotLottieWC = "dotlottie-wc" as unknown as React.ComponentType<{ src?: string; speed?: string; mode?: string; loop?: boolean; autoplay?: boolean; width?: string }>;
 
 type Props = {
   name: string;
   description: string;
   imageSmallSrc: string | null;
   imageLargeSrc: string | null;
-  titlePlaceholderData: unknown | null;
+  titlePlaceholder: SceneTitlePlaceholder;
   isRelationship?: boolean;
   samples?: { normal: string[]; explicit: string[] };
   ageVerified?: boolean;
@@ -20,7 +23,7 @@ export default function AdultSceneSelector({
   description,
   imageSmallSrc,
   imageLargeSrc,
-  titlePlaceholderData,
+  titlePlaceholder,
   isRelationship,
   samples,
   ageVerified = false,
@@ -44,9 +47,13 @@ export default function AdultSceneSelector({
     <div className={styles.card}>
       <div className={styles.upperBody}>
         <div className={`${styles.imageArea}${isRelationship ? ` ${styles.relationship}` : ""}`}>
-          {titlePlaceholderData != null ? (
+          {titlePlaceholder != null ? (
             <div className={styles.titlePlaceholder} aria-hidden="true">
-              <LottieAnimation autoplay loop animationData={titlePlaceholderData} />
+              {titlePlaceholder.type === "json" ? (
+                <LottieAnimation autoplay loop animationData={titlePlaceholder.data} />
+              ) : (
+                <DotLottieWC src={titlePlaceholder.src} speed="1" mode="forward" loop autoplay width="100%" />
+              )}
             </div>
           ) : null}
           {imageFailed || !resolvedImageSrc ? (

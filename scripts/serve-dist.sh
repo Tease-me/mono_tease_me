@@ -13,5 +13,8 @@ if [ ! -d "$DIST_DIR" ]; then
   exit 1
 fi
 
-cd "$DIST_DIR"
-exec python3 -m http.server "$PORT" --bind "$HOST"
+export DIST_DIR
+export PORT
+export HOST
+
+exec node "$SCRIPT_DIR/serve-dist.mjs"
