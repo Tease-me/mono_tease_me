@@ -59,6 +59,14 @@ Create the fixed deployment directory:
 mkdir -p "$HOME/tease-me-staging"
 ```
 
+Put your server-local Vite env file in the deployed app root, for example:
+
+```bash
+$HOME/tease-me-staging/.env
+```
+
+The staging deploy script preserves `.env` and `.env.*` files in that directory, so they survive `rsync --delete` during deploys.
+
 Initialize PM2 startup persistence for the runner user:
 
 ```bash

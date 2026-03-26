@@ -15,13 +15,18 @@ import { RELATIONSHIP_MODE_AVAILABLE } from "@/constants/featureFlags";
 
 const AdultTermsModal = lazy(() => import("@/ui/components/modals/adult-terms/AdultTermsModal"));
 
+export type SceneTitlePlaceholder =
+  | { type: "json"; data: unknown }
+  | { type: "lottie"; src: string }
+  | null;
+
 type Scene = {
   id: number;
   slug: string;
   name: string;
   description: string;
   scenarioDetails: string;
-  titlePlaceholderData: unknown | null;
+  titlePlaceholder: SceneTitlePlaceholder;
   image: {
     small: string | null;
     large: string | null;
@@ -45,7 +50,7 @@ type SceneSelectorProps = {
 };
 
 const influencerServices = InfluencerServices(apiClient);
-const lottieDataCache = new Map<string, Promise<unknown | null>>();
+const lottieDataCache = new Map<string, Promise<SceneTitlePlaceholder>>();
 
 const parseSampleUrls = (metaJson: Record<string, unknown> | null): { normal: string[]; explicit: string[] } => {
   const raw = metaJson?.samples as { normal?: unknown[]; explicit?: unknown[] } | undefined;
@@ -54,18 +59,45 @@ const parseSampleUrls = (metaJson: Record<string, unknown> | null): { normal: st
   return { normal: pluck(raw?.normal), explicit: pluck(raw?.explicit) };
 };
 
-const loadLottieData = async (url: string): Promise<unknown | null> => {
+const loadLottieData = async (url: string): Promise<SceneTitlePlaceholder> => {
   const cached = lottieDataCache.get(url);
   if (cached) {
     return cached;
   }
+
+  const detectPlaceholder = async (response: Response): Promise<SceneTitlePlaceholder> => {
+    const buffer = await response.arrayBuffer();
+    const bytes = new Uint8Array(buffer.slice(0, 8));
+    if (bytes[0] === 0x50 && bytes[1] === 0x4b) {
+      return { type: "lottie", src: url };
+    }
+
+    const text = new TextDecoder("utf-8").decode(buffer);
+    const trimmed = text.trim();
+    if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+      return { type: "json", data: JSON.parse(text) };
+    }
+
+    const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
+    if (
+      contentType.includes("application/zip") ||
+      contentType.includes("application/octet-stream") ||
+      contentType.includes("application/x-zip") ||
+      contentType.includes("application/x-zip-compressed") ||
+      contentType.includes("application/vnd.lottie")
+    ) {
+      return { type: "lottie", src: url };
+    }
+
+    return null;
+  };
 
   const request = fetch(url)
     .then(async (response) => {
       if (!response.ok) {
         return null;
       }
-      return (await response.json()) as unknown;
+      return await detectPlaceholder(response);
     })
     .catch(() => {
       lottieDataCache.delete(url);
@@ -179,7 +211,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
 
         const nextScenes = await Promise.all(
           activeCharacters.map(async (character) => {
-            const titlePlaceholderData = character.lottie_text_url
+            const titlePlaceholder = character.lottie_text_url
               ? await loadLottieData(character.lottie_text_url)
               : null;
 
@@ -191,7 +223,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                 character.short_description ?? character.description ?? "",
               scenarioDetails:
                 character.description ?? character.short_description ?? "",
-              titlePlaceholderData,
+              titlePlaceholder,
               image: {
                 small:
                   character.photo_url ?? character.default_artwork_url ?? null,
@@ -307,7 +339,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                     description={scene.description}
                     imageSmallSrc={scene.image.small}
                     imageLargeSrc={scene.image.large}
-                    titlePlaceholderData={scene.titlePlaceholderData}
+                    titlePlaceholder={scene.titlePlaceholder}
                     isRelationship={scene.slug === "relationship"}
                     samples={scene.samples}
                     ageVerified={!needsGate && !verificationRequired}

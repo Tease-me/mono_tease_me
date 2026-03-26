@@ -12,6 +12,8 @@ mkdir -p "$TARGET_DIR"
 
 rsync -a --delete \
   --exclude ".git/" \
+  --exclude ".env" \
+  --exclude ".env.*" \
   --exclude "node_modules/" \
   --exclude "dist/" \
   "$SOURCE_DIR/" "$TARGET_DIR/"
