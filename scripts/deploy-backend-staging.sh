@@ -6,7 +6,6 @@ SOURCE_DIR="${GITHUB_WORKSPACE:-$(pwd)}"
 TARGET_DIR="${STAGING_APP_DIR:-$HOME/tease-me-backend-staging}"
 STAGING_PORT="${STAGING_PORT:-8001}"
 STAGING_COMPOSE_FILE="${STAGING_COMPOSE_FILE:-compose.staging.yml}"
-SERVICE_NAME="${STAGING_SERVICE_NAME:-backend}"
 
 if ! command -v rsync >/dev/null 2>&1; then
   echo "rsync is required for staging deploys." >&2
@@ -54,7 +53,7 @@ export STAGING_PORT
 echo "Validating Docker Compose config"
 docker compose -f "$STAGING_COMPOSE_FILE" config >/dev/null
 
-echo "Rebuilding and restarting $SERVICE_NAME on port $STAGING_PORT"
-docker compose -f "$STAGING_COMPOSE_FILE" up -d --build --remove-orphans "$SERVICE_NAME"
+echo "Rebuilding and restarting staging stack on port $STAGING_PORT"
+docker compose -f "$STAGING_COMPOSE_FILE" up -d --build --remove-orphans
 
 echo "Backend staging deploy complete"
