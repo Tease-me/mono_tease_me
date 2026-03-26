@@ -11,7 +11,8 @@ The backend staging deploy is a self-hosted GitHub Actions workflow that:
 3. deploys into a fixed staging directory under the runner user’s home directory
 4. preserves a server-local `.env` file outside the Git repo
 5. rebuilds the backend Docker image inside that fixed directory
-6. restarts a staging-only backend container on port `8001`
+6. runs a staging-only Postgres, Redis, and backend stack
+7. exposes the backend container on port `8001`
 
 The current backend staging path is:
 
@@ -29,6 +30,13 @@ The current staging container name is:
 
 ```bash
 teaseme-backend-staging
+```
+
+The current staging sidecar container names are:
+
+```bash
+teaseme-backend-staging-db
+teaseme-backend-staging-redis
 ```
 
 ## Workflow Trigger And Runner
@@ -113,8 +121,8 @@ Current behavior:
    - local caches and runtime directories
 5. validate the staging compose file:
    - `docker compose -f compose.staging.yml config`
-6. rebuild and restart the backend staging container:
-   - `docker compose -f compose.staging.yml up -d --build --remove-orphans backend`
+6. rebuild and restart the full staging stack:
+   - `docker compose -f compose.staging.yml up -d --build --remove-orphans`
 
 This means the deployed backend is always rebuilt in the fixed staging directory, not run directly from the GitHub Actions checkout path.
 
@@ -134,6 +142,10 @@ Dockerfile.staging
 
 Current staging runtime model:
 
+- database service: `db`
+- database container: `teaseme-backend-staging-db`
+- redis service: `redis`
+- redis container: `teaseme-backend-staging-redis`
 - service name: `backend`
 - container name: `teaseme-backend-staging`
 - compose file: `compose.staging.yml`
@@ -147,7 +159,9 @@ Important details:
 - staging does not use `--reload`
 - staging does not pass TLS cert flags to `uvicorn`
 - staging expects TLS termination outside the container
-- staging expects external `DB_URL` and `REDIS_URL` values from the preserved `.env`
+- staging includes its own Postgres and Redis containers
+- staging `.env` should point `DB_URL` at `db` and `REDIS_URL` at `redis` within the compose network
+- staging database data and Redis data persist in Docker volumes across restarts
 
 ## Smoke Test
 
