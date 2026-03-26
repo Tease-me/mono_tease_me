@@ -101,6 +101,7 @@
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
+  background-color: var(--color-dark-1);
 }
 
 .main {
@@ -154,7 +155,7 @@
   display: none;
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 767px) {
   .container {
     height: 100%;
     display: block;

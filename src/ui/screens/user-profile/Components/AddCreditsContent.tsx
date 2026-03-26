@@ -94,9 +94,9 @@ export default function AddCreditsContent({
         </div>
 
         {loading ? (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, marginTop: 16 }}>
-            <LoadingSpinner />
-            <div style={{ color: "#bdbdbd", fontSize: 14 }}>Redirecting to payment…</div>
+          <div className={styles.loadingState}>
+            <LoadingSpinner size="small" />
+            <div className={styles.loadingText}>Redirecting to payment…</div>
           </div>
         ) : (
           <>

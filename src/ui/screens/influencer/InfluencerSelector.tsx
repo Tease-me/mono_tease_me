@@ -99,7 +99,7 @@ export default function InfluencerSelector({
   }, [influencers]);
 
   return (
-    <BackgroundGradient>
+    <BackgroundGradient className={styles.page}>
       <div className={styles.container}>
         {loading ? (
           <div className={styles.loading}>
