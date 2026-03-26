@@ -13,6 +13,8 @@ The backend staging deploy is a self-hosted GitHub Actions workflow that:
 5. rebuilds the backend Docker image inside that fixed directory
 6. runs a staging-only Postgres, Redis, and backend stack
 7. exposes the backend container on port `8001`
+6. runs a staging-only Postgres, Redis, and backend stack
+7. exposes the backend container on port `8001`
 
 The current backend staging path is:
 
