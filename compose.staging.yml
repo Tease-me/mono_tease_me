@@ -1,4 +1,27 @@
 services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: teaseme-backend-staging-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: teaseme
+    ports:
+      - "${STAGING_DB_PORT:-5433}:5432"
+    volumes:
+      - staging_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d teaseme"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    container_name: teaseme-backend-staging-redis
+    volumes:
+      - staging_redisdata:/data
+
   backend:
     build:
       context: .
@@ -14,4 +37,13 @@ services:
       - .env
     ports:
       - "${STAGING_PORT:-8001}:${STAGING_PORT:-8001}"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     restart: unless-stopped
+
+volumes:
+  staging_pgdata:
+  staging_redisdata:
