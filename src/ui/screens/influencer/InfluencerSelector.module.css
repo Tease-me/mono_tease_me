@@ -1,16 +1,18 @@
 .page {
-  flex: 1 0 auto;
-  min-height: 100%;
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
 }
 
 .container {
   display: flex;
-  flex-direction: row;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
   margin: 0 auto;
   width: 100%;
   min-height: 100%;
+  overflow-y: auto;
+  height: 100%;
 }
 
 .loading {
@@ -30,6 +32,7 @@
   scrollbar-width: none;
   scroll-snap-type: x mandatory;
   justify-content: safe center;
+  margin-block: auto;
 }
 
 .edgeFade {
