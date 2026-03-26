@@ -1,0 +1,14 @@
+.venv
+.vscode
+.pytest_cache
+.ruff_cache
+__pycache__
+.git
+.env
+.env.*
+.cert
+logs
+backups
+telegram_sessions
+dist
+node_modules
