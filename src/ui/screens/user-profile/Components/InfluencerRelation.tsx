@@ -15,6 +15,7 @@ import RelationshipStageProgress from "@/ui/components/stats/RelationshipStagePr
 import RelatioshipAffinities from "@/ui/components/stats/RelatioshipAffinities";
 import InfluencerProfileCard from "@/ui/components/profile/InfluencerProfileCard";
 
+import { RELATIONSHIP_MODE_AVAILABLE } from "@/constants/featureFlags";
 import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
 import { RelationshipServices } from "@/api/services/RelationshipServices";
 import { BalanceServices } from "@/api/services/BalanceServices";
@@ -339,43 +340,47 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         </div>
       </div>
 
-      {/* Relationship stats area */}
-      <div className={styles.relationshipArea}>
-        <div className={styles.relationshipHeader}>
-          <div className={styles.relationshipTitle}>
-            Relationship Statistics
+      {RELATIONSHIP_MODE_AVAILABLE && (
+        <>
+          {/* Relationship stats area */}
+          <div className={styles.relationshipArea}>
+            <div className={styles.relationshipHeader}>
+              <div className={styles.relationshipTitle}>
+                Relationship Statistics
+              </div>
+            </div>
+            {data.currentStage && (
+              <RelationshipStageProgress
+                sentimentScore={data.sentimentScore ?? 0}
+                large
+                currentStage={data.currentStage}
+                nextStage={data.nextStage}
+              />
+            )}
+
+            {/*  radar chart */}
+            <div className={styles.radarPlaceholder}>
+              <RelationshipRadar
+                trust={data.trust ?? 0}
+                closeness={data.closeness ?? 0}
+                attraction={data.attraction ?? 0}
+                safety={data.safety ?? 0}
+                height={280}
+                width={320}
+              />
+            </div>
           </div>
-        </div>
-        {data.currentStage && (
-          <RelationshipStageProgress
-            sentimentScore={data.sentimentScore ?? 0}
-            large
-            currentStage={data.currentStage}
-            nextStage={data.nextStage}
-          />
-        )}
 
-        {/*  radar chart */}
-        <div className={styles.radarPlaceholder}>
-          <RelationshipRadar
-            trust={data.trust ?? 0}
-            closeness={data.closeness ?? 0}
-            attraction={data.attraction ?? 0}
-            safety={data.safety ?? 0}
-            height={280}
-            width={320}
-          />
-        </div>
-      </div>
-
-      <div className={styles.relationshipStatsArea}>
-        <RelatioshipAffinities
-          trust={data.trust ?? 0}
-          closeness={data.closeness ?? 0}
-          attraction={data.attraction ?? 0}
-          safety={data.safety ?? 0}
-        />
-      </div>
+          <div className={styles.relationshipStatsArea}>
+            <RelatioshipAffinities
+              trust={data.trust ?? 0}
+              closeness={data.closeness ?? 0}
+              attraction={data.attraction ?? 0}
+              safety={data.safety ?? 0}
+            />
+          </div>
+        </>
+      )}
 
       {/* <div className={styles.unfollow}>
         <IconButton color="black" type="pill" leftIcon={<SvgPack.Delete />} text={`Unfollow ${data.name}`} redText className={styles.unfollowBtn} />

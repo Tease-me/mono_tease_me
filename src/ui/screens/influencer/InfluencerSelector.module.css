@@ -1,15 +1,30 @@
+.page {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+}
+
 .container {
   display: flex;
-  flex-direction: row;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
   margin: 0 auto;
   width: 100%;
+  min-height: 100%;
+  overflow-y: auto;
   height: 100%;
 }
 
+.loading {
+  display: flex;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
 .list {
-  margin-top: 32px;
   display: flex;
   width: 100%;
   gap: var(--space-px-16);
@@ -17,6 +32,7 @@
   scrollbar-width: none;
   scroll-snap-type: x mandatory;
   justify-content: safe center;
+  margin-block: auto;
 }
 
 .edgeFade {
