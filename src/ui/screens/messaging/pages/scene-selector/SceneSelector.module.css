@@ -451,6 +451,47 @@
     transform: scale(1.1);
   }
 
+  .previewCloseButton {
+    transition: opacity 480ms ease, transform 480ms ease;
+  }
+
+  .previewCloseButtonVisible {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  .previewCloseButtonHidden {
+    opacity: 0;
+    transform: translateX(64px);
+    pointer-events: none;
+  }
+
+  .sessionName,
+  .previewPanel {
+    transition: opacity 480ms ease, transform 480ms ease;
+  }
+
+  .previewContentVisible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .previewContentHidden {
+    opacity: 0;
+    transform: translateY(56px);
+    pointer-events: none;
+  }
+
+  .sessionName.previewContentVisible {
+    transform: translate(-50%, 0);
+  }
+
+  .sessionName.previewContentHidden {
+    transform: translate(-50%, 56px);
+  }
+
   .sessionName {
     bottom: calc(46% - 24px);
     font-size: 18px;
@@ -493,6 +534,14 @@
 
   .previewStage .sessionName,
   .previewStage .previewPanel {
+    display: none;
+  }
+
+  .previewContentHidden {
+    display: none;
+  }
+
+  .previewCloseButtonHidden {
     display: none;
   }
 
