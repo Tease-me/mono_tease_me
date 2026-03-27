@@ -68,8 +68,8 @@ export default function AdultSceneSelector({
             />
           )}
         </div>
+        <div className={`${styles.name}${isRelationship ? ` ${styles.relationshipName}` : ""}`}>{name}</div>
       </div>
-      <div className={`${styles.name}${isRelationship ? ` ${styles.relationshipName}` : ""}`}>{name}</div>
       <div className={styles.lowerBody}>
         <div className={styles.description}>{description}</div>
         {hasSamples && (
