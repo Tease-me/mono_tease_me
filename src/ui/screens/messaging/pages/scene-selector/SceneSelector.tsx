@@ -6,7 +6,7 @@ import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import styles from "./SceneSelector.module.css";
 import SvgPack from "@/utils/SvgPack";
-import useCallWebRTC from "@/hooks/useCallWebRTC";
+import useAdultVoiceCall from "@/hooks/useAdultVoiceCall";
 import { formatTime } from "@/utils/time";
 import { showErrorModal } from "@/utils/errorModal";
 import AddCreditsModal from "@/ui/components/modals/payment-modal/AddCreditsModal";
@@ -113,51 +113,49 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
   const [selectedScene, setSelectedScene] = useState<Scene | null>(null);
   const [sessionState, setSessionState] = useState<SessionState>("preview");
   const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [showCallTime, setShowCallTime] = useState(0);
+  const [loadErrorMessage, setLoadErrorMessage] = useState<string | null>(null);
   const [showTopupModal, setShowTopupModal] = useState(false);
   const [pendingScene, setPendingScene] = useState<Scene | null>(null);
   const { needsGate, verificationRequired, markConfirmed } = useAgeVerification();
   const lastCallErrorRef = useRef<string | null>(null);
-  const isCreditsErrorRef = useRef(false);
-  const { setInfluencerId, startConversation, stopConversation, status } =
-    useCallWebRTC({ onCreditsExpired: () => { isCreditsErrorRef.current = true; setShowTopupModal(true); } });
-  const isCallActive = status === "connecting" || status === "connected";
+  const {
+    startCall,
+    stopCall,
+    status,
+    socketStatus,
+    callState,
+    remainingSeconds,
+    error: callError,
+  } = useAdultVoiceCall({
+    onInsufficientCredits: () => {
+      setShowTopupModal(true);
+    },
+  });
+  const isCallActive =
+    socketStatus === "connecting" ||
+    (socketStatus === "open" && callState !== "ended");
   const activeStatusLabel = useMemo(() => {
-    if (status === "connecting") {
-      return "Ringing";
+    if (callState === "connecting" || socketStatus === "connecting") {
+      return "Connecting...";
     }
-    if (status === "connected") {
-      return "Connected";
+    if (callState === "listening") {
+      return "Listening...";
+    }
+    if (callState === "agent_speaking") {
+      return "Speaking...";
+    }
+    if (callState === "ending") {
+      return "Ending...";
     }
     return "";
-  }, [status]);
+  }, [callState, socketStatus]);
 
   useEffect(() => {
     setSelectedScene(null);
     setSessionState("preview");
     setIsLoading(true);
-    setErrorMessage(null);
+    setLoadErrorMessage(null);
   }, [influencerId]);
-
-  useEffect(() => {
-    setInfluencerId(influencerId);
-  }, [influencerId, setInfluencerId]);
-
-  useEffect(() => {
-    const isActive = status === "connecting" || status === "connected";
-
-    if (!isActive) {
-      setShowCallTime(0);
-      return;
-    }
-
-    const interval = setInterval(() => {
-      setShowCallTime((prev) => prev + 1);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [status]);
 
   useEffect(() => {
     if (!selectedScene) {
@@ -170,15 +168,14 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
   useEffect(() => {
     if (status !== "error") {
       lastCallErrorRef.current = null;
-      isCreditsErrorRef.current = false;
       return;
     }
 
-    if (isCreditsErrorRef.current) {
+    if (callError?.code === "INSUFFICIENT_CREDITS") {
       return;
     }
 
-    const nextMessage = errorMessage || "Unable to start the call right now.";
+    const nextMessage = callError?.message || "Unable to start the call right now.";
     if (lastCallErrorRef.current === nextMessage) {
       return;
     }
@@ -188,19 +185,19 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
       title: "Call Error",
       message: nextMessage,
     });
-  }, [errorMessage, status]);
+  }, [callError, status]);
 
   useEffect(() => {
     if (!influencerId) {
       setScenes([]);
       setIsLoading(false);
-      setErrorMessage(null);
+      setLoadErrorMessage(null);
       return;
     }
 
     let cancelled = false;
     setIsLoading(true);
-    setErrorMessage(null);
+    setLoadErrorMessage(null);
 
     void (async () => {
       try {
@@ -252,7 +249,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
       } catch {
         if (!cancelled) {
           setScenes([]);
-          setErrorMessage("Unable to load scenarios right now.");
+          setLoadErrorMessage("Unable to load scenarios right now.");
         }
       } finally {
         if (!cancelled) {
@@ -292,18 +289,15 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
     if (!selectedScene) {
       return;
     }
-    const result = await startConversation({
-      flow: "adult-character",
+    await startCall({
+      influencerId,
       characterId: selectedScene.id,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     });
-    if (result?.errorStatus === 402) {
-      isCreditsErrorRef.current = true;
-      setShowTopupModal(true);
-    }
   };
 
   const handleEndCall = async () => {
-    await stopConversation();
+    await stopCall();
   };
 
   const isRelationshipScene = selectedScene?.slug === "relationship";
@@ -317,9 +311,9 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
         <div className={styles.loadingState}>
           <LoadingSpinner size="medium" />
         </div>
-      ) : errorMessage ? (
+      ) : loadErrorMessage ? (
         <div className={styles.statusState}>
-          <div className={styles.statusText}>{errorMessage}</div>
+          <div className={styles.statusText}>{loadErrorMessage}</div>
         </div>
       ) : scenes.length === 0 ? (
         <div className={styles.statusState}>
@@ -428,6 +422,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                       color="green"
                       type="pill"
                       className={styles.callButton}
+                      disabled={socketStatus === "connecting"}
                       leftIcon={
                         <Suspense fallback={null}>
                           <SvgPack.Call className={styles.callButtonIcon} />
@@ -442,7 +437,9 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                   className={`${styles.activePanel} ${sessionState === "active" ? styles.activePanelVisible : styles.activePanelHidden}`}
                 >
                   <div className={styles.subtitle}>{activeStatusLabel}</div>
-                  <div className={styles.sessionTimer}>{formatTime(showCallTime)}</div>
+                  <div className={styles.sessionTimer}>
+                    {formatTime(Math.max(remainingSeconds ?? 0, 0))}
+                  </div>
                   <div className={styles.activeActions}>
                     <IconButton
                       onClick={handleEndCall}
@@ -488,6 +485,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                       color="green"
                       type="pill"
                       className={styles.callButton}
+                      disabled={socketStatus === "connecting"}
                       leftIcon={
                         <Suspense fallback={null}>
                           <SvgPack.Call className={styles.callButtonIcon} />
