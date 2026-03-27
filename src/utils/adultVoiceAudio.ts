@@ -1,4 +1,8 @@
+import logger from "@/utils/logger";
+
 const TARGET_SAMPLE_RATE = 16000;
+const MIC_PROCESSOR_BUFFER_SIZE = 1024;
+const MIC_DIAGNOSTIC_LOG_EVERY_N_CHUNKS = 50;
 
 const AudioContextCtor: typeof AudioContext | undefined =
   window.AudioContext ||
@@ -136,6 +140,9 @@ export class MicCapture {
   private muted = false;
   private buffer = new Float32Array(0);
   private resamplePosition = 0;
+  private chunkCount = 0;
+  private chunkLogSampleRate: number | null = null;
+  private lastChunkSentAt = 0;
   private readonly onChunk: (base64Audio: string) => void;
 
   constructor(onChunk: (base64Audio: string) => void) {
@@ -176,6 +183,16 @@ export class MicCapture {
       return;
     }
 
+    if (this.chunkLogSampleRate === null) {
+      this.chunkLogSampleRate = sourceRate;
+      logger.info("Adult voice mic capture configured", {
+        inputSampleRate: sourceRate,
+        processorFrames: MIC_PROCESSOR_BUFFER_SIZE,
+        expectedChunkMs: Math.round((MIC_PROCESSOR_BUFFER_SIZE / sourceRate) * 1000),
+        targetSampleRate: TARGET_SAMPLE_RATE,
+      });
+    }
+
     this.buffer = new Float32Array(concatFloat32Arrays(this.buffer, chunk));
 
     if (sourceRate === TARGET_SAMPLE_RATE) {
@@ -185,6 +202,19 @@ export class MicCapture {
       }
       this.buffer = new Float32Array(0);
       this.resamplePosition = 0;
+      const now = performance.now();
+      const elapsedSinceLastChunkMs =
+        this.lastChunkSentAt > 0 ? Math.round(now - this.lastChunkSentAt) : null;
+      this.chunkCount += 1;
+      this.lastChunkSentAt = now;
+      if (this.chunkCount % MIC_DIAGNOSTIC_LOG_EVERY_N_CHUNKS === 0) {
+        logger.debug("Adult voice mic chunks sent", {
+          chunkCount: this.chunkCount,
+          inputSampleRate: sourceRate,
+          processorFrames: MIC_PROCESSOR_BUFFER_SIZE,
+          elapsedSinceLastChunkMs,
+        });
+      }
       this.onChunk(uint8ToBase64(new Uint8Array(pcm16.buffer)));
       return;
     }
@@ -216,6 +246,19 @@ export class MicCapture {
     for (let i = 0; i < samples.length; i += 1) {
       pcm16[i] = clampToPcm16(samples[i]);
     }
+    const now = performance.now();
+    const elapsedSinceLastChunkMs =
+      this.lastChunkSentAt > 0 ? Math.round(now - this.lastChunkSentAt) : null;
+    this.chunkCount += 1;
+    this.lastChunkSentAt = now;
+    if (this.chunkCount % MIC_DIAGNOSTIC_LOG_EVERY_N_CHUNKS === 0) {
+      logger.debug("Adult voice mic chunks sent", {
+        chunkCount: this.chunkCount,
+        inputSampleRate: sourceRate,
+        processorFrames: MIC_PROCESSOR_BUFFER_SIZE,
+        elapsedSinceLastChunkMs,
+      });
+    }
     this.onChunk(uint8ToBase64(new Uint8Array(pcm16.buffer)));
   }
 
@@ -234,7 +277,11 @@ export class MicCapture {
     });
 
     this.sourceNode = context.createMediaStreamSource(this.stream);
-    this.processorNode = context.createScriptProcessor(4096, this.sourceNode.channelCount, 1);
+    this.processorNode = context.createScriptProcessor(
+      MIC_PROCESSOR_BUFFER_SIZE,
+      this.sourceNode.channelCount,
+      1,
+    );
     this.processorNode.onaudioprocess = (event) => {
       if (this.muted) {
         return;
@@ -263,6 +310,9 @@ export class MicCapture {
     }
     this.buffer = new Float32Array(0);
     this.resamplePosition = 0;
+    this.chunkCount = 0;
+    this.chunkLogSampleRate = null;
+    this.lastChunkSentAt = 0;
     if (this.context) {
       await this.context.close();
       this.context = null;
