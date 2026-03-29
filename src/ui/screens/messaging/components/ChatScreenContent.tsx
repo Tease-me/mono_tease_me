@@ -31,9 +31,7 @@ import ChatInfluencerBar from "./ChatInfluencerBar";
 import ChatHeaderInfo from "./ChatHeaderInfo";
 import CallModePage from "../pages/call-page/CallModePage";
 import { mergeCallMessages } from "./messageUtils";
-import UpgradePlanModal from "@/ui/components/modals/subscription/UpgradePlanModal";
 import AddCreditsModal from "@/ui/components/modals/payment-modal/AddCreditsModal";
-import { useSidebar } from "@/hooks/useSidebar";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   chatScreenActions,
@@ -88,7 +86,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
     mode,
     relationship,
     creditsRemaining,
-    showUpgradeModal,
     showTopupModal,
     callTime,
   } = useAppSelector((state) => state.chatScreen);
@@ -103,7 +100,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
   const localAudioUrlsRef = useRef<Set<string>>(new Set());
 
   const { user } = useContext(AuthContext);
-  const { openSidebar } = useSidebar();
 
   const isSuperUser = user?.id === 1;
 
@@ -468,14 +464,6 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
           />
         )}
       </div>
-      <UpgradePlanModal
-        isOpen={showUpgradeModal}
-        onClose={() => dispatch(chatScreenActions.setShowUpgradeModal(false))}
-        onUpgrade={() =>
-          openSidebar("subscription", { influencerId: influencer?.id })
-        }
-      />
-
       <AddCreditsModal
         isOpen={showTopupModal}
         image={influencer?.img}
