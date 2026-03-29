@@ -148,12 +148,12 @@ def test_browser_voice_session_builds_turn_detection_override() -> None:
     assert override["tts"]["voice_id"] == "voice_1"
     assert override["turn_detection"] == {
         "type": "server_vad",
-        "silence_duration_ms": 200,
+        "silence_duration_ms": 120,
         "threshold": 0.6,
     }
 
 
-def test_browser_voice_session_registers_conversation_and_notifies_client(monkeypatch) -> None:
+def test_browser_voice_session_registers_conversation_without_blocking_client(monkeypatch) -> None:
     ws = DummyWebSocket()
     session = browser_session.AdultBrowserVoiceSession(
         client_ws=ws,
@@ -170,13 +170,16 @@ def test_browser_voice_session_registers_conversation_and_notifies_client(monkey
         max_duration_secs=100,
     )
 
-    registered: list[tuple] = []
+    registration_started = asyncio.Event()
+    registration_released = asyncio.Event()
+    registered: list[str] = []
     polled: list[tuple] = []
     guarded: list[tuple] = []
 
-    async def fake_save_pending(*args, **kwargs):
-        registered.append((args, kwargs))
-        return "chat_1"
+    async def fake_register_pending(conversation_id: str) -> None:
+        registered.append(conversation_id)
+        registration_started.set()
+        await registration_released.wait()
 
     async def fake_poll(*args, **kwargs):
         polled.append((args, kwargs))
@@ -184,8 +187,7 @@ def test_browser_voice_session_registers_conversation_and_notifies_client(monkey
     async def fake_guard(*args, **kwargs):
         guarded.append((args, kwargs))
 
-    monkeypatch.setattr(browser_session, "SessionLocal", lambda: DummyAsyncSessionContext())
-    monkeypatch.setattr(browser_session, "save_pending_conversation", fake_save_pending)
+    monkeypatch.setattr(session, "_register_pending_conversation", fake_register_pending)
     monkeypatch.setattr(browser_session, "poll_and_persist_conversation", fake_poll)
     monkeypatch.setattr(browser_session, "end_conversation_after_credits", fake_guard)
 
@@ -197,20 +199,23 @@ def test_browser_voice_session_registers_conversation_and_notifies_client(monkey
                 }
             }
         )
+        await registration_started.wait()
+
+        assert ws.messages[-2] == {
+            "type": "call_started",
+            "chat_id": "chat_1",
+            "conversation_id": "conv_1",
+            "credits_remainder_secs": 120,
+        }
+        assert ws.messages[-1] == {"type": "state", "state": "listening"}
+        assert registered == ["conv_1"]
+
+        registration_released.set()
         await asyncio.sleep(0)
 
     asyncio.run(_run())
 
     assert session.conversation_id == "conv_1"
-    assert registered
-    assert ws.messages[-2] == {
-        "type": "call_started",
-        "chat_id": "chat_1",
-        "conversation_id": "conv_1",
-        "credits_remainder_secs": 120,
-    }
-    assert ws.messages[-1] == {"type": "state", "state": "listening"}
-
     assert polled
     assert guarded
 

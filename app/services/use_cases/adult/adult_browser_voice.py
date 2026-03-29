@@ -8,14 +8,13 @@ from app.data.schemas.adult.adult_conversation import (
     AdultBrowserVoiceSessionResponse,
     AdultConversationTokenRequest,
 )
-from app.services.chat_service import get_or_create_chat
-from app.services.follow import get_follow
-from app.services.gateways.elevenlabs.agents_gateway import compute_max_duration
-from app.services.influencer_subscriptions import get_valid_subscription
 from app.services.adult_character_billing import (
     can_afford_adult_character_voice,
     get_remaining_adult_character_voice_secs,
 )
+from app.services.chat_service import get_or_create_chat
+from app.services.follow import get_follow
+from app.services.gateways.elevenlabs.agents_gateway import compute_max_duration
 from app.services.repositories.adult.adult_conversation_repository import (
     get_active_influencer_character_meta,
     get_adult_character_by_id,
@@ -53,12 +52,6 @@ async def prepare_adult_browser_voice_call(
             status_code=403,
             detail="You must follow the influencer to interact.",
         )
-
-    await get_valid_subscription(
-        db,
-        user_id=user_id,
-        influencer_id=payload.influencer_id,
-    )
 
     influencer = await get_influencer_by_id(db, payload.influencer_id)
     if not influencer:
