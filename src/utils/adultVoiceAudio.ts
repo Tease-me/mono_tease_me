@@ -1,8 +1,8 @@
 import logger from "@/utils/logger";
 
 const TARGET_SAMPLE_RATE = 16000;
-const MIC_PROCESSOR_BUFFER_SIZE = 1024;
-const MIC_DIAGNOSTIC_LOG_EVERY_N_CHUNKS = 50;
+const MIC_PROCESSOR_BUFFER_SIZE = 512;
+const MIC_DIAGNOSTIC_LOG_EVERY_N_CHUNKS = 25;
 
 const AudioContextCtor: typeof AudioContext | undefined =
   window.AudioContext ||

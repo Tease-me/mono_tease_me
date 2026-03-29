@@ -11,8 +11,8 @@ export type CallStatus = "connecting" | "connected" | "disconnected" | "idle" | 
 
 export type StartConversationOptions =
   | undefined
-  | { flow?: "default" }
-  | { flow: "adult-character"; characterId: number };
+  | { flow?: "default"; influencerId?: string }
+  | { flow: "adult-character"; characterId: number; influencerId?: string };
 
 type NormalizedConversationToken = {
   conversationToken: string;
@@ -145,7 +145,8 @@ export default function useCallWebRTC(options?: {
   }, [status])
 
   const startConversation = useCallback(async (startOptions?: StartConversationOptions) => {
-    if (!influencerId || startInFlightRef.current) {
+    const activeInfluencerId = startOptions?.influencerId ?? influencerId;
+    if (!activeInfluencerId || startInFlightRef.current) {
       return;
     }
     let errorStatus: number | null = null;
@@ -194,7 +195,7 @@ export default function useCallWebRTC(options?: {
       let tokenPayload: NormalizedConversationToken;
       if (startOptions?.flow === "adult-character") {
         const response = await chatRepo.getAdultConversationToken(
-          influencerId,
+          activeInfluencerId,
           startOptions.characterId,
           abortController.signal,
         );
@@ -210,7 +211,7 @@ export default function useCallWebRTC(options?: {
       } else {
         const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
         const response = await chatRepo.getConversationToken(
-          influencerId,
+          activeInfluencerId,
           userTimezone,
           abortController.signal,
         );
@@ -220,7 +221,7 @@ export default function useCallWebRTC(options?: {
           greetingUsed: response.greeting_used ?? "",
           prompt: response.prompt ?? "",
           nativeLanguage: response.native_language || "en",
-          registerInfluencerId: influencerId,
+          registerInfluencerId: activeInfluencerId,
         };
       }
 
