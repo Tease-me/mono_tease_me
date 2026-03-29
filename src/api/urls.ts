@@ -70,6 +70,8 @@ export const Endpoints = {
   },
   adult: {
     conversation_token: "/adult/conversation-token",
+    voice: (influencerId: string) =>
+      `/adult/ws/voice/${encodeURIComponent(influencerId)}`,
   },
   influencers: "/influencer",
   influencer: (id: string) => `/influencer/${id}`,
