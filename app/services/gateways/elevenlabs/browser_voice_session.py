@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import time
 
 from fastapi import WebSocket
 
@@ -72,6 +73,12 @@ class AdultBrowserVoiceSession:
         self._ai_speaking = False
         self._held_audio_queue: list[str] = []
         self._conversation_id: str | None = None
+        self._created_at = time.perf_counter()
+        self._first_client_audio_logged = False
+        self._first_forwarded_audio_logged = False
+        self._metadata_logged = False
+        self._first_convai_audio_logged = False
+        self._first_frontend_audio_logged = False
 
     @property
     def conversation_id(self) -> str | None:
@@ -126,6 +133,15 @@ class AdultBrowserVoiceSession:
     async def handle_client_audio(self, audio_b64: str) -> None:
         if not self._is_active or not self._convai_ws:
             return
+
+        if not self._first_client_audio_logged:
+            self._first_client_audio_logged = True
+            log.info(
+                "adult_browser_voice.first_client_audio influencer=%s user=%s elapsed_ms=%d",
+                self.influencer_id,
+                self.user_id,
+                int((time.perf_counter() - self._created_at) * 1000),
+            )
 
         if self._ai_speaking:
             self._held_audio_queue.append(audio_b64)
@@ -189,7 +205,7 @@ class AdultBrowserVoiceSession:
                 },
                 "turn_detection": {
                     "type": "server_vad",
-                    "silence_duration_ms": 200,
+                    "silence_duration_ms": 120,
                     "threshold": 0.6,
                 },
             },
@@ -235,19 +251,21 @@ class AdultBrowserVoiceSession:
         if not self._conversation_id:
             return
 
+        if not self._metadata_logged:
+            self._metadata_logged = True
+            log.info(
+                "adult_browser_voice.metadata_received influencer=%s user=%s conv=%s elapsed_ms=%d",
+                self.influencer_id,
+                self.user_id,
+                self._conversation_id,
+                int((time.perf_counter() - self._created_at) * 1000),
+            )
+
         if not self._conversation_registered:
             self._conversation_registered = True
-            async with SessionLocal() as db:
-                await save_pending_conversation(
-                    db,
-                    self._conversation_id,
-                    self.user_id,
-                    self.influencer_id,
-                    sid=None,
-                    is_adult_call=True,
-                    adult_character_id=self.character_id,
-                )
-
+            asyncio.create_task(
+                self._register_pending_conversation(self._conversation_id)
+            )
             asyncio.create_task(
                 poll_and_persist_conversation(
                     self._conversation_id,
@@ -279,6 +297,16 @@ class AdultBrowserVoiceSession:
         if not audio_b64:
             return
 
+        if not self._first_convai_audio_logged:
+            self._first_convai_audio_logged = True
+            log.info(
+                "adult_browser_voice.first_convai_audio influencer=%s user=%s conv=%s elapsed_ms=%d",
+                self.influencer_id,
+                self.user_id,
+                self._conversation_id,
+                int((time.perf_counter() - self._created_at) * 1000),
+            )
+
         self._ai_speaking = True
         if self._flush_held_audio_task:
             self._flush_held_audio_task.cancel()
@@ -290,6 +318,15 @@ class AdultBrowserVoiceSession:
                 "audio": audio_b64,
             }
         )
+        if not self._first_frontend_audio_logged:
+            self._first_frontend_audio_logged = True
+            log.info(
+                "adult_browser_voice.first_frontend_audio influencer=%s user=%s conv=%s elapsed_ms=%d",
+                self.influencer_id,
+                self.user_id,
+                self._conversation_id,
+                int((time.perf_counter() - self._created_at) * 1000),
+            )
 
         self._flush_held_audio_task = asyncio.create_task(
             self._flush_held_audio_after_delay()
@@ -298,7 +335,36 @@ class AdultBrowserVoiceSession:
     async def _send_audio_to_convai(self, audio_b64: str) -> None:
         if not self._convai_ws or not self._is_active:
             return
+        if not self._first_forwarded_audio_logged:
+            self._first_forwarded_audio_logged = True
+            log.info(
+                "adult_browser_voice.first_audio_forwarded influencer=%s user=%s conv=%s elapsed_ms=%d",
+                self.influencer_id,
+                self.user_id,
+                self._conversation_id,
+                int((time.perf_counter() - self._created_at) * 1000),
+            )
         await self._convai_ws.send(json.dumps({"user_audio_chunk": audio_b64}))
+
+    async def _register_pending_conversation(self, conversation_id: str) -> None:
+        try:
+            async with SessionLocal() as db:
+                await save_pending_conversation(
+                    db,
+                    conversation_id,
+                    self.user_id,
+                    self.influencer_id,
+                    sid=None,
+                    is_adult_call=True,
+                    adult_character_id=self.character_id,
+                )
+        except Exception:
+            log.exception(
+                "adult_browser_voice.pending_registration_failed influencer=%s user=%s conv=%s",
+                self.influencer_id,
+                self.user_id,
+                conversation_id,
+            )
 
     async def _flush_held_audio_after_delay(self) -> None:
         try:
