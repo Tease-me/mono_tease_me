@@ -317,6 +317,19 @@ export default function useAdultVoiceCall(options?: UseAdultVoiceCallOptions) {
   }, []);
 
   useEffect(() => {
+    if (remainingSeconds !== 0) {
+      return;
+    }
+
+    if (socketStatus !== "open" && socketStatus !== "error") {
+      return;
+    }
+
+    options?.onInsufficientCredits?.();
+    void stopCall();
+  }, [options, remainingSeconds, socketStatus, stopCall]);
+
+  useEffect(() => {
     micCaptureRef.current?.setMuted(isMuted);
   }, [isMuted]);
 
