@@ -39,6 +39,11 @@ DEFAULT_CONVERSATION_CONFIG_OVERRIDE = {
     "tts": {
         "voice_id": True,
     },
+    "turn_detection": {
+        "type": True,
+        "silence_duration_ms": True,
+        "threshold": True,
+    },
 }
 
 
