@@ -99,11 +99,14 @@ export default function AudioSamplePlayer({
         ))}
       </div>
 
-      {duration && <span className={styles.duration}>{duration}</span>}
+      <span className={styles.duration} aria-hidden={!duration}>
+        {duration}
+      </span>
 
       <audio
         ref={audioRef}
         src={url}
+        preload="metadata"
         onLoadedMetadata={handleLoadedMetadata}
         onPause={() => setIsPlaying(false)}
         onEnded={() => setIsPlaying(false)}

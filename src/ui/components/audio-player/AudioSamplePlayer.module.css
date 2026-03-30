@@ -97,9 +97,13 @@
 }
 
 .duration {
+  display: inline-block;
+  min-width: 4.5em;
   font-size: 12px;
   color: rgba(255, 255, 255, 0.7);
   white-space: nowrap;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .small .duration {
