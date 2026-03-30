@@ -9,7 +9,7 @@ import logging
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import func, select, update
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.data.models import CallRecord, Chat
@@ -169,3 +169,32 @@ async def cleanup_stale_active_calls(db: AsyncSession) -> int:
     else:
         log.info("cleanup_stale_active_calls: no stale active calls found")
     return count
+
+
+async def delete_telegram_trials(
+    db: AsyncSession,
+) -> tuple[int, list[tuple[int, int, float]]]:
+    """Delete all Telegram call records and return pre-wipe usage stats.
+
+    Returns:
+        Tuple of (deleted_count, usage_rows) where each usage row is
+        (telegram_user_id, call_count, total_seconds).
+    """
+    rows = (await db.execute(
+        select(
+            CallRecord.telegram_user_id,
+            func.count().label("calls"),
+            func.coalesce(func.sum(CallRecord.call_duration_secs), 0).label("total_secs"),
+        )
+        .where(CallRecord.telegram_user_id.isnot(None))
+        .group_by(CallRecord.telegram_user_id)
+    )).all()
+
+    result = await db.execute(
+        delete(CallRecord).where(CallRecord.telegram_user_id.isnot(None))
+    )
+    await db.commit()
+
+    deleted = result.rowcount or 0
+    return deleted, list(rows)
+

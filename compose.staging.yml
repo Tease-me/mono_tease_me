@@ -33,10 +33,13 @@ services:
       - >
         python -m alembic upgrade head &&
         uvicorn app.main:app --host 0.0.0.0 --port ${STAGING_PORT:-8001}
+        --proxy-headers --forwarded-allow-ips='*'
     env_file:
       - .env
     ports:
       - "${STAGING_PORT:-8001}:${STAGING_PORT:-8001}"
+    volumes:
+      - staging_telegram_sessions:/usr/src/telegram_sessions
     depends_on:
       db:
         condition: service_healthy
@@ -47,3 +50,4 @@ services:
 volumes:
   staging_pgdata:
   staging_redisdata:
+  staging_telegram_sessions:

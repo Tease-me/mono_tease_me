@@ -11,46 +11,44 @@ Authentication is done in two API calls:
 
 import logging
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
-
-from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.data.models import User, CallRecord
+from app.api.admin.common import ensure_admin
+from app.data.models import User
 from app.core.session import get_db
 from app.utils.auth.dependencies import get_current_user
 from app.core.config import settings
 from app.services.gateways.telegram.session_manager import session_manager
 from app.services.gateways.telegram import lifecycle as tg_lifecycle
+from app.services.use_cases import auto_provision_use_case
+from app.services.repositories import call_record_repository
+from app.data.schemas.provisioned_number import (
+    NumberSearchRequest,
+    NumberSearchResponse,
+    AvailableNumber,
+    ProvisionRequest,
+    ProvisionedNumberResponse,
+    ProvisionedNumberListResponse,
+)
+from app.data.schemas.telegram_session import (
+    SendCodeRequest,
+    SendCodeResponse,
+    ResendCodeRequest,
+    VerifyCodeRequest,
+    VerifyCodeResponse,
+    SessionInfo,
+    SessionListResponse,
+    SessionActionResponse,
+    TrialResetResponse,
+    TrialResetUserInfo,
+)
 
 log = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/telegram", tags=["telegram-admin"])
 
 
-# ─────────────────────── request / response models ───────────────────────
-
-class SendCodeRequest(BaseModel):
-    influencer_id: str
-    phone_number: str
-
-
-class VerifyCodeRequest(BaseModel):
-    influencer_id: str
-    code: str
-    password: str | None = None  # optional 2FA password
-
-
-class SessionStatusResponse(BaseModel):
-    influencer_id: str
-    connected: bool
-
-
 # ─────────────────────── guards ───────────────────────
-
-def _require_admin(user: User):
-    if user.id != 1:
-        raise HTTPException(status_code=403, detail="Admin only")
 
 
 def _require_enabled():
@@ -63,7 +61,11 @@ def _require_enabled():
 
 # ─────────────────────── 2-step auth endpoints ───────────────────────
 
-@router.post("/sessions/send-code")
+@router.post(
+    "/sessions/send-code",
+    response_model=SendCodeResponse,
+    summary="Send Telegram verification code",
+)
 async def send_code(
     payload: SendCodeRequest,
     current_user: User = Depends(get_current_user),
@@ -73,7 +75,7 @@ async def send_code(
     If a session file already exists, it will auto-resume instead.
     Otherwise, Telegram sends a code to the phone's Telegram app.
     """
-    _require_admin(current_user)
+    ensure_admin(current_user)
     _require_enabled()
 
     try:
@@ -91,7 +93,7 @@ async def send_code(
                 handler.register()
                 log.info("Handlers registered for resumed session %s", payload.influencer_id)
 
-        return {"ok": True, **result}
+        return SendCodeResponse(ok=True, **result)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except RuntimeError as e:
@@ -101,11 +103,11 @@ async def send_code(
         raise HTTPException(status_code=500, detail=f"Send code failed: {str(e)}")
 
 
-class ResendCodeRequest(BaseModel):
-    influencer_id: str
-
-
-@router.post("/sessions/resend-code")
+@router.post(
+    "/sessions/resend-code",
+    response_model=SendCodeResponse,
+    summary="Resend Telegram verification code",
+)
 async def resend_code(
     payload: ResendCodeRequest,
     current_user: User = Depends(get_current_user),
@@ -115,14 +117,14 @@ async def resend_code(
     Call this after send-code if the initial code wasn't received.
     Telegram will try the next delivery method (e.g. SMS instead of in-app).
     """
-    _require_admin(current_user)
+    ensure_admin(current_user)
     _require_enabled()
 
     try:
         result = await session_manager.resend_code(
             influencer_id=payload.influencer_id,
         )
-        return {"ok": True, **result}
+        return SendCodeResponse(ok=True, **result)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except RuntimeError as e:
@@ -132,7 +134,11 @@ async def resend_code(
         raise HTTPException(status_code=500, detail=f"Resend code failed: {str(e)}")
 
 
-@router.post("/sessions/verify-code")
+@router.post(
+    "/sessions/verify-code",
+    response_model=VerifyCodeResponse,
+    summary="Verify Telegram auth code",
+)
 async def verify_code(
     payload: VerifyCodeRequest,
     current_user: User = Depends(get_current_user),
@@ -142,7 +148,7 @@ async def verify_code(
     If the account has 2FA, provide the password field too.
     After success, the session is saved and will auto-resume on restarts.
     """
-    _require_admin(current_user)
+    ensure_admin(current_user)
     _require_enabled()
 
     try:
@@ -158,13 +164,13 @@ async def verify_code(
         handler = TelegramMessageHandler(client, payload.influencer_id)
         handler.register()
 
-        return {
-            "ok": True,
-            "status": "authenticated",
-            "influencer_id": payload.influencer_id,
-            "telegram_user": me.username or me.first_name,
-            "telegram_id": me.id,
-        }
+        return VerifyCodeResponse(
+            ok=True,
+            status="authenticated",
+            influencer_id=payload.influencer_id,
+            telegram_user=me.username or me.first_name,
+            telegram_id=me.id,
+        )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except RuntimeError as e:
@@ -176,12 +182,16 @@ async def verify_code(
 
 # ─────────────────────── session management ───────────────────────
 
-@router.get("/sessions")
+@router.get(
+    "/sessions",
+    response_model=SessionListResponse,
+    summary="List all Telegram sessions",
+)
 async def list_telegram_sessions(
     current_user: User = Depends(get_current_user),
 ):
     """List all active and saved Telegram sessions."""
-    _require_admin(current_user)
+    ensure_admin(current_user)
     _require_enabled()
 
     active = session_manager.list_sessions()
@@ -191,40 +201,51 @@ async def list_telegram_sessions(
     all_sessions = []
 
     for s in active:
-        all_sessions.append({
-            **s,
-            "has_session_file": s["influencer_id"] in saved,
-        })
+        all_sessions.append(SessionInfo(
+            influencer_id=s["influencer_id"],
+            connected=s.get("connected", True),
+            telegram_user=s.get("telegram_user"),
+            telegram_id=s.get("telegram_id"),
+            has_session_file=s["influencer_id"] in saved,
+        ))
 
     for iid in saved:
         if iid not in active_ids:
-            all_sessions.append({
-                "influencer_id": iid,
-                "connected": False,
-                "has_session_file": True,
-            })
+            all_sessions.append(SessionInfo(
+                influencer_id=iid,
+                connected=False,
+                has_session_file=True,
+            ))
 
-    return {"sessions": all_sessions, "count": len(all_sessions)}
+    return SessionListResponse(sessions=all_sessions, count=len(all_sessions))
 
 
-@router.post("/sessions/stop/{influencer_id}")
+@router.post(
+    "/sessions/stop/{influencer_id}",
+    response_model=SessionActionResponse,
+    summary="Stop a Telegram session",
+)
 async def stop_telegram_session(
     influencer_id: str,
     current_user: User = Depends(get_current_user),
 ):
     """Stop a specific influencer's Telegram session."""
-    _require_admin(current_user)
+    ensure_admin(current_user)
     _require_enabled()
 
     stopped = await tg_lifecycle.stop_session(influencer_id)
-    return {
-        "ok": stopped,
-        "influencer_id": influencer_id,
-        "message": "Session stopped" if stopped else "No active session found",
-    }
+    return SessionActionResponse(
+        ok=stopped,
+        influencer_id=influencer_id,
+        message="Session stopped" if stopped else "No active session found",
+    )
 
 
-@router.delete("/sessions/{influencer_id}")
+@router.delete(
+    "/sessions/{influencer_id}",
+    response_model=SessionActionResponse,
+    summary="Delete a Telegram session",
+)
 async def delete_telegram_session(
     influencer_id: str,
     terminate_on_telegram: bool = False,
@@ -239,7 +260,7 @@ async def delete_telegram_session(
 
     After deletion, the influencer will need to go through send-code/verify-code again.
     """
-    _require_admin(current_user)
+    ensure_admin(current_user)
     _require_enabled()
 
     result = await session_manager.delete_session(
@@ -250,74 +271,225 @@ async def delete_telegram_session(
         if result.get("logged_out_from_telegram")
         else "Session wiped locally. Use send-code to re-authenticate."
     )
-    return {
-        "ok": True,
-        "influencer_id": influencer_id,
-        **result,
-        "message": msg,
-    }
+    return SessionActionResponse(
+        ok=True,
+        influencer_id=influencer_id,
+        message=msg,
+        logged_out_from_telegram=result.get("logged_out_from_telegram"),
+    )
 
-@router.get("/sessions/{influencer_id}")
+
+@router.get(
+    "/sessions/{influencer_id}",
+    response_model=SessionInfo,
+    summary="Get Telegram session status",
+)
 async def get_telegram_session_status(
     influencer_id: str,
     current_user: User = Depends(get_current_user),
 ):
     """Get the status of a specific influencer's Telegram session."""
-    _require_admin(current_user)
+    ensure_admin(current_user)
     _require_enabled()
 
     client = await session_manager.get_session(influencer_id)
     if client:
         me = await client.get_me()
-        return {
-            "influencer_id": influencer_id,
-            "connected": True,
-            "telegram_user": me.username or me.first_name,
-            "telegram_id": me.id,
-        }
+        return SessionInfo(
+            influencer_id=influencer_id,
+            connected=True,
+            telegram_user=me.username or me.first_name,
+            telegram_id=me.id,
+        )
 
-    return {
-        "influencer_id": influencer_id,
-        "connected": False,
-        "has_session_file": influencer_id in session_manager.list_saved_sessions(),
-    }
+    return SessionInfo(
+        influencer_id=influencer_id,
+        connected=False,
+        has_session_file=influencer_id in session_manager.list_saved_sessions(),
+    )
 
 
 # ─────────────────────── trial management ───────────────────────
 
-@router.post("/trials/reset")
+@router.post(
+    "/trials/reset",
+    response_model=TrialResetResponse,
+    summary="Reset all Telegram trial budgets",
+)
 async def reset_all_telegram_trials(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Delete all Telegram call records, resetting every user's trial budget."""
-    _require_admin(current_user)
+    ensure_admin(current_user)
 
-    # Show usage before wiping
-    rows = (await db.execute(
-        select(
-            CallRecord.telegram_user_id,
-            func.count().label("calls"),
-            func.coalesce(func.sum(CallRecord.call_duration_secs), 0).label("total_secs"),
-        )
-        .where(CallRecord.telegram_user_id.isnot(None))
-        .group_by(CallRecord.telegram_user_id)
-    )).all()
+    deleted, rows = await call_record_repository.delete_telegram_trials(db)
 
-    result = await db.execute(
-        delete(CallRecord).where(CallRecord.telegram_user_id.isnot(None))
-    )
-    await db.commit()
-
-    deleted = result.rowcount or 0
     log.info("admin.reset_all_trials deleted=%d by_user=%s", deleted, current_user.id)
 
-    return {
-        "ok": True,
-        "deleted": deleted,
-        "users_reset": [
-            {"telegram_user_id": tg_id, "calls": calls, "used_secs": round(secs, 1)}
+    return TrialResetResponse(
+        ok=True,
+        deleted=deleted,
+        users_reset=[
+            TrialResetUserInfo(
+                telegram_user_id=tg_id,
+                calls=calls,
+                used_secs=round(secs, 1),
+            )
             for tg_id, calls, secs in rows
         ],
-    }
+    )
 
+
+# ─────────── Phone Number Provisioning (Auto Telegram Account) ───────────
+
+
+@router.post(
+    "/numbers/search",
+    response_model=NumberSearchResponse,
+    summary="Search available Twilio numbers",
+)
+async def search_available_numbers(
+    payload: NumberSearchRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Search Twilio's catalog for available phone numbers to buy."""
+    ensure_admin(current_user)
+
+    try:
+        numbers = await auto_provision_use_case.search_numbers(
+            country_code=payload.country_code,
+            number_type=payload.number_type,
+            area_code=payload.area_code,
+            contains=payload.contains,
+            limit=payload.limit,
+        )
+        return NumberSearchResponse(
+            numbers=[AvailableNumber(**n) for n in numbers],
+            count=len(numbers),
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+
+
+@router.post(
+    "/numbers/provision",
+    response_model=ProvisionedNumberResponse,
+    status_code=201,
+    summary="One-click provision Telegram account",
+)
+async def provision_telegram_account(
+    payload: ProvisionRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """One-click: buy Twilio number → create Telegram account → auto-verify.
+
+    After calling this, the system:
+    1. Purchases the number from Twilio
+    2. Starts Telegram auth (sends verification code)
+    3. Waits for the SMS webhook to capture the code
+    4. Auto-verifies and creates the Telegram session
+
+    Poll GET /telegram/numbers/{id} to check the status.
+    """
+    ensure_admin(current_user)
+
+    try:
+        record = await auto_provision_use_case.provision_and_create(
+            db=db,
+            phone_number=payload.phone_number,
+            influencer_id=payload.influencer_id,
+            first_name=payload.first_name,
+            last_name=payload.last_name,
+        )
+        return ProvisionedNumberResponse.model_validate(record)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        log.exception("provision_telegram_account failed")
+        raise HTTPException(status_code=500, detail=f"Provisioning failed: {e}")
+
+
+@router.get(
+    "/numbers",
+    response_model=ProvisionedNumberListResponse,
+    summary="List provisioned numbers",
+)
+async def list_provisioned_numbers(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """List all provisioned phone numbers and their Telegram status."""
+    ensure_admin(current_user)
+
+    numbers = await auto_provision_use_case.list_provisioned(db)
+    return ProvisionedNumberListResponse(
+        numbers=[ProvisionedNumberResponse.model_validate(n) for n in numbers],
+        count=len(numbers),
+    )
+
+
+@router.get(
+    "/numbers/{number_id}",
+    response_model=ProvisionedNumberResponse,
+    summary="Get provisioned number details",
+)
+async def get_provisioned_number(
+    number_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get details for a specific provisioned number (poll for status updates)."""
+    ensure_admin(current_user)
+
+    record = await auto_provision_use_case.get_provisioned(db, number_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Number not found")
+    return ProvisionedNumberResponse.model_validate(record)
+
+
+@router.delete(
+    "/numbers/{number_id}",
+    response_model=SessionActionResponse,
+    summary="Release a provisioned number",
+)
+async def release_provisioned_number(
+    number_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Release a Twilio number and clean up the Telegram session."""
+    ensure_admin(current_user)
+
+    released = await auto_provision_use_case.release_number(db, number_id)
+    if not released:
+        raise HTTPException(status_code=404, detail="Number not found")
+    return SessionActionResponse(
+        ok=True,
+        influencer_id="",
+        message="Number released",
+    )
+
+
+@router.post(
+    "/numbers/{number_id}/retry",
+    response_model=ProvisionedNumberResponse,
+    summary="Retry Telegram verification",
+)
+async def retry_provisioned_number(
+    number_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Retry Telegram verification for a failed number."""
+    ensure_admin(current_user)
+
+    record = await auto_provision_use_case.retry_verification(db, number_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Number not found")
+    return ProvisionedNumberResponse.model_validate(record)
