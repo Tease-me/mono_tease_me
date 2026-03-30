@@ -17,6 +17,7 @@ import { UserServices } from "@/api/services/UserServices";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { FollowServices } from "@/api/services/FollowServices";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
+import { LatestAdultCallSummary } from "@/api/models/user";
 
 const balanceService = BalanceServices(apiClient);
 const subscriptionService = SubscriptionsServices(apiClient);
@@ -49,6 +50,7 @@ type RelationData = {
   lastCallMinutes?: number;
   lastCallSeconds?: number;
   lastCallUnitPriceCents?: number;
+  latestAdultCallSummary?: LatestAdultCallSummary | null;
 };
 
 export default function InfluencerRelation({ navPayload, goTo }: Props) {
@@ -73,7 +75,6 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
   const [loading, setLoading] = useState(false);
 
   const [showBalanceDetails, setShowBalanceDetails] = useState(false);
-
   const [showCallInfoModal, setShowCallInfoModal] = useState(false);
 
   useEffect(() => {
@@ -117,6 +118,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           lastCallMinutes: u?.normal?.live_chat?.last_call_minutes ?? d.lastCallMinutes,
           lastCallSeconds: u?.normal?.live_chat?.last_call_seconds ?? d.lastCallSeconds,
           lastCallUnitPriceCents: u?.normal?.live_chat?.unit_price_cents ?? d.lastCallUnitPriceCents,
+          latestAdultCallSummary: u?.latest_adult_call_summary ?? null,
         }));
       } finally {
         if (!cancelled) setLoading(false);
@@ -156,6 +158,21 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
     data.followingSince && !Number.isNaN(Date.parse(data.followingSince))
       ? new Date(data.followingSince).toLocaleDateString()
       : "--";
+
+  const latestAdultCallDuration = (() => {
+    const seconds = data.latestAdultCallSummary?.duration_seconds;
+    if (seconds == null) {
+      return "--";
+    }
+    const total = Math.round(seconds);
+    const mins = Math.floor(total / 60);
+    const secs = total % 60;
+    return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+  })();
+
+  const latestAdultCallCost = data.latestAdultCallSummary?.cost_cents == null
+    ? "--"
+    : `$${(data.latestAdultCallSummary.cost_cents / 100).toFixed(2)}`;
 
   if (loading) {
     return (
@@ -215,33 +232,33 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
                     }
                   />
                 </div>
-                <div className={styles.lastCallSection}>
-                  <div className={styles.lastCallHeader}>
-                    <span className={styles.lastCallTitle}>
-                      <Suspense fallback={null}><SvgPack.Call2 /></Suspense>
-                      Last Call Details
-                    </span>
-                    <span className={styles.infoIconBtn} onClick={() => setShowCallInfoModal(true)}>
-                      <Suspense fallback={null}><SvgPack.InfoCircleGray /></Suspense>
-                    </span>
-                  </div>
-                  <div className={styles.lastCallStats}>
-                    <div className={styles.lastCallCard}>
-                      <span className={styles.lastCallCardLabel}>Duration</span>
-                      <span className={styles.lastCallCardValue}>
-                        {data.lastCallMinutes != null ? minutesToTime(data.lastCallMinutes) : "--"}
+                {data.latestAdultCallSummary && (
+                  <div className={styles.lastCallSection}>
+                    <div className={styles.lastCallHeader}>
+                      <span className={styles.lastCallTitle}>
+                        <Suspense fallback={null}><SvgPack.Call2 /></Suspense>
+                        Last call details
+                      </span>
+                      <span className={styles.infoIconBtn} onClick={() => setShowCallInfoModal(true)}>
+                        <Suspense fallback={null}><SvgPack.InfoCircleGray /></Suspense>
                       </span>
                     </div>
-                    <div className={styles.lastCallCard}>
-                      <span className={styles.lastCallCardLabel}>Cost</span>
-                      <span className={styles.lastCallCardValue}>
-                        {data.lastCallSeconds != null && data.lastCallUnitPriceCents != null
-                          ? `$${((data.lastCallSeconds * data.lastCallUnitPriceCents) / 100).toFixed(2)}`
-                          : "--"}
-                      </span>
+                    <div className={styles.lastCallStats}>
+                      <div className={styles.lastCallCard}>
+                        <span className={styles.lastCallCardLabel}>Duration</span>
+                        <span className={styles.lastCallCardValue}>
+                          {latestAdultCallDuration}
+                        </span>
+                      </div>
+                      <div className={styles.lastCallCard}>
+                        <span className={styles.lastCallCardLabel}>Cost</span>
+                        <span className={styles.lastCallCardValue}>
+                          {latestAdultCallCost}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             </>
           )}
