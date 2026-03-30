@@ -42,8 +42,7 @@ export default function RegisterStepForm({
   onBack,
   onSignIn,
 }: RegisterStepFormProps) {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showPasswords, setShowPasswords] = useState(false);
 
   const passwordsMatch =
     values.password.length > 0 &&
@@ -74,15 +73,15 @@ export default function RegisterStepForm({
               <button
                 type="button"
                 className={styles["eye-button"]}
-                onClick={() => setShowPassword((v) => !v)}
+                onClick={() => setShowPasswords((v) => !v)}
                 tabIndex={-1}
               >
                 <Suspense fallback={null}>
-                  {showPassword ? <SvgPack.EyeOff /> : <SvgPack.Eye />}
+                  {showPasswords ? <SvgPack.EyeOff /> : <SvgPack.Eye />}
                 </Suspense>
               </button>
             }
-            type={showPassword ? "text" : "password"}
+            type={showPasswords ? "text" : "password"}
             placeholder="Password"
             value={values.password}
             onChange={(e) =>
@@ -102,15 +101,15 @@ export default function RegisterStepForm({
               <button
                 type="button"
                 className={styles["eye-button"]}
-                onClick={() => setShowConfirmPassword((v) => !v)}
+                onClick={() => setShowPasswords((v) => !v)}
                 tabIndex={-1}
               >
                 <Suspense fallback={null}>
-                  {showConfirmPassword ? <SvgPack.EyeOff /> : <SvgPack.Eye />}
+                  {showPasswords ? <SvgPack.EyeOff /> : <SvgPack.Eye />}
                 </Suspense>
               </button>
             }
-            type={showConfirmPassword ? "text" : "password"}
+            type={showPasswords ? "text" : "password"}
             placeholder="Confirm Password"
             value={values.confirmPassword}
             onChange={(e) =>
