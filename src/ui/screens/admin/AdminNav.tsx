@@ -19,6 +19,7 @@ const NAV_ITEMS: NavItem[] = [
     { to: Paths.admin.prompts, label: "Prompts", icon: <SvgPack.Ai /> },
     { to: Paths.admin.chatHistory, label: "Chat History", icon: <SvgPack.ChatRound /> },
     { to: Paths.admin.logs, label: "Logs", icon: <SvgPack.Bill /> },
+    { to: Paths.admin.telegram, label: "Telegram", icon: <SvgPack.ChatRound /> },
 ];
 
 type AdminNavProps = {
