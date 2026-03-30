@@ -5,6 +5,7 @@ from app.core.config import settings
 from app.services.adult_character_billing import (
     can_afford_adult_character_voice,
     get_remaining_adult_character_voice_secs,
+    get_adult_character_voice_unit_price_cents,
 )
 from app.data.schemas.adult.adult_conversation import (
     AdultConversationTokenRequest,
@@ -89,6 +90,10 @@ async def create_adult_conversation_token(
         influencer_id=payload.influencer_id,
         character=character,
     )
+    unit_price_cents = await get_adult_character_voice_unit_price_cents(
+        db,
+        character=character,
+    )
 
     token_gateway = gateway or ElevenLabsConversationGateway()
     token = await token_gateway.get_conversation_token(agent_id)
@@ -122,4 +127,5 @@ async def create_adult_conversation_token(
         native_language=influencer.native_language or "en",
         influencer_id=payload.influencer_id,
         character_id=payload.character_id,
+        unit_price_cents=unit_price_cents,
     )

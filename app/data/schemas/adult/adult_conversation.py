@@ -16,6 +16,7 @@ class AdultConversationTokenResponse(BaseModel):
     native_language: str = "en"
     influencer_id: str
     character_id: int
+    unit_price_cents: int | None = None
 
 
 class AdultBrowserVoiceStartRequest(BaseModel):
