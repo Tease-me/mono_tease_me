@@ -171,6 +171,102 @@
     cursor: not-allowed;
 }
 
+/* ── Country search dropdown ─────────────────── */
+.country-search-wrap {
+    position: relative;
+}
+
+.country-search-input {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 44px;
+    padding: 0 36px 0 13px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(0, 0, 0, 0.24);
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 13px;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.15s ease;
+}
+
+.country-search-input:focus {
+    border-color: rgba(255, 255, 255, 0.22);
+}
+
+.country-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.country-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    max-height: 260px;
+    overflow-y: auto;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: #1a1d28;
+    z-index: 50;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.country-dropdown::-webkit-scrollbar {
+    width: 5px;
+}
+
+.country-dropdown::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.country-dropdown::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 3px;
+}
+
+.country-option {
+    padding: 10px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.country-option:hover {
+    background: rgba(255, 77, 103, 0.08);
+}
+
+.country-option--selected {
+    background: rgba(255, 77, 103, 0.12);
+    color: var(--color-primary, #ff4d67);
+    font-weight: 700;
+}
+
+.country-code {
+    font-size: 11px;
+    opacity: 0.5;
+    font-weight: 700;
+    font-family: "SF Mono", "Fira Code", monospace;
+}
+
+.country-search-clear {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px;
+    line-height: 1;
+}
+
 /* ── Buttons (match Characters pattern) ──────── */
 .btn-primary,
 .btn-ghost,
@@ -247,11 +343,57 @@
 }
 
 /* ── Numbers grid ────────────────────────────── */
+.numbers-scroll {
+    max-height: 420px;
+    overflow-y: auto;
+    margin-top: 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.08);
+}
+
+.numbers-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.numbers-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.numbers-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 3px;
+}
+
+.numbers-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.22);
+}
+
+.results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding: 0 2px;
+}
+
+.results-count {
+    font-size: 12px;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.results-hint {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.35);
+    font-style: italic;
+}
+
 .numbers-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 10px;
-    margin-top: 14px;
 }
 
 .number-card {

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { apiClient } from "@/api/apis";
 import { Endpoints } from "@/api/urls";
 import {
@@ -12,10 +12,11 @@ import s from "./AdminTelegram.module.css";
 
 const telegram = TelegramServices(apiClient);
 
+type TwilioCountry = { country_code: string; country: string };
+
 type Influencer = {
-  influencer_id: string;
+  id: string;
   display_name?: string;
-  ig_handle?: string;
 };
 
 type WizardStep = 1 | 2 | 3;
@@ -65,6 +66,8 @@ const AdminTelegram: React.FC = () => {
   const [lastName, setLastName] = useState("");
 
   /* ── step 2 ───────────────────────────────── */
+  const [countries, setCountries] = useState<TwilioCountry[]>([]);
+  const [loadingCountries, setLoadingCountries] = useState(false);
   const [country, setCountry] = useState("US");
   const [numType, setNumType] = useState("local");
   const [areaCode, setAreaCode] = useState("");
@@ -72,6 +75,9 @@ const AdminTelegram: React.FC = () => {
   const [available, setAvailable] = useState<AvailableNumber[]>([]);
   const [searching, setSearching] = useState(false);
   const [selNum, setSelNum] = useState<AvailableNumber | null>(null);
+  const [countrySearch, setCountrySearch] = useState("");
+  const [countryOpen, setCountryOpen] = useState(false);
+  const countryRef = useRef<HTMLDivElement>(null);
 
   /* ── step 3 ───────────────────────────────── */
   const [provisioning, setProvisioning] = useState(false);
@@ -92,11 +98,12 @@ const AdminTelegram: React.FC = () => {
       .then(({ data }) => {
         if (!ok) return;
         setInfluencers(
-          (data || []).map((i: any) => ({
-            influencer_id: i.influencer_id,
-            display_name: i.display_name || i.influencer_id,
-            ig_handle: i.ig_handle || null,
-          }))
+          (data || [])
+            .filter((i: any) => i.id)
+            .map((i: any) => ({
+              id: i.id,
+              display_name: i.display_name || i.id,
+            }))
         );
       })
       .catch(() => {})
@@ -120,15 +127,42 @@ const AdminTelegram: React.FC = () => {
 
   useEffect(() => { loadRows(); }, [loadRows]);
 
+  /* ── load Twilio countries ─────────────────── */
+  useEffect(() => {
+    let ok = true;
+    setLoadingCountries(true);
+    telegram
+      .fetchCountries()
+      .then(({ countries: list }) => {
+        if (!ok) return;
+        // Sort alphabetically by country name
+        setCountries(list.sort((a, b) => a.country.localeCompare(b.country)));
+      })
+      .catch(() => {})
+      .finally(() => ok && setLoadingCountries(false));
+    return () => { ok = false; };
+  }, []);
+
+  /* ── close country dropdown on click outside ── */
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (countryRef.current && !countryRef.current.contains(e.target as Node)) {
+        setCountryOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
   /* ── derived ──────────────────────────────── */
   const inf = useMemo(
-    () => influencers.find((i) => i.influencer_id === selInf),
+    () => influencers.find((i) => i.id === selInf),
     [influencers, selInf]
   );
 
   useEffect(() => {
     if (inf) {
-      setFirstName(inf.ig_handle || inf.display_name || inf.influencer_id);
+      setFirstName(inf.display_name || inf.id);
       setLastName("");
     }
   }, [inf]);
@@ -242,13 +276,12 @@ const AdminTelegram: React.FC = () => {
                       onChange={(e) => setSelInf(e.target.value)}
                       disabled={loadingInf}
                     >
-                      <option value="">
+                      <option key="__placeholder" value="">
                         {loadingInf ? "Loading…" : "Select an influencer"}
                       </option>
                       {influencers.map((inf) => (
-                        <option key={inf.influencer_id} value={inf.influencer_id}>
-                          {inf.display_name || inf.influencer_id}
-                          {inf.ig_handle ? ` (@${inf.ig_handle})` : ""}
+                        <option key={`inf-${inf.id}`} value={inf.id}>
+                          {inf.display_name || inf.id}
                         </option>
                       ))}
                     </select>
@@ -295,73 +328,65 @@ const AdminTelegram: React.FC = () => {
             {step === 2 && (
               <>
                 <div className={s["form-grid"]}>
-                  <div className={s.field}>
+                <div className={s.field}>
                     <label className={s.label}>Country</label>
-                    <select
-                      className={s.select}
-                      value={country}
-                      onChange={(e) => setCountry(e.target.value)}
-                    >
-                      <optgroup label="North America">
-                        <option value="US">🇺🇸 United States</option>
-                        <option value="CA">🇨🇦 Canada</option>
-                        <option value="MX">🇲🇽 Mexico</option>
-                        <option value="PR">🇵🇷 Puerto Rico</option>
-                      </optgroup>
-                      <optgroup label="Europe">
-                        <option value="GB">🇬🇧 United Kingdom</option>
-                        <option value="DE">🇩🇪 Germany</option>
-                        <option value="FR">🇫🇷 France</option>
-                        <option value="ES">🇪🇸 Spain</option>
-                        <option value="IT">🇮🇹 Italy</option>
-                        <option value="NL">🇳🇱 Netherlands</option>
-                        <option value="BE">🇧🇪 Belgium</option>
-                        <option value="AT">🇦🇹 Austria</option>
-                        <option value="CH">🇨🇭 Switzerland</option>
-                        <option value="SE">🇸🇪 Sweden</option>
-                        <option value="NO">🇳🇴 Norway</option>
-                        <option value="DK">🇩🇰 Denmark</option>
-                        <option value="FI">🇫🇮 Finland</option>
-                        <option value="IE">🇮🇪 Ireland</option>
-                        <option value="PL">🇵🇱 Poland</option>
-                        <option value="PT">🇵🇹 Portugal</option>
-                        <option value="CZ">🇨🇿 Czech Republic</option>
-                        <option value="RO">🇷🇴 Romania</option>
-                        <option value="EE">🇪🇪 Estonia</option>
-                        <option value="LT">🇱🇹 Lithuania</option>
-                        <option value="LV">🇱🇻 Latvia</option>
-                        <option value="GR">🇬🇷 Greece</option>
-                        <option value="SK">🇸🇰 Slovakia</option>
-                        <option value="HU">🇭🇺 Hungary</option>
-                      </optgroup>
-                      <optgroup label="Asia Pacific">
-                        <option value="AU">🇦🇺 Australia</option>
-                        <option value="NZ">🇳🇿 New Zealand</option>
-                        <option value="JP">🇯🇵 Japan</option>
-                        <option value="KR">🇰🇷 South Korea</option>
-                        <option value="HK">🇭🇰 Hong Kong</option>
-                        <option value="SG">🇸🇬 Singapore</option>
-                        <option value="PH">🇵🇭 Philippines</option>
-                        <option value="ID">🇮🇩 Indonesia</option>
-                        <option value="IN">🇮🇳 India</option>
-                        <option value="TH">🇹🇭 Thailand</option>
-                        <option value="MY">🇲🇾 Malaysia</option>
-                      </optgroup>
-                      <optgroup label="South America">
-                        <option value="BR">🇧🇷 Brazil</option>
-                        <option value="CL">🇨🇱 Chile</option>
-                        <option value="CO">🇨🇴 Colombia</option>
-                        <option value="AR">🇦🇷 Argentina</option>
-                        <option value="PE">🇵🇪 Peru</option>
-                      </optgroup>
-                      <optgroup label="Africa & Middle East">
-                        <option value="ZA">🇿🇦 South Africa</option>
-                        <option value="IL">🇮🇱 Israel</option>
-                        <option value="NG">🇳🇬 Nigeria</option>
-                        <option value="KE">🇰🇪 Kenya</option>
-                        <option value="AE">🇦🇪 UAE</option>
-                      </optgroup>
-                    </select>
+                    <div className={s["country-search-wrap"]} ref={countryRef}>
+                      <input
+                        className={s["country-search-input"]}
+                        type="text"
+                        value={countryOpen ? countrySearch : (countries.find(c => c.country_code === country)?.country || country)}
+                        onChange={(e) => {
+                          setCountrySearch(e.target.value);
+                          if (!countryOpen) setCountryOpen(true);
+                        }}
+                        onFocus={() => {
+                          setCountryOpen(true);
+                          setCountrySearch("");
+                        }}
+                        placeholder={loadingCountries ? "Loading countries…" : "Search country…"}
+                        disabled={loadingCountries}
+                      />
+                      {countryOpen && country && (
+                        <button
+                          className={s["country-search-clear"]}
+                          onClick={() => { setCountrySearch(""); }}
+                          type="button"
+                        >✕</button>
+                      )}
+                      {countryOpen && (
+                        <div className={s["country-dropdown"]}>
+                          {countries
+                            .filter(c =>
+                              !countrySearch ||
+                              c.country.toLowerCase().includes(countrySearch.toLowerCase()) ||
+                              c.country_code.toLowerCase().includes(countrySearch.toLowerCase())
+                            )
+                            .map(c => (
+                              <div
+                                key={c.country_code}
+                                className={`${s["country-option"]} ${c.country_code === country ? s["country-option--selected"] : ""}`}
+                                onClick={() => {
+                                  setCountry(c.country_code);
+                                  setCountryOpen(false);
+                                  setCountrySearch("");
+                                }}
+                              >
+                                <span>{c.country}</span>
+                                <span className={s["country-code"]}>{c.country_code}</span>
+                              </div>
+                            ))}
+                          {countries.filter(c =>
+                            !countrySearch ||
+                            c.country.toLowerCase().includes(countrySearch.toLowerCase()) ||
+                            c.country_code.toLowerCase().includes(countrySearch.toLowerCase())
+                          ).length === 0 && (
+                            <div className={s["country-option"]} style={{ opacity: 0.4, cursor: "default" }}>
+                              No countries match "{countrySearch}"
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className={s.field}>
@@ -412,30 +437,40 @@ const AdminTelegram: React.FC = () => {
 
                 {/* Number results */}
                 {available.length > 0 && (
-                  <div className={s["numbers-grid"]}>
-                    {available.map((num) => (
-                      <div
-                        key={num.phone_number}
-                        className={`${s["number-card"]} ${selNum?.phone_number === num.phone_number ? s["number-card--selected"] : ""}`}
-                        onClick={() => setSelNum(num)}
-                      >
-                        <span className={s["number-phone"]}>{num.friendly_name}</span>
-                        <span className={s["number-meta"]}>
-                          {[num.locality, num.region, num.iso_country].filter(Boolean).join(", ")}
-                        </span>
-                        {num.capabilities && (
-                          <div className={s["number-caps"]}>
-                            {Object.entries(num.capabilities)
-                              .filter(([, v]) => v)
-                              .map(([k]) => (
-                                <span key={k} className={`${s["cap-badge"]} ${capClass(k)}`}>
-                                  {k}
-                                </span>
-                              ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                  <div className={s["numbers-scroll"]}>
+                    <div className={s["results-header"]}>
+                      <span className={s["results-count"]}>
+                        {available.length} numbers found
+                      </span>
+                      <span className={s["results-hint"]}>
+                        SMS capability required for Telegram verification
+                      </span>
+                    </div>
+                    <div className={s["numbers-grid"]}>
+                      {available.map((num) => (
+                        <div
+                          key={num.phone_number}
+                          className={`${s["number-card"]} ${selNum?.phone_number === num.phone_number ? s["number-card--selected"] : ""}`}
+                          onClick={() => setSelNum(num)}
+                        >
+                          <span className={s["number-phone"]}>{num.friendly_name}</span>
+                          <span className={s["number-meta"]}>
+                            {[num.locality, num.region, num.iso_country].filter(Boolean).join(", ")}
+                          </span>
+                          {num.capabilities && (
+                            <div className={s["number-caps"]}>
+                              {Object.entries(num.capabilities)
+                                .filter(([, v]) => v)
+                                .map(([k]) => (
+                                  <span key={k} className={`${s["cap-badge"]} ${capClass(k)}`}>
+                                    {k}
+                                  </span>
+                                ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 

@@ -67,6 +67,11 @@ export function TelegramServices(api: AxiosInstance) {
   const urls = Endpoints.admin.telegram;
 
   return {
+    async fetchCountries(): Promise<{ countries: { country_code: string; country: string }[]; count: number }> {
+      const { data } = await api.get(urls.countries);
+      return data;
+    },
+
     async searchNumbers(params: NumberSearchParams): Promise<NumberSearchResponse> {
       const { data } = await api.post(urls.searchNumbers, params);
       return data;
