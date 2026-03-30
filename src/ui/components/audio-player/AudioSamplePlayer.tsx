@@ -22,7 +22,13 @@ interface AudioSamplePlayerProps {
   onLockedClick?: () => void;
 }
 
-export default function AudioSamplePlayer({ url, size = "large", disabled = false, isExplicit = false, onLockedClick }: AudioSamplePlayerProps) {
+export default function AudioSamplePlayer({
+  url,
+  size = "large",
+  disabled = false,
+  isExplicit = false,
+  onLockedClick,
+}: AudioSamplePlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState<string | null>(null);
