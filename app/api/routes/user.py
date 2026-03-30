@@ -5,7 +5,14 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import func
-from app.data.models import User, InfluencerWallet, DailyUsage, Pricing, InfluencerCreditTransaction
+from app.data.models import (
+    User,
+    InfluencerWallet,
+    DailyUsage,
+    Pricing,
+    InfluencerCreditTransaction,
+    CallRecord,
+)
 from app.core.session import get_db
 from app.data.schemas.user import UserOut, UserUpdate, UserAdultPromptUpdate, UserAdultPromptOut
 from app.utils.auth.dependencies import get_current_user
@@ -69,6 +76,41 @@ async def get_user_usage(
         select(Pricing).where(Pricing.is_active.is_(True))
     )
     pricing_map = {p.feature: p for p in pricing_result.scalars().all()}
+
+    latest_adult_call_result = await db.execute(
+        select(CallRecord)
+        .where(
+            CallRecord.user_id == id,
+            CallRecord.is_adult_call.is_(True),
+        )
+        .order_by(CallRecord.created_at.desc())
+    )
+    latest_adult_call = latest_adult_call_result.scalars().first()
+    latest_adult_call_summary = None
+    if latest_adult_call:
+        latest_adult_call_cost_result = await db.execute(
+            select(InfluencerCreditTransaction.amount_cents)
+            .where(
+                InfluencerCreditTransaction.user_id == id,
+                InfluencerCreditTransaction.feature == "live_chat_18",
+                InfluencerCreditTransaction.meta["conversation_id"].as_string()
+                == latest_adult_call.conversation_id,
+            )
+            .order_by(InfluencerCreditTransaction.created_at.desc())
+        )
+        latest_adult_call_cost = latest_adult_call_cost_result.scalars().first()
+        latest_adult_call_summary = {
+            "conversation_id": latest_adult_call.conversation_id,
+            "status": latest_adult_call.status,
+            "duration_seconds": latest_adult_call.call_duration_secs,
+            "created_at": latest_adult_call.created_at.isoformat()
+            if latest_adult_call.created_at
+            else None,
+            "adult_character_id": latest_adult_call.adult_character_id,
+            "cost_cents": abs(int(latest_adult_call_cost))
+            if latest_adult_call_cost is not None
+            else None,
+        }
 
     last_call_result = await db.execute(
         select(
@@ -244,6 +286,7 @@ async def get_user_usage(
             "normal": normal_wallet,
             "adult": adult_wallet,
             "free_allowances": free_allowances,
+            "latest_adult_call_summary": latest_adult_call_summary,
         }
 
     influencer_wallets: dict[str, dict] = {}
@@ -276,6 +319,7 @@ async def get_user_usage(
             "adult": build_adult_wallet(total_adult_balance),
         },
         "free_allowances": free_allowances,
+        "latest_adult_call_summary": latest_adult_call_summary,
     }
 
 @router.get("/{id}", response_model=UserOut)
