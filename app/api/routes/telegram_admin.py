@@ -344,6 +344,27 @@ async def reset_all_telegram_trials(
 # ─────────── Phone Number Provisioning (Auto Telegram Account) ───────────
 
 
+@router.get(
+    "/numbers/countries",
+    summary="List Twilio-supported countries",
+)
+async def list_available_countries(
+    current_user: User = Depends(get_current_user),
+):
+    """Return the list of countries where Twilio has purchasable numbers."""
+    ensure_admin(current_user)
+
+    from app.services.gateways import twilio_gateway
+
+    try:
+        countries = await twilio_gateway.list_available_countries()
+        return {"countries": countries, "count": len(countries)}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+
+
 @router.post(
     "/numbers/search",
     response_model=NumberSearchResponse,
@@ -372,6 +393,9 @@ async def search_available_numbers(
         raise HTTPException(status_code=400, detail=str(e))
     except RuntimeError as e:
         raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        log.exception("search_available_numbers unexpected error")
+        raise HTTPException(status_code=500, detail=f"Internal error: {e}")
 
 
 @router.post(

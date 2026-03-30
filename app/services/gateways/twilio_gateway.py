@@ -48,6 +48,38 @@ def _twilio_exception():
 # ─────────────────── Phone Number Provisioning ───────────────────
 
 
+async def list_available_countries() -> list[dict]:
+    """Fetch the list of countries where Twilio has available phone numbers.
+
+    Uses Twilio's AvailablePhoneNumbers Countries subresource to return
+    only the countries that actually have purchasable inventory.
+
+    Returns:
+        List of dicts with country_code, country, subresource_uris.
+    """
+    from fastapi.concurrency import run_in_threadpool
+
+    client = _get_client()
+
+    def _fetch():
+        # Twilio SDK: client.available_phone_numbers.list()
+        # returns CountryInstance objects with iso_country, country, etc.
+        countries = client.available_phone_numbers.list()
+        return [
+            {
+                "country_code": c.country_code,
+                "country": c.country,
+            }
+            for c in countries
+        ]
+
+    try:
+        return await run_in_threadpool(_fetch)
+    except _twilio_exception() as exc:
+        log.error("twilio.list_countries failed: %s", exc.msg)
+        raise ValueError(f"Twilio error: {exc.msg}") from exc
+
+
 async def search_available_numbers(
     country_code: str = "US",
     number_type: str = "local",
@@ -92,21 +124,31 @@ async def search_available_numbers(
             kwargs["contains"] = contains
 
         numbers = resource.list(**kwargs)
-        return [
-            {
+        result = []
+        for n in numbers:
+            # Capabilities may be a dict or object depending on SDK version
+            caps = getattr(n, "capabilities", None) or {}
+            if isinstance(caps, dict):
+                sms_cap = caps.get("sms")
+                voice_cap = caps.get("voice")
+                mms_cap = caps.get("mms")
+            else:
+                sms_cap = getattr(caps, "sms", None)
+                voice_cap = getattr(caps, "voice", None)
+                mms_cap = getattr(caps, "mms", None)
+            result.append({
                 "phone_number": n.phone_number,
                 "friendly_name": n.friendly_name,
                 "locality": getattr(n, "locality", None),
                 "region": getattr(n, "region", None),
                 "iso_country": n.iso_country,
                 "capabilities": {
-                    "sms": getattr(n.capabilities, "sms", None) if hasattr(n, "capabilities") and n.capabilities else None,
-                    "voice": getattr(n.capabilities, "voice", None) if hasattr(n, "capabilities") and n.capabilities else None,
-                    "mms": getattr(n.capabilities, "mms", None) if hasattr(n, "capabilities") and n.capabilities else None,
+                    "sms": sms_cap,
+                    "voice": voice_cap,
+                    "mms": mms_cap,
                 },
-            }
-            for n in numbers
-        ]
+            })
+        return result
 
     try:
         return await run_in_threadpool(_search)
