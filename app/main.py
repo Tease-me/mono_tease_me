@@ -29,6 +29,8 @@ from app.api.routes.relationship import router as relationship_router
 from app.api.routes.social import router as social_router
 from app.api.routes.system_prompts import router as system_prompts_router
 from app.api.routes.telegram_admin import router as telegram_admin_router
+from app.api.routes.twilio_verify import router as twilio_verify_router
+from app.api.routes.twilio_webhooks import router as twilio_webhooks_router
 from app.api.routes.user import router as user_router
 from app.api.routes.verification import router as verification_router
 from app.api.routes.webhooks import router as webhooks_router
@@ -108,6 +110,7 @@ app.include_router(relationship_router)
 app.include_router(re_engagement_router)
 app.include_router(verification_router)
 app.include_router(telegram_admin_router)
+app.include_router(twilio_verify_router)
+app.include_router(twilio_webhooks_router)
 app.include_router(system_prompts_router)
-app.include_router(health_router)
 app.include_router(funnel_router)

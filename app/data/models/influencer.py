@@ -33,7 +33,7 @@ class Influencer(Base):
     samples: Mapped[list[dict] | None] = mapped_column(JSONB, nullable=True)
     assets_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     influencer_agent_id_third_part: Mapped[str | None] = mapped_column(String, nullable=True)
-    
+
     fp_promoter_id: Mapped[str | None] = mapped_column(String, nullable=True)
     fp_ref_id: Mapped[str | None] = mapped_column(String, nullable=True)
     email: Mapped[str] = mapped_column(String, unique=True, nullable=True)
