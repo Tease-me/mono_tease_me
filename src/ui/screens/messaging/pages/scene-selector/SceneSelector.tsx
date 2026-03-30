@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useRef, useState } from "react";
 import { apiClient } from "@/api/apis";
 import { InfluencerServices } from "@/api/services/InfluencerService";
 import AdultSceneSelector from "@/ui/components/cards/AdultSceneSelectorCard";
@@ -6,7 +6,7 @@ import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import styles from "./SceneSelector.module.css";
 import SvgPack from "@/utils/SvgPack";
-import useAdultVoiceCall from "@/hooks/useAdultVoiceCall";
+import useAdultCallTransport from "@/hooks/useAdultCallTransport";
 import { formatTime } from "@/utils/time";
 import { showErrorModal } from "@/utils/errorModal";
 import AddCreditsModal from "@/ui/components/modals/payment-modal/AddCreditsModal";
@@ -122,33 +122,16 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
     startCall,
     stopCall,
     status,
-    socketStatus,
-    callState,
-    remainingSeconds,
+    elapsedSeconds,
+    activeStatusLabel,
+    isCallActive,
+    isStartDisabled,
     error: callError,
-  } = useAdultVoiceCall({
+  } = useAdultCallTransport({
     onInsufficientCredits: () => {
       setShowTopupModal(true);
     },
   });
-  const isCallActive =
-    socketStatus === "connecting" ||
-    (socketStatus === "open" && callState !== "ended");
-  const activeStatusLabel = useMemo(() => {
-    if (callState === "connecting" || socketStatus === "connecting") {
-      return "Connecting...";
-    }
-    if (callState === "listening") {
-      return "Listening...";
-    }
-    if (callState === "agent_speaking") {
-      return "Speaking...";
-    }
-    if (callState === "ending") {
-      return "Ending...";
-    }
-    return "";
-  }, [callState, socketStatus]);
 
   useEffect(() => {
     setSelectedScene(null);
@@ -423,7 +406,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                       color="green"
                       type="pill"
                       className={styles.callButton}
-                      disabled={socketStatus === "connecting"}
+                      disabled={isStartDisabled}
                       leftIcon={
                         <Suspense fallback={null}>
                           <SvgPack.Call className={styles.callButtonIcon} />
@@ -439,7 +422,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                 >
                   <div className={styles.subtitle}>{activeStatusLabel}</div>
                   <div className={styles.sessionTimer}>
-                    {formatTime(Math.max(remainingSeconds ?? 0, 0))}
+                    {formatTime(elapsedSeconds)}
                   </div>
                   <div className={styles.activeActions}>
                     <IconButton
@@ -486,7 +469,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                       color="green"
                       type="pill"
                       className={styles.callButton}
-                      disabled={socketStatus === "connecting"}
+                      disabled={isStartDisabled}
                       leftIcon={
                         <Suspense fallback={null}>
                           <SvgPack.Call className={styles.callButtonIcon} />

@@ -7,6 +7,7 @@ import { showErrorModal } from "@/utils/errorModal";
 import logger from "@/utils/logger";
 import { storage } from "@/utils/storage";
 import { MicCapture, PcmPlayer } from "@/utils/adultVoiceAudio";
+import { createCallRingtoneController } from "@/utils/callRingtone";
 
 type StartAdultCallArgs = {
   influencerId: string;
@@ -34,6 +35,7 @@ export default function useAdultVoiceCall(options?: UseAdultVoiceCallOptions) {
   const micCaptureRef = useRef<MicCapture | null>(null);
   const playerRef = useRef<PcmPlayer | null>(null);
   const stopRequestedRef = useRef(false);
+  const ringtoneRef = useRef(createCallRingtoneController());
 
   const { permissionState, requestMicrophonePermission, releaseMicrophonePermission } =
     useMicrophonePermission();
@@ -79,6 +81,7 @@ export default function useAdultVoiceCall(options?: UseAdultVoiceCallOptions) {
   const stopCall = useCallback(async () => {
     stopRequestedRef.current = true;
     stopPing();
+    ringtoneRef.current.stop();
     const socket = socketRef.current;
     if (socket?.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify({ type: "stop_call" }));
@@ -91,6 +94,7 @@ export default function useAdultVoiceCall(options?: UseAdultVoiceCallOptions) {
 
   const setTransportError = useCallback(
     async (nextError: AdultVoiceError, shouldCloseSocket: boolean = true) => {
+      ringtoneRef.current.stop();
       setError(nextError);
       setSocketStatus("error");
       if (shouldCloseSocket) {
@@ -136,11 +140,15 @@ export default function useAdultVoiceCall(options?: UseAdultVoiceCallOptions) {
     async (message: AdultVoiceServerMessage) => {
       switch (message.type) {
         case "call_started":
+          ringtoneRef.current.stop();
           setChatId(message.chat_id);
           setConversationId(message.conversation_id);
           setRemainingSeconds(message.credits_remainder_secs);
           return;
         case "state":
+          if (message.state !== "connecting") {
+            ringtoneRef.current.stop();
+          }
           setCallState(message.state);
           if (message.state === "ended") {
             setSocketStatus("closed");
@@ -157,6 +165,7 @@ export default function useAdultVoiceCall(options?: UseAdultVoiceCallOptions) {
           setRemainingSeconds(message.seconds);
           return;
         case "error":
+          ringtoneRef.current.stop();
           setError({
             code: message.error,
             message: message.message,
@@ -181,6 +190,8 @@ export default function useAdultVoiceCall(options?: UseAdultVoiceCallOptions) {
         return;
       }
 
+      ringtoneRef.current.start();
+
       const token = storage.get(LocalStorageKeys.AccessToken);
       if (!token) {
         await setTransportError({
@@ -192,6 +203,7 @@ export default function useAdultVoiceCall(options?: UseAdultVoiceCallOptions) {
 
       const hasPermission = await requestMicrophonePermission();
       if (!hasPermission) {
+        ringtoneRef.current.stop();
         setError({
           code: "MIC_PERMISSION_DENIED",
           message: "Microphone permission is required.",
@@ -258,6 +270,7 @@ export default function useAdultVoiceCall(options?: UseAdultVoiceCallOptions) {
       socket.onclose = (event) => {
         stopPing();
         socketRef.current = null;
+        ringtoneRef.current.stop();
         void teardownAudio();
 
         if (stopRequestedRef.current && event.code === 1000) {
@@ -317,6 +330,19 @@ export default function useAdultVoiceCall(options?: UseAdultVoiceCallOptions) {
   }, []);
 
   useEffect(() => {
+    if (remainingSeconds !== 0) {
+      return;
+    }
+
+    if (socketStatus !== "open" && socketStatus !== "error") {
+      return;
+    }
+
+    options?.onInsufficientCredits?.();
+    void stopCall();
+  }, [options, remainingSeconds, socketStatus, stopCall]);
+
+  useEffect(() => {
     micCaptureRef.current?.setMuted(isMuted);
   }, [isMuted]);
 
@@ -324,6 +350,7 @@ export default function useAdultVoiceCall(options?: UseAdultVoiceCallOptions) {
     return () => {
       stopPing();
       closeSocket();
+      ringtoneRef.current.unload();
       void teardownAudio();
     };
   }, [closeSocket, stopPing, teardownAudio]);
