@@ -391,6 +391,53 @@
   justify-content: center;
 }
 
+.postCallSummary {
+  display: flex;
+  width: 100%;
+  gap: 8px;
+}
+
+.postCallSummaryCard {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(66, 66, 66, 0.4);
+}
+
+.postCallSummaryLabel {
+  color: var(--Greyscale-500, #9E9E9E);
+  text-align: center;
+  font-family: Urbanist;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 140%;
+  letter-spacing: 0.2px;
+}
+
+.postCallSummaryValue {
+  color: #fff;
+  text-align: center;
+  font-family: Urbanist;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 120%;
+}
+
+.postCallSummaryHint {
+  color: var(--Greyscale-500, #9E9E9E);
+  text-align: center;
+  font-family: Urbanist;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 140%;
+  letter-spacing: 0.2px;
+}
+
 @media (max-width: 767px) {
   .page1 {
     padding: 4px 16px 4px;

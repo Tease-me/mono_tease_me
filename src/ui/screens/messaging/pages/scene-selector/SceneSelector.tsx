@@ -125,6 +125,9 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
     elapsedSeconds,
     activeStatusLabel,
     isCallActive,
+    postCallSummary,
+    pendingSummaryRefresh,
+    showPostCallSummary,
     isStartDisabled,
     error: callError,
   } = useAdultCallTransport({
@@ -145,8 +148,8 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
       return;
     }
 
-    setSessionState(isCallActive ? "active" : "preview");
-  }, [isCallActive, selectedScene]);
+    setSessionState(isCallActive || showPostCallSummary ? "active" : "preview");
+  }, [isCallActive, selectedScene, showPostCallSummary]);
 
   useEffect(() => {
     if (status !== "error") {
@@ -288,6 +291,22 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
   const showVideo =
     Boolean(selectedScene?.video.webm) || Boolean(selectedScene?.video.mp4);
 
+  const summaryDurationLabel = (() => {
+    const seconds =
+      postCallSummary?.confirmedDurationSeconds ??
+      postCallSummary?.estimatedDurationSeconds ??
+      null;
+    return seconds == null ? "--" : formatTime(Math.max(0, Math.round(seconds)));
+  })();
+
+  const summaryCostLabel = (() => {
+    const costCents =
+      postCallSummary?.confirmedCostCents ??
+      postCallSummary?.estimatedCostCents ??
+      null;
+    return costCents == null ? "--" : `$${(costCents / 100).toFixed(2)}`;
+  })();
+
   return (
     <div className={styles.container}>
       {isLoading ? (
@@ -419,23 +438,68 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                 <div
                   className={`${styles.activePanel} ${sessionState === "active" ? styles.activePanelVisible : styles.activePanelHidden}`}
                 >
-                  <div className={styles.subtitle}>{activeStatusLabel}</div>
-                  <div className={styles.sessionTimer}>
-                    {formatTime(elapsedSeconds)}
-                  </div>
-                  <div className={styles.activeActions}>
-                    <IconButton
-                      onClick={handleEndCall}
-                      color="red"
-                      type="pill"
-                      className={styles.activeCallButton}
-                      leftIcon={
-                        <Suspense fallback={null}>
-                          <SvgPack.HangupCallIcon />
-                        </Suspense>
-                      }
-                    />
-                  </div>
+                  {showPostCallSummary ? (
+                    <>
+                      <div className={styles.subtitle}>
+                        {pendingSummaryRefresh ? "Preparing call summary..." : "Call summary"}
+                      </div>
+                      <div className={styles.postCallSummary}>
+                        <div className={styles.postCallSummaryCard}>
+                          <span className={styles.postCallSummaryLabel}>Duration</span>
+                          <span className={styles.postCallSummaryValue}>
+                            {summaryDurationLabel}
+                          </span>
+                        </div>
+                        <div className={styles.postCallSummaryCard}>
+                          <span className={styles.postCallSummaryLabel}>Cost</span>
+                          <span className={styles.postCallSummaryValue}>
+                            {summaryCostLabel}
+                          </span>
+                        </div>
+                      </div>
+                      {pendingSummaryRefresh && (
+                        <div className={styles.postCallSummaryHint}>
+                          Estimated values shown while we confirm the final summary.
+                        </div>
+                      )}
+                      {!pendingSummaryRefresh && (
+                        <div className={styles.activeActions}>
+                          <IconButton
+                            onClick={handleStartCall}
+                            color="green"
+                            type="pill"
+                            className={styles.activeCallButton}
+                            disabled={isStartDisabled}
+                            leftIcon={
+                              <Suspense fallback={null}>
+                                <SvgPack.Call className={styles.callButtonIcon} />
+                              </Suspense>
+                            }
+                          />
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <div className={styles.subtitle}>{activeStatusLabel}</div>
+                      <div className={styles.sessionTimer}>
+                        {formatTime(elapsedSeconds)}
+                      </div>
+                      <div className={styles.activeActions}>
+                        <IconButton
+                          onClick={handleEndCall}
+                          color="red"
+                          type="pill"
+                          className={styles.activeCallButton}
+                          leftIcon={
+                            <Suspense fallback={null}>
+                              <SvgPack.HangupCallIcon />
+                            </Suspense>
+                          }
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>

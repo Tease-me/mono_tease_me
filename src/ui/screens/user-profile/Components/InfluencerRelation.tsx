@@ -312,7 +312,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
                     <div className={styles.lastCallHeader}>
                       <span className={styles.lastCallTitle}>
                         <Suspense fallback={null}><SvgPack.Call2 /></Suspense>
-                        Last adult call details
+                        Last call details
                       </span>
                     </div>
                     <div className={styles.lastCallStats}>
