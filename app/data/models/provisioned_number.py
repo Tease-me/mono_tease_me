@@ -3,7 +3,7 @@
 from datetime import datetime, timezone
 
 from sqlalchemy import (
-    Integer, BigInteger, String, Boolean, Text, Enum,
+    Integer, BigInteger, String, Boolean, Text,
     ForeignKey, DateTime, Index,
 )
 from sqlalchemy.orm import Mapped, mapped_column

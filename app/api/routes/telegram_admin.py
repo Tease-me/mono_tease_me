@@ -29,7 +29,6 @@ from app.data.schemas.provisioned_number import (
     ProvisionRequest,
     ProvisionedNumberResponse,
     ProvisionedNumberListResponse,
-    ProvisionStatusResponse,
 )
 from app.data.schemas.telegram_session import (
     SendCodeRequest,
