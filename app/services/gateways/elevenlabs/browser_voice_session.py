@@ -9,6 +9,7 @@ from fastapi import WebSocket
 
 try:
     import websockets
+
     HAS_WEBSOCKETS = True
 except ImportError:
     HAS_WEBSOCKETS = False
@@ -61,7 +62,9 @@ class AdultBrowserVoiceSession:
         self.chat_id = chat_id
         self.credits_remainder_secs = credits_remainder_secs
         self.max_duration_secs = max_duration_secs
-        self._conversation_gateway = conversation_gateway or ElevenLabsConversationGateway()
+        self._conversation_gateway = (
+            conversation_gateway or ElevenLabsConversationGateway()
+        )
 
         self._convai_ws = None
         self._convai_task: asyncio.Task | None = None
@@ -86,7 +89,9 @@ class AdultBrowserVoiceSession:
 
     async def start(self) -> None:
         if not HAS_WEBSOCKETS:
-            raise RuntimeError("websockets dependency is required for browser voice calls")
+            raise RuntimeError(
+                "websockets dependency is required for browser voice calls"
+            )
 
         self._is_active = True
         await self._send_state("connecting")
@@ -125,7 +130,11 @@ class AdultBrowserVoiceSession:
                 pass
             self._convai_ws = None
 
-        if self._convai_task and self._convai_task is not current and not self._convai_task.done():
+        if (
+            self._convai_task
+            and self._convai_task is not current
+            and not self._convai_task.done()
+        ):
             self._convai_task.cancel()
 
         await self._send_state("ended", reason=reason)
@@ -179,8 +188,10 @@ class AdultBrowserVoiceSession:
                     await self._handle_convai_message(msg)
         except asyncio.CancelledError:
             pass
-        except Exception:
+        except Exception as exc:
             self._startup_event.set()
+            if await self._handle_upstream_close(exc):
+                return
             log.exception(
                 "adult_browser_voice.convai_error influencer=%s user=%s",
                 self.influencer_id,
@@ -231,9 +242,13 @@ class AdultBrowserVoiceSession:
         if msg_type == "ping":
             event_id = msg.get("ping_event", {}).get("event_id", 0)
             if self._convai_ws:
-                await self._convai_ws.send(
-                    json.dumps({"type": "pong", "event_id": event_id})
-                )
+                try:
+                    await self._convai_ws.send(
+                        json.dumps({"type": "pong", "event_id": event_id})
+                    )
+                except Exception as exc:
+                    if not await self._handle_upstream_close(exc):
+                        raise
             return
 
         if msg_type == "error":
@@ -344,7 +359,11 @@ class AdultBrowserVoiceSession:
                 self._conversation_id,
                 int((time.perf_counter() - self._created_at) * 1000),
             )
-        await self._convai_ws.send(json.dumps({"user_audio_chunk": audio_b64}))
+        try:
+            await self._convai_ws.send(json.dumps({"user_audio_chunk": audio_b64}))
+        except Exception as exc:
+            if not await self._handle_upstream_close(exc):
+                raise
 
     async def _register_pending_conversation(self, conversation_id: str) -> None:
         try:
@@ -422,3 +441,38 @@ class AdultBrowserVoiceSession:
             )
         except Exception:
             pass
+
+    async def _handle_upstream_close(self, exc: Exception) -> bool:
+        if not self._is_upstream_close_exception(exc):
+            return False
+
+        self._convai_ws = None
+        if not self._is_active:
+            return True
+
+        close_code = self._extract_close_code(exc)
+        if close_code in (None, 1000):
+            await self.stop(reason="upstream_closed")
+            return True
+
+        await self._send_error("UPSTREAM_ERROR", "Voice service unavailable.")
+        await self.stop(reason="upstream_error")
+        return True
+
+    @staticmethod
+    def _is_upstream_close_exception(exc: Exception) -> bool:
+        name = exc.__class__.__name__
+        return name in {"ConnectionClosed", "ConnectionClosedOK", "ConnectionClosedError"}
+
+    @staticmethod
+    def _extract_close_code(exc: Exception) -> int | None:
+        direct_code = getattr(exc, "code", None)
+        if isinstance(direct_code, int):
+            return direct_code
+
+        for attr in ("rcvd", "sent"):
+            close_frame = getattr(exc, attr, None)
+            code = getattr(close_frame, "code", None)
+            if isinstance(code, int):
+                return code
+        return None
