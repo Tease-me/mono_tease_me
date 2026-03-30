@@ -1,11 +1,11 @@
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { Howl } from "howler";
 import { useMicrophonePermission } from "./useMicrophonePermission";
 import { ChatRepository } from "@/data/repositories/ChatRepo";
 import logger from "@/utils/logger";
 import { AuthContext } from "@/context/AuthContext";
 import { useConversation } from "@elevenlabs/react";
 import { showErrorModal } from "@/utils/errorModal";
+import { createCallRingtoneController } from "@/utils/callRingtone";
 
 export type CallStatus = "connecting" | "connected" | "disconnected" | "idle" | "error";
 
@@ -38,14 +38,7 @@ export default function useCallWebRTC(options?: {
   } = useMicrophonePermission();
   const [influencerId, setInfluencerId] = useState<string>();
 
-  const ringtoneRef = useRef<Howl | null>(null);
-
-  const getRingtone = useCallback((): Howl => {
-    if (!ringtoneRef.current) {
-      ringtoneRef.current = new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: false });
-    }
-    return ringtoneRef.current;
-  }, []);
+  const ringtoneRef = useRef(createCallRingtoneController());
   const chatRepo = ChatRepository();
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const { user } = useContext(AuthContext);
@@ -61,28 +54,16 @@ export default function useCallWebRTC(options?: {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
-      if (ringtoneRef.current) {
-        ringtoneRef.current.stop();
-        ringtoneRef.current.unload();
-        ringtoneRef.current = null;
-      }
+      ringtoneRef.current.unload();
     };
   }, []);
 
   const ring = useCallback(() => {
-    try {
-      getRingtone().play();
-    } catch (err) {
-      console.error("Ringtone playback failed:", err);
-    }
-  }, [getRingtone]);
+    ringtoneRef.current.start();
+  }, []);
 
   const stopRing = useCallback(() => {
-    if (ringtoneRef.current) {
-      ringtoneRef.current.stop();
-      ringtoneRef.current.unload();
-      ringtoneRef.current = null;
-    }
+    ringtoneRef.current.stop();
   }, []);
 
   const [micMuted, setMicMuted] = useState<boolean>(false);
@@ -123,13 +104,16 @@ export default function useCallWebRTC(options?: {
       }),
     },
     onConnect: () => {
+      stopRing();
       setStatus("connected");
       setErrorMessage(null);
     },
     onDisconnect: () => {
+      stopRing();
       setStatus("disconnected");
     },
     onError: (error: any) => {
+      stopRing();
       setStatus("error");
       setErrorMessage(error instanceof Error ? error.message : "Call failed");
       logger.error(error)
@@ -138,11 +122,6 @@ export default function useCallWebRTC(options?: {
       options?.onMessage?.(message, conversationIdRef.current);
     },
   });
-
-  useEffect(() => {
-    if (status === "connecting") ring()
-    else stopRing();
-  }, [status])
 
   const startConversation = useCallback(async (startOptions?: StartConversationOptions) => {
     const activeInfluencerId = startOptions?.influencerId ?? influencerId;
@@ -157,10 +136,13 @@ export default function useCallWebRTC(options?: {
     startAbortControllerRef.current = abortController;
     startInFlightRef.current = true;
     setErrorMessage(null);
+    setStatus("connecting");
+    ring();
 
     try {
       const hasPermission = await requestMicrophonePermission();
       if (!hasPermission) {
+        stopRing();
         setErrorMessage("Microphone permission is required.");
         showErrorModal({
           title: "Microphone Permission Denied",
@@ -175,6 +157,7 @@ export default function useCallWebRTC(options?: {
         return;
       }
       if (!user || !user.id) {
+        stopRing();
         setErrorMessage("Please log in to start a call.");
         setStatus("idle");
         if (startAbortControllerRef.current === abortController) {
@@ -184,13 +167,13 @@ export default function useCallWebRTC(options?: {
         return;
       }
       if (abortController.signal.aborted) {
+        stopRing();
         if (startAbortControllerRef.current === abortController) {
           startAbortControllerRef.current = null;
         }
         startInFlightRef.current = false;
         return;
       }
-      setStatus("connecting");
 
       let tokenPayload: NormalizedConversationToken;
       if (startOptions?.flow === "adult-character") {
@@ -226,6 +209,7 @@ export default function useCallWebRTC(options?: {
       }
 
       if (abortController.signal.aborted) {
+        stopRing();
         if (startAbortControllerRef.current === abortController) {
           startAbortControllerRef.current = null;
         }
@@ -234,6 +218,7 @@ export default function useCallWebRTC(options?: {
       }
 
       if (!tokenPayload.conversationToken) {
+        stopRing();
         setErrorMessage("Unable to start a conversation right now.");
         setStatus("idle");
         if (startAbortControllerRef.current === abortController) {
@@ -244,6 +229,7 @@ export default function useCallWebRTC(options?: {
       }
 
       if ((tokenPayload.creditsRemaining ?? 0) <= 0) {
+        stopRing();
         setErrorMessage("You have no remaining credits.");
         setStatus("idle");
         if (startAbortControllerRef.current === abortController) {
@@ -270,6 +256,7 @@ export default function useCallWebRTC(options?: {
       return;
     } catch (error: any) {
       if (!abortController.signal.aborted) {
+        stopRing();
         setStatus("error");
         setErrorMessage(
           error?.response?.data?.detail?.error ||
@@ -304,6 +291,7 @@ export default function useCallWebRTC(options?: {
         abortController,
       } = pending;
       if (abortController.signal.aborted) {
+        stopRing();
         if (startAbortControllerRef.current === abortController) {
           startAbortControllerRef.current = null;
         }
@@ -320,6 +308,7 @@ export default function useCallWebRTC(options?: {
         });
 
         if (abortController.signal.aborted) {
+          stopRing();
           await conversation.endSession();
           return;
         }
@@ -344,6 +333,7 @@ export default function useCallWebRTC(options?: {
         }
 
         if (abortController.signal.aborted) {
+          stopRing();
           await conversation.endSession();
           return;
         }
@@ -352,6 +342,7 @@ export default function useCallWebRTC(options?: {
         setTimeRemaining(creditsRemaining);
       } catch (error: any) {
         if (!abortController.signal.aborted) {
+          stopRing();
           setStatus("error");
           setErrorMessage(error.response?.data?.detail?.error || "Call failed");
           logger.error(error);
@@ -371,6 +362,7 @@ export default function useCallWebRTC(options?: {
       startAbortControllerRef.current = null;
     }
     startInFlightRef.current = false;
+    stopRing();
     setStatus("idle");
     setErrorMessage(null);
     setTimeRemaining(null);
@@ -395,6 +387,7 @@ export default function useCallWebRTC(options?: {
       startAbortControllerRef.current = null;
     }
     startInFlightRef.current = false;
+    stopRing();
     setStatus("idle");
     setErrorMessage(null);
   }, [status]);
