@@ -1,17 +1,20 @@
+from __future__ import annotations
+
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.data.schemas.adult.adult_conversation import (
+    AdultBrowserVoiceSessionResponse,
+    AdultConversationTokenRequest,
+)
 from app.services.adult_character_billing import (
     can_afford_adult_character_voice,
     get_remaining_adult_character_voice_secs,
-    get_adult_character_voice_unit_price_cents,
 )
-from app.data.schemas.adult.adult_conversation import (
-    AdultConversationTokenRequest,
-    AdultConversationTokenResponse,
-)
-from app.services.gateways.elevenlabs.conversation_gateway import ElevenLabsConversationGateway
+from app.services.chat_service import get_or_create_chat
+from app.services.follow import get_follow
+from app.services.gateways.elevenlabs.agents_gateway import compute_max_duration
 from app.services.repositories.adult.adult_conversation_repository import (
     get_active_influencer_character_meta,
     get_adult_character_by_id,
@@ -19,8 +22,10 @@ from app.services.repositories.adult.adult_conversation_repository import (
     get_user_by_id,
 )
 from app.utils.adult.adult_messages import pick_random_first_message
-from app.utils.prompt_template import render_template, validate_required_template_variables
-
+from app.utils.prompt_template import (
+    render_template,
+    validate_required_template_variables,
+)
 
 ADULT_REQUIRED_PROMPT_VARIABLES = frozenset({"influencer_name", "user_name"})
 
@@ -36,13 +41,18 @@ def _resolve_user_name(*, full_name: str | None, username: str | None) -> str:
     )
 
 
-async def create_adult_conversation_token(
+async def prepare_adult_browser_voice_call(
     *,
     db: AsyncSession,
     user_id: int,
     payload: AdultConversationTokenRequest,
-    gateway: ElevenLabsConversationGateway | None = None,
-) -> AdultConversationTokenResponse:
+) -> AdultBrowserVoiceSessionResponse:
+    if not await get_follow(db, payload.influencer_id, user_id):
+        raise HTTPException(
+            status_code=403,
+            detail="You must follow the influencer to interact.",
+        )
+
     influencer = await get_influencer_by_id(db, payload.influencer_id)
     if not influencer:
         raise HTTPException(status_code=404, detail="Influencer not found")
@@ -57,7 +67,10 @@ async def create_adult_conversation_token(
         payload.character_id,
     )
     if not overlay:
-        raise HTTPException(status_code=404, detail="Active influencer character pairing not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Active influencer character pairing not found",
+        )
 
     agent_id = influencer.influencer_agent_id_third_part
     if not agent_id:
@@ -90,13 +103,7 @@ async def create_adult_conversation_token(
         influencer_id=payload.influencer_id,
         character=character,
     )
-    unit_price_cents = await get_adult_character_voice_unit_price_cents(
-        db,
-        character=character,
-    )
 
-    token_gateway = gateway or ElevenLabsConversationGateway()
-    token = await token_gateway.get_conversation_token(agent_id)
     greeting_used = pick_random_first_message(character.first_messages)
     try:
         validate_required_template_variables(
@@ -117,9 +124,11 @@ async def create_adult_conversation_token(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    return AdultConversationTokenResponse(
-        token=token,
+    chat_id = await get_or_create_chat(db, user_id, payload.influencer_id)
+
+    return AdultBrowserVoiceSessionResponse(
         agent_id=agent_id,
+        chat_id=chat_id,
         credits_remainder_secs=credits_remainder_secs,
         prompt=prompt,
         greeting_used=greeting_used,
@@ -127,5 +136,5 @@ async def create_adult_conversation_token(
         native_language=influencer.native_language or "en",
         influencer_id=payload.influencer_id,
         character_id=payload.character_id,
-        unit_price_cents=unit_price_cents,
+        max_duration_secs=compute_max_duration(credits_remainder_secs),
     )
