@@ -48,6 +48,21 @@ def _compute_cost_from_millicents(
     return (cost_millicents + 999) // 1000 if cost_millicents > 0 else 0
 
 
+async def get_adult_character_voice_unit_price_cents(
+    db: AsyncSession,
+    *,
+    character: AdultCharacter,
+) -> int:
+    unit_price_millicents, _pricing_source = await _resolve_adult_character_voice_pricing(
+        db,
+        character=character,
+    )
+    return _compute_cost_from_millicents(
+        unit_price_millicents=unit_price_millicents,
+        units=1,
+    )
+
+
 async def can_afford_adult_character_voice(
     db: AsyncSession,
     *,

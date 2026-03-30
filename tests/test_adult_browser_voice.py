@@ -9,6 +9,7 @@ from fastapi import HTTPException
 from app.data.schemas.adult.adult_conversation import AdultConversationTokenRequest
 from app.services.gateways.elevenlabs import browser_voice_session as browser_session
 from app.services.use_cases.adult import adult_browser_voice as adult_voice_use_case
+from app.services.use_cases.adult import adult_conversation_token as adult_token_use_case
 
 
 class DummyWebSocket:
@@ -54,7 +55,6 @@ def test_prepare_adult_browser_voice_call_requires_follow(monkeypatch) -> None:
 
 def test_prepare_adult_browser_voice_call_returns_browser_session_config(monkeypatch) -> None:
     monkeypatch.setattr(adult_voice_use_case, "get_follow", _async_return(object()))
-    monkeypatch.setattr(adult_voice_use_case, "get_valid_subscription", _async_return(object()))
     monkeypatch.setattr(
         adult_voice_use_case,
         "get_influencer_by_id",
@@ -120,6 +120,84 @@ def test_prepare_adult_browser_voice_call_returns_browser_session_config(monkeyp
     assert result.greeting_used == "hola"
     assert result.voice_id == "voice_1"
     assert result.native_language == "es"
+    assert result.prompt == "Hi Alex, I am Sofi"
+
+
+def test_create_adult_conversation_token_returns_unit_price_cents(monkeypatch) -> None:
+    monkeypatch.setattr(
+        adult_token_use_case,
+        "get_influencer_by_id",
+        _async_return(
+            SimpleNamespace(
+                influencer_agent_id_third_part="agent_1",
+                display_name="Sofi",
+                voice_id="voice_1",
+                native_language="es",
+            )
+        ),
+    )
+    monkeypatch.setattr(
+        adult_token_use_case,
+        "get_adult_character_by_id",
+        _async_return(
+            SimpleNamespace(
+                id=4,
+                is_active=True,
+                first_messages=["hola"],
+                prompt_template="Hi {user_name}, I am {influencer_name}",
+            )
+        ),
+    )
+    monkeypatch.setattr(
+        adult_token_use_case,
+        "get_active_influencer_character_meta",
+        _async_return(object()),
+    )
+    monkeypatch.setattr(
+        adult_token_use_case,
+        "get_user_by_id",
+        _async_return(SimpleNamespace(full_name="Alex", username="alex")),
+    )
+    monkeypatch.setattr(
+        adult_token_use_case,
+        "can_afford_adult_character_voice",
+        _async_return((True, 0, 0)),
+    )
+    monkeypatch.setattr(
+        adult_token_use_case,
+        "get_remaining_adult_character_voice_secs",
+        _async_return(123),
+    )
+    monkeypatch.setattr(
+        adult_token_use_case,
+        "get_adult_character_voice_unit_price_cents",
+        _async_return(3),
+    )
+    monkeypatch.setattr(
+        adult_token_use_case,
+        "pick_random_first_message",
+        lambda values: values[0],
+    )
+
+    class DummyGateway:
+        async def get_conversation_token(self, _agent_id: str) -> str:
+            return "token_1"
+
+    result = asyncio.run(
+        adult_token_use_case.create_adult_conversation_token(
+            db=object(),
+            user_id=7,
+            payload=AdultConversationTokenRequest(
+                influencer_id="inf_1",
+                character_id=4,
+            ),
+            gateway=DummyGateway(),
+        )
+    )
+
+    assert result.token == "token_1"
+    assert result.credits_remainder_secs == 123
+    assert result.unit_price_cents == 3
     assert result.prompt == "Hi Alex, I am Sofi"
 
 
