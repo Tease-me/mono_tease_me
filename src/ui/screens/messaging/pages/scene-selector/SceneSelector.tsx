@@ -44,6 +44,7 @@ type Scene = {
 };
 
 type SessionState = "preview" | "active";
+type PendingGateAction = "open-scene" | "unlock-samples";
 
 type SceneSelectorProps = {
   influencerId: string;
@@ -116,7 +117,10 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
   const [isLoading, setIsLoading] = useState(true);
   const [loadErrorMessage, setLoadErrorMessage] = useState<string | null>(null);
   const [showTopupModal, setShowTopupModal] = useState(false);
-  const [pendingScene, setPendingScene] = useState<Scene | null>(null);
+  const [pendingGate, setPendingGate] = useState<{
+    scene: Scene;
+    action: PendingGateAction;
+  } | null>(null);
   const [showSummaryInfoModal, setShowSummaryInfoModal] = useState(false);
   const { needsGate, verificationRequired, markConfirmed } = useAgeVerification();
   const lastCallErrorRef = useRef<string | null>(null);
@@ -253,7 +257,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
 
   const handleSelectScenario = (scene: Scene) => {
     if (scene.slug !== "relationship" && needsGate) {
-      setPendingScene(scene);
+      setPendingGate({ scene, action: "open-scene" });
       return;
     }
     setSelectedScene(scene);
@@ -262,11 +266,11 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
 
   const handleAgeConfirmed = () => {
     markConfirmed();
-    if (pendingScene) {
-      setSelectedScene(pendingScene);
+    if (pendingGate?.action === "open-scene") {
+      setSelectedScene(pendingGate.scene);
       setSessionState("preview");
-      setPendingScene(null);
     }
+    setPendingGate(null);
   };
 
   const handleCloseScenario = () => {
@@ -341,7 +345,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                     isRelationship={scene.slug === "relationship"}
                     samples={scene.samples}
                     ageVerified={!needsGate && !verificationRequired}
-                    onLockedClick={() => setPendingScene(scene)}
+                    onLockedClick={() => setPendingGate({ scene, action: "unlock-samples" })}
                   />
                   <IconButton
                     onClick={scene.slug === "vibrator" ? undefined : () => handleSelectScenario(scene)}
@@ -550,11 +554,11 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
         influencerId={influencerId}
         onClose={() => setShowTopupModal(false)}
       />
-      {pendingScene && (
+      {pendingGate && (
         <Suspense fallback={null}>
           <AdultTermsModal
             isOpen
-            onClose={() => setPendingScene(null)}
+            onClose={() => setPendingGate(null)}
             onAgree={handleAgeConfirmed}
             influencerId={influencerId}
             idVerificationRequired={verificationRequired}
