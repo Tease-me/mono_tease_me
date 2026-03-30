@@ -237,7 +237,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
   const latestAdultCallDuration = (() => {
     const seconds = data.latestAdultCallSummary?.duration_seconds;
     if (seconds == null) {
-      return "Final duration pending";
+      return "--";
     }
     const total = Math.round(seconds);
     const mins = Math.floor(total / 60);
@@ -246,7 +246,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
   })();
 
   const latestAdultCallCost = data.latestAdultCallSummary?.cost_cents == null
-    ? "Final cost pending"
+    ? "--"
     : `$${(data.latestAdultCallSummary.cost_cents / 100).toFixed(2)}`;
 
   if (loading) {
