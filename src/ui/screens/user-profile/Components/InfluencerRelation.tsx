@@ -26,6 +26,7 @@ import AdultTermsModal from "@/ui/components/modals/adult-terms/AdultTermsModal"
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { FollowServices } from "@/api/services/FollowServices";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
+import { LatestAdultCallSummary } from "@/api/models/user";
 
 const relationshipService = RelationshipServices(apiClient);
 const balanceService = BalanceServices(apiClient);
@@ -57,13 +58,11 @@ type RelationData = {
   balance?: number;
   voiceMinutes?: number;
   msgRemaining?: number;
-  lastCallMinutes?: number;
-  lastCallSeconds?: number;
-  lastCallUnitPriceCents?: number;
   //18+ Data
   adultBalance?: number;
   adultVoiceMinutes?: number;
   adultMsgRemaining?: number;
+  latestAdultCallSummary?: LatestAdultCallSummary | null;
   //Love stats
   trust?: number;
   safety?: number;
@@ -103,8 +102,6 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
   const [loading, setLoading] = useState(false);
 
   const [showBalanceDetails, setShowBalanceDetails] = useState(false);
-
-  const [showCallInfoModal, setShowCallInfoModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [cancelSuccess, setCancelSuccess] = useState(false);
@@ -160,9 +157,6 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
             u?.normal?.messages != null
               ? (u?.free_allowances?.normal?.text_free_left ?? 0) + (u.normal.messages.remaining ?? 0)
               : d.msgRemaining,
-          lastCallMinutes: u?.normal?.live_chat?.last_call_minutes ?? d.lastCallMinutes,
-          lastCallSeconds: u?.normal?.live_chat?.last_call_seconds ?? d.lastCallSeconds,
-          lastCallUnitPriceCents: u?.normal?.live_chat?.unit_price_cents ?? d.lastCallUnitPriceCents,
           adultVoiceMinutes:
             u?.adult?.voice != null
               ? (u?.free_allowances?.adult?.voice_free_left_minutes ?? 0) + (u.adult.voice.remaining_minutes ?? 0)
@@ -171,6 +165,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
             u?.adult?.messages != null
               ? (u?.free_allowances?.adult?.text_free_left ?? 0) + (u.adult.messages.remaining ?? 0)
               : d.adultMsgRemaining,
+          latestAdultCallSummary: u?.latest_adult_call_summary ?? null,
           currentStage: dims?.current_stage ?? d.currentStage,
           nextStage: dims?.next_stage ?? d.nextStage,
         }));
@@ -239,6 +234,21 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
 
   const onAdultTermsAgreed = () => { };
 
+  const latestAdultCallDuration = (() => {
+    const seconds = data.latestAdultCallSummary?.duration_seconds;
+    if (seconds == null) {
+      return "Final duration pending";
+    }
+    const total = Math.round(seconds);
+    const mins = Math.floor(total / 60);
+    const secs = total % 60;
+    return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+  })();
+
+  const latestAdultCallCost = data.latestAdultCallSummary?.cost_cents == null
+    ? "Final cost pending"
+    : `$${(data.latestAdultCallSummary.cost_cents / 100).toFixed(2)}`;
+
   if (loading) {
     return (
       <div className={styles.loading}>
@@ -297,33 +307,30 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
                     }
                   />
                 </div>
-                <div className={styles.lastCallSection}>
-                  <div className={styles.lastCallHeader}>
-                    <span className={styles.lastCallTitle}>
-                      <Suspense fallback={null}><SvgPack.Call2 /></Suspense>
-                      Last Call Details
-                    </span>
-                    <span className={styles.infoIconBtn} onClick={() => setShowCallInfoModal(true)}>
-                      <Suspense fallback={null}><SvgPack.InfoCircleGray /></Suspense>
-                    </span>
-                  </div>
-                  <div className={styles.lastCallStats}>
-                    <div className={styles.lastCallCard}>
-                      <span className={styles.lastCallCardLabel}>Duration</span>
-                      <span className={styles.lastCallCardValue}>
-                        {data.lastCallMinutes != null ? minutesToTime(data.lastCallMinutes) : "--"}
+                {data.latestAdultCallSummary && (
+                  <div className={styles.lastCallSection}>
+                    <div className={styles.lastCallHeader}>
+                      <span className={styles.lastCallTitle}>
+                        <Suspense fallback={null}><SvgPack.Call2 /></Suspense>
+                        Last adult call details
                       </span>
                     </div>
-                    <div className={styles.lastCallCard}>
-                      <span className={styles.lastCallCardLabel}>Cost</span>
-                      <span className={styles.lastCallCardValue}>
-                        {data.lastCallSeconds != null && data.lastCallUnitPriceCents != null
-                          ? `$${((data.lastCallSeconds * data.lastCallUnitPriceCents) / 100).toFixed(2)}`
-                          : "--"}
-                      </span>
+                    <div className={styles.lastCallStats}>
+                      <div className={styles.lastCallCard}>
+                        <span className={styles.lastCallCardLabel}>Duration</span>
+                        <span className={styles.lastCallCardValue}>
+                          {latestAdultCallDuration}
+                        </span>
+                      </div>
+                      <div className={styles.lastCallCard}>
+                        <span className={styles.lastCallCardLabel}>Cost</span>
+                        <span className={styles.lastCallCardValue}>
+                          {latestAdultCallCost}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             </>
           )}
@@ -385,19 +392,6 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
       {/* <div className={styles.unfollow}>
         <IconButton color="black" type="pill" leftIcon={<SvgPack.Delete />} text={`Unfollow ${data.name}`} redText className={styles.unfollowBtn} />
       </div> */}
-
-      {showCallInfoModal && (
-        <Modal isOpen onClose={() => setShowCallInfoModal(false)} className={styles.callInfoModal}>
-          <div className={styles.callInfoModalCard}>
-            <h3 className={styles.callInfoHeading}>How are call costs calculated?</h3>
-            <p className={styles.callInfoSubtitle}>Standard call charge $1.00 – $1.30 per minute</p>
-            <div className={styles.callInfoNote}>
-              <p className={styles.callInfoNoteTitle}>Notes on Call Charges</p>
-              <p className={styles.callInfoNoteText}>The total duration of the connection.<br></br> Includes the time it takes to establish the connection and is usually longer than the conversation.</p>
-            </div>
-          </div>
-        </Modal>
-      )}
 
       {showCancelModal && (
         <Modal
