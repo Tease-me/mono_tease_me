@@ -104,6 +104,9 @@ const AdminChatHistory = lazy(
   () => import("@/ui/screens/admin/chat-history/AdminChatHistory"),
 );
 const AdminLogs = lazy(() => import("@/ui/screens/admin/logs/AdminLogs"));
+const AdminTelegram = lazy(
+  () => import("@/ui/screens/admin/telegram/AdminTelegram"),
+);
 const AdultModePage = lazy(
   () => import("@/ui/screens/messaging/pages/adult-mode/AdultModePage"),
 );
@@ -245,6 +248,7 @@ function AppRoutes() {
     { path: Paths.admin.knowledge, element: <AdminKnowledge /> },
     { path: Paths.admin.chatHistory, element: <AdminChatHistory /> },
     { path: Paths.admin.logs, element: <AdminLogs /> },
+    { path: Paths.admin.telegram, element: <AdminTelegram /> },
   ];
 
   const privateRoutes: { path: string; element: JSX.Element }[] = [

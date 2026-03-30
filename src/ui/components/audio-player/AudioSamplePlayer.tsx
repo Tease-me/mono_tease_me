@@ -22,7 +22,13 @@ interface AudioSamplePlayerProps {
   onLockedClick?: () => void;
 }
 
-export default function AudioSamplePlayer({ url, size = "large", disabled = false, isExplicit = false, onLockedClick }: AudioSamplePlayerProps) {
+export default function AudioSamplePlayer({
+  url,
+  size = "large",
+  disabled = false,
+  isExplicit = false,
+  onLockedClick,
+}: AudioSamplePlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState<string | null>(null);
@@ -93,11 +99,14 @@ export default function AudioSamplePlayer({ url, size = "large", disabled = fals
         ))}
       </div>
 
-      {duration && <span className={styles.duration}>{duration}</span>}
+      <span className={styles.duration} aria-hidden={!duration}>
+        {duration}
+      </span>
 
       <audio
         ref={audioRef}
         src={url}
+        preload="metadata"
         onLoadedMetadata={handleLoadedMetadata}
         onPause={() => setIsPlaying(false)}
         onEnded={() => setIsPlaying(false)}
