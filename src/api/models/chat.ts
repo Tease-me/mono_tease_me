@@ -55,6 +55,7 @@ export interface AdultConversationTokenResponse {
     native_language: string;
     influencer_id: string;
     character_id: number;
+    unit_price_cents?: number;
 }
 
 export interface RegisterConversationPayload {
