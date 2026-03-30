@@ -34,6 +34,7 @@ export const Paths = {
         chatHistory: "/admin/chat-history",
         analytics: "/admin/analytics",
         logs: "/admin/logs",
+        telegram: "/admin/telegram",
     },
     legal: {
         terms: "/terms",

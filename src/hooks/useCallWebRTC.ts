@@ -17,6 +17,7 @@ export type StartConversationOptions =
 type NormalizedConversationToken = {
   conversationToken: string;
   creditsRemaining: number | null;
+  unitPriceCents: number | null;
   greetingUsed: string;
   prompt: string;
   nativeLanguage: string;
@@ -47,6 +48,7 @@ export default function useCallWebRTC(options?: {
   const startInFlightRef = useRef(false);
   const startAbortControllerRef = useRef<AbortController | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [unitPriceCents, setUnitPriceCents] = useState<number | null>(null);
   const conversationIdRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -185,6 +187,7 @@ export default function useCallWebRTC(options?: {
         tokenPayload = {
           conversationToken: response.token,
           creditsRemaining: response.credits_remainder_secs,
+          unitPriceCents: response.unit_price_cents ?? null,
           greetingUsed: response.greeting_used ?? "",
           prompt: response.prompt ?? "",
           nativeLanguage: response.native_language || "en",
@@ -201,6 +204,7 @@ export default function useCallWebRTC(options?: {
         tokenPayload = {
           conversationToken: response.token,
           creditsRemaining: response.credits_remainder_secs ?? null,
+          unitPriceCents: response.unit_price_cents ?? null,
           greetingUsed: response.greeting_used ?? "",
           prompt: response.prompt ?? "",
           nativeLanguage: response.native_language || "en",
@@ -244,6 +248,7 @@ export default function useCallWebRTC(options?: {
         firstMessage: tokenPayload.greetingUsed,
         language: tokenPayload.nativeLanguage,
       });
+      setUnitPriceCents(tokenPayload.unitPriceCents);
       pendingStartRef.current = {
         conversationToken: tokenPayload.conversationToken,
         // Adult conversation-token currently returns a compatibility countdown value.
@@ -366,6 +371,7 @@ export default function useCallWebRTC(options?: {
     setStatus("idle");
     setErrorMessage(null);
     setTimeRemaining(null);
+    setUnitPriceCents(null);
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -390,6 +396,7 @@ export default function useCallWebRTC(options?: {
     stopRing();
     setStatus("idle");
     setErrorMessage(null);
+    setUnitPriceCents(null);
   }, [status]);
 
   useEffect(() => {
@@ -453,5 +460,6 @@ export default function useCallWebRTC(options?: {
     setMicMuted,
     cancelCall,
     conversationId,
+    unitPriceCents,
   };
 }
