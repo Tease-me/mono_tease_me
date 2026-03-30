@@ -340,10 +340,11 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                     onLockedClick={() => setPendingScene(scene)}
                   />
                   <IconButton
-                    onClick={() => handleSelectScenario(scene)}
-                    text="Select Scenario"
+                    onClick={scene.slug === "vibrator" ? undefined : () => handleSelectScenario(scene)}
+                    text={scene.slug === "vibrator" ? "Coming Soon" : "Select Scenario"}
                     color="purple-glass"
                     type="pill"
+                    disabled={scene.slug === "vibrator"}
                     className={styles.sceneButton}
                   />
                 </div>
