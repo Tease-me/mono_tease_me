@@ -20,6 +20,7 @@ try:
         AuthKeyUnregistered,
         SessionPasswordNeeded,
         PhoneCodeInvalid,
+        PhoneNumberUnoccupied,
         FloodWait,
     )
     HAS_PYROGRAM = True
@@ -302,6 +303,10 @@ class TelegramSessionManager:
 
         Returns:
             The authenticated Pyrogram Client.
+
+        Raises:
+            ValueError("SIGN_UP_REQUIRED: ...") when the phone number is
+            not registered with Telegram and needs sign_up().
         """
         self._require_pyrogram()
 
@@ -317,7 +322,7 @@ class TelegramSessionManager:
 
         try:
             try:
-                await client.sign_in(
+                signed_in = await client.sign_in(
                     phone_number=phone_number,
                     phone_code_hash=phone_code_hash,
                     phone_code=code,
@@ -328,9 +333,47 @@ class TelegramSessionManager:
                         "This account has 2FA enabled. "
                         "Please provide the 'password' field."
                     )
-                await client.check_password(password)
+                signed_in = await client.check_password(password)
+            except PhoneNumberUnoccupied:
+                # Fallback: some Pyrogram versions raise this instead of
+                # returning False from sign_in.
+                raise ValueError(
+                    "SIGN_UP_REQUIRED: This phone number is not registered. "
+                    "Call sign_up() to create a new account."
+                )
 
-            me = await client.get_me()
+            # Per Pyrogram docs, sign_in returns:
+            #   User           → authorization completed
+            #   TermsOfService → sign-up needed (TOS must be accepted)
+            #   False          → sign-up needed (no TOS required)
+            from pyrogram.types import User as PyrogramUser, TermsOfService
+
+            if isinstance(signed_in, PyrogramUser):
+                # Existing account — sign-in succeeded
+                me = signed_in
+            elif isinstance(signed_in, TermsOfService):
+                # New number + TOS must be accepted — store TOS id for sign_up
+                pending["tos_id"] = signed_in.id
+                log.info(
+                    "sign_in returned TermsOfService for influencer=%s — sign-up required",
+                    influencer_id,
+                )
+                raise ValueError(
+                    "SIGN_UP_REQUIRED: This phone number is not registered. "
+                    "Call sign_up() to create a new account."
+                )
+            elif signed_in is False:
+                # New number, no TOS required
+                log.info(
+                    "sign_in returned False for influencer=%s — sign-up required",
+                    influencer_id,
+                )
+                raise ValueError(
+                    "SIGN_UP_REQUIRED: This phone number is not registered. "
+                    "Call sign_up() to create a new account."
+                )
+            else:
+                me = await client.get_me()
 
             # Start the Pyrogram dispatcher so handlers fire on incoming updates
             await client.initialize()
@@ -355,6 +398,9 @@ class TelegramSessionManager:
             raise RuntimeError(
                 f"Telegram rate limit hit. Retry in {e.value} seconds."
             )
+        except ValueError:
+            # Re-raise ValueError (SIGN_UP_REQUIRED, 2FA, invalid code) as-is
+            raise
         except Exception:
             # Clean up on failure
             self._pending_auth.pop(influencer_id, None)
@@ -363,6 +409,94 @@ class TelegramSessionManager:
             except Exception:
                 pass
             raise
+
+    async def sign_up(
+        self,
+        influencer_id: str,
+        first_name: str = "User",
+        last_name: str = "",
+    ) -> Client:
+        """Create a new Telegram account after verify_code raised SIGN_UP_REQUIRED.
+
+        Must be called after send_code() + verify_code() where verify_code
+        raised ValueError('SIGN_UP_REQUIRED').
+
+        Per Pyrogram docs, client.sign_up() takes:
+            phone_number, phone_code_hash, first_name, last_name (optional)
+
+        Returns:
+            The authenticated Pyrogram Client for the new account.
+        """
+        self._require_pyrogram()
+
+        pending = self._pending_auth.get(influencer_id)
+        if not pending:
+            raise ValueError(
+                f"No pending auth for '{influencer_id}'. "
+                "Call send_code and verify_code first."
+            )
+
+        client = pending["client"]
+        phone_number = pending["phone_number"]
+        phone_code_hash = pending["phone_code_hash"]
+
+        try:
+            # sign_up() returns a User object (per API docs)
+            me = await client.sign_up(
+                phone_number=phone_number,
+                phone_code_hash=phone_code_hash,
+                first_name=first_name,
+                last_name=last_name,
+            )
+
+            # Accept TOS if a TermsOfService.id was stored during verify_code
+            tos_id = pending.get("tos_id")
+            if tos_id:
+                try:
+                    await client.accept_terms_of_service(tos_id)
+                    log.info("Accepted TOS (id=%s) for influencer=%s", tos_id, influencer_id)
+                except Exception as tos_exc:
+                    log.warning("TOS acceptance failed (non-fatal): %s", tos_exc)
+
+            # Start the Pyrogram dispatcher
+            await client.initialize()
+
+            self._sessions[influencer_id] = client
+            self._pending_auth.pop(influencer_id, None)
+
+            # Start PyTgCalls for voice call support
+            await self._start_pytgcalls(influencer_id, client)
+
+            log.info(
+                "New Telegram account created for influencer=%s as @%s (id=%s)",
+                influencer_id,
+                me.username or me.first_name,
+                me.id,
+            )
+            return client
+
+        except Exception:
+            self._pending_auth.pop(influencer_id, None)
+            try:
+                await client.disconnect()
+            except Exception:
+                pass
+            raise
+
+    def has_pending_auth(self, influencer_id: str) -> bool:
+        """Check if there is a pending auth session for the given ID."""
+        return influencer_id in self._pending_auth
+
+    async def cancel_pending_auth(self, influencer_id: str) -> None:
+        """Cancel and clean up a pending auth session."""
+        pending = self._pending_auth.pop(influencer_id, None)
+        if pending:
+            client = pending.get("client")
+            if client:
+                try:
+                    await client.disconnect()
+                except Exception:
+                    pass
 
     async def _resume_existing_session(
         self, influencer_id: str, session_name: str
