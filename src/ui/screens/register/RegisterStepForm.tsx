@@ -5,6 +5,7 @@ import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 import ButtonRow from "@/ui/templates/ButtonRow";
 import SvgPack from "@/utils/SvgPack";
 import clsx from "clsx";
+import { Suspense, useState } from "react";
 import styles from "./RegisterStepForm.module.css";
 import ValidationPill from "@/ui/components/inputs/buttons/ValidationPill";
 
@@ -41,6 +42,13 @@ export default function RegisterStepForm({
   onBack,
   onSignIn,
 }: RegisterStepFormProps) {
+  const [showPasswords, setShowPasswords] = useState(false);
+
+  const passwordsMatch =
+    values.password.length > 0 &&
+    values.confirmPassword.length > 0 &&
+    values.password === values.confirmPassword;
+
   return (
     <form className={styles["auth-form"]} onSubmit={(e) => e.preventDefault()}>
       <div className={styles["input-fields"]}>
@@ -61,7 +69,19 @@ export default function RegisterStepForm({
         <div className={styles["input-field"]}>
           <TextInput
             leftIcon={<SvgPack.Lock />}
-            type="password"
+            rightIcon={
+              <button
+                type="button"
+                className={styles["eye-button"]}
+                onClick={() => setShowPasswords((v) => !v)}
+                tabIndex={-1}
+              >
+                <Suspense fallback={null}>
+                  {showPasswords ? <SvgPack.EyeOff /> : <SvgPack.Eye />}
+                </Suspense>
+              </button>
+            }
+            type={showPasswords ? "text" : "password"}
             placeholder="Password"
             value={values.password}
             onChange={(e) =>
@@ -77,7 +97,19 @@ export default function RegisterStepForm({
         <div className={styles["input-field"]}>
           <TextInput
             leftIcon={<SvgPack.Lock />}
-            type="password"
+            rightIcon={
+              <button
+                type="button"
+                className={styles["eye-button"]}
+                onClick={() => setShowPasswords((v) => !v)}
+                tabIndex={-1}
+              >
+                <Suspense fallback={null}>
+                  {showPasswords ? <SvgPack.EyeOff /> : <SvgPack.Eye />}
+                </Suspense>
+              </button>
+            }
+            type={showPasswords ? "text" : "password"}
             placeholder="Confirm Password"
             value={values.confirmPassword}
             onChange={(e) =>
@@ -86,8 +118,11 @@ export default function RegisterStepForm({
             onBlur={() => onBlur("confirmPassword")}
             autoComplete="new-password"
           />
-          {errors.confirmPassword && (
+          {errors.confirmPassword && !passwordsMatch && (
             <span className={styles["error"]}>{errors.confirmPassword}</span>
+          )}
+          {passwordsMatch && (
+            <span className={styles["success"]}>Passwords match</span>
           )}
         </div>
       </div>
