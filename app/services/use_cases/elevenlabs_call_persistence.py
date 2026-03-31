@@ -26,6 +26,36 @@ log = logging.getLogger(__name__)
 _conversation_gateway = ElevenLabsConversationGateway()
 
 
+async def _upsert_call_record_snapshot(
+    db,
+    *,
+    conversation_id: str,
+    user_id: int | None,
+    influencer_id: str | None,
+    chat_id: str | None,
+    status: str,
+    total_seconds: float,
+    normalized_transcript: list[dict[str, Any]] | None,
+) -> None:
+    call_record = await db.get(CallRecord, conversation_id)
+    if not call_record:
+        call_record = CallRecord(
+            conversation_id=conversation_id,
+            user_id=user_id,
+            influencer_id=influencer_id,
+            chat_id=chat_id,
+        )
+    call_record.status = status if status != "done" else (call_record.status or status)
+    call_record.call_duration_secs = total_seconds
+    call_record.transcript = normalized_transcript or call_record.transcript
+    if influencer_id:
+        call_record.influencer_id = influencer_id
+    if chat_id:
+        call_record.chat_id = chat_id
+    db.add(call_record)
+    await db.commit()
+
+
 async def ensure_transcript_snapshot(
     conversation_id: str,
     snapshot: dict[str, Any],
@@ -189,32 +219,33 @@ async def poll_and_persist_conversation(
                         )
 
                         try:
-                            from sqlalchemy import and_
-                            from sqlalchemy import select as sa_select
+                            await _upsert_call_record_snapshot(
+                                db,
+                                conversation_id=conversation_id,
+                                user_id=user_id,
+                                influencer_id=influencer_id,
+                                chat_id=chat_id,
+                                status=status,
+                                total_seconds=total_seconds,
+                                normalized_transcript=normalized_transcript,
+                            )
 
                             from app.api.routes.notify_ws import notify_call_billed
-                            from app.data.models import InfluencerWallet
                             from app.data.models import User as UserModel
+                            from app.services.use_cases.adult_character_summary import (
+                                get_adult_character_summary,
+                            )
 
                             user_obj = await db.get(UserModel, user_id)
-                            wallet = await db.scalar(
-                                sa_select(InfluencerWallet).where(
-                                    and_(
-                                        InfluencerWallet.user_id == user_id,
-                                        InfluencerWallet.influencer_id == influencer_id,
-                                        InfluencerWallet.is_18.is_(is_18),
-                                    )
+                            if user_obj and user_obj.email and influencer_id:
+                                summary = await get_adult_character_summary(
+                                    db,
+                                    user_id=user_id,
+                                    influencer_id=influencer_id,
                                 )
-                            )
-                            if user_obj and user_obj.email:
                                 await notify_call_billed(
                                     user_obj.email,
-                                    balance_cents=int(wallet.balance_cents)
-                                    if wallet
-                                    else 0,
-                                    cost_cents=cost_charged,
-                                    duration_secs=total_seconds,
-                                    conversation_id=conversation_id,
+                                    summary=summary,
                                 )
                         except Exception as ws_exc:
                             log.warning(
@@ -260,25 +291,16 @@ async def poll_and_persist_conversation(
             )
 
         try:
-            call_record = await db.get(CallRecord, conversation_id)
-            if not call_record:
-                call_record = CallRecord(
-                    conversation_id=conversation_id,
-                    user_id=user_id,
-                    influencer_id=influencer_id,
-                    chat_id=chat_id,
-                )
-            call_record.status = (
-                status if status != "done" else (call_record.status or status)
+            await _upsert_call_record_snapshot(
+                db,
+                conversation_id=conversation_id,
+                user_id=user_id,
+                influencer_id=influencer_id,
+                chat_id=chat_id,
+                status=status,
+                total_seconds=total_seconds,
+                normalized_transcript=normalized_transcript,
             )
-            call_record.call_duration_secs = total_seconds
-            call_record.transcript = normalized_transcript or call_record.transcript
-            if influencer_id:
-                call_record.influencer_id = influencer_id
-            if chat_id:
-                call_record.chat_id = chat_id
-            db.add(call_record)
-            await db.commit()
         except Exception as exc:
             log.warning(
                 "background.update_call_record_failed conv=%s err=%s",
