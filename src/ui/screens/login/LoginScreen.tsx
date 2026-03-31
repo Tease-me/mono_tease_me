@@ -1,4 +1,4 @@
-import React, { useEffect, useContext, useState, useCallback } from "react";
+import React, { useEffect, useContext, useState, useCallback, Suspense } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import BackgroundGradient from "../../templates/BackgroundGradient";
 import styles from "./LoginScreen.module.css";
@@ -29,6 +29,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [agree, setAgree] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [showDisclaimer, setShowDisclaimer] = useState<boolean>(() => {
     const storedId = localStorage.getItem(LocalStorageKeys.DisclaimerSeen);
@@ -72,7 +73,7 @@ export default function LoginScreen() {
       { email, password },
       {
         email: validationRules.email,
-        password: validationRules.password,
+        password: (v) => v ? undefined : "Password is required",
       }
     );
   }, [email, password]);
@@ -82,7 +83,7 @@ export default function LoginScreen() {
   }, []);
 
   const validatePassword = useCallback((value: string): string | undefined => {
-    return validationRules.password(value);
+    return value ? undefined : "Password is required";
   }, []);
 
   const [touched, setTouched] = useState({ email: false, password: false });
@@ -176,7 +177,19 @@ export default function LoginScreen() {
             <div className={styles["input-field"]}>
               <TextInput
                 leftIcon={<SvgPack.Lock />}
-                type="password"
+                rightIcon={
+                  <button
+                    type="button"
+                    className={styles["eye-button"]}
+                    onClick={() => setShowPassword((v) => !v)}
+                    tabIndex={-1}
+                  >
+                    <Suspense fallback={null}>
+                      {showPassword ? <SvgPack.EyeOff /> : <SvgPack.Eye />}
+                    </Suspense>
+                  </button>
+                }
+                type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 onBlur={handlePasswordBlur}
                 value={password}
