@@ -18,6 +18,7 @@ import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { FollowServices } from "@/api/services/FollowServices";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import { LatestAdultCallSummary } from "@/api/models/user";
+import { RELATIONSHIP_MODE_AVAILABLE } from "@/constants/featureFlags";
 
 const balanceService = BalanceServices(apiClient);
 const subscriptionService = SubscriptionsServices(apiClient);
@@ -275,15 +276,17 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
                         : "--"
                     }
                   />
-                  <UsageView
-                    label="Text Msgs"
-                    tone="green"
-                    value={
-                      data.msgRemaining != null
-                        ? data.msgRemaining.toString()
-                        : "--"
-                    }
-                  />
+                  {RELATIONSHIP_MODE_AVAILABLE && (
+                    <UsageView
+                      label="Text Msgs"
+                      tone="green"
+                      value={
+                        data.msgRemaining != null
+                          ? data.msgRemaining.toString()
+                          : "--"
+                      }
+                    />
+                  )}
                 </div>
                 {data.latestAdultCallSummary && (
                   <div className={styles.lastCallSection}>
