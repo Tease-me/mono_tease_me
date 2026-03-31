@@ -6,12 +6,16 @@ from app.core.config import settings
 from app.core.session import get_db
 from app.data.models import Influencer, InfluencerWallet
 from app.data.schemas.billing import (
+    AdultCharacterSummaryOut,
     CheckoutResponse,
     CreateCheckoutRequest,
     TopUpRequest,
     VerifyCheckoutRequest,
 )
 from app.services.repositories.billing_repository import get_wallet_balance_cents
+from app.services.use_cases.adult_character_summary import (
+    get_adult_character_summary,
+)
 from app.utils.auth.dependencies import get_current_user
 from app.utils.infrastructure.idempotency import idempotent
 from app.utils.infrastructure.rate_limiter import rate_limit
@@ -39,6 +43,26 @@ async def get_balance(
             is_18=is_18,
         ),
     }
+
+
+@router.get(
+    "/{influencer_id}/adult-character-summary",
+    response_model=AdultCharacterSummaryOut,
+)
+async def get_adult_character_summary_route(
+    influencer_id: str,
+    db: AsyncSession = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    infl = await db.get(Influencer, influencer_id)
+    if not infl:
+        raise HTTPException(status_code=404, detail="Influencer not found")
+
+    return await get_adult_character_summary(
+        db,
+        user_id=user.id,
+        influencer_id=influencer_id,
+    )
 
 
 @router.post("/topup")
