@@ -93,7 +93,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         ]);
 
         if (cancelled) return;
-        const isAdultMode = sub?.is_18_selected === true;
+        const isAdultMode = true;
         setData((d) => ({
           ...d,
           id: initial.id,
