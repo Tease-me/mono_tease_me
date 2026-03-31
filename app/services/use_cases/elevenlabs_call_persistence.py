@@ -118,6 +118,7 @@ async def poll_and_persist_conversation(
                             "status": status,
                             "source": "poll",
                         }
+                        is_18 = False  # default; adult calls use normal wallet
                         if call_record and call_record.is_adult_call:
                             from app.services.repositories.adult.adult_conversation_repository import (
                                 get_adult_character_by_id,
