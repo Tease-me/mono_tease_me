@@ -2,16 +2,33 @@ import { useEffect, useRef, useCallback } from "react";
 import { WS_BASE_URL, Endpoints } from "@/api/urls";
 import logger from "@/utils/logger";
 
+export type LatestAdultCallSummary = {
+  duration_seconds: number | null;
+  cost_cents: number | null;
+};
+
+export type CallBilledEvent = {
+  type: "call_billed";
+  influencer_id: string;
+  balance_cents: number;
+  estimated_remaining_call_seconds: number | null;
+  latest_adult_call_summary: LatestAdultCallSummary | null;
+};
+
+export type LowBalanceEvent = {
+  type: "low_balance";
+  balance_cents: number;
+  msg: string;
+};
+
+export type EmailVerifiedEvent = {
+  type: "email_verified";
+};
+
 export type NotificationEvent =
-  | { type: "email_verified" }
-  | { type: "low_balance"; balance_cents: number; msg: string }
-  | {
-      type: "call_billed";
-      balance_cents: number;
-      cost_cents: number;
-      duration_secs: number;
-      conversation_id: string;
-    };
+  | CallBilledEvent
+  | LowBalanceEvent
+  | EmailVerifiedEvent;
 
 type NotificationHandler = (event: NotificationEvent) => void;
 

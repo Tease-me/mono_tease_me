@@ -19,6 +19,7 @@ import {
 } from "@/api/services/BillingServices";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { FollowServices } from "@/api/services/FollowServices";
+import { CallBilledEvent } from "@/hooks/useNotificationSocket";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import { RELATIONSHIP_MODE_AVAILABLE } from "@/constants/featureFlags";
 
@@ -52,18 +53,19 @@ type RelationData = {
   latestAdultCallSummary?: AdultCharacterSummary["latest_adult_call_summary"];
 };
 
-function formatCents(cents: number): string {
+function formatCents(cents: number | null | undefined): string {
+  if (cents == null) return "--";
   return `$${(cents / 100).toFixed(2)}`;
 }
 
-function formatSeconds(totalSeconds: number | null | undefined): string {
+function formatClock(totalSeconds: number | null | undefined): string {
   if (totalSeconds == null) return "--";
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
-function formatDurationSeconds(totalSeconds: number | null | undefined): string {
+function formatDuration(totalSeconds: number | null | undefined): string {
   if (totalSeconds == null) return "--";
   return `${Math.round(totalSeconds)}s`;
 }
@@ -139,34 +141,20 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
     };
   }, [initial.id]);
 
-  // ── Live refresh: re-fetch usage when a call is billed ────
   useEffect(() => {
     if (!initial.id) return;
-    const handler = async (e: Event) => {
-      const detail = (e as CustomEvent).detail;
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<CallBilledEvent>).detail;
       if (detail?.type !== "call_billed") return;
+      if (detail.influencer_id !== initial.id) return;
 
-      try {
-        const adultSummary = await billingService
-          .getAdultCharacterSummary(initial.id)
-          .catch(() => null);
-        if (!adultSummary) return;
-        setData((d) => {
-          return {
-            ...d,
-            balance:
-              adultSummary.balance_cents != null
-                ? adultSummary.balance_cents / 100
-                : detail.balance_cents != null
-                  ? detail.balance_cents / 100
-                  : d.balance,
-            estimatedRemainingCallSeconds:
-              adultSummary.estimated_remaining_call_seconds,
-            latestAdultCallSummary:
-              adultSummary.latest_adult_call_summary ?? d.latestAdultCallSummary,
-          };
-        });
-      } catch { /* silent — stale data is acceptable as fallback */ }
+      setData((d) => ({
+        ...d,
+        balance: detail.balance_cents / 100,
+        estimatedRemainingCallSeconds:
+          detail.estimated_remaining_call_seconds,
+        latestAdultCallSummary: detail.latest_adult_call_summary,
+      }));
     };
 
     window.addEventListener("ws:notification", handler);
@@ -203,14 +191,12 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
       : "--";
 
   const latestAdultCallDuration = (() => {
-    return formatDurationSeconds(
-      data.latestAdultCallSummary?.duration_seconds ?? null
-    );
+    return formatDuration(data.latestAdultCallSummary?.duration_seconds ?? null);
   })();
 
-  const latestAdultCallCost = data.latestAdultCallSummary?.cost_cents == null
-    ? "--"
-    : formatCents(data.latestAdultCallSummary.cost_cents);
+  const latestAdultCallCost = formatCents(
+    data.latestAdultCallSummary?.cost_cents
+  );
 
   if (loading) {
     return (
@@ -264,7 +250,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
                     tone="green"
                     value={
                       data.estimatedRemainingCallSeconds != null
-                        ? formatSeconds(data.estimatedRemainingCallSeconds)
+                        ? formatClock(data.estimatedRemainingCallSeconds)
                         : "--"
                     }
                   />
