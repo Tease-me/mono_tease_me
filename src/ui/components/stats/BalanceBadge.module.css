@@ -32,10 +32,3 @@
   color: var(--alerts-status-error, #f75555);
 }
 
-@media (max-width: 767px) {
-  .balanceBadge {
-    padding: 12px;
-    font-size: 16px;
-    line-height: 16px;
-  }
-}
