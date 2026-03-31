@@ -152,7 +152,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         const u = await userServices.getUserUsage(initial.id).catch(() => null);
         if (!u) return;
         setData((d) => {
-          const isAdultMode = d.is18 === true;
+          const isAdultMode = true;
           return {
             ...d,
             balance: detail.balance_cents != null ? detail.balance_cents / 100 : d.balance,
