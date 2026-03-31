@@ -10,6 +10,7 @@ import BalanceBadge from "@/ui/components/stats/BalanceBadge";
 import { Modal } from "@/ui/components/modals/Modal";
 import { formatDateTimeRelative, minutesToTime } from "@/utils/DateTimeUtils";
 import InfluencerProfileCard from "@/ui/components/profile/InfluencerProfileCard";
+import ProfileMedia from "@/ui/components/ProfileMedia";
 
 import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
 import { BalanceServices } from "@/api/services/BalanceServices";
@@ -18,6 +19,7 @@ import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { FollowServices } from "@/api/services/FollowServices";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import { LatestAdultCallSummary } from "@/api/models/user";
+import { RELATIONSHIP_MODE_AVAILABLE } from "@/constants/featureFlags";
 
 const balanceService = BalanceServices(apiClient);
 const subscriptionService = SubscriptionsServices(apiClient);
@@ -74,7 +76,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
   const [data, setData] = useState<RelationData>(initial);
   const [loading, setLoading] = useState(false);
 
-  const [showBalanceDetails, setShowBalanceDetails] = useState(false);
+  const [showBalanceDetails, setShowBalanceDetails] = useState(!RELATIONSHIP_MODE_AVAILABLE);
   const [showCallInfoModal, setShowCallInfoModal] = useState(false);
 
   useEffect(() => {
@@ -150,7 +152,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         const u = await userServices.getUserUsage(initial.id).catch(() => null);
         if (!u) return;
         setData((d) => {
-          const isAdultMode = d.is18 === true;
+          const isAdultMode = true;
           return {
             ...d,
             balance: detail.balance_cents != null ? detail.balance_cents / 100 : d.balance,
@@ -238,16 +240,22 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
 
   return (
     <div className={clsx("u-sidebar-page", styles.shell)}>
-      <InfluencerProfileCard
-        name={data.name || ""}
-        image={data.image || ""}
-        video={data.video}
-        isSubscribed={isSubscribed}
-        lastConnected={
-          data.lastConnected ? formatDateTimeRelative(data.lastConnected) : "--"
-        }
-        followingSince={followingDate}
-      />
+      {RELATIONSHIP_MODE_AVAILABLE ? (
+        <InfluencerProfileCard
+          name={data.name || ""}
+          image={data.image || ""}
+          video={data.video}
+          isSubscribed={isSubscribed}
+          lastConnected={
+            data.lastConnected ? formatDateTimeRelative(data.lastConnected) : "--"
+          }
+          followingSince={followingDate}
+        />
+      ) : (
+        <div className={styles.photoCard}>
+          <ProfileMedia imageSrc={data.image || undefined} videoSrc={data.video || undefined} size="large" active />
+        </div>
+      )}
 
       {/* Balance Card */}
       <div className={styles.balanceCard}>
@@ -255,12 +263,14 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           <div className={styles.balanceBadge}>
             <BalanceBadge balance={data.balance ? data.balance : 0} />
           </div>
-          <NormalButton
-            type="nobg"
-            className={styles.grayBtn}
-            text={!showBalanceDetails ? "View Details" : "Hide Details"}
-            onClick={() => setShowBalanceDetails((prev) => !prev)}
-          />
+          {RELATIONSHIP_MODE_AVAILABLE && (
+            <NormalButton
+              type="nobg"
+              className={styles.grayBtn}
+              text={!showBalanceDetails ? "View Details" : "Hide Details"}
+              onClick={() => setShowBalanceDetails((prev) => !prev)}
+            />
+          )}
           {showBalanceDetails && (
             <>
               <div className={styles.balanceStatsWrapper}>
@@ -275,15 +285,17 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
                         : "--"
                     }
                   />
-                  <UsageView
-                    label="Text Msgs"
-                    tone="green"
-                    value={
-                      data.msgRemaining != null
-                        ? data.msgRemaining.toString()
-                        : "--"
-                    }
-                  />
+                  {RELATIONSHIP_MODE_AVAILABLE && (
+                    <UsageView
+                      label="Text Msgs"
+                      tone="green"
+                      value={
+                        data.msgRemaining != null
+                          ? data.msgRemaining.toString()
+                          : "--"
+                      }
+                    />
+                  )}
                 </div>
                 {data.latestAdultCallSummary && (
                   <div className={styles.lastCallSection}>
