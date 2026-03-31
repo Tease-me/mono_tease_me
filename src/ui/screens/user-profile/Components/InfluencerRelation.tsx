@@ -8,20 +8,22 @@ import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 import BalanceBadge from "@/ui/components/stats/BalanceBadge";
 import { Modal } from "@/ui/components/modals/Modal";
-import { formatDateTimeRelative, minutesToTime } from "@/utils/DateTimeUtils";
+import { formatDateTimeRelative } from "@/utils/DateTimeUtils";
 import InfluencerProfileCard from "@/ui/components/profile/InfluencerProfileCard";
+import ProfileMedia from "@/ui/components/ProfileMedia";
 
 import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
-import { BalanceServices } from "@/api/services/BalanceServices";
-import { UserServices } from "@/api/services/UserServices";
+import {
+  AdultCharacterSummary,
+  BillingServices,
+} from "@/api/services/BillingServices";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { FollowServices } from "@/api/services/FollowServices";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
-import { LatestAdultCallSummary } from "@/api/models/user";
+import { RELATIONSHIP_MODE_AVAILABLE } from "@/constants/featureFlags";
 
-const balanceService = BalanceServices(apiClient);
+const billingService = BillingServices(apiClient);
 const subscriptionService = SubscriptionsServices(apiClient);
-const userServices = UserServices(apiClient);
 const influencerRepo = InfluencerRepo();
 
 const followingService = FollowServices(apiClient);
@@ -45,13 +47,26 @@ type RelationData = {
   is18?: boolean;
   expiresAt?: string | null;
   balance?: number;
-  voiceMinutes?: number;
+  estimatedRemainingCallSeconds?: number | null;
   msgRemaining?: number;
-  lastCallMinutes?: number;
-  lastCallSeconds?: number;
-  lastCallUnitPriceCents?: number;
-  latestAdultCallSummary?: LatestAdultCallSummary | null;
+  latestAdultCallSummary?: AdultCharacterSummary["latest_adult_call_summary"];
 };
+
+function formatCents(cents: number): string {
+  return `$${(cents / 100).toFixed(2)}`;
+}
+
+function formatSeconds(totalSeconds: number | null | undefined): string {
+  if (totalSeconds == null) return "--";
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
+function formatDurationSeconds(totalSeconds: number | null | undefined): string {
+  if (totalSeconds == null) return "--";
+  return `${Math.round(totalSeconds)}s`;
+}
 
 export default function InfluencerRelation({ navPayload, goTo }: Props) {
   const initial: RelationData = useMemo(
@@ -74,7 +89,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
   const [data, setData] = useState<RelationData>(initial);
   const [loading, setLoading] = useState(false);
 
-  const [showBalanceDetails, setShowBalanceDetails] = useState(false);
+  const [showBalanceDetails, setShowBalanceDetails] = useState(!RELATIONSHIP_MODE_AVAILABLE);
   const [showCallInfoModal, setShowCallInfoModal] = useState(false);
 
   useEffect(() => {
@@ -84,16 +99,14 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
 
     (async () => {
       try {
-        const [bal, sub, u, i, following] = await Promise.all([
-          balanceService.getBalance(initial.id!, false).catch(() => null),
+        const [adultSummary, sub, i, following] = await Promise.all([
+          billingService.getAdultCharacterSummary(initial.id!).catch(() => null),
           subscriptionService.getMySubscriptionForInfluencer(initial.id!),
-          userServices.getUserUsage(initial.id).catch(() => null),
           influencerRepo.getInfluencer(initial.id!),
           followingService.list(),
         ]);
 
         if (cancelled) return;
-        const isAdultMode = true;
         setData((d) => ({
           ...d,
           id: initial.id,
@@ -103,31 +116,18 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           followingSince:
             following.items.find((f) => f.influencer_id === initial.id)
               ?.created_at ?? d.followingSince,
-          balance: bal ? bal.balance_cents / 100 : d.balance,
+          balance:
+            adultSummary?.balance_cents != null
+              ? adultSummary.balance_cents / 100
+              : d.balance,
           hasSubscription: sub?.has_subscription ?? d.hasSubscription,
           subscriptionStatus: sub?.status ?? d.subscriptionStatus,
           is18: sub?.is_18_selected ?? d.is18,
           expiresAt: sub?.current_period_end ?? d.expiresAt,
-          voiceMinutes: isAdultMode
-            ? (u?.free_allowances?.adult?.voice_free_left_minutes ?? 0) + (u?.adult?.voice?.remaining_minutes ?? d.voiceMinutes ?? 0)
-            : u?.normal?.live_chat != null
-              ? (u?.free_allowances?.normal?.live_chat_free_left_minutes ?? 0) + (u.normal.live_chat.remaining_minutes ?? 0)
-              : d.voiceMinutes,
-          msgRemaining: isAdultMode
-            ? (u?.free_allowances?.adult?.text_free_left ?? 0) + (u?.adult?.messages?.remaining ?? d.msgRemaining ?? 0)
-            : u?.normal?.messages != null
-              ? (u?.free_allowances?.normal?.text_free_left ?? 0) + (u.normal.messages.remaining ?? 0)
-              : d.msgRemaining,
-          lastCallMinutes: isAdultMode
-            ? (u?.adult?.voice?.last_call_minutes ?? d.lastCallMinutes)
-            : (u?.normal?.live_chat?.last_call_minutes ?? d.lastCallMinutes),
-          lastCallSeconds: isAdultMode
-            ? (u?.adult?.voice?.last_call_seconds ?? d.lastCallSeconds)
-            : (u?.normal?.live_chat?.last_call_seconds ?? d.lastCallSeconds),
-          lastCallUnitPriceCents: isAdultMode
-            ? (u?.adult?.voice?.unit_price_cents ?? d.lastCallUnitPriceCents)
-            : (u?.normal?.live_chat?.unit_price_cents ?? d.lastCallUnitPriceCents),
-          latestAdultCallSummary: u?.latest_adult_call_summary ?? null,
+          estimatedRemainingCallSeconds:
+            adultSummary?.estimated_remaining_call_seconds ?? null,
+          latestAdultCallSummary:
+            adultSummary?.latest_adult_call_summary ?? null,
         }));
       } finally {
         if (!cancelled) setLoading(false);
@@ -147,33 +147,23 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
       if (detail?.type !== "call_billed") return;
 
       try {
-        const u = await userServices.getUserUsage(initial.id).catch(() => null);
-        if (!u) return;
+        const adultSummary = await billingService
+          .getAdultCharacterSummary(initial.id)
+          .catch(() => null);
+        if (!adultSummary) return;
         setData((d) => {
-          const isAdultMode = d.is18 === true;
           return {
             ...d,
-            balance: detail.balance_cents != null ? detail.balance_cents / 100 : d.balance,
-            voiceMinutes: isAdultMode
-              ? (u.free_allowances?.adult?.voice_free_left_minutes ?? 0) + (u.adult?.voice?.remaining_minutes ?? 0)
-              : u.normal?.live_chat != null
-                ? (u.free_allowances?.normal?.live_chat_free_left_minutes ?? 0) + (u.normal.live_chat.remaining_minutes ?? 0)
-                : d.voiceMinutes,
-            msgRemaining: isAdultMode
-              ? (u.free_allowances?.adult?.text_free_left ?? 0) + (u.adult?.messages?.remaining ?? 0)
-              : u.normal?.messages != null
-                ? (u.free_allowances?.normal?.text_free_left ?? 0) + (u.normal.messages.remaining ?? 0)
-                : d.msgRemaining,
-            lastCallMinutes: isAdultMode
-              ? (u.adult?.voice?.last_call_minutes ?? d.lastCallMinutes)
-              : (u.normal?.live_chat?.last_call_minutes ?? d.lastCallMinutes),
-            lastCallSeconds: isAdultMode
-              ? (u.adult?.voice?.last_call_seconds ?? d.lastCallSeconds)
-              : (u.normal?.live_chat?.last_call_seconds ?? d.lastCallSeconds),
-            lastCallUnitPriceCents: isAdultMode
-              ? (u.adult?.voice?.unit_price_cents ?? d.lastCallUnitPriceCents)
-              : (u.normal?.live_chat?.unit_price_cents ?? d.lastCallUnitPriceCents),
-            latestAdultCallSummary: u.latest_adult_call_summary ?? d.latestAdultCallSummary,
+            balance:
+              adultSummary.balance_cents != null
+                ? adultSummary.balance_cents / 100
+                : detail.balance_cents != null
+                  ? detail.balance_cents / 100
+                  : d.balance,
+            estimatedRemainingCallSeconds:
+              adultSummary.estimated_remaining_call_seconds,
+            latestAdultCallSummary:
+              adultSummary.latest_adult_call_summary ?? d.latestAdultCallSummary,
           };
         });
       } catch { /* silent — stale data is acceptable as fallback */ }
@@ -213,19 +203,14 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
       : "--";
 
   const latestAdultCallDuration = (() => {
-    const seconds = data.latestAdultCallSummary?.duration_seconds;
-    if (seconds == null) {
-      return "--";
-    }
-    const total = Math.round(seconds);
-    const mins = Math.floor(total / 60);
-    const secs = total % 60;
-    return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+    return formatDurationSeconds(
+      data.latestAdultCallSummary?.duration_seconds ?? null
+    );
   })();
 
   const latestAdultCallCost = data.latestAdultCallSummary?.cost_cents == null
     ? "--"
-    : `$${(data.latestAdultCallSummary.cost_cents / 100).toFixed(2)}`;
+    : formatCents(data.latestAdultCallSummary.cost_cents);
 
   if (loading) {
     return (
@@ -238,16 +223,22 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
 
   return (
     <div className={clsx("u-sidebar-page", styles.shell)}>
-      <InfluencerProfileCard
-        name={data.name || ""}
-        image={data.image || ""}
-        video={data.video}
-        isSubscribed={isSubscribed}
-        lastConnected={
-          data.lastConnected ? formatDateTimeRelative(data.lastConnected) : "--"
-        }
-        followingSince={followingDate}
-      />
+      {RELATIONSHIP_MODE_AVAILABLE ? (
+        <InfluencerProfileCard
+          name={data.name || ""}
+          image={data.image || ""}
+          video={data.video}
+          isSubscribed={isSubscribed}
+          lastConnected={
+            data.lastConnected ? formatDateTimeRelative(data.lastConnected) : "--"
+          }
+          followingSince={followingDate}
+        />
+      ) : (
+        <div className={styles.photoCard}>
+          <ProfileMedia imageSrc={data.image || undefined} videoSrc={data.video || undefined} size="large" active />
+        </div>
+      )}
 
       {/* Balance Card */}
       <div className={styles.balanceCard}>
@@ -255,12 +246,14 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           <div className={styles.balanceBadge}>
             <BalanceBadge balance={data.balance ? data.balance : 0} />
           </div>
-          <NormalButton
-            type="nobg"
-            className={styles.grayBtn}
-            text={!showBalanceDetails ? "View Details" : "Hide Details"}
-            onClick={() => setShowBalanceDetails((prev) => !prev)}
-          />
+          {RELATIONSHIP_MODE_AVAILABLE && (
+            <NormalButton
+              type="nobg"
+              className={styles.grayBtn}
+              text={!showBalanceDetails ? "View Details" : "Hide Details"}
+              onClick={() => setShowBalanceDetails((prev) => !prev)}
+            />
+          )}
           {showBalanceDetails && (
             <>
               <div className={styles.balanceStatsWrapper}>
@@ -270,20 +263,22 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
                     label="Call Time"
                     tone="green"
                     value={
-                      data.voiceMinutes != null
-                        ? minutesToTime(data.voiceMinutes)
+                      data.estimatedRemainingCallSeconds != null
+                        ? formatSeconds(data.estimatedRemainingCallSeconds)
                         : "--"
                     }
                   />
-                  <UsageView
-                    label="Text Msgs"
-                    tone="green"
-                    value={
-                      data.msgRemaining != null
-                        ? data.msgRemaining.toString()
-                        : "--"
-                    }
-                  />
+                  {RELATIONSHIP_MODE_AVAILABLE && (
+                    <UsageView
+                      label="Text Msgs"
+                      tone="green"
+                      value={
+                        data.msgRemaining != null
+                          ? data.msgRemaining.toString()
+                          : "--"
+                      }
+                    />
+                  )}
                 </div>
                 {data.latestAdultCallSummary && (
                   <div className={styles.lastCallSection}>
