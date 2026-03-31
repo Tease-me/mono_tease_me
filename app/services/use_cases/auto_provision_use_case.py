@@ -115,6 +115,16 @@ async def provision_and_create(
     """
     webhook_url = _build_webhook_url()
 
+    # Validate influencer exists before purchasing (prevent FK violations)
+    if influencer_id:
+        from app.data.models import Influencer
+        influencer = await db.get(Influencer, influencer_id)
+        if not influencer:
+            raise ValueError(
+                f"Influencer '{influencer_id}' not found. "
+                "Create the influencer before provisioning a number."
+            )
+
     # Step 1: Buy the phone number from Twilio (gateway)
     log.info("provision: buying number %s", phone_number)
     purchase = await twilio_gateway.buy_phone_number(
@@ -127,15 +137,34 @@ async def provision_and_create(
     country_code = derive_country_code(phone_number)
 
     # Step 2: Create DB record (repository)
-    record = await pn_repo.create(
-        db,
-        phone_number=phone_number,
-        twilio_sid=purchase["sid"],
-        country_code=country_code,
-        influencer_id=influencer_id,
-        telegram_first_name=first_name,
-        telegram_last_name=last_name,
-    )
+    # If this fails (e.g. FK violation), release the number immediately
+    try:
+        record = await pn_repo.create(
+            db,
+            phone_number=phone_number,
+            twilio_sid=purchase["sid"],
+            country_code=country_code,
+            influencer_id=influencer_id,
+            telegram_first_name=first_name,
+            telegram_last_name=last_name,
+        )
+    except Exception as db_exc:
+        log.error(
+            "provision: DB insert failed for %s — releasing Twilio number %s: %s",
+            phone_number, purchase["sid"], db_exc,
+        )
+        try:
+            await twilio_gateway.release_phone_number(purchase["sid"])
+            log.info("provision: Twilio number %s released after DB failure", purchase["sid"])
+        except Exception as release_exc:
+            log.error(
+                "provision: CRITICAL — failed to release Twilio number %s after DB error: %s",
+                purchase["sid"], release_exc,
+            )
+        raise RuntimeError(
+            f"Failed to save provisioned number to database: {db_exc}. "
+            "The Twilio number has been released."
+        ) from db_exc
 
     # Step 3: Start Telegram auth (gateway)
     session_id = _session_id_for(record)

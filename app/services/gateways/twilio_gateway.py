@@ -78,6 +78,9 @@ async def list_available_countries() -> list[dict]:
     except _twilio_exception() as exc:
         log.error("twilio.list_countries failed: %s", exc.msg)
         raise ValueError(f"Twilio error: {exc.msg}") from exc
+    except Exception as exc:
+        log.exception("twilio.list_countries unexpected error: %s", exc)
+        raise RuntimeError(f"Failed to list countries: {exc}") from exc
 
 
 async def search_available_numbers(
@@ -153,8 +156,19 @@ async def search_available_numbers(
     try:
         return await run_in_threadpool(_search)
     except _twilio_exception() as exc:
+        # Twilio returns 404 when a number type is not available in a country
+        # (e.g. Mobile in US, Local in PT).  Return an empty list instead of crashing.
+        if exc.status == 404:
+            log.info(
+                "twilio.search_numbers: no %s numbers in %s (404 from Twilio)",
+                number_type, country_code,
+            )
+            return []
         log.error("twilio.search_numbers failed: %s", exc.msg)
         raise ValueError(f"Twilio error: {exc.msg}") from exc
+    except Exception as exc:
+        log.exception("twilio.search_numbers unexpected error: %s", exc)
+        raise RuntimeError(f"Phone number search failed: {exc}") from exc
 
 
 async def buy_phone_number(

@@ -1,9 +1,9 @@
 """Telegram session provisioning status enum."""
 
-from enum import StrEnum
+from enum import Enum
 
 
-class TelegramSessionStatus(StrEnum):
+class TelegramSessionStatus(str, Enum):
     """Status of a Telegram session during the auto-provisioning lifecycle.
 
     Stored in ``provisioned_number.telegram_session_status``.
