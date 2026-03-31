@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useMemo, useState } from "react";
 import styles from "./Confirmation.module.css";
 import BackgroundGradient from "@/ui/templates/BackgroundGradient";
 import CenteredLayout from "@/ui/templates/CenteredLayout";
-import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Endpoints } from "@/api/urls";
 import { AuthContext } from "@/context/AuthContext";
@@ -100,7 +99,6 @@ const Confirmation: React.FC<ConfirmationProps> = () => {
       <OnBoardingTopNav />
       <CenteredLayout>
         <div className={styles.container}>
-          <TeaseMeLogo size="xlarge" />
           <div className={styles["title"]}>Verify Your Email</div>
           <p className={styles.description}>
             We've sent a verification email to: <strong>{email}</strong>.<br />

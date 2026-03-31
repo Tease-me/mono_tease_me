@@ -93,6 +93,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         ]);
 
         if (cancelled) return;
+        const isAdultMode = true;
         setData((d) => ({
           ...d,
           id: initial.id,
@@ -107,17 +108,25 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           subscriptionStatus: sub?.status ?? d.subscriptionStatus,
           is18: sub?.is_18_selected ?? d.is18,
           expiresAt: sub?.current_period_end ?? d.expiresAt,
-          voiceMinutes:
-            u?.normal?.live_chat != null
+          voiceMinutes: isAdultMode
+            ? (u?.free_allowances?.adult?.voice_free_left_minutes ?? 0) + (u?.adult?.voice?.remaining_minutes ?? d.voiceMinutes ?? 0)
+            : u?.normal?.live_chat != null
               ? (u?.free_allowances?.normal?.live_chat_free_left_minutes ?? 0) + (u.normal.live_chat.remaining_minutes ?? 0)
               : d.voiceMinutes,
-          msgRemaining:
-            u?.normal?.messages != null
+          msgRemaining: isAdultMode
+            ? (u?.free_allowances?.adult?.text_free_left ?? 0) + (u?.adult?.messages?.remaining ?? d.msgRemaining ?? 0)
+            : u?.normal?.messages != null
               ? (u?.free_allowances?.normal?.text_free_left ?? 0) + (u.normal.messages.remaining ?? 0)
               : d.msgRemaining,
-          lastCallMinutes: u?.normal?.live_chat?.last_call_minutes ?? d.lastCallMinutes,
-          lastCallSeconds: u?.normal?.live_chat?.last_call_seconds ?? d.lastCallSeconds,
-          lastCallUnitPriceCents: u?.normal?.live_chat?.unit_price_cents ?? d.lastCallUnitPriceCents,
+          lastCallMinutes: isAdultMode
+            ? (u?.adult?.voice?.last_call_minutes ?? d.lastCallMinutes)
+            : (u?.normal?.live_chat?.last_call_minutes ?? d.lastCallMinutes),
+          lastCallSeconds: isAdultMode
+            ? (u?.adult?.voice?.last_call_seconds ?? d.lastCallSeconds)
+            : (u?.normal?.live_chat?.last_call_seconds ?? d.lastCallSeconds),
+          lastCallUnitPriceCents: isAdultMode
+            ? (u?.adult?.voice?.unit_price_cents ?? d.lastCallUnitPriceCents)
+            : (u?.normal?.live_chat?.unit_price_cents ?? d.lastCallUnitPriceCents),
           latestAdultCallSummary: u?.latest_adult_call_summary ?? null,
         }));
       } finally {
@@ -128,6 +137,50 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
     return () => {
       cancelled = true;
     };
+  }, [initial.id]);
+
+  // ── Live refresh: re-fetch usage when a call is billed ────
+  useEffect(() => {
+    if (!initial.id) return;
+    const handler = async (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.type !== "call_billed") return;
+
+      try {
+        const u = await userServices.getUserUsage(initial.id).catch(() => null);
+        if (!u) return;
+        setData((d) => {
+          const isAdultMode = d.is18 === true;
+          return {
+            ...d,
+            balance: detail.balance_cents != null ? detail.balance_cents / 100 : d.balance,
+            voiceMinutes: isAdultMode
+              ? (u.free_allowances?.adult?.voice_free_left_minutes ?? 0) + (u.adult?.voice?.remaining_minutes ?? 0)
+              : u.normal?.live_chat != null
+                ? (u.free_allowances?.normal?.live_chat_free_left_minutes ?? 0) + (u.normal.live_chat.remaining_minutes ?? 0)
+                : d.voiceMinutes,
+            msgRemaining: isAdultMode
+              ? (u.free_allowances?.adult?.text_free_left ?? 0) + (u.adult?.messages?.remaining ?? 0)
+              : u.normal?.messages != null
+                ? (u.free_allowances?.normal?.text_free_left ?? 0) + (u.normal.messages.remaining ?? 0)
+                : d.msgRemaining,
+            lastCallMinutes: isAdultMode
+              ? (u.adult?.voice?.last_call_minutes ?? d.lastCallMinutes)
+              : (u.normal?.live_chat?.last_call_minutes ?? d.lastCallMinutes),
+            lastCallSeconds: isAdultMode
+              ? (u.adult?.voice?.last_call_seconds ?? d.lastCallSeconds)
+              : (u.normal?.live_chat?.last_call_seconds ?? d.lastCallSeconds),
+            lastCallUnitPriceCents: isAdultMode
+              ? (u.adult?.voice?.unit_price_cents ?? d.lastCallUnitPriceCents)
+              : (u.normal?.live_chat?.unit_price_cents ?? d.lastCallUnitPriceCents),
+            latestAdultCallSummary: u.latest_adult_call_summary ?? d.latestAdultCallSummary,
+          };
+        });
+      } catch { /* silent — stale data is acceptable as fallback */ }
+    };
+
+    window.addEventListener("ws:notification", handler);
+    return () => window.removeEventListener("ws:notification", handler);
   }, [initial.id]);
 
   const isSubscribed =

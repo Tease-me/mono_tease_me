@@ -6,7 +6,7 @@ import DateInput from "@/ui/components/inputs/text-inputs/DateInput";
 import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 import SvgPack from "@/utils/SvgPack";
 import styles from "./UpdateProfileStepForm.module.css";
-import { useRef } from "react";
+import { Suspense, useRef } from "react";
 import ValidationPill from "@/ui/components/inputs/buttons/ValidationPill";
 
 type ProfileValues = {
@@ -82,7 +82,7 @@ export default function UpdateProfileStepForm({
             <h2 className={styles["section-title"]}>Are you male or female?</h2>
             <div className={styles["gender-buttons"]}>
               <IconButton
-                leftIcon={<SvgPack.Male />}
+                leftIcon={<Suspense fallback={null}><SvgPack.Male /></Suspense>}
                 orientation="vertical"
                 text="Male"
                 type="square"
@@ -90,7 +90,7 @@ export default function UpdateProfileStepForm({
                 onClick={() => onGenderSelect("male")}
               />
               <IconButton
-                leftIcon={<SvgPack.Female />}
+                leftIcon={<Suspense fallback={null}><SvgPack.Female /></Suspense>}
                 orientation="vertical"
                 text="Female"
                 type="square"

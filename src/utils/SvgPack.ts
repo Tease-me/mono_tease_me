@@ -28,6 +28,8 @@ export default {
     Speaker: lazy(() => import("@/assets/svg/Speaker.svg?react")),
     Message: lazy(() => import("@/assets/svg/Message.svg?react")),
     Lock: lazy(() => import("@/assets/svg/Lock.svg?react")),
+    Eye: lazy(() => import("@/assets/svg/Eye.svg?react")),
+    EyeOff: lazy(() => import("@/assets/svg/EyeOff.svg?react")),
     Voice: lazy(() => import("@/assets/svg/Voice.svg?react")),
     Muted: lazy(() => import("@/assets/svg/Muted.svg?react")),
     Call: lazy(() => import("@/assets/svg/Call.svg?react")),

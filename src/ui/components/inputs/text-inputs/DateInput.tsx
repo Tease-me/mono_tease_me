@@ -1,4 +1,4 @@
-import React, { forwardRef, useMemo } from "react";
+import React, { forwardRef, Suspense, useMemo } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import TextInput from "./TextInput";
@@ -78,7 +78,7 @@ const DateTextInput = forwardRef<
       placeholder={placeholder}
       onClick={onClick}
       onBlur={onBlur}
-      rightIcon={<SvgPack.IconCalendar />}
+      rightIcon={<Suspense fallback={null}><SvgPack.IconCalendar /></Suspense>}
       disabled={disabled}
       readOnly={readOnly}
       className={styles["input"]}
@@ -129,7 +129,10 @@ export default function DateInput({
         dateFormat="dd/MM/yyyy"
         showYearDropdown
         showMonthDropdown
-        dropdownMode="select"
+        dropdownMode="scroll"
+        scrollableYearDropdown
+        yearDropdownItemNumber={100}
+        fixedHeight
         minDate={minDate}
         maxDate={maxDate}
         disabled={disabled}
