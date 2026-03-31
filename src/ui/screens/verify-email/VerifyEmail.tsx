@@ -4,7 +4,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { apiClient } from '@/api/apis';
 import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 import CenteredLayout from '@/ui/templates/CenteredLayout';
-import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import { Endpoints } from '@/api/urls';
 import { Paths } from '@/routes/path';
@@ -84,7 +83,6 @@ const VerifyEmail: React.FC = () => {
         <BackgroundGradient>
             <CenteredLayout>
                 <div className={styles.container}>
-                    <TeaseMeLogo size='xlarge' />
                     <h1 className={styles.title}>Verify Email</h1>
                     <p className={styles.description}>
                         {status}
