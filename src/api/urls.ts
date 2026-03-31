@@ -27,6 +27,8 @@ export const Endpoints = {
     topUp: "/billing/topup",
     createCheckout: "/billing/create-checkout",
     verifyCheckout: "/billing/verify-checkout",
+    adultCharacterSummary: (influencerId: string) =>
+      `/billing/${encodeURIComponent(influencerId)}/adult-character-summary`,
   },
   armloop: {
     createSession: "/checkout/armloop/session",
