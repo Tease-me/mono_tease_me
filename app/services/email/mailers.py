@@ -20,7 +20,7 @@ from app.services.gateways.email_gateway import send_email_via_ses
 
 log = logging.getLogger(__name__)
 
-CONFIRM_BASE_URL = settings.SES_SERVER
+CONFIRM_BASE_URL = settings.FRONTEND_URL
 
 
 async def send_verification_email(
@@ -113,9 +113,7 @@ async def send_verification_email(
 
 def send_profile_survey_email(to_email: str, token: str, temp_password: str):
     subject = "Complete Your TeaseMe Profile Survey"
-    survey_url = (
-        f"{CONFIRM_BASE_URL}/profile-survey-form?token={token}&temp_password={temp_password}"
-    )
+    survey_url = f"{CONFIRM_BASE_URL}/profile-survey-form?token={token}&temp_password={temp_password}"
     logo_url = EMAIL_VERIFY_HEADER_URL
 
     body_html = f"""
@@ -335,15 +333,19 @@ def send_new_influencer_email(
     </body>
     </html>
     """
-    body_text = f"""
+    body_text = (
+        f"""
 Your TeaseMe profile is live 🎉
 
 Open your profile:
 {public_url}
-""" + (f"\nReferral link:\n{referral_url}\n" if referral_url else "") + f"""
+"""
+        + (f"\nReferral link:\n{referral_url}\n" if referral_url else "")
+        + f"""
 
 © {datetime.now().year} TeaseMe. All rights reserved.
 """.strip()
+    )
     return send_email_via_ses(to_email, subject, body_html, body_text)
 
 
@@ -492,7 +494,7 @@ def send_influencer_survey_completed_email_to_promoter(
               <p style="font-size:14px;color:#666;margin:0 0 16px 0;">
                 Profile link: <a href="{public_url}" style="color:#FF5C74;text-decoration:none;">{public_url}</a>
               </p>
-              {f'<p style="font-size:14px;color:#666;margin:0 0 16px 0;">Influencer email: {influencer_email}</p>' if influencer_email else ''}
+              {f'<p style="font-size:14px;color:#666;margin:0 0 16px 0;">Influencer email: {influencer_email}</p>' if influencer_email else ""}
               <p style="margin:22px 0 0 0; font-size:12px; color:#999;">
                 This is an automated message from TeaseMe.
               </p>
