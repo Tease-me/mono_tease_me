@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { apiClient } from "@/api/apis";
 import {
+  AdminInfluencerEmailHeaderResponse,
   AdminInfluencerLandingAssetsPayload,
   AdminInfluencerLandingAssetsResponse,
   AdminServices,
@@ -45,6 +46,7 @@ type LandingGroupConfig = {
 
 const TOP_LEVEL_PROFILE = "profile";
 const TOP_LEVEL_LANDING = "landing";
+const TOP_LEVEL_EMAIL = "email";
 const TOP_LEVEL_TELEGRAM = "telegram";
 
 const LANDING_GROUPS: LandingGroupConfig[] = [
@@ -286,6 +288,8 @@ const LANDING_UPLOAD_FIELDS = LANDING_GROUPS.flatMap((group) =>
 const getErrorMessage = (error: any, fallback: string) =>
   error?.response?.data?.detail || error?.message || fallback;
 
+const JPG_ACCEPT = ".jpg,.jpeg,image/jpeg";
+
 const formatDate = (value?: string | null) => {
   if (!value) return "Never";
   try {
@@ -316,6 +320,16 @@ const countReadyLandingGroupFiles = (
 const hasPendingLandingFiles = (
   payload?: AdminInfluencerLandingAssetsPayload
 ) => countPendingLandingFiles(payload) > 0;
+
+const isValidJpegFile = (file: File) => {
+  const normalizedName = file.name.toLowerCase();
+  const validExtension =
+    normalizedName.endsWith(".jpg") || normalizedName.endsWith(".jpeg");
+  const validType =
+    file.type === "" || file.type === "image/jpeg" || file.type === "image/jpg";
+
+  return file.size > 0 && validExtension && validType;
+};
 
 const AdminInfluencerAssets: React.FC = () => {
   const [influencers, setInfluencers] = useState<InfluencerResponse[]>([]);
@@ -351,6 +365,15 @@ const AdminInfluencerAssets: React.FC = () => {
   const [profileVideoReplaceMode, setProfileVideoReplaceMode] = useState(false);
   const [uploadingProfileMedia, setUploadingProfileMedia] = useState(false);
   const [profileMediaError, setProfileMediaError] = useState<string | null>(null);
+
+  const [emailHeader, setEmailHeader] =
+    useState<AdminInfluencerEmailHeaderResponse | null>(null);
+  const [loadingEmailHeader, setLoadingEmailHeader] = useState(false);
+  const [emailHeaderError, setEmailHeaderError] = useState<string | null>(null);
+  const [pendingEmailHeader, setPendingEmailHeader] = useState<File | null>(null);
+  const [emailHeaderValidationError, setEmailHeaderValidationError] = useState<string | null>(null);
+  const [emailHeaderReplaceMode, setEmailHeaderReplaceMode] = useState(false);
+  const [uploadingEmailHeader, setUploadingEmailHeader] = useState(false);
 
   const [telegramMedia, setTelegramMedia] =
     useState<AdminTelegramWelcomeMediaResponse | null>(null);
@@ -398,10 +421,15 @@ const AdminInfluencerAssets: React.FC = () => {
   useEffect(() => {
     if (!selectedInfluencerId) {
       setLandingAssets(null);
+      setEmailHeader(null);
       setTelegramMedia(null);
       setTelegramMediaMissing(false);
       setPendingLandingUploads({});
       setLandingReplaceMode({});
+      setPendingEmailHeader(null);
+      setEmailHeaderValidationError(null);
+      setEmailHeaderError(null);
+      setEmailHeaderReplaceMode(false);
       setPendingTelegramAudio(null);
       setPendingTelegramVideo(null);
       setTelegramAudioReplaceMode(false);
@@ -433,6 +461,26 @@ const AdminInfluencerAssets: React.FC = () => {
       .finally(() => {
         if (!active) return;
         setLoadingLandingAssets(false);
+      });
+
+    setLoadingEmailHeader(true);
+    setEmailHeaderError(null);
+    admin
+      .getInfluencerEmailHeader(selectedInfluencerId)
+      .then((data) => {
+        if (!active) return;
+        setEmailHeader(data);
+      })
+      .catch((e) => {
+        if (!active) return;
+        setEmailHeader(null);
+        setEmailHeaderError(
+          getErrorMessage(e, "Failed to load verification email header.")
+        );
+      })
+      .finally(() => {
+        if (!active) return;
+        setLoadingEmailHeader(false);
       });
 
     setLoadingTelegramMedia(true);
@@ -486,13 +534,17 @@ const AdminInfluencerAssets: React.FC = () => {
     setOpenTopLevelGroup(TOP_LEVEL_PROFILE);
     setProfileMedia({
       photoUrl: selectedInfluencer?.photo_url ?? null,
-      videoUrl: selectedInfluencer?.video_url ?? null,
+    videoUrl: selectedInfluencer?.video_url ?? null,
     });
     setPendingProfilePhoto(null);
     setPendingProfileVideo(null);
     setProfilePhotoReplaceMode(false);
     setProfileVideoReplaceMode(false);
     setProfileMediaError(null);
+    setPendingEmailHeader(null);
+    setEmailHeaderValidationError(null);
+    setEmailHeaderError(null);
+    setEmailHeaderReplaceMode(false);
   }, [selectedInfluencerId, selectedInfluencer?.photo_url, selectedInfluencer?.video_url]);
 
   const landingStagedCount = countPendingLandingFiles(pendingLandingUploads);
@@ -500,6 +552,8 @@ const AdminInfluencerAssets: React.FC = () => {
     Number(Boolean(pendingProfilePhoto)) + Number(Boolean(pendingProfileVideo));
   const profileReadyCount =
     Number(Boolean(profileMedia.photoUrl)) + Number(Boolean(profileMedia.videoUrl));
+  const emailHeaderReadyCount = Number(Boolean(emailHeader?.has_verification_email_header));
+  const emailHeaderStagedCount = Number(Boolean(pendingEmailHeader));
   const telegramStagedCount =
     Number(Boolean(pendingTelegramAudio)) + Number(Boolean(pendingTelegramVideo));
   const telegramReadyCount =
@@ -627,6 +681,56 @@ const AdminInfluencerAssets: React.FC = () => {
     }
   };
 
+  const handleEmailHeaderFileChange = (file: File | null) => {
+    setPageMessage(null);
+    setEmailHeaderError(null);
+
+    if (!file) {
+      setPendingEmailHeader(null);
+      setEmailHeaderValidationError(null);
+      return;
+    }
+
+    if (!isValidJpegFile(file)) {
+      setPendingEmailHeader(null);
+      setEmailHeaderValidationError("Only non-empty JPG or JPEG files are allowed.");
+      return;
+    }
+
+    setPendingEmailHeader(file);
+    setEmailHeaderValidationError(null);
+    setEmailHeaderReplaceMode(true);
+  };
+
+  const handleUploadEmailHeader = async () => {
+    if (!selectedInfluencerId) return;
+    if (!pendingEmailHeader) {
+      setEmailHeaderValidationError("Select a JPG or JPEG file before uploading.");
+      return;
+    }
+
+    setUploadingEmailHeader(true);
+    setEmailHeaderError(null);
+    setPageMessage(null);
+    try {
+      const updated = await admin.uploadInfluencerEmailHeader(
+        selectedInfluencerId,
+        pendingEmailHeader
+      );
+      setEmailHeader(updated);
+      setPendingEmailHeader(null);
+      setEmailHeaderValidationError(null);
+      setEmailHeaderReplaceMode(false);
+      setPageMessage("Verification email header updated.");
+    } catch (e: any) {
+      setEmailHeaderError(
+        getErrorMessage(e, "Verification email header upload failed.")
+      );
+    } finally {
+      setUploadingEmailHeader(false);
+    }
+  };
+
   const openLandingReplaceMode = (
     field: keyof AdminInfluencerLandingAssetsPayload
   ) => {
@@ -672,6 +776,12 @@ const AdminInfluencerAssets: React.FC = () => {
     setProfileVideoReplaceMode(!hasPreview);
   };
 
+  const closeEmailHeaderReplaceMode = (hasPreview: boolean) => {
+    setPendingEmailHeader(null);
+    setEmailHeaderValidationError(null);
+    setEmailHeaderReplaceMode(!hasPreview);
+  };
+
   const toggleTopLevelGroup = (key: string) => {
     setOpenTopLevelGroup((current) => (current === key ? null : key));
   };
@@ -679,7 +789,7 @@ const AdminInfluencerAssets: React.FC = () => {
   return (
     <AdminLayout
       title="Influencer Assets Manager"
-      subtitle="Manage profile media, landing page assets, and Telegram welcome media for each influencer."
+      subtitle="Manage profile media, landing page assets, verification email headers, and Telegram welcome media for each influencer."
     >
       <div className={styles["page"]}>
         <AdminTwoColumn
@@ -689,7 +799,7 @@ const AdminInfluencerAssets: React.FC = () => {
                 <div>
                   <h2 className={styles["sidebar-title"]}>Influencer Assets</h2>
                   <p className={styles["sidebar-subtitle"]}>
-                    Select an influencer to manage profile, landing, and Telegram assets.
+                    Select an influencer to manage profile, landing, email, and Telegram assets.
                   </p>
                 </div>
                 <div className={styles["sidebar-meta"]}>
@@ -1350,6 +1460,132 @@ const AdminInfluencerAssets: React.FC = () => {
                               </button>
                             </div>
                           </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+
+                  <div className={styles["section-card"]}>
+                    <button
+                      type="button"
+                      className={styles["accordion-trigger"]}
+                      onClick={() => toggleTopLevelGroup(TOP_LEVEL_EMAIL)}
+                    >
+                      <div className={styles["group-header"]}>
+                        <div>
+                          <h3>Email</h3>
+                          <p>Verification email header used first for this influencer.</p>
+                        </div>
+                        <div className={styles["accordion-summary"]}>
+                          <span className={styles["accordion-copy"]}>
+                            {`${emailHeaderReadyCount}/1 ready`}
+                            {emailHeaderStagedCount > 0 ? ` · ${emailHeaderStagedCount} staged` : ""}
+                          </span>
+                          <span
+                            className={`${styles["accordion-chevron"]} ${openTopLevelGroup === TOP_LEVEL_EMAIL ? styles["accordion-chevron--open"] : ""}`}
+                          >
+                            ▼
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+
+                    {openTopLevelGroup === TOP_LEVEL_EMAIL && (
+                      <>
+                        <div className={styles["section-header"]}>
+                          <div>
+                            <h3>Verification Email Header</h3>
+                            <p>Upload the JPG header used by this influencer’s verification emails.</p>
+                          </div>
+                        </div>
+
+                        {emailHeaderError && (
+                          <div className={`${styles["message"]} ${styles["message--error"]}`}>
+                            {emailHeaderError}
+                          </div>
+                        )}
+
+                        {loadingEmailHeader ? (
+                          <div className={styles["empty-state"]}>Loading verification email header…</div>
+                        ) : (
+                          <>
+                            <div className={styles["slot-card"]}>
+                              {emailHeader?.verification_email_header_url &&
+                              !emailHeaderReplaceMode &&
+                              !pendingEmailHeader ? (
+                                <AssetPreview
+                                  label="Verification Email Header"
+                                  url={emailHeader.verification_email_header_url}
+                                  type="image"
+                                  frame="landscape"
+                                  emptyLabel=""
+                                  action={
+                                    <button
+                                      type="button"
+                                      className={styles["slot-toggle"]}
+                                      onClick={() => setEmailHeaderReplaceMode(true)}
+                                      disabled={uploadingEmailHeader}
+                                      aria-label="Replace verification email header"
+                                    >
+                                      <span className={styles["slot-toggle-x"]}>×</span>
+                                    </button>
+                                  }
+                                />
+                              ) : (
+                                <>
+                                  <div className={styles["replace-header"]}>
+                                    <div className={styles["asset-label"]}>
+                                      {emailHeader?.verification_email_header_url
+                                        ? "Replace Verification Email Header"
+                                        : "Verification Email Header"}
+                                    </div>
+                                    {emailHeader?.verification_email_header_url && (
+                                      <button
+                                        type="button"
+                                        className={styles["replace-cancel"]}
+                                        onClick={() =>
+                                          closeEmailHeaderReplaceMode(
+                                            Boolean(emailHeader?.verification_email_header_url)
+                                          )
+                                        }
+                                        disabled={uploadingEmailHeader}
+                                      >
+                                        Cancel
+                                      </button>
+                                    )}
+                                  </div>
+                                  <FileDropzone
+                                    title="Upload Verification Email Header"
+                                    description="Drag and drop a JPG here, or browse to stage a replacement."
+                                    accept={JPG_ACCEPT}
+                                    file={pendingEmailHeader}
+                                    onFileChange={handleEmailHeaderFileChange}
+                                    onFileRemove={() => handleEmailHeaderFileChange(null)}
+                                    browseLabel="Browse"
+                                    disabled={uploadingEmailHeader}
+                                    metaText="Accepted: .jpg, .jpeg, image/jpeg"
+                                    error={emailHeaderValidationError}
+                                  />
+                                </>
+                              )}
+                            </div>
+
+                            <div className={styles["action-row"]}>
+                              <div className={styles["action-copy"]}>
+                                {pendingEmailHeader
+                                  ? `Staged ${pendingEmailHeader.name}. Uploading will replace the current verification email header.`
+                                  : "Stage a JPG or JPEG file to replace the current verification email header."}
+                              </div>
+                              <button
+                                type="button"
+                                className={styles["primary"]}
+                                onClick={handleUploadEmailHeader}
+                                disabled={uploadingEmailHeader || !pendingEmailHeader}
+                              >
+                                {uploadingEmailHeader ? "Uploading..." : "Upload email header"}
+                              </button>
+                            </div>
+                          </>
                         )}
                       </>
                     )}
