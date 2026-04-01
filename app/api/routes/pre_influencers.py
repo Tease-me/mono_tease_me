@@ -44,17 +44,17 @@ from app.services.firstpromoter import (
     fp_get_promoter_v2,
     fp_track_signup,
 )
+from app.services.email.mailers import (
+    send_influencer_survey_completed_email_to_promoter,
+    send_new_influencer_email_with_picture,
+    send_profile_survey_email,
+)
 from app.services.use_cases.pre_influencer_survey_prompt import (
     format_survey_markdown,
     generate_prompt_from_markdown,
     load_survey_questions,
 )
 from app.utils.auth.dependencies import get_current_pre_influencer, get_current_user
-from app.utils.messaging.email import (
-    send_influencer_survey_completed_email_to_promoter,
-    send_new_influencer_email_with_picture,
-    send_profile_survey_email,
-)
 from app.utils.storage.s3 import (
     delete_file_from_s3,
     generate_presigned_url,

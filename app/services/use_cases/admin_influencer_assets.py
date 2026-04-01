@@ -11,6 +11,13 @@ from fastapi import HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.data.models import Influencer
+from app.services.repositories.influencer_email_assets_repository import (
+    get_influencer_email_header_entry,
+    get_influencer_email_header_key as get_verification_email_header_key,
+    get_influencer_email_header_public_url,
+    upload_influencer_email_header,
+    VERIFICATION_EMAIL_HEADER_SLOT,
+)
 from app.services.repositories.influencer_landing_assets_repository import (
     LANDING_IMAGE_SLOTS,
     LANDING_VIDEO_SLOTS,
@@ -32,6 +39,7 @@ LANDING_ALL_SLOTS = tuple(LANDING_IMAGE_SLOTS) + tuple(LANDING_VIDEO_SLOTS)
 TELEGRAM_ALL_SLOTS = (TELEGRAM_AUDIO_SLOT, TELEGRAM_VIDEO_SLOT)
 _AUDIO_EXTENSIONS = {"mp3", "wav", "webm", "ogg", "aac", "m4a"}
 _VIDEO_EXTENSIONS = {"mp4", "webm", "mov", "avi", "mpeg", "mpg", "m4v"}
+_JPEG_EXTENSIONS = {"jpg", "jpeg"}
 
 
 def _utcnow_iso() -> str:
@@ -92,6 +100,18 @@ def _is_video_upload(media: UploadFile) -> bool:
         return False
     extension = filename.rsplit(".", 1)[-1].lower()
     return extension in _VIDEO_EXTENSIONS
+
+
+def _is_jpeg_upload(media: UploadFile) -> bool:
+    content_type = (media.content_type or "").split(";", 1)[0].strip().lower()
+    if content_type:
+        return content_type == "image/jpeg"
+
+    filename = media.filename or ""
+    if "." not in filename:
+        return False
+    extension = filename.rsplit(".", 1)[-1].lower()
+    return extension in _JPEG_EXTENSIONS
 
 
 async def build_admin_landing_assets_out(influencer: Influencer) -> dict[str, Any]:
@@ -181,6 +201,29 @@ async def build_admin_landing_assets_out(influencer: Influencer) -> dict[str, An
             ),
             default=None,
         ),
+    }
+
+
+async def build_admin_influencer_email_header_out(influencer: Influencer) -> dict[str, Any]:
+    entry = get_influencer_email_header_entry(influencer.assets_json)
+    s3_key = entry.get("s3_key") if entry else None
+    if not isinstance(s3_key, str) or not s3_key:
+        return {
+            "influencer_id": influencer.id,
+            "verification_email_header_key": None,
+            "verification_email_header_url": None,
+            "content_type": None,
+            "has_verification_email_header": False,
+            "updated_at": None,
+        }
+
+    return {
+        "influencer_id": influencer.id,
+        "verification_email_header_key": s3_key,
+        "verification_email_header_url": get_influencer_email_header_public_url(s3_key),
+        "content_type": entry.get("content_type"),
+        "has_verification_email_header": True,
+        "updated_at": str(entry.get("updated_at")) if entry.get("updated_at") else None,
     }
 
 
@@ -457,3 +500,49 @@ async def upsert_admin_landing_assets(
     )
 
     return await build_admin_landing_assets_out(influencer)
+
+
+async def upsert_admin_influencer_email_header(
+    db: AsyncSession,
+    influencer: Influencer,
+    verification_email_header: UploadFile,
+) -> dict[str, Any]:
+    if not _is_jpeg_upload(verification_email_header):
+        raise HTTPException(
+            status_code=400,
+            detail="Verification email header must be a JPG or JPEG image",
+        )
+
+    file_bytes = await verification_email_header.read()
+    if not file_bytes:
+        raise HTTPException(status_code=400, detail="Empty verification email header file")
+
+    previous_key = get_verification_email_header_key(influencer.assets_json)
+    try:
+        s3_key, content_type = await upload_influencer_email_header(
+            io.BytesIO(file_bytes),
+            influencer.id,
+        )
+        assets_json = _clone_assets_json(influencer)
+        assets_json[VERIFICATION_EMAIL_HEADER_SLOT] = {
+            "s3_key": s3_key,
+            "content_type": content_type,
+            "updated_at": _utcnow_iso(),
+        }
+        influencer.assets_json = assets_json
+        db.add(influencer)
+        await db.commit()
+        await db.refresh(influencer)
+    except HTTPException:
+        await db.rollback()
+        raise
+    except Exception as exc:
+        await db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to save influencer verification email header",
+        ) from exc
+
+    # Fixed-key overwrite means there is nothing distinct to clean up.
+    _ = previous_key
+    return await build_admin_influencer_email_header_out(influencer)
