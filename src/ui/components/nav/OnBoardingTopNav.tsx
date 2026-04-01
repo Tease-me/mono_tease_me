@@ -17,7 +17,7 @@ const OnBoardingTopNav: React.FC<OnBoardingTopNavProps> = ({ onBackClicked }) =>
                 {onBackClicked && <BackArrowIcon onClick={onBackClicked} />}
             </div>
             <div className={styles["right-container"]}>
-                <TeaseMeLogo onClick={() => navigate(Paths.root)} variant='full-dark' />
+                <TeaseMeLogo onClick={() => navigate(Paths.root)} variant='icon-only-light' />
             </div>
         </div>
     );
