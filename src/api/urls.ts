@@ -154,15 +154,7 @@ export const Endpoints = {
     logFiles: `admin/logs/files`,
     logDownload: `admin/logs/download`,
     logStream: `admin/logs/stream`,
-    telegram: {
-      countries: `telegram/numbers/countries`,
-      searchNumbers: `telegram/numbers/search`,
-      provision: `telegram/numbers/provision`,
-      listProvisioned: `telegram/numbers`,
-      provisionedDetail: (id: number) => `telegram/numbers/${id}`,
-      retryProvision: (id: number) => `telegram/numbers/${id}/retry`,
-      releaseNumber: (id: number) => `telegram/numbers/${id}`,
-    },
+
   },
   subscriptions: {
     start: "/subscriptions/start",
