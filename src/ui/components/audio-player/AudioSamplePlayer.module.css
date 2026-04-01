@@ -15,21 +15,13 @@
 
 
 .nsfwLottie {
-  width: 24px;
-  height: 24px;
+  height: 14px;
   flex-shrink: 0;
-  overflow: hidden;
-  position: relative;
 }
 
 .nsfwLottie dotlottie-wc {
-  position: absolute;
-  width: 64px;
-  height: 64px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0.375);
-  transform-origin: center;
+  display: block;
+  height: 14px;
 }
 
 .nsfwLabel {
@@ -48,7 +40,7 @@
   border-left: 1px solid rgba(138, 31, 230, 0.50);
   background: #2C084D;
   color: #fff;
-  font-size: 13px;
+  font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.04em;
   pointer-events: none;

@@ -6,7 +6,7 @@ import PauseIcon from "@/assets/svg/Pause.svg?react";
 import hcAudioWave from "@/assets/svg/hcAudioWave.svg";
 import unlockLottieUrl from "@/assets/lottie/unlock.lottie?url";
 import flameLottieUrl from "@/assets/lottie/flame.lottie?url";
-import lottieFlameUrl from "@/assets/lottie/lottieFlame.lottie?url";
+import lottieFlameUrl from "@/assets/lottie/flame.lottie?url";
 import styles from "./AudioSamplePlayer.module.css";
 import clsx from "clsx";
 
