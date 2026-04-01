@@ -29,11 +29,11 @@ def test_upload_reset_password_header_uses_fixed_s3_key(monkeypatch) -> None:
     captured = {}
 
     class FakeS3Client:
-        def upload_fileobj(self, file_obj, bucket, key, ExtraArgs=None) -> None:
+        def upload_fileobj(self, file_obj, bucket, key, extra_args=None, **kwargs) -> None:
             captured["body"] = file_obj.read()
             captured["bucket"] = bucket
             captured["key"] = key
-            captured["extra_args"] = ExtraArgs
+            captured["extra_args"] = extra_args if extra_args is not None else kwargs.get("ExtraArgs")
 
     monkeypatch.setattr(email_asset_repo, "s3", FakeS3Client())
 

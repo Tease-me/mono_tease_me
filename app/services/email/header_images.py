@@ -145,11 +145,14 @@ def compose_email_header_image_url(
         )
 
         alpha_scaled = overlay_scaled.split()[-1]
-        hole_bbox_scaled = alpha_scaled.point(
-            lambda a: 255 if a < 10 else 0
-        ).getbbox()
+        hole_bbox_scaled = alpha_scaled.point(lambda a: 255 if a < 10 else 0).getbbox()
         if not hole_bbox_scaled:
-            hole_bbox_scaled = (60, 80, size[0] - 60, max(1, overlay_scaled.size[1] - 80))
+            hole_bbox_scaled = (
+                60,
+                80,
+                size[0] - 60,
+                max(1, overlay_scaled.size[1] - 80),
+            )
 
         target_h = size[1]
         scaled_h = overlay_scaled.size[1]
