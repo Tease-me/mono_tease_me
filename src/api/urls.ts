@@ -75,6 +75,7 @@ export const Endpoints = {
   },
   influencers: "/influencer",
   influencer: (id: string) => `/influencer/${id}`,
+  influencerProfile: (id: string) => `/influencer/${id}/profile`,
   influencerBio: (id: string) => `/influencer/${id}/bio`,
   influencerLandingAssets: (id: string) => `/influencer/${id}/landing-assets`,
   relationship_update: `influencer/relationship_update`,
@@ -100,6 +101,7 @@ export const Endpoints = {
     },
     influencerLandingAssets: (influencerId: string) =>
       `admin/influencer/${encodeURIComponent(influencerId)}/landing-assets`,
+    emailAssets: `admin/email-assets`,
     telegramWelcomeMedia: (influencerId: string) =>
       `admin/influencer/${encodeURIComponent(influencerId)}/telegram-welcome-media`,
     systemPrompts: {
@@ -153,15 +155,7 @@ export const Endpoints = {
     logFiles: `admin/logs/files`,
     logDownload: `admin/logs/download`,
     logStream: `admin/logs/stream`,
-    telegram: {
-      countries: `telegram/numbers/countries`,
-      searchNumbers: `telegram/numbers/search`,
-      provision: `telegram/numbers/provision`,
-      listProvisioned: `telegram/numbers`,
-      provisionedDetail: (id: number) => `telegram/numbers/${id}`,
-      retryProvision: (id: number) => `telegram/numbers/${id}/retry`,
-      releaseNumber: (id: number) => `telegram/numbers/${id}`,
-    },
+
   },
   subscriptions: {
     start: "/subscriptions/start",

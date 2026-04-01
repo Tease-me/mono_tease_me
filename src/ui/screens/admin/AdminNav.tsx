@@ -13,6 +13,7 @@ const NAV_ITEMS: NavItem[] = [
     { to: Paths.admin.characters, label: "Characters", icon: <SvgPack.StarHollow /> },
     { to: Paths.admin.influencerCharacter, label: "Influencer Character", icon: <SvgPack.Users /> },
     { to: Paths.admin.influencerAssets, label: "Influencer Assets", icon: <SvgPack.Users /> },
+    { to: Paths.admin.emailAssets, label: "Email Assets", icon: <SvgPack.Bill /> },
     { to: Paths.admin.influencer, label: "Influencer Prompts", icon: <SvgPack.Users /> },
     { to: Paths.admin.preInfluencers, label: "Pre-Influencers", icon: <SvgPack.StarHollow /> },
     { to: Paths.admin.knowledge, label: "Knowledge", icon: <SvgPack.InfoCircle /> },
