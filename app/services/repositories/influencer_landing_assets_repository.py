@@ -9,6 +9,14 @@ import pillow_heif
 from PIL import Image, UnidentifiedImageError
 
 from app.core.config import settings
+from app.services.asset_cache_service import (
+    get_cached_presence,
+    get_cached_presigned_url,
+    invalidate_presence,
+    invalidate_presigned_url,
+    set_cached_presence,
+    set_cached_presigned_url,
+)
 from app.services.gateways import s3_gateway
 
 LANDING_IMAGE_SLOTS = {
@@ -38,6 +46,11 @@ TELEGRAM_VIDEO_SLOT = "telegram_welcome_video"
 LEGACY_TELEGRAM_MEDIA_SLOT = "telegram_welcome_media"
 TELEGRAM_AUDIO_PREFIX = "telegram/welcome-audio"
 TELEGRAM_VIDEO_PREFIX = "telegram/welcome-video"
+_PRESENCE_SLOTS = tuple(LANDING_IMAGE_SLOTS) + tuple(LANDING_VIDEO_SLOTS) + (
+    TELEGRAM_AUDIO_SLOT,
+    TELEGRAM_VIDEO_SLOT,
+    LEGACY_TELEGRAM_MEDIA_SLOT,
+)
 
 _CONTENT_TYPE_TO_EXTENSION = {
     "audio/mpeg": "mp3",
@@ -58,6 +71,14 @@ _CONTENT_TYPE_TO_EXTENSION = {
 
 def _asset_prefix(influencer_id: str) -> str:
     return f"{settings.INFLUENCER_BUCKET_PREFIX}/{influencer_id}"
+
+
+def _has_s3_key(entry: object) -> bool:
+    return bool(
+        isinstance(entry, Mapping)
+        and isinstance(entry.get("s3_key"), str)
+        and entry.get("s3_key")
+    )
 
 
 def _is_heic(filename: str | None, content_type: str | None) -> bool:
@@ -291,6 +312,42 @@ def get_presigned_url(key: str) -> str:
         key=key,
         expires=settings.S3_PRESIGNED_URL_TTL_SECONDS,
     )
+
+
+async def get_cached_presigned_url_for_key(key: str) -> str:
+    cached = await get_cached_presigned_url(key)
+    if cached:
+        return cached
+
+    url = get_presigned_url(key)
+    await set_cached_presigned_url(key, url)
+    return url
+
+
+async def get_landing_asset_presence(
+    influencer_id: str,
+    assets_json: Mapping[str, object] | None,
+) -> dict[str, bool]:
+    cached = await get_cached_presence("landing_asset", influencer_id)
+    if cached is not None:
+        return {slot: bool(cached.get(slot)) for slot in _PRESENCE_SLOTS}
+
+    presence = {
+        slot: _has_s3_key(get_landing_asset_entry(assets_json, slot))
+        for slot in _PRESENCE_SLOTS
+    }
+    await set_cached_presence("landing_asset", influencer_id, presence)
+    return presence
+
+
+async def invalidate_landing_asset_cache(
+    influencer_id: str,
+    keys: list[str] | tuple[str, ...],
+) -> None:
+    await invalidate_presence("landing_asset", influencer_id)
+    for key in keys:
+        if key:
+            await invalidate_presigned_url(key)
 
 
 async def object_exists(key: str) -> bool:
