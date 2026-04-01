@@ -15,13 +15,15 @@
 
 
 .nsfwLottie {
-  height: 14px;
+  width: 28px;
+  height: 20px;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .nsfwLottie dotlottie-wc {
   display: block;
-  height: 14px;
+  height: 20px;
 }
 
 .nsfwLabel {
