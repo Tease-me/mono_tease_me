@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from "react";
-import { WS_BASE_URL, Endpoints } from "@/api/urls";
+import { WsEndpoints } from "@/api/urls";
 import logger from "@/utils/logger";
 
 export type LatestAdultCallSummary = {
@@ -62,9 +62,7 @@ export function useNotificationSocket(
   const connect = useCallback(
     (userEmail: string) => {
       clearReconnect();
-
-      const url = `${WS_BASE_URL}${Endpoints.ws.notifications}?email=${encodeURIComponent(userEmail)}`;
-      const ws = new WebSocket(url);
+      const ws = new WebSocket(WsEndpoints.notifications(userEmail));
       socketRef.current = ws;
 
       ws.onopen = () => {
