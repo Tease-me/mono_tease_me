@@ -3,26 +3,21 @@ from types import SimpleNamespace
 import pytest
 
 from app.services.email import header_images, mailers
-from app.utils.messaging import email as compat_email
 
 
-def test_compat_email_exports_match_new_modules():
-    assert callable(compat_email.send_verification_email)
-    assert callable(compat_email.send_profile_survey_email)
-    assert callable(compat_email.send_password_reset_email)
-    assert callable(compat_email.send_new_influencer_email)
-    assert callable(compat_email.send_new_influencer_email_with_picture)
-    assert callable(compat_email.send_influencer_survey_completed_email_to_promoter)
-    assert callable(compat_email.send_email_via_ses)
-    assert callable(compat_email.image_data_url)
-    assert callable(compat_email.compose_email_header_image_url)
-    assert compat_email.EMAIL_VERIFY_HEADER_URL == header_images.EMAIL_VERIFY_HEADER_URL
-    assert compat_email.EMAIL_RESET_HEADER_URL == header_images.EMAIL_RESET_HEADER_URL
-    assert (
-        compat_email.EMAIL_INFLUENCER_HEADER_BG_URL
-        == header_images.EMAIL_INFLUENCER_HEADER_BG_URL
-    )
-    assert compat_email.EMAIL_HEADER_SIZE == header_images.EMAIL_HEADER_SIZE
+def test_email_modules_export_expected_public_symbols():
+    assert callable(mailers.send_verification_email)
+    assert callable(mailers.send_profile_survey_email)
+    assert callable(mailers.send_password_reset_email)
+    assert callable(mailers.send_new_influencer_email)
+    assert callable(mailers.send_new_influencer_email_with_picture)
+    assert callable(mailers.send_influencer_survey_completed_email_to_promoter)
+    assert callable(header_images.image_data_url)
+    assert callable(header_images.compose_email_header_image_url)
+    assert isinstance(header_images.EMAIL_VERIFY_HEADER_URL, str)
+    assert isinstance(header_images.EMAIL_RESET_HEADER_URL, str)
+    assert isinstance(header_images.EMAIL_INFLUENCER_HEADER_BG_URL, str)
+    assert isinstance(header_images.EMAIL_HEADER_SIZE, tuple)
 
 
 def test_image_data_url_uses_presigned_url_helper(monkeypatch):
@@ -66,8 +61,36 @@ async def test_send_verification_email_uses_transport(monkeypatch):
     assert result == {"MessageId": "ses-1"}
     assert captured["to_email"] == "user@example.com"
     assert captured["subject"] == "Confirm your email on TeaseMe!"
+    assert header_images.EMAIL_VERIFY_HEADER_URL in captured["body_html"]
+    assert "Hi! Welcome to TeaseMe" in captured["body_html"]
+    assert "Confirm Email" in captured["body_html"]
     assert "/verify-email?token=verify-token" in captured["body_html"]
     assert "/verify-email?token=verify-token" in captured["body_text"]
+
+
+@pytest.mark.anyio
+async def test_send_verification_email_uses_dynamic_influencer_heading(monkeypatch):
+    captured = {}
+
+    def fake_send_email_via_ses(to_email, subject, body_html, body_text=None):
+        captured["to_email"] = to_email
+        captured["subject"] = subject
+        captured["body_html"] = body_html
+        captured["body_text"] = body_text
+        return {"MessageId": "ses-1b"}
+
+    monkeypatch.setattr(mailers, "send_email_via_ses", fake_send_email_via_ses)
+
+    result = await mailers.send_verification_email(
+        "user@example.com",
+        "verify-token",
+        influencer_id="juliana",
+        influencer_display_name="Juliana",
+    )
+
+    assert result == {"MessageId": "ses-1b"}
+    assert captured["subject"] == "Confirm your email on TeaseMe!"
+    assert "Hi! Welcome to your Juliana" in captured["body_html"]
 
 
 def test_send_password_reset_email_uses_transport(monkeypatch):

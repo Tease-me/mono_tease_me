@@ -28,6 +28,7 @@ async def send_verification_email(
     token: str,
     *,
     influencer_id: str | None = None,
+    influencer_display_name: str | None = None,
     influencer_profile_photo_key: Optional[str] = None,
 ):
     subject = "Confirm your email on TeaseMe!"
@@ -48,6 +49,10 @@ async def send_verification_email(
                 exc_info=True,
             )
 
+    heading_text = "Hi! Welcome to TeaseMe"
+    if influencer_display_name and influencer_display_name.strip():
+        heading_text = f"Hi! Welcome to your {influencer_display_name.strip()}"
+
     body_html = f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -55,40 +60,50 @@ async def send_verification_email(
     <meta charset="UTF-8">
     <title>Confirm your email</title>
 </head>
-<body style="background:#f7f8fc;padding:0;margin:0;font-family:Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f7f8fc;padding:40px 0;">
+<body style="margin:0;padding:0;background:#f1f1f5;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f1f1f5;padding:28px 0;">
     <tr>
       <td align="center">
-        <table width="520" cellpadding="0" cellspacing="0" border="0" style="background:#fff;border-radius:24px;box-shadow:0 10px 32px 0 rgba(50,50,93,0.10),0 2px 4px 0 rgba(0,0,0,0.07);overflow:hidden;">
+        <table width="560" cellpadding="0" cellspacing="0" border="0" style="width:560px;max-width:560px;background:#050505;border-radius:28px;overflow:hidden;box-shadow:0 18px 48px rgba(0,0,0,0.28);">
           <tr>
-            <td align="center" style="background:#23293b;padding:0;">
+            <td align="center" style="padding:0;background:#050505;">
               <img
                 src="{logo_url}"
                 alt="TeaseMe"
-                style="width:100%;max-width:520px;display:block;border-top-left-radius:24px;border-top-right-radius:24px;"
+                style="display:block;width:100%;max-width:560px;height:auto;border:0;outline:none;text-decoration:none;"
               />
             </td>
           </tr>
           <tr>
-            <td align="center" style="padding:32px 30px 8px 30px;">
-              <h2 style="font-family: 'Arial Rounded MT Bold', Arial, sans-serif; font-size:32px; font-weight:bold; margin:0 0 12px 0; color:#444;">Hi! Welcome to TeaseMe</h2>
-              <p style="font-size:16px;color:#666;margin:0 0 32px 0;">
-                You are almost done! Before we get started, please verify your email address to activate your account. It's quick and helps us keep your account safe.
+            <td align="center" style="padding:36px 42px 18px 42px;background:#050505;">
+              <h1 style="margin:0 0 18px 0;font-family:Arial,sans-serif;font-size:32px;line-height:1.2;font-weight:700;color:#ffffff;">
+                {heading_text}
+              </h1>
+              <p style="margin:0 0 34px 0;font-size:16px;line-height:1.55;color:#b8b8be;text-align:center;">
+                You are almost done! Before we get started, please verify your email<br/>
+                address to activate your account. It’s quick and helps us keep your account<br/>
+                safe.
               </p>
-              <a href="{confirm_url}"
-                style="background:#FF5C74;border-radius:8px;color:#fff;text-decoration:none;display:inline-block;padding:18px 50px;font-size:22px;font-weight:bold;box-shadow:0 6px 24px #ffb5c7;margin-bottom:20px;">
-                Confirm Email
-              </a>
-              <p style="margin:24px 0 0 0; font-size:14px; color:#bbb;">
+              <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 34px auto;">
+                <tr>
+                  <td align="center" bgcolor="#ff2f7d" style="border-radius:999px;box-shadow:0 10px 28px rgba(255,47,125,0.35);">
+                    <a
+                      href="{confirm_url}"
+                      style="display:inline-block;padding:18px 44px;font-size:20px;line-height:1;font-weight:700;font-family:Arial,sans-serif;color:#ffffff;text-decoration:none;border-radius:999px;background:#ff2f7d;"
+                    >
+                      Confirm Email
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:0 0 88px 0;font-size:15px;line-height:1.6;color:#a2a2aa;text-align:center;">
                 This link will expire in 24 hours.<br/>
                 If you didn't sign up for TeaseMe, please ignore this message.<br/>
                 Can't wait to talk to you!
               </p>
-            </td>
-          </tr>
-          <tr>
-            <td align="center" style="padding:20px 0 12px 0;background:#e5e5e5;color:#bbb;font-size:14px;border-bottom-left-radius:24px;border-bottom-right-radius:24px;">
-              © {datetime.now().year} TeaseMe. All rights reserved.
+              <p style="margin:0;font-size:14px;line-height:1.4;color:#76767d;text-align:center;">
+                © {datetime.now().year} TeaseMe. All rights reserved
+              </p>
             </td>
           </tr>
         </table>

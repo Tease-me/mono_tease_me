@@ -13,8 +13,11 @@ from app.core.session import get_db
 from app.data.models import User
 from app.data.schemas.auth import RegisterRequest, LoginRequest, Token, PasswordResetRequest
 from app.core.config import settings
+from app.services.email.mailers import (
+    send_password_reset_email,
+    send_verification_email,
+)
 from app.utils.auth.dependencies import get_current_user
-from app.utils.messaging.email import send_verification_email, send_password_reset_email
 from app.utils.auth.tokens import create_token
 from app.api.routes.notify_ws import notify_email_verified
 from app.services.firstpromoter import fp_track_signup
@@ -192,6 +195,7 @@ async def register(
             user.email,
             verify_token,
             influencer_id=data.influencer_id,
+            influencer_display_name=getattr(influencer, "display_name", None),
             influencer_profile_photo_key=getattr(influencer, "profile_photo_key", None),
         )
     except Exception:
