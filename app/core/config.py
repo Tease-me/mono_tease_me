@@ -2,13 +2,14 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+
 class Settings(BaseSettings):
     DB_URL: str
     OPENAI_API_KEY: str
     XAI_API_KEY: str
     QWEN_API_KEY: str | None = None
     QWEN_BASE_URL: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-    REDIS_URL: str 
+    REDIS_URL: str
     MAX_HISTORY_WINDOW: int
     SCORE_TTL: int
     HISTORY_TTL: int
@@ -32,14 +33,13 @@ class Settings(BaseSettings):
     ELEVENLABS_AGENT_BRANCH_ID: str | None = None
     ELEVENLABS_VOICE_ID: str
     ELEVENLABS_CONVAI_WEBHOOK_SECRET: str | None = None
-    
+
     VAPID_PUBLIC_KEY: str
     VAPID_PRIVATE_KEY: str
     VAPID_EMAIL: str | None = None
 
     AWS_REGION: str
     SES_SENDER: str
-    SES_SERVER: str
     SES_AWS_ACCESS_KEY_ID: str
     SES_AWS_SECRET_ACCESS_KEY: str
     S3_AWS_ACCESS_KEY_ID: str
@@ -52,7 +52,7 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
-    
+
     RATE_LIMIT_ENABLED: bool = True
     RATE_LIMIT_AUTH_MAX: int = 5
     RATE_LIMIT_AUTH_WINDOW: int = 60
@@ -60,11 +60,12 @@ class Settings(BaseSettings):
     RATE_LIMIT_CHAT_WINDOW: int = 60
     RATE_LIMIT_BILLING_MAX: int = 10
     RATE_LIMIT_BILLING_WINDOW: int = 60
-    IDEMPOTENCY_TTL: int = 3600 #1hr 
+    IDEMPOTENCY_TTL: int = 3600  # 1hr
     LOCK_TIMEOUT: int = 30
-    
+
     LANDING_PAGE_AGENT_ID: str
     BUCKET_NAME: str
+    PUBLIC_ASSET_BUCKET_NAME: str
     BUCKET_PUBLIC_URL: str = "https://bucket-image-tease-me.s3.us-east-1.amazonaws.com"
     INFLUENCER_BUCKET_PREFIX: str
     USER_PREFIX: str = "user-content"  # Default fallback if missing in .env
@@ -73,8 +74,6 @@ class Settings(BaseSettings):
     ASSET_URL_CACHE_TTL_SECONDS: int = 300
 
     TWITTER_BEARER_TOKEN: str | None = None
-
-
 
     # External checkout webhook (Stripe/PayPal payment confirmation)
     PAYMENT_WEBHOOK_SECRET: str | None = None
@@ -97,7 +96,9 @@ class Settings(BaseSettings):
     # External Checkout (tmservice)
     TMSERVICE_API_URL: str = "https://api.tmservice.live"
     TMSERVICE_API_KEY: str | None = None
-    TMSERVICE_CIPHER_KEY: str = "TEASEME"  # Vigenère cipher key for password obfuscation
+    TMSERVICE_CIPHER_KEY: str = (
+        "TEASEME"  # Vigenère cipher key for password obfuscation
+    )
     TMSERVICE_REDIRECT_URL: str = "https://localhost:3000/home"
 
     # Armloop Payment Gateway
@@ -126,17 +127,17 @@ class Settings(BaseSettings):
     # LLM configuration
     DEFAULT_SUMMARIZATION_MODEL: str = "gpt-3.5-turbo"
 
-    # Twilio Verify (SMS OTP)
-    TWILIO_ACCOUNT_SID: str | None = None
-    TWILIO_AUTH_TOKEN: str | None = None
-    TWILIO_VERIFY_SERVICE_SID: str | None = None
+
 
     # Telegram Userbot (pytgcalls) configuration
-    TELEGRAM_API_ID: int | None = None              # From https://my.telegram.org
-    TELEGRAM_API_HASH: str | None = None            # From https://my.telegram.org
-    TELEGRAM_SESSION_ENCRYPTION_KEY: str | None = None  # Fernet key for session file encryption
-    TELEGRAM_USERBOT_ENABLED: bool = False           # Feature flag to enable/disable
+    TELEGRAM_API_ID: int | None = None  # From https://my.telegram.org
+    TELEGRAM_API_HASH: str | None = None  # From https://my.telegram.org
+    TELEGRAM_SESSION_ENCRYPTION_KEY: str | None = (
+        None  # Fernet key for session file encryption
+    )
+    TELEGRAM_USERBOT_ENABLED: bool = False  # Feature flag to enable/disable
     TELEGRAM_SESSIONS_DIR: str = "./telegram_sessions"
     FRONTEND_URL: str = "https://www.teaseme.live"  # Web app base URL
+
 
 settings = Settings()
