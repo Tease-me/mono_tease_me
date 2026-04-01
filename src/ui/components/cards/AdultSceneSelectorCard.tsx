@@ -73,7 +73,7 @@ export default function AdultSceneSelector({
       <div className={styles.lowerBody}>
         <div className={styles.description}>{description}</div>
         {hasSamples && (
-          <div className={styles.samplesList}>
+          <div className={`${styles.samplesList}${ageVerified && explicitUrl ? ` ${styles.samplesListNsfw}` : ""}`}>
             {normalUrl && (
               <AudioSamplePlayer url={normalUrl} size="small" variant={isRelationship ? "pink" : "default"} />
             )}

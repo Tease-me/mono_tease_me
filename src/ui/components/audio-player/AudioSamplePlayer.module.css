@@ -48,6 +48,10 @@
   pointer-events: none;
 }
 
+.nsfwLabelText {
+  translate: -5px 2px;
+}
+
 .nsfw {
   background: linear-gradient(89deg, #000 0%, #3F0C6E 22.6%, #000 100%);
   border: 1px solid rgba(138, 31, 230, 0.50);

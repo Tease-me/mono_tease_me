@@ -138,7 +138,7 @@ export default function AudioSamplePlayer({
         currentAudio.pause();
       }
       currentAudio = audioRef.current;
-      audioRef.current.play().catch(() => {});
+      audioRef.current.play().catch(() => { });
       setIsPlaying(true);
     }
   };
@@ -202,7 +202,7 @@ export default function AudioSamplePlayer({
           <div className={styles.nsfwLottie}>
             <DotLottieWC src={lottieFlameUrl} speed="1" mode="forward" loop autoplay width="100%" />
           </div>
-          <span>NSFW</span>
+          <span className={styles.nsfwLabelText}>NSFW</span>
         </div>
       )}
 
