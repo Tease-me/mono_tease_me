@@ -87,6 +87,9 @@ def test_send_password_reset_email_uses_transport(monkeypatch):
     assert result == {"MessageId": "ses-2"}
     assert captured["to_email"] == "user@example.com"
     assert captured["subject"] == "Redefine your TeaseMe password"
+    assert header_images.EMAIL_RESET_HEADER_URL in captured["body_html"]
+    assert "Forgot Your Password?" in captured["body_html"]
+    assert "Reset My Password" in captured["body_html"]
     assert "/reset-password?token=reset-token" in captured["body_html"]
     assert "/reset-password?token=reset-token" in captured["body_text"]
 

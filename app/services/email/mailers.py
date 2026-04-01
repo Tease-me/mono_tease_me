@@ -188,60 +188,68 @@ Your persona can't wait to meet you. ❤️
 
 
 def send_password_reset_email(to_email: str, token: str):
-    subject = "Reset Your Password"
+    subject = "Redefine your TeaseMe password"
     reset_url = f"{CONFIRM_BASE_URL}/reset-password?token={token}"
     logo_url = EMAIL_RESET_HEADER_URL
 
     body_html = f"""
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <title>Reset your password</title>
-        </head>
-        <body style="background:#f7f8fc;padding:0;margin:0;font-family:Arial,sans-serif;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f7f8fc;padding:40px 0;">
-            <tr>
-            <td align="center">
-                <table width="520" cellpadding="0" cellspacing="0" border="0" style="background:#fff;border-radius:24px;box-shadow:0 10px 32px 0 rgba(50,50,93,0.10),0 2px 4px 0 rgba(0,0,0,0.07);overflow:hidden;">
-                <tr>
-                    <td align="center" style="padding:0;">
-                    <img
-                        src="{logo_url}"
-                        alt="TeaseMe"
-                        style="width:100%;max-width:520px;display:block;border-top-left-radius:24px;border-top-right-radius:24px;"
-                    />
-                    </td>
-                </tr>
-                <tr>
-                    <td align="center" style="padding:32px 30px 8px 30px;">
-                    <h2 style="font-family: 'Arial Rounded MT Bold', Arial, sans-serif; font-size:28px; font-weight:bold; margin:0 0 12px 0; color:#444;">Forgot Your Password?</h2>
-                    <p style="font-size:16px;color:#666;margin:0 0 32px 0;">
-                        We received a request to reset the password for your TeaseMe account.<br/>
-                        To create a new password, just click the button below:
-                    </p>
-                    <a href="{reset_url}"
-                        style="background:#FF5C74;border-radius:8px;color:#fff;text-decoration:none;display:inline-block;padding:18px 50px;font-size:22px;font-weight:bold;box-shadow:0 6px 24px #ffb5c7;margin-bottom:20px;">
-                        Reset My Password
-                    </a>
-                    <p style="margin:24px 0 0 0; font-size:14px; color:#bbb;">
-                        This link will expire in 30 minutes to keep your account safe.<br/>
-                        If you didn't request a password reset, you can safely ignore this email.
-                    </p>
-                    </td>
-                </tr>
-                <tr>
-                    <td align="center" style="padding:20px 0 12px 0;background:#e5e5e5;color:#bbb;font-size:14px;border-bottom-left-radius:24px;border-bottom-right-radius:24px;">
-                    © {datetime.now().year} TeaseMe. All rights reserved.
-                    </td>
-                </tr>
-                </table>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reset your password</title>
+</head>
+<body style="margin:0;padding:0;background:#f1f1f5;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f1f1f5;padding:28px 0;">
+    <tr>
+      <td align="center">
+        <table width="560" cellpadding="0" cellspacing="0" border="0" style="width:560px;max-width:560px;background:#050505;border-radius:28px;overflow:hidden;box-shadow:0 18px 48px rgba(0,0,0,0.28);">
+          <tr>
+            <td align="center" style="padding:0;background:#050505;">
+              <img
+                src="{logo_url}"
+                alt="TeaseMe"
+                style="display:block;width:100%;max-width:560px;height:auto;border:0;outline:none;text-decoration:none;"
+              />
             </td>
-            </tr>
+          </tr>
+          <tr>
+            <td align="center" style="padding:36px 42px 18px 42px;background:#050505;">
+              <h1 style="margin:0 0 18px 0;font-family:Arial,sans-serif;font-size:32px;line-height:1.2;font-weight:700;color:#ffffff;">
+                Forgot Your Password?
+              </h1>
+              <p style="margin:0 0 34px 0;font-size:16px;line-height:1.55;color:#b8b8be;text-align:center;">
+                We received a request to reset the password for your TeaseMe account.<br/>
+                To create a new password, just click the button below:
+              </p>
+              <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 34px auto;">
+                <tr>
+                  <td align="center" bgcolor="#ff2f7d" style="border-radius:999px;box-shadow:0 10px 28px rgba(255,47,125,0.35);">
+                    <a
+                      href="{reset_url}"
+                      style="display:inline-block;padding:18px 44px;font-size:20px;line-height:1;font-weight:700;font-family:Arial,sans-serif;color:#ffffff;text-decoration:none;border-radius:999px;background:#ff2f7d;"
+                    >
+                      Reset My Password
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:0 0 88px 0;font-size:15px;line-height:1.6;color:#a2a2aa;text-align:center;">
+                This link will expire in 30 minutes to keep your account safe. If you didn’t<br/>
+                request a password reset, you can safely ignore this email.
+              </p>
+              <p style="margin:0;font-size:14px;line-height:1.4;color:#76767d;text-align:center;">
+                © {datetime.now().year} TeaseMe. All rights reserved
+              </p>
+            </td>
+          </tr>
         </table>
-        </body>
-        </html>
-        """
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+"""
     body_text = f"Reset your TeaseMe password by clicking this link: {reset_url}"
     return send_email_via_ses(to_email, subject, body_html, body_text)
 
