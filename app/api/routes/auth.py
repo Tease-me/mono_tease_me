@@ -17,6 +17,10 @@ from app.services.email.mailers import (
     send_password_reset_email,
     send_verification_email,
 )
+from app.services.repositories.influencer_email_assets_repository import (
+    get_influencer_email_header_key,
+    get_influencer_email_header_public_url,
+)
 from app.utils.auth.dependencies import get_current_user
 from app.utils.auth.tokens import create_token
 from app.api.routes.notify_ws import notify_email_verified
@@ -191,11 +195,22 @@ async def register(
         log.exception("FirstPromoter track/signup failed")
     
     try:
+        influencer_verification_header_url = None
+        if influencer is not None:
+            verification_header_key = get_influencer_email_header_key(
+                getattr(influencer, "assets_json", None)
+            )
+            if verification_header_key:
+                influencer_verification_header_url = (
+                    get_influencer_email_header_public_url(verification_header_key)
+                )
+
         await send_verification_email(
             user.email,
             verify_token,
             influencer_id=data.influencer_id,
             influencer_display_name=getattr(influencer, "display_name", None),
+            influencer_verification_header_url=influencer_verification_header_url,
             influencer_profile_photo_key=getattr(influencer, "profile_photo_key", None),
         )
     except Exception:

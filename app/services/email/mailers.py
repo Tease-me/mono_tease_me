@@ -29,13 +29,18 @@ async def send_verification_email(
     *,
     influencer_id: str | None = None,
     influencer_display_name: str | None = None,
+    influencer_verification_header_url: str | None = None,
     influencer_profile_photo_key: Optional[str] = None,
 ):
-    subject = "Confirm your email on TeaseMe!"
+    subject = "Just One More Step – Confirm Your Email"
     confirm_url = f"{CONFIRM_BASE_URL}/verify-email?token={token}"
-    logo_url = EMAIL_VERIFY_HEADER_URL
+    logo_url = influencer_verification_header_url or EMAIL_VERIFY_HEADER_URL
 
-    if influencer_id and influencer_profile_photo_key:
+    if (
+        not influencer_verification_header_url
+        and influencer_id
+        and influencer_profile_photo_key
+    ):
         try:
             logo_url = compose_email_header_image_url(
                 photo_key=influencer_profile_photo_key,
@@ -58,7 +63,7 @@ async def send_verification_email(
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Confirm your email</title>
+    <title>{subject}</title>
 </head>
 <body style="margin:0;padding:0;background:#f1f1f5;font-family:Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f1f1f5;padding:28px 0;">
@@ -80,8 +85,8 @@ async def send_verification_email(
                 {heading_text}
               </h1>
               <p style="margin:0 0 34px 0;font-size:16px;line-height:1.55;color:#b8b8be;text-align:center;">
-                You are almost done! Before we get started, please verify your email<br/>
-                address to activate your account. It’s quick and helps us keep your account<br/>
+                You are almost done! Before we get started, please verify your email
+                address to activate your account. It’s quick and helps us keep your account
                 safe.
               </p>
               <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 34px auto;">

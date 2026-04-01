@@ -93,6 +93,62 @@ async def test_send_verification_email_uses_dynamic_influencer_heading(monkeypat
     assert "Hi! Welcome to your Juliana" in captured["body_html"]
 
 
+@pytest.mark.anyio
+async def test_send_verification_email_prefers_uploaded_header_url(monkeypatch):
+    captured = {}
+
+    def fake_send_email_via_ses(to_email, subject, body_html, body_text=None):
+        captured["body_html"] = body_html
+        return {"MessageId": "ses-1c"}
+
+    def fail_compose_email_header_image_url(**kwargs):
+        raise AssertionError("compose_email_header_image_url should not be used")
+
+    monkeypatch.setattr(mailers, "send_email_via_ses", fake_send_email_via_ses)
+    monkeypatch.setattr(
+        mailers,
+        "compose_email_header_image_url",
+        fail_compose_email_header_image_url,
+    )
+
+    result = await mailers.send_verification_email(
+        "user@example.com",
+        "verify-token",
+        influencer_id="juliana",
+        influencer_verification_header_url="https://cdn.test/influencer/juliana/email/verification-header.jpg",
+        influencer_profile_photo_key="influencers/juliana/profile.jpg",
+    )
+
+    assert result == {"MessageId": "ses-1c"}
+    assert "https://cdn.test/influencer/juliana/email/verification-header.jpg" in captured["body_html"]
+
+
+@pytest.mark.anyio
+async def test_send_verification_email_falls_back_to_composed_header(monkeypatch):
+    captured = {}
+
+    def fake_send_email_via_ses(to_email, subject, body_html, body_text=None):
+        captured["body_html"] = body_html
+        return {"MessageId": "ses-1d"}
+
+    monkeypatch.setattr(mailers, "send_email_via_ses", fake_send_email_via_ses)
+    monkeypatch.setattr(
+        mailers,
+        "compose_email_header_image_url",
+        lambda **_: "https://signed.example/composed-verification-header.jpg",
+    )
+
+    result = await mailers.send_verification_email(
+        "user@example.com",
+        "verify-token",
+        influencer_id="juliana",
+        influencer_profile_photo_key="influencers/juliana/profile.jpg",
+    )
+
+    assert result == {"MessageId": "ses-1d"}
+    assert "https://signed.example/composed-verification-header.jpg" in captured["body_html"]
+
+
 def test_send_password_reset_email_uses_transport(monkeypatch):
     captured = {}
 
