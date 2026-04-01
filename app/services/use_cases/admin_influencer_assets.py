@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import io
 from datetime import datetime, timezone
 from typing import Any
@@ -17,10 +18,11 @@ from app.services.repositories.influencer_landing_assets_repository import (
     TELEGRAM_AUDIO_SLOT,
     TELEGRAM_VIDEO_SLOT,
     delete_asset,
+    get_cached_presigned_url_for_key,
     get_landing_asset_entry,
     get_landing_asset_key,
-    get_presigned_url,
-    object_exists,
+    get_landing_asset_presence,
+    invalidate_landing_asset_cache,
     upload_landing_binary,
     upload_landing_image,
     upload_landing_poster_jpg,
@@ -48,11 +50,8 @@ async def _resolve_entry(entry: dict[str, Any] | None) -> dict[str, Any] | None:
     if not isinstance(s3_key, str) or not s3_key:
         return None
 
-    if not await object_exists(s3_key):
-        return None
-
     resolved = dict(entry)
-    resolved["url"] = get_presigned_url(s3_key)
+    resolved["url"] = await get_cached_presigned_url_for_key(s3_key)
     return resolved
 
 
@@ -97,10 +96,17 @@ def _is_video_upload(media: UploadFile) -> bool:
 
 async def build_admin_landing_assets_out(influencer: Influencer) -> dict[str, Any]:
     assets_json = influencer.assets_json if isinstance(influencer.assets_json, dict) else {}
+    presence = await get_landing_asset_presence(influencer.id, assets_json)
 
-    resolved_entries: dict[str, dict[str, Any] | None] = {}
-    for slot in LANDING_ALL_SLOTS:
-        resolved_entries[slot] = await _resolve_entry(get_landing_asset_entry(assets_json, slot))
+    resolved_values = await asyncio.gather(
+        *(
+            _resolve_entry(get_landing_asset_entry(assets_json, slot))
+            if presence.get(slot)
+            else _resolve_entry(None)
+            for slot in LANDING_ALL_SLOTS
+        )
+    )
+    resolved_entries = dict(zip(LANDING_ALL_SLOTS, resolved_values))
 
     background_image_slots = (
         "background_image_1",
@@ -211,8 +217,16 @@ async def build_public_landing_assets_out(influencer: Influencer) -> dict[str, A
 
 
 async def build_admin_telegram_welcome_media_out(influencer: Influencer) -> dict[str, Any]:
-    audio_entry = await _resolve_entry(_get_telegram_audio_entry(influencer.assets_json))
-    video_entry = await _resolve_entry(_get_telegram_video_entry(influencer.assets_json))
+    assets_json = influencer.assets_json if isinstance(influencer.assets_json, dict) else {}
+    presence = await get_landing_asset_presence(influencer.id, assets_json)
+    audio_entry, video_entry = await asyncio.gather(
+        _resolve_entry(_get_telegram_audio_entry(assets_json))
+        if presence.get(TELEGRAM_AUDIO_SLOT)
+        else _resolve_entry(None),
+        _resolve_entry(_get_telegram_video_entry(assets_json))
+        if presence.get(TELEGRAM_VIDEO_SLOT) or presence.get(LEGACY_TELEGRAM_MEDIA_SLOT)
+        else _resolve_entry(None),
+    )
     if not audio_entry and not video_entry:
         raise HTTPException(status_code=404, detail="Telegram welcome media not found")
 
@@ -337,6 +351,13 @@ async def upsert_admin_telegram_welcome_media(
                 await delete_asset(previous_key)
             except Exception:
                 pass
+    await invalidate_landing_asset_cache(
+        influencer.id,
+        [
+            *[key for key in previous_keys.values() if key],
+            *uploaded_keys.values(),
+        ],
+    )
 
     return await build_admin_telegram_welcome_media_out(influencer)
 
@@ -427,5 +448,12 @@ async def upsert_admin_landing_assets(
                 await delete_asset(previous_key)
             except Exception:
                 pass
+    await invalidate_landing_asset_cache(
+        influencer.id,
+        [
+            *[key for key in previous_keys.values() if key],
+            *uploaded_keys.values(),
+        ],
+    )
 
     return await build_admin_landing_assets_out(influencer)

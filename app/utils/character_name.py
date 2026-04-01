@@ -7,9 +7,7 @@ def _extract_first_name(value: str | None) -> str | None:
     return parts[0]
 
 
-def _resolve_user_name(full_name: str | None, username: str | None) -> str:
-    if full_name and full_name.strip():
-        return full_name.strip()
+def _resolve_user_name(username: str | None) -> str:
     if username and username.strip():
         return username.strip()
     return ""
@@ -32,7 +30,7 @@ def build_character_template_context(
     user_gender: str | None,
 ) -> dict[str, str]:
     influencer_name = (influencer_display_name or "").strip()
-    user_name = _resolve_user_name(user_full_name, user_username)
+    user_name = _resolve_user_name(user_username)
     user_title = _resolve_user_title(user_gender)
 
     return {
@@ -40,7 +38,7 @@ def build_character_template_context(
         "influencer_first_name": _extract_first_name(influencer_name)
         or influencer_name,
         "user_name": user_name,
-        "user_first_name": _extract_first_name(user_name) or user_name,
+        "user_first_name": _extract_first_name(user_full_name) or user_name,
         "user_title": user_title,
         "user_honorific": user_title,
     }
