@@ -336,6 +336,16 @@
     background: rgba(255, 255, 255, 0.03);
 }
 
+.assetMeta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+}
+
 .slot-label-row {
     display: flex;
     align-items: center;
