@@ -205,11 +205,12 @@
 }
 
 .hcBottomSection {
-  color: #D6D6D6;
-  font-size: 0.875rem;
+  color: #C2C2C2;
+  font-size: 15px;
   font-weight: 500;
   line-height: 140%;
   text-align: center;
+  letter-spacing: 0.2px;
 }
 
 .disabled {
