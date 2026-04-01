@@ -3,7 +3,7 @@ import styles from "./Confirmation.module.css";
 import BackgroundGradient from "@/ui/templates/BackgroundGradient";
 import CenteredLayout from "@/ui/templates/CenteredLayout";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Endpoints } from "@/api/urls";
+import { Endpoints, WsEndpoints } from "@/api/urls";
 import { AuthContext } from "@/context/AuthContext";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import OnBoardingTopNav from "@/ui/components/nav/OnBoardingTopNav";
@@ -14,6 +14,8 @@ import { apiClient } from "@/api/apis";
 import { storage } from "@/utils/storage";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { Paths } from "@/routes/path";
+import { NotificationEvent } from "@/hooks/useNotificationSocket";
+import logger from "@/utils/logger";
 
 interface ConfirmationProps { }
 
@@ -48,11 +50,18 @@ const Confirmation: React.FC<ConfirmationProps> = () => {
       storage.get(LocalStorageKeys.InfluencerReferralId) ??
       undefined;
     setEmail(email);
-    const ws = new WebSocket(
-      `${Endpoints.ws.notifications}?email=${encodeURIComponent(email)}`,
-    );
+    const ws = new WebSocket(WsEndpoints.notifications(email));
+    ws.onopen = () => {
+      logger.info("[Confirmation] notification socket connected");
+    };
+    ws.onerror = () => {
+      logger.error("[Confirmation] notification socket error");
+    };
+    ws.onclose = (event) => {
+      logger.info(`[Confirmation] notification socket closed (${event.code})`);
+    };
     ws.onmessage = async (event) => {
-      const data = JSON.parse(event.data);
+      const data = JSON.parse(event.data) as NotificationEvent;
       if (data.type === "email_verified") {
         setIsLoading(false);
         const loggedIn = await login(email, password);

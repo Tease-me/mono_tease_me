@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AdultVoiceCallState, AdultVoiceError, AdultVoiceServerMessage, AdultVoiceSocketStatus } from "@/api/models/adultVoice";
-import { Endpoints, WS_BASE_URL } from "@/api/urls";
+import { WsEndpoints } from "@/api/urls";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { useMicrophonePermission } from "./useMicrophonePermission";
 import { showErrorModal } from "@/utils/errorModal";
@@ -223,8 +223,7 @@ export default function useAdultVoiceCall(options?: UseAdultVoiceCallOptions) {
       setCallState("connecting");
       setSocketStatus("connecting");
 
-      const encodedToken = encodeURIComponent(token);
-      const wsUrl = `${WS_BASE_URL}${Endpoints.adult.voice(influencerId)}?token=${encodedToken}`;
+      const wsUrl = WsEndpoints.adultVoice(influencerId, token);
       const socket = new WebSocket(wsUrl);
       socketRef.current = socket;
 

@@ -58,16 +58,29 @@ function formatCents(cents: number | null | undefined): string {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
-function formatClock(totalSeconds: number | null | undefined): string {
-  if (totalSeconds == null) return "--";
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes}:${String(seconds).padStart(2, "0")}`;
-}
 
 function formatDuration(totalSeconds: number | null | undefined): string {
   if (totalSeconds == null) return "--";
   return `${Math.round(totalSeconds)}s`;
+}
+
+function formatMins(totalSeconds: number): string {
+  const totalMins = Math.round(totalSeconds / 60);
+  const h = Math.floor(totalMins / 60);
+  const m = totalMins % 60;
+  if (h > 0) return `${h}hr ${m}min`;
+  return `${m}min`;
+}
+
+function estimatedCallRange(
+  estimatedSeconds: number | null | undefined,
+  balanceDollars: number | null | undefined,
+): string {
+  if (estimatedSeconds == null) return "--";
+  const minStr = formatMins(estimatedSeconds);
+  if (balanceDollars == null) return minStr;
+  const maxSeconds = Math.floor(balanceDollars * 60);
+  return `${minStr} – ${formatMins(maxSeconds)}`;
 }
 
 export default function InfluencerRelation({ navPayload, goTo }: Props) {
@@ -164,7 +177,6 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
   const isSubscribed =
     !!data.hasSubscription && data.subscriptionStatus === "active";
 
-  //Navpayload
   useEffect(() => {
     if (!navPayload.influencerId) return;
     setLoading(true);
@@ -175,11 +187,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
       video: undefined,
       name: undefined,
     }));
-  }, [
-    navPayload.influencerId,
-  ]);
-
-
+  }, [navPayload.influencerId]);
 
   const handleAddCredits = () => {
     goTo("add_credits", { id: data.id, image: data.image, video: data.video });
@@ -190,9 +198,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
       ? new Date(data.followingSince).toLocaleDateString()
       : "--";
 
-  const latestAdultCallDuration = (() => {
-    return formatDuration(data.latestAdultCallSummary?.duration_seconds ?? null);
-  })();
+  const latestAdultCallDuration = formatDuration(data.latestAdultCallSummary?.duration_seconds ?? null);
 
   const latestAdultCallCost = formatCents(
     data.latestAdultCallSummary?.cost_cents
@@ -241,18 +247,13 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
             />
           )}
           {showBalanceDetails && (
-            <>
               <div className={styles.balanceStatsWrapper}>
-                <p className={styles.totalBalanceLabel}>Remaining usage (estimate) </p>
+                <p className={styles.totalBalanceLabel}>Remaining usage </p>
                 <div className={styles.balanceStats}>
                   <UsageView
-                    label="Call Time"
+                    label="Estimated Call Time"
                     tone="green"
-                    value={
-                      data.estimatedRemainingCallSeconds != null
-                        ? formatClock(data.estimatedRemainingCallSeconds)
-                        : "--"
-                    }
+                    value={estimatedCallRange(data.estimatedRemainingCallSeconds, data.balance)}
                   />
                   {RELATIONSHIP_MODE_AVAILABLE && (
                     <UsageView
@@ -294,7 +295,6 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
                   </div>
                 )}
               </div>
-            </>
           )}
           <PrimaryButton
             leftIcon={<SvgPack.PlusBox />}
