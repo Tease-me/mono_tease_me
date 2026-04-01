@@ -203,6 +203,13 @@ export type AdminLogsParams = {
   direction?: "backward" | "forward";
 };
 
+export type AdminEmailAssetUploadResponse = {
+  ok: boolean;
+  reset_password_header_key: string;
+  reset_password_header_url: string;
+  content_type: string;
+};
+
 /* ── User Analytics Types ──────────────────────────────────── */
 
 export type AnalyticsOverview = {
@@ -758,6 +765,25 @@ export const AdminServices = (apiClient: AxiosInstance) => ({
         },
       }
     );
+    return response.data;
+  },
+
+  getEmailAssets: async (): Promise<AdminEmailAssetUploadResponse> => {
+    const response = await apiClient.get(Endpoints.admin.emailAssets);
+    return response.data;
+  },
+
+  uploadResetPasswordHeader: async (
+    file: File
+  ): Promise<AdminEmailAssetUploadResponse> => {
+    const formData = new FormData();
+    formData.append("reset_password_header", file);
+
+    const response = await apiClient.post(Endpoints.admin.emailAssets, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return response.data;
   },
 

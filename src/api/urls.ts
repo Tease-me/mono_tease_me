@@ -101,6 +101,7 @@ export const Endpoints = {
     },
     influencerLandingAssets: (influencerId: string) =>
       `admin/influencer/${encodeURIComponent(influencerId)}/landing-assets`,
+    emailAssets: `admin/email-assets`,
     telegramWelcomeMedia: (influencerId: string) =>
       `admin/influencer/${encodeURIComponent(influencerId)}/telegram-welcome-media`,
     systemPrompts: {
