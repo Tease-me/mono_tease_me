@@ -5,8 +5,13 @@ from io import BytesIO
 from types import SimpleNamespace
 
 import pytest
+from fastapi import FastAPI
 from fastapi import HTTPException
+from fastapi.testclient import TestClient
 
+from app.api.routes import influencer as influencer_route
+from app.core.session import get_db
+from app.data.models import Influencer
 from app.services.repositories import influencer_landing_assets_repository as asset_repo
 from app.services.use_cases import admin_influencer_assets as asset_use_case
 
@@ -39,6 +44,11 @@ class DummySession:
 
     async def rollback(self) -> None:
         self.rollbacks += 1
+
+    async def get(self, model, key):
+        if model is Influencer:
+            return SimpleNamespace(id=key, assets_json={})
+        return None
 
 
 def test_build_landing_asset_key_uses_telegram_audio_prefix() -> None:
@@ -79,8 +89,22 @@ def test_build_admin_telegram_welcome_media_out_returns_both_assets(monkeypatch)
             },
         },
     )
-    monkeypatch.setattr(asset_use_case, "object_exists", _async_return(True))
-    monkeypatch.setattr(asset_use_case, "get_presigned_url", lambda key: f"https://cdn.test/{key}")
+    monkeypatch.setattr(
+        asset_use_case,
+        "get_landing_asset_presence",
+        _async_return(
+            {
+                asset_repo.TELEGRAM_AUDIO_SLOT: True,
+                asset_repo.TELEGRAM_VIDEO_SLOT: True,
+                asset_repo.LEGACY_TELEGRAM_MEDIA_SLOT: False,
+            }
+        ),
+    )
+    monkeypatch.setattr(
+        asset_use_case,
+        "get_cached_presigned_url_for_key",
+        _async_prefix("https://cdn.test/"),
+    )
 
     result = asyncio.run(asset_use_case.build_admin_telegram_welcome_media_out(influencer))
 
@@ -109,8 +133,22 @@ def test_build_admin_telegram_welcome_media_out_reads_legacy_video_slot(monkeypa
             }
         },
     )
-    monkeypatch.setattr(asset_use_case, "object_exists", _async_return(True))
-    monkeypatch.setattr(asset_use_case, "get_presigned_url", lambda key: f"https://cdn.test/{key}")
+    monkeypatch.setattr(
+        asset_use_case,
+        "get_landing_asset_presence",
+        _async_return(
+            {
+                asset_repo.TELEGRAM_AUDIO_SLOT: False,
+                asset_repo.TELEGRAM_VIDEO_SLOT: False,
+                asset_repo.LEGACY_TELEGRAM_MEDIA_SLOT: True,
+            }
+        ),
+    )
+    monkeypatch.setattr(
+        asset_use_case,
+        "get_cached_presigned_url_for_key",
+        _async_prefix("https://cdn.test/"),
+    )
 
     result = asyncio.run(asset_use_case.build_admin_telegram_welcome_media_out(influencer))
 
@@ -145,8 +183,23 @@ def test_upsert_admin_telegram_welcome_media_updates_audio_only(monkeypatch) -> 
 
     monkeypatch.setattr(asset_use_case, "upload_landing_binary", fake_upload_landing_binary)
     monkeypatch.setattr(asset_use_case, "delete_asset", _record_delete(deleted_keys))
-    monkeypatch.setattr(asset_use_case, "object_exists", _async_return(True))
-    monkeypatch.setattr(asset_use_case, "get_presigned_url", lambda key: f"https://cdn.test/{key}")
+    monkeypatch.setattr(asset_use_case, "invalidate_landing_asset_cache", _async_noop())
+    monkeypatch.setattr(
+        asset_use_case,
+        "get_landing_asset_presence",
+        _async_return(
+            {
+                asset_repo.TELEGRAM_AUDIO_SLOT: True,
+                asset_repo.TELEGRAM_VIDEO_SLOT: True,
+                asset_repo.LEGACY_TELEGRAM_MEDIA_SLOT: False,
+            }
+        ),
+    )
+    monkeypatch.setattr(
+        asset_use_case,
+        "get_cached_presigned_url_for_key",
+        _async_prefix("https://cdn.test/"),
+    )
     monkeypatch.setattr(asset_use_case, "_utcnow_iso", lambda: "2026-03-24T01:02:03+00:00")
 
     result = asyncio.run(
@@ -206,8 +259,23 @@ def test_upsert_admin_telegram_welcome_media_updates_video_and_removes_legacy_sl
 
     monkeypatch.setattr(asset_use_case, "upload_landing_binary", fake_upload_landing_binary)
     monkeypatch.setattr(asset_use_case, "delete_asset", _record_delete(deleted_keys))
-    monkeypatch.setattr(asset_use_case, "object_exists", _async_return(True))
-    monkeypatch.setattr(asset_use_case, "get_presigned_url", lambda key: f"https://cdn.test/{key}")
+    monkeypatch.setattr(asset_use_case, "invalidate_landing_asset_cache", _async_noop())
+    monkeypatch.setattr(
+        asset_use_case,
+        "get_landing_asset_presence",
+        _async_return(
+            {
+                asset_repo.TELEGRAM_AUDIO_SLOT: True,
+                asset_repo.TELEGRAM_VIDEO_SLOT: True,
+                asset_repo.LEGACY_TELEGRAM_MEDIA_SLOT: False,
+            }
+        ),
+    )
+    monkeypatch.setattr(
+        asset_use_case,
+        "get_cached_presigned_url_for_key",
+        _async_prefix("https://cdn.test/"),
+    )
     monkeypatch.setattr(asset_use_case, "_utcnow_iso", lambda: "2026-03-24T01:02:03+00:00")
 
     result = asyncio.run(
@@ -239,8 +307,23 @@ def test_upsert_admin_telegram_welcome_media_updates_both_assets(monkeypatch) ->
 
     monkeypatch.setattr(asset_use_case, "upload_landing_binary", fake_upload_landing_binary)
     monkeypatch.setattr(asset_use_case, "delete_asset", _record_delete(deleted_keys))
-    monkeypatch.setattr(asset_use_case, "object_exists", _async_return(True))
-    monkeypatch.setattr(asset_use_case, "get_presigned_url", lambda key: f"https://cdn.test/{key}")
+    monkeypatch.setattr(asset_use_case, "invalidate_landing_asset_cache", _async_noop())
+    monkeypatch.setattr(
+        asset_use_case,
+        "get_landing_asset_presence",
+        _async_return(
+            {
+                asset_repo.TELEGRAM_AUDIO_SLOT: True,
+                asset_repo.TELEGRAM_VIDEO_SLOT: True,
+                asset_repo.LEGACY_TELEGRAM_MEDIA_SLOT: False,
+            }
+        ),
+    )
+    monkeypatch.setattr(
+        asset_use_case,
+        "get_cached_presigned_url_for_key",
+        _async_prefix("https://cdn.test/"),
+    )
     monkeypatch.setattr(asset_use_case, "_utcnow_iso", lambda: "2026-03-24T01:02:03+00:00")
 
     result = asyncio.run(
@@ -311,6 +394,169 @@ def test_upsert_admin_telegram_welcome_media_rejects_non_video_file() -> None:
     assert exc.value.detail == "Telegram welcome video must be a video file"
 
 
+def test_get_cached_presigned_url_for_key_uses_cache(monkeypatch) -> None:
+    set_calls: list[tuple[str, str]] = []
+    generated_keys: list[str] = []
+
+    monkeypatch.setattr(asset_repo, "get_cached_presigned_url", _async_return("https://cached.test/hero.png"))
+
+    def _fail_generate(_key: str) -> str:
+        generated_keys.append(_key)
+        return f"https://generated.test/{_key}"
+
+    async def _record_set(key: str, url: str) -> None:
+        set_calls.append((key, url))
+
+    monkeypatch.setattr(asset_repo, "get_presigned_url", _fail_generate)
+    monkeypatch.setattr(asset_repo, "set_cached_presigned_url", _record_set)
+
+    result = asyncio.run(asset_repo.get_cached_presigned_url_for_key("hero.png"))
+
+    assert result == "https://cached.test/hero.png"
+    assert generated_keys == []
+    assert set_calls == []
+
+
+def test_build_admin_landing_assets_out_uses_cached_urls_without_object_exists(monkeypatch) -> None:
+    influencer = SimpleNamespace(
+        id="inf_123",
+        assets_json={
+            "hero_png": {
+                "s3_key": "bucket/hero.png",
+                "content_type": "image/png",
+                "updated_at": "2026-03-24T00:00:00+00:00",
+            },
+            "hero_png_2x": {
+                "s3_key": "bucket/hero@2x.png",
+                "content_type": "image/png",
+                "updated_at": "2026-03-24T00:00:00+00:00",
+            },
+        },
+    )
+
+    async def _presence(_influencer_id: str, _assets_json) -> dict[str, bool]:
+        return {slot: slot in {"hero_png", "hero_png_2x"} for slot in asset_use_case.LANDING_ALL_SLOTS}
+
+    async def _cached_url(key: str) -> str:
+        return f"https://cdn.test/{key}"
+
+    async def _boom(*args, **kwargs):
+        raise AssertionError("object_exists should not be used")
+
+    monkeypatch.setattr(asset_use_case, "get_landing_asset_presence", _presence)
+    monkeypatch.setattr(asset_use_case, "get_cached_presigned_url_for_key", _cached_url)
+    monkeypatch.setattr(asset_use_case, "object_exists", _boom, raising=False)
+
+    result = asyncio.run(asset_use_case.build_admin_landing_assets_out(influencer))
+
+    assert result["hero_png_url"] == "https://cdn.test/bucket/hero.png"
+    assert result["hero_png_2x_url"] == "https://cdn.test/bucket/hero@2x.png"
+    assert result["has_hero"] is True
+
+
+def test_upsert_admin_landing_assets_invalidates_cache(monkeypatch) -> None:
+    influencer = SimpleNamespace(
+        id="inf_123",
+        assets_json={
+            "hero_png": {
+                "s3_key": "bucket/old-hero.png",
+                "content_type": "image/png",
+                "updated_at": "2026-03-24T00:00:00+00:00",
+            }
+        },
+    )
+    db = DummySession()
+    invalidated: list[tuple[str, list[str]]] = []
+
+    async def _fake_upload(*args, **kwargs):
+        return "bucket/new-hero.png", "image/png"
+
+    async def _fake_invalidate(influencer_id: str, keys: list[str]) -> None:
+        invalidated.append((influencer_id, keys))
+
+    monkeypatch.setattr(asset_use_case, "upload_landing_image", _fake_upload)
+    monkeypatch.setattr(asset_use_case, "delete_asset", _async_noop())
+    monkeypatch.setattr(asset_use_case, "invalidate_landing_asset_cache", _fake_invalidate)
+    monkeypatch.setattr(asset_use_case, "_utcnow_iso", lambda: "2026-03-24T01:02:03+00:00")
+    monkeypatch.setattr(
+        asset_use_case,
+        "build_admin_landing_assets_out",
+        _async_return({"influencer_id": "inf_123", "hero_png_url": "https://cdn.test/bucket/new-hero.png"}),
+    )
+
+    result = asyncio.run(
+        asset_use_case.upsert_admin_landing_assets(
+            db=db,
+            influencer=influencer,
+            files_by_slot={
+                "hero_png": DummyUploadFile(
+                    b"image-bytes",
+                    filename="hero.png",
+                    content_type="image/png",
+                )
+            },
+        )
+    )
+
+    assert result["hero_png_url"] == "https://cdn.test/bucket/new-hero.png"
+    assert invalidated == [("inf_123", ["bucket/old-hero.png", "bucket/new-hero.png"])]
+
+
+def test_get_influencer_landing_assets_route_shape_is_unchanged(monkeypatch) -> None:
+    app = FastAPI()
+    app.include_router(influencer_route.router)
+
+    async def _override_db():
+        yield DummySession()
+
+    async def _fake_public_landing_assets(_influencer):
+        return {
+            "influencer_id": "loli",
+            "hero_png_url": "https://cdn.test/hero.png",
+            "hero_png_2x_url": None,
+            "signature_png_url": None,
+            "signature_png_2x_url": None,
+            "background_video_1_mp4_url": None,
+            "background_video_1_mp4_content_type": None,
+            "background_video_1_webm_url": None,
+            "background_video_1_webm_content_type": None,
+            "background_video_1_poster_jpg_url": None,
+            "background_video_2_mp4_url": None,
+            "background_video_2_mp4_content_type": None,
+            "background_video_2_webm_url": None,
+            "background_video_2_webm_content_type": None,
+            "background_video_2_poster_jpg_url": None,
+            "background_image_1_url": None,
+            "background_image_1_2x_url": None,
+            "background_image_2_url": None,
+            "background_image_2_2x_url": None,
+            "background_image_3_url": None,
+            "background_image_3_2x_url": None,
+            "has_hero": True,
+            "has_signature": False,
+            "has_background_videos": False,
+            "has_complete_background_images": False,
+            "updated_at": "2026-03-24T01:02:03+00:00",
+        }
+
+    app.dependency_overrides[get_db] = _override_db
+    monkeypatch.setattr(
+        influencer_route,
+        "build_public_landing_assets_out",
+        _fake_public_landing_assets,
+    )
+
+    client = TestClient(app)
+    response = client.get("/influencer/loli/landing-assets")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["influencer_id"] == "loli"
+    assert body["hero_png_url"] == "https://cdn.test/hero.png"
+    assert "has_hero" in body
+    assert "updated_at" in body
+
+
 def _async_return(value):
     async def _inner(*args, **kwargs):
         return value
@@ -321,5 +567,19 @@ def _async_return(value):
 def _record_delete(deleted_keys: list[str]):
     async def _inner(key: str) -> None:
         deleted_keys.append(key)
+
+    return _inner
+
+
+def _async_prefix(prefix: str):
+    async def _inner(key: str) -> str:
+        return f"{prefix}{key}"
+
+    return _inner
+
+
+def _async_noop():
+    async def _inner(*args, **kwargs) -> None:
+        return None
 
     return _inner
