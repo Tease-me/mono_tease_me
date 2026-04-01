@@ -75,7 +75,7 @@ export default function AdultSceneSelector({
         {hasSamples && (
           <div className={styles.samplesList}>
             {normalUrl && (
-              <AudioSamplePlayer url={normalUrl} size="small" />
+              <AudioSamplePlayer url={normalUrl} size="small" variant={isRelationship ? "pink" : "default"} />
             )}
             {explicitUrl && (
               <div className={ageVerified ? styles.explicitSampleWrap : undefined}>
@@ -84,6 +84,7 @@ export default function AdultSceneSelector({
                   url={explicitUrl}
                   size="small"
                   isExplicit={!ageVerified}
+                  variant={isRelationship ? "pink" : "default"}
                   onLockedClick={onLockedClick}
                 />
               </div>

@@ -16,6 +16,7 @@ interface AudioSamplePlayerProps {
   size?: "small" | "large";
   disabled?: boolean;
   isExplicit?: boolean;
+  variant?: "default" | "pink";
   onLockedClick?: () => void;
 }
 
@@ -24,6 +25,7 @@ export default function AudioSamplePlayer({
   size = "large",
   disabled = false,
   isExplicit = false,
+  variant = "default",
   onLockedClick,
 }: AudioSamplePlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -165,7 +167,7 @@ export default function AudioSamplePlayer({
   }
 
   return (
-    <div className={clsx(styles.pill, styles[size], disabled && styles.disabled)}>
+    <div className={clsx(styles.pill, styles[size], styles[variant], disabled && styles.disabled)}>
       <button
         type="button"
         className={styles.playButton}
