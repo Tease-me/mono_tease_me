@@ -4,6 +4,7 @@
   align-items: center;
   gap: 0;
   border-radius: 16px;
+  height: 100%;
 }
 
 .upperBody {
@@ -36,7 +37,7 @@
 
 .titlePlaceholder {
   position: absolute;
-  top: 18px;
+  top: 0px;
   left: 50%;
   z-index: 0;
   display: flex;
@@ -109,6 +110,7 @@
 
 .lowerBody {
   display: flex;
+  flex: 1;
   height: auto;
   padding: 52px 48px 24px;
   box-sizing: border-box;
@@ -126,7 +128,7 @@
 
 .description {
   flex: 0 0 auto;
-  min-height: 0;
+  min-height: calc(1.45em * 3);
   width: 100%;
   overflow: hidden;
   display: -webkit-box;
@@ -146,6 +148,7 @@
   align-items: center;
   gap: 14px;
   width: 100%;
+  padding-bottom: 36px;
 }
 
 
@@ -169,7 +172,7 @@
   }
 
   .titlePlaceholder {
-    top: 12px;
+    top: -10px;
     width: min(100%, 240px);
   }
 
@@ -190,7 +193,6 @@
 
   .description {
     font-size: 16px;
-    min-height: 48px;
   }
 
 }
