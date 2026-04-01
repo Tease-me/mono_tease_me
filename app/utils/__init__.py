@@ -30,17 +30,6 @@ from .messaging.chat import (
     synthesize_audio_with_elevenlabs_v3,
     pcm_bytes_to_wav_bytes,
 )
-from .messaging.email import (
-    send_verification_email,
-    send_profile_survey_email,
-    send_email_via_ses,
-    send_password_reset_email,
-    send_new_influencer_email,
-    send_new_influencer_email_with_picture,
-    send_influencer_survey_completed_email_to_promoter,
-    image_data_url,
-    compose_email_header_image_url,
-)
 from .messaging.push import send_push, send_push_rich
 from .messaging.tts_sanitizer import sanitize_tts_text
 
@@ -90,16 +79,6 @@ __all__ = [
     "format_for_eleven_v3",
     "synthesize_audio_with_elevenlabs_v3",
     "pcm_bytes_to_wav_bytes",
-    # Messaging - Email
-    "send_verification_email",
-    "send_profile_survey_email",
-    "send_email_via_ses",
-    "send_password_reset_email",
-    "send_new_influencer_email",
-    "send_new_influencer_email_with_picture",
-    "send_influencer_survey_completed_email_to_promoter",
-    "image_data_url",
-    "compose_email_header_image_url",
     # Messaging - Push
     "send_push",
     "send_push_rich",

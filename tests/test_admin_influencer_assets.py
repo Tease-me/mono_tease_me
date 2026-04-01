@@ -9,11 +9,14 @@ from fastapi import FastAPI
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
+from app.api.admin import influencer_assets as admin_influencer_assets_route
 from app.api.routes import influencer as influencer_route
 from app.core.session import get_db
 from app.data.models import Influencer
+from app.services.repositories import influencer_email_assets_repository as email_asset_repo
 from app.services.repositories import influencer_landing_assets_repository as asset_repo
 from app.services.use_cases import admin_influencer_assets as asset_use_case
+from app.utils.auth.dependencies import get_current_user
 
 
 class DummyUploadFile:
@@ -71,6 +74,285 @@ def test_build_landing_asset_key_uses_telegram_video_prefix() -> None:
     )
 
     assert key.endswith("/telegram/welcome-video.mp4")
+
+
+def test_build_influencer_email_header_key_uses_fixed_prefix() -> None:
+    key = email_asset_repo.build_influencer_email_header_key("juliana")
+
+    assert key.endswith("/juliana/email/verification-header.jpg")
+
+
+def test_upload_influencer_email_header_uses_public_asset_bucket(monkeypatch) -> None:
+    captured = {}
+
+    class FakeS3Client:
+        def upload_fileobj(self, file_obj, bucket, key, extra_args=None, **kwargs) -> None:
+            captured["body"] = file_obj.read()
+            captured["bucket"] = bucket
+            captured["key"] = key
+            captured["extra_args"] = (
+                extra_args if extra_args is not None else kwargs.get("ExtraArgs")
+            )
+
+    monkeypatch.setattr(email_asset_repo, "s3", FakeS3Client())
+
+    key, content_type = asyncio.run(
+        email_asset_repo.upload_influencer_email_header(
+            BytesIO(b"jpeg-bytes"),
+            "juliana",
+        )
+    )
+
+    assert key == "influencer/juliana/email/verification-header.jpg"
+    assert content_type == "image/jpeg"
+    assert captured["body"] == b"jpeg-bytes"
+    assert captured["bucket"] == email_asset_repo.settings.PUBLIC_ASSET_BUCKET_NAME
+    assert captured["key"] == "influencer/juliana/email/verification-header.jpg"
+    assert captured["extra_args"] == {"ContentType": "image/jpeg"}
+
+
+def test_build_admin_influencer_email_header_out_returns_missing_asset() -> None:
+    influencer = SimpleNamespace(id="juliana", assets_json={})
+
+    result = asyncio.run(asset_use_case.build_admin_influencer_email_header_out(influencer))
+
+    assert result == {
+        "influencer_id": "juliana",
+        "verification_email_header_key": None,
+        "verification_email_header_url": None,
+        "content_type": None,
+        "has_verification_email_header": False,
+        "updated_at": None,
+    }
+
+
+def test_build_admin_influencer_email_header_out_returns_existing_asset() -> None:
+    influencer = SimpleNamespace(
+        id="juliana",
+        assets_json={
+            email_asset_repo.VERIFICATION_EMAIL_HEADER_SLOT: {
+                "s3_key": "influencer/juliana/email/verification-header.jpg",
+                "content_type": "image/jpeg",
+                "updated_at": "2026-04-01T12:00:00+00:00",
+            }
+        },
+    )
+
+    result = asyncio.run(asset_use_case.build_admin_influencer_email_header_out(influencer))
+
+    assert result == {
+        "influencer_id": "juliana",
+        "verification_email_header_key": "influencer/juliana/email/verification-header.jpg",
+        "verification_email_header_url": (
+            "https://bucket-image-tease-me.s3.us-east-1.amazonaws.com/"
+            "influencer/juliana/email/verification-header.jpg"
+        ),
+        "content_type": "image/jpeg",
+        "has_verification_email_header": True,
+        "updated_at": "2026-04-01T12:00:00+00:00",
+    }
+
+
+def test_upsert_admin_influencer_email_header_updates_assets_json(monkeypatch) -> None:
+    influencer = SimpleNamespace(id="juliana", assets_json={})
+    db = DummySession()
+
+    async def fake_upload_influencer_email_header(file_obj, influencer_id):
+        assert isinstance(file_obj, BytesIO)
+        assert file_obj.read() == b"jpeg-bytes"
+        assert influencer_id == "juliana"
+        return "influencer/juliana/email/verification-header.jpg", "image/jpeg"
+
+    monkeypatch.setattr(
+        asset_use_case,
+        "upload_influencer_email_header",
+        fake_upload_influencer_email_header,
+    )
+    monkeypatch.setattr(asset_use_case, "_utcnow_iso", lambda: "2026-04-01T12:00:00+00:00")
+
+    result = asyncio.run(
+        asset_use_case.upsert_admin_influencer_email_header(
+            db=db,
+            influencer=influencer,
+            verification_email_header=DummyUploadFile(
+                b"jpeg-bytes",
+                filename="header.jpg",
+                content_type="image/jpeg",
+            ),
+        )
+    )
+
+    assert influencer.assets_json == {
+        email_asset_repo.VERIFICATION_EMAIL_HEADER_SLOT: {
+            "s3_key": "influencer/juliana/email/verification-header.jpg",
+            "content_type": "image/jpeg",
+            "updated_at": "2026-04-01T12:00:00+00:00",
+        }
+    }
+    assert db.commits == 1
+    assert result["verification_email_header_key"] == "influencer/juliana/email/verification-header.jpg"
+
+
+def test_get_influencer_email_header_route_success(monkeypatch) -> None:
+    app = FastAPI()
+    app.include_router(admin_influencer_assets_route.router, prefix="/admin")
+
+    async def _override_current_user():
+        return SimpleNamespace(id=1)
+
+    class _Session:
+        async def get(self, model, key):
+            if model is Influencer:
+                return SimpleNamespace(id=key, assets_json={})
+            return None
+
+    async def _override_db():
+        yield _Session()
+
+    async def _fake_build_admin_influencer_email_header_out(influencer):
+        assert influencer.id == "juliana"
+        return {
+            "influencer_id": "juliana",
+            "verification_email_header_key": "influencer/juliana/email/verification-header.jpg",
+            "verification_email_header_url": "https://cdn.test/influencer/juliana/email/verification-header.jpg",
+            "content_type": "image/jpeg",
+            "has_verification_email_header": True,
+            "updated_at": "2026-04-01T12:00:00+00:00",
+        }
+
+    app.dependency_overrides[get_current_user] = _override_current_user
+    app.dependency_overrides[get_db] = _override_db
+    monkeypatch.setattr(
+        admin_influencer_assets_route,
+        "build_admin_influencer_email_header_out",
+        _fake_build_admin_influencer_email_header_out,
+    )
+
+    client = TestClient(app)
+    response = client.get("/admin/influencer/juliana/email-header")
+
+    assert response.status_code == 200
+    assert response.json()["has_verification_email_header"] is True
+
+
+def test_get_influencer_email_header_route_returns_404() -> None:
+    app = FastAPI()
+    app.include_router(admin_influencer_assets_route.router, prefix="/admin")
+
+    async def _override_current_user():
+        return SimpleNamespace(id=1)
+
+    class _Session:
+        async def get(self, model, key):
+            return None
+
+    async def _override_db():
+        yield _Session()
+
+    app.dependency_overrides[get_current_user] = _override_current_user
+    app.dependency_overrides[get_db] = _override_db
+
+    client = TestClient(app)
+    response = client.get("/admin/influencer/missing/email-header")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Influencer not found"}
+
+
+def test_get_influencer_email_header_route_rejects_non_admin() -> None:
+    app = FastAPI()
+    app.include_router(admin_influencer_assets_route.router, prefix="/admin")
+
+    async def _override_current_user():
+        return SimpleNamespace(id=2)
+
+    app.dependency_overrides[get_current_user] = _override_current_user
+
+    client = TestClient(app)
+    response = client.get("/admin/influencer/juliana/email-header")
+
+    assert response.status_code == 403
+    assert response.json() == {"detail": "Admin only"}
+
+
+def test_post_influencer_email_header_route_success(monkeypatch) -> None:
+    app = FastAPI()
+    app.include_router(admin_influencer_assets_route.router, prefix="/admin")
+
+    async def _override_current_user():
+        return SimpleNamespace(id=1)
+
+    class _Session:
+        async def get(self, model, key):
+            if model is Influencer:
+                return SimpleNamespace(id=key, assets_json={})
+            return None
+
+    async def _override_db():
+        yield _Session()
+
+    async def _fake_upsert_admin_influencer_email_header(db, influencer, verification_email_header):
+        assert influencer.id == "juliana"
+        assert verification_email_header.filename == "header.jpg"
+        return {
+            "influencer_id": "juliana",
+            "verification_email_header_key": "influencer/juliana/email/verification-header.jpg",
+            "verification_email_header_url": "https://cdn.test/influencer/juliana/email/verification-header.jpg",
+            "content_type": "image/jpeg",
+            "has_verification_email_header": True,
+            "updated_at": "2026-04-01T12:00:00+00:00",
+        }
+
+    app.dependency_overrides[get_current_user] = _override_current_user
+    app.dependency_overrides[get_db] = _override_db
+    monkeypatch.setattr(
+        admin_influencer_assets_route,
+        "upsert_admin_influencer_email_header",
+        _fake_upsert_admin_influencer_email_header,
+    )
+
+    client = TestClient(app)
+    response = client.post(
+        "/admin/influencer/juliana/email-header",
+        files={"verification_email_header": ("header.jpg", b"jpeg-bytes", "image/jpeg")},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["verification_email_header_key"] == "influencer/juliana/email/verification-header.jpg"
+
+
+def test_post_influencer_email_header_route_rejects_non_admin() -> None:
+    app = FastAPI()
+    app.include_router(admin_influencer_assets_route.router, prefix="/admin")
+
+    async def _override_current_user():
+        return SimpleNamespace(id=2)
+
+    app.dependency_overrides[get_current_user] = _override_current_user
+
+    client = TestClient(app)
+    response = client.post(
+        "/admin/influencer/juliana/email-header",
+        files={"verification_email_header": ("header.jpg", b"jpeg-bytes", "image/jpeg")},
+    )
+
+    assert response.status_code == 403
+    assert response.json() == {"detail": "Admin only"}
+
+
+def test_post_influencer_email_header_route_requires_file() -> None:
+    app = FastAPI()
+    app.include_router(admin_influencer_assets_route.router, prefix="/admin")
+
+    async def _override_current_user():
+        return SimpleNamespace(id=1)
+
+    app.dependency_overrides[get_current_user] = _override_current_user
+
+    client = TestClient(app)
+    response = client.post("/admin/influencer/juliana/email-header")
+
+    assert response.status_code == 422
 
 
 def test_build_admin_telegram_welcome_media_out_returns_both_assets(monkeypatch) -> None:
