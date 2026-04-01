@@ -75,6 +75,7 @@ export const Endpoints = {
   },
   influencers: "/influencer",
   influencer: (id: string) => `/influencer/${id}`,
+  influencerProfile: (id: string) => `/influencer/${id}/profile`,
   influencerBio: (id: string) => `/influencer/${id}/bio`,
   influencerLandingAssets: (id: string) => `/influencer/${id}/landing-assets`,
   relationship_update: `influencer/relationship_update`,
