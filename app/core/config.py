@@ -126,10 +126,7 @@ class Settings(BaseSettings):
     # LLM configuration
     DEFAULT_SUMMARIZATION_MODEL: str = "gpt-3.5-turbo"
 
-    # Twilio Verify (SMS OTP)
-    TWILIO_ACCOUNT_SID: str | None = None
-    TWILIO_AUTH_TOKEN: str | None = None
-    TWILIO_VERIFY_SERVICE_SID: str | None = None
+
 
     # Telegram Userbot (pytgcalls) configuration
     TELEGRAM_API_ID: int | None = None              # From https://my.telegram.org
