@@ -3,7 +3,7 @@ import styles from "./Confirmation.module.css";
 import BackgroundGradient from "@/ui/templates/BackgroundGradient";
 import CenteredLayout from "@/ui/templates/CenteredLayout";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Endpoints, WS_BASE_URL } from "@/api/urls";
+import { Endpoints, WsEndpoints } from "@/api/urls";
 import { AuthContext } from "@/context/AuthContext";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import OnBoardingTopNav from "@/ui/components/nav/OnBoardingTopNav";
@@ -50,11 +50,7 @@ const Confirmation: React.FC<ConfirmationProps> = () => {
       storage.get(LocalStorageKeys.InfluencerReferralId) ??
       undefined;
     setEmail(email);
-    const wsUrl =
-      `${WS_BASE_URL}${Endpoints.ws.notifications}?email=${encodeURIComponent(email)}`;
-    const ws = new WebSocket(
-      wsUrl,
-    );
+    const ws = new WebSocket(WsEndpoints.notifications(email));
     ws.onopen = () => {
       logger.info("[Confirmation] notification socket connected");
     };

@@ -72,8 +72,6 @@ export const Endpoints = {
   },
   adult: {
     conversation_token: "/adult/conversation-token",
-    voice: (influencerId: string) =>
-      `/adult/ws/voice/${encodeURIComponent(influencerId)}`,
   },
   influencers: "/influencer",
   influencer: (id: string) => `/influencer/${id}`,
@@ -183,12 +181,18 @@ export const Endpoints = {
     history: "/verification/history",
     webhook: "/verification/webhook",
   },
-  ws: {
-    chat: "/chat/ws",
-    chat18: "/chat18/ws",
-    notifications: "/ws/notifications",
-  },
   user: {
     usage: (id: string) => `/user/${id}/usage`,
   }
+} as const;
+
+export const WsEndpoints = {
+  notifications: (email: string) =>
+    `${WS_BASE_URL}/ws/notifications?email=${encodeURIComponent(email)}`,
+  chat: (influencerId: string, token: string) =>
+    `${WS_BASE_URL}/chat/ws/${encodeURIComponent(influencerId)}?token=${encodeURIComponent(token)}`,
+  chat18: (influencerId: string, token: string) =>
+    `${WS_BASE_URL}/chat18/ws/${encodeURIComponent(influencerId)}?token=${encodeURIComponent(token)}`,
+  adultVoice: (influencerId: string, token: string) =>
+    `${WS_BASE_URL}/adult/ws/voice/${encodeURIComponent(influencerId)}?token=${encodeURIComponent(token)}`,
 } as const;
