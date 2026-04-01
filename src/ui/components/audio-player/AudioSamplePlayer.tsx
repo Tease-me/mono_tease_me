@@ -86,7 +86,7 @@ export default function AudioSamplePlayer({
       peaks.forEach((val, i) => {
         const barH = Math.max(val * h * 0.85, minBarH);
         const x = i * (barW + gap);
-        ctx.fillStyle = "rgba(255,255,255,0.45)";
+        ctx.fillStyle = "rgba(255,255,255,0.7)";
         ctx.beginPath();
         ctx.roundRect(x, (h - barH) / 2, barW, barH, barW / 2);
         ctx.fill();
