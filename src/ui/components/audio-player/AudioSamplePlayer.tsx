@@ -16,7 +16,7 @@ interface AudioSamplePlayerProps {
   size?: "small" | "large";
   disabled?: boolean;
   isExplicit?: boolean;
-  variant?: "default" | "pink";
+  variant?: "default" | "pink" | "nsfw";
   onLockedClick?: () => void;
 }
 

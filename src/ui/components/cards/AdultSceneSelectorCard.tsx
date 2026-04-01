@@ -78,16 +78,13 @@ export default function AdultSceneSelector({
               <AudioSamplePlayer url={normalUrl} size="small" variant={isRelationship ? "pink" : "default"} />
             )}
             {explicitUrl && (
-              <div className={ageVerified ? styles.explicitSampleWrap : undefined}>
-                {ageVerified && <div className={styles.explicitSampleBadge}>NSFW</div>}
-                <AudioSamplePlayer
-                  url={explicitUrl}
-                  size="small"
-                  isExplicit={!ageVerified}
-                  variant={isRelationship ? "pink" : "default"}
-                  onLockedClick={onLockedClick}
-                />
-              </div>
+              <AudioSamplePlayer
+                url={explicitUrl}
+                size="small"
+                isExplicit={!ageVerified}
+                variant={ageVerified ? "nsfw" : isRelationship ? "pink" : "default"}
+                onLockedClick={onLockedClick}
+              />
             )}
           </div>
         )}
