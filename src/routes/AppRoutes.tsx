@@ -94,6 +94,9 @@ const AdminInfluencerCharacter = lazy(
 const AdminInfluencerAssets = lazy(
   () => import("@/ui/screens/admin/influencer-assets/AdminInfluencerAssets"),
 );
+const AdminEmailAssets = lazy(
+  () => import("@/ui/screens/admin/email-assets/AdminEmailAssets"),
+);
 const PromptEditorAdmin = lazy(
   () => import("@/ui/screens/admin/PromptEditorAdmin"),
 );
@@ -236,6 +239,7 @@ function AppRoutes() {
       element: <AdminInfluencerCharacter />,
     },
     { path: Paths.admin.influencerAssets, element: <AdminInfluencerAssets /> },
+    { path: Paths.admin.emailAssets, element: <AdminEmailAssets /> },
     { path: Paths.admin.influencer, element: <CreateInfluencer /> },
     { path: Paths.admin.prompts, element: <PromptEditorAdmin /> },
     { path: Paths.admin.relationship, element: <RelationshipDashboard /> },

@@ -24,6 +24,7 @@ export const Paths = {
         characters: "/admin/characters",
         influencerCharacter: "/admin/influencer-character",
         influencerAssets: "/admin/influencer-assets",
+        emailAssets: "/admin/email-assets",
         influencer: "/admin/influencer",
         prompts: "/admin/prompts",
         relationship: "/admin/relationship",
