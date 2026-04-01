@@ -1,4 +1,11 @@
-import { InfluencerBioResponse, InfluencerLandingAssetsResponse, InfluencerResponse, InfluencerSampleListResponse, InfluencerSampleResponse } from "../models/influencers";
+import {
+    InfluencerBioResponse,
+    InfluencerLandingAssetsResponse,
+    InfluencerProfileUploadResponse,
+    InfluencerResponse,
+    InfluencerSampleListResponse,
+    InfluencerSampleResponse,
+} from "../models/influencers";
 import { AdultCharactersResponse } from "../models/adultCharacters";
 import { Endpoints } from "../urls";
 import { AxiosInstance } from "axios";
@@ -148,5 +155,31 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
         } catch (error) {
             throw error;
         }
-    }
+    },
+    uploadProfile: async (
+        influencer_id: string,
+        payload: {
+            photo?: File | null;
+            video?: File | null;
+        }
+    ): Promise<InfluencerProfileUploadResponse> => {
+        try {
+            const formData = new FormData();
+            if (payload.photo) formData.append("photo", payload.photo);
+            if (payload.video) formData.append("video", payload.video);
+
+            const response = await apiClient.post<InfluencerProfileUploadResponse>(
+                Endpoints.influencerProfile(influencer_id),
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
 });
