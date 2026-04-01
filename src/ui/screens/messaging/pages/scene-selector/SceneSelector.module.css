@@ -527,6 +527,7 @@
 @media (max-width: 767px) {
   .page1 {
     padding: 4px 16px 4px;
+    justify-content: flex-start;
   }
 
   .header {
