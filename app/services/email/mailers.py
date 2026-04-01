@@ -188,7 +188,7 @@ Your persona can't wait to meet you. ❤️
 
 
 def send_password_reset_email(to_email: str, token: str):
-    subject = "Redefine your TeaseMe password"
+    subject = "Reset Your Password"
     reset_url = f"{CONFIRM_BASE_URL}/reset-password?token={token}"
     logo_url = EMAIL_RESET_HEADER_URL
 

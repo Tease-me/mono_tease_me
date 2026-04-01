@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 
 _BUCKET_URL = settings.BUCKET_PUBLIC_URL.rstrip("/")
 EMAIL_VERIFY_HEADER_URL = f"{_BUCKET_URL}/email_verify_header.png"
-EMAIL_RESET_HEADER_URL = f"{_BUCKET_URL}/reset_password_header.png"
+EMAIL_RESET_HEADER_URL = f"{_BUCKET_URL}/email-assets/reset_password_header.jpg"
 EMAIL_INFLUENCER_HEADER_BG_URL = f"{_BUCKET_URL}/influencer_header_background.png"
 EMAIL_HEADER_SIZE = (520, 150)
 

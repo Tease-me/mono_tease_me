@@ -65,6 +65,7 @@ class Settings(BaseSettings):
 
     LANDING_PAGE_AGENT_ID: str
     BUCKET_NAME: str
+    PUBLIC_ASSET_BUCKET_NAME: str
     BUCKET_PUBLIC_URL: str = "https://bucket-image-tease-me.s3.us-east-1.amazonaws.com"
     INFLUENCER_BUCKET_PREFIX: str
     USER_PREFIX: str = "user-content"  # Default fallback if missing in .env

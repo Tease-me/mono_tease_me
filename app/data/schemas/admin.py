@@ -4,6 +4,13 @@ from typing import Any, Dict, Optional
 from pydantic import BaseModel
 
 
+class AdminEmailAssetOut(BaseModel):
+    ok: bool
+    reset_password_header_key: str
+    reset_password_header_url: str
+    content_type: str
+
+
 class AdminInfluencerAdultCharacterAssetOut(BaseModel):
     id: int
     slug: str
