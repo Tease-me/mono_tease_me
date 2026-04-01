@@ -4,6 +4,7 @@
   align-items: center;
   gap: 0;
   border-radius: 16px;
+  height: 100%;
 }
 
 .upperBody {
@@ -36,7 +37,7 @@
 
 .titlePlaceholder {
   position: absolute;
-  top: 18px;
+  top: 0px;
   left: 50%;
   z-index: 0;
   display: flex;
@@ -109,6 +110,7 @@
 
 .lowerBody {
   display: flex;
+  flex: 1;
   height: auto;
   padding: 52px 48px 24px;
   box-sizing: border-box;
@@ -119,19 +121,19 @@
   align-self: stretch;
   border-radius: 0 0 16px 16px;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  background-color: rgba(12, 12, 12, 0.10);
+  background-color: #282727;
   position: relative;
   z-index: 1;
 }
 
 .description {
   flex: 0 0 auto;
-  min-height: 0;
+  min-height: calc(1.45em * 3);
   width: 100%;
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   color: rgba(255, 255, 255, 0.88);
   text-align: center;
@@ -148,35 +150,10 @@
   width: 100%;
 }
 
-.explicitSampleWrap {
-  position: relative;
-  width: 100%;
-  margin-top: 14px;
+.samplesListNsfw {
+  padding-bottom: 36px;
 }
 
-.explicitSampleBadge {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 2;
-  min-width: 78px;
-  padding: 8px 18px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background:
-    linear-gradient(180deg, rgba(18, 18, 22, 0.96) 0%, rgba(48, 18, 76, 0.94) 100%);
-  box-shadow:
-    0 10px 24px rgba(0, 0, 0, 0.32),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-  color: #EA1E61;
-  text-align: center;
-  font-size: 13px;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: 0.04em;
-  pointer-events: none;
-}
 
 
 
@@ -198,13 +175,13 @@
   }
 
   .titlePlaceholder {
-    top: 12px;
+    top: -10px;
     width: min(100%, 240px);
   }
 
   .lowerBody {
     height: auto;
-    padding: 52px 24px 20px;
+    padding: 28px 24px 20px;
     gap: 12px;
   }
 
@@ -219,16 +196,6 @@
 
   .description {
     font-size: 16px;
-    min-height: 48px;
   }
 
-  .explicitSampleWrap {
-    margin-top: 12px;
-  }
-
-  .explicitSampleBadge {
-    min-width: 72px;
-    padding: 7px 16px;
-    font-size: 14px;
-  }
 }
