@@ -20,12 +20,12 @@
 
 .large {
   gap: 12px;
-  padding: 12px 16px;
+  padding: 6px 16px;
 }
 
 .small {
   gap: 10px;
-  padding: 10px 14px;
+  padding: 6px 14px;
 }
 
 .playButton {
@@ -37,7 +37,7 @@
   border: none;
   background: none;
   padding: 0;
-  color: #ffffff;
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .large .playButton svg {
