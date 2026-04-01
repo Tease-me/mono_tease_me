@@ -210,6 +210,15 @@ export type AdminEmailAssetUploadResponse = {
   content_type: string;
 };
 
+export type AdminInfluencerEmailHeaderResponse = {
+  influencer_id: string;
+  verification_email_header_key: string | null;
+  verification_email_header_url: string | null;
+  content_type: string | null;
+  has_verification_email_header: boolean;
+  updated_at: string | null;
+};
+
 /* ── User Analytics Types ──────────────────────────────────── */
 
 export type AnalyticsOverview = {
@@ -700,6 +709,15 @@ export const AdminServices = (apiClient: AxiosInstance) => ({
     return response.data;
   },
 
+  getInfluencerEmailHeader: async (
+    influencerId: string
+  ): Promise<AdminInfluencerEmailHeaderResponse> => {
+    const response = await apiClient.get(
+      Endpoints.admin.influencerEmailHeader(influencerId)
+    );
+    return response.data;
+  },
+
   uploadInfluencerLandingAssets: async (
     influencerId: string,
     payload: AdminInfluencerLandingAssetsPayload
@@ -758,6 +776,25 @@ export const AdminServices = (apiClient: AxiosInstance) => ({
 
     const response = await apiClient.post(
       Endpoints.admin.influencerLandingAssets(influencerId),
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  },
+
+  uploadInfluencerEmailHeader: async (
+    influencerId: string,
+    file: File
+  ): Promise<AdminInfluencerEmailHeaderResponse> => {
+    const formData = new FormData();
+    formData.append("verification_email_header", file);
+
+    const response = await apiClient.post(
+      Endpoints.admin.influencerEmailHeader(influencerId),
       formData,
       {
         headers: {
