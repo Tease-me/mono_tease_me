@@ -73,20 +73,18 @@ export default function AdultSceneSelector({
       <div className={styles.lowerBody}>
         <div className={styles.description}>{description}</div>
         {hasSamples && (
-          <div className={styles.samplesList}>
+          <div className={`${styles.samplesList}${ageVerified && explicitUrl ? ` ${styles.samplesListNsfw}` : ""}`}>
             {normalUrl && (
-              <AudioSamplePlayer url={normalUrl} size="small" />
+              <AudioSamplePlayer url={normalUrl} size="small" variant={isRelationship ? "pink" : "default"} />
             )}
             {explicitUrl && (
-              <div className={ageVerified ? styles.explicitSampleWrap : undefined}>
-                {ageVerified && <div className={styles.explicitSampleBadge}>NSFW</div>}
-                <AudioSamplePlayer
-                  url={explicitUrl}
-                  size="small"
-                  isExplicit={!ageVerified}
-                  onLockedClick={onLockedClick}
-                />
-              </div>
+              <AudioSamplePlayer
+                url={explicitUrl}
+                size="small"
+                isExplicit={!ageVerified}
+                variant={ageVerified ? "nsfw" : isRelationship ? "pink" : "default"}
+                onLockedClick={onLockedClick}
+              />
             )}
           </div>
         )}

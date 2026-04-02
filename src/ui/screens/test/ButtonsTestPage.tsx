@@ -5,11 +5,15 @@ import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import SvgPack from '@/utils/SvgPack';
 import AnimatedButton from '@/ui/components/inputs/buttons/AnimatedButton';
+import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButton';
 
 interface ButtonsTestPageProps {
 }
 
 const ButtonsTestPage: React.FC<ButtonsTestPageProps> = ({ }) => {
+    const circularSizes = ["xsmall", "small", "medium", "large"] as const;
+    const circularVariants = ["primary", "secondary", "tertiary"] as const;
+
     return (
         <div className={styles["container"]}>
             <h1>Tease Me Buttons</h1>
@@ -338,6 +342,77 @@ const ButtonsTestPage: React.FC<ButtonsTestPageProps> = ({ }) => {
                         leftIcon={<SvgPack.Call />}
                     />
                 </div>
+            </div>
+
+            <h2>Circular Icon Button</h2>
+            <h3>Icon Only Sizes</h3>
+            <div className={styles["grid-test"]}>
+                {circularSizes.map((size) => (
+                    <CircularIconButton
+                        key={size}
+                        size={size}
+                        icon={<SvgPack.Call />}
+                        aria-label={`Circular icon button ${size}`}
+                    />
+                ))}
+            </div>
+
+            <h3>Variants</h3>
+            <div className={styles["grid-test"]}>
+                {circularVariants.map((variant) => (
+                    <CircularIconButton
+                        key={variant}
+                        variant={variant}
+                        icon={<SvgPack.Call />}
+                        text={variant}
+                    />
+                ))}
+            </div>
+
+            <h3>Disabled Variants</h3>
+            <div className={styles["grid-test"]}>
+                {circularVariants.map((variant) => (
+                    <CircularIconButton
+                        key={`${variant}-disabled`}
+                        variant={variant}
+                        icon={<SvgPack.Call />}
+                        text={variant}
+                        disabled
+                    />
+                ))}
+            </div>
+
+            <h3>Content Modes</h3>
+            <div className={styles["grid-test"]}>
+                <CircularIconButton
+                    icon={<SvgPack.Call />}
+                    aria-label="Icon only circular icon button"
+                />
+                <CircularIconButton
+                    text="Top up"
+                />
+                <CircularIconButton
+                    icon={<SvgPack.Call />}
+                    text="Call now"
+                />
+            </div>
+
+            <h3>Disabled Content Modes</h3>
+            <div className={styles["grid-test"]}>
+                <CircularIconButton
+                    icon={<SvgPack.Call />}
+                    aria-label="Disabled icon only circular icon button"
+                    disabled
+                />
+                <CircularIconButton
+                    text="Top up"
+                    disabled
+                />
+                <CircularIconButton
+                    icon={<SvgPack.Call />}
+                    text="Call now"
+                    disabled
+                />
             </div>
         </div>
     );

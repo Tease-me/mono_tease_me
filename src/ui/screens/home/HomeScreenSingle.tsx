@@ -189,7 +189,7 @@ export default function HomeScreenSingle() {
           navPayload={navPayload}
         />
     },
-    { id: "influencer_profile", label: "Influencer Profile", background: "#080808", render: ({ goTo, navPayload, goBack }) => <InfluencerRelation key={navPayload.influencerId} goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
+    { id: "influencer_profile", label: "Influencer Profile", render: ({ goTo, navPayload, goBack }) => <InfluencerRelation key={navPayload.influencerId} goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
     { id: "add_credits", label: "Add Credits", render: ({ goTo, navPayload }) => <AddCredits goTo={goTo} navpayload={navPayload} /> },
     {
       id: "subscribe", label: "Adult Mode", render: ({ navPayload, goBack }) => (
@@ -295,6 +295,7 @@ export default function HomeScreenSingle() {
           <Suspense fallback={<div className={styles.loadingSpinner}><LoadingSpinner /></div>}>
             <SceneSelector
               influencerId={influencer.id}
+              influencerImageUrl={influencer.img}
               onGirlfriendModeSelected={handleGirlfriendModeSelected}
             />
           </Suspense>

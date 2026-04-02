@@ -27,6 +27,8 @@ export const Endpoints = {
     topUp: "/billing/topup",
     createCheckout: "/billing/create-checkout",
     verifyCheckout: "/billing/verify-checkout",
+    adultCharacterSummary: (influencerId: string) =>
+      `/billing/${encodeURIComponent(influencerId)}/adult-character-summary`,
   },
   armloop: {
     createSession: "/checkout/armloop/session",
@@ -70,11 +72,10 @@ export const Endpoints = {
   },
   adult: {
     conversation_token: "/adult/conversation-token",
-    voice: (influencerId: string) =>
-      `/adult/ws/voice/${encodeURIComponent(influencerId)}`,
   },
   influencers: "/influencer",
   influencer: (id: string) => `/influencer/${id}`,
+  influencerProfile: (id: string) => `/influencer/${id}/profile`,
   influencerBio: (id: string) => `/influencer/${id}/bio`,
   influencerLandingAssets: (id: string) => `/influencer/${id}/landing-assets`,
   relationship_update: `influencer/relationship_update`,
@@ -100,6 +101,9 @@ export const Endpoints = {
     },
     influencerLandingAssets: (influencerId: string) =>
       `admin/influencer/${encodeURIComponent(influencerId)}/landing-assets`,
+    influencerEmailHeader: (influencerId: string) =>
+      `admin/influencer/${encodeURIComponent(influencerId)}/email-header`,
+    emailAssets: `admin/email-assets`,
     telegramWelcomeMedia: (influencerId: string) =>
       `admin/influencer/${encodeURIComponent(influencerId)}/telegram-welcome-media`,
     systemPrompts: {
@@ -153,14 +157,7 @@ export const Endpoints = {
     logFiles: `admin/logs/files`,
     logDownload: `admin/logs/download`,
     logStream: `admin/logs/stream`,
-    telegram: {
-      searchNumbers: `telegram/numbers/search`,
-      provision: `telegram/provision`,
-      listProvisioned: `telegram/provisioned`,
-      provisionedDetail: (id: number) => `telegram/provisioned/${id}`,
-      retryProvision: (id: number) => `telegram/provisioned/${id}/retry`,
-      releaseNumber: (id: number) => `telegram/provisioned/${id}`,
-    },
+
   },
   subscriptions: {
     start: "/subscriptions/start",
@@ -180,12 +177,18 @@ export const Endpoints = {
     history: "/verification/history",
     webhook: "/verification/webhook",
   },
-  ws: {
-    chat: "/chat/ws",
-    chat18: "/chat18/ws",
-    notifications: "/ws/notifications",
-  },
   user: {
     usage: (id: string) => `/user/${id}/usage`,
   }
+} as const;
+
+export const WsEndpoints = {
+  notifications: (email: string) =>
+    `${WS_BASE_URL}/ws/notifications?email=${encodeURIComponent(email)}`,
+  chat: (influencerId: string, token: string) =>
+    `${WS_BASE_URL}/chat/ws/${encodeURIComponent(influencerId)}?token=${encodeURIComponent(token)}`,
+  chat18: (influencerId: string, token: string) =>
+    `${WS_BASE_URL}/chat18/ws/${encodeURIComponent(influencerId)}?token=${encodeURIComponent(token)}`,
+  adultVoice: (influencerId: string, token: string) =>
+    `${WS_BASE_URL}/adult/ws/voice/${encodeURIComponent(influencerId)}?token=${encodeURIComponent(token)}`,
 } as const;

@@ -1,4 +1,6 @@
-import { Suspense, lazy, useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useContext, useEffect, useRef, useState } from "react";
+import avatarFallback from "@/assets/empty-profile.png";
+import { AuthContext } from "@/context/AuthContext";
 import { apiClient } from "@/api/apis";
 import { InfluencerServices } from "@/api/services/InfluencerService";
 import AdultSceneSelector from "@/ui/components/cards/AdultSceneSelectorCard";
@@ -44,9 +46,11 @@ type Scene = {
 };
 
 type SessionState = "preview" | "active";
+type PendingGateAction = "open-scene" | "unlock-samples";
 
 type SceneSelectorProps = {
   influencerId: string;
+  influencerImageUrl?: string;
   onGirlfriendModeSelected: () => void;
 };
 
@@ -109,26 +113,30 @@ const loadLottieData = async (url: string): Promise<SceneTitlePlaceholder> => {
   return request;
 };
 
-export default function SceneSelector({ influencerId, onGirlfriendModeSelected }: SceneSelectorProps) {
+export default function SceneSelector({ influencerId, influencerImageUrl, onGirlfriendModeSelected }: SceneSelectorProps) {
+  const { user } = useContext(AuthContext);
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [selectedScene, setSelectedScene] = useState<Scene | null>(null);
   const [sessionState, setSessionState] = useState<SessionState>("preview");
   const [isLoading, setIsLoading] = useState(true);
   const [loadErrorMessage, setLoadErrorMessage] = useState<string | null>(null);
   const [showTopupModal, setShowTopupModal] = useState(false);
-  const [pendingScene, setPendingScene] = useState<Scene | null>(null);
+  const [pendingGate, setPendingGate] = useState<{
+    scene: Scene;
+    action: PendingGateAction;
+  } | null>(null);
   const [showSummaryInfoModal, setShowSummaryInfoModal] = useState(false);
   const { needsGate, verificationRequired, markConfirmed } = useAgeVerification();
   const lastCallErrorRef = useRef<string | null>(null);
   const {
     startCall,
     stopCall,
+    dismissPostCallSummary,
     status,
     elapsedSeconds,
     activeStatusLabel,
     isCallActive,
     postCallSummary,
-    pendingSummaryRefresh,
     showPostCallSummary,
     isStartDisabled,
     error: callError,
@@ -253,7 +261,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
 
   const handleSelectScenario = (scene: Scene) => {
     if (scene.slug !== "relationship" && needsGate) {
-      setPendingScene(scene);
+      setPendingGate({ scene, action: "open-scene" });
       return;
     }
     setSelectedScene(scene);
@@ -262,11 +270,11 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
 
   const handleAgeConfirmed = () => {
     markConfirmed();
-    if (pendingScene) {
-      setSelectedScene(pendingScene);
+    if (pendingGate?.action === "open-scene") {
+      setSelectedScene(pendingGate.scene);
       setSessionState("preview");
-      setPendingScene(null);
     }
+    setPendingGate(null);
   };
 
   const handleCloseScenario = () => {
@@ -341,7 +349,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                     isRelationship={scene.slug === "relationship"}
                     samples={scene.samples}
                     ageVerified={!needsGate && !verificationRequired}
-                    onLockedClick={() => setPendingScene(scene)}
+                    onLockedClick={() => setPendingGate({ scene, action: "unlock-samples" })}
                   />
                   <IconButton
                     onClick={scene.slug === "vibrator" ? undefined : () => handleSelectScenario(scene)}
@@ -401,6 +409,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
               ) : null}
 
               {sessionState === "preview" && <div className={styles.previewOverlay} />}
+              {showPostCallSummary && <div className={styles.postCallOverlay} />}
               <div className={`${styles.sessionName} ${sessionState === "preview" ? styles.previewContentVisible : styles.previewContentHidden}`}>{selectedScene.name}</div>
               <div className={`${styles.previewPanel} ${sessionState === "preview" ? styles.previewContentVisible : styles.previewContentHidden}`}>
                 <div className={styles.subtitle}>Scenario Details</div>
@@ -442,11 +451,25 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                   className={`${styles.activePanel} ${sessionState === "active" ? styles.activePanelVisible : styles.activePanelHidden}`}
                 >
                   {showPostCallSummary ? (
-                    <>
-                      <div className={styles.summaryHeader}>
-                        <div className={styles.subtitle}>
-                          {pendingSummaryRefresh ? "Preparing call summary..." : "Call summary"}
-                        </div>
+                    <div className={styles.summaryContent}>
+                      <div className={styles.summaryAvatars}>
+                        <img src={user?.imgUrl || avatarFallback} alt="You" className={styles.summaryUserAvatar} />
+                        <IconButton
+                          color="red"
+                          type="pill"
+                          className={styles.summaryEndCallBadge}
+                          leftIcon={
+                            <Suspense fallback={null}>
+                              <SvgPack.HangupCallIcon />
+                            </Suspense>
+                          }
+                        />
+                        <img src={influencerImageUrl || avatarFallback} alt="Influencer" className={styles.summaryInfluencerAvatar} />
+                      </div>
+                      <div className={styles.subtitle}>Call Summary</div>
+                      <div className={styles.sessionTimer}>{summaryDurationLabel}</div>
+                      <div className={styles.summaryCostRow}>
+                        <span className={styles.summaryCostLabel}>Est. Cost: {summaryCostLabel}</span>
                         <button
                           type="button"
                           className={styles.summaryInfoButton}
@@ -458,26 +481,20 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                           </Suspense>
                         </button>
                       </div>
-                      <div className={styles.postCallSummary}>
-                        <div className={styles.postCallSummaryCard}>
-                          <span className={styles.postCallSummaryLabel}>Duration</span>
-                          <span className={styles.postCallSummaryValue}>
-                            {summaryDurationLabel}
-                          </span>
-                        </div>
-                        <div className={styles.postCallSummaryCard}>
-                          <span className={styles.postCallSummaryLabel}>Cost</span>
-                          <span className={styles.postCallSummaryValue}>
-                            {summaryCostLabel}
-                          </span>
-                        </div>
-                      </div>
-                      {pendingSummaryRefresh && (
-                        <div className={styles.postCallSummaryHint}>
-                          Estimated values shown while we confirm the final summary.
-                        </div>
-                      )}
-                    </>
+                      <IconButton
+                        onClick={dismissPostCallSummary}
+                        color="black"
+                        type="pill"
+                        className={styles.summaryGoBackButton}
+                        text="Go Back"
+                      />
+                      <a
+                        href="mailto:support@teaseme.live"
+                        className={styles.summaryFeedbackLink}
+                      >
+                        Send feedback
+                      </a>
+                    </div>
                   ) : (
                     <>
                       <div className={styles.subtitle}>{activeStatusLabel}</div>
@@ -550,11 +567,11 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
         influencerId={influencerId}
         onClose={() => setShowTopupModal(false)}
       />
-      {pendingScene && (
+      {pendingGate && (
         <Suspense fallback={null}>
           <AdultTermsModal
             isOpen
-            onClose={() => setPendingScene(null)}
+            onClose={() => setPendingGate(null)}
             onAgree={handleAgeConfirmed}
             influencerId={influencerId}
             idVerificationRequired={verificationRequired}

@@ -15,6 +15,7 @@ import {
 import GuestRoute from "./components/GuestRoute";
 import PrivateRoute from "./components/PrivateRoute";
 import SuperRoute from "./components/SuperRoute";
+import TestRoute from "./components/TestRoute";
 import { Paths } from "./path";
 
 const PayPalCancel = lazy(
@@ -94,6 +95,9 @@ const AdminInfluencerCharacter = lazy(
 const AdminInfluencerAssets = lazy(
   () => import("@/ui/screens/admin/influencer-assets/AdminInfluencerAssets"),
 );
+const AdminEmailAssets = lazy(
+  () => import("@/ui/screens/admin/email-assets/AdminEmailAssets"),
+);
 const PromptEditorAdmin = lazy(
   () => import("@/ui/screens/admin/PromptEditorAdmin"),
 );
@@ -126,6 +130,7 @@ const RecordTerms = lazy(
 const IntencionInfluencerHome = lazy(
   () => import("@/ui/screens/landing-page/IntencionInfluencerHome"),
 );
+const TestPage = lazy(() => import("@/ui/screens/test/TestPage"));
 
 function AdultModeRoute() {
   const [searchParams] = useSearchParams();
@@ -236,6 +241,7 @@ function AppRoutes() {
       element: <AdminInfluencerCharacter />,
     },
     { path: Paths.admin.influencerAssets, element: <AdminInfluencerAssets /> },
+    { path: Paths.admin.emailAssets, element: <AdminEmailAssets /> },
     { path: Paths.admin.influencer, element: <CreateInfluencer /> },
     { path: Paths.admin.prompts, element: <PromptEditorAdmin /> },
     { path: Paths.admin.relationship, element: <RelationshipDashboard /> },
@@ -259,6 +265,10 @@ function AppRoutes() {
     { path: Paths.armloopReturn, element: <ArmloopReturn /> },
   ];
 
+  const testRoutes: { path: string; element: JSX.Element }[] = [
+    { path: Paths.testButtons, element: <TestPage /> },
+  ];
+
   return (
     <ThemeProvider initial="default">
       <BrowserRouter>
@@ -279,6 +289,13 @@ function AppRoutes() {
                 key={path}
                 path={path}
                 element={<PrivateRoute>{element}</PrivateRoute>}
+              />
+            ))}
+            {testRoutes.map(({ path, element }) => (
+              <Route
+                key={path}
+                path={path}
+                element={<TestRoute>{element}</TestRoute>}
               />
             ))}
             {superRoutes.map(({ path, element }) => (

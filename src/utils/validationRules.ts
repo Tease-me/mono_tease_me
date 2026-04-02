@@ -3,8 +3,8 @@ import {
   emailFormat,
   hasLowercase,
   hasNumber,
-  // hasSpecialChar,
-  // hasUppercase,
+  hasSpecialChar,
+  hasUppercase,
   maxLength,
   minLength,
   phoneFormat,
@@ -19,12 +19,12 @@ export const validationRules = {
   email: composeValidators(required("Email"), emailFormat),
   password: composeValidators(
     required("Password"),
-    // minLength("Password", 8),
+    minLength("Password", 8),
     maxLength("Password", 64),
-    // hasUppercase("Password"),
+    hasUppercase("Password"),
     hasLowercase("Password"),
     hasNumber("Password"),
-    // hasSpecialChar("Password")
+    hasSpecialChar("Password")
   ),
   nickName: composeValidators(required("Nick Name"), minLength("Nick Name", 3), maxLength("Nick Name", 30)),
   username: composeValidators(required("Username"), minLength("Username", 3), maxLength("Username", 30)),

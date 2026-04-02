@@ -176,6 +176,15 @@
 }
 
 
+.postCallOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.80);
+  backdrop-filter: blur(5px);
+  pointer-events: none;
+  z-index: 0;
+}
+
 .previewOverlay {
   position: absolute;
   inset: 0;
@@ -334,9 +343,10 @@
 
 .sessionTimer {
   width: 100%;
-  color: #fff;
+  color: var(--Others-White, #FFF);
   text-align: center;
-  font-size: 32px;
+  font-family: Urbanist;
+  font-size: 24px;
   font-weight: 700;
   line-height: 120%;
 }
@@ -349,10 +359,10 @@
   display: flex;
   width: 330px;
   max-width: calc(100% - 28px);
-  padding: 15px 9px;
+  padding: 24px 16px;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   border-radius: var(--radius-radius-xl, 20px);
   border: 1px solid rgba(66, 66, 66, 0.50);
   background: rgba(33, 33, 33, 0.80);
@@ -391,60 +401,117 @@
   justify-content: center;
 }
 
-.postCallSummary {
-  display: flex;
-  width: 100%;
-  gap: 8px;
+
+@keyframes summaryFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.postCallSummaryCard {
-  flex: 1;
-  min-width: 0;
+.summaryContent {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 12px;
-  border-radius: 12px;
-  background: rgba(66, 66, 66, 0.4);
+  width: 100%;
+  gap: 14px;
+  animation: summaryFadeIn 280ms ease forwards;
 }
 
-.postCallSummaryLabel {
-  color: var(--Greyscale-500, #9E9E9E);
-  text-align: center;
-  font-family: Urbanist;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 140%;
-  letter-spacing: 0.2px;
+.summaryAvatars {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  margin-bottom: 12px;
 }
 
-.postCallSummaryValue {
-  color: #fff;
-  text-align: center;
-  font-family: Urbanist;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 120%;
+.summaryUserAvatar {
+  width: 57px;
+  height: 57px;
+  border-radius: 60px;
+  background: var(----tm-grey-color12, #2B2B2B);
+  box-shadow: 0 0 0 7px #2B2B2B;
+  object-fit: cover;
+  flex-shrink: 0;
+  z-index: 1;
 }
 
-.postCallSummaryHint {
-  color: var(--Greyscale-500, #9E9E9E);
-  text-align: center;
+.summaryEndCallBadge {
+  width: 33px !important;
+  height: 33px !important;
+  min-height: 33px !important;
+  flex: 0 0 33px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0;
+  z-index: 2;
+  margin-left: -8px;
+  margin-right: -8px;
+}
+
+.summaryEndCallBadge svg {
+  width: 21px !important;
+  height: 21px !important;
+}
+
+.summaryEndCallBadge :global(.button-cta-inner) {
+  border-radius: 50% !important;
+  padding: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.summaryInfluencerAvatar {
+  width: 77px;
+  height: 77px;
+  border-radius: 60px;
+  background: var(----tm-grey-color12, #2B2B2B);
+  box-shadow: 0 0 0 7px #2B2B2B;
+  object-fit: cover;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.summaryCostRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.summaryCostLabel {
+  color: var(--colors-tm-success-color05, #28FF70);
   font-family: Urbanist;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 500;
   line-height: 140%;
   letter-spacing: 0.2px;
 }
 
-.summaryHeader {
-  display: flex;
+.summaryGoBackButton {
   width: 100%;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  min-height: 48px;
+  justify-content: center;
 }
+
+.summaryFeedbackLink {
+  color: var(--Greyscale-600, #757575);
+  font-family: Urbanist;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 140%;
+  letter-spacing: 0.2px;
+  text-decoration: underline;
+  text-align: center;
+}
+
 
 .summaryInfoButton {
   display: flex;
@@ -526,7 +593,9 @@
 
 @media (max-width: 767px) {
   .page1 {
-    padding: 4px 16px 4px;
+    padding: 12px 16px 4px;
+    justify-content: flex-start;
+    gap: 12px;
   }
 
   .header {
@@ -545,6 +614,7 @@
     width: min(320px, calc(100vw - 60px));
     max-width: none;
     scroll-snap-align: unset;
+    gap: 12px;
   }
 
   .sessionPage {

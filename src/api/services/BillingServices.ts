@@ -54,6 +54,16 @@ export type VerifyCheckoutRes = {
   new_balance?: number;
 };
 
+export type AdultCharacterSummary = {
+  influencer_id: string;
+  balance_cents: number;
+  estimated_remaining_call_seconds: number | null;
+  latest_adult_call_summary: {
+    duration_seconds: number | null;
+    cost_cents: number | null;
+  } | null;
+};
+
 export const BillingServices = (apiClient: AxiosInstance) => ({
   getBalance: async (): Promise<BalanceRes> => {
     const res = await apiClient.get(Endpoints.billing.balance);
@@ -81,6 +91,15 @@ export const BillingServices = (apiClient: AxiosInstance) => ({
     const res = await apiClient.post(
       Endpoints.billing.verifyCheckout,
       payload
+    );
+    return res.data;
+  },
+
+  getAdultCharacterSummary: async (
+    influencerId: string
+  ): Promise<AdultCharacterSummary> => {
+    const res = await apiClient.get(
+      Endpoints.billing.adultCharacterSummary(influencerId)
     );
     return res.data;
   },

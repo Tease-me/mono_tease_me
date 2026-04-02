@@ -79,6 +79,16 @@ export interface InfluencerBioResponse {
   social_links: InfluencerBioSocialLink[];
 }
 
+export interface InfluencerProfileUploadResponse {
+  ok: boolean;
+  profile_photo_key: string | null;
+  profile_video_key: string | null;
+  photo_url: string | null;
+  video_url: string | null;
+  native_language?: string | null;
+  date_of_birth?: string | null;
+}
+
 export interface PersonaImportResponse {
   total_rows: number;
   imported_count: number;

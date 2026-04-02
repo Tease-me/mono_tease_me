@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
-import { Endpoints, WS_BASE_URL } from "@/api/urls";
+import { WsEndpoints } from "@/api/urls";
 import { storage } from "@/utils/storage";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { ChatRepository } from "@/data/repositories/ChatRepo";
@@ -95,7 +95,7 @@ export function useChatRealtime({
         }
 
         ws.current = new window.WebSocket(
-          `${WS_BASE_URL}${Endpoints.ws.chat}/${targetInfluencerId}?token=${accessToken}`,
+          WsEndpoints.chat(targetInfluencerId, accessToken),
         );
 
         const connectionChatId = activeChatId;

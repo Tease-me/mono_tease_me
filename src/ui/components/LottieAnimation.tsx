@@ -1,7 +1,5 @@
 import React, { useEffect, useMemo, useRef } from "react";
-import lottie from "lottie-web";
-
-
+import type { AnimationItem } from "lottie-web";
 
 interface LottieAnimationProps {
   loop?: boolean;
@@ -21,7 +19,7 @@ const LottieAnimation: React.FC<LottieAnimationProps> = ({
   onComplete,
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const animationRef = useRef<ReturnType<typeof lottie.loadAnimation> | null>(null);
+  const animationRef = useRef<AnimationItem | null>(null);
 
   const resolvedRendererSettings = useMemo(
     () => rendererSettings ?? { preserveAspectRatio: "xMidYMid meet" },
@@ -29,33 +27,57 @@ const LottieAnimation: React.FC<LottieAnimationProps> = ({
   );
 
   useEffect(() => {
-    if (!containerRef.current || !animationData) {
+    if (!animationData) {
       return;
     }
 
-    const anim = lottie.loadAnimation({
-      container: containerRef.current,
-      renderer: "svg",
-      loop,
-      autoplay: autoplay && !playOnClick,
-      animationData,
-      rendererSettings: resolvedRendererSettings,
-    });
-    animationRef.current = anim;
+    let isDisposed = false;
+    let currentAnimation: AnimationItem | null = null;
 
-    if (onComplete) {
-      anim.addEventListener("complete", onComplete);
-    }
+    const loadAnimation = async () => {
+      const container = containerRef.current;
 
-    if (playOnClick) {
-      anim.stop();
-    }
+      if (!container) {
+        return;
+      }
+
+      const { default: lottie } = await import("lottie-web");
+
+      if (isDisposed || containerRef.current !== container) {
+        return;
+      }
+
+      const anim = lottie.loadAnimation({
+        container,
+        renderer: "svg",
+        loop,
+        autoplay: autoplay && !playOnClick,
+        animationData,
+        rendererSettings: resolvedRendererSettings,
+      });
+
+      currentAnimation = anim;
+      animationRef.current = anim;
+
+      if (onComplete) {
+        anim.addEventListener("complete", onComplete);
+      }
+
+      if (playOnClick) {
+        anim.stop();
+      }
+    };
+
+    void loadAnimation();
 
     return () => {
-      if (onComplete) {
-        anim.removeEventListener("complete", onComplete);
+      isDisposed = true;
+
+      if (onComplete && currentAnimation) {
+        currentAnimation.removeEventListener("complete", onComplete);
       }
-      anim.destroy();
+
+      currentAnimation?.destroy();
       animationRef.current = null;
     };
   }, [
