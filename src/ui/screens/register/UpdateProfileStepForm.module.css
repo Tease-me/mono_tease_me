@@ -49,6 +49,7 @@
   gap: 12px;
 }
 
+
 .section-title {
   font-size: 16px;
   font-weight: 600;
@@ -69,7 +70,13 @@
     grid-template-columns: 1fr;
   }
 
-  .gender-buttons {
-    flex-direction: column;
+  .gender-selection {
+    align-items: center;
+  }
+
+  .gender-buttons > * {
+    flex: 1;
+    min-height: 96px;
+    max-width: 80px;
   }
 }
