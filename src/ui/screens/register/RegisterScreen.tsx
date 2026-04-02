@@ -17,12 +17,15 @@ import { validationRules } from "@/utils/validationRules";
 import { required, validateFields } from "@/utils/validations";
 import RegisterStepForm from "./RegisterStepForm";
 import UpdateProfileStepForm from "./UpdateProfileStepForm";
+import AvatarPicker from "@/ui/components/avatar-picker/AvatarPicker";
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 import { storage } from "@/utils/storage";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 
 export default function RegisterScreen() {
   const [step, setStep] = useState<1 | 2>(1);
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [selectedAvatarUrl, setSelectedAvatarUrl] = useState<string | undefined>();
   const [account, setAccount] = useState({
     email: "",
     password: "",
@@ -340,24 +343,37 @@ export default function RegisterScreen() {
             onSignIn={() => navigate(Paths.login)}
           />
         ) : (
-          <UpdateProfileStepForm
-            values={profile}
-            errors={profileErrors}
-            onChange={(field, value) => {
-              setProfile((prev) => ({ ...prev, [field]: value }));
-            }}
-            onGenderSelect={(value) => {
-              setProfile((prev) => ({ ...prev, gender: value }));
-              validateField("gender", value);
-            }}
-            onBlur={(field) => validateField(field, profile[field])}
-            onBack={() => setStep(1)}
-            onSubmit={handleContinueClicked}
-            handleEditProfileMediaClicked={handleEditProfileMediaClicked}
-            onProfilePhotoChange={(file) => {
-              setProfile((prev) => ({ ...prev, profilePhotoFile: file }));
-            }}
-          />
+          <>
+            <UpdateProfileStepForm
+              values={profile}
+              errors={profileErrors}
+              onChange={(field, value) => {
+                setProfile((prev) => ({ ...prev, [field]: value }));
+              }}
+              onGenderSelect={(value) => {
+                setProfile((prev) => ({ ...prev, gender: value }));
+                validateField("gender", value);
+              }}
+              onBlur={(field) => validateField(field, profile[field])}
+              onBack={() => setStep(1)}
+              onSubmit={handleContinueClicked}
+              handleEditProfileMediaClicked={handleEditProfileMediaClicked}
+              onProfilePhotoChange={(file) => {
+                setProfile((prev) => ({ ...prev, profilePhotoFile: file }));
+                setSelectedAvatarUrl(undefined);
+              }}
+              onSelectAvatar={() => setShowAvatarPicker(true)}
+              selectedAvatarUrl={selectedAvatarUrl}
+            />
+            <AvatarPicker
+              isOpen={showAvatarPicker}
+              onClose={() => setShowAvatarPicker(false)}
+              onSelect={(url) => {
+                setSelectedAvatarUrl(url);
+                setProfile((prev) => ({ ...prev, profilePhotoFile: null }));
+              }}
+            />
+          </>
         )}
       </FullWidthLayout>
     </BackgroundGradient>

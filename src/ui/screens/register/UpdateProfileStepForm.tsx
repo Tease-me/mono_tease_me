@@ -36,6 +36,7 @@ type UpdateProfileStepFormProps = {
   handleEditProfileMediaClicked: () => void;
   onProfilePhotoChange: (file: File | null) => void;
   onSelectAvatar?: () => void;
+  selectedAvatarUrl?: string;
 };
 
 export default function UpdateProfileStepForm({
@@ -49,11 +50,12 @@ export default function UpdateProfileStepForm({
   handleEditProfileMediaClicked,
   onProfilePhotoChange,
   onSelectAvatar,
+  selectedAvatarUrl,
 }: UpdateProfileStepFormProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const previewUrl = values.profilePhotoFile
     ? URL.createObjectURL(values.profilePhotoFile)
-    : undefined;
+    : selectedAvatarUrl;
 
   return (
     <div className={styles["two-column-layout"]}>
