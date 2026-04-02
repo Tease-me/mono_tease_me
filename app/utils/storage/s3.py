@@ -258,6 +258,13 @@ async def save_user_photo_to_s3(file_obj, filename: str, content_type: str, user
     return key
 
 
+def resolve_user_photo_url(value: str, expires: int = 3600) -> str:
+    normalized = value.strip()
+    if normalized.startswith(("http://", "https://")):
+        return normalized
+    return generate_presigned_url(normalized, expires)
+
+
 def generate_user_presigned_url(key: str, expires: int = 3600) -> str:
     return generate_presigned_url(key, expires)
 
