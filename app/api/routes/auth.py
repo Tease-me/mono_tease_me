@@ -5,6 +5,7 @@ import logging
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, File, HTTPException, Request, Response, UploadFile, status
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from jose import jwt, JWTError
@@ -99,11 +100,9 @@ async def register(
     file: UploadFile | None = File(default=None),
 ):
     influencer = None
-    existing_user = await db.execute(
-        select(User).where((User.email == data.email))
-    )
+    existing_user = await db.execute(select(User).where(User.email == data.email))
     if existing_user.scalar():
-        raise HTTPException(status_code=409, detail="Username or email already registered")
+        raise HTTPException(status_code=409, detail="Email already registered")
 
     if data.influencer_id:
         influencer = await ensure_influencer(db, data.influencer_id)
@@ -125,7 +124,17 @@ async def register(
         date_of_birth=data.date_of_birth,
     )
     db.add(user)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError as exc:
+        await db.rollback()
+        message = str(exc.orig).lower()
+        if "email" in message:
+            raise HTTPException(
+                status_code=409,
+                detail="Email already registered",
+            ) from exc
+        raise
     await db.refresh(user)
 
     if file:
