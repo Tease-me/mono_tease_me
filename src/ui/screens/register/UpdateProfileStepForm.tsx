@@ -35,6 +35,7 @@ type UpdateProfileStepFormProps = {
   onSubmit: () => void;
   handleEditProfileMediaClicked: () => void;
   onProfilePhotoChange: (file: File | null) => void;
+  onSelectAvatar?: () => void;
 };
 
 export default function UpdateProfileStepForm({
@@ -47,6 +48,7 @@ export default function UpdateProfileStepForm({
   onSubmit,
   handleEditProfileMediaClicked,
   onProfilePhotoChange,
+  onSelectAvatar,
 }: UpdateProfileStepFormProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const previewUrl = values.profilePhotoFile
@@ -56,15 +58,29 @@ export default function UpdateProfileStepForm({
   return (
     <div className={styles["two-column-layout"]}>
       <div className={styles["left-column"]}>
-        <ProfileMedia
-          mediaType="image"
-          size="xlarge"
-          imageSrc={previewUrl}
-          onEditClick={() => {
-            handleEditProfileMediaClicked();
-            fileInputRef.current?.click();
-          }}
-        />
+        <div className={styles["avatar-wrapper"]}>
+          <ProfileMedia
+            mediaType="image"
+            size="large"
+            imageSrc={previewUrl}
+            onEditClick={() => {
+              handleEditProfileMediaClicked();
+              fileInputRef.current?.click();
+            }}
+          />
+          <IconButton
+            color="black"
+            type="pill"
+            text="Select avatar"
+            onClick={onSelectAvatar}
+            className={styles["select-avatar-btn"]}
+            leftIcon={
+              <Suspense fallback={null}>
+                <SvgPack.PlusRed />
+              </Suspense>
+            }
+          />
+        </div>
         <input
           ref={fileInputRef}
           className={styles["file-input"]}
