@@ -43,6 +43,7 @@ export default {
     Delete: lazy(() => import("@/assets/svg/Delete.svg?react")),
     HangupCallIcon: lazy(() => import("@/assets/svg/HangupCall.svg?react")),
     PlusPurple: lazy(() => import("@/assets/svg/PlusPurple.svg?react")),
+    PlusRed: lazy(() => import("@/assets/svg/PlusRed.svg?react")),
     InfoCircle: lazy(() => import("@/assets/svg/InfoCircle.svg?react")),
     InfoCircleGray: lazy(() => import("@/assets/svg/InfoCircleGray.svg?react")),
     PaymentTick: lazy(() => import("@/assets/svg/PaymentTick.svg?react")),

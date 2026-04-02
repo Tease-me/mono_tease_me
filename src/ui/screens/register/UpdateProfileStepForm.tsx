@@ -6,7 +6,7 @@ import DateInput from "@/ui/components/inputs/text-inputs/DateInput";
 import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 import SvgPack from "@/utils/SvgPack";
 import styles from "./UpdateProfileStepForm.module.css";
-import { Suspense, useRef } from "react";
+import { Suspense } from "react";
 import ValidationPill from "@/ui/components/inputs/buttons/ValidationPill";
 
 type ProfileValues = {
@@ -14,7 +14,6 @@ type ProfileValues = {
   userName: string;
   gender: "male" | "female";
   dateOfBirth: string;
-  profilePhotoFile: File | null;
 };
 
 type ProfileErrors = {
@@ -33,8 +32,8 @@ type UpdateProfileStepFormProps = {
   onBlur: (field: "fullName" | "userName" | "dateOfBirth") => void;
   onBack: () => void;
   onSubmit: () => void;
-  handleEditProfileMediaClicked: () => void;
-  onProfilePhotoChange: (file: File | null) => void;
+  onSelectAvatar?: () => void;
+  selectedAvatarUrl?: string;
 };
 
 export default function UpdateProfileStepForm({
@@ -45,36 +44,31 @@ export default function UpdateProfileStepForm({
   onBlur,
   onBack,
   onSubmit,
-  handleEditProfileMediaClicked,
-  onProfilePhotoChange,
+  onSelectAvatar,
+  selectedAvatarUrl,
 }: UpdateProfileStepFormProps) {
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const previewUrl = values.profilePhotoFile
-    ? URL.createObjectURL(values.profilePhotoFile)
-    : undefined;
-
   return (
     <div className={styles["two-column-layout"]}>
       <div className={styles["left-column"]}>
-        <ProfileMedia
-          mediaType="image"
-          size="xlarge"
-          imageSrc={previewUrl}
-          onEditClick={() => {
-            handleEditProfileMediaClicked();
-            fileInputRef.current?.click();
-          }}
-        />
-        <input
-          ref={fileInputRef}
-          className={styles["file-input"]}
-          type="file"
-          accept="image/*"
-          onChange={(event) => {
-            const file = event.target.files?.[0] ?? null;
-            onProfilePhotoChange(file);
-          }}
-        />
+        <div className={styles["avatar-wrapper"]}>
+          <ProfileMedia
+            mediaType="image"
+            size="large"
+            imageSrc={selectedAvatarUrl}
+          />
+          <IconButton
+            color="black"
+            type="pill"
+            text="Select avatar"
+            onClick={onSelectAvatar}
+            className={styles["select-avatar-btn"]}
+            leftIcon={
+              <Suspense fallback={null}>
+                <SvgPack.PlusRed />
+              </Suspense>
+            }
+          />
+        </div>
       </div>
       <div className={styles["right-column"]}>
         <form className={styles["auth-form"]} onSubmit={(e) => e.preventDefault()}>
