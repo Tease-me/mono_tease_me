@@ -95,6 +95,7 @@ export default function useAdultCallTransport(
   const hadLiveConnectionRef = useRef(false);
   const currentInfluencerIdRef = useRef<string | null>(null);
   const currentConversationIdRef = useRef<string | null>(null);
+  const summarySessionRef = useRef(0);
 
   const transport = ADULT_CALL_TRANSPORT;
   const status = transport === "backend_voice" ? backendStatus : webrtcStatus;
@@ -128,7 +129,7 @@ export default function useAdultCallTransport(
   const showPostCallSummary = postCallSummary !== null;
 
   const refreshPostCallSummary = useCallback(
-    async (endedConversationId: string | null) => {
+    async (endedConversationId: string | null, sessionToken: number) => {
       const influencerId = currentInfluencerIdRef.current;
       if (!influencerId) {
         setPendingSummaryRefresh(false);
@@ -138,6 +139,10 @@ export default function useAdultCallTransport(
       for (const delay of POST_CALL_SUMMARY_RETRY_DELAYS_MS) {
         if (delay > 0) {
           await new Promise((resolve) => window.setTimeout(resolve, delay));
+        }
+
+        if (summarySessionRef.current !== sessionToken) {
+          return;
         }
 
         try {
@@ -153,6 +158,10 @@ export default function useAdultCallTransport(
 
           if (!matchesCurrentCall) {
             continue;
+          }
+
+          if (summarySessionRef.current !== sessionToken) {
+            return;
           }
 
           setPostCallSummary((prev) =>
@@ -178,7 +187,9 @@ export default function useAdultCallTransport(
         }
       }
 
-      setPendingSummaryRefresh(false);
+      if (summarySessionRef.current === sessionToken) {
+        setPendingSummaryRefresh(false);
+      }
     },
     [],
   );
@@ -277,8 +288,9 @@ export default function useAdultCallTransport(
       confirmedCostCents: null,
       isEstimate: true,
     });
+    const sessionToken = summarySessionRef.current;
     setPendingSummaryRefresh(true);
-    void refreshPostCallSummary(currentConversationIdRef.current);
+    void refreshPostCallSummary(currentConversationIdRef.current, sessionToken);
   }, [
     currentUnitPriceCents,
     elapsedSeconds,
@@ -288,6 +300,7 @@ export default function useAdultCallTransport(
 
   const startCall = useCallback(
     async ({ influencerId, characterId, timezone }: StartAdultCallArgs) => {
+      summarySessionRef.current += 1;
       currentInfluencerIdRef.current = influencerId;
       currentConversationIdRef.current = null;
       hadLiveConnectionRef.current = false;
@@ -340,8 +353,10 @@ export default function useAdultCallTransport(
   }, [stopBackendCall, stopConversation, transport]);
 
   const dismissPostCallSummary = useCallback(() => {
+    summarySessionRef.current += 1;
     clearPostCallDismissTimeout();
     setPostCallSummary(null);
+    setPendingSummaryRefresh(false);
   }, [clearPostCallDismissTimeout]);
 
   return {
