@@ -37,7 +37,6 @@ export default function RegisterScreen() {
     userName: "",
     gender: "male" as "male" | "female",
     dateOfBirth: "",
-    profilePhotoFile: null as File | null,
   });
 
   const [accountErrors, setAccountErrors] = useState<{
@@ -210,6 +209,9 @@ export default function RegisterScreen() {
       setIsSubmitting(true);
       const influencerId =
         storage.get(LocalStorageKeys.InfluencerReferralId) || username || "";
+      const absoluteAvatarUrl = selectedAvatarUrl
+        ? `${window.location.origin}${selectedAvatarUrl}`
+        : null;
       const response: RegisterResponse = await authServices.register(
         account.password,
         account.email.toLowerCase(),
@@ -218,8 +220,9 @@ export default function RegisterScreen() {
         profile.gender,
         profile.userName,
         profile.dateOfBirth,
-        profile.profilePhotoFile,
+        null,
         inviteCode,
+        absoluteAvatarUrl,
       );
       const detailMessage =
         typeof (response as any)?.detail === "string"
@@ -300,9 +303,6 @@ export default function RegisterScreen() {
     }
     setProfileErrors((prev) => ({ ...prev, [field]: error }));
   };
-  const handleEditProfileMediaClicked = () => {
-    console.warn("Edit Clicked");
-  };
   const handleBackClick = () => {
     if (step === 2) {
       setStep(1);
@@ -357,11 +357,6 @@ export default function RegisterScreen() {
               onBlur={(field) => validateField(field, profile[field])}
               onBack={() => setStep(1)}
               onSubmit={handleContinueClicked}
-              handleEditProfileMediaClicked={handleEditProfileMediaClicked}
-              onProfilePhotoChange={(file) => {
-                setProfile((prev) => ({ ...prev, profilePhotoFile: file }));
-                setSelectedAvatarUrl(undefined);
-              }}
               onSelectAvatar={() => setShowAvatarPicker(true)}
               selectedAvatarUrl={selectedAvatarUrl}
             />
@@ -370,7 +365,6 @@ export default function RegisterScreen() {
               onClose={() => setShowAvatarPicker(false)}
               onSelect={(url) => {
                 setSelectedAvatarUrl(url);
-                setProfile((prev) => ({ ...prev, profilePhotoFile: null }));
               }}
             />
           </>
