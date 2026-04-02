@@ -18,7 +18,7 @@ class User(Base):
     __tablename__ = "users"
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    username: Mapped[str] = mapped_column(String, unique=True, nullable=True)
+    username: Mapped[str] = mapped_column(String, nullable=True)
     full_name: Mapped[str] = mapped_column(String, nullable=True)
     date_of_birth: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     gender: Mapped[str] = mapped_column(String, nullable=True)
