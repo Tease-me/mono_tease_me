@@ -91,6 +91,12 @@
   margin-top: 4px;
 }
 
+@media (min-width: 768px) {
+  .avatar-wrapper :global(.profile-container.large) {
+    height: 16rem;
+  }
+}
+
 @media (max-width: 767px) {
   .auth-buttons {
     flex-direction: column;
