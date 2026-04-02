@@ -31,10 +31,10 @@ ADULT_REQUIRED_PROMPT_VARIABLES = frozenset({"influencer_name", "user_name"})
 
 
 def _resolve_user_name(*, full_name: str | None, username: str | None) -> str:
-    if full_name and full_name.strip():
-        return full_name.strip()
     if username and username.strip():
         return username.strip()
+    if full_name and full_name.strip():
+        return full_name.strip()
     raise HTTPException(
         status_code=400,
         detail="User name is required to render adult prompt",
