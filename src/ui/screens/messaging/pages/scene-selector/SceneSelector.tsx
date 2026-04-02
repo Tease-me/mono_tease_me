@@ -1,4 +1,5 @@
 import { Suspense, lazy, useContext, useEffect, useRef, useState } from "react";
+import avatarFallback from "@/assets/empty-profile.png";
 import { AuthContext } from "@/context/AuthContext";
 import { apiClient } from "@/api/apis";
 import { InfluencerServices } from "@/api/services/InfluencerService";
@@ -49,6 +50,7 @@ type PendingGateAction = "open-scene" | "unlock-samples";
 
 type SceneSelectorProps = {
   influencerId: string;
+  influencerImageUrl?: string;
   onGirlfriendModeSelected: () => void;
 };
 
@@ -111,7 +113,7 @@ const loadLottieData = async (url: string): Promise<SceneTitlePlaceholder> => {
   return request;
 };
 
-export default function SceneSelector({ influencerId, onGirlfriendModeSelected }: SceneSelectorProps) {
+export default function SceneSelector({ influencerId, influencerImageUrl, onGirlfriendModeSelected }: SceneSelectorProps) {
   const { user } = useContext(AuthContext);
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [selectedScene, setSelectedScene] = useState<Scene | null>(null);
@@ -451,11 +453,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                   {showPostCallSummary ? (
                     <div className={styles.summaryContent}>
                       <div className={styles.summaryAvatars}>
-                        {user?.imgUrl ? (
-                          <img src={user.imgUrl} alt="You" className={styles.summaryUserAvatar} />
-                        ) : (
-                          <div className={styles.summaryUserAvatar} />
-                        )}
+                        <img src={user?.imgUrl || avatarFallback} alt="You" className={styles.summaryUserAvatar} />
                         <IconButton
                           color="red"
                           type="pill"
@@ -466,11 +464,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                             </Suspense>
                           }
                         />
-                        {selectedScene?.image.small ? (
-                          <img src={selectedScene.image.small} alt={selectedScene.name} className={styles.summaryInfluencerAvatar} />
-                        ) : (
-                          <div className={styles.summaryInfluencerAvatar} />
-                        )}
+                        <img src={influencerImageUrl || avatarFallback} alt="Influencer" className={styles.summaryInfluencerAvatar} />
                       </div>
                       <div className={styles.subtitle}>Call Summary</div>
                       <div className={styles.sessionTimer}>{summaryDurationLabel}</div>
