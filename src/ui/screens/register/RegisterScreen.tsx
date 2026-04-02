@@ -25,7 +25,11 @@ import { LocalStorageKeys } from "@/constants/localStorageKeys";
 export default function RegisterScreen() {
   const [step, setStep] = useState<1 | 2>(1);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
-  const [selectedAvatarUrl, setSelectedAvatarUrl] = useState<string | undefined>();
+  const [selectedAvatarUrl, setSelectedAvatarUrl] = useState<string | undefined>(() => {
+    const folder = Math.random() < 0.5 ? "human" : "animal";
+    const index = Math.floor(Math.random() * 12) + 1;
+    return `/avatarImages/${folder}/avatar${index}.jpg`;
+  });
   const [account, setAccount] = useState({
     email: "",
     password: "",
