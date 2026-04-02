@@ -1,7 +1,7 @@
 from datetime import date
 
 from fastapi import Form
-from pydantic import BaseModel
+from pydantic import BaseModel, HttpUrl, field_validator
 
 class LoginRequest(BaseModel):
     email: str
@@ -13,10 +13,28 @@ class RegisterRequest(BaseModel):
     influencer_id: str | None = None
     full_name: str | None = None
     user_name: str | None = None
+    profile_photo_url: str | None = None
     gender: str | None = None
     date_of_birth: date | None = None
     fp_tid: str | None = None
     invite_code: str | None = None
+
+    @field_validator("profile_photo_url", mode="before")
+    @classmethod
+    def normalize_profile_photo_url(cls, v):
+        if v is None:
+            return v
+        if isinstance(v, str):
+            value = v.strip()
+            return value or None
+        return v
+
+    @field_validator("profile_photo_url")
+    @classmethod
+    def validate_profile_photo_url(cls, v):
+        if v is None:
+            return v
+        return str(HttpUrl(v))
 
     @classmethod
     def as_form(
@@ -26,6 +44,7 @@ class RegisterRequest(BaseModel):
         influencer_id: str | None = Form(default=None),
         full_name: str | None = Form(default=None),
         user_name: str | None = Form(default=None),
+        profile_photo_url: str | None = Form(default=None),
         gender: str | None = Form(default=None),
         date_of_birth: date | None = Form(default=None),
         fp_tid: str | None = Form(default=None),
@@ -37,6 +56,7 @@ class RegisterRequest(BaseModel):
             influencer_id=influencer_id,
             full_name=full_name,
             user_name=user_name,
+            profile_photo_url=profile_photo_url,
             gender=gender,
             date_of_birth=date_of_birth,
             fp_tid=fp_tid,
