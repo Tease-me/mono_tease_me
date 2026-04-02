@@ -1,4 +1,5 @@
-import { Suspense, lazy, useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useContext, useEffect, useRef, useState } from "react";
+import { AuthContext } from "@/context/AuthContext";
 import { apiClient } from "@/api/apis";
 import { InfluencerServices } from "@/api/services/InfluencerService";
 import AdultSceneSelector from "@/ui/components/cards/AdultSceneSelectorCard";
@@ -111,6 +112,7 @@ const loadLottieData = async (url: string): Promise<SceneTitlePlaceholder> => {
 };
 
 export default function SceneSelector({ influencerId, onGirlfriendModeSelected }: SceneSelectorProps) {
+  const { user } = useContext(AuthContext);
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [selectedScene, setSelectedScene] = useState<Scene | null>(null);
   const [sessionState, setSessionState] = useState<SessionState>("preview");
@@ -127,12 +129,12 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
   const {
     startCall,
     stopCall,
+    dismissPostCallSummary,
     status,
     elapsedSeconds,
     activeStatusLabel,
     isCallActive,
     postCallSummary,
-    pendingSummaryRefresh,
     showPostCallSummary,
     isStartDisabled,
     error: callError,
@@ -405,6 +407,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
               ) : null}
 
               {sessionState === "preview" && <div className={styles.previewOverlay} />}
+              {showPostCallSummary && <div className={styles.postCallOverlay} />}
               <div className={`${styles.sessionName} ${sessionState === "preview" ? styles.previewContentVisible : styles.previewContentHidden}`}>{selectedScene.name}</div>
               <div className={`${styles.previewPanel} ${sessionState === "preview" ? styles.previewContentVisible : styles.previewContentHidden}`}>
                 <div className={styles.subtitle}>Scenario Details</div>
@@ -447,10 +450,32 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                 >
                   {showPostCallSummary ? (
                     <>
-                      <div className={styles.summaryHeader}>
-                        <div className={styles.subtitle}>
-                          {pendingSummaryRefresh ? "Preparing call summary..." : "Call summary"}
-                        </div>
+                      <div className={styles.summaryAvatars}>
+                        {user?.imgUrl ? (
+                          <img src={user.imgUrl} alt="You" className={styles.summaryUserAvatar} />
+                        ) : (
+                          <div className={styles.summaryUserAvatar} />
+                        )}
+                        <IconButton
+                          color="red"
+                          type="pill"
+                          className={styles.summaryEndCallBadge}
+                          leftIcon={
+                            <Suspense fallback={null}>
+                              <SvgPack.HangupCallIcon />
+                            </Suspense>
+                          }
+                        />
+                        {selectedScene?.image.small ? (
+                          <img src={selectedScene.image.small} alt={selectedScene.name} className={styles.summaryInfluencerAvatar} />
+                        ) : (
+                          <div className={styles.summaryInfluencerAvatar} />
+                        )}
+                      </div>
+                      <div className={styles.subtitle}>Call Summary</div>
+                      <div className={styles.sessionTimer}>{summaryDurationLabel}</div>
+                      <div className={styles.summaryCostRow}>
+                        <span className={styles.summaryCostLabel}>Est. Cost: {summaryCostLabel}</span>
                         <button
                           type="button"
                           className={styles.summaryInfoButton}
@@ -462,25 +487,19 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                           </Suspense>
                         </button>
                       </div>
-                      <div className={styles.postCallSummary}>
-                        <div className={styles.postCallSummaryCard}>
-                          <span className={styles.postCallSummaryLabel}>Duration</span>
-                          <span className={styles.postCallSummaryValue}>
-                            {summaryDurationLabel}
-                          </span>
-                        </div>
-                        <div className={styles.postCallSummaryCard}>
-                          <span className={styles.postCallSummaryLabel}>Cost</span>
-                          <span className={styles.postCallSummaryValue}>
-                            {summaryCostLabel}
-                          </span>
-                        </div>
-                      </div>
-                      {pendingSummaryRefresh && (
-                        <div className={styles.postCallSummaryHint}>
-                          Estimated values shown while we confirm the final summary.
-                        </div>
-                      )}
+                      <IconButton
+                        onClick={dismissPostCallSummary}
+                        color="black"
+                        type="pill"
+                        className={styles.summaryGoBackButton}
+                        text="Go Back"
+                      />
+                      <a
+                        href="mailto:support@teaseme.live"
+                        className={styles.summaryFeedbackLink}
+                      >
+                        Send feedback
+                      </a>
                     </>
                   ) : (
                     <>

@@ -339,10 +339,16 @@ export default function useAdultCallTransport(
     await stopConversation();
   }, [stopBackendCall, stopConversation, transport]);
 
+  const dismissPostCallSummary = useCallback(() => {
+    clearPostCallDismissTimeout();
+    setPostCallSummary(null);
+  }, [clearPostCallDismissTimeout]);
+
   return {
     transport,
     startCall,
     stopCall,
+    dismissPostCallSummary,
     status,
     error,
     elapsedSeconds,
