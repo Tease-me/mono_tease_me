@@ -94,14 +94,22 @@ yarn preview
 
 ## Environment Variables
 
-Create a `.env` file in the project root based on :
+Create env files in the project root based on your target environment:
 
 ```
-
+VITE_APP_ENV=development
 VITE_TEASE_ME_PROTOCOL=
 VITE_TEASE_ME_HOST=
 VITE_TEASE_ME_WS_PROTOCOL=
 ```
+
+Use Vite mode-specific files for environment identification:
+
+- `.env.development` -> `VITE_APP_ENV=development`
+- `.env.staging` -> `VITE_APP_ENV=staging`
+- `.env.production` -> `VITE_APP_ENV=production`
+
+Test/demo routes such as `/test/buttons` are only registered when `VITE_APP_ENV` is not `production`.
 
 ## Contributing
 
