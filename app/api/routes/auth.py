@@ -5,6 +5,7 @@ import logging
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, File, HTTPException, Request, Response, UploadFile, status
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from jose import jwt, JWTError
@@ -13,13 +14,24 @@ from app.core.session import get_db
 from app.data.models import User
 from app.data.schemas.auth import RegisterRequest, LoginRequest, Token, PasswordResetRequest
 from app.core.config import settings
+from app.services.email.mailers import (
+    send_password_reset_email,
+    send_verification_email,
+)
+from app.services.repositories.influencer_email_assets_repository import (
+    get_influencer_email_header_key,
+    get_influencer_email_header_public_url,
+)
 from app.utils.auth.dependencies import get_current_user
-from app.utils.messaging.email import send_verification_email, send_password_reset_email
 from app.utils.auth.tokens import create_token
 from app.api.routes.notify_ws import notify_email_verified
 from app.services.firstpromoter import fp_track_signup
 from app.data.schemas.user import UserOut
-from app.utils.storage.s3 import generate_user_presigned_url, save_user_photo_to_s3, delete_file_from_s3
+from app.utils.storage.s3 import (
+    delete_file_from_s3,
+    resolve_user_photo_url,
+    save_user_photo_to_s3,
+)
 from app.services.follow import create_follow_if_missing
 from app.api.deps.influencer import ensure_influencer
 from app.utils.infrastructure.rate_limiter import rate_limit
@@ -92,11 +104,9 @@ async def register(
     file: UploadFile | None = File(default=None),
 ):
     influencer = None
-    existing_user = await db.execute(
-        select(User).where((User.email == data.email))
-    )
+    existing_user = await db.execute(select(User).where(User.email == data.email))
     if existing_user.scalar():
-        raise HTTPException(status_code=409, detail="Username or email already registered")
+        raise HTTPException(status_code=409, detail="Email already registered")
 
     if data.influencer_id:
         influencer = await ensure_influencer(db, data.influencer_id)
@@ -118,7 +128,17 @@ async def register(
         date_of_birth=data.date_of_birth,
     )
     db.add(user)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError as exc:
+        await db.rollback()
+        message = str(exc.orig).lower()
+        if "email" in message:
+            raise HTTPException(
+                status_code=409,
+                detail="Email already registered",
+            ) from exc
+        raise
     await db.refresh(user)
 
     if file:
@@ -144,6 +164,21 @@ async def register(
         except Exception as e:
             log.error(f"Failed to upload profile photo during registration: {e}", exc_info=True)
             raise HTTPException(500, "Failed to upload profile photo")
+    elif data.profile_photo_url:
+        user.profile_photo_key = data.profile_photo_url
+        db.add(user)
+        try:
+            await db.commit()
+            await db.refresh(user)
+        except IntegrityError as exc:
+            await db.rollback()
+            message = str(exc.orig).lower()
+            if "email" in message:
+                raise HTTPException(
+                    status_code=409,
+                    detail="Email already registered",
+                ) from exc
+            raise
 
     # Claim Telegram invite code and bind telegram_id
     if data.invite_code:
@@ -188,10 +223,22 @@ async def register(
         log.exception("FirstPromoter track/signup failed")
     
     try:
+        influencer_verification_header_url = None
+        if influencer is not None:
+            verification_header_key = get_influencer_email_header_key(
+                getattr(influencer, "assets_json", None)
+            )
+            if verification_header_key:
+                influencer_verification_header_url = (
+                    get_influencer_email_header_public_url(verification_header_key)
+                )
+
         await send_verification_email(
             user.email,
             verify_token,
             influencer_id=data.influencer_id,
+            influencer_display_name=getattr(influencer, "display_name", None),
+            influencer_verification_header_url=influencer_verification_header_url,
             influencer_profile_photo_key=getattr(influencer, "profile_photo_key", None),
         )
     except Exception:
@@ -282,7 +329,7 @@ async def get_me(request: Request, user: User = Depends(get_current_user)):
     user_out = UserOut.model_validate(user)
     user_out.verification_required = verification_required
     if user.profile_photo_key:
-        user_out.profile_photo_url = generate_user_presigned_url(user.profile_photo_key)
+        user_out.profile_photo_url = resolve_user_photo_url(user.profile_photo_key)
     return user_out
     
 @router.get("/verify-email")

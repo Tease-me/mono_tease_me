@@ -65,9 +65,6 @@ from .verification import IdentityVerification
 from .telegram_invite import TelegramInvite
 from .funnel import TelegramFunnelEvent
 
-# Provisioned phone numbers
-from .provisioned_number import ProvisionedNumber
-
 # API usage tracking
 from .api_usage import ApiUsageLog
 
@@ -118,6 +115,4 @@ __all__ = [
     # Telegram
     "TelegramInvite",
     "TelegramFunnelEvent",
-    # Provisioned Numbers
-    "ProvisionedNumber",
 ]

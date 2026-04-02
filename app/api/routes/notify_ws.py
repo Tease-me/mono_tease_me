@@ -1,6 +1,7 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from jose import JWTError
 from app.core.config import settings
+from app.data.schemas.billing import AdultCharacterSummaryOut
 
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.ALGORITHM
@@ -31,21 +32,14 @@ async def notify_low_balance(email: str, balance_cents: int):
 async def notify_call_billed(
     email: str,
     *,
-    balance_cents: int,
-    cost_cents: int,
-    duration_secs: float,
-    conversation_id: str,
+    summary: AdultCharacterSummaryOut,
 ):
     ws = notification_sockets.get(email)
     if ws:
         try:
-            await ws.send_json({
-                "type": "call_billed",
-                "balance_cents": balance_cents,
-                "cost_cents": cost_cents,
-                "duration_secs": duration_secs,
-                "conversation_id": conversation_id,
-            })
+            payload = summary.model_dump()
+            payload["type"] = "call_billed"
+            await ws.send_json(payload)
         except Exception:
             notification_sockets.pop(email, None)
 

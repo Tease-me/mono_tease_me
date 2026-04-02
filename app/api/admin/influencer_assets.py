@@ -7,12 +7,15 @@ from app.api.admin.common import ensure_admin
 from app.data.models import Influencer, User
 from app.core.session import get_db
 from app.data.schemas.admin import (
+    AdminInfluencerEmailHeaderAssetOut,
     AdminInfluencerLandingAssetsOut,
     AdminInfluencerTelegramWelcomeMediaAssetsOut,
 )
 from app.services.use_cases.admin_influencer_assets import (
+    build_admin_influencer_email_header_out,
     build_admin_landing_assets_out,
     build_admin_telegram_welcome_media_out,
+    upsert_admin_influencer_email_header,
     upsert_admin_landing_assets,
     upsert_admin_telegram_welcome_media,
 )
@@ -27,6 +30,41 @@ async def _get_influencer_or_404(db: AsyncSession, influencer_id: str) -> Influe
     if not influencer:
         raise HTTPException(status_code=404, detail="Influencer not found")
     return influencer
+
+
+@router.get(
+    "/influencer/{influencer_id}/email-header",
+    response_model=AdminInfluencerEmailHeaderAssetOut,
+    summary="Get influencer verification email header",
+)
+async def get_influencer_email_header(
+    influencer_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    ensure_admin(current_user)
+    influencer = await _get_influencer_or_404(db, influencer_id)
+    return await build_admin_influencer_email_header_out(influencer)
+
+
+@router.post(
+    "/influencer/{influencer_id}/email-header",
+    response_model=AdminInfluencerEmailHeaderAssetOut,
+    summary="Upload influencer verification email header",
+)
+async def post_influencer_email_header(
+    influencer_id: str,
+    verification_email_header: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    ensure_admin(current_user)
+    influencer = await _get_influencer_or_404(db, influencer_id)
+    return await upsert_admin_influencer_email_header(
+        db=db,
+        influencer=influencer,
+        verification_email_header=verification_email_header,
+    )
 
 
 @router.get(

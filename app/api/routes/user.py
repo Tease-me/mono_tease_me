@@ -1,24 +1,31 @@
 import logging
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, Query
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import func
-from app.data.models import (
-    User,
-    InfluencerWallet,
-    DailyUsage,
-    Pricing,
-    InfluencerCreditTransaction,
-    CallRecord,
-)
+
 from app.core.session import get_db
-from app.data.schemas.user import UserOut, UserUpdate, UserAdultPromptUpdate, UserAdultPromptOut
+from app.data.models import (
+    CallRecord,
+    DailyUsage,
+    InfluencerCreditTransaction,
+    InfluencerWallet,
+    Pricing,
+    User,
+)
+from app.data.schemas.user import (
+    UserAdultPromptOut,
+    UserAdultPromptUpdate,
+    UserOut,
+    UserUpdate,
+)
 from app.utils.auth.dependencies import get_current_user
 from app.utils.storage.s3 import (
-    generate_user_presigned_url,
     delete_file_from_s3,
+    generate_user_presigned_url,
+    resolve_user_photo_url,
     save_user_photo_to_s3,
 )
 
@@ -30,7 +37,9 @@ router = APIRouter(prefix="/user", tags=["user"])
 @router.get("/{id}/usage")
 async def get_user_usage(
     id: int,
-    influencer_id: str | None = Query(None, description="Filter by specific influencer ID"),
+    influencer_id: str | None = Query(
+        None, description="Filter by specific influencer ID"
+    ),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -50,18 +59,22 @@ async def get_user_usage(
         )
     wallets = wallets_result.scalars().all()
 
-    usage_stmt = select(
-        DailyUsage.is_18,
-        func.sum(DailyUsage.text_count).label('total_text'),
-        func.sum(DailyUsage.voice_secs).label('total_voice'),
-        func.sum(DailyUsage.live_secs).label('total_live')
-    ).where(DailyUsage.user_id == id).group_by(DailyUsage.is_18)
-    
+    usage_stmt = (
+        select(
+            DailyUsage.is_18,
+            func.sum(DailyUsage.text_count).label("total_text"),
+            func.sum(DailyUsage.voice_secs).label("total_voice"),
+            func.sum(DailyUsage.live_secs).label("total_live"),
+        )
+        .where(DailyUsage.user_id == id)
+        .group_by(DailyUsage.is_18)
+    )
+
     usage_rows = (await db.execute(usage_stmt)).all()
-    
+
     normal_usage_totals = {"text": 0, "voice": 0, "live": 0}
     adult_usage_totals = {"text": 0, "voice": 0, "live": 0}
-    
+
     for row in usage_rows:
         if row.is_18:
             adult_usage_totals["text"] = row.total_text or 0
@@ -227,10 +240,7 @@ async def get_user_usage(
         or normal_voice_free_left > 0
         or normal_live_free_left > 0
     )
-    adult_trial_available = (
-        adult_text_free_left > 0
-        or adult_voice_free_left > 0
-    )
+    adult_trial_available = adult_text_free_left > 0 or adult_voice_free_left > 0
 
     free_allowances = {
         "normal": {
@@ -265,13 +275,17 @@ async def get_user_usage(
             else:
                 normal_wallet = build_normal_wallet(
                     balance,
-                    last_call_seconds=last_call_secs_by_influencer_feature.get((influencer_id, "live_chat"), 0),
+                    last_call_seconds=last_call_secs_by_influencer_feature.get(
+                        (influencer_id, "live_chat"), 0
+                    ),
                 )
 
         if normal_wallet is None:
             normal_wallet = build_normal_wallet(
                 0,
-                last_call_seconds=last_call_secs_by_influencer_feature.get((influencer_id, "live_chat"), 0),
+                last_call_seconds=last_call_secs_by_influencer_feature.get(
+                    (influencer_id, "live_chat"), 0
+                ),
             )
         if adult_wallet is None:
             adult_wallet = build_adult_wallet(
@@ -306,7 +320,9 @@ async def get_user_usage(
         else:
             influencer_wallets[inf_id]["normal"] = build_normal_wallet(
                 balance,
-                last_call_seconds=last_call_secs_by_influencer_feature.get((inf_id, "live_chat"), 0),
+                last_call_seconds=last_call_secs_by_influencer_feature.get(
+                    (inf_id, "live_chat"), 0
+                ),
             )
 
     total_normal_balance = sum((w.balance_cents or 0) for w in wallets if not w.is_18)
@@ -322,6 +338,7 @@ async def get_user_usage(
         "latest_adult_call_summary": latest_adult_call_summary,
     }
 
+
 @router.get("/{id}", response_model=UserOut)
 async def get_user_by_id(
     id: int,
@@ -329,15 +346,18 @@ async def get_user_by_id(
     db: AsyncSession = Depends(get_db),
 ):
     if id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to view this profile")
-        
-    user_out = UserOut.model_validate(current_user)
-    
-    if current_user.profile_photo_key:
-        user_out.profile_photo_url = generate_user_presigned_url(current_user.profile_photo_key)
-        
-    return user_out
+        raise HTTPException(
+            status_code=403, detail="Not authorized to view this profile"
+        )
 
+    user_out = UserOut.model_validate(current_user)
+
+    if current_user.profile_photo_key:
+        user_out.profile_photo_url = resolve_user_photo_url(
+            current_user.profile_photo_key
+        )
+
+    return user_out
 
 
 @router.patch("/{id}/profile", response_model=UserOut)
@@ -349,22 +369,13 @@ async def update_user(
     file: UploadFile | None = File(default=None),
 ):
     if id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to update this profile")
+        raise HTTPException(
+            status_code=403, detail="Not authorized to update this profile"
+        )
 
     if user_in:
         user_data = UserUpdate.model_validate_json(user_in)
         update_data = user_data.model_dump(exclude_unset=True)
-
-        new_username = update_data.get("username")
-        if new_username and new_username != current_user.username:
-            existing_user = await db.execute(
-                select(User.id).where(
-                    User.username == new_username,
-                    User.id != current_user.id,
-                )
-            )
-            if existing_user.scalar_one_or_none() is not None:
-                raise HTTPException(status_code=409, detail="Username already taken")
 
         for field, value in update_data.items():
             setattr(current_user, field, value)
@@ -376,7 +387,7 @@ async def update_user(
                 file.file,
                 file.filename or "profile.jpg",
                 file.content_type or "image/jpeg",
-                current_user.id
+                current_user.id,
             )
             current_user.profile_photo_key = key
         except Exception as e:
@@ -389,17 +400,25 @@ async def update_user(
         await db.refresh(current_user)
     except IntegrityError as exc:
         await db.rollback()
-        if file and current_user.profile_photo_key and current_user.profile_photo_key != previous_key:
+        if (
+            file
+            and current_user.profile_photo_key
+            and current_user.profile_photo_key != previous_key
+        ):
             try:
                 await delete_file_from_s3(current_user.profile_photo_key)
             except Exception:
                 log.warning("Failed to rollback uploaded S3 photo", exc_info=True)
-        if "username" in str(exc.orig).lower():
-            raise HTTPException(status_code=409, detail="Username already taken") from exc
-        raise HTTPException(status_code=400, detail="Profile update violates a database constraint") from exc
+        raise HTTPException(
+            status_code=400, detail="Profile update violates a database constraint"
+        ) from exc
     except Exception:
         await db.rollback()
-        if file and current_user.profile_photo_key and current_user.profile_photo_key != previous_key:
+        if (
+            file
+            and current_user.profile_photo_key
+            and current_user.profile_photo_key != previous_key
+        ):
             try:
                 await delete_file_from_s3(current_user.profile_photo_key)
             except Exception:
@@ -410,12 +429,16 @@ async def update_user(
         try:
             await delete_file_from_s3(previous_key)
         except Exception:
-            log.warning("Failed to delete previous S3 photo %s", previous_key, exc_info=True)
+            log.warning(
+                "Failed to delete previous S3 photo %s", previous_key, exc_info=True
+            )
 
     user_out = UserOut.model_validate(current_user)
     if current_user.profile_photo_key:
-        user_out.profile_photo_url = generate_user_presigned_url(current_user.profile_photo_key)
-        
+        user_out.profile_photo_url = resolve_user_photo_url(
+            current_user.profile_photo_key
+        )
+
     return user_out
 
 
@@ -442,19 +465,21 @@ async def upload_user_photo_endpoint(
 ):
     """Upload functionality for user profile photo"""
     if id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to upload photo for this profile")
+        raise HTTPException(
+            status_code=403, detail="Not authorized to upload photo for this profile"
+        )
 
     if not file:
         raise HTTPException(400, "No file uploaded")
-        
+
     previous_key = current_user.profile_photo_key
 
     try:
         key = await save_user_photo_to_s3(
-            file.file, 
-            file.filename or "profile.jpg", 
-            file.content_type or "image/jpeg", 
-            current_user.id
+            file.file,
+            file.filename or "profile.jpg",
+            file.content_type or "image/jpeg",
+            current_user.id,
         )
         current_user.profile_photo_key = key
         db.add(current_user)
@@ -467,19 +492,23 @@ async def upload_user_photo_endpoint(
                 try:
                     await delete_file_from_s3(key)
                 except Exception:
-                    log.warning("Failed to rollback uploaded S3 photo %s", key, exc_info=True)
+                    log.warning(
+                        "Failed to rollback uploaded S3 photo %s", key, exc_info=True
+                    )
             raise
 
         if previous_key and previous_key != key:
             try:
                 await delete_file_from_s3(previous_key)
             except Exception:
-                log.warning("Failed to delete previous S3 photo %s", previous_key, exc_info=True)
-        
+                log.warning(
+                    "Failed to delete previous S3 photo %s", previous_key, exc_info=True
+                )
+
         user_out = UserOut.model_validate(current_user)
         user_out.profile_photo_url = generate_user_presigned_url(key)
         return user_out
-        
+
     except Exception as e:
         log.error(f"Failed to upload user photo: {e}", exc_info=True)
         raise HTTPException(500, "Failed to upload photo")

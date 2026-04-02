@@ -1,19 +1,24 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.config import settings
 from app.core.session import get_db
-from app.data.models import InfluencerWallet, Influencer
-from app.services.repositories.billing_repository import get_wallet_balance_cents
+from app.data.models import Influencer, InfluencerWallet
 from app.data.schemas.billing import (
-    TopUpRequest,
-    CreateCheckoutRequest,
+    AdultCharacterSummaryOut,
     CheckoutResponse,
+    CreateCheckoutRequest,
+    TopUpRequest,
     VerifyCheckoutRequest,
 )
+from app.services.repositories.billing_repository import get_wallet_balance_cents
+from app.services.use_cases.adult_character_summary import (
+    get_adult_character_summary,
+)
 from app.utils.auth.dependencies import get_current_user
-from sqlalchemy import select
-from app.core.config import settings
-from app.utils.infrastructure.rate_limiter import rate_limit
 from app.utils.infrastructure.idempotency import idempotent
+from app.utils.infrastructure.rate_limiter import rate_limit
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 
@@ -23,7 +28,7 @@ async def get_balance(
     influencer_id: str = Query(...),
     db: AsyncSession = Depends(get_db),
     user=Depends(get_current_user),
-                                                                                                                                                                is_18: bool = False,
+    is_18: bool = False,
 ):
     infl = await db.get(Influencer, influencer_id)
     if not infl:
@@ -39,8 +44,33 @@ async def get_balance(
         ),
     }
 
+
+@router.get(
+    "/{influencer_id}/adult-character-summary",
+    response_model=AdultCharacterSummaryOut,
+)
+async def get_adult_character_summary_route(
+    influencer_id: str,
+    db: AsyncSession = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    infl = await db.get(Influencer, influencer_id)
+    if not infl:
+        raise HTTPException(status_code=404, detail="Influencer not found")
+
+    return await get_adult_character_summary(
+        db,
+        user_id=user.id,
+        influencer_id=influencer_id,
+    )
+
+
 @router.post("/topup")
-@rate_limit(max_requests=settings.RATE_LIMIT_BILLING_MAX, window_seconds=settings.RATE_LIMIT_BILLING_WINDOW, key_prefix="billing:topup")
+@rate_limit(
+    max_requests=settings.RATE_LIMIT_BILLING_MAX,
+    window_seconds=settings.RATE_LIMIT_BILLING_WINDOW,
+    key_prefix="billing:topup",
+)
 @idempotent(ttl=settings.IDEMPOTENCY_TTL, key_prefix="topup")
 async def topup(
     request: Request,
