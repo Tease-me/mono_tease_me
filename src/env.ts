@@ -15,6 +15,26 @@ export function getEnvJSON<T>(key: string): T {
   }
 }
 
+export type AppEnv = "development" | "staging" | "production";
+
+function parseAppEnv(value: string): AppEnv {
+  if (
+    value === "development" ||
+    value === "staging" ||
+    value === "production"
+  ) {
+    return value;
+  }
+
+  throw new Error(
+    `Invalid VITE_APP_ENV value: ${value}. Expected development, staging, or production.`,
+  );
+}
+
+export const APP_ENV = parseAppEnv(getEnvVar("VITE_APP_ENV"));
+export const IS_PRODUCTION = APP_ENV === "production";
+export const SHOW_TEST_ROUTES = !IS_PRODUCTION;
+
 export const ELEVENLABS_API_KEY = getEnvVar("VITE_ELEVENLABS_API_KEY");
 export const ELEVENLABS_AGENT_ID = getEnvVar("VITE_ELEVENLABS_AGENT_ID");
 
