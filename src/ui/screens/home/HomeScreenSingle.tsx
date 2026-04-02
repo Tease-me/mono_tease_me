@@ -296,6 +296,7 @@ export default function HomeScreenSingle() {
             <SceneSelector
               influencerId={influencer.id}
               influencerImageUrl={influencer.img}
+              influencerVideoUrl={influencer.videoUrl}
               onGirlfriendModeSelected={handleGirlfriendModeSelected}
             />
           </Suspense>
