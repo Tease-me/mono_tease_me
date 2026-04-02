@@ -15,6 +15,7 @@ import {
 import GuestRoute from "./components/GuestRoute";
 import PrivateRoute from "./components/PrivateRoute";
 import SuperRoute from "./components/SuperRoute";
+import TestRoute from "./components/TestRoute";
 import { Paths } from "./path";
 
 const PayPalCancel = lazy(
@@ -129,6 +130,7 @@ const RecordTerms = lazy(
 const IntencionInfluencerHome = lazy(
   () => import("@/ui/screens/landing-page/IntencionInfluencerHome"),
 );
+const TestPage = lazy(() => import("@/ui/screens/test/TestPage"));
 
 function AdultModeRoute() {
   const [searchParams] = useSearchParams();
@@ -263,6 +265,10 @@ function AppRoutes() {
     { path: Paths.armloopReturn, element: <ArmloopReturn /> },
   ];
 
+  const testRoutes: { path: string; element: JSX.Element }[] = [
+    { path: Paths.testButtons, element: <TestPage /> },
+  ];
+
   return (
     <ThemeProvider initial="default">
       <BrowserRouter>
@@ -283,6 +289,13 @@ function AppRoutes() {
                 key={path}
                 path={path}
                 element={<PrivateRoute>{element}</PrivateRoute>}
+              />
+            ))}
+            {testRoutes.map(({ path, element }) => (
+              <Route
+                key={path}
+                path={path}
+                element={<TestRoute>{element}</TestRoute>}
               />
             ))}
             {superRoutes.map(({ path, element }) => (
