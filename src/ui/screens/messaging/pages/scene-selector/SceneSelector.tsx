@@ -449,7 +449,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                   className={`${styles.activePanel} ${sessionState === "active" ? styles.activePanelVisible : styles.activePanelHidden}`}
                 >
                   {showPostCallSummary ? (
-                    <>
+                    <div className={styles.summaryContent}>
                       <div className={styles.summaryAvatars}>
                         {user?.imgUrl ? (
                           <img src={user.imgUrl} alt="You" className={styles.summaryUserAvatar} />
@@ -500,7 +500,7 @@ export default function SceneSelector({ influencerId, onGirlfriendModeSelected }
                       >
                         Send feedback
                       </a>
-                    </>
+                    </div>
                   ) : (
                     <>
                       <div className={styles.subtitle}>{activeStatusLabel}</div>

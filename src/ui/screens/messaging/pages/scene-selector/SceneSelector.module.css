@@ -402,6 +402,26 @@
 }
 
 
+@keyframes summaryFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.summaryContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+  animation: summaryFadeIn 280ms ease forwards;
+}
+
 .summaryAvatars {
   display: flex;
   align-items: center;
