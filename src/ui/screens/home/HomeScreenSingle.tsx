@@ -295,6 +295,7 @@ export default function HomeScreenSingle() {
           <Suspense fallback={<div className={styles.loadingSpinner}><LoadingSpinner /></div>}>
             <SceneSelector
               influencerId={influencer.id}
+              influencerName={influencer.name}
               influencerImageUrl={influencer.img}
               influencerVideoUrl={influencer.videoUrl}
               onGirlfriendModeSelected={handleGirlfriendModeSelected}

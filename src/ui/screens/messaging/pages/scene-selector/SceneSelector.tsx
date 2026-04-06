@@ -50,6 +50,7 @@ type PendingGateAction = "open-scene" | "unlock-samples";
 
 type SceneSelectorProps = {
   influencerId: string;
+  influencerName?: string;
   influencerImageUrl?: string;
   influencerVideoUrl?: string;
   onGirlfriendModeSelected: () => void;
@@ -116,6 +117,7 @@ const loadLottieData = async (url: string): Promise<SceneTitlePlaceholder> => {
 
 export default function SceneSelector({
   influencerId,
+  influencerName,
   influencerImageUrl,
   influencerVideoUrl,
   onGirlfriendModeSelected,
@@ -571,6 +573,7 @@ export default function SceneSelector({
       <AddCreditsModal
         isOpen={showTopupModal}
         influencerId={influencerId}
+        influencerName={influencerName}
         image={influencerImageUrl}
         video={influencerVideoUrl}
         onClose={() => setShowTopupModal(false)}
