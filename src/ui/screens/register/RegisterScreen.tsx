@@ -1,6 +1,7 @@
 import { apiClient } from "@/api/apis";
 import { RegisterResponse } from "@/api/models/auth";
 import { AuthServices } from "@/api/services/AuthServices";
+import { FunnelServices } from "@/api/services/FunnelServices";
 
 import { AuthContext } from "@/context/AuthContext";
 import OnBoardingTopNav from "@/ui/components/nav/OnBoardingTopNav";
@@ -58,6 +59,7 @@ export default function RegisterScreen() {
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const authServices = AuthServices(apiClient);
+  const funnelServices = FunnelServices(apiClient);
   const influencerRepo = InfluencerRepo();
 
   const { isSignedIn } = useContext(AuthContext);
@@ -194,6 +196,9 @@ export default function RegisterScreen() {
       }
       setAccountErrors({});
       setProfileErrors({});
+      if (inviteCode) {
+        funnelServices.reportEvent("registration_started", inviteCode);
+      }
       setStep(2);
       return;
     }
