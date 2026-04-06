@@ -28,6 +28,8 @@ FUNNEL_STAGES = [
     "call_completed",
     "trial_exhausted",
     "invite_sent",
+    "link_clicked",
+    "registration_started",
     "registration_completed",
     "email_verified",
     "influencer_followed",

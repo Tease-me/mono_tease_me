@@ -1,8 +1,7 @@
 """
-Telegram Voice Call Handlers
-=============================
-Handles incoming 1-on-1 private voice calls via Telegram.
-No text messaging — voice calls only.
+Telegram Handlers
+==================
+Handles incoming 1-on-1 private voice calls and text messages via Telegram.
 """
 
 from __future__ import annotations
@@ -11,18 +10,19 @@ import asyncio
 import logging
 
 try:
-    from pyrogram import Client
+    from pyrogram import Client, filters
 except ImportError:
     Client = None  # type: ignore
+    filters = None  # type: ignore
 
 log = logging.getLogger(__name__)
 
 
 class TelegramMessageHandler:
-    """Handles incoming Telegram private voice calls.
+    """Handles incoming Telegram private voice calls and text messages.
 
-    Only registers a raw update handler to detect and manage 1-on-1
-    voice calls. Text messages are not processed.
+    Registers a raw update handler for voice calls and a message handler
+    for text auto-replies (up to 3 replies + CTA link, then silent).
     """
 
     def __init__(
@@ -33,24 +33,119 @@ class TelegramMessageHandler:
         self.client = client
         self.influencer_id = influencer_id
 
+    # Auto-reply messages for text conversations (generic, no influencer name)
+    TEXT_REPLIES = [
+        "Hey babe! 💋 So sweet of you to message me. I'd love to hear your voice though… Why don't you give me a call! 📞",
+        "I'm way better on calls, trust me 😘 Hit that call button and let's have some fun together!",
+        "Come on, don't be shy! 💕 Just call me right now, I promise you won't regret it 😏",
+    ]
+
+    # Max text replies before sending CTA link and going silent
+    MAX_TEXT_REPLIES = 3
+
     def register(self):
-        """Register voice call handler on the Pyrogram client."""
+        """Register voice call and text message handlers on the Pyrogram client."""
 
         @self.client.on_raw_update()
         async def handle_raw_update(_client: Client, update, users, chats):
             """Detect incoming private calls via raw Telegram updates."""
             update_class = type(update).__name__
-            # Only log meaningful call state changes — skip SignalingData
-            # which fires ~10x/sec during calls with encrypted binary payloads.
             if update_class == "UpdatePhoneCall":
                 call_type = type(getattr(update, "phone_call", None)).__name__
                 log.info("RAW UPDATE: %s (phone_call=%s)", update_class, call_type)
             await self._handle_incoming_call(update)
 
+        @self.client.on_message(filters.private & ~filters.service)
+        async def handle_text_message(_client: Client, message):
+            """Auto-reply to private messages up to MAX_TEXT_REPLIES, then send CTA."""
+            await self._handle_text_message(message)
+
         log.info(
-            "Telegram handlers registered for influencer=%s (voice calls only)",
+            "Telegram handlers registered for influencer=%s (voice calls + text)",
             self.influencer_id,
         )
+
+    async def _handle_text_message(self, message):
+        """Reply to private text messages up to MAX_TEXT_REPLIES, then send CTA link.
+
+        Tracks reply count per (influencer, telegram_user) in Redis.
+        After all replies are sent, sends the influencer CTA link once and goes silent.
+        """
+        from app.utils.infrastructure.redis_pool import get_redis
+        from pyrogram import enums
+
+        user_id = message.from_user.id if message.from_user else None
+        if not user_id:
+            return
+
+        redis = await get_redis()
+        key = f"tg:text_replies:{self.influencer_id}:{user_id}"
+
+        raw = await redis.get(key)
+        count = int(raw) if raw else 0
+
+        if count > self.MAX_TEXT_REPLIES:
+            # Already sent all replies + CTA — stay silent
+            return
+
+        if count < self.MAX_TEXT_REPLIES:
+            await message.reply_text(
+                self.TEXT_REPLIES[count],
+                parse_mode=enums.ParseMode.HTML,
+            )
+            count += 1
+            await redis.set(key, count)
+
+        if count == self.MAX_TEXT_REPLIES:
+            # Send CTA link after the last text reply
+            await self._send_text_cta(message, user_id)
+            await redis.set(key, count + 1)
+
+    async def _send_text_cta(self, message, telegram_user_id: int):
+        """Send the influencer CTA link as a follow-up after text replies."""
+        import asyncio
+
+        from pyrogram import enums
+        from sqlalchemy import func, select
+
+        from app.core.session import SessionLocal as _SessionLocal
+        from app.data.models import Influencer
+        from app.services.funnel_tracking_service import track_invite_sent
+        from app.services.telegram_invite_service import get_or_create_invite_code
+        from app.utils.telegram_link_builder import build_telegram_cta_html
+
+        try:
+            async with _SessionLocal() as db:
+                result = await db.execute(
+                    select(Influencer).where(
+                        func.lower(Influencer.id) == self.influencer_id.lower()
+                    )
+                )
+                inf_record = result.scalar_one_or_none()
+                actual_id = inf_record.id if inf_record else self.influencer_id
+
+                invite_code = await get_or_create_invite_code(
+                    db, telegram_user_id, actual_id,
+                )
+                asyncio.create_task(
+                    track_invite_sent(telegram_user_id, actual_id, invite_code)
+                )
+
+                cta_html = build_telegram_cta_html(invite_code, actual_id)
+                await message.reply_text(
+                    f"Want more of me? 💋\n\n{cta_html}",
+                    parse_mode=enums.ParseMode.HTML,
+                )
+
+                log.info(
+                    "text_cta_sent tg_user=%s influencer=%s",
+                    telegram_user_id, actual_id,
+                )
+        except Exception:
+            log.exception(
+                "Failed to send text CTA tg_user=%s influencer=%s",
+                telegram_user_id, self.influencer_id,
+            )
 
     async def _handle_incoming_call(self, update):
         """Handle an incoming private voice call via Telegram's raw API.
