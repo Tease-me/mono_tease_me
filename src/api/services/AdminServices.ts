@@ -447,10 +447,14 @@ export type AdminTelegramWelcomeMediaResponse = {
   telegram_audio_key: string | null;
   telegram_audio_url: string | null;
   telegram_audio_content_type: string | null;
+  telegram_audio_2_key: string | null;
+  telegram_audio_2_url: string | null;
+  telegram_audio_2_content_type: string | null;
   telegram_video_key: string | null;
   telegram_video_url: string | null;
   telegram_video_content_type: string | null;
   has_audio: boolean;
+  has_audio_2: boolean;
   has_video: boolean;
   updated_at: string | null;
 };
@@ -837,11 +841,13 @@ export const AdminServices = (apiClient: AxiosInstance) => ({
     influencerId: string,
     payload: {
       audio?: File | null;
+      audio_2?: File | null;
       video?: File | null;
     }
   ): Promise<AdminTelegramWelcomeMediaResponse> => {
     const formData = new FormData();
     if (payload.audio) formData.append("audio", payload.audio);
+    if (payload.audio_2) formData.append("audio_2", payload.audio_2);
     if (payload.video) formData.append("video", payload.video);
     const response = await apiClient.post(
       Endpoints.admin.telegramWelcomeMedia(influencerId),
