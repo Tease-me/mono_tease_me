@@ -56,9 +56,17 @@ class TelegramMessageHandler:
                 log.info("RAW UPDATE: %s (phone_call=%s)", update_class, call_type)
             await self._handle_incoming_call(update)
 
-        @self.client.on_message(filters.private & ~filters.service)
+        @self.client.on_message(filters.incoming)
         async def handle_text_message(_client: Client, message):
             """Auto-reply to private messages up to MAX_TEXT_REPLIES, then send CTA."""
+            log.info(
+                "telegram.message_callback_entered influencer=%s message_id=%s chat_type=%s outgoing=%s has_text=%s",
+                self.influencer_id,
+                getattr(message, "id", None),
+                getattr(getattr(message, "chat", None), "type", None),
+                getattr(message, "outgoing", None),
+                bool(getattr(message, "text", None)),
+            )
             await self._handle_text_message(message)
 
         log.info(
@@ -75,8 +83,26 @@ class TelegramMessageHandler:
         from app.utils.infrastructure.redis_pool import get_redis
         from pyrogram import enums
 
+        if not getattr(message, "from_user", None):
+            return
+
         user_id = message.from_user.id if message.from_user else None
         if not user_id:
+            return
+
+        if getattr(message, "outgoing", False):
+            return
+
+        chat = getattr(message, "chat", None)
+        chat_type = getattr(chat, "type", None)
+        if str(chat_type) not in {"private", "ChatType.PRIVATE"}:
+            return
+
+        if getattr(message, "service", None):
+            return
+
+        text = (getattr(message, "text", None) or "").strip()
+        if not text:
             return
 
         redis = await get_redis()
@@ -84,7 +110,7 @@ class TelegramMessageHandler:
 
         raw = await redis.get(key)
         count = int(raw) if raw else 0
-        preview = re.sub(r"\s+", " ", (getattr(message, "text", None) or "").strip())
+        preview = re.sub(r"\s+", " ", text)
         if len(preview) > 100:
             preview = preview[:97] + "..."
 
