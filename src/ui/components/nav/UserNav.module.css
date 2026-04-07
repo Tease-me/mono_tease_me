@@ -4,7 +4,7 @@
   justify-content: center;
   padding: 16px 28px 12px 25px;
   background: linear-gradient(180deg, #212121 67.79%, #131313 96.63%, #212121 100%);
-  min-height: 11dvh;
+  min-height: 10dvh;
   position: relative;
 }
 
@@ -111,7 +111,7 @@
 
 @media (max-width: 768px) {
   .bar {
-    padding: var(--space-px-12) var(--space-px-16);
+    padding: var(--space-px-4) var(--space-px-16) var(--space-px-8) var(--space-px-16);
   }
 
   .logoArea {

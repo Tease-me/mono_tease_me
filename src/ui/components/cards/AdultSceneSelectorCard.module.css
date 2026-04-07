@@ -27,8 +27,11 @@
   width: 100%;
   flex: 1 1 auto;
   min-height: 0;
-  background: radial-gradient(54.08% 54.08% at 50% 85.74%, #9A2AFF 0%, #000 100%);
+  background: radial-gradient(54.08% 54.08% at 50% 85.74%, rgba(154, 42, 255, 0.8), #000);
   border-radius: 16px 16px 0 0;
+  background-position: 0px 40px;
+background-size: cover;
+background-repeat: no-repeat;
 }
 
 .relationship {
@@ -47,6 +50,7 @@
   justify-content: center;
   transform: translateX(-50%);
   pointer-events: none;
+  filter: hue-rotate(-17deg);
 }
 
 .titlePlaceholder>div,
@@ -87,7 +91,7 @@
   left: 50%;
   transform: translate(-50%, 50%);
   z-index: 2;
-  padding: 14px 24px;
+  padding: 12px 24px;
   justify-content: center;
   align-items: center;
   border-radius: 999px;
@@ -120,8 +124,10 @@
   gap: 20px;
   align-self: stretch;
   border-radius: 0 0 16px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background-color: #282727;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: oklch(27.38% 0.00146 16.077 / 0.4);
   position: relative;
   z-index: 1;
 }
@@ -169,19 +175,20 @@
 
 @media (max-width: 767px) {
   .upperBody {
-    height: 250px;
-    flex-basis: 250px;
+ height: 33dvh;
     aspect-ratio: auto;
   }
 
   .titlePlaceholder {
     top: -10px;
-    width: min(100%, 240px);
+    width: min(100%, 100vw);
+    opacity: 0.9;
+    
   }
 
   .lowerBody {
     height: auto;
-    padding: 28px 24px 20px;
+    padding: 35px 24px 20px;
     gap: 12px;
   }
 
