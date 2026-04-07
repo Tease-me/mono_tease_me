@@ -56,7 +56,7 @@
 
 .nsfw {
   background: linear-gradient(89deg, #000 0%, #3F0C6E 22.6%, #000 100%);
-  border: 1px solid rgba(138, 31, 230, 0.50);
+  border: 1px solid oklch(52.797% 0.26215 300.866 / 0.70);
   border-radius: 8px;
 }
 
@@ -67,7 +67,7 @@
 
 .small {
   gap: 10px;
-  padding: 6px 14px;
+  padding: 8px 14px;
 }
 
 .playButton {
