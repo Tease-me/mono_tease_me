@@ -84,7 +84,12 @@ class Settings(BaseSettings):
     FIRSTPROMOTER_API_BASE_URL: str = "https://v2.firstpromoter.com/api/v2"
     FIRSTPROMOTER_API_V1_BASE_URL: str = "https://firstpromoter.com/api/v1"
     FIRSTPROMOTER_COMPANY_API_BASE_URL: str = "https://api.firstpromoter.com/api/v2"
-    FIRSTPROMOTER_NOTIFY_EMAIL: str | None = None
+    FIRSTPROMOTER_NOTIFY_EMAIL: str | None = None# MJ First Promoter (MJFP) - Drop-in replacement for FirstPromoter
+    
+    MJFP_API_URL: str | None = None
+    MJFP_API_KEY: str | None = None
+    MJFP_TOKEN: str | None = None
+    MJFP_ACCOUNT_ID: str | None = None
 
     # Didit Identity Verification (v3 API)
     DIDIT_BASE_URL: str = "https://verification.didit.me/v3"
