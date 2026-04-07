@@ -282,7 +282,8 @@
   gap: 16px;
   border-radius: 0 0 16px 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.10);
-  background: #222429;
+  background: rgba(33, 33, 33, 0.80);
+  backdrop-filter: blur(5px);
   overflow: hidden;
 }
 
@@ -392,6 +393,7 @@
     opacity: 0;
     transform: translateY(8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -747,6 +749,7 @@
     box-sizing: border-box;
     flex-direction: column;
     align-items: stretch;
+    gap: 24px;
     gap: 24px;
     background: #222429;
     border-radius: 0 16px 16px 0;
