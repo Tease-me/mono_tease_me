@@ -179,7 +179,10 @@ export const Endpoints = {
   },
   user: {
     usage: (id: string) => `/user/${id}/usage`,
-  }
+  },
+  funnel: {
+    event: "/funnel/event",
+  },
 } as const;
 
 export const WsEndpoints = {
