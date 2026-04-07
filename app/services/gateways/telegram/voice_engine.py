@@ -14,10 +14,10 @@ Audio flow:
 
 from __future__ import annotations
 
-import collections
 import array
 import asyncio
 import base64
+import collections
 import json
 import logging
 import re
@@ -28,6 +28,7 @@ import httpx
 
 try:
     import websockets
+
     HAS_WEBSOCKETS = True
 except ImportError:
     HAS_WEBSOCKETS = False
@@ -38,18 +39,20 @@ except ImportError:
     Client = None  # type: ignore
 
 try:
-    from pytgcalls import PyTgCalls, filters as ptg_filters
+    from pytgcalls import PyTgCalls
+    from pytgcalls import filters as ptg_filters
     from pytgcalls.types import (
         CallConfig,
         ChatUpdate,
+        Device,
+        Direction,
         MediaStream,
         RecordStream,
         StreamFrames,
-        Device,
-        Direction,
     )
-    from pytgcalls.types.stream.external_media import ExternalMedia
     from pytgcalls.types.raw import AudioParameters as RawAudioParameters
+    from pytgcalls.types.stream.external_media import ExternalMedia
+
     HAS_PYTGCALLS = True
 except ImportError:
     HAS_PYTGCALLS = False
@@ -58,11 +61,11 @@ from app.core.config import settings
 from app.core.session import SessionLocal
 from app.data.models import Influencer
 from app.services.gateways.telegram.audio_bridge import (
-    downsample_48k_to_16k,
     BYTES_PER_SECOND,
+    CHANNELS,
     SAMPLE_RATE,
     SAMPLE_WIDTH,
-    CHANNELS,
+    downsample_48k_to_16k,
 )
 
 log = logging.getLogger(__name__)
@@ -96,7 +99,7 @@ FRAME_SIZE = int(SAMPLE_RATE * CHANNELS * SAMPLE_WIDTH * 0.01)
 # Pre-allocated silence frame — sent to pytgcalls when no ConvAI audio
 # is available, keeping the WebRTC RTP stream alive. Without this,
 # missing packets cause Telegram to report "poor connection".
-SILENCE_FRAME = b'\x00' * FRAME_SIZE
+SILENCE_FRAME = b"\x00" * FRAME_SIZE
 
 # Jitter buffer: pre-fill 40ms of audio before starting playback.
 # This absorbs ConvAI network jitter while keeping response latency
@@ -237,8 +240,6 @@ class VoiceCallSession:
         # greeting audio is buffered — used to delay call pickup.
         self._convai_ready_event = asyncio.Event()
 
-
-
     @property
     def is_active(self) -> bool:
         return self._is_active
@@ -266,7 +267,9 @@ class VoiceCallSession:
 
         log.info(
             "voice_call.starting influencer=%s chat=%s agent=%s",
-            self.influencer_id, self.chat_id, self.agent_id,
+            self.influencer_id,
+            self.chat_id,
+            self.agent_id,
         )
 
         # Step 1: Connect to ConvAI FIRST (while caller hears ringing)
@@ -276,12 +279,18 @@ class VoiceCallSession:
         # After ~3-5s of ringing the greeting audio should be buffered.
         try:
             await asyncio.wait_for(self._convai_ready_event.wait(), timeout=8.0)
-            log.info("voice_call.convai_ready_before_pickup influencer=%s "
-                     "buffered_frames=%d",
-                     self.influencer_id, len(self._playback_frames))
+            log.info(
+                "voice_call.convai_ready_before_pickup influencer=%s "
+                "buffered_frames=%d",
+                self.influencer_id,
+                len(self._playback_frames),
+            )
         except asyncio.TimeoutError:
-            log.warning("voice_call.convai_ready_timeout influencer=%s "
-                        "(picking up anyway after 8s)", self.influencer_id)
+            log.warning(
+                "voice_call.convai_ready_timeout influencer=%s "
+                "(picking up anyway after 8s)",
+                self.influencer_id,
+            )
 
         if not self._is_active:
             return
@@ -291,18 +300,18 @@ class VoiceCallSession:
             ExternalMedia.AUDIO,
             audio_parameters=RawAudioParameters(
                 bitrate=SAMPLE_RATE,  # 48000 Hz — this IS the sample rate, NOT Opus bitrate!
-                channels=CHANNELS,    # pytgcalls maps bitrate → AudioDescription.sample_rate
+                channels=CHANNELS,  # pytgcalls maps bitrate → AudioDescription.sample_rate
             ),
         )
 
-        self._play_task = asyncio.create_task(
-            self._accept_and_record(stream)
-        )
+        self._play_task = asyncio.create_task(self._accept_and_record(stream))
         self._timer_task = asyncio.create_task(self._trial_timer())
 
         log.info(
             "voice_call.started influencer=%s user=%s max_duration=%ds",
-            self.influencer_id, self.telegram_user_id, self.max_duration_secs,
+            self.influencer_id,
+            self.telegram_user_id,
+            self.max_duration_secs,
         )
 
     async def stop(self, reason: str = "ended"):
@@ -314,7 +323,12 @@ class VoiceCallSession:
         # Cancel tasks — but skip the current task to avoid self-cancellation
         # (when _trial_timer calls stop(), it IS self._timer_task)
         current = asyncio.current_task()
-        for task in (self._timer_task, self._play_task, self._convai_task, self._playback_task):
+        for task in (
+            self._timer_task,
+            self._play_task,
+            self._convai_task,
+            self._playback_task,
+        ):
             if task and task is not current and not task.done():
                 task.cancel()
 
@@ -337,9 +351,11 @@ class VoiceCallSession:
                     InputPhoneCall,
                     PhoneCallDiscardReasonHangup,
                 )
+
                 log.info(
                     "voice_call.discarding call_id=%s access_hash=%s duration=%ds",
-                    self._phone_call_id, self._phone_call_access_hash,
+                    self._phone_call_id,
+                    self._phone_call_access_hash,
                     int(self.elapsed_seconds),
                 )
                 await self.client.invoke(
@@ -353,11 +369,17 @@ class VoiceCallSession:
                         connection_id=0,
                     )
                 )
-                log.info("voice_call.phone_discarded OK influencer=%s", self.influencer_id)
+                log.info(
+                    "voice_call.phone_discarded OK influencer=%s", self.influencer_id
+                )
             except Exception:
-                log.exception("voice_call.discard_FAILED influencer=%s", self.influencer_id)
+                log.exception(
+                    "voice_call.discard_FAILED influencer=%s", self.influencer_id
+                )
         else:
-            log.warning("voice_call.no_phone_call_id — cannot discard, will try leave_call only")
+            log.warning(
+                "voice_call.no_phone_call_id — cannot discard, will try leave_call only"
+            )
 
         # Leave the pytgcalls call (drops media stream / WebRTC)
         try:
@@ -366,7 +388,11 @@ class VoiceCallSession:
             log.warning("voice_call.leave_error: %s", e)
 
         # Remove pytgcalls handlers
-        for attr in ("_stream_handler", "_call_left_handler", "_call_discarded_handler"):
+        for attr in (
+            "_stream_handler",
+            "_call_left_handler",
+            "_call_discarded_handler",
+        ):
             try:
                 handler = getattr(self, attr, None)
                 if handler:
@@ -374,12 +400,24 @@ class VoiceCallSession:
             except Exception:
                 pass
 
-        duration = self.elapsed_seconds
-        await self._finalize_call_record(duration)
+        actual_duration = self.elapsed_seconds
+
+        # When the user hangs up, consume the entire trial budget so they
+        # cannot call back for the remaining seconds.
+        if reason == "remote_hangup":
+            recorded_duration = float(self.max_duration_secs)
+        else:
+            recorded_duration = actual_duration
+
+        await self._finalize_call_record(recorded_duration)
 
         log.info(
-            "voice_call.stopped influencer=%s user=%s duration=%.1fs reason=%s",
-            self.influencer_id, self.telegram_user_id, duration, reason,
+            "voice_call.stopped influencer=%s user=%s actual=%.1fs recorded=%.1fs reason=%s",
+            self.influencer_id,
+            self.telegram_user_id,
+            actual_duration,
+            recorded_duration,
+            reason,
         )
 
     # ── pytgcalls: accept call + record ─────────────────────────────
@@ -400,10 +438,15 @@ class VoiceCallSession:
             # RTP stream alive even before ConvAI audio arrives.
             self._playback_task = asyncio.create_task(self._playback_loop())
         except Exception as exc:
-            log.warning("voice_call.play_error influencer=%s err=%s", self.influencer_id, exc)
+            log.warning(
+                "voice_call.play_error influencer=%s err=%s", self.influencer_id, exc
+            )
             self._is_active = False
             from app.services.gateways.telegram.voice_engine import voice_call_manager
-            key = voice_call_manager._call_key(self.influencer_id, self.telegram_user_id)
+
+            key = voice_call_manager._call_key(
+                self.influencer_id, self.telegram_user_id
+            )
             voice_call_manager._active_calls.pop(key, None)
             return
 
@@ -423,18 +466,25 @@ class VoiceCallSession:
                 return
             try:
                 await self.ptg.record(self.chat_id, record_stream)
-                log.info("voice_call.record_started influencer=%s attempt=%d",
-                         self.influencer_id, attempt + 1)
+                log.info(
+                    "voice_call.record_started influencer=%s attempt=%d",
+                    self.influencer_id,
+                    attempt + 1,
+                )
 
                 # Start a watchdog: if no frames arrive within 5s,
                 # log a warning so we know recording isn't delivering.
                 asyncio.create_task(self._frame_watchdog())
                 return
             except Exception as exc:
-                log.warning("voice_call.record_retry attempt=%d err=%s", attempt + 1, exc)
+                log.warning(
+                    "voice_call.record_retry attempt=%d err=%s", attempt + 1, exc
+                )
                 await asyncio.sleep(1.0)
 
-        log.error("voice_call.record_failed_all_retries influencer=%s", self.influencer_id)
+        log.error(
+            "voice_call.record_failed_all_retries influencer=%s", self.influencer_id
+        )
 
     async def _frame_watchdog(self):
         """Log a warning if no frames arrive within 5s of recording start."""
@@ -450,8 +500,10 @@ class VoiceCallSession:
                 log.info(
                     "voice_call.frame_watchdog_ok influencer=%s frames=%d "
                     "convai_ready=%s early_queued=%d sent=%d",
-                    self.influencer_id, self._frame_count,
-                    self._convai_ready, self._early_audio_dropped,
+                    self.influencer_id,
+                    self._frame_count,
+                    self._convai_ready,
+                    self._early_audio_dropped,
                     self._audio_chunks_sent,
                 )
         except asyncio.CancelledError:
@@ -460,7 +512,9 @@ class VoiceCallSession:
     def _register_stream_handler(self):
         """Register pytgcalls handlers for incoming audio + call-end."""
 
-        @self.ptg.on_update(ptg_filters.stream_frame(Direction.INCOMING, Device.MICROPHONE))
+        @self.ptg.on_update(
+            ptg_filters.stream_frame(Direction.INCOMING, Device.MICROPHONE)
+        )
         async def _on_stream_frames(_, update: StreamFrames):
             if update.chat_id != self.chat_id or not self._is_active:
                 return
@@ -474,11 +528,19 @@ class VoiceCallSession:
         async def _on_call_left(_, update: ChatUpdate):
             if update.chat_id != self.chat_id or not self._is_active:
                 return
-            log.info("voice_call.call_ended_by_remote influencer=%s", self.influencer_id)
+            log.info(
+                "voice_call.call_ended_by_remote influencer=%s", self.influencer_id
+            )
             await self.stop(reason="remote_hangup")
             from app.services.gateways.telegram.voice_engine import voice_call_manager
-            key = voice_call_manager._call_key(self.influencer_id, self.telegram_user_id)
+
+            key = voice_call_manager._call_key(
+                self.influencer_id, self.telegram_user_id
+            )
             voice_call_manager._active_calls.pop(key, None)
+
+            # Trial consumed on hangup — send promo + CTA
+            await self._send_trial_ended_on_hangup()
 
         self._call_left_handler = _on_call_left
 
@@ -489,8 +551,14 @@ class VoiceCallSession:
             log.info("voice_call.call_discarded influencer=%s", self.influencer_id)
             await self.stop(reason="remote_hangup")
             from app.services.gateways.telegram.voice_engine import voice_call_manager
-            key = voice_call_manager._call_key(self.influencer_id, self.telegram_user_id)
+
+            key = voice_call_manager._call_key(
+                self.influencer_id, self.telegram_user_id
+            )
             voice_call_manager._active_calls.pop(key, None)
+
+            # Trial consumed on hangup — send promo + CTA
+            await self._send_trial_ended_on_hangup()
 
         self._call_discarded_handler = _on_call_discarded
 
@@ -513,33 +581,42 @@ class VoiceCallSession:
             peak = 0
             if len(data) >= 2:
                 import struct as _struct
+
                 n = len(data) // 2
-                samples = _struct.unpack(f"<{n}h", data[:n * 2])
+                samples = _struct.unpack(f"<{n}h", data[: n * 2])
                 peak = max(abs(s) for s in samples)
             log.info(
                 "voice_call.first_frame_received influencer=%s bytes=%d peak=%d "
                 "type=%s first_8=%s",
-                self.influencer_id, len(data), peak,
+                self.influencer_id,
+                len(data),
+                peak,
                 type(data).__name__,
                 data[:8].hex() if data else "empty",
             )
         elif self._frame_count == 50:
             # Log audio levels after ~0.5s to confirm real audio vs silence
             import struct as _struct
+
             n = len(data) // 2
             if n > 0:
-                samples = _struct.unpack(f"<{n}h", data[:n * 2])
+                samples = _struct.unpack(f"<{n}h", data[: n * 2])
                 peak = max(abs(s) for s in samples)
                 rms = int((sum(s * s for s in samples) / n) ** 0.5)
                 log.info(
                     "voice_call.audio_level_check influencer=%s frame=50 "
                     "peak=%d rms=%d (silence if peak<50, real_audio if peak>500)",
-                    self.influencer_id, peak, rms,
+                    self.influencer_id,
+                    peak,
+                    rms,
                 )
         elif self._frame_count % 250 == 0:
-            log.info("voice_call.frames_received influencer=%s total=%d buf=%d",
-                     self.influencer_id, self._frame_count,
-                     len(self._audio_send_buffer))
+            log.info(
+                "voice_call.frames_received influencer=%s total=%d buf=%d",
+                self.influencer_id,
+                self._frame_count,
+                len(self._audio_send_buffer),
+            )
 
         self._audio_send_buffer.extend(data)
 
@@ -556,8 +633,10 @@ class VoiceCallSession:
                 self._early_audio_queue.append(chunk_16k)
                 self._early_audio_dropped += 1
                 if self._early_audio_dropped == 1:
-                    log.info("voice_call.queuing_early_audio influencer=%s",
-                             self.influencer_id)
+                    log.info(
+                        "voice_call.queuing_early_audio influencer=%s",
+                        self.influencer_id,
+                    )
                 continue
 
             if self._ai_speaking:
@@ -582,11 +661,17 @@ class VoiceCallSession:
             await self._convai_ws.send(json.dumps({"user_audio_chunk": b64}))
             self._audio_chunks_sent += 1
             if self._audio_chunks_sent == 1:
-                log.info("convai.first_audio_sent influencer=%s bytes=%d",
-                         self.influencer_id, len(pcm_16k))
+                log.info(
+                    "convai.first_audio_sent influencer=%s bytes=%d",
+                    self.influencer_id,
+                    len(pcm_16k),
+                )
             elif self._audio_chunks_sent % 40 == 0:
-                log.info("convai.audio_sent influencer=%s total=%d",
-                         self.influencer_id, self._audio_chunks_sent)
+                log.info(
+                    "convai.audio_sent influencer=%s total=%d",
+                    self.influencer_id,
+                    self._audio_chunks_sent,
+                )
         except Exception as e:
             log.warning("convai.send_audio_error: %s", e)
 
@@ -611,8 +696,12 @@ class VoiceCallSession:
             separator = "&" if "?" in signed_url else "?"
             ws_url = f"{signed_url}{separator}output_format=pcm_16000"
 
-            log.info("convai.connecting influencer=%s agent=%s url=%s",
-                     self.influencer_id, self.agent_id, ws_url[:120])
+            log.info(
+                "convai.connecting influencer=%s agent=%s url=%s",
+                self.influencer_id,
+                self.agent_id,
+                ws_url[:120],
+            )
 
             async with websockets.connect(
                 ws_url,
@@ -633,7 +722,7 @@ class VoiceCallSession:
                             "prompt": {
                                 "prompt": self.system_prompt,
                             },
-                            "first_message": "Hey babe, I'm so glad you called me!",
+                            "first_message": "[moan] hey baby~  what take you so long [moan] mmm~",
                             "language": "en",
                         },
                         "tts": {
@@ -663,19 +752,26 @@ class VoiceCallSession:
                     msg_type = msg.get("type", "")
 
                     if msg_type == "conversation_initiation_metadata":
-                        self._conversation_id = (
-                            msg.get("conversation_initiation_metadata_event", {})
-                            .get("conversation_id")
-                        )
+                        self._conversation_id = msg.get(
+                            "conversation_initiation_metadata_event", {}
+                        ).get("conversation_id")
                         # Log the full metadata to see input/output format details
-                        meta_event = msg.get("conversation_initiation_metadata_event", {})
-                        user_input_fmt = meta_event.get("user_input_audio_format", "unknown")
-                        agent_output_fmt = meta_event.get("agent_output_audio_format", "unknown")
+                        meta_event = msg.get(
+                            "conversation_initiation_metadata_event", {}
+                        )
+                        user_input_fmt = meta_event.get(
+                            "user_input_audio_format", "unknown"
+                        )
+                        agent_output_fmt = meta_event.get(
+                            "agent_output_audio_format", "unknown"
+                        )
                         log.info(
                             "convai.session_started conv=%s influencer=%s "
                             "input_fmt=%s output_fmt=%s",
-                            self._conversation_id, self.influencer_id,
-                            user_input_fmt, agent_output_fmt,
+                            self._conversation_id,
+                            self.influencer_id,
+                            user_input_fmt,
+                            agent_output_fmt,
                         )
 
                         # Validate audio format — log if ConvAI negotiated
@@ -683,7 +779,8 @@ class VoiceCallSession:
                         if agent_output_fmt != "unknown":
                             log.info(
                                 "convai.output_format influencer=%s fmt=%s",
-                                self.influencer_id, agent_output_fmt,
+                                self.influencer_id,
+                                agent_output_fmt,
                             )
 
                         # Dynamically detect actual output sample rate from
@@ -691,14 +788,22 @@ class VoiceCallSession:
                         # NOTE: We only LOG this — we do NOT change _convai_output_rate
                         # because ConvAI's metadata often reports a different format
                         # than it actually sends, causing mid-call chipmunk regression.
-                        rate_match = re.search(r'(\d{4,6})', str(agent_output_fmt))
+                        rate_match = re.search(r"(\d{4,6})", str(agent_output_fmt))
                         if rate_match:
                             negotiated_rate = int(rate_match.group(1))
-                            if negotiated_rate in (8000, 16000, 22050, 24000, 44100, 48000):
+                            if negotiated_rate in (
+                                8000,
+                                16000,
+                                22050,
+                                24000,
+                                44100,
+                                48000,
+                            ):
                                 log.info(
                                     "convai.output_rate_reported influencer=%s "
                                     "reported=%d using=%d (locked to request)",
-                                    self.influencer_id, negotiated_rate,
+                                    self.influencer_id,
+                                    negotiated_rate,
                                     self._convai_output_rate,
                                 )
 
@@ -708,7 +813,8 @@ class VoiceCallSession:
                         if self._early_audio_queue:
                             log.info(
                                 "convai.flushing_early_audio influencer=%s chunks=%d",
-                                self.influencer_id, len(self._early_audio_queue),
+                                self.influencer_id,
+                                len(self._early_audio_queue),
                             )
                             for queued_chunk in self._early_audio_queue:
                                 await self._send_audio_to_convai(queued_chunk)
@@ -719,29 +825,45 @@ class VoiceCallSession:
 
                     elif msg_type == "ping":
                         event_id = msg.get("ping_event", {}).get("event_id", 0)
-                        await ws.send(json.dumps({"type": "pong", "event_id": event_id}))
+                        await ws.send(
+                            json.dumps({"type": "pong", "event_id": event_id})
+                        )
 
                     elif msg_type == "user_transcript":
-                        transcript = (
-                            msg.get("user_transcription_event", {})
-                            .get("user_transcript", "")
+                        transcript = msg.get("user_transcription_event", {}).get(
+                            "user_transcript", ""
                         )
                         if transcript:
-                            log.info("convai.user_said influencer=%s text=%s",
-                                     self.influencer_id, transcript[:80])
+                            log.info(
+                                "convai.user_said influencer=%s text=%s",
+                                self.influencer_id,
+                                transcript[:80],
+                            )
 
                     elif msg_type == "agent_response":
-                        response = msg.get("agent_response_event", {}).get("agent_response", "")
+                        response = msg.get("agent_response_event", {}).get(
+                            "agent_response", ""
+                        )
                         if response:
-                            log.info("convai.agent_said influencer=%s text=%s",
-                                     self.influencer_id, response[:80])
+                            log.info(
+                                "convai.agent_said influencer=%s text=%s",
+                                self.influencer_id,
+                                response[:80],
+                            )
 
                     elif msg_type == "error":
-                        log.error("convai.server_error influencer=%s msg=%s",
-                                  self.influencer_id, json.dumps(msg)[:300])
+                        log.error(
+                            "convai.server_error influencer=%s msg=%s",
+                            self.influencer_id,
+                            json.dumps(msg)[:300],
+                        )
 
                     else:
-                        log.debug("convai.msg type=%s influencer=%s", msg_type, self.influencer_id)
+                        log.debug(
+                            "convai.msg type=%s influencer=%s",
+                            msg_type,
+                            self.influencer_id,
+                        )
 
         except asyncio.CancelledError:
             pass
@@ -775,11 +897,18 @@ class VoiceCallSession:
         pcm_raw = base64.b64decode(audio_b64)
 
         if self._audio_chunks_received == 1:
-            log.info("convai.first_audio_chunk influencer=%s bytes=%d rate=%d",
-                     self.influencer_id, len(pcm_raw), self._convai_output_rate)
+            log.info(
+                "convai.first_audio_chunk influencer=%s bytes=%d rate=%d",
+                self.influencer_id,
+                len(pcm_raw),
+                self._convai_output_rate,
+            )
         elif self._audio_chunks_received % 20 == 0:
-            log.info("convai.audio_chunks influencer=%s total=%d",
-                     self.influencer_id, self._audio_chunks_received)
+            log.info(
+                "convai.audio_chunks influencer=%s total=%d",
+                self.influencer_id,
+                self._audio_chunks_received,
+            )
 
         # ── Rate info (diagnostic only) ──
         source_rate = self._convai_output_rate  # locked to 16000
@@ -798,7 +927,8 @@ class VoiceCallSession:
             log.warning(
                 "convai.non_integer_ratio influencer=%s rate=%d, "
                 "falling back to 3× upsample",
-                self.influencer_id, source_rate,
+                self.influencer_id,
+                source_rate,
             )
             pcm_48k = _upsample_by_ratio(pcm_raw, 3)
 
@@ -855,7 +985,9 @@ class VoiceCallSession:
                 remaining = next_send - now
                 if remaining > 0.001:
                     await loop.run_in_executor(
-                        None, self._precise_sleep, remaining,
+                        None,
+                        self._precise_sleep,
+                        remaining,
                     )
 
                 # ── Pick the frame ──
@@ -866,8 +998,7 @@ class VoiceCallSession:
                         else:
                             self._jitter_filled = True
                             log.info(
-                                "playback.jitter_buffer_filled influencer=%s "
-                                "frames=%d",
+                                "playback.jitter_buffer_filled influencer=%s frames=%d",
                                 self.influencer_id,
                                 len(self._playback_frames),
                             )
@@ -879,7 +1010,9 @@ class VoiceCallSession:
                     if self._partial_frame:
                         remaining_bytes = bytes(self._partial_frame)
                         self._partial_frame.clear()
-                        frame = remaining_bytes + b'\x00' * (FRAME_SIZE - len(remaining_bytes))
+                        frame = remaining_bytes + b"\x00" * (
+                            FRAME_SIZE - len(remaining_bytes)
+                        )
                     else:
                         frame = SILENCE_FRAME
 
@@ -892,7 +1025,8 @@ class VoiceCallSession:
                             self._held_audio_queue = []
                             log.info(
                                 "playback.flushing_held_audio influencer=%s chunks=%d",
-                                self.influencer_id, len(held),
+                                self.influencer_id,
+                                len(held),
                             )
                             for chunk in held:
                                 await self._send_audio_to_convai(chunk)
@@ -911,26 +1045,29 @@ class VoiceCallSession:
                     if consecutive_errors <= 3:
                         log.debug(
                             "playback.send_frame_skip influencer=%s err=%s",
-                            self.influencer_id, e,
+                            self.influencer_id,
+                            e,
                         )
                     elif consecutive_errors > 50:
                         log.warning(
                             "playback.send_frame_fatal influencer=%s "
                             "consecutive_errors=%d",
-                            self.influencer_id, consecutive_errors,
+                            self.influencer_id,
+                            consecutive_errors,
                         )
                         break
 
                 next_send += frame_duration
 
                 if frames_sent_total == 1:
-                    log.info("playback.first_frame_sent influencer=%s",
-                             self.influencer_id)
+                    log.info(
+                        "playback.first_frame_sent influencer=%s", self.influencer_id
+                    )
                 elif frames_sent_total % 500 == 0:
                     log.info(
-                        "playback.frames_sent influencer=%s total=%d "
-                        "queued=%d",
-                        self.influencer_id, frames_sent_total,
+                        "playback.frames_sent influencer=%s total=%d queued=%d",
+                        self.influencer_id,
+                        frames_sent_total,
                         len(self._playback_frames),
                     )
         except asyncio.CancelledError:
@@ -967,8 +1104,11 @@ class VoiceCallSession:
                     headers={"xi-api-key": settings.ELEVENLABS_API_KEY},
                 )
                 if resp.status_code != 200:
-                    log.error("convai.signed_url_error status=%d body=%s",
-                              resp.status_code, resp.text[:300])
+                    log.error(
+                        "convai.signed_url_error status=%d body=%s",
+                        resp.status_code,
+                        resp.text[:300],
+                    )
                     return None
 
                 signed_url = resp.json().get("signed_url")
@@ -991,35 +1131,75 @@ class VoiceCallSession:
             if not self._is_active:
                 return
 
-            log.info("voice_call.trial_expired influencer=%s after=%ds",
-                     self.influencer_id, self.max_duration_secs)
+            log.info(
+                "voice_call.trial_expired influencer=%s after=%ds",
+                self.influencer_id,
+                self.max_duration_secs,
+            )
 
             # Track trial exhaustion (mid-call timer expiry)
             from app.services.funnel_tracking_service import track_trial_exhausted
-            asyncio.create_task(track_trial_exhausted(
-                self.telegram_user_id, self.influencer_id,
-            ))
+
+            asyncio.create_task(
+                track_trial_exhausted(
+                    self.telegram_user_id,
+                    self.influencer_id,
+                )
+            )
 
             await self.stop(reason="trial_expired")
 
-            # 1) Send promo media + text CTA with invite link
+            # Send voice note → promo media → CTA (all handled by send_trial_expired_messages)
             try:
                 from app.core.session import SessionLocal as _SessionFactory
-                from app.services.telegram_call_service import send_trial_expired_messages
+                from app.services.telegram_call_service import (
+                    send_trial_expired_messages,
+                )
 
                 async with _SessionFactory() as _db:
                     await send_trial_expired_messages(
-                        self.client, _db, self.chat_id,
-                        self.telegram_user_id, self.influencer_id,
+                        self.client,
+                        _db,
+                        self.chat_id,
+                        self.telegram_user_id,
+                        self.influencer_id,
                     )
             except Exception:
-                log.exception("Failed to send trial redirect message")
-
-            # 2) Send ElevenLabs voice note
-            await self._send_trial_voice_note()
+                log.exception("Failed to send trial-ended messages")
 
         except asyncio.CancelledError:
             pass
+
+    async def _send_trial_ended_on_hangup(self):
+        """Send trial-ended messages after the user hangs up early.
+
+        Tracks trial_exhausted in funnel, then delegates to
+        send_trial_expired_messages which sends: voice note → media → CTA.
+        """
+        try:
+            from app.services.funnel_tracking_service import track_trial_exhausted
+
+            asyncio.create_task(
+                track_trial_exhausted(
+                    self.telegram_user_id,
+                    self.influencer_id,
+                )
+            )
+
+            from app.core.session import SessionLocal as _SessionFactory
+            from app.services.telegram_call_service import send_trial_expired_messages
+
+            async with _SessionFactory() as _db:
+                await send_trial_expired_messages(
+                    self.client,
+                    _db,
+                    self.chat_id,
+                    self.telegram_user_id,
+                    self.influencer_id,
+                )
+        except Exception:
+            log.exception("Failed to send trial-ended messages after hangup")
+
 
     async def _send_trial_voice_note(self):
         """Send welcome audio from assets_json, falling back to ElevenLabs TTS."""
@@ -1031,12 +1211,15 @@ class VoiceCallSession:
                 influencer = await db.get(Influencer, self.influencer_id)
                 if influencer:
                     audio_sent = await send_telegram_welcome_audio(
-                        self.client, self.chat_id, influencer,
+                        self.client,
+                        self.chat_id,
+                        influencer,
                     )
                     if audio_sent:
                         log.info(
                             "voice_call.welcome_audio_sent influencer=%s user=%s",
-                            self.influencer_id, self.telegram_user_id,
+                            self.influencer_id,
+                            self.telegram_user_id,
                         )
                         return
         except Exception:
@@ -1045,8 +1228,9 @@ class VoiceCallSession:
         # Fallback: generate TTS voice note via ElevenLabs
         farewell_text = "I'll see you in tease-me mi amor....... don't make me wait"
         try:
-            import httpx
             import io
+
+            import httpx
 
             voice_id = self.voice_id
             api_key = settings.ELEVENLABS_API_KEY
@@ -1075,12 +1259,17 @@ class VoiceCallSession:
                 resp = await client.post(url, json=payload, headers=headers)
 
             if resp.status_code != 200:
-                log.error("ElevenLabs TTS failed: %s %s", resp.status_code, resp.text[:200])
+                log.error(
+                    "ElevenLabs TTS failed: %s %s", resp.status_code, resp.text[:200]
+                )
                 return
 
             audio_bytes = resp.content
             if len(audio_bytes) < 1000:
-                log.warning("ElevenLabs TTS returned suspiciously small audio (%d bytes)", len(audio_bytes))
+                log.warning(
+                    "ElevenLabs TTS returned suspiciously small audio (%d bytes)",
+                    len(audio_bytes),
+                )
                 return
 
             voice_file = io.BytesIO(audio_bytes)
@@ -1092,8 +1281,11 @@ class VoiceCallSession:
                 chat_id=self.chat_id,
                 voice=voice_file,
             )
-            log.info("voice_call.trial_voice_note_sent influencer=%s user=%s",
-                     self.influencer_id, self.telegram_user_id)
+            log.info(
+                "voice_call.trial_voice_note_sent influencer=%s user=%s",
+                self.influencer_id,
+                self.telegram_user_id,
+            )
 
         except Exception:
             log.exception("Failed to send trial voice note")
@@ -1106,6 +1298,7 @@ class VoiceCallSession:
             from app.services.repositories.call_record_repository import (
                 create_call_record,
             )
+
             async with SessionLocal() as db:
                 self._call_record_id = await create_call_record(
                     db,
@@ -1123,6 +1316,7 @@ class VoiceCallSession:
             from app.services.repositories.call_record_repository import (
                 finalize_call_record,
             )
+
             async with SessionLocal() as db:
                 await finalize_call_record(db, self._call_record_id, duration_secs)
         except Exception:
@@ -1130,6 +1324,7 @@ class VoiceCallSession:
 
 
 # ── Manager ─────────────────────────────────────────────────────────
+
 
 class VoiceCallManager:
     """Manages active voice call sessions across all influencers."""
@@ -1168,14 +1363,20 @@ class VoiceCallManager:
             if not existing.is_active:
                 del self._active_calls[key]
             elif existing.elapsed_seconds > 15:
-                log.warning("Cleaning up stale session %s (%.0fs)", key, existing.elapsed_seconds)
+                log.warning(
+                    "Cleaning up stale session %s (%.0fs)",
+                    key,
+                    existing.elapsed_seconds,
+                )
                 try:
                     await existing.stop(reason="stale_cleanup")
                 except Exception:
                     pass
                 del self._active_calls[key]
             else:
-                log.warning("Call already active for %s (%.0fs)", key, existing.elapsed_seconds)
+                log.warning(
+                    "Call already active for %s (%.0fs)", key, existing.elapsed_seconds
+                )
                 return self._active_calls[key]
 
         # Load influencer data
@@ -1207,10 +1408,17 @@ class VoiceCallManager:
             if remaining <= 0:
                 log.info("Trial exhausted for tg_user=%s", telegram_user_id)
                 from app.services.funnel_tracking_service import track_trial_exhausted
-                asyncio.create_task(track_trial_exhausted(telegram_user_id, influencer_id))
+
+                asyncio.create_task(
+                    track_trial_exhausted(telegram_user_id, influencer_id)
+                )
                 try:
                     await send_trial_expired_messages(
-                        client, db, chat_id, telegram_user_id, influencer_id,
+                        client,
+                        db,
+                        chat_id,
+                        telegram_user_id,
+                        influencer_id,
                     )
                 except Exception:
                     log.exception("Failed to send trial-exhausted message")
@@ -1219,11 +1427,13 @@ class VoiceCallManager:
             max_duration = remaining
 
             # Build system prompt — fetch the adult prompt from DB
-            from app.services.system_prompt_service import get_system_prompt
             from app.data.enums import prompt_keys
+            from app.services.system_prompt_service import get_system_prompt
 
             base_prompt = await get_system_prompt(db, prompt_keys.BASE_ADULT_PROMPT)
-            audio_prompt = await get_system_prompt(db, prompt_keys.BASE_ADULT_AUDIO_PROMPT)
+            audio_prompt = await get_system_prompt(
+                db, prompt_keys.BASE_ADULT_AUDIO_PROMPT
+            )
 
             if base_prompt:
                 system_prompt = base_prompt
@@ -1232,7 +1442,11 @@ class VoiceCallManager:
             else:
                 # Fallback: influencer-specific or generic
                 system_prompt = influencer.prompt_template or ""
-                if not system_prompt and influencer.bio_json and isinstance(influencer.bio_json, dict):
+                if (
+                    not system_prompt
+                    and influencer.bio_json
+                    and isinstance(influencer.bio_json, dict)
+                ):
                     system_prompt = influencer.bio_json.get("personality_rules", "")
                 if not system_prompt:
                     display = influencer.display_name or influencer_id

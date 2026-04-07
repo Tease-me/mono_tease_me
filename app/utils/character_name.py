@@ -13,6 +13,14 @@ def _resolve_user_name(username: str | None) -> str:
     return ""
 
 
+def resolve_required_user_name(*, full_name: str | None, username: str | None) -> str:
+    if username and username.strip():
+        return username.strip()
+    if full_name and full_name.strip():
+        return full_name.strip()
+    raise ValueError("User name is required to render adult prompt")
+
+
 def _resolve_user_title(gender: str | None) -> str:
     normalized = (gender or "").strip().lower()
     if normalized in {"male", "man", "m"}:

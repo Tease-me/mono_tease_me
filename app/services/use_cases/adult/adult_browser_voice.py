@@ -22,23 +22,13 @@ from app.services.repositories.adult.adult_conversation_repository import (
     get_user_by_id,
 )
 from app.utils.adult.adult_messages import pick_random_first_message
+from app.utils.character_name import resolve_required_user_name
 from app.utils.prompt_template import (
     render_template,
     validate_required_template_variables,
 )
 
 ADULT_REQUIRED_PROMPT_VARIABLES = frozenset({"influencer_name", "user_name"})
-
-
-def _resolve_user_name(*, full_name: str | None, username: str | None) -> str:
-    if full_name and full_name.strip():
-        return full_name.strip()
-    if username and username.strip():
-        return username.strip()
-    raise HTTPException(
-        status_code=400,
-        detail="User name is required to render adult prompt",
-    )
 
 
 async def prepare_adult_browser_voice_call(
@@ -114,7 +104,7 @@ async def prepare_adult_browser_voice_call(
             character.prompt_template,
             {
                 "influencer_name": influencer.display_name.strip(),
-                "user_name": _resolve_user_name(
+                "user_name": resolve_required_user_name(
                     full_name=user.full_name,
                     username=user.username,
                 ),

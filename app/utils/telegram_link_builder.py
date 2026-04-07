@@ -10,7 +10,7 @@ def build_signup_link(invite_code: str, influencer_id: str = "") -> str:
     """Build a full signup URL with the invite code as a query parameter."""
     base = settings.FRONTEND_URL.rstrip("/")
     if influencer_id:
-        return f"{base}/{influencer_id}/register?invite={invite_code}"
+        return f"{base}/{influencer_id}?ref=tg&invite={invite_code}"
     return f"{base}/register?invite={invite_code}"
 
 
@@ -21,4 +21,4 @@ def build_telegram_cta_html(invite_code: str, influencer_id: str = "") -> str:
     Returns the full CTA block ready to be embedded in a message.
     """
     link = build_signup_link(invite_code, influencer_id)
-    return f'👉 <a href="{link}">Sign up here</a>'
+    return f'<a href="{link}">talk to me</a>'

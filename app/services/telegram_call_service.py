@@ -48,9 +48,10 @@ async def send_trial_expired_messages(
     telegram_user_id: int,
     influencer_id: str,
 ) -> None:
-    """Send promo media + CTA invite link when a Telegram user's trial ends.
+    """Send trial-ended sequence when a Telegram user's trial ends.
 
-    Reusable across handlers.py (pre-call gate) and voice_engine.py (mid-call expiry).
+    Order: voice note → promo image/video → CTA text with invite link.
+    Reusable across handlers.py (pre-call gate) and voice_engine.py (mid-call/hangup).
     """
     from app.services.telegram_invite_service import get_or_create_invite_code
     from app.utils.telegram_link_builder import build_telegram_cta_html
@@ -69,7 +70,11 @@ async def send_trial_expired_messages(
     # Fetch influencer for media
     influencer = await db.get(Influencer, influencer_id)
 
-    # Try welcome video first, fall back to profile promo
+    # 1) Voice note first
+    if influencer:
+        await send_telegram_welcome_audio(client, chat_id, influencer)
+
+    # 2) Image / video promo
     welcome_video_sent = False
     if influencer:
         welcome_video_sent = await send_telegram_welcome_video(
@@ -86,13 +91,12 @@ async def send_trial_expired_messages(
             profile_photo_key=photo_key,
         )
 
+    # 3) CTA text with invite link
     await client.send_message(
         chat_id=chat_id,
         text=(
-            "💋 Your Trial Has Ended\n\n"
-            "Continue the fun here:\n"
-            f"{cta_html}\n\n"
-            "See you there babe 😘"
+            f"Cum in papi let's finish what we started pleeease 🍆💦\n\n"
+            f"👉 {cta_html}"
         ),
         parse_mode=enums.ParseMode.HTML,
     )
