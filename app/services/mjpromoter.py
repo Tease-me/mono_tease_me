@@ -7,7 +7,6 @@ Drop-in replacement for your existing FirstPromoter integration.
 
 import httpx
 import logging
-from typing import Optional, Dict, Any
 
 log = logging.getLogger(__name__)
 
@@ -30,7 +29,7 @@ class MJFPConfig:
     @classmethod
     def log_config_status(cls):
         """Log current configuration status for debugging"""
-        log.info(f"[MJFP] Configuration status:")
+        log.info("[MJFP] Configuration status:")
         log.info(f"[MJFP]   API_URL: {cls.MJFP_API_URL}")
         log.info(f"[MJFP]   API_KEY configured: {bool(cls.MJFP_API_KEY)}")
         log.info(f"[MJFP]   TOKEN configured: {bool(cls.MJFP_TOKEN)}")
