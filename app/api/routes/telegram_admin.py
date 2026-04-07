@@ -79,9 +79,10 @@ async def send_code(
         if result.get("status") == "resumed":
             client = await session_manager.get_session(payload.influencer_id)
             if client:
-                from app.services.gateways.telegram.handlers import TelegramMessageHandler
-                handler = TelegramMessageHandler(client, payload.influencer_id)
-                handler.register()
+                tg_lifecycle.register_session_handlers(
+                    payload.influencer_id,
+                    client,
+                )
                 log.info("Handlers registered for resumed session %s", payload.influencer_id)
 
         return SendCodeResponse(ok=True, **result)
@@ -151,9 +152,10 @@ async def verify_code(
         me = await client.get_me()
 
         # Register handlers on the new session
-        from app.services.gateways.telegram.handlers import TelegramMessageHandler
-        handler = TelegramMessageHandler(client, payload.influencer_id)
-        handler.register()
+        tg_lifecycle.register_session_handlers(
+            payload.influencer_id,
+            client,
+        )
 
         return VerifyCodeResponse(
             ok=True,
