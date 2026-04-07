@@ -95,7 +95,7 @@ async def send_trial_expired_messages(
     await client.send_message(
         chat_id=chat_id,
         text=(
-            f"Cum in papi let's finish what we started pleeease 🍆💦\n\n"
+            f"Cum in papi~ let's finish what we started pleeease 🍆💦\n\n"
             f"👉 {cta_html}"
         ),
         parse_mode=enums.ParseMode.HTML,
