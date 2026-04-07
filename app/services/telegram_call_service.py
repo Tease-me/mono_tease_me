@@ -15,6 +15,7 @@ from app.data.models import Influencer
 from app.services.repositories.call_record_repository import (
     get_cumulative_trial_usage,
 )
+from pyrogram.errors import FloodWait
 
 log = logging.getLogger(__name__)
 
@@ -74,6 +75,14 @@ async def send_trial_expired_messages(
     try:
         if influencer:
             await send_telegram_welcome_audio(client, chat_id, influencer)
+    except FloodWait as e:
+        log.warning("trial_expired: voice note flood wait %ds", e.value)
+        await asyncio.sleep(e.value)
+        try:
+            if influencer:
+                await send_telegram_welcome_audio(client, chat_id, influencer)
+        except Exception:
+            log.exception("trial_expired: voice note retry failed")
     except Exception:
         log.exception("trial_expired: failed to send voice note")
 
@@ -94,6 +103,9 @@ async def send_trial_expired_messages(
                 profile_video_key=video_key,
                 profile_photo_key=photo_key,
             )
+    except FloodWait as e:
+        log.warning("trial_expired: promo media flood wait %ds", e.value)
+        await asyncio.sleep(e.value)
     except Exception:
         log.exception("trial_expired: failed to send promo media")
 
@@ -107,6 +119,20 @@ async def send_trial_expired_messages(
             ),
             parse_mode=enums.ParseMode.HTML,
         )
+    except FloodWait as e:
+        log.warning("trial_expired: CTA text flood wait %ds", e.value)
+        await asyncio.sleep(e.value)
+        try:
+            await client.send_message(
+                chat_id=chat_id,
+                text=(
+                    f"Cum in papi~ let's finish what we started pleeease 🍆💦\n\n"
+                    f"👉 {cta_html}"
+                ),
+                parse_mode=enums.ParseMode.HTML,
+            )
+        except Exception:
+            log.exception("trial_expired: CTA text retry failed")
     except Exception:
         log.exception("trial_expired: failed to send CTA text")
 
