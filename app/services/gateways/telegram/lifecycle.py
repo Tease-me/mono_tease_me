@@ -74,6 +74,11 @@ async def start_session(influencer_id: str, phone_number: str | None = None):
     return client
 
 
+def register_session_handlers(influencer_id: str, client) -> None:
+    """Register Telegram handlers for a client once."""
+    _register_handlers(influencer_id, client)
+
+
 async def stop_session(influencer_id: str) -> bool:
     """Stop a specific influencer's session.
 
@@ -118,8 +123,14 @@ def _register_handlers(influencer_id: str, client):
     if influencer_id in _registered_handlers:
         log.debug("Handlers already registered for influencer=%s", influencer_id)
         return
+    if getattr(client, "_tease_me_handlers_registered", False):
+        log.debug(
+            "Handlers already attached to client for influencer=%s",
+            influencer_id,
+        )
+        return
 
     handler = TelegramMessageHandler(client, influencer_id)
     handler.register()
+    setattr(client, "_tease_me_handlers_registered", True)
     _registered_handlers[influencer_id] = handler
-
