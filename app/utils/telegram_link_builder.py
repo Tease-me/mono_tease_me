@@ -12,7 +12,7 @@ def build_signup_link(invite_code: str, influencer_id: str = "") -> str:
     """Build a full signup URL with the invite code as a query parameter."""
     base = settings.FRONTEND_URL.rstrip("/")
     if influencer_id:
-        return f"{base}/{influencer_id}/register?invite={invite_code}"
+        return f"{base}/{influencer_id}?ref=tg&invite={invite_code}"
     return f"{base}/register?invite={invite_code}"
 
 
