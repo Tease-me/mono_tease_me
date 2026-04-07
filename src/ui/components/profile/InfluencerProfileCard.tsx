@@ -17,7 +17,6 @@ type InfluencerProfileCardProps = {
   name: string;
   image: string;
   video?: string;
-  lastConnected: string;
   followingSince: string;
   isSubscribed?: boolean;
   socials?: SocialLinks;
@@ -30,9 +29,9 @@ type SocialLink = {
 };
 
 export default function InfluencerProfileCard({
+  name,
   image,
   video,
-  lastConnected,
   followingSince,
   isSubscribed = false,
   socials,
@@ -67,9 +66,7 @@ export default function InfluencerProfileCard({
             </div>
           )}
           <div className={styles.textRow02}>
-            <p>
-              Last Connected: <span>{lastConnected}</span>
-            </p>
+            <p className={styles.name}>{name}</p>
             <p>Following Since: {followingSince}</p>
           </div>
         </div>

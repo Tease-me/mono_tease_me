@@ -44,7 +44,6 @@ export default function RelationshipPopup({
               name={influencerData.name}
               image={influencerData.image}
               video={influencerData.video}
-              lastConnected={influencerData.lastConnected}
               followingSince={influencerData.followingSince}
               isSubscribed={influencerData.isSubscribed}
               socials={influencerData.socials}
