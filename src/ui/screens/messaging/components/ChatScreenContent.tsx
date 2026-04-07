@@ -466,6 +466,7 @@ const ChatScreenContent: React.FC<ChatScreenContentProps> = ({
       </div>
       <AddCreditsModal
         isOpen={showTopupModal}
+        influencerName={influencer?.name}
         image={influencer?.img}
         video={influencer?.videoUrl}
         onClose={() => dispatch(chatScreenActions.setShowTopupModal(false))}

@@ -190,7 +190,12 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
   }, [navPayload.influencerId]);
 
   const handleAddCredits = () => {
-    goTo("add_credits", { id: data.id, image: data.image, video: data.video });
+    goTo("add_credits", {
+      influencerId: data.id,
+      influencerName: data.name,
+      image: data.image,
+      video: data.video,
+    });
   };
 
   const followingDate =

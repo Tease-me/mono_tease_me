@@ -29,8 +29,7 @@
       "vite-plugin-svgr/client",
       "node",
       "vite/client"
-    ],
-    "baseUrl": "."
+    ]
   },
   "include": [
     "src",
