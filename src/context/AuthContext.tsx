@@ -10,12 +10,13 @@ import { useNotificationSocket, NotificationEvent } from "@/hooks/useNotificatio
 import logger from "@/utils/logger";
 import { storage } from "@/utils/storage";
 
-import React, { createContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useState, useEffect, useCallback, useMemo } from "react";
 
 export interface AuthContextType {
     accessToken?: string;
     loadingAuth: boolean;
     login: (email: string, password: string) => Promise<boolean>;
+    loginWithTokens: (accessToken: string, refreshToken: string) => Promise<void>;
     logout: (callback?: () => void) => void;
     refreshUser: () => Promise<void>;
     authErrors?: AuthErrors;
@@ -41,9 +42,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [authErrors, setAuthErrors] = useState<AuthErrors>();
     const [user, setUser] = useState<UserDataModel | undefined>();
 
-    const authServices = AuthServices(apiClient);
-    const userRepo = UserRepo()
-    const pusnNotificationServices = PushNotificationServices(apiClient);
+    const authServices = useMemo(() => AuthServices(apiClient), []);
+    const userRepo = useMemo(() => UserRepo(), []);
+    const pusnNotificationServices = useMemo(() => PushNotificationServices(apiClient), []);
+
+    const clearAuthStorage = useCallback(() => {
+        storage.remove(LocalStorageKeys.AccessToken);
+        storage.remove(LocalStorageKeys.RefreshToken);
+        storage.remove(LocalStorageKeys.AuthUser);
+        setUser(undefined);
+        setIsSignedIn(false);
+    }, []);
 
     useEffect(() => {
         if (authErrors) {
@@ -53,28 +62,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             return () => clearTimeout(timeout);
         }
     }, [authErrors]);
-
-    useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const token = storage.get(LocalStorageKeys.RefreshToken);
-                if (token) {
-                    const tokens: TokenResponse = await authServices.refreshToken(token)
-                    storage.set(LocalStorageKeys.AccessToken, tokens.access_token)
-                    storage.set(LocalStorageKeys.RefreshToken, tokens.refresh_token)
-                    getUserDetails()
-                    setIsSignedIn(true);
-                } else {
-                    setIsSignedIn(false);
-                }
-            } catch {
-                setIsSignedIn(false);
-            } finally {
-                setLoadingAuth(false);
-            }
-        };
-        checkAuth();
-    }, []);
 
     useEffect(() => {
         if (isSignedIn) {
@@ -96,7 +83,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 }
             })();
         }
-    }, [isSignedIn]);
+    }, [isSignedIn, pusnNotificationServices]);
 
     // ── Notification WebSocket ──────────────────────────────────
     const handleNotification = useCallback((event: NotificationEvent) => {
@@ -110,20 +97,48 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         handleNotification,
     );
 
-    const getUserDetails = async () => {
+    const getUserDetails = useCallback(async () => {
         const user: UserDataModel = await userRepo.getUserDerails()
         storage.setObject(LocalStorageKeys.AuthUser, user)
         setUser(user);
-    }
+    }, [userRepo]);
+
+    const loginWithTokens = useCallback(async (accessToken: string, refreshToken: string) => {
+        try {
+            storage.set(LocalStorageKeys.AccessToken, accessToken);
+            storage.set(LocalStorageKeys.RefreshToken, refreshToken);
+            await getUserDetails();
+            setIsSignedIn(true);
+        } catch (error) {
+            clearAuthStorage();
+            throw error;
+        }
+    }, [clearAuthStorage, getUserDetails]);
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const token = storage.get(LocalStorageKeys.RefreshToken);
+                if (token) {
+                    const tokens: TokenResponse = await authServices.refreshToken(token)
+                    await loginWithTokens(tokens.access_token, tokens.refresh_token);
+                } else {
+                    setIsSignedIn(false);
+                }
+            } catch {
+                clearAuthStorage();
+            } finally {
+                setLoadingAuth(false);
+            }
+        };
+        checkAuth();
+    }, [authServices, clearAuthStorage, loginWithTokens]);
 
     const login = async (email: string, password: string) => {
         try {
             const response = await authServices.login(email, password);
             if (response) {
-                getUserDetails();
-                setIsSignedIn(true);
-                storage.set(LocalStorageKeys.AccessToken, response.access_token)
-                storage.set(LocalStorageKeys.RefreshToken, response.refresh_token)
+                await loginWithTokens(response.access_token, response.refresh_token);
                 return true;
             }
             return false;
@@ -150,6 +165,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         <AuthContext.Provider
             value={{
                 login: login,
+                loginWithTokens: loginWithTokens,
                 loadingAuth: loadingAuth,
                 logout: logout,
                 refreshUser: getUserDetails,
