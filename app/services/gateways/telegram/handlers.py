@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import random
 import re
 from collections.abc import Awaitable, Callable
 
@@ -132,6 +133,7 @@ class TelegramMessageHandler:
 
         if count < self.MAX_TEXT_REPLIES:
             reply_index = count
+            await asyncio.sleep(random.uniform(1.0, 2.0))
             await send_reply(self.TEXT_REPLIES[count])
             count += 1
             await redis.set(key, count)
@@ -143,8 +145,7 @@ class TelegramMessageHandler:
             )
 
         if count == self.MAX_TEXT_REPLIES:
-            # Send CTA link after the last text reply
-            await self._send_text_cta(chat_id=user_id, telegram_user_id=user_id)
+            # All 3 replies sent — mark as done so future messages are silent
             await redis.set(key, count + 1)
 
     async def _handle_incoming_text_update(self, update) -> None:

@@ -42,12 +42,15 @@ LANDING_VIDEO_SLOTS = {
 }
 
 TELEGRAM_AUDIO_SLOT = "telegram_welcome_audio"
+TELEGRAM_AUDIO_2_SLOT = "telegram_welcome_audio_2"
 TELEGRAM_VIDEO_SLOT = "telegram_welcome_video"
 LEGACY_TELEGRAM_MEDIA_SLOT = "telegram_welcome_media"
 TELEGRAM_AUDIO_PREFIX = "telegram/welcome-audio"
+TELEGRAM_AUDIO_2_PREFIX = "telegram/welcome-audio-2"
 TELEGRAM_VIDEO_PREFIX = "telegram/welcome-video"
 _PRESENCE_SLOTS = tuple(LANDING_IMAGE_SLOTS) + tuple(LANDING_VIDEO_SLOTS) + (
     TELEGRAM_AUDIO_SLOT,
+    TELEGRAM_AUDIO_2_SLOT,
     TELEGRAM_VIDEO_SLOT,
     LEGACY_TELEGRAM_MEDIA_SLOT,
 )
@@ -205,6 +208,10 @@ def build_landing_asset_key(
         ext = _normalize_binary_extension(filename, content_type, "mp3")
         return f"{_asset_prefix(influencer_id)}/{TELEGRAM_AUDIO_PREFIX}.{ext}"
 
+    if slot == TELEGRAM_AUDIO_2_SLOT:
+        ext = _normalize_binary_extension(filename, content_type, "mp3")
+        return f"{_asset_prefix(influencer_id)}/{TELEGRAM_AUDIO_2_PREFIX}.{ext}"
+
     if slot == TELEGRAM_VIDEO_SLOT:
         ext = _normalize_binary_extension(filename, content_type, "mp4")
         return f"{_asset_prefix(influencer_id)}/{TELEGRAM_VIDEO_PREFIX}.{ext}"
@@ -280,7 +287,7 @@ async def upload_landing_binary(
     final_type = normalized_type
     if not final_type:
         ext = key.rsplit(".", 1)[-1].lower() if "." in key else fallback_extension
-        if slot == TELEGRAM_AUDIO_SLOT:
+        if slot in {TELEGRAM_AUDIO_SLOT, TELEGRAM_AUDIO_2_SLOT}:
             final_type = f"audio/{ext}"
         elif slot == TELEGRAM_VIDEO_SLOT:
             final_type = f"video/{ext}"

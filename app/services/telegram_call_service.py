@@ -71,7 +71,8 @@ async def send_trial_expired_messages(
     # Fetch influencer for media
     influencer = await db.get(Influencer, influencer_id)
 
-    # 1) Voice note first
+    # 1) Voice note first (wait 3.5s after call ends so it feels natural)
+    await asyncio.sleep(3.5)
     try:
         if influencer:
             await send_telegram_welcome_audio(client, chat_id, influencer)
@@ -85,6 +86,8 @@ async def send_trial_expired_messages(
             log.exception("trial_expired: voice note retry failed")
     except Exception:
         log.exception("trial_expired: failed to send voice note")
+
+    await asyncio.sleep(3.5)
 
     # 2) Image / video promo
     try:
@@ -108,6 +111,8 @@ async def send_trial_expired_messages(
         await asyncio.sleep(e.value)
     except Exception:
         log.exception("trial_expired: failed to send promo media")
+
+    await asyncio.sleep(4.5)
 
     # 3) CTA text with invite link
     try:

@@ -23,6 +23,7 @@ from app.services.repositories.influencer_landing_assets_repository import (
     LANDING_VIDEO_SLOTS,
     LEGACY_TELEGRAM_MEDIA_SLOT,
     TELEGRAM_AUDIO_SLOT,
+    TELEGRAM_AUDIO_2_SLOT,
     TELEGRAM_VIDEO_SLOT,
     delete_asset,
     get_cached_presigned_url_for_key,
@@ -36,7 +37,7 @@ from app.services.repositories.influencer_landing_assets_repository import (
 )
 
 LANDING_ALL_SLOTS = tuple(LANDING_IMAGE_SLOTS) + tuple(LANDING_VIDEO_SLOTS)
-TELEGRAM_ALL_SLOTS = (TELEGRAM_AUDIO_SLOT, TELEGRAM_VIDEO_SLOT)
+TELEGRAM_ALL_SLOTS = (TELEGRAM_AUDIO_SLOT, TELEGRAM_AUDIO_2_SLOT, TELEGRAM_VIDEO_SLOT)
 _AUDIO_EXTENSIONS = {"mp3", "wav", "webm", "ogg", "aac", "m4a"}
 _VIDEO_EXTENSIONS = {"mp4", "webm", "mov", "avi", "mpeg", "mpg", "m4v"}
 _JPEG_EXTENSIONS = {"jpg", "jpeg"}
@@ -65,6 +66,10 @@ async def _resolve_entry(entry: dict[str, Any] | None) -> dict[str, Any] | None:
 
 def _get_telegram_audio_entry(assets_json: dict[str, Any] | None) -> dict[str, Any] | None:
     return get_landing_asset_entry(assets_json, TELEGRAM_AUDIO_SLOT)
+
+
+def _get_telegram_audio_2_entry(assets_json: dict[str, Any] | None) -> dict[str, Any] | None:
+    return get_landing_asset_entry(assets_json, TELEGRAM_AUDIO_2_SLOT)
 
 
 def _get_telegram_video_entry(assets_json: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -262,15 +267,18 @@ async def build_public_landing_assets_out(influencer: Influencer) -> dict[str, A
 async def build_admin_telegram_welcome_media_out(influencer: Influencer) -> dict[str, Any]:
     assets_json = influencer.assets_json if isinstance(influencer.assets_json, dict) else {}
     presence = await get_landing_asset_presence(influencer.id, assets_json)
-    audio_entry, video_entry = await asyncio.gather(
+    audio_entry, audio_2_entry, video_entry = await asyncio.gather(
         _resolve_entry(_get_telegram_audio_entry(assets_json))
         if presence.get(TELEGRAM_AUDIO_SLOT)
+        else _resolve_entry(None),
+        _resolve_entry(_get_telegram_audio_2_entry(assets_json))
+        if presence.get(TELEGRAM_AUDIO_2_SLOT)
         else _resolve_entry(None),
         _resolve_entry(_get_telegram_video_entry(assets_json))
         if presence.get(TELEGRAM_VIDEO_SLOT) or presence.get(LEGACY_TELEGRAM_MEDIA_SLOT)
         else _resolve_entry(None),
     )
-    if not audio_entry and not video_entry:
+    if not audio_entry and not audio_2_entry and not video_entry:
         raise HTTPException(status_code=404, detail="Telegram welcome media not found")
 
     return {
@@ -278,15 +286,19 @@ async def build_admin_telegram_welcome_media_out(influencer: Influencer) -> dict
         "telegram_audio_key": audio_entry["s3_key"] if audio_entry else None,
         "telegram_audio_url": audio_entry["url"] if audio_entry else None,
         "telegram_audio_content_type": audio_entry.get("content_type") if audio_entry else None,
+        "telegram_audio_2_key": audio_2_entry["s3_key"] if audio_2_entry else None,
+        "telegram_audio_2_url": audio_2_entry["url"] if audio_2_entry else None,
+        "telegram_audio_2_content_type": audio_2_entry.get("content_type") if audio_2_entry else None,
         "telegram_video_key": video_entry["s3_key"] if video_entry else None,
         "telegram_video_url": video_entry["url"] if video_entry else None,
         "telegram_video_content_type": video_entry.get("content_type") if video_entry else None,
         "has_audio": audio_entry is not None,
+        "has_audio_2": audio_2_entry is not None,
         "has_video": video_entry is not None,
         "updated_at": max(
             (
                 str(entry.get("updated_at"))
-                for entry in (audio_entry, video_entry)
+                for entry in (audio_entry, audio_2_entry, video_entry)
                 if entry and entry.get("updated_at")
             ),
             default=None,
@@ -300,9 +312,12 @@ async def build_public_telegram_welcome_media_out(influencer: Influencer) -> dic
         "influencer_id": admin_out["influencer_id"],
         "telegram_audio_url": admin_out["telegram_audio_url"],
         "telegram_audio_content_type": admin_out["telegram_audio_content_type"],
+        "telegram_audio_2_url": admin_out["telegram_audio_2_url"],
+        "telegram_audio_2_content_type": admin_out["telegram_audio_2_content_type"],
         "telegram_video_url": admin_out["telegram_video_url"],
         "telegram_video_content_type": admin_out["telegram_video_content_type"],
         "has_audio": admin_out["has_audio"],
+        "has_audio_2": admin_out["has_audio_2"],
         "has_video": admin_out["has_video"],
         "updated_at": admin_out["updated_at"],
     }
@@ -312,12 +327,14 @@ async def upsert_admin_telegram_welcome_media(
     db: AsyncSession,
     influencer: Influencer,
     audio: UploadFile | None,
+    audio_2: UploadFile | None,
     video: UploadFile | None,
 ) -> dict[str, Any]:
     provided_files = {
         slot: file
         for slot, file in {
             TELEGRAM_AUDIO_SLOT: audio,
+            TELEGRAM_AUDIO_2_SLOT: audio_2,
             TELEGRAM_VIDEO_SLOT: video,
         }.items()
         if file is not None
@@ -327,6 +344,7 @@ async def upsert_admin_telegram_welcome_media(
 
     previous_keys = {
         TELEGRAM_AUDIO_SLOT: _get_telegram_key(influencer.assets_json, TELEGRAM_AUDIO_SLOT),
+        TELEGRAM_AUDIO_2_SLOT: _get_telegram_key(influencer.assets_json, TELEGRAM_AUDIO_2_SLOT),
         TELEGRAM_VIDEO_SLOT: (
             _get_telegram_key(influencer.assets_json, TELEGRAM_VIDEO_SLOT)
             or _get_telegram_key(influencer.assets_json, LEGACY_TELEGRAM_MEDIA_SLOT)
@@ -336,7 +354,7 @@ async def upsert_admin_telegram_welcome_media(
     try:
         assets_json = _clone_assets_json(influencer)
         for slot, file in provided_files.items():
-            if slot == TELEGRAM_AUDIO_SLOT and not _is_audio_upload(file):
+            if slot in {TELEGRAM_AUDIO_SLOT, TELEGRAM_AUDIO_2_SLOT} and not _is_audio_upload(file):
                 raise HTTPException(status_code=400, detail="Telegram welcome audio must be an audio file")
             if slot == TELEGRAM_VIDEO_SLOT and not _is_video_upload(file):
                 raise HTTPException(status_code=400, detail="Telegram welcome video must be a video file")
@@ -345,7 +363,9 @@ async def upsert_admin_telegram_welcome_media(
             if not file_bytes:
                 raise HTTPException(status_code=400, detail=f"Empty {slot} file")
 
-            fallback_extension = "mp3" if slot == TELEGRAM_AUDIO_SLOT else "mp4"
+            fallback_extension = (
+                "mp3" if slot in {TELEGRAM_AUDIO_SLOT, TELEGRAM_AUDIO_2_SLOT} else "mp4"
+            )
             s3_key, content_type = await upload_landing_binary(
                 io.BytesIO(file_bytes),
                 file.filename,
