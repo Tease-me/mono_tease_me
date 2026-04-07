@@ -27,6 +27,14 @@ class MJFPConfig:
     MJFP_ACCOUNT_ID: str | None = None
     
     @classmethod
+    def get_base_url(cls) -> str | None:
+        """Return the base URL with trailing slashes stripped, or None if not configured."""
+        if not cls.MJFP_API_URL:
+            log.error("[MJFP] MJFP_API_URL is not configured")
+            return None
+        return cls.MJFP_API_URL.rstrip("/")
+
+    @classmethod
     def log_config_status(cls):
         """Log current configuration status for debugging"""
         log.info("[MJFP] Configuration status:")
@@ -85,11 +93,14 @@ async def fp_get_promoter_v2(promoter_id: int | str) -> dict | None:
     log.info(f"[MJFP] Getting promoter: id={promoter_id}")
     token = MJFPConfig.MJFP_TOKEN
     account_id = MJFPConfig.MJFP_ACCOUNT_ID
+    base_url = MJFPConfig.get_base_url()
     if not token or not account_id:
         log.error("[MJFP] Credentials not configured (token=%s, account_id=%s)", bool(token), bool(account_id))
         return None
+    if not base_url:
+        return None
 
-    url = f"{MJFPConfig.MJFP_API_URL}/v2/company/promoters/{promoter_id}"
+    url = f"{base_url}/v2/company/promoters/{promoter_id}"
     log.debug(f"[MJFP] GET {url}")
     
     async with httpx.AsyncClient(timeout=20) as client:
@@ -148,9 +159,12 @@ async def fp_track_sale_v2(
     log.info(f"[MJFP] Tracking sale: event_id={event_id}, amount=${amount_cents/100:.2f}, email={email}, uid={uid}, ref_id={ref_id}")
     token = MJFPConfig.MJFP_TOKEN
     account_id = MJFPConfig.MJFP_ACCOUNT_ID
+    base_url = MJFPConfig.get_base_url()
 
     if not token or not account_id:
         log.error("[MJFP] Credentials not configured (token=%s, account_id=%s)", bool(token), bool(account_id))
+        return None
+    if not base_url:
         return None
 
     payload: dict = {
@@ -169,7 +183,7 @@ async def fp_track_sale_v2(
     if plan:
         payload["plan"] = plan
 
-    url = f"{MJFPConfig.MJFP_API_URL}/v2/track/sale"
+    url = f"{base_url}/v2/track/sale"
     log.debug(f"[MJFP] POST {url} payload={payload}")
 
     async with httpx.AsyncClient(timeout=20) as client:
@@ -190,8 +204,8 @@ async def fp_track_sale_v2(
                     error_body = r.json()
                     error_msg = error_body.get("error", "Not found")
                     log.warning(f"[MJFP] Sale tracking failed: {error_msg} for event_id={event_id}, ref_id={ref_id}")
-                except Exception:
-                    log.error(f"[MJFP] Endpoint not found: {url}")
+                except ValueError:
+                    log.error(f"[MJFP] 404 response with non-JSON body from {url}")
                 return None
             
             if r.status_code >= 400:
@@ -235,9 +249,12 @@ async def fp_track_signup(
 
     token = MJFPConfig.MJFP_TOKEN
     account_id = MJFPConfig.MJFP_ACCOUNT_ID
+    base_url = MJFPConfig.get_base_url()
 
     if not token or not account_id:
         log.error("[MJFP] Credentials not configured (token=%s, account_id=%s)", bool(token), bool(account_id))
+        return None
+    if not base_url:
         return None
 
     payload = {"tid": tid}
@@ -246,7 +263,7 @@ async def fp_track_signup(
     if uid:
         payload["uid"] = uid
 
-    url = f"{MJFPConfig.MJFP_API_URL}/v2/track/signup"
+    url = f"{base_url}/v2/track/signup"
     log.debug(f"[MJFP] POST {url} payload={payload}")
 
     async with httpx.AsyncClient(timeout=10) as client:
@@ -272,8 +289,8 @@ async def fp_track_signup(
                     else:
                         log.error(f"[MJFP] Endpoint not found: {url}. Error: {error_msg}")
                         return None
-                except:
-                    log.error(f"[MJFP] Endpoint not found: {url}")
+                except ValueError:
+                    log.error(f"[MJFP] 404 response with non-JSON body from {url}")
                     return None
             
             if r.status_code >= 400:
@@ -321,8 +338,11 @@ async def fp_create_promoter(
     """
     log.info(f"[MJFP] Creating promoter: email={email}, name={first_name} {last_name}, cust_id={cust_id}, username={username}, parent={parent_promoter_id}")
     api_key = MJFPConfig.MJFP_API_KEY
+    base_url = MJFPConfig.get_base_url()
     if not api_key:
         log.error("[MJFP] API key not configured")
+        return None
+    if not base_url:
         return None
 
     payload = {
@@ -342,7 +362,7 @@ async def fp_create_promoter(
     if paypal_email:
         payload["paypal_email"] = paypal_email
 
-    url = f"{MJFPConfig.MJFP_API_URL}/v1/promoters/create"
+    url = f"{base_url}/v1/promoters/create"
     log.debug(f"[MJFP] POST {url} payload={payload}")
 
     async with httpx.AsyncClient(timeout=30) as client:
@@ -363,15 +383,15 @@ async def fp_create_promoter(
                     error_body = r.json()
                     error_msg = error_body.get("error", "Not found")
                     log.error(f"[MJFP] Create promoter endpoint issue: {error_msg}")
-                except:
-                    log.error(f"[MJFP] Endpoint not found: {url}")
+                except ValueError:
+                    log.error(f"[MJFP] 404 response with non-JSON body from {url}")
                 return None
             
             if r.status_code == 409:
                 log.warning(f"[MJFP] Promoter already exists: email={email}, cust_id={cust_id}")
                 try:
                     return r.json()
-                except:
+                except ValueError:
                     return None
             
             if r.status_code >= 400:
@@ -412,9 +432,12 @@ async def fp_track_refund(
     log.info(f"[MJFP] Tracking refund: event_id={event_id}, amount=${amount_cents/100:.2f}, email={email}, uid={uid}")
     token = MJFPConfig.MJFP_TOKEN
     account_id = MJFPConfig.MJFP_ACCOUNT_ID
+    base_url = MJFPConfig.get_base_url()
 
     if not token or not account_id:
         log.error("[MJFP] Credentials not configured (token=%s, account_id=%s)", bool(token), bool(account_id))
+        return None
+    if not base_url:
         return None
 
     payload: dict = {
@@ -426,7 +449,7 @@ async def fp_track_refund(
     if uid:
         payload["uid"] = uid
 
-    url = f"{MJFPConfig.MJFP_API_URL}/v2/track/refund"
+    url = f"{base_url}/v2/track/refund"
     log.debug(f"[MJFP] POST {url} payload={payload}")
 
     async with httpx.AsyncClient(timeout=20) as client:
@@ -447,8 +470,8 @@ async def fp_track_refund(
                     error_body = r.json()
                     error_msg = error_body.get("error", "Not found")
                     log.warning(f"[MJFP] Refund tracking failed: {error_msg} for event_id={event_id}")
-                except:
-                    log.error(f"[MJFP] Endpoint not found: {url}")
+                except ValueError:
+                    log.error(f"[MJFP] 404 response with non-JSON body from {url}")
                 return None
             
             if r.status_code >= 400:
@@ -480,11 +503,14 @@ async def fp_find_promoter_id_by_ref_token(ref_token: str) -> str | None:
     log.info(f"[MJFP] Finding promoter by ref_token: {ref_token}")
     token = MJFPConfig.MJFP_TOKEN
     account_id = MJFPConfig.MJFP_ACCOUNT_ID
+    base_url = MJFPConfig.get_base_url()
     if not token or not account_id:
         log.error("[MJFP] Credentials not configured (token=%s, account_id=%s)", bool(token), bool(account_id))
         return None
+    if not base_url:
+        return None
 
-    url = f"{MJFPConfig.MJFP_API_URL}/v2/company/promoters"
+    url = f"{base_url}/v2/company/promoters"
     log.debug(f"[MJFP] GET {url}?search={ref_token}")
 
     async with httpx.AsyncClient(timeout=20) as client:
@@ -504,7 +530,7 @@ async def fp_find_promoter_id_by_ref_token(ref_token: str) -> str | None:
                     error_body = r.json()
                     error_msg = error_body.get("error", "Not found")
                     log.info(f"[MJFP] Promoter not found for ref_token={ref_token}: {error_msg}")
-                except:
+                except ValueError:
                     log.info(f"[MJFP] Promoter not found for ref_token: {ref_token}")
                 return None
             
@@ -544,11 +570,14 @@ async def fp_find_promoter_id_by_username(username: str) -> str | None:
     log.info(f"[MJFP] Finding promoter by username: {username}")
     token = MJFPConfig.MJFP_TOKEN
     account_id = MJFPConfig.MJFP_ACCOUNT_ID
+    base_url = MJFPConfig.get_base_url()
     if not token or not account_id:
         log.error("[MJFP] Credentials not configured (token=%s, account_id=%s)", bool(token), bool(account_id))
         return None
+    if not base_url:
+        return None
 
-    url = f"{MJFPConfig.MJFP_API_URL}/v2/company/promoters"
+    url = f"{base_url}/v2/company/promoters"
     log.debug(f"[MJFP] GET {url}?username={username}")
 
     async with httpx.AsyncClient(timeout=20) as client:
@@ -568,7 +597,7 @@ async def fp_find_promoter_id_by_username(username: str) -> str | None:
                     error_body = r.json()
                     error_msg = error_body.get("error", "Not found")
                     log.info(f"[MJFP] Promoter not found for username={username}: {error_msg}")
-                except:
+                except ValueError:
                     log.info(f"[MJFP] Promoter not found for username: {username}")
                 return None
             
