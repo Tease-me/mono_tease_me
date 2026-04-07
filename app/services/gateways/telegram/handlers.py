@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 
 try:
     from pyrogram import Client, filters
@@ -83,18 +84,43 @@ class TelegramMessageHandler:
 
         raw = await redis.get(key)
         count = int(raw) if raw else 0
+        preview = re.sub(r"\s+", " ", (getattr(message, "text", None) or "").strip())
+        if len(preview) > 100:
+            preview = preview[:97] + "..."
+
+        log.info(
+            "telegram.incoming_text influencer=%s tg_user=%s message_id=%s reply_count=%s preview=%r",
+            self.influencer_id,
+            user_id,
+            getattr(message, "id", None),
+            count,
+            preview,
+        )
 
         if count > self.MAX_TEXT_REPLIES:
             # Already sent all replies + CTA — stay silent
+            log.info(
+                "telegram.text_reply_suppressed influencer=%s tg_user=%s reply_count=%s",
+                self.influencer_id,
+                user_id,
+                count,
+            )
             return
 
         if count < self.MAX_TEXT_REPLIES:
+            reply_index = count
             await message.reply_text(
                 self.TEXT_REPLIES[count],
                 parse_mode=enums.ParseMode.HTML,
             )
             count += 1
             await redis.set(key, count)
+            log.info(
+                "telegram.text_reply_sent influencer=%s tg_user=%s reply_index=%s",
+                self.influencer_id,
+                user_id,
+                reply_index,
+            )
 
         if count == self.MAX_TEXT_REPLIES:
             # Send CTA link after the last text reply
@@ -202,7 +228,6 @@ class TelegramMessageHandler:
         from app.services.gateways.telegram.voice_engine import voice_call_manager
         from app.services.telegram_call_service import (
             check_telegram_trial_eligibility,
-            send_trial_expired_messages,
         )
         from app.core.session import SessionLocal as _SessionLocal
 
@@ -226,16 +251,9 @@ class TelegramMessageHandler:
             return
 
         if remaining <= 0:
-            # No free trial left — send promo media + redirect with unique invite link
-            from app.services.funnel_tracking_service import track_trial_exhausted
-            asyncio.create_task(track_trial_exhausted(caller_id, actual_id))
-            try:
-                async with _SessionLocal() as db2:
-                    await send_trial_expired_messages(
-                        self.client, db2, caller_id, caller_id, actual_id,
-                    )
-            except Exception:
-                log.exception("Failed to send trial-expired redirect")
+            # Trial already used — silently ignore the call
+            # (text auto-replies will handle conversion via 3-msg + CTA flow)
+            log.info("trial_gate_blocked tg_user=%s influencer=%s", caller_id, actual_id)
             return
 
         # Start voice call session
@@ -350,4 +368,3 @@ class TelegramMessageHandler:
                     except Exception:
                         pass
                     voice_call_manager._active_calls.pop(key, None)
-
