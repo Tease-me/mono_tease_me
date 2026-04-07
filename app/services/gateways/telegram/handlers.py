@@ -143,8 +143,7 @@ class TelegramMessageHandler:
             )
 
         if count == self.MAX_TEXT_REPLIES:
-            # Send CTA link after the last text reply
-            await self._send_text_cta(chat_id=user_id, telegram_user_id=user_id)
+            # All 3 replies sent — mark as done so future messages are silent
             await redis.set(key, count + 1)
 
     async def _handle_incoming_text_update(self, update) -> None:
