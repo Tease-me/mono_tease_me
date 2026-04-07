@@ -225,27 +225,9 @@ class TelegramMessageHandler:
             return
 
         if remaining <= 0:
-            # Trial already used — just send a short nudge, no full promo blast
-            # (the full voice+media+CTA was already sent when their trial ended)
+            # Trial already used — silently ignore the call
+            # (text auto-replies will handle conversion via 3-msg + CTA flow)
             log.info("trial_gate_blocked tg_user=%s influencer=%s", caller_id, actual_id)
-            try:
-                from pyrogram import enums
-                from app.services.telegram_invite_service import get_or_create_invite_code
-                from app.utils.telegram_link_builder import build_telegram_cta_html
-
-                async with _SessionLocal() as db2:
-                    invite_code = await get_or_create_invite_code(db2, caller_id, actual_id)
-                    cta_html = build_telegram_cta_html(invite_code, actual_id)
-                    await self.client.send_message(
-                        chat_id=caller_id,
-                        text=(
-                            f"You've already used your free trial babe 😘\n\n"
-                            f"👉 {cta_html}"
-                        ),
-                        parse_mode=enums.ParseMode.HTML,
-                    )
-            except Exception:
-                log.exception("Failed to send trial-blocked message")
             return
 
         # Start voice call session
