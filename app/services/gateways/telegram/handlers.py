@@ -33,6 +33,7 @@ class TelegramMessageHandler:
     ):
         self.client = client
         self.influencer_id = influencer_id
+        self._self_user_id: int | None = None  # Cached to avoid get_me() per message
 
     # Auto-reply messages for text conversations (generic, no influencer name)
     TEXT_REPLIES = [
@@ -213,7 +214,9 @@ class TelegramMessageHandler:
                 actual_id = inf_record.id if inf_record else self.influencer_id
 
                 invite_code = await get_or_create_invite_code(
-                    db, telegram_user_id, actual_id,
+                    db,
+                    telegram_user_id,
+                    actual_id,
                 )
                 asyncio.create_task(
                     track_invite_sent(telegram_user_id, actual_id, invite_code)
@@ -228,12 +231,14 @@ class TelegramMessageHandler:
 
                 log.info(
                     "text_cta_sent tg_user=%s influencer=%s",
-                    telegram_user_id, actual_id,
+                    telegram_user_id,
+                    actual_id,
                 )
         except Exception:
             log.exception(
                 "Failed to send text CTA tg_user=%s influencer=%s",
-                telegram_user_id, self.influencer_id,
+                telegram_user_id,
+                self.influencer_id,
             )
 
     async def _handle_incoming_call(self, update):
@@ -247,8 +252,10 @@ class TelegramMessageHandler:
             for u in update.updates:
                 await self._handle_incoming_call(u)
             return
-            
-        if hasattr(update, "update") and type(update).__name__.startswith("UpdateShort"):
+
+        if hasattr(update, "update") and type(update).__name__.startswith(
+            "UpdateShort"
+        ):
             await self._handle_incoming_call(update.update)
             return
 
@@ -272,7 +279,7 @@ class TelegramMessageHandler:
         if call_class == "PhoneCallDiscarded":
             await self._handle_call_discarded(phone_call)
             return
-        
+
         if call_class != "PhoneCallRequested":
             return
 
@@ -288,24 +295,26 @@ class TelegramMessageHandler:
             caller_id,
         )
 
+        from sqlalchemy import func, select
+
+        from app.core.session import SessionLocal as _SessionLocal
+        from app.data.models import Influencer
         from app.services.gateways.telegram.voice_engine import voice_call_manager
         from app.services.telegram_call_service import (
             check_telegram_trial_eligibility,
         )
-        from app.core.session import SessionLocal as _SessionLocal
-
-        from sqlalchemy import select, func
-        from app.data.models import Influencer
 
         # Resolve case-insensitive influencer ID
         try:
             async with _SessionLocal() as db:
                 result = await db.execute(
-                    select(Influencer).where(func.lower(Influencer.id) == self.influencer_id.lower())
+                    select(Influencer).where(
+                        func.lower(Influencer.id) == self.influencer_id.lower()
+                    )
                 )
                 inf_record = result.scalar_one_or_none()
                 log.info("telegram.incoming_call queried influencer=%s", inf_record)
-                
+
                 actual_id = inf_record.id if inf_record else self.influencer_id
 
                 remaining = await check_telegram_trial_eligibility(db, caller_id)
@@ -316,11 +325,14 @@ class TelegramMessageHandler:
         if remaining <= 0:
             # Trial already used — silently ignore the call
             # (text auto-replies will handle conversion via 3-msg + CTA flow)
-            log.info("trial_gate_blocked tg_user=%s influencer=%s", caller_id, actual_id)
+            log.info(
+                "trial_gate_blocked tg_user=%s influencer=%s", caller_id, actual_id
+            )
             return
 
         # Start voice call session
         from app.services.gateways.telegram.session_manager import session_manager
+
         ptg = session_manager.get_pytgcalls(self.influencer_id)
         if not ptg:
             log.error(
@@ -348,8 +360,11 @@ class TelegramMessageHandler:
 
         if session:
             from app.services.funnel_tracking_service import track_call_started
+
             session_id = getattr(session, "conversation_id", None)
-            asyncio.create_task(track_call_started(caller_id, actual_id, session_id=session_id))
+            asyncio.create_task(
+                track_call_started(caller_id, actual_id, session_id=session_id)
+            )
 
         if not session:
             log.error(
@@ -385,14 +400,17 @@ class TelegramMessageHandler:
         )
 
         # Resolve actual influencer ID (case-insensitive)
-        from sqlalchemy import select, func
-        from app.data.models import Influencer
+        from sqlalchemy import func, select
+
         from app.core.session import SessionLocal as _SessionLocal
+        from app.data.models import Influencer
 
         try:
             async with _SessionLocal() as db:
                 result = await db.execute(
-                    select(Influencer).where(func.lower(Influencer.id) == self.influencer_id.lower())
+                    select(Influencer).where(
+                        func.lower(Influencer.id) == self.influencer_id.lower()
+                    )
                 )
                 inf_record = result.scalar_one_or_none()
                 actual_id = inf_record.id if inf_record else self.influencer_id
@@ -405,18 +423,21 @@ class TelegramMessageHandler:
                 await voice_call_manager.end_call(actual_id, caller_id)
                 log.info(
                     "telegram.call_discarded.cleaned_up influencer=%s caller=%s",
-                    actual_id, caller_id,
+                    actual_id,
+                    caller_id,
                 )
             except Exception:
                 log.exception(
                     "telegram.call_discarded.cleanup_error influencer=%s caller=%s",
-                    actual_id, caller_id,
+                    actual_id,
+                    caller_id,
                 )
         else:
             # No admin_id — search active calls for this influencer and end them
             prefix = f"{actual_id}:"
             stale_keys = [
-                k for k in list(voice_call_manager._active_calls.keys())
+                k
+                for k in list(voice_call_manager._active_calls.keys())
                 if k.startswith(prefix)
             ]
             for key in stale_keys:
