@@ -1393,30 +1393,16 @@ class VoiceCallManager:
                 return None
 
             # Check cumulative trial usage for this Telegram user
+            # (handlers.py already gates + sends trial-expired messages,
+            #  this is a safety check only — no messages sent here)
             from app.services.telegram_call_service import (
                 check_telegram_trial_eligibility,
-                send_trial_expired_messages,
             )
 
             remaining = await check_telegram_trial_eligibility(db, telegram_user_id)
 
             if remaining <= 0:
-                log.info("Trial exhausted for tg_user=%s", telegram_user_id)
-                from app.services.funnel_tracking_service import track_trial_exhausted
-
-                asyncio.create_task(
-                    track_trial_exhausted(telegram_user_id, influencer_id)
-                )
-                try:
-                    await send_trial_expired_messages(
-                        client,
-                        db,
-                        chat_id,
-                        telegram_user_id,
-                        influencer_id,
-                    )
-                except Exception:
-                    log.exception("Failed to send trial-exhausted message")
+                log.info("Trial exhausted for tg_user=%s (safety gate)", telegram_user_id)
                 return None
 
             max_duration = remaining

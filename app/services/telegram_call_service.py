@@ -71,35 +71,44 @@ async def send_trial_expired_messages(
     influencer = await db.get(Influencer, influencer_id)
 
     # 1) Voice note first
-    if influencer:
-        await send_telegram_welcome_audio(client, chat_id, influencer)
+    try:
+        if influencer:
+            await send_telegram_welcome_audio(client, chat_id, influencer)
+    except Exception:
+        log.exception("trial_expired: failed to send voice note")
 
     # 2) Image / video promo
-    welcome_video_sent = False
-    if influencer:
-        welcome_video_sent = await send_telegram_welcome_video(
-            client, chat_id, influencer,
-        )
+    try:
+        welcome_video_sent = False
+        if influencer:
+            welcome_video_sent = await send_telegram_welcome_video(
+                client, chat_id, influencer,
+            )
 
-    if not welcome_video_sent:
-        video_key = influencer.profile_video_key if influencer else None
-        photo_key = influencer.profile_photo_key if influencer else None
-        await send_influencer_promo_media(
-            client,
-            chat_id,
-            profile_video_key=video_key,
-            profile_photo_key=photo_key,
-        )
+        if not welcome_video_sent:
+            video_key = influencer.profile_video_key if influencer else None
+            photo_key = influencer.profile_photo_key if influencer else None
+            await send_influencer_promo_media(
+                client,
+                chat_id,
+                profile_video_key=video_key,
+                profile_photo_key=photo_key,
+            )
+    except Exception:
+        log.exception("trial_expired: failed to send promo media")
 
     # 3) CTA text with invite link
-    await client.send_message(
-        chat_id=chat_id,
-        text=(
-            f"Cum in papi let's finish what we started pleeease 🍆💦\n\n"
-            f"👉 {cta_html}"
-        ),
-        parse_mode=enums.ParseMode.HTML,
-    )
+    try:
+        await client.send_message(
+            chat_id=chat_id,
+            text=(
+                f"Cum in papi~ let's finish what we started pleeease 🍆💦\n\n"
+                f"👉 {cta_html}"
+            ),
+            parse_mode=enums.ParseMode.HTML,
+        )
+    except Exception:
+        log.exception("trial_expired: failed to send CTA text")
 
     log.info(
         "trial_expired_messages_sent tg_user=%s influencer=%s",
