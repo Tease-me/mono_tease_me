@@ -33,6 +33,7 @@ class TelegramMessageHandler:
     ):
         self.client = client
         self.influencer_id = influencer_id
+        self._self_user_id: int | None = None  # Cached to avoid get_me() per message
 
     # Auto-reply messages for text conversations (generic, no influencer name)
     TEXT_REPLIES = [
@@ -56,9 +57,9 @@ class TelegramMessageHandler:
                 log.info("RAW UPDATE: %s (phone_call=%s)", update_class, call_type)
             await self._handle_incoming_call(update)
 
-        @self.client.on_message(filters.incoming)
+        @self.client.on_message(filters.private & filters.incoming & ~filters.service)
         async def handle_text_message(_client: Client, message):
-            """Auto-reply to private messages up to MAX_TEXT_REPLIES, then send CTA."""
+            """Auto-reply to incoming private messages up to MAX_TEXT_REPLIES, then send CTA."""
             log.info(
                 "telegram.message_callback_entered influencer=%s message_id=%s chat_type=%s outgoing=%s has_text=%s",
                 self.influencer_id,
@@ -90,15 +91,15 @@ class TelegramMessageHandler:
         if not user_id:
             return
 
-        if getattr(message, "outgoing", False):
-            return
-
-        chat = getattr(message, "chat", None)
-        chat_type = getattr(chat, "type", None)
-        if str(chat_type) not in {"private", "ChatType.PRIVATE"}:
-            return
-
-        if getattr(message, "service", None):
+        # Skip messages from the userbot itself (belt-and-suspenders guard
+        # alongside filters.incoming — prevents infinite reply loops)
+        if self._self_user_id is None:
+            try:
+                me = await self.client.get_me()
+                self._self_user_id = me.id
+            except Exception:
+                pass
+        if self._self_user_id and user_id == self._self_user_id:
             return
 
         text = (getattr(message, "text", None) or "").strip()
