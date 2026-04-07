@@ -86,6 +86,8 @@ async def send_trial_expired_messages(
     except Exception:
         log.exception("trial_expired: failed to send voice note")
 
+    await asyncio.sleep(4.5)
+
     # 2) Image / video promo
     try:
         welcome_video_sent = False
@@ -108,6 +110,8 @@ async def send_trial_expired_messages(
         await asyncio.sleep(e.value)
     except Exception:
         log.exception("trial_expired: failed to send promo media")
+
+    await asyncio.sleep(4.5)
 
     # 3) CTA text with invite link
     try:
