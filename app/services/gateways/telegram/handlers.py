@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import random
 import re
 from collections.abc import Awaitable, Callable
 
@@ -132,6 +133,7 @@ class TelegramMessageHandler:
 
         if count < self.MAX_TEXT_REPLIES:
             reply_index = count
+            await asyncio.sleep(random.uniform(1.0, 2.0))
             await send_reply(self.TEXT_REPLIES[count])
             count += 1
             await redis.set(key, count)
