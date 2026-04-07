@@ -5,6 +5,7 @@ import { apiClient } from "@/api/apis";
 import { InfluencerServices } from "@/api/services/InfluencerService";
 import AdultSceneSelector from "@/ui/components/cards/AdultSceneSelectorCard";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
+import CloseIconButton from "@/ui/components/inputs/buttons/CloseIconButton";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import styles from "./SceneSelector.module.css";
 import SvgPack from "@/utils/SvgPack";
@@ -382,14 +383,7 @@ export default function SceneSelector({
           <div
             className={`${styles.sessionStage} ${sessionState === "preview" ? styles.previewStage : styles.activeStage}`}
           >
-            <IconButton
-              type="pill"
-              color="black"
-              leftIcon={
-                <Suspense fallback={null}>
-                  <SvgPack.CloseSquare className={styles.previewCloseIcon} />
-                </Suspense>
-              }
+            <CloseIconButton
               onClick={handleCloseScenario}
               className={`${styles.previewCloseButton} ${sessionState === "preview" ? styles.previewCloseButtonVisible : styles.previewCloseButtonHidden}`}
             />

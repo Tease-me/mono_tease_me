@@ -197,21 +197,6 @@
   top: 20px;
   right: 20px;
   z-index: 3;
-  width: 52px !important;
-  height: 52px !important;
-  flex: 0 0 52px;
-}
-
-
-
-.previewCloseButton>div>div>div {
-  width: 32px;
-  height: 32px;
-}
-
-.previewCloseIcon {
-  width: 32px;
-  height: 32px;
 }
 
 .previewDesktopPanel {
