@@ -202,7 +202,6 @@ class TelegramMessageHandler:
         from app.services.gateways.telegram.voice_engine import voice_call_manager
         from app.services.telegram_call_service import (
             check_telegram_trial_eligibility,
-            send_trial_expired_messages,
         )
         from app.core.session import SessionLocal as _SessionLocal
 
@@ -226,16 +225,27 @@ class TelegramMessageHandler:
             return
 
         if remaining <= 0:
-            # No free trial left — send promo media + redirect with unique invite link
-            from app.services.funnel_tracking_service import track_trial_exhausted
-            asyncio.create_task(track_trial_exhausted(caller_id, actual_id))
+            # Trial already used — just send a short nudge, no full promo blast
+            # (the full voice+media+CTA was already sent when their trial ended)
+            log.info("trial_gate_blocked tg_user=%s influencer=%s", caller_id, actual_id)
             try:
+                from pyrogram import enums
+                from app.services.telegram_invite_service import get_or_create_invite_code
+                from app.utils.telegram_link_builder import build_telegram_cta_html
+
                 async with _SessionLocal() as db2:
-                    await send_trial_expired_messages(
-                        self.client, db2, caller_id, caller_id, actual_id,
+                    invite_code = await get_or_create_invite_code(db2, caller_id, actual_id)
+                    cta_html = build_telegram_cta_html(invite_code, actual_id)
+                    await self.client.send_message(
+                        chat_id=caller_id,
+                        text=(
+                            f"You've already used your free trial babe 😘\n\n"
+                            f"👉 {cta_html}"
+                        ),
+                        parse_mode=enums.ParseMode.HTML,
                     )
             except Exception:
-                log.exception("Failed to send trial-expired redirect")
+                log.exception("Failed to send trial-blocked message")
             return
 
         # Start voice call session
