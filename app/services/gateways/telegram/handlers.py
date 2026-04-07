@@ -44,6 +44,7 @@ class TelegramMessageHandler:
 
     # Max text replies before sending CTA link and going silent
     MAX_TEXT_REPLIES = 3
+    MESSAGE_DEDUPE_TTL_SECONDS = 300
 
     def register(self):
         """Register voice call and text message handlers on the Pyrogram client."""
@@ -55,8 +56,6 @@ class TelegramMessageHandler:
             if update_class == "UpdatePhoneCall":
                 call_type = type(getattr(update, "phone_call", None)).__name__
                 log.info("RAW UPDATE: %s (phone_call=%s)", update_class, call_type)
-            elif "Message" in update_class:
-                log.info("RAW UPDATE: %s", update_class)
             await self._handle_incoming_text_update(update)
             await self._handle_incoming_call(update)
 
@@ -88,6 +87,25 @@ class TelegramMessageHandler:
         from app.utils.infrastructure.redis_pool import get_redis
 
         redis = await get_redis()
+        if message_id is not None:
+            dedupe_key = (
+                f"tg:text_message_seen:{self.influencer_id}:{user_id}:{message_id}"
+            )
+            is_new_message = await redis.set(
+                dedupe_key,
+                "1",
+                ex=self.MESSAGE_DEDUPE_TTL_SECONDS,
+                nx=True,
+            )
+            if not is_new_message:
+                log.info(
+                    "telegram.text_duplicate_suppressed influencer=%s tg_user=%s message_id=%s",
+                    self.influencer_id,
+                    user_id,
+                    message_id,
+                )
+                return
+
         key = f"tg:text_replies:{self.influencer_id}:{user_id}"
 
         raw = await redis.get(key)
@@ -149,6 +167,13 @@ class TelegramMessageHandler:
             user_id = getattr(update, "user_id", None)
             if not user_id or not message_text:
                 return
+            log.info(
+                "telegram.raw_incoming_text_update influencer=%s class=%s tg_user=%s message_id=%s",
+                self.influencer_id,
+                update_class,
+                user_id,
+                getattr(update, "id", None),
+            )
             await self._process_text_message(
                 user_id=user_id,
                 message_id=getattr(update, "id", None),
@@ -179,6 +204,13 @@ class TelegramMessageHandler:
         message_text = (getattr(raw_message, "message", None) or "").strip()
         if not user_id or not message_text:
             return
+        log.info(
+            "telegram.raw_incoming_text_update influencer=%s class=%s tg_user=%s message_id=%s",
+            self.influencer_id,
+            update_class,
+            user_id,
+            getattr(raw_message, "id", None),
+        )
 
         await self._process_text_message(
             user_id=user_id,
