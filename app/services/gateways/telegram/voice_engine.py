@@ -1017,7 +1017,7 @@ class VoiceCallSession:
 
             await self.stop(reason="trial_expired")
 
-            # 1) Send promo media + text CTA with invite link
+            # Send voice note → promo media → CTA (all handled by send_trial_expired_messages)
             try:
                 from app.core.session import SessionLocal as _SessionFactory
                 from app.services.telegram_call_service import send_trial_expired_messages
@@ -1028,10 +1028,7 @@ class VoiceCallSession:
                         self.telegram_user_id, self.influencer_id,
                     )
             except Exception:
-                log.exception("Failed to send trial redirect message")
-
-            # 2) Send ElevenLabs voice note
-            await self._send_trial_voice_note()
+                log.exception("Failed to send trial-ended messages")
 
         except asyncio.CancelledError:
             pass
@@ -1039,10 +1036,8 @@ class VoiceCallSession:
     async def _send_trial_ended_on_hangup(self):
         """Send trial-ended messages after the user hangs up early.
 
-        Mirrors the post-expiry flow from _trial_timer:
-        1) Track trial_exhausted in funnel analytics
-        2) Send promo media + CTA invite link
-        3) Send voice note
+        Tracks trial_exhausted in funnel, then delegates to
+        send_trial_expired_messages which sends: voice note → media → CTA.
         """
         try:
             from app.services.funnel_tracking_service import track_trial_exhausted
@@ -1061,10 +1056,6 @@ class VoiceCallSession:
         except Exception:
             log.exception("Failed to send trial-ended messages after hangup")
 
-        try:
-            await self._send_trial_voice_note()
-        except Exception:
-            log.exception("Failed to send trial voice note after hangup")
 
     async def _send_trial_voice_note(self):
         """Send welcome audio from assets_json, falling back to ElevenLabs TTS."""

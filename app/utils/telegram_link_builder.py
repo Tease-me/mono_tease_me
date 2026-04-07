@@ -21,4 +21,4 @@ def build_telegram_cta_html(invite_code: str, influencer_id: str = "") -> str:
     Returns the full CTA block ready to be embedded in a message.
     """
     link = build_signup_link(invite_code, influencer_id)
-    return f'👉 <a href="{link}">Sign up here</a>'
+    return f'<a href="{link}">talk to me</a>'
