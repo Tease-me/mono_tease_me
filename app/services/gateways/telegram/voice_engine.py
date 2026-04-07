@@ -400,14 +400,23 @@ class VoiceCallSession:
             except Exception:
                 pass
 
-        duration = self.elapsed_seconds
-        await self._finalize_call_record(duration)
+        actual_duration = self.elapsed_seconds
+
+        # When the user hangs up, consume the entire trial budget so they
+        # cannot call back for the remaining seconds.
+        if reason == "remote_hangup":
+            recorded_duration = float(self.max_duration_secs)
+        else:
+            recorded_duration = actual_duration
+
+        await self._finalize_call_record(recorded_duration)
 
         log.info(
-            "voice_call.stopped influencer=%s user=%s duration=%.1fs reason=%s",
+            "voice_call.stopped influencer=%s user=%s actual=%.1fs recorded=%.1fs reason=%s",
             self.influencer_id,
             self.telegram_user_id,
-            duration,
+            actual_duration,
+            recorded_duration,
             reason,
         )
 
@@ -530,6 +539,9 @@ class VoiceCallSession:
             )
             voice_call_manager._active_calls.pop(key, None)
 
+            # Trial consumed on hangup — send promo + CTA
+            await self._send_trial_ended_on_hangup()
+
         self._call_left_handler = _on_call_left
 
         @self.ptg.on_update(ptg_filters.chat_update(ChatUpdate.Status.DISCARDED_CALL))
@@ -544,6 +556,9 @@ class VoiceCallSession:
                 self.influencer_id, self.telegram_user_id
             )
             voice_call_manager._active_calls.pop(key, None)
+
+            # Trial consumed on hangup — send promo + CTA
+            await self._send_trial_ended_on_hangup()
 
         self._call_discarded_handler = _on_call_discarded
 
@@ -1157,6 +1172,43 @@ class VoiceCallSession:
 
         except asyncio.CancelledError:
             pass
+
+    async def _send_trial_ended_on_hangup(self):
+        """Send trial-ended messages after the user hangs up early.
+
+        Mirrors the post-expiry flow from _trial_timer:
+        1) Track trial_exhausted in funnel analytics
+        2) Send promo media + CTA invite link
+        3) Send voice note
+        """
+        try:
+            from app.services.funnel_tracking_service import track_trial_exhausted
+
+            asyncio.create_task(
+                track_trial_exhausted(
+                    self.telegram_user_id,
+                    self.influencer_id,
+                )
+            )
+
+            from app.core.session import SessionLocal as _SessionFactory
+            from app.services.telegram_call_service import send_trial_expired_messages
+
+            async with _SessionFactory() as _db:
+                await send_trial_expired_messages(
+                    self.client,
+                    _db,
+                    self.chat_id,
+                    self.telegram_user_id,
+                    self.influencer_id,
+                )
+        except Exception:
+            log.exception("Failed to send trial-ended messages after hangup")
+
+        try:
+            await self._send_trial_voice_note()
+        except Exception:
+            log.exception("Failed to send trial voice note after hangup")
 
     async def _send_trial_voice_note(self):
         """Send welcome audio from assets_json, falling back to ElevenLabs TTS."""
