@@ -60,20 +60,20 @@
 }
 
 .subtitle {
-  font-size: 12px;
+  font-size: 1rem;
   color: rgba(245, 244, 255, 0.6);
   line-height: 1.5;
 }
 
 .section h4 {
-  font-size: 12px;
+  font-size: 1rem;
   letter-spacing: 0.4px;
   color: #ffffff;
   margin-bottom: 6px;
 }
 
 .section p {
-  font-size: 12px;
+  font-size: 1rem;
   color: rgba(245, 244, 255, 0.6);
   line-height: 1.5;
   margin-bottom: 8px;

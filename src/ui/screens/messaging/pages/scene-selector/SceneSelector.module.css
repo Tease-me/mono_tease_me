@@ -102,8 +102,8 @@
 
 @media (min-width: 1024px) {
   .sceneItem {
-    flex-basis: clamp(220px, 22vw, 360px);
-    width: clamp(220px, 22vw, 360px);
+    flex-basis: clamp(360px, 22vw, 360px);
+    width: clamp(360px, 22vw, 360px);
   }
 }
 
