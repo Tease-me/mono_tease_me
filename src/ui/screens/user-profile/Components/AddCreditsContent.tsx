@@ -33,6 +33,9 @@ export default function AddCreditsContent({
 }: Readonly<AddCreditsContentProps>) {
   const [amount, setAmount] = useState(0);
   const { startCheckout, loading, error } = useArmloopCheckout();
+  const heading = influencerName
+    ? `Top up to talk to ${influencerName}`
+    : "Top up to talk";
 
   const handleDecrease = () => setAmount((a) => Math.max(0, a - 10));
   const handleIncrease = () => setAmount((a) => a + 10);
@@ -52,6 +55,7 @@ export default function AddCreditsContent({
 
       <div className={styles.selectionBox}>
         <div className={styles.presetsBox}>
+          <h3>{heading}</h3>
           <h4>Quick Presets</h4>
           <div className={styles.presetList}>
             {presets.map((p) => (
