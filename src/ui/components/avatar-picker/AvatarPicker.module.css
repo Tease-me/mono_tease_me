@@ -114,18 +114,6 @@
   border-radius: 0 8px 0 0;
 }
 
-.closeButton {
-  width: 40px !important;
-  height: 40px !important;
-  min-height: 40px !important;
-  flex: 0 0 40px !important;
-}
-
-.closeIcon {
-  width: 22px;
-  height: 22px;
-}
-
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));

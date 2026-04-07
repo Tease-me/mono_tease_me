@@ -10,7 +10,8 @@ type Props = {
 export default function AddCredits({ navpayload, goTo }: Props) {
   return (
     <AddCreditsContent
-      influencerId={navpayload.influencerId}
+      influencerId={navpayload.influencerId ?? navpayload.id}
+      influencerName={navpayload.influencerName ?? navpayload.name}
       image={navpayload.image}
       video={navpayload.video}
       onCancel={() => goTo("influencer_profile")}

@@ -1,6 +1,5 @@
-import { Suspense, useState } from "react";
-import IconButton from "@/ui/components/inputs/buttons/IconButton";
-import SvgPack from "@/utils/SvgPack";
+import { useState } from "react";
+import CloseIconButton from "@/ui/components/inputs/buttons/CloseIconButton";
 import styles from "./AvatarPicker.module.css";
 
 type AvatarTab = "human" | "animals";
@@ -31,17 +30,7 @@ export default function AvatarPicker({ isOpen, onClose, onSelect }: AvatarPicker
       <div className={`${styles.sheet} ${isOpen ? styles.sheetVisible : styles.sheetHidden}`}>
         <div className={styles.header}>
           <div className={styles.headerTop}>
-            <IconButton
-              type="pill"
-              color="black"
-              className={styles.closeButton}
-              onClick={onClose}
-              leftIcon={
-                <Suspense fallback={null}>
-                  <SvgPack.CloseSquare className={styles.closeIcon} />
-                </Suspense>
-              }
-            />
+            <CloseIconButton onClick={onClose} />
           </div>
           <div className={styles.tabs}>
             <button

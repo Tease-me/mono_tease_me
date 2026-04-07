@@ -5,6 +5,7 @@ import { apiClient } from "@/api/apis";
 import { InfluencerServices } from "@/api/services/InfluencerService";
 import AdultSceneSelector from "@/ui/components/cards/AdultSceneSelectorCard";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
+import CloseIconButton from "@/ui/components/inputs/buttons/CloseIconButton";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import styles from "./SceneSelector.module.css";
 import SvgPack from "@/utils/SvgPack";
@@ -50,6 +51,7 @@ type PendingGateAction = "open-scene" | "unlock-samples";
 
 type SceneSelectorProps = {
   influencerId: string;
+  influencerName?: string;
   influencerImageUrl?: string;
   onGirlfriendModeSelected: () => void;
 };
@@ -113,7 +115,12 @@ const loadLottieData = async (url: string): Promise<SceneTitlePlaceholder> => {
   return request;
 };
 
-export default function SceneSelector({ influencerId, influencerImageUrl, onGirlfriendModeSelected }: SceneSelectorProps) {
+export default function SceneSelector({
+  influencerId,
+  influencerName,
+  influencerImageUrl,
+  onGirlfriendModeSelected,
+}: SceneSelectorProps) {
   const { user } = useContext(AuthContext);
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [selectedScene, setSelectedScene] = useState<Scene | null>(null);
@@ -317,6 +324,11 @@ export default function SceneSelector({ influencerId, influencerImageUrl, onGirl
     return costCents == null ? "--" : `$${(costCents / 100).toFixed(2)}`;
   })();
 
+  const selectedSceneAvatar =
+    selectedScene?.image.small ??
+    influencerImageUrl ??
+    avatarFallback;
+
   return (
     <div className={styles.container}>
       {isLoading ? (
@@ -371,14 +383,7 @@ export default function SceneSelector({ influencerId, influencerImageUrl, onGirl
           <div
             className={`${styles.sessionStage} ${sessionState === "preview" ? styles.previewStage : styles.activeStage}`}
           >
-            <IconButton
-              type="pill"
-              color="black"
-              leftIcon={
-                <Suspense fallback={null}>
-                  <SvgPack.CloseSquare className={styles.previewCloseIcon} />
-                </Suspense>
-              }
+            <CloseIconButton
               onClick={handleCloseScenario}
               className={`${styles.previewCloseButton} ${sessionState === "preview" ? styles.previewCloseButtonVisible : styles.previewCloseButtonHidden}`}
             />
@@ -464,7 +469,7 @@ export default function SceneSelector({ influencerId, influencerImageUrl, onGirl
                             </Suspense>
                           }
                         />
-                        <img src={influencerImageUrl || avatarFallback} alt="Influencer" className={styles.summaryInfluencerAvatar} />
+                        <img src={selectedSceneAvatar} alt={selectedScene?.name || "Influencer"} className={styles.summaryInfluencerAvatar} />
                       </div>
                       <div className={styles.subtitle}>Call Summary</div>
                       <div className={styles.sessionTimer}>{summaryDurationLabel}</div>
@@ -565,6 +570,8 @@ export default function SceneSelector({ influencerId, influencerImageUrl, onGirl
       <AddCreditsModal
         isOpen={showTopupModal}
         influencerId={influencerId}
+        influencerName={influencerName}
+        image={selectedSceneAvatar}
         onClose={() => setShowTopupModal(false)}
       />
       {pendingGate && (
