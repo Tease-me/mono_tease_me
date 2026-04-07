@@ -190,8 +190,8 @@ async def fp_track_sale_v2(
                     error_body = r.json()
                     error_msg = error_body.get("error", "Not found")
                     log.warning(f"[MJFP] Sale tracking failed: {error_msg} for event_id={event_id}, ref_id={ref_id}")
-                except:
-                except ValueError:
+                except Exception:
+                    log.error(f"[MJFP] Endpoint not found: {url}")
                 return None
             
             if r.status_code >= 400:
