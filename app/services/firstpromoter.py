@@ -10,10 +10,14 @@ log = logging.getLogger(__name__)
 def _seed_mjfp_config() -> None:
     """Seed MJFPConfig from app settings (idempotent)."""
     from app.services.mjpromoter import MJFPConfig
+
     if MJFPConfig.MJFP_API_URL is None:
         MJFPConfig.MJFP_API_URL = settings.MJFP_API_URL
+    if MJFPConfig.MJFP_API_KEY is None:
         MJFPConfig.MJFP_API_KEY = settings.MJFP_API_KEY
+    if MJFPConfig.MJFP_TOKEN is None:
         MJFPConfig.MJFP_TOKEN = settings.MJFP_TOKEN
+    if MJFPConfig.MJFP_ACCOUNT_ID is None:
         MJFPConfig.MJFP_ACCOUNT_ID = settings.MJFP_ACCOUNT_ID
 
 
