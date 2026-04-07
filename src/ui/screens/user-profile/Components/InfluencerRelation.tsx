@@ -8,7 +8,6 @@ import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 import BalanceBadge from "@/ui/components/stats/BalanceBadge";
 import { Modal } from "@/ui/components/modals/Modal";
-import { formatDateTimeRelative } from "@/utils/DateTimeUtils";
 import InfluencerProfileCard from "@/ui/components/profile/InfluencerProfileCard";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 
@@ -226,9 +225,6 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           image={data.image || ""}
           video={data.video}
           isSubscribed={isSubscribed}
-          lastConnected={
-            data.lastConnected ? formatDateTimeRelative(data.lastConnected) : "--"
-          }
           followingSince={followingDate}
         />
       ) : (
