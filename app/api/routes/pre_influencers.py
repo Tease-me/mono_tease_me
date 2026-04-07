@@ -864,6 +864,7 @@ async def approve_pre_influencer(
                     first_name=first,
                     last_name=last,
                     cust_id=f"preinf-{pre.id}",
+                    username=pre.username,
                     parent_promoter_id=parent_promoter_id,
                 )
                 if promoter:
