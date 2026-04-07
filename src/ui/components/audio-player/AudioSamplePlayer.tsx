@@ -122,12 +122,14 @@ export default function AudioSamplePlayer({
         ctx.restore();
       }
 
-      animFrameRef.current = requestAnimationFrame(draw);
+      if (isPlaying) {
+        animFrameRef.current = requestAnimationFrame(draw);
+      }
     };
 
     draw();
     return () => cancelAnimationFrame(animFrameRef.current);
-  }, [peaks, canvasReady]);
+  }, [peaks, canvasReady, isPlaying]);
 
   const handleToggle = () => {
     if (!audioRef.current || disabled) return;
