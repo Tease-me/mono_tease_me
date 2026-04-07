@@ -167,7 +167,6 @@ class VoiceCallSession:
         chat_id: int,
         agent_id: str,
         voice_id: str,
-        system_prompt: str,
         max_duration_secs: int = DEFAULT_TRIAL_SECS,
     ):
         self.client = client
@@ -177,7 +176,6 @@ class VoiceCallSession:
         self.chat_id = chat_id
         self.agent_id = agent_id
         self.voice_id = voice_id
-        self.system_prompt = system_prompt
         self.max_duration_secs = max_duration_secs
 
         # State
@@ -719,9 +717,6 @@ class VoiceCallSession:
                     "type": "conversation_initiation_client_data",
                     "conversation_config_override": {
                         "agent": {
-                            "prompt": {
-                                "prompt": self.system_prompt,
-                            },
                             "first_message": "[moan] hey baby~  what take you so long [moan] mmm~",
                             "language": "en",
                         },
@@ -1426,35 +1421,6 @@ class VoiceCallManager:
 
             max_duration = remaining
 
-            # Build system prompt — fetch the adult prompt from DB
-            from app.data.enums import prompt_keys
-            from app.services.system_prompt_service import get_system_prompt
-
-            base_prompt = await get_system_prompt(db, prompt_keys.BASE_ADULT_PROMPT)
-            audio_prompt = await get_system_prompt(
-                db, prompt_keys.BASE_ADULT_AUDIO_PROMPT
-            )
-
-            if base_prompt:
-                system_prompt = base_prompt
-                if audio_prompt:
-                    system_prompt = f"{base_prompt}\n{audio_prompt}"
-            else:
-                # Fallback: influencer-specific or generic
-                system_prompt = influencer.prompt_template or ""
-                if (
-                    not system_prompt
-                    and influencer.bio_json
-                    and isinstance(influencer.bio_json, dict)
-                ):
-                    system_prompt = influencer.bio_json.get("personality_rules", "")
-                if not system_prompt:
-                    display = influencer.display_name or influencer_id
-                    system_prompt = (
-                        f"You are {display}, a friendly and engaging influencer "
-                        "on a voice call. Be warm, personal, and authentic."
-                    )
-
         session = VoiceCallSession(
             client=client,
             ptg=ptg,
@@ -1463,7 +1429,6 @@ class VoiceCallManager:
             chat_id=chat_id,
             agent_id=agent_id,
             voice_id=voice_id,
-            system_prompt=system_prompt,
             max_duration_secs=max_duration,
         )
         session._phone_call_id = phone_call_id
