@@ -52,7 +52,6 @@ type SceneSelectorProps = {
   influencerId: string;
   influencerName?: string;
   influencerImageUrl?: string;
-  influencerVideoUrl?: string;
   onGirlfriendModeSelected: () => void;
 };
 
@@ -119,7 +118,6 @@ export default function SceneSelector({
   influencerId,
   influencerName,
   influencerImageUrl,
-  influencerVideoUrl,
   onGirlfriendModeSelected,
 }: SceneSelectorProps) {
   const { user } = useContext(AuthContext);
@@ -325,6 +323,11 @@ export default function SceneSelector({
     return costCents == null ? "--" : `$${(costCents / 100).toFixed(2)}`;
   })();
 
+  const selectedSceneAvatar =
+    selectedScene?.image.small ??
+    influencerImageUrl ??
+    avatarFallback;
+
   return (
     <div className={styles.container}>
       {isLoading ? (
@@ -472,7 +475,7 @@ export default function SceneSelector({
                             </Suspense>
                           }
                         />
-                        <img src={influencerImageUrl || avatarFallback} alt="Influencer" className={styles.summaryInfluencerAvatar} />
+                        <img src={selectedSceneAvatar} alt={selectedScene?.name || "Influencer"} className={styles.summaryInfluencerAvatar} />
                       </div>
                       <div className={styles.subtitle}>Call Summary</div>
                       <div className={styles.sessionTimer}>{summaryDurationLabel}</div>
@@ -574,8 +577,7 @@ export default function SceneSelector({
         isOpen={showTopupModal}
         influencerId={influencerId}
         influencerName={influencerName}
-        image={influencerImageUrl}
-        video={influencerVideoUrl}
+        image={selectedSceneAvatar}
         onClose={() => setShowTopupModal(false)}
       />
       {pendingGate && (
