@@ -158,6 +158,7 @@ async def get_telegram_welcome_media(
 async def post_telegram_welcome_media(
     influencer_id: str,
     audio: UploadFile | None = File(default=None),
+    audio_2: UploadFile | None = File(default=None),
     video: UploadFile | None = File(default=None),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -168,5 +169,6 @@ async def post_telegram_welcome_media(
         db=db,
         influencer=influencer,
         audio=audio,
+        audio_2=audio_2,
         video=video,
     )

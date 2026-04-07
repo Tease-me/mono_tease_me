@@ -60,10 +60,14 @@ class AdminInfluencerTelegramWelcomeMediaAssetsOut(BaseModel):
     telegram_audio_key: Optional[str] = None
     telegram_audio_url: Optional[str] = None
     telegram_audio_content_type: Optional[str] = None
+    telegram_audio_2_key: Optional[str] = None
+    telegram_audio_2_url: Optional[str] = None
+    telegram_audio_2_content_type: Optional[str] = None
     telegram_video_key: Optional[str] = None
     telegram_video_url: Optional[str] = None
     telegram_video_content_type: Optional[str] = None
     has_audio: bool = False
+    has_audio_2: bool = False
     has_video: bool = False
     updated_at: Optional[str] = None
 
