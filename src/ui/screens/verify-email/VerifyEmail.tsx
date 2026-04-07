@@ -1,17 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import styles from "./VerifyEmail.module.css"
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { apiClient } from '@/api/apis';
+import { VerifyEmailResponse } from '@/api/models/auth';
 import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 import CenteredLayout from '@/ui/templates/CenteredLayout';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import { Endpoints } from '@/api/urls';
 import { Paths } from '@/routes/path';
-
-interface VerifyEmailResponse {
-    ok: boolean;
-    message: string;
-}
+import { AuthContext } from '@/context/AuthContext';
 
 const VerifyEmail: React.FC = () => {
     const [searchParams] = useSearchParams();
@@ -22,14 +19,20 @@ const VerifyEmail: React.FC = () => {
     const [resendEmail, setResendEmail] = useState('');
     const [isResending, setIsResending] = useState(false);
     const [resendMessage, setResendMessage] = useState<string | null>(null);
+    const hasAttemptedVerification = useRef(false);
 
     const navigate = useNavigate();
+    const { loginWithTokens } = useContext(AuthContext);
 
     useEffect(() => {
         if (!token) {
             navigate(Paths.root)
             return
-        };
+        }
+        if (hasAttemptedVerification.current) {
+            return;
+        }
+        hasAttemptedVerification.current = true;
         const verifyEmail = async () => {
             try {
                 const { data } = await apiClient.get<VerifyEmailResponse>(Endpoints.auth.confirmEmail, {
@@ -39,9 +42,13 @@ const VerifyEmail: React.FC = () => {
                     throw new Error(`Server error: ${data.message}`);
                 }
                 setStatus(data.message);
-                setTimeout(() => {
-                    window.close();
-                }, 5000);
+                setError(null);
+                try {
+                    await loginWithTokens(data.access_token, data.refresh_token);
+                    navigate(Paths.home);
+                } catch {
+                    setError("Email verified, but automatic sign-in failed. Please log in manually.");
+                }
             } catch (err: any) {
                 const statusCode = err?.response?.status;
                 const detail = err?.response?.data?.detail;
@@ -57,7 +64,7 @@ const VerifyEmail: React.FC = () => {
             }
         };
         verifyEmail();
-    }, [token]);
+    }, [loginWithTokens, navigate, token]);
 
     const handleResend = async () => {
         if (!resendEmail.trim() || isResending) return;
