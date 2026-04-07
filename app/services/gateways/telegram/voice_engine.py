@@ -225,6 +225,11 @@ class VoiceCallSession:
         self._ai_speaking = False
         self._held_audio_queue: list[bytes] = []
 
+        # Guard against sending trial-ended messages more than once.
+        # Both LEFT_CALL and DISCARDED_CALL events can fire for the same
+        # hangup; this flag ensures the promo sequence fires exactly once.
+        self._trial_messages_sent = False
+
         # Stream handler references
         self._stream_handler = None
 
@@ -339,51 +344,18 @@ class VoiceCallSession:
                 pass
             self._convai_ws = None
 
-        # ── Hang up the actual Telegram phone call FIRST ──
-        # Must happen before leave_call(), otherwise pytgcalls cleanup
-        # may invalidate the call state on Telegram's side.
-        if self._phone_call_id is not None:
-            try:
-                from pyrogram.raw.functions.phone import DiscardCall
-                from pyrogram.raw.types import (
-                    InputPhoneCall,
-                    PhoneCallDiscardReasonHangup,
-                )
-
-                log.info(
-                    "voice_call.discarding call_id=%s access_hash=%s duration=%ds",
-                    self._phone_call_id,
-                    self._phone_call_access_hash,
-                    int(self.elapsed_seconds),
-                )
-                await self.client.invoke(
-                    DiscardCall(
-                        peer=InputPhoneCall(
-                            id=self._phone_call_id,
-                            access_hash=self._phone_call_access_hash,
-                        ),
-                        duration=int(self.elapsed_seconds),
-                        reason=PhoneCallDiscardReasonHangup(),
-                        connection_id=0,
-                    )
-                )
-                log.info(
-                    "voice_call.phone_discarded OK influencer=%s", self.influencer_id
-                )
-            except Exception:
-                log.exception(
-                    "voice_call.discard_FAILED influencer=%s", self.influencer_id
-                )
-        else:
-            log.warning(
-                "voice_call.no_phone_call_id — cannot discard, will try leave_call only"
-            )
-
-        # Leave the pytgcalls call (drops media stream / WebRTC)
+        # ── Leave the pytgcalls call ──
+        # leave_call() handles BOTH WebRTC teardown (via ntgcalls binding.stop)
+        # AND the Telegram DiscardCall API for P2P calls (via discard_call).
+        # We must NOT call DiscardCall manually — that causes a double-discard
+        # error because leave_call() already invokes it internally.
         try:
             await self.ptg.leave_call(self.chat_id)
+            log.info("voice_call.leave_call OK influencer=%s", self.influencer_id)
         except Exception as e:
-            log.warning("voice_call.leave_error: %s", e)
+            # Expected on remote_hangup: ntgcalls connection already gone,
+            # and/or Telegram call already discarded by the remote party.
+            log.debug("voice_call.leave_call_cleanup: %s", e)
 
         # Remove pytgcalls handlers
         for attr in (
@@ -439,7 +411,9 @@ class VoiceCallSession:
             log.warning(
                 "voice_call.play_error influencer=%s err=%s", self.influencer_id, exc
             )
-            self._is_active = False
+            # Proper cleanup: stop() cancels ConvAI WS, timer, and removes
+            # from active_calls — prevents resource leaks.
+            await self.stop(reason="play_failed")
             from app.services.gateways.telegram.voice_engine import voice_call_manager
 
             key = voice_call_manager._call_key(
@@ -1170,7 +1144,18 @@ class VoiceCallSession:
 
         Tracks trial_exhausted in funnel, then delegates to
         send_trial_expired_messages which sends: voice note → media → CTA.
+
+        Guarded by _trial_messages_sent to prevent duplicate sends when both
+        LEFT_CALL and DISCARDED_CALL events fire for the same disconnection.
         """
+        if self._trial_messages_sent:
+            log.debug(
+                "trial_ended_on_hangup: already sent for influencer=%s user=%s",
+                self.influencer_id, self.telegram_user_id,
+            )
+            return
+        self._trial_messages_sent = True
+
         try:
             from app.services.funnel_tracking_service import track_trial_exhausted
 
