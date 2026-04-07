@@ -43,7 +43,7 @@
   flex: 1 0 auto;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: start;
   width: 100%;
   gap: 24px;
   padding: 24px 20px 40px;
@@ -189,8 +189,8 @@
 .postCallOverlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.80);
-  backdrop-filter: blur(5px);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
   pointer-events: none;
   z-index: 0;
 }
@@ -256,8 +256,8 @@
 
 .desktopSessionName {
   display: flex;
-  width: 213px;
-  max-width: 100%;
+  width: 100%;
+  max-width: 25ch;
   padding: 14px 24px;
   justify-content: center;
   align-items: center;
@@ -281,7 +281,8 @@
   right: 0;
   bottom: 0;
   display: flex;
-  width: 96vw;
+ width: 96%;
+max-width: calc(100% - 28px);
   margin: 0 auto;
   height: 48%;
   min-height: 213px;
@@ -291,12 +292,12 @@
   align-items: stretch;
   justify-content: flex-start;
   gap: 0.25rem;
-  border-radius: 2rem;
+ border-radius: var(--radius-radius-xl, 20px);
   border-top: 1px solid rgba(255, 255, 255, 0.10);
   overflow: hidden;
   background: linear-gradient(180deg, oklch(0 0 0 / 0.6), oklch(0 0 0 / 0.5), oklch(0 0 0 / 0.6));
   backdrop-filter: blur(10px);
-  box-shadow: inset -3px 3px 2px -3px oklch(100% 0.00011 271.152 / 0.616), 0px 4px 4px oklch(0% 0 0 / 0.4);
+  box-shadow: inset -3px 3px 2px -3px oklch(100% 0.00011 271.152 / 0.616);
 }
 
 .previewDesktopBody {
@@ -366,7 +367,7 @@
   border: 1px solid rgba(66, 66, 66, 0.50);
   background: linear-gradient(180deg, oklch(0 0 0 / 0.6), oklch(0 0 0 / 0.5), oklch(0 0 0 / 0.6));
   backdrop-filter: blur(10px);
-  box-shadow: inset -3px 3px 2px -3px oklch(100% 0.00011 271.152 / 0.616), 0px 4px 4px oklch(0% 0 0 / 0.4);
+  box-shadow: inset -3px 3px 2px -3px oklch(100% 0.00011 271.152 / 0.616);
 
 }
 
@@ -422,6 +423,7 @@
   width: 100%;
   gap: 14px;
   animation: summaryFadeIn 280ms ease forwards;
+  max-width: 30ch;
 }
 
 .summaryAvatars {

@@ -73,7 +73,7 @@
 
   .large:hover {
     width: 14rem;
-    height: 4rem;
+    height: 2.5rem;
     border-radius: 2rem;
     transition: all 200ms ease-in-out;
     box-shadow: inset -3px 3px 2px -3px #ffffff9d, 0px 6px 4px hsla(0, 0%, 0%, 0.5);
