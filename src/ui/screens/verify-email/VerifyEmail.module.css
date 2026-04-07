@@ -32,3 +32,21 @@
 .description {
     margin-bottom: 25px;
 }
+
+.error {
+    color: #ffb0b0;
+    margin-bottom: 25px;
+}
+
+.signing-in-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.signing-in-state .description {
+    margin-bottom: 0;
+    text-align: center;
+}
