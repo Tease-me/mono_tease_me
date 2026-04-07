@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 
 try:
     from pyrogram import Client, filters
@@ -83,18 +84,43 @@ class TelegramMessageHandler:
 
         raw = await redis.get(key)
         count = int(raw) if raw else 0
+        preview = re.sub(r"\s+", " ", (getattr(message, "text", None) or "").strip())
+        if len(preview) > 100:
+            preview = preview[:97] + "..."
+
+        log.info(
+            "telegram.incoming_text influencer=%s tg_user=%s message_id=%s reply_count=%s preview=%r",
+            self.influencer_id,
+            user_id,
+            getattr(message, "id", None),
+            count,
+            preview,
+        )
 
         if count > self.MAX_TEXT_REPLIES:
             # Already sent all replies + CTA — stay silent
+            log.info(
+                "telegram.text_reply_suppressed influencer=%s tg_user=%s reply_count=%s",
+                self.influencer_id,
+                user_id,
+                count,
+            )
             return
 
         if count < self.MAX_TEXT_REPLIES:
+            reply_index = count
             await message.reply_text(
                 self.TEXT_REPLIES[count],
                 parse_mode=enums.ParseMode.HTML,
             )
             count += 1
             await redis.set(key, count)
+            log.info(
+                "telegram.text_reply_sent influencer=%s tg_user=%s reply_index=%s",
+                self.influencer_id,
+                user_id,
+                reply_index,
+            )
 
         if count == self.MAX_TEXT_REPLIES:
             # Send CTA link after the last text reply
@@ -350,4 +376,3 @@ class TelegramMessageHandler:
                     except Exception:
                         pass
                     voice_call_manager._active_calls.pop(key, None)
-
