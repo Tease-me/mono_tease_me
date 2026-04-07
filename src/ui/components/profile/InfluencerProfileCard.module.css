@@ -95,6 +95,12 @@
   font-weight: 400;
 }
 
+.textRow02 .name {
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
 .textRow02 span {
   color: #f54336;
   font-weight: 400;
