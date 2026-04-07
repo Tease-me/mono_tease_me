@@ -10,11 +10,12 @@ import ValidationPill from "@/ui/components/inputs/buttons/ValidationPill";
 import LottieAnimation from "@/ui/components/LottieAnimation";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import { FollowServices } from "@/api/services/FollowServices";
+import { FunnelServices } from "@/api/services/FunnelServices";
 import { apiClient } from "@/api/apis";
 import { Paths } from "@/routes/path";
 import { storage } from "@/utils/storage";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Howl } from "howler";
 import styles from "./WelcomeScreen.module.css";
 
@@ -27,6 +28,7 @@ import { InfluencerServices } from "@/api/services/InfluencerService";
 import { InfluencerLandingAssetsResponse } from "@/api/models/influencers";
 
 const influencerServices = InfluencerServices(apiClient);
+const funnelServices = FunnelServices(apiClient);
 
 export interface WelcomeScreenProps {
   influencer: InfluencerDataModel;
@@ -36,6 +38,8 @@ export interface WelcomeScreenProps {
 export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScreenProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const inviteCode = searchParams.get("invite");
 
   const [onTryClicked, setOnTryClicked] = useState(false);
   const { status, startConversation, stopConversation, setInfluencerId } = useCall();
@@ -56,6 +60,13 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
       audioRef.current.unload();
     };
   }, []);
+
+  // ── Funnel: fire link_clicked when landing from a Telegram invite ──
+  useEffect(() => {
+    if (inviteCode) {
+      funnelServices.reportEvent("link_clicked", inviteCode);
+    }
+  }, [inviteCode]);
 
   useEffect(() => {
     setInfluencerId(influencer?.id);
@@ -82,7 +93,10 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
 
   const handleSignUpClick = () => {
     if (!influencer?.id) return;
-    navigate(Paths.register(influencer.id));
+    const registerPath = inviteCode
+      ? `${Paths.register(influencer.id)}?invite=${encodeURIComponent(inviteCode)}`
+      : Paths.register(influencer.id);
+    navigate(registerPath);
   };
 
   const handlePickUpCall = () => {
