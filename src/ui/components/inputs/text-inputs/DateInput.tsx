@@ -141,6 +141,14 @@ export default function DateInput({
   name,
   autoComplete,
 }: DateInputProps) {
+  const isIOS = useMemo(() => {
+    if (typeof navigator === "undefined") return false;
+
+    return (
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+    );
+  }, []);
   const selected = useMemo(() => parseIsoDate(value), [value]);
   const maxDate = useMemo(() => {
     const nextDate = new Date();
@@ -206,6 +214,43 @@ export default function DateInput({
     }
     onBlur?.();
   };
+
+  if (isIOS) {
+    return (
+      <label className={`${styles["nativeField"]} ${className ?? ""}`}>
+        <div
+          className={`${styles["nativeSurface"]} ${disabled || readOnly ? styles["nativeSurfaceDisabled"] : ""}`}
+        >
+          <span
+            aria-hidden="true"
+            className={value ? styles["nativeValue"] : styles["nativePlaceholder"]}
+          >
+            {value ? formatIsoDate(value) : placeholder}
+          </span>
+          <span aria-hidden="true" className={styles["nativeIcon"]}>
+            <Suspense fallback={null}>
+              <SvgPack.IconCalendar />
+            </Suspense>
+          </span>
+        </div>
+        <input
+          className={styles["nativeInputControl"]}
+          type="date"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          onBlur={onBlur}
+          disabled={disabled}
+          readOnly={readOnly}
+          id={id}
+          name={name}
+          autoComplete={autoComplete}
+          min={toIsoDate(minDate)}
+          max={toIsoDate(maxDate)}
+          aria-label={placeholder ?? "Date"}
+        />
+      </label>
+    );
+  }
 
   return (
     <div className={`${styles["container"]} ${className ?? ""}`}>

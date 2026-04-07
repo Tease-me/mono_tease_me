@@ -11,6 +11,85 @@
   width: 100%;
 }
 
+.nativeField {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.nativeSurface {
+  display: flex;
+  align-items: center;
+  min-height: 58px;
+  background-color: var(--color-dark-2);
+  border-radius: 12px;
+  outline: 1px solid var(--Greyscale-800, #424242);
+  overflow: hidden;
+  transition: outline-color 0.2s ease-in-out;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.nativeField:focus-within .nativeSurface {
+  outline: 1px solid var(--color-primary);
+}
+
+.nativeValue,
+.nativePlaceholder {
+  flex: 1 1 auto;
+  padding: 18px 12px 18px 20px;
+  font-family: var(--secondary-font-family);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.nativeValue {
+  color: var(--color-text);
+}
+
+.nativePlaceholder {
+  color: var(--color-text-secondary);
+}
+
+.nativeIcon {
+  display: flex;
+  width: 20px;
+  height: 20px;
+  margin: 0 20px 0 12px;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  pointer-events: none;
+}
+
+.nativeSurfaceDisabled {
+  background: #2f2f2f;
+  opacity: 0.7;
+}
+
+.nativeInputControl {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+  color-scheme: dark;
+}
+
+.nativeInputControl::-webkit-calendar-picker-indicator {
+  opacity: 0;
+}
+
+.nativeInputControl:disabled,
+.nativeInputControl[readonly] {
+  cursor: not-allowed;
+}
+
 .popper {
   z-index: 30;
 }
