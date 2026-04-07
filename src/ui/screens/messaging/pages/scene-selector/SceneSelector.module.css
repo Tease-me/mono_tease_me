@@ -282,8 +282,7 @@
   gap: 16px;
   border-radius: 0 0 16px 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.10);
-  background: rgba(33, 33, 33, 0.80);
-  backdrop-filter: blur(5px);
+  background: #222429;
   overflow: hidden;
 }
 
