@@ -86,7 +86,7 @@ async def send_trial_expired_messages(
     except Exception:
         log.exception("trial_expired: failed to send voice note")
 
-    await asyncio.sleep(4.5)
+    await asyncio.sleep(3.5)
 
     # 2) Image / video promo
     try:
