@@ -9,12 +9,12 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
+from collections.abc import Awaitable, Callable
 
 try:
-    from pyrogram import Client, filters
+    from pyrogram import Client
 except ImportError:
     Client = None  # type: ignore
-    filters = None  # type: ignore
 
 log = logging.getLogger(__name__)
 
@@ -49,78 +49,56 @@ class TelegramMessageHandler:
 
         @self.client.on_raw_update()
         async def handle_raw_update(_client: Client, update, users, chats):
-            """Detect incoming private calls via raw Telegram updates."""
+            """Detect incoming private calls and DMs via raw Telegram updates."""
             update_class = type(update).__name__
             if update_class == "UpdatePhoneCall":
                 call_type = type(getattr(update, "phone_call", None)).__name__
                 log.info("RAW UPDATE: %s (phone_call=%s)", update_class, call_type)
+            elif "Message" in update_class:
+                log.info("RAW UPDATE: %s", update_class)
+            await self._handle_incoming_text_update(update)
             await self._handle_incoming_call(update)
-
-        @self.client.on_message(filters.incoming)
-        async def handle_text_message(_client: Client, message):
-            """Auto-reply to private messages up to MAX_TEXT_REPLIES, then send CTA."""
-            log.info(
-                "telegram.message_callback_entered influencer=%s message_id=%s chat_type=%s outgoing=%s has_text=%s",
-                self.influencer_id,
-                getattr(message, "id", None),
-                getattr(getattr(message, "chat", None), "type", None),
-                getattr(message, "outgoing", None),
-                bool(getattr(message, "text", None)),
-            )
-            await self._handle_text_message(message)
 
         log.info(
             "Telegram handlers registered for influencer=%s (voice calls + text)",
             self.influencer_id,
         )
 
-    async def _handle_text_message(self, message):
+    @staticmethod
+    def _build_preview(text: str) -> str:
+        preview = re.sub(r"\s+", " ", text.strip())
+        if len(preview) > 100:
+            return preview[:97] + "..."
+        return preview
+
+    async def _process_text_message(
+        self,
+        *,
+        user_id: int,
+        message_id: int | None,
+        text: str,
+        send_reply: Callable[[str], Awaitable[None]],
+    ) -> None:
         """Reply to private text messages up to MAX_TEXT_REPLIES, then send CTA link.
 
         Tracks reply count per (influencer, telegram_user) in Redis.
         After all replies are sent, sends the influencer CTA link once and goes silent.
         """
         from app.utils.infrastructure.redis_pool import get_redis
-        from pyrogram import enums
-
-        if not getattr(message, "from_user", None):
-            return
-
-        user_id = message.from_user.id if message.from_user else None
-        if not user_id:
-            return
-
-        if getattr(message, "outgoing", False):
-            return
-
-        chat = getattr(message, "chat", None)
-        chat_type = getattr(chat, "type", None)
-        if str(chat_type) not in {"private", "ChatType.PRIVATE"}:
-            return
-
-        if getattr(message, "service", None):
-            return
-
-        text = (getattr(message, "text", None) or "").strip()
-        if not text:
-            return
 
         redis = await get_redis()
         key = f"tg:text_replies:{self.influencer_id}:{user_id}"
 
         raw = await redis.get(key)
         count = int(raw) if raw else 0
-        preview = re.sub(r"\s+", " ", text)
-        if len(preview) > 100:
-            preview = preview[:97] + "..."
 
         log.info(
             "telegram.incoming_text influencer=%s tg_user=%s message_id=%s reply_count=%s preview=%r",
             self.influencer_id,
             user_id,
-            getattr(message, "id", None),
+            message_id,
             count,
-            preview,
+            self._build_preview(text),
         )
 
         if count > self.MAX_TEXT_REPLIES:
@@ -135,10 +113,7 @@ class TelegramMessageHandler:
 
         if count < self.MAX_TEXT_REPLIES:
             reply_index = count
-            await message.reply_text(
-                self.TEXT_REPLIES[count],
-                parse_mode=enums.ParseMode.HTML,
-            )
+            await send_reply(self.TEXT_REPLIES[count])
             count += 1
             await redis.set(key, count)
             log.info(
@@ -150,10 +125,71 @@ class TelegramMessageHandler:
 
         if count == self.MAX_TEXT_REPLIES:
             # Send CTA link after the last text reply
-            await self._send_text_cta(message, user_id)
+            await self._send_text_cta(chat_id=user_id, telegram_user_id=user_id)
             await redis.set(key, count + 1)
 
-    async def _send_text_cta(self, message, telegram_user_id: int):
+    async def _handle_incoming_text_update(self, update) -> None:
+        """Process incoming private text DMs from raw Telegram updates."""
+        update_class = type(update).__name__
+
+        if hasattr(update, "updates") and isinstance(getattr(update, "updates"), list):
+            for nested_update in update.updates:
+                await self._handle_incoming_text_update(nested_update)
+            return
+
+        if hasattr(update, "update") and update_class.startswith("UpdateShort"):
+            await self._handle_incoming_text_update(update.update)
+            return
+
+        if update_class == "UpdateShortMessage":
+            if getattr(update, "out", False):
+                return
+            message_text = (getattr(update, "message", None) or "").strip()
+            user_id = getattr(update, "user_id", None)
+            if not user_id or not message_text:
+                return
+            await self._process_text_message(
+                user_id=user_id,
+                message_id=getattr(update, "id", None),
+                text=message_text,
+                send_reply=lambda reply_text: self.client.send_message(
+                    chat_id=user_id,
+                    text=reply_text,
+                ),
+            )
+            return
+
+        if update_class != "UpdateNewMessage":
+            return
+
+        raw_message = getattr(update, "message", None)
+        if raw_message is None:
+            return
+        if type(raw_message).__name__ == "MessageService":
+            return
+        if getattr(raw_message, "out", False):
+            return
+
+        peer_id = getattr(raw_message, "peer_id", None)
+        if type(peer_id).__name__ != "PeerUser":
+            return
+
+        user_id = getattr(peer_id, "user_id", None)
+        message_text = (getattr(raw_message, "message", None) or "").strip()
+        if not user_id or not message_text:
+            return
+
+        await self._process_text_message(
+            user_id=user_id,
+            message_id=getattr(raw_message, "id", None),
+            text=message_text,
+            send_reply=lambda reply_text: self.client.send_message(
+                chat_id=user_id,
+                text=reply_text,
+            ),
+        )
+
+    async def _send_text_cta(self, *, chat_id: int, telegram_user_id: int):
         """Send the influencer CTA link as a follow-up after text replies."""
         import asyncio
 
@@ -184,8 +220,9 @@ class TelegramMessageHandler:
                 )
 
                 cta_html = build_telegram_cta_html(invite_code, actual_id)
-                await message.reply_text(
-                    f"Want more of me? 💋\n\n{cta_html}",
+                await self.client.send_message(
+                    chat_id=chat_id,
+                    text=f"Want more of me? 💋\n\n{cta_html}",
                     parse_mode=enums.ParseMode.HTML,
                 )
 
