@@ -27,7 +27,6 @@ type PostCallSummary = {
 const chatRepo = ChatRepository();
 const userServices = UserServices(apiClient);
 const POST_CALL_SUMMARY_RETRY_DELAYS_MS = [1200, 2500, 5000];
-const POST_CALL_SUMMARY_DISMISS_DELAY_MS = 4000;
 function getAdultCallStateLabel(
   status: CallStatus,
   transport: typeof ADULT_CALL_TRANSPORT,
@@ -90,7 +89,6 @@ export default function useAdultCallTransport(
   const [postCallSummary, setPostCallSummary] = useState<PostCallSummary | null>(null);
   const [pendingSummaryRefresh, setPendingSummaryRefresh] = useState(false);
   const elapsedIntervalRef = useRef<number | null>(null);
-  const postCallDismissTimeoutRef = useRef<number | null>(null);
   const previousIsCallActiveRef = useRef(false);
   const hadLiveConnectionRef = useRef(false);
   const currentInfluencerIdRef = useRef<string | null>(null);
@@ -194,13 +192,6 @@ export default function useAdultCallTransport(
     [],
   );
 
-  const clearPostCallDismissTimeout = useCallback(() => {
-    if (postCallDismissTimeoutRef.current !== null) {
-      window.clearTimeout(postCallDismissTimeoutRef.current);
-      postCallDismissTimeoutRef.current = null;
-    }
-  }, []);
-
   useEffect(() => {
     if (transport !== "webrtc") {
       return;
@@ -233,23 +224,6 @@ export default function useAdultCallTransport(
       }
     };
   }, [isCallActive]);
-
-  useEffect(() => {
-    clearPostCallDismissTimeout();
-
-    if (!postCallSummary || pendingSummaryRefresh) {
-      return;
-    }
-
-    postCallDismissTimeoutRef.current = window.setTimeout(() => {
-      setPostCallSummary(null);
-      postCallDismissTimeoutRef.current = null;
-    }, POST_CALL_SUMMARY_DISMISS_DELAY_MS);
-
-    return () => {
-      clearPostCallDismissTimeout();
-    };
-  }, [clearPostCallDismissTimeout, pendingSummaryRefresh, postCallSummary]);
 
   useEffect(() => {
     currentConversationIdRef.current = conversationId;
@@ -304,7 +278,6 @@ export default function useAdultCallTransport(
       currentInfluencerIdRef.current = influencerId;
       currentConversationIdRef.current = null;
       hadLiveConnectionRef.current = false;
-      clearPostCallDismissTimeout();
       setElapsedSeconds(0);
       setPostCallSummary(null);
       setPendingSummaryRefresh(false);
@@ -340,7 +313,6 @@ export default function useAdultCallTransport(
       startBackendCall,
       startConversation,
       transport,
-      clearPostCallDismissTimeout,
     ],
   );
 
@@ -354,10 +326,9 @@ export default function useAdultCallTransport(
 
   const dismissPostCallSummary = useCallback(() => {
     summarySessionRef.current += 1;
-    clearPostCallDismissTimeout();
     setPostCallSummary(null);
     setPendingSummaryRefresh(false);
-  }, [clearPostCallDismissTimeout]);
+  }, []);
 
   return {
     transport,
