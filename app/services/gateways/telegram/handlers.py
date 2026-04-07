@@ -37,9 +37,9 @@ class TelegramMessageHandler:
 
     # Auto-reply messages for text conversations (generic, no influencer name)
     TEXT_REPLIES = [
-        "Hey babe! 💋 So sweet of you to message me. I'd love to hear your voice though… Why don't you give me a call! 📞",
-        "I'm way better on calls, trust me 😘 Hit that call button and let's have some fun together!",
-        "Come on, don't be shy! 💕 Just call me right now, I promise you won't regret it 😏",
+        "Hey baby~ i've been waiting for you~",
+        "Do you want to call me now on telegram?",
+        "Come on~ don't be shy 💕 I want to hear your voice ☺️ pretty pleeeeese~ 💋",
     ]
 
     # Max text replies before sending CTA link and going silent
