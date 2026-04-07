@@ -1341,13 +1341,13 @@ const AdminInfluencerAssets: React.FC = () => {
                                         className={styles["slot-toggle"]}
                                         onClick={() => setTelegramAudioReplaceMode(true)}
                                         disabled={uploadingTelegramMedia}
-                                        aria-label="Replace Telegram farewell audio"
+                                        aria-label="Replace Telegram Welcome audio"
                                       >
                                         <span className={styles["slot-toggle-x"]}>×</span>
                                       </button>
                                     </div>
                                     <div className={styles["slot-label-row"]}>
-                                      <div className={styles["asset-label"]}>Telegram Farewell Audio</div>
+                                      <div className={styles["asset-label"]}>Telegram Welcome Audio</div>
                                     </div>
                                     <audio controls className={styles["audio-player"]}>
                                       <source
@@ -1378,8 +1378,8 @@ const AdminInfluencerAssets: React.FC = () => {
                                       )}
                                     </div>
                                     <FileDropzone
-                                      title="Upload Telegram Farewell Audio"
-                                      description="Drag and drop a farewell audio file here, or browse to stage a replacement."
+                                      title="Upload Telegram Welcome Audio"
+                                      description="Drag and drop a welcome audio file here, or browse to stage a replacement."
                                       accept="audio/*"
                                       file={pendingTelegramAudio}
                                       onFileChange={(file) => {
