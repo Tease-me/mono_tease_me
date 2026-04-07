@@ -12,7 +12,13 @@ from jose import jwt, JWTError
 from passlib.context import CryptContext
 from app.core.session import get_db
 from app.data.models import User
-from app.data.schemas.auth import RegisterRequest, LoginRequest, Token, PasswordResetRequest
+from app.data.schemas.auth import (
+    RegisterRequest,
+    LoginRequest,
+    Token,
+    PasswordResetRequest,
+    VerifyEmailResponse,
+)
 from app.core.config import settings
 from app.services.email.mailers import (
     send_password_reset_email,
@@ -332,8 +338,12 @@ async def get_me(request: Request, user: User = Depends(get_current_user)):
         user_out.profile_photo_url = resolve_user_photo_url(user.profile_photo_key)
     return user_out
     
-@router.get("/verify-email")
-async def verify_email(token: str, db: AsyncSession = Depends(get_db)):
+@router.get("/verify-email", response_model=VerifyEmailResponse)
+async def verify_email(
+    token: str,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+):
     result = await db.execute(select(User).where(User.email_token == token))
     user = result.scalar_one_or_none()
     if not user:
@@ -345,6 +355,18 @@ async def verify_email(token: str, db: AsyncSession = Depends(get_db)):
     user.email_token_expires_at = None
     await db.commit()
 
+    access_token = create_token(
+        {"sub": str(user.id)},
+        settings.SECRET_KEY,
+        timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+    )
+    refresh_token = create_token(
+        {"sub": str(user.id)},
+        settings.REFRESH_SECRET_KEY,
+        timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
+    )
+    _set_auth_cookies(response, access_token, refresh_token)
+
     await notify_email_verified(user.email)
 
     try:
@@ -353,7 +375,12 @@ async def verify_email(token: str, db: AsyncSession = Depends(get_db)):
     except Exception:
         log.exception("Failed to schedule track_email_verified for user %s", user.id)
 
-    return {"ok": True, "message": "Email verified! You can now login."}
+    return VerifyEmailResponse(
+        ok=True,
+        message="Email verified! You are now signed in.",
+        access_token=access_token,
+        refresh_token=refresh_token,
+    )
 
 @router.post("/resend-verification-email")
 @rate_limit(max_requests=3, window_seconds=300, key_prefix="auth:resend-verify")
