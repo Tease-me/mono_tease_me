@@ -532,7 +532,7 @@ export default function SceneSelector({
                             <>
                               <div className={styles.sessionTimer}>{summaryDurationLabel}</div>
                               <div className={styles.summaryCostRow}>
-                                <span className={styles.summaryCostLabel}>Final Cost: {summaryCostLabel}</span>
+                                <span className={styles.summaryCostLabel}>Cost: {summaryCostLabel}</span>
                                 <button
                                   type="button"
                                   className={styles.summaryInfoButton}
@@ -655,14 +655,14 @@ export default function SceneSelector({
           ariaLabel="How is this summary updated?"
         >
           <div className={styles.summaryInfoModalCard}>
-            <h3 className={styles.summaryInfoHeading}>How is this summary updated?</h3>
+            <h3 className={styles.summaryInfoHeading}>How are call costs calculated?</h3>
             <p className={styles.summaryInfoSubtitle}>
-              Duration and cost appear once billing finishes processing your call.
+              Standard call charge $1.00 – $1.30 per minute
             </p>
             <div className={styles.summaryInfoNote}>
-              <p className={styles.summaryInfoNoteTitle}>When values appear</p>
+              <p className={styles.summaryInfoNoteTitle}>Notes on Call Charges</p>
               <p className={styles.summaryInfoNoteText}>
-                We wait for the billed call summary notification before showing the final duration and cost. If that notification is delayed, the app retries in the background.
+                The total duration of the connection.<br></br> Includes the time it takes to establish the connection and is usually longer than the conversation.
               </p>
             </div>
           </div>

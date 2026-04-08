@@ -557,6 +557,7 @@ max-width: calc(100% - 28px);
   border-radius: 8px;
   max-width: 357px;
   min-width: 280px;
+  padding: 0;
 }
 
 .summaryInfoModalCard {
