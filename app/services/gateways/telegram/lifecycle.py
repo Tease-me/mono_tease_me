@@ -11,7 +11,10 @@ import logging
 from app.core.config import settings
 from app.core.session import SessionLocal
 from app.services.repositories.call_record_repository import cleanup_stale_active_calls
-from app.services.gateways.telegram.session_manager import session_manager
+from app.services.gateways.telegram.session_manager import (
+    TelegramSessionOwnershipError,
+    session_manager,
+)
 from app.services.gateways.telegram.handlers import TelegramMessageHandler
 
 log = logging.getLogger(__name__)
@@ -53,10 +56,17 @@ async def start_all_sessions():
     log.info("Resuming %d saved Telegram session(s): %s", len(saved), saved)
 
     for influencer_id in saved:
+        log.info("Attempting Telegram session resume for influencer=%s", influencer_id)
         try:
             client = await session_manager.create_session(influencer_id)
             _register_handlers(influencer_id, client)
             log.info("Resumed Telegram session for influencer=%s", influencer_id)
+        except TelegramSessionOwnershipError as exc:
+            log.warning(
+                "Skipping Telegram session for influencer=%s: %s",
+                influencer_id,
+                exc,
+            )
         except Exception:
             log.exception(
                 "Failed to resume Telegram session for influencer=%s",
