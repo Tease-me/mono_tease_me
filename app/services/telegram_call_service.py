@@ -112,9 +112,26 @@ async def send_trial_expired_messages(
     except Exception:
         log.exception("trial_expired: failed to send promo media")
 
+    await asyncio.sleep(3.5)
+
+    # 3) Second voice note
+    try:
+        if influencer:
+            await send_telegram_welcome_audio(client, chat_id, influencer, slot="audio_2")
+    except FloodWait as e:
+        log.warning("trial_expired: voice note 2 flood wait %ds", e.value)
+        await asyncio.sleep(e.value)
+        try:
+            if influencer:
+                await send_telegram_welcome_audio(client, chat_id, influencer, slot="audio_2")
+        except Exception:
+            log.exception("trial_expired: voice note 2 retry failed")
+    except Exception:
+        log.exception("trial_expired: failed to send voice note 2")
+
     await asyncio.sleep(4.5)
 
-    # 3) CTA text with invite link
+    # 4) CTA text with invite link
     try:
         await client.send_message(
             chat_id=chat_id,
@@ -196,12 +213,18 @@ async def send_telegram_welcome_audio(
     client,
     chat_id: int,
     influencer: Influencer,
+    slot: str = "audio",
 ) -> bool:
     """Send telegram welcome audio as a voice note from assets_json.
+
+    Args:
+        slot: Which audio to send — "audio" for the primary welcome audio,
+              "audio_2" for the second voice note.
 
     Returns True if audio was sent.
     """
     from app.services.repositories.influencer_landing_assets_repository import (
+        TELEGRAM_AUDIO_2_SLOT,
         TELEGRAM_AUDIO_SLOT,
         get_landing_asset_key,
     )
@@ -209,7 +232,8 @@ async def send_telegram_welcome_audio(
 
     assets_json = influencer.assets_json if isinstance(influencer.assets_json, dict) else {}
 
-    audio_key = get_landing_asset_key(assets_json, TELEGRAM_AUDIO_SLOT)
+    asset_slot = TELEGRAM_AUDIO_2_SLOT if slot == "audio_2" else TELEGRAM_AUDIO_SLOT
+    audio_key = get_landing_asset_key(assets_json, asset_slot)
     if not audio_key:
         return False
 
@@ -224,10 +248,10 @@ async def send_telegram_welcome_audio(
                 chat_id=chat_id,
                 voice=voice_file,
             )
-            log.info("welcome_audio_sent chat=%s key=%s", chat_id, audio_key)
+            log.info("welcome_audio_sent chat=%s slot=%s key=%s", chat_id, slot, audio_key)
             return True
-        log.warning("S3 returned empty bytes for welcome audio key=%s", audio_key)
+        log.warning("S3 returned empty bytes for welcome audio slot=%s key=%s", slot, audio_key)
     except Exception:
-        log.exception("Failed to send welcome audio (key=%s)", audio_key)
+        log.exception("Failed to send welcome audio (slot=%s key=%s)", slot, audio_key)
 
     return False
