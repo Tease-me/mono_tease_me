@@ -30,8 +30,8 @@
   background: radial-gradient(54.08% 54.08% at 50% 85.74%, rgba(154, 42, 255, 0.8), #000);
   border-radius: 16px 16px 0 0;
   background-position: 0px 40px;
-background-size: contain;
-background-repeat: no-repeat;
+  background-size: contain;
+  background-repeat: no-repeat;
 }
 
 .relationship {
@@ -126,7 +126,7 @@ background-repeat: no-repeat;
   border-radius: 0 0 16px 16px;
   border-left: 1px solid rgba(255, 255, 255, 0.1);
   border-right: 1px solid rgba(255, 255, 255, 0.1);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   background-color: oklch(27.38% 0.00146 16.077 / 0.4);
   position: relative;
   z-index: 1;
@@ -175,16 +175,14 @@ background-repeat: no-repeat;
 
 @media (max-width: 767px) {
   .upperBody {
- /* height: 33dvh; */
- max-height: 30dvh;
-    aspect-ratio: auto;
+    aspect-ratio: 560 / 376;
   }
 
   .titlePlaceholder {
     top: -10px;
     width: min(100%, 100vw);
     opacity: 0.9;
-    
+
   }
 
   .lowerBody {
