@@ -9,6 +9,8 @@ __pycache__/
 *.py[cod]
 env/
 .venv/
+.pytest_cache/
+.ruff_cache/
 
 # IDEs
 .vscode/
@@ -26,3 +28,19 @@ Thumbs.db
 # Database backups
 backups/db/*
 !backups/db/.gitkeep
+
+# Telegram Userbot session files
+telegram_sessions/
+.agent
+
+# GeoIP database
+data/geoip/*
+!data/geoip/.gitkeep
+
+# Claude Code (personal — never commit)
+.claude/
+CLAUDE.md
+STRUCTURE.md
+MEMORY.md
+GOTCHAS.md
+PROGRESS.md

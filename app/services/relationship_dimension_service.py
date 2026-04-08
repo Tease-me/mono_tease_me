@@ -9,7 +9,7 @@ from typing import Dict, Any, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.system_prompt_service import get_system_prompt
-from app.constants import prompt_keys
+from app.data.enums import prompt_keys
 
 log = logging.getLogger(__name__)
 

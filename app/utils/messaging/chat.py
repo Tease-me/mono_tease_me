@@ -10,7 +10,7 @@ import time
 
 from fastapi import HTTPException
 from app.core.config import settings
-from app.db.models import Influencer
+from app.data.models import Influencer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
@@ -176,9 +176,9 @@ def format_for_eleven_v3(message: str, style: str = "neutral") -> str:
     if tags:
         text = f"{tags} {text}"
     
-    MAX_LENGTH = 2990  # a bit of buffer
-    if len(text) > MAX_LENGTH:
-        text = text[:MAX_LENGTH - 3] + "..."
+    max_length = 2990  # a bit of buffer
+    if len(text) > max_length:
+        text = text[:max_length - 3] + "..."
     
     return text
 
@@ -267,7 +267,12 @@ def _ensure_v3_compatibility(text: str, style: str = "neutral") -> str:
     return enhanced_text
 
 
-async def synthesize_audio_with_elevenlabs_V3(text: str, db, influencer_id: str = None, style: str = "neutral"):
+async def synthesize_audio_with_elevenlabs_v3(
+    text: str,
+    db: AsyncSession,
+    influencer_id: str | None = None,
+    style: str = "neutral",
+):
     influencer = await db.get(Influencer, influencer_id)
     if not influencer:
         raise HTTPException(404, "Influencer not found")
@@ -278,7 +283,7 @@ async def synthesize_audio_with_elevenlabs_V3(text: str, db, influencer_id: str 
     text = _ensure_v3_compatibility(text, style=style)
 
     voice_id = influencer.voice_id
-    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+    url = f"{settings.ELEVENLABS_TTS_BASE_URL}/{voice_id}"
     headers = {
         "xi-api-key": ELEVENLABS_API_KEY,
         "Accept": "audio/mpeg",

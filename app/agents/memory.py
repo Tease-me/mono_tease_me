@@ -1,12 +1,12 @@
 from app.services.embeddings import get_embedding, get_embeddings_batch, search_similar_memories, search_similar_messages, search_similar_memories_and_messages, upsert_memory
 from sqlalchemy import select, union_all
 from sqlalchemy.sql import func
-from app.db.models import Memory, Chat, Message
+from app.data.models import Memory, Chat, Message
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_xai import ChatXAI
 from app.core.config import settings
 import logging
-from app.db.session import SessionLocal
+from app.core.session import SessionLocal
 from app.agents.callbacks import UsageTrackingCallback
 
 log = logging.getLogger(__name__)
@@ -781,7 +781,7 @@ async def _refresh_memory_summary_cache(
     - **Full** (cold start / no cache): re-fetch all memories and summarize
       from scratch (~1-2s).
     """
-    _SAFETY_TTL = 86400  # 24 hours
+    safety_ttl = 86400  # 24 hours
     try:
         from app.utils.infrastructure.redis_pool import get_redis
         import asyncio
@@ -818,8 +818,8 @@ async def _refresh_memory_summary_cache(
 
             mem_summary, ai_summary = await asyncio.gather(*tasks)
 
-            await rclient.setex(mem_key, _SAFETY_TTL, mem_summary)
-            await rclient.setex(ai_key, _SAFETY_TTL, ai_summary)
+            await rclient.setex(mem_key, safety_ttl, mem_summary)
+            await rclient.setex(ai_key, safety_ttl, ai_summary)
             log.info(
                 "[MEM-CACHE] incremental merge chat=%s new_facts=%d",
                 chat_id, len(new_facts),
@@ -858,8 +858,8 @@ async def _refresh_memory_summary_cache(
             summarize_ai_memory_list(ai_mem_list),
         )
 
-        await rclient.setex(mem_key, _SAFETY_TTL, mem_summary)
-        await rclient.setex(ai_key, _SAFETY_TTL, ai_summary)
+        await rclient.setex(mem_key, safety_ttl, mem_summary)
+        await rclient.setex(ai_key, safety_ttl, ai_summary)
         log.info(
             "[MEM-CACHE] full refresh chat=%s mem_len=%d ai_len=%d",
             chat_id, len(mem_summary), len(ai_summary),

@@ -2,13 +2,14 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+
 class Settings(BaseSettings):
     DB_URL: str
     OPENAI_API_KEY: str
     XAI_API_KEY: str
     QWEN_API_KEY: str | None = None
     QWEN_BASE_URL: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-    REDIS_URL: str 
+    REDIS_URL: str
     MAX_HISTORY_WINDOW: int
     SCORE_TTL: int
     HISTORY_TTL: int
@@ -27,18 +28,18 @@ class Settings(BaseSettings):
     COOKIE_SAMESITE: str = "lax"
 
     ELEVENLABS_API_KEY: str
-    ELEVEN_BASE_URL: str 
+    ELEVENLABS_TTS_BASE_URL: str = "https://api.elevenlabs.io/v1/text-to-speech"
+    ELEVEN_BASE_URL: str
     ELEVENLABS_AGENT_BRANCH_ID: str | None = None
     ELEVENLABS_VOICE_ID: str
     ELEVENLABS_CONVAI_WEBHOOK_SECRET: str | None = None
-    
+
     VAPID_PUBLIC_KEY: str
     VAPID_PRIVATE_KEY: str
     VAPID_EMAIL: str | None = None
 
     AWS_REGION: str
     SES_SENDER: str
-    SES_SERVER: str
     SES_AWS_ACCESS_KEY_ID: str
     SES_AWS_SECRET_ACCESS_KEY: str
     S3_AWS_ACCESS_KEY_ID: str
@@ -51,7 +52,7 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
-    
+
     RATE_LIMIT_ENABLED: bool = True
     RATE_LIMIT_AUTH_MAX: int = 5
     RATE_LIMIT_AUTH_WINDOW: int = 60
@@ -59,17 +60,20 @@ class Settings(BaseSettings):
     RATE_LIMIT_CHAT_WINDOW: int = 60
     RATE_LIMIT_BILLING_MAX: int = 10
     RATE_LIMIT_BILLING_WINDOW: int = 60
-    IDEMPOTENCY_TTL: int = 3600 #1hr 
+    IDEMPOTENCY_TTL: int = 3600  # 1hr
     LOCK_TIMEOUT: int = 30
-    
+
     LANDING_PAGE_AGENT_ID: str
     BUCKET_NAME: str
-    INFLUENCER_PREFIX: str
+    PUBLIC_ASSET_BUCKET_NAME: str
+    BUCKET_PUBLIC_URL: str = "https://bucket-image-tease-me.s3.us-east-1.amazonaws.com"
+    INFLUENCER_BUCKET_PREFIX: str
     USER_PREFIX: str = "user-content"  # Default fallback if missing in .env
+    S3_PRESIGNED_URL_TTL_SECONDS: int = 3600
+    ASSET_PRESENCE_CACHE_TTL_SECONDS: int = 120
+    ASSET_URL_CACHE_TTL_SECONDS: int = 300
 
     TWITTER_BEARER_TOKEN: str | None = None
-
-
 
     # External checkout webhook (Stripe/PayPal payment confirmation)
     PAYMENT_WEBHOOK_SECRET: str | None = None
@@ -77,9 +81,19 @@ class Settings(BaseSettings):
     FIRSTPROMOTER_TOKEN: str | None = None
     FIRSTPROMOTER_ACCOUNT_ID: str | None = None
     FIRSTPROMOTER_API_KEY: str | None = None
+    FIRSTPROMOTER_API_BASE_URL: str = "https://v2.firstpromoter.com/api/v2"
+    FIRSTPROMOTER_API_V1_BASE_URL: str = "https://firstpromoter.com/api/v1"
+    FIRSTPROMOTER_COMPANY_API_BASE_URL: str = "https://api.firstpromoter.com/api/v2"
     FIRSTPROMOTER_NOTIFY_EMAIL: str | None = None
 
+    # MJ First Promoter (MJFP) - Drop-in replacement for FirstPromoter
+    MJFP_API_URL: str | None = None
+    MJFP_API_KEY: str | None = None
+    MJFP_TOKEN: str | None = None
+    MJFP_ACCOUNT_ID: str | None = None
+
     # Didit Identity Verification (v3 API)
+    DIDIT_BASE_URL: str = "https://verification.didit.me/v3"
     DIDIT_API_KEY: str | None = None  # x-api-key for v3 API
     DIDIT_WEBHOOK_SECRET: str | None = None  # Webhook secret key from Didit console
     DIDIT_WORKFLOW_ID_KYC: str | None = None  # KYC workflow ID from Didit console
@@ -88,8 +102,18 @@ class Settings(BaseSettings):
     # External Checkout (tmservice)
     TMSERVICE_API_URL: str = "https://api.tmservice.live"
     TMSERVICE_API_KEY: str | None = None
-    TMSERVICE_CIPHER_KEY: str = "TEASEME"  # Vigenère cipher key for password obfuscation
+    TMSERVICE_CIPHER_KEY: str = (
+        "TEASEME"  # Vigenère cipher key for password obfuscation
+    )
     TMSERVICE_REDIRECT_URL: str = "https://localhost:3000/home"
+
+    # Armloop Payment Gateway
+    ARMLOOP_API_KEY: str | None = None
+    ARMLOOP_SECRET_KEY: str | None = None
+    ARMLOOP_BASE_URL: str = "https://ctscan0.armloop.com.au/CTScan/pro/payment/online"
+    ARMLOOP_MERCHANT_ACCOUNT: str | None = None  # Merchant account code from OA console
+    ARMLOOP_WEBHOOK_HMAC_KEY: str | None = None  # Hex-encoded HMAC key from OA console
+    ARMLOOP_RETURN_URL: str | None = None  # Frontend URL to return after payment
 
     # Logging configuration
     APP_ENV: str = "local"  # local | staging | production
@@ -97,7 +121,29 @@ class Settings(BaseSettings):
     LOG_LEVEL: str | None = None
     LOG_TO_CONSOLE: bool = True
 
+    # Country detection
+    GEO_BLOCKED_COUNTRY_CODES: str = ""
+    AGE_VERIFICATION_REQUIRED_COUNTRY_CODES: str = ""
+    GEO_COUNTRY_HEADER_PRIORITY: str = (
+        "CF-IPCountry,CloudFront-Viewer-Country,X-Country-Code"
+    )
+    MAXMIND_DB_PATH: str = ""
+    TRUST_X_FORWARDED_FOR: bool = True
+
     # LLM configuration
     DEFAULT_SUMMARIZATION_MODEL: str = "gpt-3.5-turbo"
+
+
+
+    # Telegram Userbot (pytgcalls) configuration
+    TELEGRAM_API_ID: int | None = None  # From https://my.telegram.org
+    TELEGRAM_API_HASH: str | None = None  # From https://my.telegram.org
+    TELEGRAM_SESSION_ENCRYPTION_KEY: str | None = (
+        None  # Fernet key for session file encryption
+    )
+    TELEGRAM_USERBOT_ENABLED: bool = False  # Feature flag to enable/disable
+    TELEGRAM_SESSIONS_DIR: str = "./telegram_sessions"
+    FRONTEND_URL: str = "https://www.teaseme.live"  # Web app base URL
+
 
 settings = Settings()

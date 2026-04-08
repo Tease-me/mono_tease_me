@@ -3,15 +3,15 @@ from datetime import date, datetime
 import random
 from typing import Any, Optional
 
-from app.constants import prompt_keys
-from app.shared.prompting.influencer_bio import InfluencerBioContext
+from app.data.enums import prompt_keys
+from app.services.prompting.influencer_bio import InfluencerBioContext
 from langchain_core.prompts import (
     ChatPromptTemplate,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.models import Influencer
+from app.data.models import Influencer
 from fastapi import Depends, HTTPException
-from app.db.session import get_db
+from app.core.session import get_db
 from app.services.system_prompt_service import get_system_prompt
 from app.utils.time import (
     check_is_weekend,
@@ -271,18 +271,18 @@ async def get_mbti_rules_for_archetype(
     
     return "\n".join(parts)
 
-async def get_base_system(db: AsyncSession, isAudio: bool) -> str:
+async def get_base_system(db: AsyncSession, is_audio: bool) -> str:
     base = await get_system_prompt(db, prompt_keys.BASE_SYSTEM)
-    if isAudio: 
+    if is_audio:
         audio_base = await get_system_prompt(db, prompt_keys.BASE_AUDIO_SYSTEM)
         base += "\n" + audio_base
     return base
 
 async def get_global_prompt(
     db: AsyncSession,
-    isAudio: bool = False,
+    is_audio: bool = False,
 ) -> ChatPromptTemplate:
-    system_prompt = await get_base_system(db, isAudio=isAudio)
+    system_prompt = await get_base_system(db, is_audio=is_audio)
 
     return ChatPromptTemplate.from_messages(
         [

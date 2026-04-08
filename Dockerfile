@@ -3,12 +3,12 @@ FROM python:3.11-slim
 # Install build deps, Pillow dependencies, and Poetry
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        curl \
-        build-essential \
-        libjpeg-dev \
-        zlib1g-dev \
-        libpng-dev \
-        ffmpeg \
+    curl \
+    build-essential \
+    libjpeg-dev \
+    zlib1g-dev \
+    libpng-dev \
+    ffmpeg \
     && curl -sSL https://install.python-poetry.org | python3 - \
     && mv /root/.local/bin/poetry /usr/local/bin/poetry
 

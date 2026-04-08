@@ -1,16 +1,29 @@
+import math
+import os
 import subprocess
 import tempfile
-import os
-import math
-from sqlalchemy import select, and_, func
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.dialects.postgresql import insert
+from datetime import date, datetime, timezone
 
 from fastapi import HTTPException
-from app.db.models import InfluencerWallet, InfluencerCreditTransaction, DailyUsage, Pricing, User, Chat, Influencer
-from datetime import datetime, date, timezone
+from sqlalchemy import and_, func, select
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.ext.asyncio import AsyncSession
 
-async def _get_lifetime_used_units(db: AsyncSession, user_id: int, is_18: bool, feature: str) -> int:
+from app.data.models import (
+    Chat,
+    DailyUsage,
+    Influencer,
+    InfluencerCreditTransaction,
+    InfluencerWallet,
+    Pricing,
+    User,
+)
+from app.services.repositories.billing_repository import get_wallet_balance_cents
+
+
+async def _get_lifetime_used_units(
+    db: AsyncSession, user_id: int, is_18: bool, feature: str
+) -> int:
     field_map = {
         "text": DailyUsage.text_count,
         "voice": DailyUsage.voice_secs,
@@ -21,13 +34,13 @@ async def _get_lifetime_used_units(db: AsyncSession, user_id: int, is_18: bool, 
     field = field_map.get(feature)
     if not field:
         return 0
-    
+
     stmt = select(func.sum(field)).where(
-        DailyUsage.user_id == user_id,
-        DailyUsage.is_18 == is_18
+        DailyUsage.user_id == user_id, DailyUsage.is_18 == is_18
     )
     res = await db.scalar(stmt)
     return int(res or 0)
+
 
 async def charge_feature(
     db: AsyncSession,
@@ -103,12 +116,13 @@ async def charge_feature(
         db.add(wallet)
 
         new_balance = wallet.balance_cents
-        THRESHOLD = 1000
-        if old_balance >= THRESHOLD and new_balance < THRESHOLD:
+        threshold = 1000
+        if old_balance >= threshold and new_balance < threshold:
             user_obj = await db.get(User, user_id)
             if user_obj and user_obj.email:
                 try:
-                    from app.api.notify_ws import notify_low_balance
+                    from app.api.routes.notify_ws import notify_low_balance
+
                     await notify_low_balance(user_obj.email, new_balance)
                 except Exception as e:
                     print(f"Error sending low balance notification: {e}")
@@ -128,8 +142,9 @@ async def charge_feature(
         await db.commit()
     else:
         await db.flush()
-        
+
     return cost
+
 
 async def topup_wallet(
     db: AsyncSession,
@@ -143,7 +158,9 @@ async def topup_wallet(
     """Add credits to a specific (user, influencer, mode) wallet and log the transaction."""
     influencer_id = (influencer_id or "").strip()
     if not influencer_id:
-        raise HTTPException(status_code=400, detail="Missing influencer_id for wallet topup")
+        raise HTTPException(
+            status_code=400, detail="Missing influencer_id for wallet topup"
+        )
 
     infl = await db.get(Influencer, influencer_id)
     if not infl:
@@ -193,38 +210,47 @@ async def topup_wallet(
     await db.flush()
     return int(wallet.balance_cents or 0)
 
+
 def get_audio_duration_ffmpeg(file_bytes: bytes) -> float:
     with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as tmp:
         tmp.write(file_bytes)
         tmp_path = tmp.name
     try:
         result = subprocess.run(
-            ["ffprobe", "-v", "error", "-show_entries",
-             "format=duration", "-of",
-             "default=noprint_wrappers=1:nokey=1", tmp_path],
+            [
+                "ffprobe",
+                "-v",
+                "error",
+                "-show_entries",
+                "format=duration",
+                "-of",
+                "default=noprint_wrappers=1:nokey=1",
+                tmp_path,
+            ],
             stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT
+            stderr=subprocess.STDOUT,
         )
         duration = float(result.stdout.decode().strip())
         return duration
     except Exception as e:
         print(f"ffmpeg duration error: {e}")
         return 10.0  # fallback
-    
+
 
 MIME_TO_SUFFIX = {
     "audio/webm": ".webm",
-    "audio/wav":  ".wav",
+    "audio/wav": ".wav",
     "audio/x-wav": ".wav",
-    "audio/mp3":  ".mp3",
+    "audio/mp3": ".mp3",
     "audio/mpeg": ".mp3",
-    "audio/ogg":  ".ogg",
+    "audio/ogg": ".ogg",
     "audio/x-m4a": ".m4a",
     "audio/m4a": ".m4a",
     "audio/mp4": ".m4a",
     "audio/aac": ".aac",
     "audio/x-aac": ".aac",
 }
+
 
 def _duration_via_ffprobe(data: bytes, suffix: str) -> float:
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
@@ -234,9 +260,13 @@ def _duration_via_ffprobe(data: bytes, suffix: str) -> float:
     try:
         result = subprocess.run(
             [
-                "ffprobe", "-v", "error",
-                "-show_entries", "format=duration",
-                "-of", "default=noprint_wrappers=1:nokey=1",
+                "ffprobe",
+                "-v",
+                "error",
+                "-show_entries",
+                "format=duration",
+                "-of",
+                "default=noprint_wrappers=1:nokey=1",
                 tmp_path,
             ],
             stdout=subprocess.PIPE,
@@ -250,10 +280,15 @@ def _duration_via_ffprobe(data: bytes, suffix: str) -> float:
             if output in ("", "N/A", "nan", "NaN"):
                 result = subprocess.run(
                     [
-                        "ffprobe", "-v", "error",
-                        "-select_streams", "a:0",
-                        "-show_entries", "stream=duration",
-                        "-of", "default=noprint_wrappers=1:nokey=1",
+                        "ffprobe",
+                        "-v",
+                        "error",
+                        "-select_streams",
+                        "a:0",
+                        "-show_entries",
+                        "stream=duration",
+                        "-of",
+                        "default=noprint_wrappers=1:nokey=1",
                         tmp_path,
                     ],
                     stdout=subprocess.PIPE,
@@ -274,6 +309,7 @@ def _duration_via_ffprobe(data: bytes, suffix: str) -> float:
             os.unlink(tmp_path)
         except Exception:
             pass
+
 
 def _duration_via_ffmpeg_decode(tmp_path: str) -> float:
     try:
@@ -301,6 +337,7 @@ def _duration_via_ffmpeg_decode(tmp_path: str) -> float:
     except Exception:
         return 0.0
 
+
 def get_duration_seconds(file_bytes: bytes, mime: str | None = None) -> int:
     """
     Returns duration in whole seconds (>=1), fallback 10s if ffprobe fails.
@@ -313,9 +350,6 @@ def get_duration_seconds(file_bytes: bytes, mime: str | None = None) -> int:
     return max(1, math.ceil(duration))
 
 
-
-
-
 async def can_afford(
     db: AsyncSession,
     *,
@@ -325,7 +359,6 @@ async def can_afford(
     units: int,
     is_18: bool = False,
 ) -> tuple[bool, int, int]:
-
     price: Pricing | None = await db.scalar(
         select(Pricing).where(
             Pricing.feature == feature,
@@ -347,25 +380,16 @@ async def can_afford(
     billable = max(int(units) - free_left, 0)
     cost_cents = billable * int(price.price_cents or 0)
 
-    wallet = await db.scalar(
-        select(InfluencerWallet).where(
-            and_(
-                InfluencerWallet.user_id == user_id,
-                InfluencerWallet.influencer_id == influencer_id,
-                InfluencerWallet.is_18.is_(is_18),
-            )
-        )
+    balance = await get_wallet_balance_cents(
+        db,
+        user_id=user_id,
+        influencer_id=influencer_id,
+        is_18=is_18,
     )
-
-    balance = int(wallet.balance_cents) if wallet and wallet.balance_cents is not None else 0
 
     ok = balance >= cost_cents
     return (ok or cost_cents == 0), cost_cents, free_left
 
-
-def _today_midnight_naive() -> datetime:
-    d = date.today()
-    return datetime(d.year, d.month, d.day)
 
 async def get_remaining_units(
     db: AsyncSession,
@@ -387,16 +411,12 @@ async def get_remaining_units(
 
     free_left = max(free_allowance - used, 0)
 
-    wallet: InfluencerWallet | None = await db.scalar(
-        select(InfluencerWallet).where(
-            and_(
-                InfluencerWallet.user_id == user_id,
-                InfluencerWallet.influencer_id == influencer_id,
-                InfluencerWallet.is_18.is_(is_18),
-            )
-        )
+    balance_cents = await get_wallet_balance_cents(
+        db,
+        user_id=user_id,
+        influencer_id=influencer_id,
+        is_18=is_18,
     )
-    balance_cents = int(wallet.balance_cents) if wallet and wallet.balance_cents is not None else 0
     paid = (balance_cents // unit_price_cents) if unit_price_cents > 0 else 0
 
     return int(free_left + paid)
@@ -418,7 +438,8 @@ async def resolve_voice_billing_mode(
 
     Centralises the subscription lookup so every billing path uses identical logic.
     """
-    from app.db.models import InfluencerSubscription
+    from app.data.models import InfluencerSubscription
+
     sub = await db.scalar(
         select(InfluencerSubscription).where(
             InfluencerSubscription.user_id == user_id,
@@ -429,7 +450,9 @@ async def resolve_voice_billing_mode(
     is_18 = False
     if sub and sub.is_18_selected:
         # Only honour 18+ selection if the subscription period hasn't expired
-        if sub.current_period_end is None or sub.current_period_end >= datetime.now(timezone.utc):
+        if sub.current_period_end is None or sub.current_period_end >= datetime.now(
+            timezone.utc
+        ):
             is_18 = True
     feature = "voice_18" if is_18 else "live_chat"
     return feature, is_18

@@ -9,7 +9,7 @@ from PIL import Image
 import pillow_heif
 
 from app.core.config import settings
-from app.schemas.chat import MessageSchema
+from app.data.schemas.chat import MessageSchema
 
  
 log = logging.getLogger(__name__)
@@ -152,7 +152,7 @@ def generate_presigned_urls_for_keys(keys: list[str], expires: int = 3600) -> li
     return [generate_presigned_url(key, expires) for key in keys]
         
 def _influencer_key(influencer_id: str, suffix: str) -> str:
-    return f"{settings.INFLUENCER_PREFIX}/{influencer_id}/{suffix}"
+    return f"{settings.INFLUENCER_BUCKET_PREFIX}/{influencer_id}/{suffix}"
 
 def _is_heic(filename: str | None, content_type: str | None) -> bool:
     """Check if the file is HEIC/HEIF format."""
@@ -224,7 +224,6 @@ async def save_influencer_video_to_s3(file_obj, filename: str | None, content_ty
     file_obj.seek(0)
     s3.upload_fileobj(file_obj, settings.BUCKET_NAME, key, ExtraArgs={"ContentType": content_type})
     return key
-
 async def save_influencer_profile_to_s3(
     influencer_id: str,
     *,
@@ -259,5 +258,21 @@ async def save_user_photo_to_s3(file_obj, filename: str, content_type: str, user
     return key
 
 
+def resolve_user_photo_url(value: str, expires: int = 3600) -> str:
+    normalized = value.strip()
+    if normalized.startswith(("http://", "https://")):
+        return normalized
+    return generate_presigned_url(normalized, expires)
+
+
 def generate_user_presigned_url(key: str, expires: int = 3600) -> str:
     return generate_presigned_url(key, expires)
+
+async def save_character_sample_audio_to_s3(
+    file_obj, filename: str | None, content_type: str, influencer_id: str, character_id: int, sample_type: str
+) -> str:
+    ext = (filename.split(".")[-1].lower() if filename and "." in filename else "mp3")
+    key = f"character-samples/{influencer_id}/{character_id}/{sample_type}/{uuid.uuid4()}.{ext}"
+    file_obj.seek(0)
+    s3.upload_fileobj(file_obj, settings.BUCKET_NAME, key, ExtraArgs={"ContentType": content_type})
+    return key

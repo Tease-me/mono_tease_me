@@ -1,0 +1,32 @@
+name: Deploy Backend Staging
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - staging
+
+jobs:
+  deploy-staging:
+    if: github.event.pull_request.merged == true
+    runs-on:
+      - self-hosted
+      - macOS
+      - X64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate deploy script syntax
+        run: bash -n scripts/deploy-backend-staging.sh
+
+      - name: Verify staging host dependencies
+        run: |
+          command -v rsync
+          command -v docker
+          docker compose version
+
+      - name: Deploy backend staging
+        run: ./scripts/deploy-backend-staging.sh

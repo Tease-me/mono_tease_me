@@ -2,7 +2,7 @@ from datetime import date
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import InfluencerWallet, DailyUsage, Pricing
+from app.data.models import InfluencerWallet, DailyUsage, Pricing
 
 
 async def _get_usage_snapshot_simple(

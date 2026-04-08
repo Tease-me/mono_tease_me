@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, and_, not_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import (
+from app.data.models import (
     Influencer,
     InfluencerWallet,
     RelationshipState,
@@ -16,7 +16,7 @@ from app.utils.messaging.push import send_push_rich
 from app.agents.turn_handler import handle_turn
 from app.services.chat_service import get_or_create_chat
 from app.services.system_prompt_service import get_system_prompt
-from app.constants import prompt_keys
+from app.data.enums import prompt_keys
 # from app.utils.s3 import generate_presigned_url  # - text only for now
 
 log = logging.getLogger(__name__)
@@ -73,17 +73,20 @@ async def find_inactive_high_balance_users(
     rows = result.all()
 
     now = datetime.now(timezone.utc)
-    return [
-        {
+    res = []
+    for row in rows:
+        last_int = row.last_interaction_at
+        if last_int.tzinfo is None:
+            last_int = last_int.replace(tzinfo=timezone.utc)
+        res.append({
             "user_id": row.user_id,
             "influencer_id": row.influencer_id,
             "balance_cents": row.balance_cents,
             "last_interaction_at": row.last_interaction_at,
-            "days_inactive": (now - row.last_interaction_at).days,
+            "days_inactive": (now - last_int).days,
             "influencer_name": row.influencer_name,
-        }
-        for row in rows
-    ]
+        })
+    return res
 
 
 async def generate_reengagement_via_turn_handler(
@@ -135,38 +138,6 @@ async def generate_reengagement_via_turn_handler(
     except Exception as e:
         log.error(f"[RE-ENGAGE] AI generation failed for user {user_id}: {e}", exc_info=True)
         log.info(f"[RE-ENGAGE] Falling back to static template for user {user_id}")
-
-# TODO: Re-enable when ready to send images/videos
-# async def get_influencer_media(
-#     db: AsyncSession,
-#     influencer_id: str,
-# ) -> Optional[dict]:
-#     """
-#     Replace this with actual media fetching logic / video generation.
-#     """
-#     influencer = await db.get(Influencer, influencer_id)
-#     if not influencer or not influencer.samples:
-#         return None
-#
-#     media_samples = [
-#         s for s in influencer.samples
-#         if s.get("type") in ("image", "video") and s.get("key")
-#     ]
-#
-#     if not media_samples:
-#         if influencer.profile_photo_key:
-#             return {
-#                 "type": "image",
-#                 "url": generate_presigned_url(influencer.profile_photo_key),
-#             }
-#         return None
-#
-#     sample = random.choice(media_samples)
-#     return {
-#         "type": sample.get("type", "image"),
-#         "url": generate_presigned_url(sample["key"]),
-#     }
-
 
 async def send_reengagement_notification(
     db: AsyncSession,

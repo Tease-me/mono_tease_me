@@ -1,0 +1,53 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: teaseme-backend-staging-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: teaseme
+    ports:
+      - "${STAGING_DB_PORT:-5433}:5432"
+    volumes:
+      - staging_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d teaseme"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    container_name: teaseme-backend-staging-redis
+    volumes:
+      - staging_redisdata:/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.staging
+    container_name: teaseme-backend-staging
+    command:
+      - sh
+      - -c
+      - >
+        python -m alembic upgrade head &&
+        uvicorn app.main:app --host 0.0.0.0 --port ${STAGING_PORT:-8001}
+        --proxy-headers --forwarded-allow-ips='*'
+    env_file:
+      - .env
+    ports:
+      - "${STAGING_PORT:-8001}:${STAGING_PORT:-8001}"
+    volumes:
+      - staging_telegram_sessions:/usr/src/telegram_sessions
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  staging_pgdata:
+  staging_redisdata:
+  staging_telegram_sessions:
