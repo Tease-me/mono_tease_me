@@ -30,7 +30,7 @@
   background: radial-gradient(54.08% 54.08% at 50% 85.74%, rgba(154, 42, 255, 0.8), #000);
   border-radius: 16px 16px 0 0;
   background-position: 0px 40px;
-background-size: cover;
+background-size: contain;
 background-repeat: no-repeat;
 }
 
