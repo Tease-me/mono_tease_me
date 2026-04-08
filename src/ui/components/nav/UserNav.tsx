@@ -4,7 +4,6 @@ import styles from './UserNav.module.css'
 import TeaseMeLogo from '../logos/TeaseMeLogo'
 import SvgPack from '@/utils/SvgPack'
 import IconButton from '../inputs/buttons/IconButton'
-import SwitchInfluencerButton from '../inputs/buttons/SwitchInfluencerButton'
 import { useIsDesktopOnly } from '@/hooks/layout/useIsDesktop'
 import { useTheme } from '@/theme/ThemeProvider'
 import clsx from 'clsx'
@@ -14,7 +13,6 @@ interface UserNavProps extends React.HTMLAttributes<HTMLDivElement> {
   onMenuClick?: () => void;
   callMode?: boolean;
   title?: string;
-  onSwitchInfluencer?: () => void;
   onClose?: () => void;
 }
 
@@ -23,7 +21,6 @@ const UserNav: React.FC<UserNavProps> = ({
   onMenuClick,
   callMode,
   title,
-  onSwitchInfluencer,
   onClose,
 }) => {
   const isMobile = useIsDesktopOnly() === false;
@@ -46,9 +43,7 @@ const UserNav: React.FC<UserNavProps> = ({
         </div>
 
         <div className={styles.centerSlot}>
-          {onSwitchInfluencer ? (
-            <SwitchInfluencerButton onClick={onSwitchInfluencer} alwaysExpanded />
-          ) : onClose && onCallClick ? (
+          {onClose && onCallClick ? (
             <IconButton
               leftIcon={callMode
                 ? <SvgPack.Chat className={clsx(styles.callChatIcon)} />

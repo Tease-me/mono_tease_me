@@ -13,7 +13,10 @@ import { FollowServices } from "@/api/services/FollowServices";
 import { apiClient } from "@/api/apis";
 import { InfluencerServices } from "@/api/services/InfluencerService";
 
-type UserMenuProps = { goTo: (id: string, payload?: any) => void };
+type UserMenuProps = {
+  goTo: (id: string, payload?: any) => void;
+  onSwitchInfluencer?: () => void;
+};
 
 type SidebarInfluencer = {
   name: string;
@@ -32,7 +35,7 @@ function formatFollowingSince(date?: string): string {
   return new Date(date).toLocaleDateString();
 }
 
-export default function UserMenu({ goTo }: UserMenuProps) {
+export default function UserMenu({ goTo, onSwitchInfluencer }: UserMenuProps) {
   const storedId = storage.get(LocalStorageKeys.SelectedId);
   const { logout } = useContext(AuthContext);
   const [selectedInfluencer, setSelectedInfluencer] = useState<SidebarInfluencer | null>(null);
@@ -128,6 +131,13 @@ export default function UserMenu({ goTo }: UserMenuProps) {
               title="Topup"
               subtitle="Topup your account"
               onClick={handlePTopupClick}
+            />
+          )}
+          {onSwitchInfluencer && (
+            <NavigationRow
+              title="Switch Influencer"
+              subtitle="Choose another influencer"
+              onClick={onSwitchInfluencer}
             />
           )}
           {/* <NavigationRow title="Manage Influencer" subtitle='Fund, Manage & View Your Influencers' onClick={handleManageInfluencersClick} /> */}
