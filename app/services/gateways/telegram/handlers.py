@@ -340,6 +340,14 @@ class TelegramMessageHandler:
             user_id = getattr(update, "user_id", None)
             if not user_id or not message_text:
                 return
+            if user_id == 777000:
+                log.info(
+                    "telegram.text_reply_suppressed influencer=%s reason=system_account tg_user=%s message_id=%s",
+                    self.influencer_id,
+                    user_id,
+                    getattr(update, "id", None),
+                )
+                return
             log.info(
                 "telegram.raw_incoming_text_update influencer=%s class=%s tg_user=%s message_id=%s",
                 self.influencer_id,
@@ -381,6 +389,14 @@ class TelegramMessageHandler:
         user_id = getattr(peer_id, "user_id", None)
         message_text = self._normalize_text(getattr(raw_message, "message", None) or "")
         if not user_id or not message_text:
+            return
+        if user_id == 777000:
+            log.info(
+                "telegram.text_reply_suppressed influencer=%s reason=system_account tg_user=%s message_id=%s",
+                self.influencer_id,
+                user_id,
+                getattr(raw_message, "id", None),
+            )
             return
         log.info(
             "telegram.raw_incoming_text_update influencer=%s class=%s tg_user=%s message_id=%s",
@@ -472,7 +488,7 @@ class TelegramMessageHandler:
         # Telegram sends UpdatePhoneCall with phone_call of type PhoneCallRequested
         update_class = type(update).__name__
         if "Phone" in update_class or "Call" in update_class:
-            log.info("_handle_incoming_call checking update: class=%s", update_class)
+            log.debug("_handle_incoming_call checking update: class=%s", update_class)
 
         if update_class != "UpdatePhoneCall":
             return
@@ -509,6 +525,7 @@ class TelegramMessageHandler:
 
         from app.core.session import SessionLocal as _SessionLocal
         from app.data.models import Influencer
+        from app.services.gateways.telegram.call_control import reject_incoming_call
         from app.services.gateways.telegram.voice_engine import voice_call_manager
         from app.services.telegram_call_service import (
             check_telegram_trial_eligibility,
@@ -533,10 +550,28 @@ class TelegramMessageHandler:
             return
 
         if remaining <= 0:
-            # Trial already used — silently ignore the call
-            # (text auto-replies will handle conversion via 3-msg + CTA flow)
             log.info(
                 "trial_gate_blocked tg_user=%s influencer=%s", caller_id, actual_id
+            )
+            await reject_incoming_call(
+                self.client,
+                getattr(phone_call, "id", None),
+                getattr(phone_call, "access_hash", None),
+                reason="busy",
+            )
+            return
+
+        if voice_call_manager.get_active_call_for_influencer(actual_id):
+            log.info(
+                "telegram.incoming_call_rejected_busy influencer=%s caller=%s",
+                actual_id,
+                caller_id,
+            )
+            await reject_incoming_call(
+                self.client,
+                getattr(phone_call, "id", None),
+                getattr(phone_call, "access_hash", None),
+                reason="busy",
             )
             return
 
@@ -548,6 +583,12 @@ class TelegramMessageHandler:
             log.error(
                 "No PyTgCalls instance for influencer=%s — cannot accept call",
                 self.influencer_id,
+            )
+            await reject_incoming_call(
+                self.client,
+                getattr(phone_call, "id", None),
+                getattr(phone_call, "access_hash", None),
+                reason="disconnect",
             )
             try:
                 await self.client.send_message(
@@ -582,6 +623,12 @@ class TelegramMessageHandler:
                 self.influencer_id,
                 caller_id,
             )
+            await reject_incoming_call(
+                self.client,
+                getattr(phone_call, "id", None),
+                getattr(phone_call, "access_hash", None),
+                reason="disconnect",
+            )
             try:
                 await self.client.send_message(
                     chat_id=caller_id,
@@ -593,19 +640,22 @@ class TelegramMessageHandler:
     async def _handle_call_discarded(self, phone_call):
         """Clean up voice call session when the Telegram call is discarded.
 
-        PhoneCallDiscarded often lacks admin_id, so we also search active
-        sessions by influencer_id prefix to find and clean up the right one.
+        PhoneCallDiscarded may omit admin_id, so fall back to exact session
+        matching by Telegram call identifiers when available.
         """
         from app.services.gateways.telegram.voice_engine import voice_call_manager
 
         caller_id = getattr(phone_call, "admin_id", None)
+        phone_call_id = getattr(phone_call, "id", None)
+        phone_call_access_hash = getattr(phone_call, "access_hash", None)
         reason_obj = getattr(phone_call, "reason", None)
         reason_class = type(reason_obj).__name__ if reason_obj else "unknown"
 
         log.info(
-            "telegram.call_discarded influencer=%s caller=%s reason=%s",
+            "telegram.call_discarded influencer=%s caller=%s phone_call_id=%s reason=%s",
             self.influencer_id,
             caller_id,
+            phone_call_id,
             reason_class,
         )
 
@@ -643,22 +693,32 @@ class TelegramMessageHandler:
                     caller_id,
                 )
         else:
-            # No admin_id — search active calls for this influencer and end them
-            prefix = f"{actual_id}:"
-            stale_keys = [
-                k
-                for k in list(voice_call_manager._active_calls.keys())
-                if k.startswith(prefix)
-            ]
-            for key in stale_keys:
-                session = voice_call_manager._active_calls.get(key)
-                if session:
-                    log.info(
-                        "telegram.call_discarded.cleanup_by_prefix key=%s",
-                        key,
-                    )
-                    try:
-                        await session.stop(reason="call_discarded")
-                    except Exception:
-                        pass
-                    voice_call_manager._active_calls.pop(key, None)
+            session = (
+                voice_call_manager.get_active_call_by_phone_call_id(phone_call_id)
+                or voice_call_manager.get_active_call_by_access_hash(phone_call_access_hash)
+            )
+            if not session:
+                log.info(
+                    "telegram.call_discarded.ignored influencer=%s reason=no_exact_session_match phone_call_id=%s",
+                    actual_id,
+                    phone_call_id,
+                )
+                return
+            try:
+                log.info(
+                    "telegram.call_discarded.cleaned_up_by_call_id influencer=%s caller=%s phone_call_id=%s",
+                    actual_id,
+                    session.telegram_user_id,
+                    phone_call_id,
+                )
+                await voice_call_manager.end_session(
+                    session,
+                    reason="call_discarded",
+                    send_post_call=True,
+                )
+            except Exception:
+                log.exception(
+                    "telegram.call_discarded.cleanup_by_call_id_error influencer=%s phone_call_id=%s",
+                    actual_id,
+                    phone_call_id,
+                )
