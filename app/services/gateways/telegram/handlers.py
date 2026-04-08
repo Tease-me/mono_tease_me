@@ -12,10 +12,7 @@ import random
 import re
 from collections.abc import Awaitable, Callable
 
-try:
-    from pyrogram import Client
-except ImportError:
-    Client = None  # type: ignore
+from pyrogram import Client
 
 log = logging.getLogger(__name__)
 
@@ -72,6 +69,21 @@ class TelegramMessageHandler:
             return preview[:97] + "..."
         return preview
 
+    async def _get_session_identity(self) -> str:
+        """Return a stable Redis identity for the authenticated Telegram account."""
+        telegram_id = getattr(self.client, "_tease_me_telegram_id", None)
+        if telegram_id is None:
+            me = await self.client.get_me()
+            telegram_id = getattr(me, "id", None)
+            if telegram_id is not None:
+                setattr(self.client, "_tease_me_telegram_id", telegram_id)
+                setattr(
+                    self.client,
+                    "_tease_me_telegram_user",
+                    getattr(me, "username", None) or getattr(me, "first_name", None),
+                )
+        return f"telegram_account:{telegram_id or self.influencer_id}"
+
     async def _process_text_message(
         self,
         *,
@@ -88,9 +100,11 @@ class TelegramMessageHandler:
         from app.utils.infrastructure.redis_pool import get_redis
 
         redis = await get_redis()
+        session_identity = await self._get_session_identity()
+        session_telegram_id = getattr(self.client, "_tease_me_telegram_id", None)
         if message_id is not None:
             dedupe_key = (
-                f"tg:text_message_seen:{self.influencer_id}:{user_id}:{message_id}"
+                f"tg:text_message_seen:{session_identity}:{user_id}:{message_id}"
             )
             is_new_message = await redis.set(
                 dedupe_key,
@@ -100,21 +114,23 @@ class TelegramMessageHandler:
             )
             if not is_new_message:
                 log.info(
-                    "telegram.text_duplicate_suppressed influencer=%s tg_user=%s message_id=%s",
+                    "telegram.text_duplicate_suppressed influencer=%s session_tg_id=%s tg_user=%s message_id=%s",
                     self.influencer_id,
+                    session_telegram_id,
                     user_id,
                     message_id,
                 )
                 return
 
-        key = f"tg:text_replies:{self.influencer_id}:{user_id}"
+        key = f"tg:text_replies:{session_identity}:{user_id}"
 
         raw = await redis.get(key)
         count = int(raw) if raw else 0
 
         log.info(
-            "telegram.incoming_text influencer=%s tg_user=%s message_id=%s reply_count=%s preview=%r",
+            "telegram.incoming_text influencer=%s session_tg_id=%s tg_user=%s message_id=%s reply_count=%s preview=%r",
             self.influencer_id,
+            session_telegram_id,
             user_id,
             message_id,
             count,
@@ -124,8 +140,9 @@ class TelegramMessageHandler:
         if count > self.MAX_TEXT_REPLIES:
             # Already sent all replies + CTA — stay silent
             log.info(
-                "telegram.text_reply_suppressed influencer=%s tg_user=%s reply_count=%s",
+                "telegram.text_reply_suppressed influencer=%s session_tg_id=%s tg_user=%s reply_count=%s",
                 self.influencer_id,
+                session_telegram_id,
                 user_id,
                 count,
             )
@@ -138,8 +155,9 @@ class TelegramMessageHandler:
             count += 1
             await redis.set(key, count)
             log.info(
-                "telegram.text_reply_sent influencer=%s tg_user=%s reply_index=%s",
+                "telegram.text_reply_sent influencer=%s session_tg_id=%s tg_user=%s reply_index=%s",
                 self.influencer_id,
+                session_telegram_id,
                 user_id,
                 reply_index,
             )

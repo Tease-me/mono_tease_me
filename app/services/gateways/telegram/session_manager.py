@@ -69,6 +69,58 @@ class TelegramSessionManager:
         return self._locks[influencer_id]
 
     @staticmethod
+    def _set_client_identity(client: Client, me) -> None:
+        """Cache authenticated Telegram identity metadata on the client."""
+        setattr(client, "_tease_me_telegram_id", getattr(me, "id", None))
+        setattr(
+            client,
+            "_tease_me_telegram_user",
+            getattr(me, "username", None) or getattr(me, "first_name", None),
+        )
+
+    @staticmethod
+    def _get_client_telegram_id(client: Client) -> int | None:
+        """Return cached Telegram account ID for a client if available."""
+        return getattr(client, "_tease_me_telegram_id", None)
+
+    @staticmethod
+    def _get_client_telegram_user(client: Client) -> str | None:
+        """Return cached Telegram display name or username for a client."""
+        return getattr(client, "_tease_me_telegram_user", None)
+
+    def _find_account_collision(
+        self,
+        influencer_id: str,
+        telegram_id: int | None,
+    ) -> str | None:
+        """Return conflicting influencer ID for an active Telegram account."""
+        if telegram_id is None:
+            return None
+
+        for existing_influencer_id, existing_client in self._sessions.items():
+            if existing_influencer_id == influencer_id or not existing_client.is_connected:
+                continue
+            if self._get_client_telegram_id(existing_client) == telegram_id:
+                return existing_influencer_id
+        return None
+
+    def _assert_unique_account(self, influencer_id: str, me) -> None:
+        """Fail closed if another influencer already uses this Telegram account."""
+        telegram_id = getattr(me, "id", None)
+        conflicting_influencer_id = self._find_account_collision(
+            influencer_id,
+            telegram_id,
+        )
+        if conflicting_influencer_id is None:
+            return
+
+        raise ValueError(
+            "Telegram account collision: influencer "
+            f"'{conflicting_influencer_id}' already uses telegram_id={telegram_id}. "
+            f"Stop/delete that session before authenticating '{influencer_id}'."
+        )
+
+    @staticmethod
     def _require_pyrogram():
         if not HAS_PYROGRAM:
             raise ValueError("pyrogram is not installed. Run: pip install pyrogram")
@@ -375,6 +427,9 @@ class TelegramSessionManager:
             else:
                 me = await client.get_me()
 
+            self._assert_unique_account(influencer_id, me)
+            self._set_client_identity(client, me)
+
             # Start the Pyrogram dispatcher so handlers fire on incoming updates
             await client.initialize()
 
@@ -448,6 +503,8 @@ class TelegramSessionManager:
                 first_name=first_name,
                 last_name=last_name,
             )
+            self._assert_unique_account(influencer_id, me)
+            self._set_client_identity(client, me)
 
             # Accept TOS if a TermsOfService.id was stored during verify_code
             tos_id = pending.get("tos_id")
@@ -519,6 +576,8 @@ class TelegramSessionManager:
         try:
             await client.start()
             me = await client.get_me()
+            self._assert_unique_account(influencer_id, me)
+            self._set_client_identity(client, me)
             self._sessions[influencer_id] = client
 
             # Start PyTgCalls for voice call support
@@ -535,6 +594,12 @@ class TelegramSessionManager:
                 "telegram_user": me.username or me.first_name,
                 "telegram_id": me.id,
             }
+        except ValueError:
+            try:
+                await client.disconnect()
+            except Exception:
+                pass
+            raise
         except (EOFError, AuthKeyUnregistered, AttributeError) as e:
             # Session file is invalid, partial, or expired — clean up
             log.warning(
@@ -597,6 +662,8 @@ class TelegramSessionManager:
             try:
                 await client.start()
                 me = await client.get_me()
+                self._assert_unique_account(influencer_id, me)
+                self._set_client_identity(client, me)
                 self._sessions[influencer_id] = client
 
                 # Start PyTgCalls for voice call support
@@ -609,6 +676,12 @@ class TelegramSessionManager:
                     me.id,
                 )
                 return client
+            except ValueError:
+                try:
+                    await client.disconnect()
+                except Exception:
+                    pass
+                raise
             except FloodWait as e:
                 raise RuntimeError(
                     f"Telegram rate limit hit. Retry in {e.value} seconds."
@@ -728,6 +801,8 @@ class TelegramSessionManager:
             result.append({
                 "influencer_id": iid,
                 "connected": client.is_connected,
+                "telegram_user": self._get_client_telegram_user(client),
+                "telegram_id": self._get_client_telegram_id(client),
             })
         return result
 
