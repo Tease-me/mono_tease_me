@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import asyncio
 import os
+from contextlib import asynccontextmanager
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -43,6 +45,8 @@ class FakeTelegramClient:
         self.sent_messages: list[dict[str, str | int]] = []
         self._tease_me_telegram_id = telegram_id
         self._tease_me_telegram_user = telegram_user
+        self.message_handlers: list[object] = []
+        self.raw_update_handlers: list[object] = []
 
     async def send_message(self, *, chat_id: int, text: str) -> None:
         self.sent_messages.append({"chat_id": chat_id, "text": text})
@@ -53,6 +57,20 @@ class FakeTelegramClient:
             username=self._tease_me_telegram_user,
             first_name=self._tease_me_telegram_user,
         )
+
+    def on_message(self, _filters):
+        def decorator(callback):
+            self.message_handlers.append(callback)
+            return callback
+
+        return decorator
+
+    def on_raw_update(self):
+        def decorator(callback):
+            self.raw_update_handlers.append(callback)
+            return callback
+
+        return decorator
 
 
 class FakeResumeClient:
@@ -86,6 +104,10 @@ async def test_text_dedupe_uses_telegram_account_identity(monkeypatch) -> None:
         ),
     )
     monkeypatch.setattr(
+        "app.utils.infrastructure.concurrency.advisory_lock",
+        _fake_advisory_lock,
+    )
+    monkeypatch.setattr(
         "app.utils.infrastructure.redis_pool.get_redis",
         lambda: _return_async(fake_redis),
     )
@@ -110,6 +132,145 @@ async def test_text_dedupe_uses_telegram_account_identity(monkeypatch) -> None:
 
     assert len(first_client.sent_messages) == 1
     assert second_client.sent_messages == []
+
+
+@pytest.mark.anyio
+async def test_message_handler_sends_single_private_reply(monkeypatch) -> None:
+    from app.services.gateways.telegram import handlers as handlers_module
+
+    fake_redis = FakeRedis()
+    monkeypatch.setattr(
+        handlers_module,
+        "asyncio",
+        SimpleNamespace(
+            sleep=lambda _: _noop(),
+        ),
+    )
+    monkeypatch.setattr(
+        "app.utils.infrastructure.concurrency.advisory_lock",
+        _fake_advisory_lock,
+    )
+    monkeypatch.setattr(
+        "app.utils.infrastructure.redis_pool.get_redis",
+        lambda: _return_async(fake_redis),
+    )
+
+    client = FakeTelegramClient(telegram_id=555, telegram_user="juliana")
+    handler = TelegramMessageHandler(client, "juliana")
+    message = SimpleNamespace(
+        id=2001,
+        text=" hey ",
+        outgoing=False,
+        service=None,
+        from_user=SimpleNamespace(id=42),
+        chat=SimpleNamespace(type="private"),
+    )
+
+    await handler._handle_incoming_message(message)
+
+    assert client.sent_messages == [
+        {"chat_id": 42, "text": handler.TEXT_REPLIES[0]}
+    ]
+
+
+@pytest.mark.anyio
+async def test_message_handler_ignores_outgoing_messages(monkeypatch) -> None:
+    fake_redis = FakeRedis()
+    monkeypatch.setattr(
+        "app.utils.infrastructure.concurrency.advisory_lock",
+        _fake_advisory_lock,
+    )
+    monkeypatch.setattr(
+        "app.utils.infrastructure.redis_pool.get_redis",
+        lambda: _return_async(fake_redis),
+    )
+
+    client = FakeTelegramClient(telegram_id=555, telegram_user="juliana")
+    handler = TelegramMessageHandler(client, "juliana")
+    message = SimpleNamespace(
+        id=2002,
+        text="hey",
+        outgoing=True,
+        service=None,
+        from_user=SimpleNamespace(id=42),
+        chat=SimpleNamespace(type="private"),
+    )
+
+    await handler._handle_incoming_message(message)
+
+    assert client.sent_messages == []
+
+
+@pytest.mark.anyio
+async def test_concurrent_message_callbacks_only_send_one_reply(monkeypatch) -> None:
+    from app.services.gateways.telegram import handlers as handlers_module
+
+    fake_redis = FakeRedis()
+    monkeypatch.setattr(
+        handlers_module,
+        "asyncio",
+        SimpleNamespace(
+            sleep=lambda _: _noop(),
+            Lock=asyncio.Lock,
+        ),
+    )
+    monkeypatch.setattr(
+        "app.utils.infrastructure.concurrency.advisory_lock",
+        _shared_fake_advisory_lock(),
+    )
+    monkeypatch.setattr(
+        "app.utils.infrastructure.redis_pool.get_redis",
+        lambda: _return_async(fake_redis),
+    )
+
+    client = FakeTelegramClient(telegram_id=555, telegram_user="juliana")
+    handler = TelegramMessageHandler(client, "juliana")
+    message = SimpleNamespace(
+        id=2003,
+        text="hey",
+        outgoing=False,
+        service=None,
+        from_user=SimpleNamespace(id=42),
+        chat=SimpleNamespace(type="private"),
+    )
+
+    await asyncio.gather(
+        handler._handle_incoming_message(message),
+        handler._handle_incoming_message(message),
+    )
+
+    assert client.sent_messages == [
+        {"chat_id": 42, "text": handler.TEXT_REPLIES[0]}
+    ]
+
+
+@pytest.mark.anyio
+async def test_register_keeps_raw_updates_for_calls_only() -> None:
+    client = FakeTelegramClient(telegram_id=555, telegram_user="juliana")
+    handler = TelegramMessageHandler(client, "juliana")
+    seen: list[str] = []
+
+    async def fake_handle_message(message) -> None:
+        seen.append(f"message:{message.id}")
+
+    async def fake_handle_call(update) -> None:
+        seen.append(type(update).__name__)
+
+    handler._handle_incoming_message = fake_handle_message  # type: ignore[method-assign]
+    handler._handle_incoming_call = fake_handle_call  # type: ignore[method-assign]
+    handler.register()
+
+    assert len(client.message_handlers) == 1
+    assert len(client.raw_update_handlers) == 1
+
+    class FakeUpdatePhoneCall:
+        pass
+
+    await client.message_handlers[0](client, SimpleNamespace(id=3001))
+    await client.raw_update_handlers[0](client, FakeUpdatePhoneCall(), None, None)
+
+    assert seen[0] == "message:3001"
+    assert seen[1] == "FakeUpdatePhoneCall"
 
 
 def test_create_session_rejects_duplicate_telegram_account(monkeypatch, tmp_path: Path) -> None:
@@ -176,6 +337,29 @@ def test_verify_code_route_returns_collision_as_400(monkeypatch) -> None:
 
     assert response.status_code == 400
     assert "Telegram account collision" in response.json()["detail"]
+
+
+@asynccontextmanager
+async def _fake_advisory_lock(*args, **kwargs):
+    yield True
+
+
+def _shared_fake_advisory_lock():
+    held: dict[str, asyncio.Lock] = {}
+
+    @asynccontextmanager
+    async def _lock(name: str, *args, **kwargs):
+        lock = held.setdefault(name, asyncio.Lock())
+        if lock.locked():
+            yield False
+            return
+        await lock.acquire()
+        try:
+            yield True
+        finally:
+            lock.release()
+
+    return _lock
 
 
 async def _noop() -> None:
