@@ -53,6 +53,7 @@ type SceneSelectorProps = {
   influencerId: string;
   influencerName?: string;
   influencerImageUrl?: string;
+  influencerVideoUrl?: string;
   onGirlfriendModeSelected: () => void;
 };
 
@@ -119,6 +120,7 @@ export default function SceneSelector({
   influencerId,
   influencerName,
   influencerImageUrl,
+  influencerVideoUrl,
   onGirlfriendModeSelected,
 }: SceneSelectorProps) {
   const { user } = useContext(AuthContext);
@@ -633,7 +635,8 @@ export default function SceneSelector({
         isOpen={showTopupModal}
         influencerId={influencerId}
         influencerName={influencerName}
-        image={selectedSceneAvatar}
+        image={influencerImageUrl}
+        video={influencerVideoUrl}
         onClose={() => setShowTopupModal(false)}
       />
       {pendingGate && (
