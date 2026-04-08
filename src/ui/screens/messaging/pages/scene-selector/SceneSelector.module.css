@@ -49,6 +49,10 @@
   padding: 24px 20px 40px;
 }
 
+.page1Hidden {
+  display: none;
+}
+
 .header {
   color: #fff;
   font-size: 32px;
