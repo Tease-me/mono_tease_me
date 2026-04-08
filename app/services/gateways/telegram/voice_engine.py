@@ -1226,6 +1226,37 @@ class VoiceCallManager:
             return session
         return None
 
+    def get_active_call_for_influencer(
+        self,
+        influencer_id: str,
+    ) -> Optional[VoiceCallSession]:
+        for session in self._active_calls.values():
+            if session.is_active and session.influencer_id == influencer_id:
+                return session
+        return None
+
+    def get_active_call_by_phone_call_id(
+        self,
+        phone_call_id: int | None,
+    ) -> Optional[VoiceCallSession]:
+        if phone_call_id is None:
+            return None
+        for session in self._active_calls.values():
+            if session.is_active and session._phone_call_id == phone_call_id:
+                return session
+        return None
+
+    def get_active_call_by_access_hash(
+        self,
+        access_hash: int | None,
+    ) -> Optional[VoiceCallSession]:
+        if access_hash is None:
+            return None
+        for session in self._active_calls.values():
+            if session.is_active and session._phone_call_access_hash == access_hash:
+                return session
+        return None
+
     async def start_call(
         self,
         client: Client,
@@ -1316,6 +1347,22 @@ class VoiceCallManager:
         session = self._active_calls.pop(key, None)
         if session and session.is_active:
             await session.stop(reason="user_hangup")
+            await session._send_trial_ended_on_hangup()
+
+    async def end_session(
+        self,
+        session: VoiceCallSession,
+        *,
+        reason: str,
+        send_post_call: bool,
+    ) -> None:
+        self._active_calls.pop(
+            self._call_key(session.influencer_id, session.telegram_user_id),
+            None,
+        )
+        if session.is_active:
+            await session.stop(reason=reason)
+        if send_post_call:
             await session._send_trial_ended_on_hangup()
 
     async def end_all_calls(self):
