@@ -347,21 +347,27 @@ export default function SceneSelector({
   const showVideo =
     Boolean(selectedScene?.video.webm) || Boolean(selectedScene?.video.mp4);
 
-  const summaryDurationLabel = (() => {
-    const seconds =
-      postCallSummary?.confirmedDurationSeconds ??
-      postCallSummary?.estimatedDurationSeconds ??
-      null;
-    return seconds == null ? "--" : formatTime(Math.max(0, Math.round(seconds)));
-  })();
+  const hasConfirmedSummary =
+    postCallSummary?.confirmedDurationSeconds != null &&
+    postCallSummary?.confirmedCostCents != null;
+  const confirmedDurationSeconds = hasConfirmedSummary
+    ? postCallSummary.confirmedDurationSeconds
+    : null;
+  const confirmedCostCents = hasConfirmedSummary
+    ? postCallSummary.confirmedCostCents
+    : null;
 
-  const summaryCostLabel = (() => {
-    const costCents =
-      postCallSummary?.confirmedCostCents ??
-      postCallSummary?.estimatedCostCents ??
-      null;
-    return costCents == null ? "--" : `$${(costCents / 100).toFixed(2)}`;
-  })();
+  const summaryDurationLabel = confirmedDurationSeconds != null
+    ? formatTime(Math.max(0, Math.round(confirmedDurationSeconds)))
+    : null;
+
+  const summaryCostLabel = confirmedCostCents != null
+    ? `$${(confirmedCostCents / 100).toFixed(2)}`
+    : null;
+
+  const isWaitingForConfirmedSummary =
+    showPostCallSummary &&
+    !hasConfirmedSummary;
 
   const selectedSceneAvatar =
     selectedScene?.image.small ??
@@ -517,20 +523,29 @@ export default function SceneSelector({
                             <img src={selectedSceneAvatar} alt={selectedScene?.name || "Influencer"} className={styles.summaryInfluencerAvatar} />
                           </div>
                           <div className={styles.subtitle}>Call Summary</div>
-                          <div className={styles.sessionTimer}>{summaryDurationLabel}</div>
-                          <div className={styles.summaryCostRow}>
-                            <span className={styles.summaryCostLabel}>Est. Cost: {summaryCostLabel}</span>
-                            <button
-                              type="button"
-                              className={styles.summaryInfoButton}
-                              onClick={() => setShowSummaryInfoModal(true)}
-                              aria-label="How is this summary updated?"
-                            >
-                              <Suspense fallback={null}>
-                                <SvgPack.InfoCircleGray />
-                              </Suspense>
-                            </button>
-                          </div>
+                          {isWaitingForConfirmedSummary && (
+                            <div className={styles.summaryProcessingCopy}>
+                              <span>Finalizing call summary...</span>
+                            </div>
+                          )}
+                          {hasConfirmedSummary && (
+                            <>
+                              <div className={styles.sessionTimer}>{summaryDurationLabel}</div>
+                              <div className={styles.summaryCostRow}>
+                                <span className={styles.summaryCostLabel}>Final Cost: {summaryCostLabel}</span>
+                                <button
+                                  type="button"
+                                  className={styles.summaryInfoButton}
+                                  onClick={() => setShowSummaryInfoModal(true)}
+                                  aria-label="How is this summary updated?"
+                                >
+                                  <Suspense fallback={null}>
+                                    <SvgPack.InfoCircleGray />
+                                  </Suspense>
+                                </button>
+                              </div>
+                            </>
+                          )}
                           <IconButton
                             onClick={handleBackToSceneSelection}
                             color="black"
@@ -642,12 +657,12 @@ export default function SceneSelector({
           <div className={styles.summaryInfoModalCard}>
             <h3 className={styles.summaryInfoHeading}>How is this summary updated?</h3>
             <p className={styles.summaryInfoSubtitle}>
-              Duration and cost are shown immediately after the call ends.
+              Duration and cost appear once billing finishes processing your call.
             </p>
             <div className={styles.summaryInfoNote}>
-              <p className={styles.summaryInfoNoteTitle}>Why values may change</p>
+              <p className={styles.summaryInfoNoteTitle}>When values appear</p>
               <p className={styles.summaryInfoNoteText}>
-                The first values can be estimated locally, then replaced with backend-confirmed values once the call summary finishes processing.
+                We wait for the billed call summary notification before showing the final duration and cost. If that notification is delayed, the app retries in the background.
               </p>
             </div>
           </div>

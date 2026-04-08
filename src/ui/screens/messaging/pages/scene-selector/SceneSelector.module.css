@@ -503,6 +503,22 @@ max-width: calc(100% - 28px);
   letter-spacing: 0.2px;
 }
 
+.summaryProcessingCopy {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.68);
+  font-family: Urbanist;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 140%;
+}
+
+.summaryProcessingCopy :global(.loading-spinner-container) {
+  width: 20px;
+  height: 20px;
+}
+
 .summaryGoBackButton {
   width: 100%;
   min-height: 48px;
