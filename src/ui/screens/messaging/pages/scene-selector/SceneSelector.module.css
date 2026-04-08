@@ -618,9 +618,9 @@ max-width: calc(100% - 28px);
 
 @media (max-width: 767px) {
   .page1 {
-    padding: 1rem 0;
+    padding: 0.5dvh 0;
     justify-content: flex-start;
-    gap: 12px;
+    gap: 0.2dvh;
   }
 
   .header {

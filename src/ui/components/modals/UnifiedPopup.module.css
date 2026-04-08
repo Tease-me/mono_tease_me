@@ -86,8 +86,9 @@
     align-items: flex-end;
   }
 
+  
   .container {
-    max-height: 92vh;
+    max-height: 92dvh;
     border-radius: 16px 16px 0 0;
     transform: translateY(24px);
   }
