@@ -21,6 +21,10 @@ export const Paths = {
     verifyEmail: "/verify-email",
     admin: {
         root: "/admin",
+        characters: "/admin/characters",
+        influencerCharacter: "/admin/influencer-character",
+        influencerAssets: "/admin/influencer-assets",
+        emailAssets: "/admin/email-assets",
         influencer: "/admin/influencer",
         prompts: "/admin/prompts",
         relationship: "/admin/relationship",
@@ -31,6 +35,7 @@ export const Paths = {
         chatHistory: "/admin/chat-history",
         analytics: "/admin/analytics",
         logs: "/admin/logs",
+        telegram: "/admin/telegram",
     },
     legal: {
         terms: "/terms",
@@ -54,6 +59,7 @@ export const Paths = {
     paypalReturn: "/paypal/return",
     paypalCancel: "/paypal/cancel",
     diditReturn: "/didit/return",
+    armloopReturn: "/armloop/return",
     profileSelector: "/profile-selector",
     adultMode: "/adult-mode",
     underage: "/underage",

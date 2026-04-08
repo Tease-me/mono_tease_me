@@ -135,7 +135,7 @@ const LandingPage: React.FC = () => {
               </label>
               <div className="home-page-input-outer">
                 <input
-                  className="ps-input"
+                  className="home-page-ps-input"
                   placeholder="Enter Instagram Account"
                 />
               </div>

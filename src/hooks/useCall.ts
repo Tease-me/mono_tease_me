@@ -184,8 +184,11 @@ export default function useCall() {
       if (user && user.id) {
         await chatRepo.registerConversation(
           conversationId,
-          user?.id ?? 0,
-          influencerId,
+          {
+            user_id: user?.id ?? 0,
+            influencer_id: influencerId,
+            sid: crypto.randomUUID(),
+          },
           abortController.signal,
         );
       }

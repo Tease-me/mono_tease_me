@@ -4,90 +4,82 @@ import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import styles from "./AddCredits.module.css";
 import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
-import { BillingServices } from "@/api/services/BillingServices";
-import { apiClient } from "@/api/apis";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
-import { storage } from "@/utils/storage";
-import { LocalStorageKeys } from "@/constants/localStorageKeys";
-import PayPalLogoUrl from "@/assets/svg/PayPalLogo.svg";
-import CreditCardUrl from "@/assets/svg/CreditCard.svg";
-
-
-const billing = BillingServices(apiClient);
+import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
+import { useArmloopCheckout } from "@/hooks/useArmloopCheckout";
+import { Modal } from "@/ui/components/modals/Modal";
+import { terms } from "@/ui/screens/terms/termsContent";
+import CloseIconButton from "@/ui/components/inputs/buttons/CloseIconButton";
 
 type AddCreditsContentProps = {
   influencerId: string;
+  influencerName?: string;
   image?: string;
   video?: string;
   onCancel: () => void;
 };
 
-type Presets = {
-  label: string;
-  value: number;
-};
-
-const presets: Presets[] = [
-  { label: "10$", value: 10 },
+const presets = [
+  { label: "$10", value: 10 },
   { label: "$50", value: 50 },
   { label: "$100", value: 100 },
 ];
 
+const MIN_AMOUNT = 5;
+
+type PolicySection = {
+  heading: string;
+  paragraphs: string[];
+  bullets?: string[];
+};
+
+type PolicyDocument = {
+  title: string;
+  lastUpdated: string;
+  intro?: string[];
+  sections: PolicySection[];
+};
+
+const paymentTermsSections = terms.terms.sections.filter(
+  (section) =>
+    section.heading === "Payments and Digital Credits" ||
+    section.heading === "Subscriptions",
+);
+
+const paymentTermsDocuments: PolicyDocument[] = [
+  {
+    title: terms.terms.title,
+    lastUpdated: terms.terms.lastUpdated,
+    sections: paymentTermsSections,
+  },
+  terms.refunds,
+  terms.subscriptions,
+];
+
 export default function AddCreditsContent({
   influencerId,
+  influencerName,
   image,
   video,
   onCancel,
-}: AddCreditsContentProps) {
-  const initialAmount = 0;
-
-  const [amount, setAmount] = useState(initialAmount);
+}: Readonly<AddCreditsContentProps>) {
+  const [amount, setAmount] = useState(0);
+  const [showPaymentTerms, setShowPaymentTerms] = useState(false);
+  const { startCheckout, loading, error } = useArmloopCheckout();
+  const heading = influencerName
+    ? `Top up to talk to ${influencerName}`
+    : "Top up to talk";
 
   const handleDecrease = () => setAmount((a) => Math.max(0, a - 10));
   const handleIncrease = () => setAmount((a) => a + 10);
 
-  const handleConfirmPayment = () => {
-    startCheckout();
-  };
-
-  // Payment state
-  const [isPaying, setIsPaying] = useState(false);
-  const [payError, setPayError] = useState<string | null>(null);
-  const [provider, setProvider] = useState<"stripe" | "paypal">("stripe");
-  const minCustomAmout = 5;
-
-  const startCheckout = async () => {
-    try {
-      setIsPaying(true);
-      setPayError(null);
-
-      const dollars = Number(amount || 0);
-      if (!Number.isFinite(dollars) || dollars < minCustomAmout) {
-        setPayError(`Minimum top up is $${minCustomAmout}.`);
-        return;
-      }
-
-      const cents = Math.round(dollars * 100);
-
-      const { payment_url, checkout_id } = await billing.createCheckout({
-        amount_cents: cents,
-        influencer_id: influencerId,
-        purpose: "topup",
-        provider,
-      });
-
-      // store for return page
-      storage.set(LocalStorageKeys.CheckoutId, checkout_id);
-      storage.set(LocalStorageKeys.TopUpInfluencerId, influencerId);
-      storage.set(LocalStorageKeys.TopUpAmount, String(dollars));
-
-      // redirect user to payment page
-      window.location.href = payment_url;
-    } catch (e: any) {
-      setPayError(e?.message || "Payment failed. Please try again.");
-    } finally {
-      setIsPaying(false);
-    }
+  const handleConfirm = async () => {
+    if (amount < MIN_AMOUNT) return;
+    await startCheckout({
+      influencerId,
+      amountCents: Math.round(amount * 100),
+      influencerName,
+    });
   };
 
   return (
@@ -96,6 +88,7 @@ export default function AddCreditsContent({
 
       <div className={styles.selectionBox}>
         <div className={styles.presetsBox}>
+          <h3>{heading}</h3>
           <h4>Quick Presets</h4>
           <div className={styles.presetList}>
             {presets.map((p) => (
@@ -104,9 +97,7 @@ export default function AddCreditsContent({
                 text={p.label}
                 color="black"
                 type="pill"
-                onClick={() => {
-                  setAmount(p.value);
-                }}
+                onClick={() => setAmount(p.value)}
               />
             ))}
           </div>
@@ -139,58 +130,91 @@ export default function AddCreditsContent({
           />
         </div>
 
-
-        <div className={styles.payWithSection}>
-          <div className={styles.payWithRow01}>
-            {" "}
-            <h4
-              style={{
-                textAlign: "center",
-                marginBlock: "16px",
-
-              }}    >
-              Pay with:
-            </h4>
+        {loading ? (
+          <div className={styles.loadingState}>
+            <LoadingSpinner size="small" />
+            <div className={styles.loadingText}>Redirecting to payment…</div>
           </div>
-          <div className={styles.payWithRow02}>
-            {false && <NormalButton
-              color="black"
-
-              leftIcon={<img src={PayPalLogoUrl} alt="PayPal" className={styles.paypalImg} />}
-              className={styles.quickCreditButton}
-              selected={provider === "paypal"}
-              onClick={() => setProvider("paypal")}
-            />}
-            <NormalButton
-
-              color="black"
-              leftIcon={<img src={CreditCardUrl} alt="Credit Card" className={styles.creditCardImg} />}
-              text="Credit Card"
-              className={styles.quickCreditCardButton}
-              selected={provider === "stripe"}
-              onClick={() => setProvider("stripe")}
+        ) : (
+          <>
+            <PrimaryButton
+              text="Confirm"
+              disabled={amount < MIN_AMOUNT}
+              className={styles.confirmBtn}
+              onClick={handleConfirm}
             />
-
-          </div>
-        </div>
-
-
-        <PrimaryButton
-          text="Confirm"
-          disabled={amount <= 0 || isPaying}
-          className={styles.confirmBtn}
-          onClick={handleConfirmPayment}
-        />
-        <NormalButton
-          text="Cancel"
-          type="nobg"
-          className={styles.confirmBtn}
-          onClick={onCancel}
-        />
-        {payError && (
-          <div className={styles.payError}>{isPaying ? "" : payError}</div>
+            <NormalButton
+              text="Cancel"
+              type="nobg"
+              className={styles.confirmBtn}
+              onClick={onCancel}
+            />
+            {error && (
+              <div className={styles.payError}>{error}</div>
+            )}
+          </>
         )}
+
       </div>
+      <button
+        type="button"
+        className={styles.paymentTermsButton}
+        onClick={() => setShowPaymentTerms(true)}
+      >
+        Payment Terms & Conditions
+      </button>
+      <Modal
+        isOpen={showPaymentTerms}
+        onClose={() => setShowPaymentTerms(false)}
+        size="md"
+        className={styles.paymentTermsModal}
+        ariaLabel="Payment Terms and Conditions"
+        zIndex={1100}
+      >
+        <div className={styles.paymentTermsHeader}>
+          <div>
+            <h3 className={styles.paymentTermsTitle}>Payment Terms & Conditions</h3>
+          </div>
+          <CloseIconButton
+            onClick={() => setShowPaymentTerms(false)}
+            className={styles.paymentTermsCloseButton}
+            aria-label="Close payment terms"
+          />
+        </div>
+        <div className={styles.paymentTermsScroll}>
+          {paymentTermsDocuments.map((document, index) => (
+            <section key={document.title} className={styles.paymentTermsDocument}>
+              {index > 0 && (
+                <h4 className={styles.paymentTermsDocumentTitle}>{document.title}</h4>
+              )}
+              {document.intro?.map((paragraph, index) => (
+                <p key={`${document.title}-intro-${index}`} className={styles.paymentTermsParagraph}>
+                  {paragraph}
+                </p>
+              ))}
+              {document.sections.map((section) => (
+                <div key={`${document.title}-${section.heading}`} className={styles.paymentTermsSection}>
+                  <h5 className={styles.paymentTermsSectionTitle}>{section.heading}</h5>
+                  {section.paragraphs.map((paragraph, index) => (
+                    <p key={`${document.title}-${section.heading}-${index}`} className={styles.paymentTermsParagraph}>
+                      {paragraph}
+                    </p>
+                  ))}
+                  {section.bullets?.length ? (
+                    <ul className={styles.paymentTermsList}>
+                      {section.bullets.map((bullet, index) => (
+                        <li key={`${document.title}-${section.heading}-bullet-${index}`}>
+                          {bullet}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+              ))}
+            </section>
+          ))}
+        </div>
+      </Modal>
     </div>
   );
 }

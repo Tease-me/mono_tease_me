@@ -6,6 +6,7 @@ type AddCreditsModalProps = {
   isOpen: boolean;
   onClose: () => void;
   influencerId: string;
+  influencerName?: string;
   image?: string;
   video?: string;
 };
@@ -14,6 +15,7 @@ export default function AddCreditsModal({
   isOpen,
   onClose,
   influencerId,
+  influencerName,
   image,
   video,
 }: AddCreditsModalProps) {
@@ -26,6 +28,7 @@ export default function AddCreditsModal({
       body={
         <AddCreditsContent
           influencerId={influencerId}
+          influencerName={influencerName}
           image={image}
           video={video}
           onCancel={onClose}

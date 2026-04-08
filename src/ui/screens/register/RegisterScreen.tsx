@@ -1,13 +1,14 @@
 import { apiClient } from "@/api/apis";
 import { RegisterResponse } from "@/api/models/auth";
 import { AuthServices } from "@/api/services/AuthServices";
+import { FunnelServices } from "@/api/services/FunnelServices";
 
 import { AuthContext } from "@/context/AuthContext";
 import OnBoardingTopNav from "@/ui/components/nav/OnBoardingTopNav";
 import HeadingText from "@/ui/components/typography/HeadingText";
 import FullWidthLayout from "@/ui/templates/FullWidthLayout";
 import React, { useContext, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import BackgroundGradient from "../../templates/BackgroundGradient";
 import styles from "./RegisterScreen.module.css";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
@@ -17,12 +18,19 @@ import { validationRules } from "@/utils/validationRules";
 import { required, validateFields } from "@/utils/validations";
 import RegisterStepForm from "./RegisterStepForm";
 import UpdateProfileStepForm from "./UpdateProfileStepForm";
+import AvatarPicker from "@/ui/components/avatar-picker/AvatarPicker";
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 import { storage } from "@/utils/storage";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 
 export default function RegisterScreen() {
   const [step, setStep] = useState<1 | 2>(1);
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [selectedAvatarUrl, setSelectedAvatarUrl] = useState<string | undefined>(() => {
+    const folder = Math.random() < 0.5 ? "human" : "animal";
+    const index = Math.floor(Math.random() * 12) + 1;
+    return `/avatarImages/${folder}/avatar${index}.jpg`;
+  });
   const [account, setAccount] = useState({
     email: "",
     password: "",
@@ -34,7 +42,6 @@ export default function RegisterScreen() {
     userName: "",
     gender: "male" as "male" | "female",
     dateOfBirth: "",
-    profilePhotoFile: null as File | null,
   });
 
   const [accountErrors, setAccountErrors] = useState<{
@@ -52,12 +59,15 @@ export default function RegisterScreen() {
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const authServices = AuthServices(apiClient);
+  const funnelServices = FunnelServices(apiClient);
   const influencerRepo = InfluencerRepo();
 
   const { isSignedIn } = useContext(AuthContext);
 
   const navigate = useNavigate();
   const { username } = useParams<{ username: string }>();
+  const [searchParams] = useSearchParams();
+  const inviteCode = searchParams.get("invite");
 
   if (isSignedIn) navigate(Paths.home);
 
@@ -186,6 +196,9 @@ export default function RegisterScreen() {
       }
       setAccountErrors({});
       setProfileErrors({});
+      if (inviteCode) {
+        funnelServices.reportEvent("registration_started", inviteCode);
+      }
       setStep(2);
       return;
     }
@@ -205,6 +218,9 @@ export default function RegisterScreen() {
       setIsSubmitting(true);
       const influencerId =
         storage.get(LocalStorageKeys.InfluencerReferralId) || username || "";
+      const absoluteAvatarUrl = selectedAvatarUrl
+        ? `${window.location.origin}${selectedAvatarUrl}`
+        : null;
       const response: RegisterResponse = await authServices.register(
         account.password,
         account.email.toLowerCase(),
@@ -213,7 +229,9 @@ export default function RegisterScreen() {
         profile.gender,
         profile.userName,
         profile.dateOfBirth,
-        profile.profilePhotoFile,
+        null,
+        inviteCode,
+        absoluteAvatarUrl,
       );
       const detailMessage =
         typeof (response as any)?.detail === "string"
@@ -294,9 +312,6 @@ export default function RegisterScreen() {
     }
     setProfileErrors((prev) => ({ ...prev, [field]: error }));
   };
-  const handleEditProfileMediaClicked = () => {
-    console.warn("Edit Clicked");
-  };
   const handleBackClick = () => {
     if (step === 2) {
       setStep(1);
@@ -337,24 +352,31 @@ export default function RegisterScreen() {
             onSignIn={() => navigate(Paths.login)}
           />
         ) : (
-          <UpdateProfileStepForm
-            values={profile}
-            errors={profileErrors}
-            onChange={(field, value) => {
-              setProfile((prev) => ({ ...prev, [field]: value }));
-            }}
-            onGenderSelect={(value) => {
-              setProfile((prev) => ({ ...prev, gender: value }));
-              validateField("gender", value);
-            }}
-            onBlur={(field) => validateField(field, profile[field])}
-            onBack={() => setStep(1)}
-            onSubmit={handleContinueClicked}
-            handleEditProfileMediaClicked={handleEditProfileMediaClicked}
-            onProfilePhotoChange={(file) => {
-              setProfile((prev) => ({ ...prev, profilePhotoFile: file }));
-            }}
-          />
+          <>
+            <UpdateProfileStepForm
+              values={profile}
+              errors={profileErrors}
+              onChange={(field, value) => {
+                setProfile((prev) => ({ ...prev, [field]: value }));
+              }}
+              onGenderSelect={(value) => {
+                setProfile((prev) => ({ ...prev, gender: value }));
+                validateField("gender", value);
+              }}
+              onBlur={(field) => validateField(field, profile[field])}
+              onBack={() => setStep(1)}
+              onSubmit={handleContinueClicked}
+              onSelectAvatar={() => setShowAvatarPicker(true)}
+              selectedAvatarUrl={selectedAvatarUrl}
+            />
+            <AvatarPicker
+              isOpen={showAvatarPicker}
+              onClose={() => setShowAvatarPicker(false)}
+              onSelect={(url) => {
+                setSelectedAvatarUrl(url);
+              }}
+            />
+          </>
         )}
       </FullWidthLayout>
     </BackgroundGradient>

@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useRef } from "react";
-import { Endpoints, WS_BASE_URL } from "@/api/urls";
+import { WsEndpoints } from "@/api/urls";
 import { storage } from "@/utils/storage";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { ChatRepository } from "@/data/repositories/ChatRepo";
-import { AdultChatRepo } from "@/data/repositories/AdultChatRepo";
 import logger from "@/utils/logger";
 import { chatScreenActions, fetchChatUsage } from "@/store/chatScreenSlice";
 import type { AppDispatch } from "@/store/store";
@@ -11,13 +10,11 @@ import { apiClient } from "@/api/apis";
 import { AuthServices } from "@/api/services/AuthServices";
 
 const chatRepository = ChatRepository();
-const adultChatRepo = AdultChatRepo();
 
 type UseChatRealtimeParams = {
   dispatch: AppDispatch;
   chatId?: string;
   mode: "chat" | "call";
-  adultMode: boolean;
   influencerId?: string;
   inputText: string;
   inputAudio?: Blob;
@@ -32,7 +29,6 @@ export function useChatRealtime({
   dispatch,
   chatId,
   mode,
-  adultMode,
   influencerId,
   inputText,
   inputAudio,
@@ -45,7 +41,6 @@ export function useChatRealtime({
   const manualCloseRef = useRef(false);
   const chatIdRef = useRef(chatId);
   const modeRef = useRef(mode);
-  const adultModeRef = useRef(adultMode);
   const influencerIdRef = useRef(influencerId);
 
   useEffect(() => {
@@ -55,10 +50,6 @@ export function useChatRealtime({
   useEffect(() => {
     modeRef.current = mode;
   }, [mode]);
-
-  useEffect(() => {
-    adultModeRef.current = adultMode;
-  }, [adultMode]);
 
   useEffect(() => {
     influencerIdRef.current = influencerId;
@@ -75,7 +66,6 @@ export function useChatRealtime({
     (
       targetInfluencerId: string,
       activeChatId = chatIdRef.current,
-      activeMode = adultModeRef.current,
     ) => {
       if (ws.current) {
         manualCloseRef.current = true;
@@ -105,11 +95,10 @@ export function useChatRealtime({
         }
 
         ws.current = new window.WebSocket(
-          `${WS_BASE_URL}${activeMode ? Endpoints.ws.chat18 : Endpoints.ws.chat}/${targetInfluencerId}?token=${accessToken}`,
+          WsEndpoints.chat(targetInfluencerId, accessToken),
         );
 
         const connectionChatId = activeChatId;
-        const connectionAdultMode = activeMode;
 
         const scheduleReconnect = (refreshFirst = false) => {
           if (modeRef.current !== "chat") return;
@@ -119,11 +108,7 @@ export function useChatRealtime({
             if (modeRef.current !== "chat") return;
             const latestInfluencerId =
               influencerIdRef.current ?? targetInfluencerId;
-            connectChat(
-              latestInfluencerId,
-              chatIdRef.current,
-              adultModeRef.current,
-            );
+            connectChat(latestInfluencerId, chatIdRef.current);
           }, refreshFirst ? 1000 : 5000);
         };
 
@@ -171,16 +156,13 @@ export function useChatRealtime({
               dispatch(
                 chatScreenActions.setUsageFromData({
                   usage: data.usage,
-                  adultMode: adultModeRef.current,
+                  adultMode: false,
                 }),
               );
             }
 
             window.setTimeout(() => {
-              if (
-                chatIdRef.current !== connectionChatId ||
-                adultModeRef.current !== connectionAdultMode
-              ) {
+              if (chatIdRef.current !== connectionChatId) {
                 return;
               }
 
@@ -216,11 +198,7 @@ export function useChatRealtime({
                   "Insufficient credits to send message.",
                 ),
               );
-              if (adultModeRef.current) {
-                dispatch(chatScreenActions.setShowUpgradeModal(true));
-              } else {
-                dispatch(chatScreenActions.setShowTopupModal(true));
-              }
+              dispatch(chatScreenActions.setShowTopupModal(true));
             } else if (typeof data.error === "string") {
               dispatch(chatScreenActions.setError(data.error));
             } else {
@@ -254,11 +232,7 @@ export function useChatRealtime({
     }
 
     if (mode === "chat" && chatIdRef.current) {
-      connectChat(
-        influencerIdRef.current,
-        chatIdRef.current,
-        adultModeRef.current,
-      );
+      connectChat(influencerIdRef.current, chatIdRef.current);
     }
   }, [clearReconnectTimer, connectChat, dispatch, mode]);
 
@@ -277,32 +251,28 @@ export function useChatRealtime({
       if (!influencerIdRef.current) return;
       if (!chatIdRef.current) return;
 
-      const capturedMode = adultModeRef.current;
       const capturedChatId = chatIdRef.current;
       const currentInfluencerId = influencerIdRef.current;
 
       try {
-        const { audio_url, transcript, ai_text } = await (
-          capturedMode ? adultChatRepo : chatRepository
-        ).sendAudioMessage(audioBlob, currentInfluencerId, capturedChatId);
+        const { audio_url, transcript, ai_text } =
+          await chatRepository.sendAudioMessage(
+            audioBlob,
+            currentInfluencerId,
+            capturedChatId,
+          );
 
-        if (
-          adultModeRef.current !== capturedMode ||
-          chatIdRef.current !== capturedChatId
-        ) {
+        if (chatIdRef.current !== capturedChatId) {
           return;
         }
 
         if (influencerId) {
-          dispatch(fetchChatUsage({ influencerId, adultMode }));
+          dispatch(fetchChatUsage({ influencerId, adultMode: false }));
         }
 
         dispatch(chatScreenActions.setTyping("recording"));
         window.setTimeout(() => {
-          if (
-            adultModeRef.current !== capturedMode ||
-            chatIdRef.current !== capturedChatId
-          ) {
+          if (chatIdRef.current !== capturedChatId) {
             return;
           }
 
@@ -346,7 +316,7 @@ export function useChatRealtime({
               "Insufficient credits to send voice message.",
             ),
           );
-          dispatch(chatScreenActions.setShowUpgradeModal(true));
+          dispatch(chatScreenActions.setShowTopupModal(true));
         } else {
           dispatch(chatScreenActions.setError("Failed to send voice message."));
         }

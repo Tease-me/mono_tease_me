@@ -3,45 +3,46 @@ import DropCallIcon from "@/assets/svg/HangupCall.svg?react";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import useCall from "@/hooks/useCall";
-import DividerWithLabel from "@/ui/components/dividers/DividerWithLabel";
 import AnimatedButton from "@/ui/components/inputs/buttons/AnimatedButton";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
-import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
-import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
 import WelcomeCallModal from "@/ui/components/modals/welcome-call/WelcomeCallModal";
-import ProfileMedia from "@/ui/components/ProfileMedia";
-import BackgroundGradient from "@/ui/templates/BackgroundGradient";
-import CenteredLayout from "@/ui/templates/CenteredLayout";
-import { storage } from "@/utils/storage";
-import clsx from "clsx";
-import { useEffect, useRef, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import styles from "./WelcomeScreen.module.css";
 import ValidationPill from "@/ui/components/inputs/buttons/ValidationPill";
-import { Howl } from "howler";
-
+import LottieAnimation from "@/ui/components/LottieAnimation";
+import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import { FollowServices } from "@/api/services/FollowServices";
+import { FunnelServices } from "@/api/services/FunnelServices";
 import { apiClient } from "@/api/apis";
 import { Paths } from "@/routes/path";
+import { storage } from "@/utils/storage";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { Howl } from "howler";
+import styles from "./WelcomeScreen.module.css";
+
+import lpBgMinWebm from "@/assets/influencerWelcome/video/lpbgmin.webm";
+import lpBgMinMp4 from "@/assets/influencerWelcome/video/lpbgmin.mp4";
+import lpBgMinPoster from "@/assets/influencerWelcome/video/lpbgminPoster.jpg";
+import lottieAudioWave from "@/assets/influencerWelcome/lottie/lottieAudiowave.json";
+import teaseMeIcon3D from "@/assets/logos/3D-IconTeaseMe-Dark.svg";
+import { InfluencerServices } from "@/api/services/InfluencerService";
+import { InfluencerLandingAssetsResponse } from "@/api/models/influencers";
+
+const influencerServices = InfluencerServices(apiClient);
+const funnelServices = FunnelServices(apiClient);
 
 export interface WelcomeScreenProps {
   influencer: InfluencerDataModel;
   showFollowBtn: boolean;
 }
 
-export default function WelcomeScreen({
-  influencer,
-  showFollowBtn,
-}: WelcomeScreenProps) {
+export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScreenProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const inviteCode = searchParams.get("invite");
 
-  const [isFirstTime, setIsFirstTime] = useState(
-    () => !storage.getBoolean(LocalStorageKeys.VisitedWelcome),
-  );
   const [onTryClicked, setOnTryClicked] = useState(false);
-  const { status, startConversation, stopConversation, setInfluencerId } =
-    useCall();
+  const { status, startConversation, stopConversation, setInfluencerId } = useCall();
 
   const audioRef = useRef(
     new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: false }),
@@ -49,18 +50,9 @@ export default function WelcomeScreen({
 
   const [error, setError] = useState<string | null>(null);
   const [waiting, setWaiting] = useState(false);
-  const syncIsFirstTimeFromStorage = () => {
-    setIsFirstTime(!storage.getBoolean(LocalStorageKeys.VisitedWelcome));
-  };
+  const [landingAssets, setLandingAssets] = useState<InfluencerLandingAssetsResponse | null>(null);
+  const [heroReady, setHeroReady] = useState(false);
 
-  useEffect(() => {
-    if (status === "connected") {
-      storage.setBoolean(LocalStorageKeys.VisitedWelcome, true);
-      syncIsFirstTimeFromStorage();
-    } else if (status === "disconnected") {
-      syncIsFirstTimeFromStorage();
-    }
-  }, [status]);
 
   useEffect(() => {
     return () => {
@@ -69,9 +61,31 @@ export default function WelcomeScreen({
     };
   }, []);
 
+  // ── Funnel: fire link_clicked when landing from a Telegram invite ──
+  useEffect(() => {
+    if (inviteCode) {
+      funnelServices.reportEvent("link_clicked", inviteCode);
+    }
+  }, [inviteCode]);
+
   useEffect(() => {
     setInfluencerId(influencer?.id);
+    setHeroReady(false);
   }, [influencer]);
+
+  useEffect(() => {
+    if (!influencer?.id) return;
+    let cancelled = false;
+    void influencerServices.getLandingAssets(influencer.id).then((data) => {
+      if (!cancelled) {
+        setLandingAssets(data);
+        if (!data.hero_png_url) setHeroReady(true);
+      }
+    }).catch(() => {
+      if (!cancelled) setHeroReady(true);
+    });
+    return () => { cancelled = true; };
+  }, [influencer?.id]);
 
   const handleSignInClick = () => {
     navigate(Paths.login, { state: { from: location.pathname } });
@@ -79,7 +93,10 @@ export default function WelcomeScreen({
 
   const handleSignUpClick = () => {
     if (!influencer?.id) return;
-    navigate(Paths.register(influencer.id));
+    const registerPath = inviteCode
+      ? `${Paths.register(influencer.id)}?invite=${encodeURIComponent(inviteCode)}`
+      : Paths.register(influencer.id);
+    navigate(registerPath);
   };
 
   const handlePickUpCall = () => {
@@ -90,8 +107,6 @@ export default function WelcomeScreen({
   const handleHangUpCall = () => {
     audioRef.current.stop();
     stopConversation();
-    storage.setBoolean(LocalStorageKeys.VisitedWelcome, true);
-    syncIsFirstTimeFromStorage();
     setOnTryClicked(false);
   };
 
@@ -102,7 +117,6 @@ export default function WelcomeScreen({
       await followServices.follow(influencer.id);
       setError(null);
       storage.set(LocalStorageKeys.SelectedId, influencer.id);
-
       navigate(Paths.home);
       setWaiting(false);
     } catch (err: any) {
@@ -113,123 +127,210 @@ export default function WelcomeScreen({
 
   const incomingCall = status === "idle" && onTryClicked;
 
-  return (
-    <BackgroundGradient>
-      <CenteredLayout>
-        {influencer && (
-          <>
-            <ProfileMedia
-              className={clsx(
-                styles["profile-container"],
-                onTryClicked && styles["zoomed"],
-              )}
-              imageSrc={influencer.img}
-              videoSrc={influencer.videoUrl}
-              showHearts={!onTryClicked}
-              active
-              size="xlarge"
-              mediaType="video"
-            />
-            {!onTryClicked && (
-              <h2 className={styles["join-text"]}>
-                {!showFollowBtn ? "Join" : "Follow"} {influencer.name} on
-              </h2>
-            )}
-          </>
+  if (!heroReady) {
+    return (
+      <div className={styles.pageContainer}>
+        <div className={styles.loadingState}>
+          <LoadingSpinner size="medium" />
+        </div>
+        {landingAssets?.hero_png_url && (
+          <img
+            src={landingAssets.hero_png_url}
+            srcSet={landingAssets.hero_png_2x_url ? `${landingAssets.hero_png_url} 1x, ${landingAssets.hero_png_2x_url} 2x` : undefined}
+            onLoad={() => setHeroReady(true)}
+            className={styles.hiddenPreload}
+            alt=""
+          />
         )}
-        {incomingCall ? (
-          <>
-            <div className={styles["incoming-call-text"]}>Incoming Call</div>
-            <div className={styles["influencer-name"]}>{influencer.name}</div>
-            <div className={styles["call-buttons"]}>
-              <IconButton
-                leftIcon={<DropCallIcon color="red" />}
-                onClick={handleHangUpCall}
-                text="Reject"
-                color="black"
-              />
-              <AnimatedButton
-                leftIcon={<CallIcon />}
-                onClick={handlePickUpCall}
-                text="Answer"
-                color="green"
-              />
-            </div>
-          </>
-        ) : (
-          <div className={styles["welcome-screen-container"]}>
-            <TeaseMeLogo size="xlarge" variant="full-dark" />
-            {!showFollowBtn && (
-              <p className={styles["signup-text"]}>
-                Don't have an account?{" "}
-                <span
-                  className={styles["signup-link"]}
-                  onClick={handleSignUpClick}
-                  style={{ cursor: "pointer", color: "#ff4d6d" }}
-                >
-                  Sign up
-                </span>
-              </p>
-            )}
-            {!showFollowBtn && <DividerWithLabel text="or" />}
-            <div className={styles["buttons-container"]}>
-              {showFollowBtn ? (
-                <PrimaryButton
-                  text={waiting ? "Connecting.." : "Follow me now"}
-                  onClick={() => {
-                    handleFollowMe();
-                  }}
-                  disabled={waiting}
-                />
-              ) : !isFirstTime ? (
-                <PrimaryButton
-                  text="Sign in with email"
-                  className={styles["sign-in-button"]}
-                  onClick={handleSignInClick}
-                />
-              ) : (
-                <PrimaryButton
-                  text={"Talk to me Now"}
-                  onClick={() => {
-                    startConversation();
-                    setOnTryClicked(true);
-                  }}
-                />
-              )}
-              {!showFollowBtn && (
-                <p className={styles["signup-text"]}>
-                  Already have an account?{" "}
-                  <span
-                    className={styles["signup-link"]}
-                    onClick={() => {
-                      storage.set(LocalStorageKeys.SelectedId, influencer.id);
+      </div>
+    );
+  }
 
-                      navigate(Paths.login, { state: { from: location.pathname } });
-                    }}
-                    style={{ cursor: "pointer", color: "#ff4d6d" }}
-                  >
-                    Login
-                  </span>
-                </p>
-              )}
-            </div>
-            {error !== null && (
-              <ValidationPill className={styles.errorArea} variant="error">
-                Error: {error}
-              </ValidationPill>
-            )}
+  return (
+    <div className={styles.pageContainer}>
+      <div className={styles.outerContainer}>
+
+        {/* Left panel — profile visuals */}
+        <div className={styles.profileContainer}>
+          <div className={styles.bgLpVideo}>
+            <video autoPlay muted playsInline loop poster={lpBgMinPoster}>
+              <source src={lpBgMinWebm} type="video/webm" />
+              <source src={lpBgMinMp4} type="video/mp4" />
+            </video>
           </div>
-        )}
-        <WelcomeCallModal
-          isOpen={onTryClicked || status === "connected"}
-          onClose={() => {
-            setOnTryClicked(false);
-          }}
-          influencer={influencer}
-          status={status}
-          stopConversation={stopConversation}
-        />
-      </CenteredLayout>
-    </BackgroundGradient>
+
+          <div className={styles.tileHolder}>
+            {landingAssets?.signature_png_url && (
+              <div className={styles.imageSignature}>
+                <img
+                  src={landingAssets.signature_png_url}
+                  alt=""
+                  srcSet={landingAssets.signature_png_2x_url ? `${landingAssets.signature_png_url} 1x, ${landingAssets.signature_png_2x_url} 2x` : undefined}
+                />
+              </div>
+            )}
+
+            {landingAssets?.background_image_1_url && (
+              <div className={styles.image01}>
+                <img
+                  src={landingAssets.background_image_1_url}
+                  alt=""
+                  srcSet={landingAssets.background_image_1_2x_url ? `${landingAssets.background_image_1_url} 1x, ${landingAssets.background_image_1_2x_url} 2x` : undefined}
+                />
+              </div>
+            )}
+
+            {landingAssets?.background_image_2_url && (
+              <div className={styles.image02}>
+                <img
+                  src={landingAssets.background_image_2_url}
+                  alt=""
+                  srcSet={landingAssets.background_image_2_2x_url ? `${landingAssets.background_image_2_url} 1x, ${landingAssets.background_image_2_2x_url} 2x` : undefined}
+                />
+              </div>
+            )}
+
+            {landingAssets?.background_video_1_mp4_url && (
+              <div className={styles.lpVideo01}>
+                <video autoPlay muted playsInline loop poster={landingAssets.background_video_1_poster_jpg_url ?? undefined}>
+                  {landingAssets.background_video_1_webm_url && (
+                    <source src={landingAssets.background_video_1_webm_url} type="video/webm" />
+                  )}
+                  <source src={landingAssets.background_video_1_mp4_url} type="video/mp4" />
+                </video>
+              </div>
+            )}
+
+            {landingAssets?.background_video_2_mp4_url && (
+              <div className={styles.lpVideo02}>
+                <video autoPlay muted playsInline loop poster={landingAssets.background_video_2_poster_jpg_url ?? undefined}>
+                  {landingAssets.background_video_2_webm_url && (
+                    <source src={landingAssets.background_video_2_webm_url} type="video/webm" />
+                  )}
+                  <source src={landingAssets.background_video_2_mp4_url} type="video/mp4" />
+                </video>
+              </div>
+            )}
+
+            {landingAssets?.background_image_3_url && (
+              <div className={styles.image03}>
+                <img
+                  src={landingAssets.background_image_3_url}
+                  alt=""
+                  srcSet={landingAssets.background_image_3_2x_url ? `${landingAssets.background_image_3_url} 1x, ${landingAssets.background_image_3_2x_url} 2x` : undefined}
+                />
+              </div>
+            )}
+
+            <div className={styles.audioLottie}>
+              <LottieAnimation loop autoplay animationData={lottieAudioWave} />
+            </div>
+          </div>
+
+          {landingAssets?.hero_png_url && (
+            <div className={styles.lpBodyShot}>
+              <img
+                src={landingAssets.hero_png_url}
+                alt={influencer?.name}
+                srcSet={landingAssets.hero_png_2x_url ? `${landingAssets.hero_png_url} 1x, ${landingAssets.hero_png_2x_url} 2x` : undefined}
+                onLoad={() => setHeroReady(true)}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Right panel — content */}
+        <div className={styles.contentContainer}>
+          {incomingCall ? (
+            <>
+              <div className={styles.incomingCallText}>Incoming Call</div>
+              <div className={styles.influencerCallName}>{influencer.name}</div>
+              <div className={styles.callButtons}>
+                <IconButton
+                  leftIcon={<DropCallIcon color="red" />}
+                  onClick={handleHangUpCall}
+                  text="Reject"
+                  color="black"
+                />
+                <AnimatedButton
+                  leftIcon={<CallIcon />}
+                  onClick={handlePickUpCall}
+                  text="Answer"
+                  color="green"
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className={styles.greetingContainer}>
+                <div className={styles.greetingRow01}>
+                  <img src={teaseMeIcon3D} alt="" />
+                </div>
+                <div className={styles.greetingRow02}>
+                  Hi, I'm your <div className={styles.modelName}>{influencer?.name}</div>
+                </div>
+                <div className={styles.greetingRow03}>
+                  {showFollowBtn && (
+                    <IconButton
+                      color="pink-glass"
+                      text={waiting ? "Connecting.." : "Follow me now"}
+                      onClick={handleFollowMe}
+                      disabled={waiting}
+                      className={styles.fullBtn}
+                    />
+                  )}
+                </div>
+                {!showFollowBtn && <div className={styles.greetingRow04}>Sign up for free to unlock exclusive access and let me whisper what you need when the lights go down.</div>}
+              </div>
+
+              {!showFollowBtn && (
+                <>
+                  <div className={styles.ctaContainer}>
+                    <div className={styles.ctaRow01}>
+                      <p>No payment or credit card required</p>
+                    </div>
+                    <div className={styles.ctaRow02}>
+                      <IconButton
+                        type="square"
+                        text="Sign up for FREE"
+                        onClick={handleSignUpClick}
+                        className={styles.fullBtn}
+                      />
+                    </div>
+                    <div className={styles.ctaRow03}>
+                      <p>Already have an account?</p>
+                      <button className={styles.loginButton} onClick={handleSignInClick}>
+                        Log In
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {error !== null && (
+                <ValidationPill className={styles.errorArea} variant="error">
+                  Error: {error}
+                </ValidationPill>
+              )}
+
+              <div className={styles.bottomGlow}>
+                <div className={styles.circle01} />
+                <div className={styles.circle02} />
+                <div className={styles.circle03} />
+                <div className={styles.circle04} />
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      <WelcomeCallModal
+        isOpen={onTryClicked || status === "connected"}
+        onClose={() => setOnTryClicked(false)}
+        influencer={influencer}
+        status={status}
+        stopConversation={stopConversation}
+      />
+    </div>
   );
 }

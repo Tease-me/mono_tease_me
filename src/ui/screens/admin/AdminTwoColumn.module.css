@@ -48,6 +48,10 @@
     padding: 20px;
 }
 
+.main--no-scroll {
+    overflow-y: visible;
+}
+
 /* ── Drag handle ── */
 .handle {
     cursor: col-resize;

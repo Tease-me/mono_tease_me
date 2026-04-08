@@ -4,21 +4,26 @@
   justify-content: center;
   padding: 16px 28px 12px 25px;
   background: linear-gradient(180deg, #212121 67.79%, #131313 96.63%, #212121 100%);
-  min-height: 11dvh;
+  min-height: 10dvh;
   position: relative;
 }
 
 .maxWidthSpacer {
-  display: grid;
-
+  position: relative;
+  display: flex;
+  align-items: center;
   max-width: var(--max-chat-content-width);
-  align-items: center;
   width: 100%;
-  justify-content: space-between;
-  grid-template-columns: 1fr auto 1fr;
+}
+
+.centerSlot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
   align-items: center;
-  justify-items: stretch;
-  gap: 16dvw;
+  justify-content: center;
 }
 
 .callChatIcon {
@@ -52,6 +57,28 @@
   user-select: none;
 }
 
+.closeButton {
+  margin-left: 4px;
+}
+
+.closeButton :global([class*="left-icon"]) {
+  width: 32px;
+  height: 32px;
+}
+
+.closeIcon {
+  width: 32px;
+  height: 32px;
+  color: #fff;
+}
+
+.right-buttons {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .leftSlot {
   display: flex;
   align-items: center;
@@ -76,11 +103,15 @@
     position: absolute;
     left: 25px;
   }
+
+  .logoArea {
+    display: none;
+  }
 }
 
 @media (max-width: 768px) {
   .bar {
-    padding: var(--space-px-12) var(--space-px-16);
+    padding: var(--space-px-4) var(--space-px-16) var(--space-px-8) var(--space-px-16);
   }
 
   .logoArea {
@@ -88,23 +119,6 @@
   }
 }
 
-/*** media query Desktop ***/
-@media (min-width: 32rem) {
-  .maxWidthSpacer {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-  }
-
-  .leftSlot {
-    justify-self: start;
-  }
-
-  .logoArea,
-  .navTitle {
-    justify-self: center;
-  }
-
-  .right-buttons {
-    justify-self: end;
-  }
+.callButton {
+  justify-self: center;
 }

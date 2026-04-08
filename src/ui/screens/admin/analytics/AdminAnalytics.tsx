@@ -23,8 +23,9 @@ import AdminTwoColumn from "../AdminTwoColumn";
 import styles from "./AdminAnalytics.module.css";
 
 const UserAnalytics = lazy(() => import("./UserAnalytics"));
+const TelegramFunnelAnalytics = lazy(() => import("./TelegramFunnelAnalytics"));
 
-type AnalyticsTab = "api-usage" | "users";
+type AnalyticsTab = "api-usage" | "users" | "telegram";
 
 const admin = AdminServices(apiClient);
 
@@ -234,10 +235,20 @@ const AdminAnalytics: React.FC = () => {
                 >
                     Users
                 </button>
+                <button
+                    className={`${styles["tab-btn"]} ${activeTab === "telegram" ? styles["tab-btn--active"] : ""}`}
+                    onClick={() => setActiveTab("telegram")}
+                >
+                    Telegram
+                </button>
             </div>
 
-            {activeTab === "users" ? (
-                <Suspense fallback={<div style={{ padding: "40px 0", textAlign: "center", opacity: 0.6 }}>Loading…</div>}>
+            {activeTab === "telegram" ? (
+                <Suspense fallback={<div style={{ padding: "40px 0", textAlign: "center", opacity: 0.6 }}>Loading...</div>}>
+                    <TelegramFunnelAnalytics />
+                </Suspense>
+            ) : activeTab === "users" ? (
+                <Suspense fallback={<div style={{ padding: "40px 0", textAlign: "center", opacity: 0.6 }}>Loading...</div>}>
                     <UserAnalytics />
                 </Suspense>
             ) : (

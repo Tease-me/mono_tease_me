@@ -18,6 +18,36 @@
   gap: 15px;
 }
 
+.avatar-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.select-avatar-btn {
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  height: 42px !important;
+  min-height: 42px !important;
+}
+
+.select-avatar-btn :global(.button-cta-inner) {
+  padding: 8px 16px !important;
+}
+
+.select-avatar-btn :global(.button-cta-content-container) {
+  gap: 8px !important;
+}
+
+.select-avatar-btn :global(.button-text) {
+  font-size: 16px !important;
+}
+
+
 .file-input {
   margin-top: 12px;
   color: #bdbdbd;
@@ -49,6 +79,7 @@
   gap: 12px;
 }
 
+
 .section-title {
   font-size: 16px;
   font-weight: 600;
@@ -60,6 +91,12 @@
   margin-top: 4px;
 }
 
+@media (min-width: 768px) {
+  .avatar-wrapper :global(.profile-container.large) {
+    height: 16rem;
+  }
+}
+
 @media (max-width: 767px) {
   .auth-buttons {
     flex-direction: column;
@@ -69,7 +106,17 @@
     grid-template-columns: 1fr;
   }
 
-  .gender-buttons {
-    flex-direction: column;
+  .two-column-layout {
+    row-gap: 42px;
+  }
+
+  .gender-selection {
+    align-items: center;
+  }
+
+  .gender-buttons > * {
+    flex: 1;
+    min-height: 96px;
+    max-width: 80px;
   }
 }

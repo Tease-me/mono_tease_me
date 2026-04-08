@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import switchProfileImg from "@/assets/svg/switchProfile.svg";
+import SwitchInfluencerButton from "@/ui/components/inputs/buttons/SwitchInfluencerButton";
 import clsx from "clsx";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import ProfileMedia from "@/ui/components/ProfileMedia";
@@ -28,7 +28,6 @@ export type ChatInfluencerBarProps = {
   middleContent?: React.ReactNode;
   showChangeInfluencerButton?: boolean;
   sentimentDelta?: number | string;
-  adultMode?: boolean;
   status?: string;
   onChangeInfluencer?: () => void;
   isSubscribed?: boolean;
@@ -41,7 +40,6 @@ export default function ChatInfluencerBar({
   relationship,
   influencer,
   status = "Network Error",
-  adultMode = false,
   showChangeInfluencerButton = false,
   onChangeInfluencer,
   isSubscribed = false,
@@ -74,11 +72,6 @@ export default function ChatInfluencerBar({
     return () => { cancelled = true; };
   }, [influencer?.id, relationship?.trust, relationship?.closeness, relationship?.attraction, relationship?.safety]);
 
-  const glowClass =
-    adultMode ? styles.glowStatusCircleAdult : styles.glowStatusCircleDefault;
-
-  const profileSwitch = adultMode ? styles.profileSwitchAdult : "";
-
   const handleOpenPopup = () => {
     setIsPopupOpen(true);
   };
@@ -107,7 +100,7 @@ export default function ChatInfluencerBar({
               <p>{influencer?.name}</p><p className={styles.statusText}>{status}</p>
             </div>
             <div className={styles.middleCol}></div>
-            <div className={clsx(styles.rightCol, adultMode && styles.hidden, !adultMode && styles.clickable)} onClick={adultMode ? undefined : handleOpenPopup}>
+            <div className={clsx(styles.rightCol, styles.clickable)} onClick={handleOpenPopup}>
               <div className={styles.relationshipStatus}>
                 {getRelationshipStatusIcon(relationship?.state as RelationshipStatus)}
                 <div className={styles.relationshipStatusLabel}>
@@ -121,12 +114,12 @@ export default function ChatInfluencerBar({
         <div className={styles.circleGlowContainer}>
           <div className={styles.glowStatusWhite} />
           <div className={styles.glowStatusCircle02} />
-          <div className={`${styles.glowStatusCircle} ${glowClass}`} />
+          <div className={`${styles.glowStatusCircle} ${styles.glowStatusCircleDefault}`} />
         </div>
       </div>
       <div className={styles.influencerBottom} />
       <div className={styles.profileContainer}>
-        <div className={clsx(styles.profileLeftCol, adultMode && styles.hidden)}>
+        <div className={styles.profileLeftCol}>
           <div className={styles.profileMetricContainer}>
             <MetricRing icon={<SvgPack.Trust />} size="small" value={relationship?.trust} />
             <div className={styles.metricLabel}>Trust</div>
@@ -137,20 +130,17 @@ export default function ChatInfluencerBar({
           </div>
         </div>
         <div className={styles.profileMidCol}>
-          <div onClick={adultMode ? undefined : handleProfileImageClick} className={clsx(!adultMode && styles.profileImageClick)}>
+          <div onClick={handleProfileImageClick} className={styles.profileImageClick}>
             <ProfileMedia size="medium" videoSrc={influencer?.videoUrl} imageSrc={influencer?.img} />
           </div>
-          <button
-            type="button"
-            className={clsx(styles.profileSwitch, profileSwitch, !showChangeInfluencerButton && styles.hidden)}
+          <SwitchInfluencerButton
             onClick={onChangeInfluencer}
-            aria-label="Change influencer"
-          >
-            <img src={switchProfileImg} /> <div className={styles.switchProfileLabel}>Switch Influencer</div>
-          </button>
+            size="small"
+            className={clsx(styles.profileSwitch, !showChangeInfluencerButton && styles.hidden)}
+          />
 
         </div>
-        <div className={clsx(styles.profileRightCol, adultMode && styles.hidden)}>
+        <div className={styles.profileRightCol}>
           <div className={styles.profileMetricContainer}>
             <MetricRing icon={<SvgPack.KissGray />} size="small" value={relationship?.attraction} />
             <div className={styles.metricLabel}>Attraction</div>

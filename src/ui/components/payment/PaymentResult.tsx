@@ -14,7 +14,7 @@ type PaymentResultProps = {
   influencerName?: string;
 }
 
-export default function PaymentResult({ isSuccessful, onBack, onContactSupport, amount, influencerName }: PaymentResultProps) {
+export default function PaymentResult({ isSuccessful, onBack, amount, influencerName }: PaymentResultProps) {
   const hasSuccessContext = Number.isFinite(amount) && Boolean(influencerName);
   const successText = hasSuccessContext
     ? `You have successfully recharged $${amount} towards ${influencerName}'s account.`
@@ -46,7 +46,7 @@ export default function PaymentResult({ isSuccessful, onBack, onContactSupport, 
           {isSuccessful ? 'You will be automatically redirected' : 'Still having errors?'}
         </div>
         <div className={styles.footerBtnArea}>
-          {!isSuccessful && <IconButton className={styles.btn} color="pink-glass" text="Contact Support" onClick={onContactSupport} />}
+          {/* {!isSuccessful && <IconButton className={styles.btn} color="pink-glass" text="Contact Support" onClick={onContactSupport} />} */}
           <IconButton className={styles.btn} color="black" text="Back to Profile" onClick={onBack} />
         </div>
       </div>

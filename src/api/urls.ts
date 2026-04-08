@@ -9,7 +9,7 @@ export const Endpoints = {
     register: "/auth/register",
     refreshToken: "/auth/refresh",
     forgotPassword: "/auth/forgot-password",
-    confirmEmail: "/auth/confirm-email",
+    confirmEmail: "/auth/verify-email",
     resendVerificationEmail: "/auth/resend-verification-email",
     me: "/auth/me",
     resetPassword: "/auth/reset-password"
@@ -27,6 +27,11 @@ export const Endpoints = {
     topUp: "/billing/topup",
     createCheckout: "/billing/create-checkout",
     verifyCheckout: "/billing/verify-checkout",
+    adultCharacterSummary: (influencerId: string) =>
+      `/billing/${encodeURIComponent(influencerId)}/adult-character-summary`,
+  },
+  armloop: {
+    createSession: "/checkout/armloop/session",
   },
   chat: {
     start: "/chat",
@@ -65,12 +70,42 @@ export const Endpoints = {
       )}/register`,
     conversation_token: "/elevenlabs/conversation-token",
   },
+  adult: {
+    conversation_token: "/adult/conversation-token",
+  },
   influencers: "/influencer",
   influencer: (id: string) => `/influencer/${id}`,
+  influencerProfile: (id: string) => `/influencer/${id}/profile`,
   influencerBio: (id: string) => `/influencer/${id}/bio`,
+  influencerLandingAssets: (id: string) => `/influencer/${id}/landing-assets`,
   relationship_update: `influencer/relationship_update`,
+  adult_characters: (id: string) => `/influencer/${id}/adult-characters`,
   uploadCsv: "persona/import-csv",
   admin: {
+    adultCharacters: {
+      list: `admin/adult-characters`,
+      byId: (characterId: number) => `admin/adult-characters/${characterId}`,
+      assets: (characterId: number) => `admin/adult-characters/${characterId}/assets`,
+    },
+    influencerAdultCharacters: {
+      list: (influencerId: string) =>
+        `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters`,
+      assets: (influencerId: string, characterId: number) =>
+        `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/assets`,
+      assetByType: (influencerId: string, characterId: number, assetType: string) =>
+        `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/assets/${assetType}`,
+      uploadSample: (influencerId: string, characterId: number, sampleType: string) =>
+        `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/samples?sample_type=${sampleType}`,
+      deleteSample: (influencerId: string, characterId: number, sampleType: string, s3Key: string) =>
+        `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/samples/${sampleType}/${s3Key}`,
+    },
+    influencerLandingAssets: (influencerId: string) =>
+      `admin/influencer/${encodeURIComponent(influencerId)}/landing-assets`,
+    influencerEmailHeader: (influencerId: string) =>
+      `admin/influencer/${encodeURIComponent(influencerId)}/email-header`,
+    emailAssets: `admin/email-assets`,
+    telegramWelcomeMedia: (influencerId: string) =>
+      `admin/influencer/${encodeURIComponent(influencerId)}/telegram-welcome-media`,
     systemPrompts: {
       list: "admin/system-prompts",
       byKey: (key: string) => `admin/system-prompts/${encodeURIComponent(key)}`,
@@ -101,6 +136,13 @@ export const Endpoints = {
       userSpending: (period: string = "30d") => `admin/analytics/user-spending?period=${period}`,
       userRetention: (period: string = "30d") => `admin/analytics/user-retention?period=${period}`,
       userDetail: (userId: number) => `admin/analytics/user-detail/${userId}`,
+      // Telegram funnel
+      telegramFunnelOverview: (period: string = "30d") => `admin/telegram-funnel/overview?period=${period}`,
+      telegramFunnelByInfluencer: (period: string = "30d") => `admin/telegram-funnel/by-influencer?period=${period}`,
+      telegramFunnelDropoff: (period: string = "30d") => `admin/telegram-funnel/dropoff?period=${period}`,
+      telegramFunnelRevenue: (period: string = "30d") => `admin/telegram-funnel/revenue?period=${period}`,
+      telegramFunnelCohorts: (cohortDays: number = 7) => `admin/telegram-funnel/cohorts?cohort_days=${cohortDays}`,
+      telegramFunnelUser: (telegramUserId: number) => `admin/telegram-funnel/user/${telegramUserId}`,
     },
     knowledge: {
       get: (influencerId: string) => `admin/influencers/${encodeURIComponent(influencerId)}/knowledge`,
@@ -115,6 +157,7 @@ export const Endpoints = {
     logFiles: `admin/logs/files`,
     logDownload: `admin/logs/download`,
     logStream: `admin/logs/stream`,
+
   },
   subscriptions: {
     start: "/subscriptions/start",
@@ -134,12 +177,21 @@ export const Endpoints = {
     history: "/verification/history",
     webhook: "/verification/webhook",
   },
-  ws: {
-    chat: "/chat/ws",
-    chat18: "/chat18/ws",
-    notifications: "/ws/notifications",
-  },
   user: {
     usage: (id: string) => `/user/${id}/usage`,
-  }
+  },
+  funnel: {
+    event: "/funnel/event",
+  },
+} as const;
+
+export const WsEndpoints = {
+  notifications: (email: string) =>
+    `${WS_BASE_URL}/ws/notifications?email=${encodeURIComponent(email)}`,
+  chat: (influencerId: string, token: string) =>
+    `${WS_BASE_URL}/chat/ws/${encodeURIComponent(influencerId)}?token=${encodeURIComponent(token)}`,
+  chat18: (influencerId: string, token: string) =>
+    `${WS_BASE_URL}/chat18/ws/${encodeURIComponent(influencerId)}?token=${encodeURIComponent(token)}`,
+  adultVoice: (influencerId: string, token: string) =>
+    `${WS_BASE_URL}/adult/ws/voice/${encodeURIComponent(influencerId)}?token=${encodeURIComponent(token)}`,
 } as const;

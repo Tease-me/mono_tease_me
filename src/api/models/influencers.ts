@@ -3,7 +3,6 @@ export interface InfluencerResponse {
   voice_id: string;
   prompt_template: string;
   daily_scripts: string[];
-  custom_adult_prompt?: string;
   id: string;
   influencer_agent_id_third_part: string;
   bio_json: string;
@@ -35,6 +34,35 @@ export interface InfluencerSampleListResponse {
   }>;
 }
 
+export interface InfluencerLandingAssetsResponse {
+  influencer_id: string;
+  hero_png_url: string | null;
+  hero_png_2x_url: string | null;
+  signature_png_url: string | null;
+  signature_png_2x_url: string | null;
+  background_video_1_mp4_url: string | null;
+  background_video_1_mp4_content_type: string | null;
+  background_video_1_webm_url: string | null;
+  background_video_1_webm_content_type: string | null;
+  background_video_1_poster_jpg_url: string | null;
+  background_video_2_mp4_url: string | null;
+  background_video_2_mp4_content_type: string | null;
+  background_video_2_webm_url: string | null;
+  background_video_2_webm_content_type: string | null;
+  background_video_2_poster_jpg_url: string | null;
+  background_image_1_url: string | null;
+  background_image_1_2x_url: string | null;
+  background_image_2_url: string | null;
+  background_image_2_2x_url: string | null;
+  background_image_3_url: string | null;
+  background_image_3_2x_url: string | null;
+  has_hero: boolean;
+  has_signature: boolean;
+  has_background_videos: boolean;
+  has_complete_background_images: boolean;
+  updated_at: string | null;
+}
+
 export interface InfluencerBioSocialLink {
   platform: string;
   url: string;
@@ -49,6 +77,16 @@ export interface InfluencerBioResponse {
   likes: string[];
   dislikes: string[];
   social_links: InfluencerBioSocialLink[];
+}
+
+export interface InfluencerProfileUploadResponse {
+  ok: boolean;
+  profile_photo_key: string | null;
+  profile_video_key: string | null;
+  photo_url: string | null;
+  video_url: string | null;
+  native_language?: string | null;
+  date_of_birth?: string | null;
 }
 
 export interface PersonaImportResponse {

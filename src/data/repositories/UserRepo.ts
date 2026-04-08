@@ -19,6 +19,7 @@ export const UserRepo = () => ({
             email: response.email,
             full_name: response.full_name,
             is_verified: response.is_varified,
+            verification_required: response.verification_required,
             imgUrl: response.profile_photo_url,
             first_time_login: false,
             createdAt: mock.getRandomDate(),

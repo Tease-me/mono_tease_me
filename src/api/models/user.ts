@@ -4,6 +4,7 @@ export interface UserDetailResponse {
   username?: string;
   email: string;
   is_varified: boolean;
+  verification_required?: boolean;
   profile_photo_url?: string;
 }
 
@@ -49,11 +50,21 @@ export type FreeAllowances = {
   };
 };
 
+export type LatestAdultCallSummary = {
+  conversation_id: string;
+  status: string | null;
+  duration_seconds: number | null;
+  created_at: string | null;
+  adult_character_id: number | null;
+  cost_cents: number | null;
+};
+
 export interface SingleInfluencerUsageResponse {
   influencer_id: string;
   normal: UsageBucket;
   adult: UsageBucket;
   free_allowances: FreeAllowances;
+  latest_adult_call_summary: LatestAdultCallSummary | null;
 }
 
 export interface UserUsageResponse {

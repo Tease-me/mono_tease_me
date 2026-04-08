@@ -10,12 +10,17 @@ type NavItem = { to: string; label: string; icon: React.ReactNode };
 const NAV_ITEMS: NavItem[] = [
     { to: Paths.admin.analytics, label: "Analytics", icon: <SvgPack.Dashboard /> },
     { to: Paths.admin.relationship, label: "Relationship", icon: <SvgPack.Trust /> },
-    { to: Paths.admin.influencer, label: "Influencers", icon: <SvgPack.Users /> },
+    { to: Paths.admin.characters, label: "Characters", icon: <SvgPack.StarHollow /> },
+    { to: Paths.admin.influencerCharacter, label: "Influencer Character", icon: <SvgPack.Users /> },
+    { to: Paths.admin.influencerAssets, label: "Influencer Assets", icon: <SvgPack.Users /> },
+    { to: Paths.admin.emailAssets, label: "Email Assets", icon: <SvgPack.Bill /> },
+    { to: Paths.admin.influencer, label: "Influencer Prompts", icon: <SvgPack.Users /> },
     { to: Paths.admin.preInfluencers, label: "Pre-Influencers", icon: <SvgPack.StarHollow /> },
     { to: Paths.admin.knowledge, label: "Knowledge", icon: <SvgPack.InfoCircle /> },
     { to: Paths.admin.prompts, label: "Prompts", icon: <SvgPack.Ai /> },
     { to: Paths.admin.chatHistory, label: "Chat History", icon: <SvgPack.ChatRound /> },
     { to: Paths.admin.logs, label: "Logs", icon: <SvgPack.Bill /> },
+    { to: Paths.admin.telegram, label: "Telegram", icon: <SvgPack.ChatRound /> },
 ];
 
 type AdminNavProps = {
@@ -45,7 +50,8 @@ const AdminNav: React.FC<AdminNavProps> = ({ isOpen, onClose }) => {
                 <div className={styles["nav-body"]}>
                     <div className={styles["nav-group"]}>
                         {NAV_ITEMS.map((item) => {
-                            const isActive = pathname.startsWith(item.to);
+                            const isActive =
+                                pathname === item.to || pathname.startsWith(`${item.to}/`);
                             return (
                                 <Link
                                     key={item.to + item.label}

@@ -88,6 +88,149 @@
   width: 100%;
 }
 
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0;
+}
+
+.loadingText {
+  color: #bdbdbd;
+  font-size: 14px;
+  text-align: center;
+}
+
+.payError {
+  color: #f44336;
+  font-size: 14px;
+  text-align: center;
+  width: 100%;
+}
+
+.paymentTermsButton {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin-top: 12px;
+  color: var(--Greyscale-600, #757575);
+  text-align: center;
+  font-family: Urbanist;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 140%;
+  letter-spacing: 0.2px;
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+  text-decoration-skip-ink: none;
+  cursor: pointer;
+}
+
+.paymentTermsModal {
+  background: #212121;
+  border-radius: 16px;
+  max-width: 720px;
+  padding: 24px;
+  gap: 20px;
+}
+
+.paymentTermsHeader {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 16px;
+  padding-right: 56px;
+}
+
+.paymentTermsTitle {
+  margin: 0;
+  color: #fff;
+  font-family: Urbanist;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 120%;
+}
+
+.paymentTermsCloseButton {
+  position: absolute;
+  top: 0;
+  right: 0;
+  flex-shrink: 0;
+}
+
+.paymentTermsScroll {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.paymentTermsDocument {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.paymentTermsDocumentTitle {
+  margin: 0;
+  color: #fff;
+  font-family: Urbanist;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 140%;
+  letter-spacing: 0.2px;
+}
+
+.paymentTermsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.paymentTermsSectionTitle {
+  margin: 0;
+  color: #fff;
+  font-family: Urbanist;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 140%;
+  letter-spacing: 0.2px;
+}
+
+.paymentTermsParagraph {
+  margin: 0;
+  color: #d4d4d4;
+  font-family: Urbanist;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 140%;
+  letter-spacing: 0.2px;
+}
+
+.paymentTermsList {
+  margin: 0;
+  padding-left: 18px;
+  color: #d4d4d4;
+  font-family: Urbanist;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 140%;
+  letter-spacing: 0.2px;
+}
+
+.paymentTermsList li + li {
+  margin-top: 6px;
+}
+
 .input-right-padding {
   padding-right: unset;
 }
@@ -118,4 +261,22 @@
 
 .paypalImg {
   height: 1.2rem;
+}
+
+@media (max-width: 767px) {
+  .paymentTermsModal {
+    padding: 16px;
+  }
+
+  .paymentTermsHeader {
+    padding-right: 48px;
+  }
+
+  .paymentTermsScroll {
+    max-height: 65vh;
+  }
+
+  .selectionBox {
+    width: min(346px, 100%);
+  }
 }

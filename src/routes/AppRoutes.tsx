@@ -1,108 +1,136 @@
+import { ADULT_MODE_AVAILABLE } from "@/constants/adultModeAvailable";
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 import { terms } from "@/ui/screens/terms/termsContent";
-import { ADULT_MODE_AVAILABLE } from "@/constants/adultModeAvailable";
 
+import { ThemeProvider } from "@/theme/ThemeProvider";
 import { JSX, Suspense, lazy } from "react";
-import { BrowserRouter, Route, Routes, Navigate, useSearchParams, useNavigate } from "react-router-dom";
-import { Paths } from "./path";
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 import GuestRoute from "./components/GuestRoute";
 import PrivateRoute from "./components/PrivateRoute";
 import SuperRoute from "./components/SuperRoute";
-import { ThemeProvider } from "@/theme/ThemeProvider";
+import TestRoute from "./components/TestRoute";
+import { Paths } from "./path";
 
 const PayPalCancel = lazy(
-  () => import("@/ui/components/modals/payment-modal/PayPalCancel")
+  () => import("@/ui/components/modals/payment-modal/PayPalCancel"),
 );
-const PayPalReturn = lazy(
-  () => import("@/ui/components/modals/payment-modal/PayPalReturn")
+
+const ArmloopReturn = lazy(
+  () => import("@/ui/components/modals/payment-modal/ArmloopReturn"),
 );
 const DiditReturn = lazy(
-  () => import("@/ui/components/modals/verification/DiditReturn")
+  () => import("@/ui/components/modals/verification/DiditReturn"),
 );
 const RelationshipDashboard = lazy(
   () =>
-    import("@/ui/screens/admin/dashboard_relationship/RelationshipDashboard")
+    import("@/ui/screens/admin/dashboard_relationship/RelationshipDashboard"),
 );
 const InfluencerAudioManagerRoute = lazy(
-  () => import("@/ui/screens/influencer-audio-manager/InfluencerAudioManagerRoute")
+  () =>
+    import("@/ui/screens/influencer-audio-manager/InfluencerAudioManagerRoute"),
 );
 const JoinPage = lazy(() => import("@/ui/screens/join/JoinPage"));
 const IncomeCalculatorScreen = lazy(
-  () => import("@/ui/screens/join/subscreens/IncomeCalculatorScreen")
+  () => import("@/ui/screens/join/subscreens/IncomeCalculatorScreen"),
 );
 const ProfileSurvey = lazy(
-  () => import("@/ui/screens/join/subscreens/ProfileSurvey")
+  () => import("@/ui/screens/join/subscreens/ProfileSurvey"),
 );
 const ThankYouScreen = lazy(
-  () => import("@/ui/screens/join/subscreens/ThankYouScreen")
+  () => import("@/ui/screens/join/subscreens/ThankYouScreen"),
 );
 const ProfileSurveyForm = lazy(
-  () => import("@/ui/screens/influencer-survey/ProfileSurveyForm")
+  () => import("@/ui/screens/influencer-survey/ProfileSurveyForm"),
 );
 const TermsPage = lazy(() => import("@/ui/screens/terms/TermsPage"));
 
 const AdminPreInfluencers = lazy(
-  () => import("@/ui/screens/admin/pre-influencers/AdminPreInfluencers")
+  () => import("@/ui/screens/admin/pre-influencers/AdminPreInfluencers"),
 );
 
 const UnderageRedirectScreen = lazy(
-  () => import("@/ui/screens/disclaimer/UnderageRedirectScreen")
+  () => import("@/ui/screens/disclaimer/UnderageRedirectScreen"),
 );
 const AdminPreInfluencerDetail = lazy(
-  () =>
-    import("@/ui/screens/admin/pre-influencers/AdminPreInfluencerDetail")
+  () => import("@/ui/screens/admin/pre-influencers/AdminPreInfluencerDetail"),
 );
 const AdminAnalytics = lazy(
-  () => import("@/ui/screens/admin/analytics/AdminAnalytics")
+  () => import("@/ui/screens/admin/analytics/AdminAnalytics"),
 );
 const InfluencerProfileScreen = lazy(
-  () => import("@/ui/screens/influencer-profile/InfluencerProfileScreen")
+  () => import("@/ui/screens/influencer-profile/InfluencerProfileScreen"),
 );
 const LoginScreen = lazy(() => import("@/ui/screens/login/LoginScreen"));
 const RegisterScreen = lazy(
-  () => import("@/ui/screens/register/RegisterScreen")
+  () => import("@/ui/screens/register/RegisterScreen"),
 );
 const Confirmation = lazy(() => import("@/ui/screens/register/Confirmation"));
 const ResetPassword = lazy(
-  () => import("@/ui/screens/forgot-password/ResetPassword")
+  () => import("@/ui/screens/forgot-password/ResetPassword"),
 );
 const ForgotPassword = lazy(
-  () => import("@/ui/screens/forgot-password/ForgotPassword")
+  () => import("@/ui/screens/forgot-password/ForgotPassword"),
 );
 const VerifyEmail = lazy(() => import("@/ui/screens/verify-email/VerifyEmail"));
-const HomeScreenSingle = lazy(() => import("@/ui/screens/home/HomeScreenSingle"));
+const HomeScreenSingle = lazy(
+  () => import("@/ui/screens/home/HomeScreenSingle"),
+);
 const CreateInfluencer = lazy(
-  () => import("@/ui/screens/admin/create-influencer/CreateInfluencer")
+  () => import("@/ui/screens/admin/create-influencer/CreateInfluencer"),
+);
+const AdminCharacters = lazy(
+  () => import("@/ui/screens/admin/characters/AdminCharacters"),
+);
+const AdminInfluencerCharacter = lazy(
+  () =>
+    import("@/ui/screens/admin/influencer-character/AdminInfluencerCharacter"),
+);
+const AdminInfluencerAssets = lazy(
+  () => import("@/ui/screens/admin/influencer-assets/AdminInfluencerAssets"),
+);
+const AdminEmailAssets = lazy(
+  () => import("@/ui/screens/admin/email-assets/AdminEmailAssets"),
 );
 const PromptEditorAdmin = lazy(
-  () => import("@/ui/screens/admin/PromptEditorAdmin")
+  () => import("@/ui/screens/admin/PromptEditorAdmin"),
 );
 const AdminKnowledge = lazy(
-  () => import("@/ui/screens/admin/knowledge/AdminKnowledge")
+  () => import("@/ui/screens/admin/knowledge/AdminKnowledge"),
 );
 const AdminChatHistory = lazy(
-  () => import("@/ui/screens/admin/chat-history/AdminChatHistory")
+  () => import("@/ui/screens/admin/chat-history/AdminChatHistory"),
 );
 const AdminLogs = lazy(() => import("@/ui/screens/admin/logs/AdminLogs"));
+const AdminTelegram = lazy(
+  () => import("@/ui/screens/admin/telegram/AdminTelegram"),
+);
 const AdultModePage = lazy(
-  () => import("@/ui/screens/messaging/pages/adult-mode/AdultModePage")
+  () => import("@/ui/screens/messaging/pages/adult-mode/AdultModePage"),
 );
 const AdultModeComingSoon = lazy(
-  () => import("@/ui/screens/messaging/pages/adult-mode/AdultModeComingSoon")
+  () => import("@/ui/screens/messaging/pages/adult-mode/AdultModeComingSoon"),
 );
 const LandingPage = lazy(() => import("@/ui/screens/landing-page/LandingPage"));
 const InfluencerHome = lazy(
-  () => import("@/ui/screens/landing-page/InfluencerHome")
+  () => import("@/ui/screens/landing-page/InfluencerHome"),
 );
 const InfluencerHomeTrialExpired = lazy(
-  () => import("@/ui/screens/landing-page/InfluencerHomeTrialExpired")
+  () => import("@/ui/screens/landing-page/InfluencerHomeTrialExpired"),
 );
 const RecordTerms = lazy(
-  () => import("@/ui/screens/survey/components/TermsConditions")
+  () => import("@/ui/screens/survey/components/TermsConditions"),
 );
 const IntencionInfluencerHome = lazy(
-  () => import("@/ui/screens/landing-page/IntencionInfluencerHome")
+  () => import("@/ui/screens/landing-page/IntencionInfluencerHome"),
 );
+const TestPage = lazy(() => import("@/ui/screens/test/TestPage"));
 
 function AdultModeRoute() {
   const [searchParams] = useSearchParams();
@@ -191,8 +219,8 @@ function AppRoutes() {
     },
   ];
 
-
   const guestRoutes: { path: string; element: JSX.Element }[] = [
+    { path: Paths.root, element: <LandingPage /> },
     { path: Paths.login, element: <LoginScreen /> },
     { path: Paths.register(), element: <RegisterScreen /> },
     { path: Paths.registerVerify, element: <Confirmation /> },
@@ -207,6 +235,13 @@ function AppRoutes() {
       path: Paths.admin.root,
       element: <Navigate to={Paths.admin.analytics} replace />,
     },
+    { path: Paths.admin.characters, element: <AdminCharacters /> },
+    {
+      path: Paths.admin.influencerCharacter,
+      element: <AdminInfluencerCharacter />,
+    },
+    { path: Paths.admin.influencerAssets, element: <AdminInfluencerAssets /> },
+    { path: Paths.admin.emailAssets, element: <AdminEmailAssets /> },
     { path: Paths.admin.influencer, element: <CreateInfluencer /> },
     { path: Paths.admin.prompts, element: <PromptEditorAdmin /> },
     { path: Paths.admin.relationship, element: <RelationshipDashboard /> },
@@ -219,14 +254,19 @@ function AppRoutes() {
     { path: Paths.admin.knowledge, element: <AdminKnowledge /> },
     { path: Paths.admin.chatHistory, element: <AdminChatHistory /> },
     { path: Paths.admin.logs, element: <AdminLogs /> },
+    { path: Paths.admin.telegram, element: <AdminTelegram /> },
   ];
 
   const privateRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.home, element: <HomeScreenSingle /> },
     { path: Paths.adultMode, element: <AdultModeRoute /> },
-    { path: Paths.paypalReturn, element: <PayPalReturn /> },
     { path: Paths.paypalCancel, element: <PayPalCancel /> },
     { path: Paths.diditReturn, element: <DiditReturn /> },
+    { path: Paths.armloopReturn, element: <ArmloopReturn /> },
+  ];
+
+  const testRoutes: { path: string; element: JSX.Element }[] = [
+    { path: Paths.testButtons, element: <TestPage /> },
   ];
 
   return (
@@ -249,6 +289,13 @@ function AppRoutes() {
                 key={path}
                 path={path}
                 element={<PrivateRoute>{element}</PrivateRoute>}
+              />
+            ))}
+            {testRoutes.map(({ path, element }) => (
+              <Route
+                key={path}
+                path={path}
+                element={<TestRoute>{element}</TestRoute>}
               />
             ))}
             {superRoutes.map(({ path, element }) => (

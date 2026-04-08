@@ -203,6 +203,22 @@ export type AdminLogsParams = {
   direction?: "backward" | "forward";
 };
 
+export type AdminEmailAssetUploadResponse = {
+  ok: boolean;
+  reset_password_header_key: string;
+  reset_password_header_url: string;
+  content_type: string;
+};
+
+export type AdminInfluencerEmailHeaderResponse = {
+  influencer_id: string;
+  verification_email_header_key: string | null;
+  verification_email_header_url: string | null;
+  content_type: string | null;
+  has_verification_email_header: boolean;
+  updated_at: string | null;
+};
+
 /* ── User Analytics Types ──────────────────────────────────── */
 
 export type AnalyticsOverview = {
@@ -286,7 +302,565 @@ export type UserDetailResponse = {
   total_api_cost_usd: number;
 };
 
+export type AdminAdultCharacter = {
+  id: number;
+  slug: string;
+  name: string;
+  description: string | null;
+  short_description: string | null;
+  first_messages: string[] | null;
+  prompt_template: string;
+  default_artwork_key: string | null;
+  default_artwork_url: string | null;
+  lottie_text: string | null;
+  lottie_text_url: string | null;
+  is_active: boolean;
+  display_order: number;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+export type AdminAdultCharacterCreatePayload = {
+  slug: string;
+  name: string;
+  prompt_template: string;
+  description?: string | null;
+  short_description?: string | null;
+  first_messages?: string[] | null;
+  default_artwork_key?: string | null;
+  lottie_text?: string | null;
+  is_active?: boolean;
+  display_order?: number;
+};
+
+export type AdminAdultCharacterPatchPayload =
+  Partial<AdminAdultCharacterCreatePayload>;
+
+export type AdminAdultCharacterAssetsPayload = {
+  default_artwork?: File | null;
+  lottie_text?: File | null;
+};
+
+export type AdminInfluencerCharacter = {
+  id: number;
+  slug: string;
+  name: string;
+  description: string | null;
+  short_description: string | null;
+  is_active: boolean;
+  display_order: number;
+  base_lottie_text: string | null;
+  photo_url: string | null;
+  photo_2x_url: string | null;
+  video_mp4_url: string | null;
+  video_webm_url: string | null;
+  video_preview_png_url: string | null;
+  has_photo: boolean;
+  has_complete_video_set: boolean;
+  resolved_lottie_text: string | null;
+  meta_json: Record<string, unknown> | null;
+  has_influencer_override: boolean;
+};
+
+export type AdminInfluencerCharacterAssetsPayload = {
+  photo?: File | null;
+  photo_2x?: File | null;
+  video_mp4?: File | null;
+  video_webm?: File | null;
+  video_preview_png?: File | null;
+};
+
+export type InfluencerCharacterAssetType =
+  | "photo"
+  | "photo_2x"
+  | "video_mp4"
+  | "video_webm"
+  | "video_preview_png"
+  | "video";
+
+export type AdminInfluencerLandingAssetsResponse = {
+  influencer_id: string;
+  hero_png_key: string | null;
+  hero_png_url: string | null;
+  hero_png_2x_key: string | null;
+  hero_png_2x_url: string | null;
+  signature_png_key: string | null;
+  signature_png_url: string | null;
+  signature_png_2x_key: string | null;
+  signature_png_2x_url: string | null;
+  background_video_1_mp4_key: string | null;
+  background_video_1_mp4_url: string | null;
+  background_video_1_mp4_content_type: string | null;
+  background_video_1_webm_key: string | null;
+  background_video_1_webm_url: string | null;
+  background_video_1_webm_content_type: string | null;
+  background_video_1_poster_jpg_key: string | null;
+  background_video_1_poster_jpg_url: string | null;
+  background_video_2_mp4_key: string | null;
+  background_video_2_mp4_url: string | null;
+  background_video_2_mp4_content_type: string | null;
+  background_video_2_webm_key: string | null;
+  background_video_2_webm_url: string | null;
+  background_video_2_webm_content_type: string | null;
+  background_video_2_poster_jpg_key: string | null;
+  background_video_2_poster_jpg_url: string | null;
+  background_image_1_key: string | null;
+  background_image_1_url: string | null;
+  background_image_1_2x_key: string | null;
+  background_image_1_2x_url: string | null;
+  background_image_2_key: string | null;
+  background_image_2_url: string | null;
+  background_image_2_2x_key: string | null;
+  background_image_2_2x_url: string | null;
+  background_image_3_key: string | null;
+  background_image_3_url: string | null;
+  background_image_3_2x_key: string | null;
+  background_image_3_2x_url: string | null;
+  has_hero: boolean;
+  has_signature: boolean;
+  has_background_videos: boolean;
+  has_complete_background_images: boolean;
+  updated_at: string | null;
+};
+
+export type AdminInfluencerLandingAssetsPayload = {
+  hero_png?: File | null;
+  hero_png_2x?: File | null;
+  signature_png?: File | null;
+  signature_png_2x?: File | null;
+  background_video_1_mp4?: File | null;
+  background_video_1_webm?: File | null;
+  background_video_1_poster_jpg?: File | null;
+  background_video_2_mp4?: File | null;
+  background_video_2_webm?: File | null;
+  background_video_2_poster_jpg?: File | null;
+  background_image_1?: File | null;
+  background_image_1_2x?: File | null;
+  background_image_2?: File | null;
+  background_image_2_2x?: File | null;
+  background_image_3?: File | null;
+  background_image_3_2x?: File | null;
+};
+
+export type AdminTelegramWelcomeMediaResponse = {
+  influencer_id: string;
+  telegram_audio_key: string | null;
+  telegram_audio_url: string | null;
+  telegram_audio_content_type: string | null;
+  telegram_audio_2_key: string | null;
+  telegram_audio_2_url: string | null;
+  telegram_audio_2_content_type: string | null;
+  telegram_video_key: string | null;
+  telegram_video_url: string | null;
+  telegram_video_content_type: string | null;
+  has_audio: boolean;
+  has_audio_2: boolean;
+  has_video: boolean;
+  updated_at: string | null;
+};
+
+export type AudioSampleType = "normal" | "explicit";
+
+export interface AudioSampleUploadResponse {
+  s3_key: string;
+  sample_type: AudioSampleType;
+  url: string;
+  original_filename: string;
+  created_at: string;
+}
+
+export interface AudioSampleDeleteResponse {
+  ok: boolean;
+  deleted_id: string;
+}
+
+// Telegram Funnel Types
+export interface FunnelStage {
+  stage: string;
+  users: number;
+}
+
+export interface FunnelConversionRate {
+  from: string;
+  to: string;
+  from_count: number;
+  to_count: number;
+  rate: number;
+  percentage: number;
+}
+
+export interface FunnelOverviewResponse {
+  period: string;
+  stages: FunnelStage[];
+  conversion_rates: FunnelConversionRate[];
+}
+
+export interface FunnelInfluencerData {
+  influencer_id: string;
+  stages: FunnelStage[];
+  conversion_rates: FunnelConversionRate[];
+}
+
+export interface FunnelByInfluencerResponse {
+  period: string;
+  influencers: FunnelInfluencerData[];
+}
+
+export interface FunnelDropoffItem {
+  from: string;
+  to: string;
+  from_count: number;
+  to_count: number;
+  drop_count: number;
+  drop_percentage: number;
+}
+
+export interface FunnelDropoffResponse {
+  period: string;
+  dropoffs: FunnelDropoffItem[];
+}
+
+export interface FunnelRevenueInfluencer {
+  influencer_id: string;
+  topup_cents: number;
+  subscription_cents: number;
+  total_cents: number;
+  total_usd: number;
+  topup_count: number;
+  subscription_payment_count: number;
+}
+
+export interface FunnelRevenueResponse {
+  period: string;
+  total_cents: number;
+  total_usd: number;
+  influencers: FunnelRevenueInfluencer[];
+}
+
+export interface FunnelEvent {
+  id: number;
+  event_type: string;
+  influencer_id: string;
+  user_id: number | null;
+  invite_code: string | null;
+  session_id: string | null;
+  meta: Record<string, any> | null;
+  occurred_at: string;
+}
+
+export interface FunnelUserJourneyResponse {
+  telegram_user_id: number;
+  event_count: number;
+  events: FunnelEvent[];
+}
+
+export interface FunnelCohortStage {
+  stage: string;
+  users: number;
+  percentage: number;
+}
+
+export interface FunnelCohort {
+  cohort_start: string;
+  total_users: number;
+  stages: FunnelCohortStage[];
+}
+
+export interface FunnelCohortsResponse {
+  cohort_days: number;
+  cohorts: FunnelCohort[];
+}
+
 export const AdminServices = (apiClient: AxiosInstance) => ({
+  listAdultCharacters: async (): Promise<AdminAdultCharacter[]> => {
+    const response = await apiClient.get(Endpoints.admin.adultCharacters.list);
+    return response.data;
+  },
+
+  createAdultCharacter: async (
+    payload: AdminAdultCharacterCreatePayload
+  ): Promise<AdminAdultCharacter> => {
+    const response = await apiClient.post(
+      Endpoints.admin.adultCharacters.list,
+      payload
+    );
+    return response.data;
+  },
+
+  updateAdultCharacter: async (
+    characterId: number,
+    payload: AdminAdultCharacterPatchPayload
+  ): Promise<AdminAdultCharacter> => {
+    const response = await apiClient.patch(
+      Endpoints.admin.adultCharacters.byId(characterId),
+      payload
+    );
+    return response.data;
+  },
+
+  uploadAdultCharacterAssets: async (
+    characterId: number,
+    payload: AdminAdultCharacterAssetsPayload
+  ): Promise<AdminAdultCharacter> => {
+    const formData = new FormData();
+    if (payload.default_artwork) {
+      formData.append("default_artwork", payload.default_artwork);
+    }
+    if (payload.lottie_text) {
+      formData.append("lottie_text", payload.lottie_text);
+    }
+
+    const response = await apiClient.post(
+      Endpoints.admin.adultCharacters.assets(characterId),
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  },
+
+  listInfluencerAdultCharacters: async (
+    influencerId: string
+  ): Promise<AdminInfluencerCharacter[]> => {
+    const response = await apiClient.get(
+      Endpoints.admin.influencerAdultCharacters.list(influencerId)
+    );
+    return response.data;
+  },
+
+  uploadInfluencerCharacterAssets: async (
+    influencerId: string,
+    characterId: number,
+    payload: AdminInfluencerCharacterAssetsPayload
+  ): Promise<AdminInfluencerCharacter> => {
+    const formData = new FormData();
+    if (payload.photo) formData.append("photo", payload.photo);
+    if (payload.photo_2x) formData.append("photo_2x", payload.photo_2x);
+    if (payload.video_mp4) formData.append("video_mp4", payload.video_mp4);
+    if (payload.video_webm) formData.append("video_webm", payload.video_webm);
+    if (payload.video_preview_png) {
+      formData.append("video_preview_png", payload.video_preview_png);
+    }
+
+    const response = await apiClient.post(
+      Endpoints.admin.influencerAdultCharacters.assets(influencerId, characterId),
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  },
+
+  deleteInfluencerCharacterAsset: async (
+    influencerId: string,
+    characterId: number,
+    assetType: InfluencerCharacterAssetType
+  ): Promise<AdminInfluencerCharacter> => {
+    const response = await apiClient.delete(
+      Endpoints.admin.influencerAdultCharacters.assetByType(
+        influencerId,
+        characterId,
+        assetType
+      )
+    );
+    return response.data;
+  },
+
+  uploadInfluencerCharacterSample: async (
+    influencerId: string,
+    characterId: number,
+    sampleType: AudioSampleType,
+    file: File
+  ): Promise<AudioSampleUploadResponse> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await apiClient.post(
+      Endpoints.admin.influencerAdultCharacters.uploadSample(influencerId, characterId, sampleType),
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+    return response.data;
+  },
+
+  deleteInfluencerCharacterSample: async (
+    influencerId: string,
+    characterId: number,
+    sampleType: AudioSampleType,
+    s3Key: string
+  ): Promise<AudioSampleDeleteResponse> => {
+    const response = await apiClient.delete(
+      Endpoints.admin.influencerAdultCharacters.deleteSample(influencerId, characterId, sampleType, s3Key)
+    );
+    return response.data;
+  },
+
+  deleteAdultCharacter: async (characterId: number): Promise<void> => {
+    await apiClient.delete(Endpoints.admin.adultCharacters.byId(characterId));
+  },
+
+  getInfluencerLandingAssets: async (
+    influencerId: string
+  ): Promise<AdminInfluencerLandingAssetsResponse> => {
+    const response = await apiClient.get(
+      Endpoints.admin.influencerLandingAssets(influencerId)
+    );
+    return response.data;
+  },
+
+  getInfluencerEmailHeader: async (
+    influencerId: string
+  ): Promise<AdminInfluencerEmailHeaderResponse> => {
+    const response = await apiClient.get(
+      Endpoints.admin.influencerEmailHeader(influencerId)
+    );
+    return response.data;
+  },
+
+  uploadInfluencerLandingAssets: async (
+    influencerId: string,
+    payload: AdminInfluencerLandingAssetsPayload
+  ): Promise<AdminInfluencerLandingAssetsResponse> => {
+    const formData = new FormData();
+    if (payload.hero_png) formData.append("hero_png", payload.hero_png);
+    if (payload.hero_png_2x) formData.append("hero_png_2x", payload.hero_png_2x);
+    if (payload.signature_png) {
+      formData.append("signature_png", payload.signature_png);
+    }
+    if (payload.signature_png_2x) {
+      formData.append("signature_png_2x", payload.signature_png_2x);
+    }
+    if (payload.background_video_1_mp4) {
+      formData.append("background_video_1_mp4", payload.background_video_1_mp4);
+    }
+    if (payload.background_video_1_webm) {
+      formData.append("background_video_1_webm", payload.background_video_1_webm);
+    }
+    if (payload.background_video_1_poster_jpg) {
+      formData.append(
+        "background_video_1_poster_jpg",
+        payload.background_video_1_poster_jpg
+      );
+    }
+    if (payload.background_video_2_mp4) {
+      formData.append("background_video_2_mp4", payload.background_video_2_mp4);
+    }
+    if (payload.background_video_2_webm) {
+      formData.append("background_video_2_webm", payload.background_video_2_webm);
+    }
+    if (payload.background_video_2_poster_jpg) {
+      formData.append(
+        "background_video_2_poster_jpg",
+        payload.background_video_2_poster_jpg
+      );
+    }
+    if (payload.background_image_1) {
+      formData.append("background_image_1", payload.background_image_1);
+    }
+    if (payload.background_image_1_2x) {
+      formData.append("background_image_1_2x", payload.background_image_1_2x);
+    }
+    if (payload.background_image_2) {
+      formData.append("background_image_2", payload.background_image_2);
+    }
+    if (payload.background_image_2_2x) {
+      formData.append("background_image_2_2x", payload.background_image_2_2x);
+    }
+    if (payload.background_image_3) {
+      formData.append("background_image_3", payload.background_image_3);
+    }
+    if (payload.background_image_3_2x) {
+      formData.append("background_image_3_2x", payload.background_image_3_2x);
+    }
+
+    const response = await apiClient.post(
+      Endpoints.admin.influencerLandingAssets(influencerId),
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  },
+
+  uploadInfluencerEmailHeader: async (
+    influencerId: string,
+    file: File
+  ): Promise<AdminInfluencerEmailHeaderResponse> => {
+    const formData = new FormData();
+    formData.append("verification_email_header", file);
+
+    const response = await apiClient.post(
+      Endpoints.admin.influencerEmailHeader(influencerId),
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  },
+
+  getEmailAssets: async (): Promise<AdminEmailAssetUploadResponse> => {
+    const response = await apiClient.get(Endpoints.admin.emailAssets);
+    return response.data;
+  },
+
+  uploadResetPasswordHeader: async (
+    file: File
+  ): Promise<AdminEmailAssetUploadResponse> => {
+    const formData = new FormData();
+    formData.append("reset_password_header", file);
+
+    const response = await apiClient.post(Endpoints.admin.emailAssets, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  },
+
+  getTelegramWelcomeMedia: async (
+    influencerId: string
+  ): Promise<AdminTelegramWelcomeMediaResponse> => {
+    const response = await apiClient.get(
+      Endpoints.admin.telegramWelcomeMedia(influencerId)
+    );
+    return response.data;
+  },
+
+  uploadTelegramWelcomeMedia: async (
+    influencerId: string,
+    payload: {
+      audio?: File | null;
+      audio_2?: File | null;
+      video?: File | null;
+    }
+  ): Promise<AdminTelegramWelcomeMediaResponse> => {
+    const formData = new FormData();
+    if (payload.audio) formData.append("audio", payload.audio);
+    if (payload.audio_2) formData.append("audio_2", payload.audio_2);
+    if (payload.video) formData.append("video", payload.video);
+    const response = await apiClient.post(
+      Endpoints.admin.telegramWelcomeMedia(influencerId),
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  },
+
   getUsers: async (q?: string): Promise<AdminUserRow[]> => {
     const response = await apiClient.get(Endpoints.admin.users(q));
     return response.data;
@@ -522,5 +1096,36 @@ export const AdminServices = (apiClient: AxiosInstance) => ({
     const response = await apiClient.get(Endpoints.admin.analytics.userDetail(userId));
     return response.data;
   },
-});
 
+  /* ── Telegram Funnel ──────────────────────────────────── */
+
+  getTelegramFunnelOverview: async (period: string = "30d"): Promise<FunnelOverviewResponse> => {
+    const response = await apiClient.get(Endpoints.admin.analytics.telegramFunnelOverview(period));
+    return response.data;
+  },
+
+  getTelegramFunnelByInfluencer: async (period: string = "30d"): Promise<FunnelByInfluencerResponse> => {
+    const response = await apiClient.get(Endpoints.admin.analytics.telegramFunnelByInfluencer(period));
+    return response.data;
+  },
+
+  getTelegramFunnelDropoff: async (period: string = "30d"): Promise<FunnelDropoffResponse> => {
+    const response = await apiClient.get(Endpoints.admin.analytics.telegramFunnelDropoff(period));
+    return response.data;
+  },
+
+  getTelegramFunnelRevenue: async (period: string = "30d"): Promise<FunnelRevenueResponse> => {
+    const response = await apiClient.get(Endpoints.admin.analytics.telegramFunnelRevenue(period));
+    return response.data;
+  },
+
+  getTelegramFunnelCohorts: async (cohortDays: number = 7): Promise<FunnelCohortsResponse> => {
+    const response = await apiClient.get(Endpoints.admin.analytics.telegramFunnelCohorts(cohortDays));
+    return response.data;
+  },
+
+  getTelegramFunnelUser: async (telegramUserId: number): Promise<FunnelUserJourneyResponse> => {
+    const response = await apiClient.get(Endpoints.admin.analytics.telegramFunnelUser(telegramUserId));
+    return response.data;
+  },
+});

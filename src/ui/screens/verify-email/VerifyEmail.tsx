@@ -1,18 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import styles from "./VerifyEmail.module.css"
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { apiClient } from '@/api/apis';
+import { VerifyEmailResponse } from '@/api/models/auth';
 import BackgroundGradient from '@/ui/templates/BackgroundGradient';
 import CenteredLayout from '@/ui/templates/CenteredLayout';
-import TeaseMeLogo from '@/ui/components/logos/TeaseMeLogo';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
+import LoadingSpinner from '@/ui/components/loading/LoadingSpinner';
 import { Endpoints } from '@/api/urls';
 import { Paths } from '@/routes/path';
+import { AuthContext } from '@/context/AuthContext';
 
-interface VerifyEmailResponse {
-    ok: boolean;
-    message: string;
-}
+const REDIRECT_DELAY_MS = 1400;
 
 const VerifyEmail: React.FC = () => {
     const [searchParams] = useSearchParams();
@@ -23,14 +22,22 @@ const VerifyEmail: React.FC = () => {
     const [resendEmail, setResendEmail] = useState('');
     const [isResending, setIsResending] = useState(false);
     const [resendMessage, setResendMessage] = useState<string | null>(null);
+    const [isSigningIn, setIsSigningIn] = useState(false);
+    const hasAttemptedVerification = useRef(false);
+    const redirectTimeoutRef = useRef<number | null>(null);
 
     const navigate = useNavigate();
+    const { loginWithTokens } = useContext(AuthContext);
 
     useEffect(() => {
         if (!token) {
             navigate(Paths.root)
             return
-        };
+        }
+        if (hasAttemptedVerification.current) {
+            return;
+        }
+        hasAttemptedVerification.current = true;
         const verifyEmail = async () => {
             try {
                 const { data } = await apiClient.get<VerifyEmailResponse>(Endpoints.auth.confirmEmail, {
@@ -39,13 +46,23 @@ const VerifyEmail: React.FC = () => {
                 if (!data.ok) {
                     throw new Error(`Server error: ${data.message}`);
                 }
-                setStatus(data.message);
-                setTimeout(() => {
-                    window.close();
-                }, 5000);
+                setStatus("Email verified successfully. Signing you in...");
+                setError(null);
+                setIsSigningIn(true);
+                try {
+                    await loginWithTokens(data.access_token, data.refresh_token);
+                    setStatus(`${data.message} Redirecting you to home...`);
+                    redirectTimeoutRef.current = window.setTimeout(() => {
+                        navigate(Paths.home);
+                    }, REDIRECT_DELAY_MS);
+                } catch {
+                    setIsSigningIn(false);
+                    setError("Email verified, but automatic sign-in failed. Please log in manually.");
+                }
             } catch (err: any) {
                 const statusCode = err?.response?.status;
                 const detail = err?.response?.data?.detail;
+                setIsSigningIn(false);
 
                 if (statusCode === 410) {
                     setIsExpired(true);
@@ -58,7 +75,13 @@ const VerifyEmail: React.FC = () => {
             }
         };
         verifyEmail();
-    }, [token]);
+
+        return () => {
+            if (redirectTimeoutRef.current !== null) {
+                window.clearTimeout(redirectTimeoutRef.current);
+            }
+        };
+    }, [loginWithTokens, navigate, token]);
 
     const handleResend = async () => {
         if (!resendEmail.trim() || isResending) return;
@@ -84,11 +107,16 @@ const VerifyEmail: React.FC = () => {
         <BackgroundGradient>
             <CenteredLayout>
                 <div className={styles.container}>
-                    <TeaseMeLogo size='xlarge' />
                     <h1 className={styles.title}>Verify Email</h1>
                     <p className={styles.description}>
                         {status}
                     </p>
+                    {isSigningIn && !error && (
+                        <div className={styles["signing-in-state"]}>
+                            <LoadingSpinner size="small" />
+                            <p className={styles.description}>Preparing your account and redirecting...</p>
+                        </div>
+                    )}
                     {error && <p className={styles.error}>{error}</p>}
 
                     {isExpired && (

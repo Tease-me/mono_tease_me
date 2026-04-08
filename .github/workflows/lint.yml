@@ -2,12 +2,17 @@ name: Lint & Build
 
 on:
   pull_request:
-  push:
-    branches:
-      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  lint:
+  lint-pr:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -25,5 +30,3 @@ jobs:
         run: yarn build
       - name: Run lint
         run: yarn lint
-
-      

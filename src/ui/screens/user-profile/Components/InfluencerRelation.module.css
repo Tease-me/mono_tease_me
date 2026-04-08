@@ -3,6 +3,13 @@
   flex-direction: column;
   gap: var(--space-px-16);
   font-family: var(--secondary-font-family);
+  padding-top: 24px;
+}
+
+.photoCard {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .heroRow {
@@ -67,9 +74,10 @@
 }
 
 .balanceCard {
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 16px;
-  background: rgba(97, 97, 97, 0.20);
+  background: #282727;
+  box-shadow: 7px 17px 47px -16px rgba(0, 0, 0, 0.9);
   display: flex;
   flex-direction: column;
   gap: var(--space-px-12);
@@ -256,7 +264,7 @@
   font-style: normal;
   font-weight:
     700;
-    width: 100%;
+  width: 100%;
 }
 
 .radarPlaceholder {
@@ -373,6 +381,7 @@
   border-radius: 8px;
   max-width: 357px;
   min-width: 280px;
+  padding: 0;
 }
 
 .callInfoModalCard {

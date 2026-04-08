@@ -1,4 +1,12 @@
-import { InfluencerBioResponse, InfluencerResponse, InfluencerSampleListResponse, InfluencerSampleResponse } from "../models/influencers";
+import {
+    InfluencerBioResponse,
+    InfluencerLandingAssetsResponse,
+    InfluencerProfileUploadResponse,
+    InfluencerResponse,
+    InfluencerSampleListResponse,
+    InfluencerSampleResponse,
+} from "../models/influencers";
+import { AdultCharactersResponse } from "../models/adultCharacters";
 import { Endpoints } from "../urls";
 import { AxiosInstance } from "axios";
 import { KnowledgeFile } from "../models/knowledgeFiles";
@@ -32,7 +40,6 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
         influencer_agent_id_third_part?: string,
         bio_json?: unknown,
         voice_id?: string,
-        custom_adult_prompt?: string,
     ): Promise<InfluencerResponse> => {
         try {
             const bioPayload = bio_json && typeof bio_json === "object" ? { "bio_json": bio_json } : {};
@@ -45,60 +52,9 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
                     ...(influencer_agent_id_third_part !== undefined && { "influencer_agent_id_third_part": influencer_agent_id_third_part }),
                     ...bioPayload,
                     ...(voice_id !== undefined && { "voice_id": voice_id }),
-                    ...(custom_adult_prompt !== undefined && { "custom_adult_prompt": custom_adult_prompt }),
                 }
             );
             return response.data;
-        } catch (error) {
-            throw error
-        }
-    },
-    createInfluencer: async (
-        id: string,
-        prompt_template: string,
-        display_name?: string,
-        daily_scripts?: string[],
-        influencer_agent_id_third_part?: string,
-        bio_json?: unknown,
-        voice_id?: string,
-        custom_adult_prompt?: string): Promise<InfluencerResponse> => {
-        try {
-            const bioPayload = bio_json && typeof bio_json === "object" ? { "bio_json": bio_json } : {};
-            const response = await apiClient.post(
-                Endpoints.influencers,
-                {
-                    "id": id,
-                    "display_name": display_name,
-                    "prompt_template": prompt_template,
-                    ...(daily_scripts && { "daily_scripts": daily_scripts }),
-                    ...(influencer_agent_id_third_part && { "influencer_agent_id_third_part": influencer_agent_id_third_part }),
-                    ...bioPayload,
-                    ...(voice_id && { "voice_id": voice_id }),
-                    ...(custom_adult_prompt !== undefined && { "custom_adult_prompt": custom_adult_prompt }),
-                }
-            );
-            return response.data;
-        } catch (error) {
-            throw error
-        }
-    },
-    uploadCsv: async (file: File, save: boolean = false): Promise<void> => {
-        try {
-            const formData = new FormData();
-            formData.append("file", file);
-
-            await apiClient.post(
-                Endpoints.uploadCsv,
-                formData,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    },
-                    params: {
-                        save: save
-                    }
-                },
-            );
         } catch (error) {
             throw error
         }
@@ -181,5 +137,49 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
         catch (error) {
             throw error;
         }
-    }
-})
+    },
+    getLandingAssets: async (influencer_id: string): Promise<InfluencerLandingAssetsResponse> => {
+        try {
+            const response = await apiClient.get<InfluencerLandingAssetsResponse>(
+                Endpoints.influencerLandingAssets(influencer_id),
+            );
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+    getAdultCharacters: async (id: string): Promise<AdultCharactersResponse> => {
+        try {
+            const response = await apiClient.get<AdultCharactersResponse>(Endpoints.adult_characters(id));
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+    uploadProfile: async (
+        influencer_id: string,
+        payload: {
+            photo?: File | null;
+            video?: File | null;
+        }
+    ): Promise<InfluencerProfileUploadResponse> => {
+        try {
+            const formData = new FormData();
+            if (payload.photo) formData.append("photo", payload.photo);
+            if (payload.video) formData.append("video", payload.video);
+
+            const response = await apiClient.post<InfluencerProfileUploadResponse>(
+                Endpoints.influencerProfile(influencer_id),
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+});

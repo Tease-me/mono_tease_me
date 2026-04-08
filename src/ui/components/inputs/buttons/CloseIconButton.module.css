@@ -1,0 +1,35 @@
+.button {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+}
+
+.button:global([class*="button-cta-outer"]):global([class*="icon-only"]) {
+  min-height: 42px;
+}
+
+.button :global([class*="button-cta-content-container"]) {
+  justify-content: center;
+  flex-grow: 0;
+}
+
+.button :global([class*="left-icon"]) {
+  width: auto;
+  height: auto;
+  padding: 0;
+  opacity: 1;
+}
+
+.iconFrame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.icon {
+  display: block;
+  width: 32px;
+  height: 32px;
+  transform: translate(2.94%, 5.88%);
+}

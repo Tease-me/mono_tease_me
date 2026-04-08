@@ -212,7 +212,7 @@
         opacity: 0.85;
         text-align: center;
         font-family: var(--secondary-font-family);
-        font-size: 1rem;
+        font-size: 1.1rem;
         font-style: normal;
         font-weight: 700;
         line-height: 140%;
@@ -458,7 +458,8 @@
 .button-cta-outer.pink .button-cta-inner .button-text,
 .button-cta-outer.black .button-cta-inner .button-text,
 .button-cta-outer.red .button-cta-inner .button-text,
-.button-cta-outer.pink-glass .button-cta-inner .button-text {
+.button-cta-outer.pink-glass .button-cta-inner .button-text,
+.button-cta-outer.purple-glass .button-cta-inner .button-text {
         transition: all 200ms ease-in-out;
         color: var(--white);
         text-shadow: 1px 1px 0 hsla(var(--hue-neutral), 0%, 0%, 0.2),
@@ -523,7 +524,8 @@
 
 .button-cta-outer.pink.pressed .button-cta-inner,
 .button-cta-outer.red.pressed .button-cta-inner,
-.button-cta-outer.pink-glass.pressed .button-cta-inner {
+.button-cta-outer.pink-glass.pressed .button-cta-inner,
+.button-cta-outer.purple-glass.pressed .button-cta-inner {
         color: var(--black);
         background: var(--gradient-inner-mainhue-pressed);
         box-shadow: 0 3px 0 0 hsla(var(--hue-neutral), 0%, 0%, 0.15) inset,
@@ -537,7 +539,8 @@
 
 .button-cta-outer.pink.pressed .button-cta-inner .button-text,
 .button-cta-outer.red.pressed .button-cta-inner .button-text,
-.button-cta-outer.pink-glass.pressed .button-cta-inner .button-text {
+.button-cta-outer.pink-glass.pressed .button-cta-inner .button-text,
+.button-cta-outer.purple-glass.pressed .button-cta-inner .button-text {
         color: var(--black);
         opacity: 0.4;
 }
@@ -555,7 +558,8 @@
 .button-cta-outer.green.selected,
 .button-cta-outer.red.selected,
 .button-cta-outer.yellow.selected,
-.button-cta-outer.pink-glass.selected {
+.button-cta-outer.pink-glass.selected,
+.button-cta-outer.purple-glass.selected {
         background: var(--gradient-outer-mainhue-selected);
         box-shadow: none;
 }
@@ -565,7 +569,8 @@
 .button-cta-outer.green.selected .button-cta-inner,
 .button-cta-outer.red.selected .button-cta-inner,
 .button-cta-outer.yellow.selected .button-cta-inner,
-.button-cta-outer.pink-glass.selected .button-cta-inner {
+.button-cta-outer.pink-glass.selected .button-cta-inner,
+.button-cta-outer.purple-glass.selected .button-cta-inner {
         background: var(--gradient-inner-mainhue-selected);
         color: hsla(var(--tm-color01), 66%, 20%, 1);
         box-shadow: -4px -4px 1px -4px hsla(var(--tm-color06), 100%, 70%, 0.55) inset,
@@ -581,7 +586,8 @@
 .button-cta-outer.green.selected .button-cta-inner .button-text,
 .button-cta-outer.red.selected .button-cta-inner .button-text,
 .button-cta-outer.yellow.selected .button-cta-inner .button-text,
-.button-cta-outer.pink-glass.selected .button-cta-inner .button-text {
+.button-cta-outer.pink-glass.selected .button-cta-inner .button-text,
+.button-cta-outer.purple-glass.selected .button-cta-inner .button-text {
         color: hsla(var(--tm-color01), 66%, 20%, 1);
         opacity: 1;
         text-shadow: 0 1px 0 hsla(var(--hue-neutral), 0%, 100%, 0.25);
@@ -598,7 +604,9 @@
 .button-cta-outer.yellow.selected .button-cta-inner .left-icon,
 .button-cta-outer.yellow.selected .button-cta-inner .right-icon,
 .button-cta-outer.pink-glass.selected .button-cta-inner .left-icon,
-.button-cta-outer.pink-glass.selected .button-cta-inner .right-icon {
+.button-cta-outer.pink-glass.selected .button-cta-inner .right-icon,
+.button-cta-outer.purple-glass.selected .button-cta-inner .left-icon,
+.button-cta-outer.purple-glass.selected .button-cta-inner .right-icon {
         opacity: 1;
         filter: drop-shadow(0 1px 0 hsla(var(--hue-neutral), 0%, 100%, 0.25));
 }
@@ -1297,9 +1305,96 @@
                 var(--shadow-inset-white), var(--shadow-inset-rose);
 }
 
+.purple-glass {
+        /* 🎨 Hue tokens */
+        --tm-color05: 269;
+        --tm-color04: 270;
+        --tm-color01: 271;
+        --tm-color03: 268;
+        --tm-color02: 267;
+        --tm-color06: 200;
+        --hue-neutral: 0;
+
+        /* 🎨 Color tokens */
+        --color-mainhue-1: hsl(var(--tm-color01), 100%, 20%);
+        --color-secondhue-1: hsl(var(--tm-color01), 100%, 12%);
+        --color-mainhue-2: hsl(var(--tm-color04), 100%, 4%);
+        --color-secondhue-2: hsl(var(--tm-color04), 100%, 18%);
+        --color-mainhue-3: hsl(var(--tm-color01), 100%, 20%);
+        --color-mainhue-4: hsl(var(--tm-color01), 100%, 20%);
+
+        --color-secondhue-3: hsl(var(--tm-color02), 100%, 8%);
+        --color-secondhue-4: hsl(var(--tm-color03), 100%, 12%);
+        --color-secondhue-5: hsl(var(--tm-color02), 100%, 4%);
+        --color-mainhue-5: hsl(var(--tm-color04), 100%, 12%);
+        --color-secondhue-6: hsl(var(--tm-color02), 100%, 11%);
+        --color-secondhue-7: hsl(var(--tm-color01), 100%, 8%);
+
+        --shadow-light: hsl(var(--tm-color06), 97%, 22%);
+        --shadow-mid: hsl(var(--tm-color05), 99%, 45%);
+
+        /* 🌈 Gradient tokens */
+        --gradient-outer-mainhue: linear-gradient(82deg,
+                        var(--color-mainhue-1) 11.75%,
+                        var(--color-secondhue-1) 25.54%,
+                        var(--color-mainhue-2) 46.73%,
+                        var(--color-secondhue-2) 65.34%,
+                        var(--color-mainhue-3) 82.28%,
+                        var(--color-mainhue-4) 90.95%);
+
+        --gradient-inner-mainhue: linear-gradient(250deg,
+                        var(--color-secondhue-3) 8.83%,
+                        var(--color-secondhue-4) 13.08%,
+                        var(--color-secondhue-5) 23.52%,
+                        var(--color-mainhue-5) 35.88%,
+                        var(--color-secondhue-6) 61.39%,
+                        var(--color-secondhue-7) 89.22%);
+
+        --gradient-outer-mainhue-pressed: linear-gradient(82deg,
+                        hsla(var(--tm-color01), 100%, 20%, 0.1) 14.51%,
+                        hsla(var(--tm-color01), 100%, 28%, 0.1) 23.18%,
+                        hsla(var(--tm-color01), 100%, 30%, 0.1) 40.12%,
+                        hsla(var(--tm-color01), 100%, 23%, 0.1) 58.73%,
+                        hsla(var(--tm-color01), 100%, 34%, 0.1) 79.91%,
+                        hsla(var(--tm-color01), 100%, 38%, 0.1) 93.7%);
+
+        --gradient-inner-mainhue-pressed: linear-gradient(266deg,
+                        hsl(var(--tm-color01), 100%, 33%) 9.6%,
+                        hsl(var(--tm-color01), 100%, 32%) 13.73%,
+                        hsl(var(--tm-color01), 100%, 30%) 23.88%,
+                        hsl(var(--tm-color01), 100%, 38%) 35.9%,
+                        hsl(var(--tm-color01), 100%, 28%) 60.69%,
+                        hsl(var(--tm-color01), 100%, 26%) 87.74%);
+
+        --gradient-outer-mainhue-hover: linear-gradient(82deg,
+                        hsl(var(--tm-color01), 71%, 25%) 11.75%,
+                        hsl(var(--tm-color01), 70%, 40%) 25.54%,
+                        hsl(var(--tm-color01), 70%, 53%) 46.73%,
+                        hsl(var(--tm-color01), 70%, 30%) 65.34%,
+                        hsl(var(--tm-color01), 71%, 35%) 82.28%,
+                        hsl(var(--tm-color01), 71%, 35%) 90.95%);
+
+        /* 🌑 Base Box Shadow tokens */
+        --shadow-inset-orange: -4px -4px 1px -4px hsla(var(--tm-color06), 97%, 15%, 0.55) inset;
+        --shadow-inset-light: 5px 3px 3px -4px var(--shadow-light) inset;
+        --shadow-inset-mid: -14px -7px 1px -15px var(--shadow-mid) inset;
+        --shadow-inset-secondhue: -12px -9px 2px -10px hsla(var(--tm-color02), 100%, 18%, 0.5) inset;
+        --shadow-inset-white: 13px 9px 1px -11px hsla(var(--hue-neutral),
+                        0%,
+                        100%,
+                        0.15) inset;
+        --shadow-inset-rose: 9px 10px 1px -11px var(--shadow-mid) inset;
+
+        /* Compound shadow for default state */
+        --shadow-button-inner: var(--shadow-inset-orange), var(--shadow-inset-light),
+                var(--shadow-inset-mid), var(--shadow-inset-secondhue),
+                var(--shadow-inset-white), var(--shadow-inset-rose);
+}
+
 /*---------------------------- end of color vars ----------------------------*/
 
-.button-cta-outer.pink-glass .button-cta-inner {
+.button-cta-outer.pink-glass .button-cta-inner,
+.button-cta-outer.purple-glass .button-cta-inner {
         transition: all 200ms ease-in-out;
         color: var(--white);
         background: var(--gradient-inner-mainhue);
@@ -1313,13 +1408,15 @@
 
 /**---- Hover state ----**/
 
-.button-cta-outer.pink-glass.hover {
+.button-cta-outer.pink-glass.hover,
+.button-cta-outer.purple-glass.hover {
         transition: all 200ms ease-in-out;
         background: var(--gradient-outer-mainhue-hover);
         box-shadow: 0 3px 11px -2px hsl(var(--tm-color01), 100%, 15%);
 }
 
-.button-cta-outer.pink-glass.hover .button-cta-inner {
+.button-cta-outer.pink-glass.hover .button-cta-inner,
+.button-cta-outer.purple-glass.hover .button-cta-inner {
         transition: all 200ms ease-in-out;
 
         background: linear-gradient(250deg,
