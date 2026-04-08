@@ -20,9 +20,7 @@ from app.utils.auth.dependencies import get_current_user
 from app.core.config import settings
 from app.services.gateways.telegram.session_manager import session_manager
 from app.services.gateways.telegram import lifecycle as tg_lifecycle
-from app.services.use_cases.reset_telegram_trial_state import (
-    reset_telegram_trial_state,
-)
+from app.services.repositories import call_record_repository
 from app.data.schemas.telegram_session import (
     SendCodeRequest,
     SendCodeResponse,
@@ -318,14 +316,9 @@ async def reset_all_telegram_trials(
     """Delete all Telegram call records, resetting every user's trial budget."""
     ensure_admin(current_user)
 
-    deleted, rows, redis_deleted = await reset_telegram_trial_state(db)
+    deleted, rows = await call_record_repository.delete_telegram_trials(db)
 
-    log.info(
-        "admin.reset_all_trials deleted=%d redis_reply_counters_deleted=%d by_user=%s",
-        deleted,
-        redis_deleted,
-        current_user.id,
-    )
+    log.info("admin.reset_all_trials deleted=%d by_user=%s", deleted, current_user.id)
 
     return TrialResetResponse(
         ok=True,

@@ -18,11 +18,10 @@ async def send_influencer_promo_media(
     profile_video_key: Optional[str] = None,
     profile_photo_key: Optional[str] = None,
     caption: str = "",
-) -> str | None:
+) -> bool:
     """Download an influencer's video or photo from S3 and send it to a Telegram user.
 
-    Tries video first, falls back to photo.
-    Returns the media type sent or None if nothing was sent.
+    Tries video first, falls back to photo. Returns True if something was sent.
     """
     # Try video first
     if profile_video_key:
@@ -38,12 +37,7 @@ async def send_influencer_promo_media(
                     caption=caption or None,
                     file_name="promo.mp4",
                 )
-                log.info(
-                    "promo_media_sent chat=%s media_type=profile_video key=%s",
-                    chat_id,
-                    profile_video_key,
-                )
-                return "profile_video"
+                return True
             else:
                 log.warning("S3 returned empty bytes for video key=%s", profile_video_key)
         except Exception:
@@ -62,12 +56,7 @@ async def send_influencer_promo_media(
                     photo=io.BytesIO(photo_bytes),
                     caption=caption or None,
                 )
-                log.info(
-                    "promo_media_sent chat=%s media_type=profile_photo key=%s",
-                    chat_id,
-                    profile_photo_key,
-                )
-                return "profile_photo"
+                return True
             else:
                 log.warning("S3 returned empty bytes for photo key=%s", profile_photo_key)
         except Exception:
@@ -76,4 +65,4 @@ async def send_influencer_promo_media(
     if not profile_video_key and not profile_photo_key:
         log.warning("No promo media keys set for chat=%s — skipping media send", chat_id)
 
-    return None
+    return False
