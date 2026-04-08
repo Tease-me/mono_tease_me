@@ -175,8 +175,6 @@ async def test_message_handler_sends_single_private_reply(monkeypatch) -> None:
 
 @pytest.mark.anyio
 async def test_message_handler_ignores_outgoing_messages(monkeypatch) -> None:
-    from app.services.gateways.telegram import handlers as handlers_module
-
     fake_redis = FakeRedis()
     monkeypatch.setattr(
         "app.utils.infrastructure.concurrency.advisory_lock",
