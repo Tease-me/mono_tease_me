@@ -504,14 +504,6 @@ class VoiceCallSession:
                 "voice_call.call_ended_by_remote influencer=%s", self.influencer_id
             )
             await self.stop(reason="remote_hangup")
-            from app.services.gateways.telegram.voice_engine import voice_call_manager
-
-            key = voice_call_manager._call_key(
-                self.influencer_id, self.telegram_user_id
-            )
-            voice_call_manager._active_calls.pop(key, None)
-
-            # Trial consumed on hangup — send promo + CTA
             await self._send_trial_ended_on_hangup()
 
         self._call_left_handler = _on_call_left
@@ -522,14 +514,6 @@ class VoiceCallSession:
                 return
             log.info("voice_call.call_discarded influencer=%s", self.influencer_id)
             await self.stop(reason="remote_hangup")
-            from app.services.gateways.telegram.voice_engine import voice_call_manager
-
-            key = voice_call_manager._call_key(
-                self.influencer_id, self.telegram_user_id
-            )
-            voice_call_manager._active_calls.pop(key, None)
-
-            # Trial consumed on hangup — send promo + CTA
             await self._send_trial_ended_on_hangup()
 
         self._call_discarded_handler = _on_call_discarded
@@ -1117,27 +1101,47 @@ class VoiceCallSession:
             )
 
             await self.stop(reason="trial_expired")
-
-            # Send voice note → promo media → CTA (all handled by send_trial_expired_messages)
-            try:
-                from app.core.session import SessionLocal as _SessionFactory
-                from app.services.telegram_call_service import (
-                    send_trial_expired_messages,
-                )
-
-                async with _SessionFactory() as _db:
-                    await send_trial_expired_messages(
-                        self.client,
-                        _db,
-                        self.chat_id,
-                        self.telegram_user_id,
-                        self.influencer_id,
-                    )
-            except Exception:
-                log.exception("Failed to send trial-ended messages")
+            await self._send_post_call_trial_sequence()
 
         except asyncio.CancelledError:
             pass
+
+    async def _remove_from_active_calls(self) -> None:
+        """Remove this session from the active-call registry."""
+        from app.services.gateways.telegram.voice_engine import voice_call_manager
+
+        key = voice_call_manager._call_key(
+            self.influencer_id, self.telegram_user_id
+        )
+        voice_call_manager._active_calls.pop(key, None)
+
+    async def _send_post_call_trial_sequence(self) -> None:
+        """Send the post-call trial-ended sequence once after teardown."""
+        if self._trial_messages_sent:
+            log.debug(
+                "trial_post_call_sequence_skipped influencer=%s user=%s reason=already_sent",
+                self.influencer_id,
+                self.telegram_user_id,
+            )
+            return
+
+        self._trial_messages_sent = True
+        await self._remove_from_active_calls()
+
+        try:
+            from app.core.session import SessionLocal as _SessionFactory
+            from app.services.telegram_call_service import send_trial_expired_messages
+
+            async with _SessionFactory() as _db:
+                await send_trial_expired_messages(
+                    self.client,
+                    _db,
+                    self.chat_id,
+                    self.telegram_user_id,
+                    self.influencer_id,
+                )
+        except Exception:
+            log.exception("Failed to send post-call trial-ended messages")
 
     async def _send_trial_ended_on_hangup(self):
         """Send trial-ended messages after the user hangs up early.
@@ -1154,7 +1158,6 @@ class VoiceCallSession:
                 self.influencer_id, self.telegram_user_id,
             )
             return
-        self._trial_messages_sent = True
 
         try:
             from app.services.funnel_tracking_service import track_trial_exhausted
@@ -1165,110 +1168,9 @@ class VoiceCallSession:
                     self.influencer_id,
                 )
             )
-
-            from app.core.session import SessionLocal as _SessionFactory
-            from app.services.telegram_call_service import send_trial_expired_messages
-
-            async with _SessionFactory() as _db:
-                await send_trial_expired_messages(
-                    self.client,
-                    _db,
-                    self.chat_id,
-                    self.telegram_user_id,
-                    self.influencer_id,
-                )
+            await self._send_post_call_trial_sequence()
         except Exception:
             log.exception("Failed to send trial-ended messages after hangup")
-
-
-    async def _send_trial_voice_note(self):
-        """Send welcome audio from assets_json, falling back to ElevenLabs TTS."""
-        # Try welcome audio from assets_json first
-        try:
-            from app.services.telegram_call_service import send_telegram_welcome_audio
-
-            async with SessionLocal() as db:
-                influencer = await db.get(Influencer, self.influencer_id)
-                if influencer:
-                    audio_sent = await send_telegram_welcome_audio(
-                        self.client,
-                        self.chat_id,
-                        influencer,
-                    )
-                    if audio_sent:
-                        log.info(
-                            "voice_call.welcome_audio_sent influencer=%s user=%s",
-                            self.influencer_id,
-                            self.telegram_user_id,
-                        )
-                        return
-        except Exception:
-            log.exception("Failed to send welcome audio, falling back to TTS")
-
-        # Fallback: generate TTS voice note via ElevenLabs
-        farewell_text = "I'll see you in tease-me mi amor....... don't make me wait"
-        try:
-            import io
-
-            import httpx
-
-            voice_id = self.voice_id
-            api_key = settings.ELEVENLABS_API_KEY
-            if not api_key:
-                log.warning("No ELEVENLABS_API_KEY — skipping trial voice note")
-                return
-
-            url = f"{settings.ELEVENLABS_TTS_BASE_URL}/{voice_id}"
-            headers = {
-                "xi-api-key": api_key,
-                "Content-Type": "application/json",
-                "Accept": "audio/mpeg",
-            }
-            payload = {
-                "text": farewell_text,
-                "model_id": "eleven_turbo_v2",
-                "voice_settings": {
-                    "stability": 0.7,
-                    "similarity_boost": 0.75,
-                    "style": 0.4,
-                    "speed": 1,
-                },
-            }
-
-            async with httpx.AsyncClient(timeout=15.0) as client:
-                resp = await client.post(url, json=payload, headers=headers)
-
-            if resp.status_code != 200:
-                log.error(
-                    "ElevenLabs TTS failed: %s %s", resp.status_code, resp.text[:200]
-                )
-                return
-
-            audio_bytes = resp.content
-            if len(audio_bytes) < 1000:
-                log.warning(
-                    "ElevenLabs TTS returned suspiciously small audio (%d bytes)",
-                    len(audio_bytes),
-                )
-                return
-
-            voice_file = io.BytesIO(audio_bytes)
-            voice_file.name = "farewell.mp3"
-
-            if not self.client.me:
-                await self.client.get_me()
-            await self.client.send_voice(
-                chat_id=self.chat_id,
-                voice=voice_file,
-            )
-            log.info(
-                "voice_call.trial_voice_note_sent influencer=%s user=%s",
-                self.influencer_id,
-                self.telegram_user_id,
-            )
-
-        except Exception:
-            log.exception("Failed to send trial voice note")
 
     # ── DB helpers ──────────────────────────────────────────────────
 
@@ -1414,6 +1316,7 @@ class VoiceCallManager:
         session = self._active_calls.pop(key, None)
         if session and session.is_active:
             await session.stop(reason="user_hangup")
+            await session._send_trial_ended_on_hangup()
 
     async def end_all_calls(self):
         for key, session in list(self._active_calls.items()):
