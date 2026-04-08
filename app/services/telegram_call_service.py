@@ -68,6 +68,14 @@ async def send_trial_expired_messages(
 
     cta_html = build_telegram_cta_html(invite_code, influencer_id)
 
+    # Ensure client.me is populated — Pyrogram's save_file needs
+    # self.me.is_premium and will crash if client.me is None.
+    try:
+        if not client.me:
+            await client.get_me()
+    except Exception:
+        log.warning("trial_expired: get_me() failed — sends may fail")
+
     # Fetch influencer for media
     influencer = await db.get(Influencer, influencer_id)
 
