@@ -1,13 +1,14 @@
-import { useContext, useState, useEffect } from "react";
+import { Suspense, useContext, useState, useEffect } from "react";
 import styles from "./UserProfile.module.css";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
+import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import SvgPack from "@/utils/SvgPack";
 import { AuthContext } from "@/context/AuthContext";
 import { apiClient } from "@/api/apis";
 import { UserDataModel } from "@/data/models/UserDataModel";
-import ImageCropModal from "@/ui/components/modals/image-crop-modal/ImageCropModal";
+import AvatarPicker from "@/ui/components/avatar-picker/AvatarPicker";
 import clsx from "clsx";
 import logger from "@/utils/logger";
 
@@ -19,13 +20,31 @@ const UserProfile: React.FC<UserProfileProps> = ({ goTo }) => {
   const [localUser, setLocalUser] = useState<LocalUser>(user ?? {});
   const [photoBlob, setPhotoBlob] = useState<Blob | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [showCropModal, setShowCropModal] = useState<boolean>(false);
-  const [pendingImage, setPendingImage] = useState<string | null>(null);
-
-
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isErrorPositive, setIsErrorPositive] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleSelectAvatar = async (url: string) => {
+    try {
+      const absoluteAvatarUrl = url.startsWith("http")
+        ? url
+        : `${window.location.origin}${url}`;
+      const response = await fetch(absoluteAvatarUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to load avatar: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      setPreviewUrl(url);
+      setPhotoBlob(blob);
+      setError(null);
+    } catch (err) {
+      logger.error("Error loading avatar asset:", err);
+      setIsErrorPositive(false);
+      setError("Error: Unable to load that avatar right now.");
+    }
+  };
 
   const handleUpdateProfile = async () => {
     if (!user?.id) {
@@ -98,24 +117,19 @@ const UserProfile: React.FC<UserProfileProps> = ({ goTo }) => {
         <ProfileMedia
           imageSrc={previewUrl || user?.imgUrl}
           mediaType="image"
-          onEditClick={() => document.getElementById("profile-image-input")?.click()}
-          size="medium"
+          size="large"
         />
-        <input
-          type="file"
-          accept="image/*"
-          style={{ display: 'none' }}
-          id="profile-image-input"
-          onChange={(e) => {
-            const file = e.target.files ? e.target.files[0] : null;
-            if (!file || !file.type.startsWith('image/')) {
-              return;
-            }
-            const url = URL.createObjectURL(file);
-            e.target.value = '';
-            setShowCropModal(true);
-            setPendingImage(url);
-          }}
+        <IconButton
+          color="black"
+          type="pill"
+          text="Select avatar"
+          onClick={() => setShowAvatarPicker(true)}
+          className={styles.selectAvatarBtn}
+          leftIcon={
+            <Suspense fallback={null}>
+              <SvgPack.PlusRed />
+            </Suspense>
+          }
         />
       </div>
 
@@ -169,21 +183,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ goTo }) => {
             disabled={isUpdating}
           />
         </div>
-
-        <ImageCropModal
-          isOpen={showCropModal}
-          imageSrc={pendingImage!}
-          onClose={() => setShowCropModal(false)}
-          onCropComplete={(blob, dataUrl) => {
-            setPreviewUrl(dataUrl);
-            setShowCropModal(false);
-            setPhotoBlob(blob);
-            if (pendingImage) {
-              URL.revokeObjectURL(pendingImage);
-              setPendingImage(null);
-
-            }
-          }} />
+        <AvatarPicker
+          isOpen={showAvatarPicker}
+          onClose={() => setShowAvatarPicker(false)}
+          onSelect={handleSelectAvatar}
+        />
       </div>
     </div>
   );
