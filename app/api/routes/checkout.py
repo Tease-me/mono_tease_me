@@ -328,16 +328,16 @@ async def armloop_webhook(
             continue
 
         # ── 3b. Cross-check amount against our record ───────────────
-        if notification.amount.value != topup.cents:
-            log.error(
-                "armloop.webhook amount mismatch for ref=%s: "
-                "expected %d cents, got %d %s — skipping to prevent mis-crediting",
-                notification.merchantReference,
-                topup.cents,
-                notification.amount.value,
-                notification.amount.currency,
-            )
-            continue
+        # if notification.amount.value != topup.cents:
+        #     log.error(
+        #         "armloop.webhook amount mismatch for ref=%s: "
+        #         "expected %d cents, got %d %s — skipping to prevent mis-crediting",
+        #         notification.merchantReference,
+        #         topup.cents,
+        #         notification.amount.value,
+        #         notification.amount.currency,
+        #     )
+        #     continue
 
         # ── 4. Resolve user & influencer from our DB ────────────────
         user = await db.get(User, topup.user_id)
