@@ -393,7 +393,6 @@ export default function SceneSelector({
       ) : (
         <>
           <div className={`${styles.page1}${selectedScene ? ` ${styles.page1Hidden}` : ""}`}>
-            <div className={styles.header}>Select a scenario</div>
             <div className={styles.selectionArea}>
               <div
                 ref={scenesListRef}

@@ -19,6 +19,7 @@ import { useInfluencerSelection } from "@/hooks/messaging/useInfluencerSelection
 import type { CallStatus } from "@/hooks/useCallWebRTC";
 import InfluencerSelector from "@/ui/screens/influencer/InfluencerSelector";
 import UserNav from "@/ui/components/nav/UserNav";
+import { constants } from "@/utils/constants";
 
 const UserMenu = React.lazy(() => import("../user-profile/UserMenu"));
 const UserProfile = React.lazy(
@@ -175,8 +176,40 @@ export default function HomeScreenSingle() {
     [dispatch, isSubscribing],
   );
 
+  const closeSidebar = useCallback(() => {
+    setShowSidebar(false);
+    setCurrentPage("home");
+    setHistory([]);
+    setNavPayload({});
+  }, []);
+
+  const handleUserMenuSwitchInfluencer = useCallback(() => {
+    const isPhone = window.matchMedia(
+      `(max-width: ${constants.DESKTOP_TABLET_BREAKPOINT - 1}px)`,
+    ).matches;
+
+    if (isPhone) {
+      closeSidebar();
+    }
+
+    handleChangeInfluencerClicked();
+  }, [closeSidebar, handleChangeInfluencerClicked]);
+
   const sidebarPages: SidebarPage[] = useMemo(() => ([
-    { id: "home", label: "User Menu", render: ({ goTo }) => <UserMenu goTo={goTo} /> },
+    {
+      id: "home",
+      label: "User Menu",
+      render: ({ goTo }) => (
+        <UserMenu
+          goTo={goTo}
+          onSwitchInfluencer={
+            hasMultipleInfluencers && !isSelectingInfluencer
+              ? handleUserMenuSwitchInfluencer
+              : undefined
+          }
+        />
+      ),
+    },
     { id: "profile", label: "User Profile", render: ({ goTo }) => <UserProfile goTo={goTo} /> },
     { id: "payment", label: "Payment Details", render: ({ goTo }) => <PaymentDetails goTo={goTo} /> },
     { id: "payment-check", label: "Payment", render: () => <PaymentCheck />, background: "#181A20" },
@@ -204,7 +237,12 @@ export default function HomeScreenSingle() {
       )
     },
     { id: "subscription", label: "Subscription", render: ({ goTo, navPayload }) => <Subscription goTo={goTo} navPayload={navPayload} />, background: "linear-gradient(0deg, #131313 0%, #131313 100%), url(<path-to-image>) lightgray -60.714px 0px / 130.206% 89.736% no-repeat" },
-  ]), [handleSidebarSubscribe]);
+  ]), [
+    handleSidebarSubscribe,
+    handleUserMenuSwitchInfluencer,
+    hasMultipleInfluencers,
+    isSelectingInfluencer,
+  ]);
 
 
   const active = useMemo(
@@ -289,7 +327,7 @@ export default function HomeScreenSingle() {
       <div className={styles.viewWithNav}>
         <UserNav
           onMenuClick={toggleSidebar}
-          onSwitchInfluencer={hasMultipleInfluencers ? handleChangeInfluencerClicked : undefined}
+          title="Select a Scenario"
         />
         {influencer ? (
           <Suspense fallback={<div className={styles.loadingSpinner}><LoadingSpinner /></div>}>
