@@ -12,7 +12,7 @@ import random
 import re
 from collections.abc import Awaitable, Callable
 
-from pyrogram import Client
+from pyrogram import Client, filters
 
 log = logging.getLogger(__name__)
 
@@ -47,18 +47,22 @@ class TelegramMessageHandler:
     def register(self):
         """Register voice call and text message handlers on the Pyrogram client."""
 
+        @self.client.on_message(filters.text & filters.private)
+        async def handle_private_text(_client: Client, message) -> None:
+            """Handle private text DMs via Pyrogram's message abstraction."""
+            await self._handle_incoming_message(message)
+
         @self.client.on_raw_update()
         async def handle_raw_update(_client: Client, update, users, chats):
-            """Detect incoming private calls and DMs via raw Telegram updates."""
+            """Detect incoming private voice calls via raw Telegram updates."""
             update_class = type(update).__name__
             if update_class == "UpdatePhoneCall":
                 call_type = type(getattr(update, "phone_call", None)).__name__
                 log.info("RAW UPDATE: %s (phone_call=%s)", update_class, call_type)
-            await self._handle_incoming_text_update(update)
             await self._handle_incoming_call(update)
 
         log.info(
-            "Telegram handlers registered for influencer=%s (voice calls + text)",
+            "Telegram handlers registered for influencer=%s (message + voice call)",
             self.influencer_id,
         )
 
@@ -68,6 +72,11 @@ class TelegramMessageHandler:
         if len(preview) > 100:
             return preview[:97] + "..."
         return preview
+
+    @staticmethod
+    def _normalize_text(text: str) -> str:
+        """Normalize text for dedupe/logging consistency."""
+        return re.sub(r"\s+", " ", text.strip())
 
     async def _get_session_identity(self) -> str:
         """Return a stable Redis identity for the authenticated Telegram account."""
@@ -97,11 +106,13 @@ class TelegramMessageHandler:
         Tracks reply count per (influencer, telegram_user) in Redis.
         After all replies are sent, sends the influencer CTA link once and goes silent.
         """
+        from app.utils.infrastructure.concurrency import advisory_lock
         from app.utils.infrastructure.redis_pool import get_redis
 
         redis = await get_redis()
         session_identity = await self._get_session_identity()
         session_telegram_id = getattr(self.client, "_tease_me_telegram_id", None)
+        normalized_text = self._normalize_text(text)
         if message_id is not None:
             dedupe_key = (
                 f"tg:text_message_seen:{session_identity}:{user_id}:{message_id}"
@@ -123,117 +134,100 @@ class TelegramMessageHandler:
                 return
 
         key = f"tg:text_replies:{session_identity}:{user_id}"
+        lock_name = f"tg_text_reply:{session_identity}:{user_id}"
 
-        raw = await redis.get(key)
-        count = int(raw) if raw else 0
+        async with advisory_lock(
+            lock_name,
+            timeout=5,
+            retry_count=1,
+            retry_delay=0.05,
+            raise_on_fail=False,
+        ) as acquired:
+            if not acquired:
+                log.info(
+                    "telegram.text_reply_lock_suppressed influencer=%s session_tg_id=%s tg_user=%s message_id=%s preview=%r",
+                    self.influencer_id,
+                    session_telegram_id,
+                    user_id,
+                    message_id,
+                    self._build_preview(normalized_text),
+                )
+                return
 
-        log.info(
-            "telegram.incoming_text influencer=%s session_tg_id=%s tg_user=%s message_id=%s reply_count=%s preview=%r",
-            self.influencer_id,
-            session_telegram_id,
-            user_id,
-            message_id,
-            count,
-            self._build_preview(text),
-        )
+            raw = await redis.get(key)
+            count = int(raw) if raw else 0
 
-        if count > self.MAX_TEXT_REPLIES:
-            # Already sent all replies + CTA — stay silent
             log.info(
-                "telegram.text_reply_suppressed influencer=%s session_tg_id=%s tg_user=%s reply_count=%s",
+                "telegram.incoming_text influencer=%s path=message_handler session_tg_id=%s tg_user=%s message_id=%s reply_count=%s preview=%r",
                 self.influencer_id,
                 session_telegram_id,
                 user_id,
+                message_id,
                 count,
-            )
-            return
-
-        if count < self.MAX_TEXT_REPLIES:
-            reply_index = count
-            await asyncio.sleep(random.uniform(1.0, 2.0))
-            await send_reply(self.TEXT_REPLIES[count])
-            count += 1
-            await redis.set(key, count)
-            log.info(
-                "telegram.text_reply_sent influencer=%s session_tg_id=%s tg_user=%s reply_index=%s",
-                self.influencer_id,
-                session_telegram_id,
-                user_id,
-                reply_index,
+                self._build_preview(normalized_text),
             )
 
-        if count == self.MAX_TEXT_REPLIES:
-            # All 3 replies sent — mark as done so future messages are silent
-            await redis.set(key, count + 1)
-
-    async def _handle_incoming_text_update(self, update) -> None:
-        """Process incoming private text DMs from raw Telegram updates."""
-        update_class = type(update).__name__
-
-        if hasattr(update, "updates") and isinstance(getattr(update, "updates"), list):
-            for nested_update in update.updates:
-                await self._handle_incoming_text_update(nested_update)
-            return
-
-        if hasattr(update, "update") and update_class.startswith("UpdateShort"):
-            await self._handle_incoming_text_update(update.update)
-            return
-
-        if update_class == "UpdateShortMessage":
-            if getattr(update, "out", False):
+            if count > self.MAX_TEXT_REPLIES:
+                # Already sent all replies + CTA — stay silent
+                log.info(
+                    "telegram.text_reply_suppressed influencer=%s session_tg_id=%s tg_user=%s message_id=%s reply_count=%s",
+                    self.influencer_id,
+                    session_telegram_id,
+                    user_id,
+                    message_id,
+                    count,
+                )
                 return
-            message_text = (getattr(update, "message", None) or "").strip()
-            user_id = getattr(update, "user_id", None)
-            if not user_id or not message_text:
-                return
-            log.info(
-                "telegram.raw_incoming_text_update influencer=%s class=%s tg_user=%s message_id=%s",
-                self.influencer_id,
-                update_class,
-                user_id,
-                getattr(update, "id", None),
-            )
-            await self._process_text_message(
-                user_id=user_id,
-                message_id=getattr(update, "id", None),
-                text=message_text,
-                send_reply=lambda reply_text: self.client.send_message(
-                    chat_id=user_id,
-                    text=reply_text,
-                ),
-            )
+
+            if count < self.MAX_TEXT_REPLIES:
+                reply_index = count
+                await asyncio.sleep(random.uniform(1.0, 2.0))
+                await send_reply(self.TEXT_REPLIES[count])
+                count += 1
+                await redis.set(key, count)
+                log.info(
+                    "telegram.text_reply_sent influencer=%s path=message_handler session_tg_id=%s tg_user=%s message_id=%s reply_index=%s",
+                    self.influencer_id,
+                    session_telegram_id,
+                    user_id,
+                    message_id,
+                    reply_index,
+                )
+
+            if count == self.MAX_TEXT_REPLIES:
+                # All 3 replies sent — mark as done so future messages are silent
+                await redis.set(key, count + 1)
+
+    async def _handle_incoming_message(self, message) -> None:
+        """Process incoming private text DMs from Pyrogram Message objects."""
+        if message is None:
+            return
+        if getattr(message, "service", None):
+            return
+        if getattr(message, "outgoing", False):
             return
 
-        if update_class != "UpdateNewMessage":
+        from_user = getattr(message, "from_user", None)
+        chat = getattr(message, "chat", None)
+        if getattr(chat, "type", None) not in {"private", None}:
             return
 
-        raw_message = getattr(update, "message", None)
-        if raw_message is None:
-            return
-        if type(raw_message).__name__ == "MessageService":
-            return
-        if getattr(raw_message, "out", False):
-            return
-
-        peer_id = getattr(raw_message, "peer_id", None)
-        if type(peer_id).__name__ != "PeerUser":
-            return
-
-        user_id = getattr(peer_id, "user_id", None)
-        message_text = (getattr(raw_message, "message", None) or "").strip()
+        user_id = getattr(from_user, "id", None)
+        message_text = self._normalize_text(getattr(message, "text", None) or "")
+        message_id = getattr(message, "id", None)
         if not user_id or not message_text:
             return
+
         log.info(
-            "telegram.raw_incoming_text_update influencer=%s class=%s tg_user=%s message_id=%s",
+            "telegram.message_handler_text influencer=%s tg_user=%s message_id=%s",
             self.influencer_id,
-            update_class,
             user_id,
-            getattr(raw_message, "id", None),
+            message_id,
         )
 
         await self._process_text_message(
             user_id=user_id,
-            message_id=getattr(raw_message, "id", None),
+            message_id=message_id,
             text=message_text,
             send_reply=lambda reply_text: self.client.send_message(
                 chat_id=user_id,
