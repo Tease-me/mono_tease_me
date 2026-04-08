@@ -47,8 +47,33 @@
 
 .avatarBlock {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  margin-bottom: 24px;
+  margin-bottom: 44px;
+  position: relative;
+}
+
+.selectAvatarBtn {
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  min-height: 42px !important;
+  height: 42px !important;
+}
+
+.selectAvatarBtn :global(.button-cta-inner) {
+  padding: 8px 16px !important;
+}
+
+.selectAvatarBtn :global(.button-cta-content-container) {
+  gap: 8px !important;
+}
+
+.selectAvatarBtn :global(.button-text) {
+  font-size: 16px !important;
 }
 
 .hidden {
@@ -105,4 +130,10 @@
   min-width: 0;
   width: auto;
   height: 3.1875rem;
+}
+
+@media (min-width: 768px) {
+  .avatarBlock :global(.profile-container.large) {
+    height: 16rem;
+  }
 }

@@ -297,6 +297,7 @@ export default function HomeScreenSingle() {
               influencerId={influencer.id}
               influencerName={influencer.name}
               influencerImageUrl={influencer.img}
+              influencerVideoUrl={influencer.videoUrl}
               onGirlfriendModeSelected={handleGirlfriendModeSelected}
             />
           </Suspense>
