@@ -47,8 +47,13 @@ except ImportError:
     PyTgCalls = None  # type: ignore
 
 from app.core.config import settings
+from app.utils.infrastructure.concurrency import AdvisoryLock
 
 log = logging.getLogger(__name__)
+
+
+class TelegramSessionOwnershipError(RuntimeError):
+    """Raised when another process already owns a Telegram session lock."""
 
 
 class TelegramSessionManager:
@@ -58,6 +63,7 @@ class TelegramSessionManager:
         self._sessions: dict[str, Client] = {}
         self._pytgcalls: dict[str, PyTgCalls] = {}  # per-influencer PyTgCalls instances
         self._locks: dict[str, asyncio.Lock] = {}
+        self._ownership_locks: dict[str, AdvisoryLock] = {}
         self._pending_auth: dict[str, dict] = {}  # influencer_id -> {client, phone_code_hash}
         self._sessions_dir = Path(settings.TELEGRAM_SESSIONS_DIR)
         self._sessions_dir.mkdir(parents=True, exist_ok=True)
@@ -119,6 +125,85 @@ class TelegramSessionManager:
             f"'{conflicting_influencer_id}' already uses telegram_id={telegram_id}. "
             f"Stop/delete that session before authenticating '{influencer_id}'."
         )
+
+    @staticmethod
+    def _ownership_lock_name(telegram_id: int | None) -> str | None:
+        """Build a Redis lock name for a Telegram session/account."""
+        if telegram_id is None:
+            return None
+        return f"tg_session_owner:{telegram_id}"
+
+    async def _acquire_session_ownership_lock(self, influencer_id: str, client: Client) -> None:
+        """Acquire a cross-process lock so only one process owns this session."""
+        telegram_id = self._get_client_telegram_id(client)
+        lock_name = self._ownership_lock_name(telegram_id)
+        if lock_name is None:
+            log.debug(
+                "telegram.session_lock_skipped influencer=%s reason=no_telegram_id",
+                influencer_id,
+            )
+            return
+
+        existing_lock = self._ownership_locks.pop(influencer_id, None)
+        if existing_lock:
+            log.info(
+                "telegram.session_lock_replacing influencer=%s telegram_id=%s lock_name=%s",
+                influencer_id,
+                telegram_id,
+                lock_name,
+            )
+            await existing_lock.release()
+
+        lock = AdvisoryLock(lock_name, timeout=300, retry_count=1, retry_delay=0.05)
+        log.info(
+            "telegram.session_lock_attempt influencer=%s telegram_id=%s lock_name=%s",
+            influencer_id,
+            telegram_id,
+            lock_name,
+        )
+        acquired = await lock.acquire()
+        if not acquired:
+            log.warning(
+                "telegram.session_lock_conflict influencer=%s telegram_id=%s lock_name=%s",
+                influencer_id,
+                telegram_id,
+                lock_name,
+            )
+            raise TelegramSessionOwnershipError(
+                "Telegram session ownership conflict: another process already owns "
+                f"telegram_id={telegram_id} for influencer '{influencer_id}'."
+            )
+
+        self._ownership_locks[influencer_id] = lock
+        setattr(client, "_tease_me_session_lock_name", lock_name)
+        log.info(
+            "telegram.session_lock_acquired influencer=%s telegram_id=%s lock_name=%s",
+            influencer_id,
+            telegram_id,
+            lock_name,
+        )
+
+    async def _release_session_ownership_lock(
+        self,
+        influencer_id: str,
+        client: Client | None = None,
+    ) -> None:
+        """Release any held cross-process ownership lock for a session."""
+        lock = self._ownership_locks.pop(influencer_id, None)
+        if lock is not None:
+            log.info(
+                "telegram.session_lock_releasing influencer=%s lock_name=%s",
+                influencer_id,
+                lock.name,
+            )
+            await lock.release()
+        if client is not None:
+            setattr(client, "_tease_me_session_lock_name", None)
+        if lock is None:
+            log.debug(
+                "telegram.session_lock_release_skipped influencer=%s reason=no_lock",
+                influencer_id,
+            )
 
     @staticmethod
     def _require_pyrogram():
@@ -429,6 +514,7 @@ class TelegramSessionManager:
 
             self._assert_unique_account(influencer_id, me)
             self._set_client_identity(client, me)
+            await self._acquire_session_ownership_lock(influencer_id, client)
 
             # Start the Pyrogram dispatcher so handlers fire on incoming updates
             await client.initialize()
@@ -459,6 +545,7 @@ class TelegramSessionManager:
         except Exception:
             # Clean up on failure
             self._pending_auth.pop(influencer_id, None)
+            await self._release_session_ownership_lock(influencer_id, client)
             try:
                 await client.disconnect()
             except Exception:
@@ -505,6 +592,7 @@ class TelegramSessionManager:
             )
             self._assert_unique_account(influencer_id, me)
             self._set_client_identity(client, me)
+            await self._acquire_session_ownership_lock(influencer_id, client)
 
             # Accept TOS if a TermsOfService.id was stored during verify_code
             tos_id = pending.get("tos_id")
@@ -534,6 +622,7 @@ class TelegramSessionManager:
 
         except Exception:
             self._pending_auth.pop(influencer_id, None)
+            await self._release_session_ownership_lock(influencer_id, client)
             try:
                 await client.disconnect()
             except Exception:
@@ -578,6 +667,7 @@ class TelegramSessionManager:
             me = await client.get_me()
             self._assert_unique_account(influencer_id, me)
             self._set_client_identity(client, me)
+            await self._acquire_session_ownership_lock(influencer_id, client)
             self._sessions[influencer_id] = client
 
             # Start PyTgCalls for voice call support
@@ -595,6 +685,14 @@ class TelegramSessionManager:
                 "telegram_id": me.id,
             }
         except ValueError:
+            await self._release_session_ownership_lock(influencer_id, client)
+            try:
+                await client.disconnect()
+            except Exception:
+                pass
+            raise
+        except TelegramSessionOwnershipError:
+            await self._release_session_ownership_lock(influencer_id, client)
             try:
                 await client.disconnect()
             except Exception:
@@ -606,6 +704,7 @@ class TelegramSessionManager:
                 "Could not resume session for %s (%s), removing stale file",
                 influencer_id, type(e).__name__,
             )
+            await self._release_session_ownership_lock(influencer_id, client)
             try:
                 await client.disconnect()
             except Exception:
@@ -664,6 +763,7 @@ class TelegramSessionManager:
                 me = await client.get_me()
                 self._assert_unique_account(influencer_id, me)
                 self._set_client_identity(client, me)
+                await self._acquire_session_ownership_lock(influencer_id, client)
                 self._sessions[influencer_id] = client
 
                 # Start PyTgCalls for voice call support
@@ -677,6 +777,14 @@ class TelegramSessionManager:
                 )
                 return client
             except ValueError:
+                await self._release_session_ownership_lock(influencer_id, client)
+                try:
+                    await client.disconnect()
+                except Exception:
+                    pass
+                raise
+            except TelegramSessionOwnershipError:
+                await self._release_session_ownership_lock(influencer_id, client)
                 try:
                     await client.disconnect()
                 except Exception:
@@ -691,6 +799,7 @@ class TelegramSessionManager:
                     "Cannot resume session for %s (%s), removing file",
                     influencer_id, type(exc).__name__,
                 )
+                await self._release_session_ownership_lock(influencer_id, client)
                 try:
                     await client.disconnect()
                 except Exception:
@@ -711,8 +820,10 @@ class TelegramSessionManager:
 
             client = self._sessions.pop(influencer_id, None)
             if client is None:
+                await self._release_session_ownership_lock(influencer_id)
                 return False
             try:
+                await self._release_session_ownership_lock(influencer_id, client)
                 await client.stop()
                 log.info("Telegram session stopped for influencer=%s", influencer_id)
                 return True
@@ -738,6 +849,7 @@ class TelegramSessionManager:
             # Stop active connection
             client = self._sessions.pop(influencer_id, None)
             if client:
+                await self._release_session_ownership_lock(influencer_id, client)
                 if terminate_on_telegram:
                     try:
                         await client.log_out()
@@ -771,6 +883,8 @@ class TelegramSessionManager:
 
             # Clear pending auth
             self._pending_auth.pop(influencer_id, None)
+            if client is None:
+                await self._release_session_ownership_lock(influencer_id)
 
             return {
                 "connection_stopped": stopped,
