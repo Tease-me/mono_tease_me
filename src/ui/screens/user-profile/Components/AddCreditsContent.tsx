@@ -7,6 +7,9 @@ import TextInput from "@/ui/components/inputs/text-inputs/TextInput";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import { useArmloopCheckout } from "@/hooks/useArmloopCheckout";
+import { Modal } from "@/ui/components/modals/Modal";
+import { terms } from "@/ui/screens/terms/termsContent";
+import CloseIconButton from "@/ui/components/inputs/buttons/CloseIconButton";
 
 type AddCreditsContentProps = {
   influencerId: string;
@@ -24,6 +27,35 @@ const presets = [
 
 const MIN_AMOUNT = 5;
 
+type PolicySection = {
+  heading: string;
+  paragraphs: string[];
+  bullets?: string[];
+};
+
+type PolicyDocument = {
+  title: string;
+  lastUpdated: string;
+  intro?: string[];
+  sections: PolicySection[];
+};
+
+const paymentTermsSections = terms.terms.sections.filter(
+  (section) =>
+    section.heading === "Payments and Digital Credits" ||
+    section.heading === "Subscriptions",
+);
+
+const paymentTermsDocuments: PolicyDocument[] = [
+  {
+    title: terms.terms.title,
+    lastUpdated: terms.terms.lastUpdated,
+    sections: paymentTermsSections,
+  },
+  terms.refunds,
+  terms.subscriptions,
+];
+
 export default function AddCreditsContent({
   influencerId,
   influencerName,
@@ -32,6 +64,7 @@ export default function AddCreditsContent({
   onCancel,
 }: Readonly<AddCreditsContentProps>) {
   const [amount, setAmount] = useState(0);
+  const [showPaymentTerms, setShowPaymentTerms] = useState(false);
   const { startCheckout, loading, error } = useArmloopCheckout();
   const heading = influencerName
     ? `Top up to talk to ${influencerName}`
@@ -121,7 +154,67 @@ export default function AddCreditsContent({
             )}
           </>
         )}
+
       </div>
+      <button
+        type="button"
+        className={styles.paymentTermsButton}
+        onClick={() => setShowPaymentTerms(true)}
+      >
+        Payment Terms & Conditions
+      </button>
+      <Modal
+        isOpen={showPaymentTerms}
+        onClose={() => setShowPaymentTerms(false)}
+        size="md"
+        className={styles.paymentTermsModal}
+        ariaLabel="Payment Terms and Conditions"
+        zIndex={1100}
+      >
+        <div className={styles.paymentTermsHeader}>
+          <div>
+            <h3 className={styles.paymentTermsTitle}>Payment Terms & Conditions</h3>
+          </div>
+          <CloseIconButton
+            onClick={() => setShowPaymentTerms(false)}
+            className={styles.paymentTermsCloseButton}
+            aria-label="Close payment terms"
+          />
+        </div>
+        <div className={styles.paymentTermsScroll}>
+          {paymentTermsDocuments.map((document, index) => (
+            <section key={document.title} className={styles.paymentTermsDocument}>
+              {index > 0 && (
+                <h4 className={styles.paymentTermsDocumentTitle}>{document.title}</h4>
+              )}
+              {document.intro?.map((paragraph, index) => (
+                <p key={`${document.title}-intro-${index}`} className={styles.paymentTermsParagraph}>
+                  {paragraph}
+                </p>
+              ))}
+              {document.sections.map((section) => (
+                <div key={`${document.title}-${section.heading}`} className={styles.paymentTermsSection}>
+                  <h5 className={styles.paymentTermsSectionTitle}>{section.heading}</h5>
+                  {section.paragraphs.map((paragraph, index) => (
+                    <p key={`${document.title}-${section.heading}-${index}`} className={styles.paymentTermsParagraph}>
+                      {paragraph}
+                    </p>
+                  ))}
+                  {section.bullets?.length ? (
+                    <ul className={styles.paymentTermsList}>
+                      {section.bullets.map((bullet, index) => (
+                        <li key={`${document.title}-${section.heading}-bullet-${index}`}>
+                          {bullet}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+              ))}
+            </section>
+          ))}
+        </div>
+      </Modal>
     </div>
   );
 }
