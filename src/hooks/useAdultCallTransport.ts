@@ -138,6 +138,7 @@ export default function useAdultCallTransport(
   const currentInfluencerIdRef = useRef<string | null>(null);
   const currentConversationIdRef = useRef<string | null>(null);
   const summarySessionRef = useRef(0);
+  const acceptsSummaryUpdatesRef = useRef(false);
 
   const transport = ADULT_CALL_TRANSPORT;
   const status = transport === "backend_voice" ? backendStatus : webrtcStatus;
@@ -225,6 +226,10 @@ export default function useAdultCallTransport(
         return;
       }
 
+      if (!acceptsSummaryUpdatesRef.current) {
+        return;
+      }
+
       const endedConversationId = currentConversationIdRef.current;
       const summary = detail.latest_adult_call_summary;
       if (!summary || !summaryMatchesCall(summary, endedConversationId)) {
@@ -296,6 +301,7 @@ export default function useAdultCallTransport(
       return;
     }
 
+    acceptsSummaryUpdatesRef.current = true;
     setPostCallSummary({
       estimatedDurationSeconds: null,
       estimatedCostCents: null,
@@ -317,6 +323,7 @@ export default function useAdultCallTransport(
       currentInfluencerIdRef.current = influencerId;
       currentConversationIdRef.current = null;
       hadLiveConnectionRef.current = false;
+      acceptsSummaryUpdatesRef.current = false;
       setElapsedSeconds(0);
       setPostCallSummary(null);
       setPendingSummaryRefresh(false);
@@ -365,6 +372,7 @@ export default function useAdultCallTransport(
 
   const dismissPostCallSummary = useCallback(() => {
     summarySessionRef.current += 1;
+    acceptsSummaryUpdatesRef.current = false;
     setPostCallSummary(null);
     setPendingSummaryRefresh(false);
   }, []);
