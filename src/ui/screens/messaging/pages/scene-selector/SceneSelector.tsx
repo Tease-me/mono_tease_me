@@ -55,6 +55,7 @@ type SceneSelectorProps = {
   influencerImageUrl?: string;
   influencerVideoUrl?: string;
   onGirlfriendModeSelected: () => void;
+  onListViewChange?: (isListView: boolean) => void;
 };
 
 const influencerServices = InfluencerServices(apiClient);
@@ -122,6 +123,7 @@ export default function SceneSelector({
   influencerImageUrl,
   influencerVideoUrl,
   onGirlfriendModeSelected,
+  onListViewChange,
 }: SceneSelectorProps) {
   const { user } = useContext(AuthContext);
   const scenesListRef = useRef<HTMLDivElement | null>(null);
@@ -201,6 +203,10 @@ export default function SceneSelector({
 
     setSessionState(isCallActive || showPostCallSummary ? "active" : "preview");
   }, [isCallActive, selectedScene, showPostCallSummary]);
+
+  useEffect(() => {
+    onListViewChange?.(!selectedScene);
+  }, [onListViewChange, selectedScene]);
 
   useEffect(() => {
     if (status !== "error") {

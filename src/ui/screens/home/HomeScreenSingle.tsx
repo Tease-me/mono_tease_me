@@ -89,6 +89,7 @@ export default function HomeScreenSingle() {
   const navPayloadRef = useRef<NavPayload>({});
 
   const [activeView, setActiveView] = useState<ActiveView>("scene-selector");
+  const [showScenarioNavTitle, setShowScenarioNavTitle] = useState(true);
   const callStatusRef = useRef<CallStatus>("idle");
 
 
@@ -120,6 +121,12 @@ export default function HomeScreenSingle() {
   useEffect(() => {
     navPayloadRef.current = navPayload;
   }, [navPayload]);
+
+  useEffect(() => {
+    if (activeView === "scene-selector") {
+      setShowScenarioNavTitle(true);
+    }
+  }, [activeView, influencer?.id]);
 
   useEffect(() => {
     if (currentPageRef.current !== "influencer_profile") return;
@@ -327,7 +334,7 @@ export default function HomeScreenSingle() {
       <div className={styles.viewWithNav}>
         <UserNav
           onMenuClick={toggleSidebar}
-          title="Select a Scenario"
+          title={showScenarioNavTitle ? "Select a Scenario" : undefined}
         />
         {influencer ? (
           <Suspense fallback={<div className={styles.loadingSpinner}><LoadingSpinner /></div>}>
@@ -337,6 +344,7 @@ export default function HomeScreenSingle() {
               influencerImageUrl={influencer.img}
               influencerVideoUrl={influencer.videoUrl}
               onGirlfriendModeSelected={handleGirlfriendModeSelected}
+              onListViewChange={setShowScenarioNavTitle}
             />
           </Suspense>
         ) : (
@@ -355,6 +363,7 @@ export default function HomeScreenSingle() {
     influencer,
     influencers,
     isSelectingInfluencer,
+    showScenarioNavTitle,
     toggleSidebar,
   ]);
 
