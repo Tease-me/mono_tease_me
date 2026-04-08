@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ADULT_CALL_TRANSPORT } from "@/constants/featureFlags";
 import { apiClient } from "@/api/apis";
+import type { LatestAdultCallSummary as UsageLatestAdultCallSummary } from "@/api/models/user";
 import { ChatRepository } from "@/data/repositories/ChatRepo";
 import { UserServices } from "@/api/services/UserServices";
+import type {
+  CallBilledEvent,
+  LatestAdultCallSummary as NotificationLatestAdultCallSummary,
+} from "@/hooks/useNotificationSocket";
 import useAdultVoiceCall from "./useAdultVoiceCall";
 import useCallWebRTC, { CallStatus } from "./useCallWebRTC";
 
@@ -27,6 +32,45 @@ type PostCallSummary = {
 const chatRepo = ChatRepository();
 const userServices = UserServices(apiClient);
 const POST_CALL_SUMMARY_RETRY_DELAYS_MS = [1200, 2500, 5000];
+
+function summaryMatchesCall(
+  summary:
+    | UsageLatestAdultCallSummary
+    | NotificationLatestAdultCallSummary
+    | null
+    | undefined,
+  endedConversationId: string | null,
+) {
+  if (!summary) {
+    return false;
+  }
+
+  if (!endedConversationId) {
+    return true;
+  }
+
+  if (!("conversation_id" in summary)) {
+    return true;
+  }
+
+  return summary.conversation_id === endedConversationId;
+}
+
+function toConfirmedPostCallSummary(
+  summary: {
+    duration_seconds: number | null;
+    cost_cents: number | null;
+  },
+): PostCallSummary {
+  return {
+    estimatedDurationSeconds: null,
+    estimatedCostCents: null,
+    confirmedDurationSeconds: summary.duration_seconds ?? null,
+    confirmedCostCents: summary.cost_cents ?? null,
+    isEstimate: false,
+  };
+}
+
 function getAdultCallStateLabel(
   status: CallStatus,
   transport: typeof ADULT_CALL_TRANSPORT,
@@ -146,15 +190,7 @@ export default function useAdultCallTransport(
         try {
           const usage = await userServices.getUserUsage(influencerId);
           const summary = usage.latest_adult_call_summary;
-          if (!summary) {
-            continue;
-          }
-
-          const matchesCurrentCall =
-            !endedConversationId ||
-            summary.conversation_id === endedConversationId;
-
-          if (!matchesCurrentCall) {
+          if (!summary || !summaryMatchesCall(summary, endedConversationId)) {
             continue;
           }
 
@@ -162,22 +198,7 @@ export default function useAdultCallTransport(
             return;
           }
 
-          setPostCallSummary((prev) =>
-            prev
-              ? {
-                ...prev,
-                confirmedDurationSeconds: summary.duration_seconds ?? null,
-                confirmedCostCents: summary.cost_cents ?? null,
-                isEstimate: false,
-              }
-              : {
-                estimatedDurationSeconds: summary.duration_seconds ?? null,
-                estimatedCostCents: summary.cost_cents ?? null,
-                confirmedDurationSeconds: summary.duration_seconds ?? null,
-                confirmedCostCents: summary.cost_cents ?? null,
-                isEstimate: false,
-              },
-          );
+          setPostCallSummary(toConfirmedPostCallSummary(summary));
           setPendingSummaryRefresh(false);
           return;
         } catch {
@@ -191,6 +212,32 @@ export default function useAdultCallTransport(
     },
     [],
   );
+
+  useEffect(() => {
+    const handleNotification = (event: Event) => {
+      const detail = (event as CustomEvent<CallBilledEvent>).detail;
+      if (detail?.type !== "call_billed") {
+        return;
+      }
+
+      const influencerId = currentInfluencerIdRef.current;
+      if (!influencerId || detail.influencer_id !== influencerId) {
+        return;
+      }
+
+      const endedConversationId = currentConversationIdRef.current;
+      const summary = detail.latest_adult_call_summary;
+      if (!summary || !summaryMatchesCall(summary, endedConversationId)) {
+        return;
+      }
+
+      setPostCallSummary(toConfirmedPostCallSummary(summary));
+      setPendingSummaryRefresh(false);
+    };
+
+    window.addEventListener("ws:notification", handleNotification);
+    return () => window.removeEventListener("ws:notification", handleNotification);
+  }, []);
 
   useEffect(() => {
     if (transport !== "webrtc") {
@@ -249,25 +296,17 @@ export default function useAdultCallTransport(
       return;
     }
 
-    const estimatedDurationSeconds = elapsedSeconds;
-    const estimatedCostCents =
-      currentUnitPriceCents != null
-        ? Math.round(estimatedDurationSeconds * currentUnitPriceCents)
-        : null;
-
     setPostCallSummary({
-      estimatedDurationSeconds,
-      estimatedCostCents,
+      estimatedDurationSeconds: null,
+      estimatedCostCents: null,
       confirmedDurationSeconds: null,
       confirmedCostCents: null,
-      isEstimate: true,
+      isEstimate: false,
     });
     const sessionToken = summarySessionRef.current;
     setPendingSummaryRefresh(true);
     void refreshPostCallSummary(currentConversationIdRef.current, sessionToken);
   }, [
-    currentUnitPriceCents,
-    elapsedSeconds,
     isCallActive,
     refreshPostCallSummary,
   ]);
