@@ -9,7 +9,6 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import logging
-import random
 import re
 from collections.abc import Awaitable, Callable
 
@@ -45,6 +44,8 @@ class TelegramMessageHandler:
     MAX_TEXT_REPLIES = 3
     MESSAGE_DEDUPE_TTL_SECONDS = 300
     FINGERPRINT_DEDUPE_TTL_SECONDS = 8
+    FIRST_REPLY_DELAY_SECONDS = 120
+    FOLLOW_UP_REPLY_DELAY_SECONDS = 10
 
     def register(self):
         """Register voice call and text message handlers on the Pyrogram client."""
@@ -75,6 +76,13 @@ class TelegramMessageHandler:
     def _normalize_text(text: str) -> str:
         """Normalize text for dedupe/logging consistency."""
         return re.sub(r"\s+", " ", text.strip())
+
+    @classmethod
+    def _reply_delay_seconds(cls, reply_count: int) -> int:
+        """Return the delay before sending a text auto-reply."""
+        if reply_count <= 0:
+            return cls.FIRST_REPLY_DELAY_SECONDS
+        return cls.FOLLOW_UP_REPLY_DELAY_SECONDS
 
     def _build_fingerprint_key(
         self,
@@ -267,7 +275,17 @@ class TelegramMessageHandler:
 
             if count < self.MAX_TEXT_REPLIES:
                 reply_index = count
-                await asyncio.sleep(random.uniform(1.0, 2.0))
+                delay_seconds = self._reply_delay_seconds(count)
+                log.info(
+                    "telegram.text_reply_delay influencer=%s session_tg_id=%s tg_user=%s message_id=%s reply_index=%s delay_seconds=%s",
+                    self.influencer_id,
+                    session_telegram_id,
+                    user_id,
+                    message_id,
+                    reply_index,
+                    delay_seconds,
+                )
+                await asyncio.sleep(delay_seconds)
                 await send_reply(self.TEXT_REPLIES[count])
                 count += 1
                 await redis.set(key, count)
