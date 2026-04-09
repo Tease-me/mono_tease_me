@@ -31,6 +31,7 @@ export default function AddCreditsModal({
           influencerName={influencerName}
           image={image}
           video={video}
+          isOpen={isOpen}
           onCancel={onClose}
         />
       }
