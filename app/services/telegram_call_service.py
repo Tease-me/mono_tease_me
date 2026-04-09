@@ -83,13 +83,31 @@ async def send_trial_expired_messages(
     await asyncio.sleep(3.5)
     try:
         if influencer:
-            await send_telegram_welcome_audio(client, chat_id, influencer)
+            sent = await send_telegram_welcome_audio(client, chat_id, influencer)
+            log.info(
+                "trial_expired.step_sent step=voice_note_1 sent=%s tg_user=%s influencer=%s",
+                sent,
+                telegram_user_id,
+                influencer_id,
+            )
+        else:
+            log.info(
+                "trial_expired.step_skipped step=voice_note_1 reason=no_influencer tg_user=%s influencer=%s",
+                telegram_user_id,
+                influencer_id,
+            )
     except FloodWait as e:
         log.warning("trial_expired: voice note flood wait %ds", e.value)
         await asyncio.sleep(e.value)
         try:
             if influencer:
-                await send_telegram_welcome_audio(client, chat_id, influencer)
+                sent = await send_telegram_welcome_audio(client, chat_id, influencer)
+                log.info(
+                    "trial_expired.step_sent step=voice_note_1_retry sent=%s tg_user=%s influencer=%s",
+                    sent,
+                    telegram_user_id,
+                    influencer_id,
+                )
         except Exception:
             log.exception("trial_expired: voice note retry failed")
     except Exception:
@@ -104,6 +122,12 @@ async def send_trial_expired_messages(
             welcome_video_sent = await send_telegram_welcome_video(
                 client, chat_id, influencer,
             )
+            log.info(
+                "trial_expired.step_sent step=promo_video sent=%s tg_user=%s influencer=%s",
+                welcome_video_sent,
+                telegram_user_id,
+                influencer_id,
+            )
 
         if not welcome_video_sent:
             video_key = influencer.profile_video_key if influencer else None
@@ -113,6 +137,11 @@ async def send_trial_expired_messages(
                 chat_id,
                 profile_video_key=video_key,
                 profile_photo_key=photo_key,
+            )
+            log.info(
+                "trial_expired.step_sent step=promo_media_fallback sent=True tg_user=%s influencer=%s",
+                telegram_user_id,
+                influencer_id,
             )
     except FloodWait as e:
         log.warning("trial_expired: promo media flood wait %ds", e.value)
@@ -125,13 +154,41 @@ async def send_trial_expired_messages(
     # 3) Second voice note
     try:
         if influencer:
-            await send_telegram_welcome_audio(client, chat_id, influencer, slot="audio_2")
+            sent = await send_telegram_welcome_audio(
+                client,
+                chat_id,
+                influencer,
+                slot="audio_2",
+            )
+            log.info(
+                "trial_expired.step_sent step=voice_note_2 sent=%s tg_user=%s influencer=%s",
+                sent,
+                telegram_user_id,
+                influencer_id,
+            )
+        else:
+            log.info(
+                "trial_expired.step_skipped step=voice_note_2 reason=no_influencer tg_user=%s influencer=%s",
+                telegram_user_id,
+                influencer_id,
+            )
     except FloodWait as e:
         log.warning("trial_expired: voice note 2 flood wait %ds", e.value)
         await asyncio.sleep(e.value)
         try:
             if influencer:
-                await send_telegram_welcome_audio(client, chat_id, influencer, slot="audio_2")
+                sent = await send_telegram_welcome_audio(
+                    client,
+                    chat_id,
+                    influencer,
+                    slot="audio_2",
+                )
+                log.info(
+                    "trial_expired.step_sent step=voice_note_2_retry sent=%s tg_user=%s influencer=%s",
+                    sent,
+                    telegram_user_id,
+                    influencer_id,
+                )
         except Exception:
             log.exception("trial_expired: voice note 2 retry failed")
     except Exception:
@@ -149,6 +206,11 @@ async def send_trial_expired_messages(
             ),
             parse_mode=enums.ParseMode.HTML,
         )
+        log.info(
+            "trial_expired.step_sent step=cta_text sent=True tg_user=%s influencer=%s",
+            telegram_user_id,
+            influencer_id,
+        )
     except FloodWait as e:
         log.warning("trial_expired: CTA text flood wait %ds", e.value)
         await asyncio.sleep(e.value)
@@ -160,6 +222,11 @@ async def send_trial_expired_messages(
                     f"👉 {cta_html}"
                 ),
                 parse_mode=enums.ParseMode.HTML,
+            )
+            log.info(
+                "trial_expired.step_sent step=cta_text_retry sent=True tg_user=%s influencer=%s",
+                telegram_user_id,
+                influencer_id,
             )
         except Exception:
             log.exception("trial_expired: CTA text retry failed")
