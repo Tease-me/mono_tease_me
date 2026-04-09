@@ -31,7 +31,7 @@ type PostCallSummary = {
 
 const chatRepo = ChatRepository();
 const userServices = UserServices(apiClient);
-const POST_CALL_SUMMARY_RETRY_DELAYS_MS = [1200, 2500, 5000];
+const POST_CALL_SUMMARY_RETRY_DELAYS_MS = [1200, 2500, 5000, 10000];
 
 function summaryMatchesCall(
   summary:
