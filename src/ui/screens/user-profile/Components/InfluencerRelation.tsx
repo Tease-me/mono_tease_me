@@ -79,7 +79,9 @@ function estimatedCallRange(
   const minStr = formatMins(estimatedSeconds);
   if (balanceDollars == null) return minStr;
   const maxSeconds = Math.floor(balanceDollars * 60);
-  return `${minStr} – ${formatMins(maxSeconds)}`;
+  const maxStr = formatMins(maxSeconds);
+  if (minStr === maxStr) return maxStr;
+  return `${minStr} – ${maxStr}`;
 }
 
 export default function InfluencerRelation({ navPayload, goTo }: Props) {
@@ -248,54 +250,54 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
             />
           )}
           {showBalanceDetails && (
-              <div className={styles.balanceStatsWrapper}>
-                <p className={styles.totalBalanceLabel}>Remaining usage </p>
-                <div className={styles.balanceStats}>
+            <div className={styles.balanceStatsWrapper}>
+              <p className={styles.totalBalanceLabel}>Remaining usage </p>
+              <div className={styles.balanceStats}>
+                <UsageView
+                  label="Estimated Call Time"
+                  tone="green"
+                  value={estimatedCallRange(data.estimatedRemainingCallSeconds, data.balance)}
+                />
+                {RELATIONSHIP_MODE_AVAILABLE && (
                   <UsageView
-                    label="Estimated Call Time"
+                    label="Text Msgs"
                     tone="green"
-                    value={estimatedCallRange(data.estimatedRemainingCallSeconds, data.balance)}
+                    value={
+                      data.msgRemaining != null
+                        ? data.msgRemaining.toString()
+                        : "--"
+                    }
                   />
-                  {RELATIONSHIP_MODE_AVAILABLE && (
-                    <UsageView
-                      label="Text Msgs"
-                      tone="green"
-                      value={
-                        data.msgRemaining != null
-                          ? data.msgRemaining.toString()
-                          : "--"
-                      }
-                    />
-                  )}
-                </div>
-                {data.latestAdultCallSummary && (
-                  <div className={styles.lastCallSection}>
-                    <div className={styles.lastCallHeader}>
-                      <span className={styles.lastCallTitle}>
-                        <Suspense fallback={null}><SvgPack.Call2 /></Suspense>
-                        Last call details
-                      </span>
-                      <span className={styles.infoIconBtn} onClick={() => setShowCallInfoModal(true)}>
-                        <Suspense fallback={null}><SvgPack.InfoCircleGray /></Suspense>
-                      </span>
-                    </div>
-                    <div className={styles.lastCallStats}>
-                      <div className={styles.lastCallCard}>
-                        <span className={styles.lastCallCardLabel}>Duration</span>
-                        <span className={styles.lastCallCardValue}>
-                          {latestAdultCallDuration}
-                        </span>
-                      </div>
-                      <div className={styles.lastCallCard}>
-                        <span className={styles.lastCallCardLabel}>Cost</span>
-                        <span className={styles.lastCallCardValue}>
-                          {latestAdultCallCost}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
                 )}
               </div>
+              {data.latestAdultCallSummary && (
+                <div className={styles.lastCallSection}>
+                  <div className={styles.lastCallHeader}>
+                    <span className={styles.lastCallTitle}>
+                      <Suspense fallback={null}><SvgPack.Call2 /></Suspense>
+                      Last call details
+                    </span>
+                    <span className={styles.infoIconBtn} onClick={() => setShowCallInfoModal(true)}>
+                      <Suspense fallback={null}><SvgPack.InfoCircleGray /></Suspense>
+                    </span>
+                  </div>
+                  <div className={styles.lastCallStats}>
+                    <div className={styles.lastCallCard}>
+                      <span className={styles.lastCallCardLabel}>Duration</span>
+                      <span className={styles.lastCallCardValue}>
+                        {latestAdultCallDuration}
+                      </span>
+                    </div>
+                    <div className={styles.lastCallCard}>
+                      <span className={styles.lastCallCardLabel}>Cost</span>
+                      <span className={styles.lastCallCardValue}>
+                        {latestAdultCallCost}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
           <PrimaryButton
             leftIcon={<SvgPack.PlusBox />}
