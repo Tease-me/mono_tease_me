@@ -193,12 +193,14 @@ export default function AddCreditsContent({
                   : handleProceedWithPayment
               }
             />
-            <NormalButton
-              text="Cancel"
-              type="nobg"
-              className={styles.confirmBtn}
-              onClick={step === "amount" ? onCancel : () => setStep("amount")}
-            />
+            {step === "amount" && (
+              <NormalButton
+                text="Cancel"
+                type="nobg"
+                className={styles.confirmBtn}
+                onClick={onCancel}
+              />
+            )}
             {error && (
               <div className={styles.payError}>{error}</div>
             )}
