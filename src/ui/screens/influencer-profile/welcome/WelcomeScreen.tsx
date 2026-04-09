@@ -41,6 +41,9 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
   const [searchParams] = useSearchParams();
   const inviteCode = searchParams.get("invite");
 
+  const [isFirstTime, setIsFirstTime] = useState(
+    () => !storage.getBoolean(LocalStorageKeys.VisitedWelcome),
+  );
   const [onTryClicked, setOnTryClicked] = useState(false);
   const { status, startConversation, stopConversation, setInfluencerId } = useCall();
 
@@ -52,6 +55,19 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
   const [waiting, setWaiting] = useState(false);
   const [landingAssets, setLandingAssets] = useState<InfluencerLandingAssetsResponse | null>(null);
   const [heroReady, setHeroReady] = useState(false);
+
+  const syncIsFirstTimeFromStorage = () => {
+    setIsFirstTime(!storage.getBoolean(LocalStorageKeys.VisitedWelcome));
+  };
+
+  useEffect(() => {
+    if (status === "connected") {
+      storage.setBoolean(LocalStorageKeys.VisitedWelcome, true);
+      syncIsFirstTimeFromStorage();
+    } else if (status === "disconnected") {
+      syncIsFirstTimeFromStorage();
+    }
+  }, [status]);
 
 
   useEffect(() => {
@@ -107,6 +123,8 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
   const handleHangUpCall = () => {
     audioRef.current.stop();
     stopConversation();
+    storage.setBoolean(LocalStorageKeys.VisitedWelcome, true);
+    syncIsFirstTimeFromStorage();
     setOnTryClicked(false);
   };
 
@@ -269,8 +287,9 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
                 <div className={styles.greetingRow02}>
                   Hi, I'm your <div className={styles.modelName}>{influencer?.name}</div>
                 </div>
+
                 <div className={styles.greetingRow03}>
-                  {showFollowBtn && (
+                  {showFollowBtn ? (
                     <IconButton
                       color="pink-glass"
                       text={waiting ? "Connecting.." : "Follow me now"}
@@ -278,10 +297,40 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
                       disabled={waiting}
                       className={styles.fullBtn}
                     />
+                  ) : isFirstTime ? (
+                    <IconButton
+                      color="pink-glass"
+                      text="Talk dirty to me"
+                      leftIcon={<CallIcon />}
+                      onClick={() => {
+                        startConversation();
+                        setOnTryClicked(true);
+                      }}
+                      className={styles.autoBtn}
+                    />
+                  ) : (
+                    <div></div>
                   )}
                 </div>
-                {!showFollowBtn && <div className={styles.greetingRow04}>Sign up for free to unlock exclusive access and let me whisper what you need when the lights go down.</div>}
+                {isFirstTime && (
+                  <div className={styles.greetingRow04}>
+                    Free 30 Second Trial. Try Now.
+                  </div>
+                )}
+                {!isFirstTime && (
+                  <div className={styles.greetingAfterRow04}>
+                    Sign up for free to unlock exclusive access and let me whisper what you need when the lights go down.
+                  </div>
+                )}
               </div>
+
+              {!showFollowBtn && isFirstTime && (
+                <div className={styles.orRow}>
+                  <div className={styles.orDivider}></div>
+                  <div className={styles.orRowCol02}>or</div>
+                  <div className={styles.orDivider}></div>
+                </div>
+              )}
 
               {!showFollowBtn && (
                 <>
