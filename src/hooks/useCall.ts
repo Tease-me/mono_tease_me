@@ -125,7 +125,7 @@ export default function useCall() {
       }
 
       let signed_url: string | null = null;
-      let credits_remainder_secs = 120;
+      let credits_remainder_secs = 60;
       let first_message = "Hey honey, I've been waiting for you, don't be shy, talk to me."
 
       if (!user || !user.id) {

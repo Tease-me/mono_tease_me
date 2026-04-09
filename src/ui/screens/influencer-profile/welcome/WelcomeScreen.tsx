@@ -314,7 +314,7 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
                 </div>
                 {isFirstTime && (
                   <div className={styles.greetingRow04}>
-                    Free 30 Second Trial. Try Now.
+                    Free 60 Second Trial. Try Now.
                   </div>
                 )}
                 {!isFirstTime && (
