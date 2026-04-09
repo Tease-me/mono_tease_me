@@ -103,3 +103,11 @@
   font-size: 11px;
   padding: 6px 20px 16px;
 }
+
+@media (max-width: 767px) {
+  .modal {
+    align-self: center;
+    max-height: 84vh;
+    max-height: 84svh;
+  }
+}
