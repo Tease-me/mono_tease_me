@@ -14,7 +14,10 @@ os.environ.setdefault("OPENAI_API_KEY", "test-key")
 
 from app.api.routes.telegram_admin import router as telegram_admin_router
 from app.services.gateways.telegram.handlers import TelegramMessageHandler
-from app.services.gateways.telegram.session_manager import TelegramSessionManager
+from app.services.gateways.telegram.session_manager import (
+    TelegramSessionManager,
+    TelegramSessionOwnershipError,
+)
 from app.utils.auth.dependencies import get_current_user
 
 
@@ -37,6 +40,14 @@ class FakeRedis:
 
     async def get(self, key: str) -> str | None:
         return self._values.get(key)
+
+    async def delete(self, *keys: str) -> int:
+        deleted = 0
+        for key in keys:
+            if key in self._values:
+                deleted += 1
+                self._values.pop(key, None)
+        return deleted
 
 
 class FakeTelegramClient:
@@ -135,7 +146,7 @@ async def test_text_dedupe_uses_telegram_account_identity(monkeypatch) -> None:
 
 
 @pytest.mark.anyio
-async def test_message_handler_sends_single_private_reply(monkeypatch) -> None:
+async def test_raw_update_sends_single_private_reply(monkeypatch) -> None:
     from app.services.gateways.telegram import handlers as handlers_module
 
     fake_redis = FakeRedis()
@@ -157,16 +168,9 @@ async def test_message_handler_sends_single_private_reply(monkeypatch) -> None:
 
     client = FakeTelegramClient(telegram_id=555, telegram_user="juliana")
     handler = TelegramMessageHandler(client, "juliana")
-    message = SimpleNamespace(
-        id=2001,
-        text=" hey ",
-        outgoing=False,
-        service=None,
-        from_user=SimpleNamespace(id=42),
-        chat=SimpleNamespace(type="private"),
-    )
+    update = _make_update_new_message(user_id=42, message_id=2001, text=" hey ")
 
-    await handler._handle_incoming_message(message)
+    await handler._handle_incoming_text_update(update)
 
     assert client.sent_messages == [
         {"chat_id": 42, "text": handler.TEXT_REPLIES[0]}
@@ -174,7 +178,7 @@ async def test_message_handler_sends_single_private_reply(monkeypatch) -> None:
 
 
 @pytest.mark.anyio
-async def test_message_handler_ignores_outgoing_messages(monkeypatch) -> None:
+async def test_raw_update_ignores_outgoing_messages(monkeypatch) -> None:
     fake_redis = FakeRedis()
     monkeypatch.setattr(
         "app.utils.infrastructure.concurrency.advisory_lock",
@@ -187,22 +191,15 @@ async def test_message_handler_ignores_outgoing_messages(monkeypatch) -> None:
 
     client = FakeTelegramClient(telegram_id=555, telegram_user="juliana")
     handler = TelegramMessageHandler(client, "juliana")
-    message = SimpleNamespace(
-        id=2002,
-        text="hey",
-        outgoing=True,
-        service=None,
-        from_user=SimpleNamespace(id=42),
-        chat=SimpleNamespace(type="private"),
-    )
+    update = _make_update_new_message(user_id=42, message_id=2002, text="hey", out=True)
 
-    await handler._handle_incoming_message(message)
+    await handler._handle_incoming_text_update(update)
 
     assert client.sent_messages == []
 
 
 @pytest.mark.anyio
-async def test_concurrent_message_callbacks_only_send_one_reply(monkeypatch) -> None:
+async def test_concurrent_raw_updates_only_send_one_reply(monkeypatch) -> None:
     from app.services.gateways.telegram import handlers as handlers_module
 
     fake_redis = FakeRedis()
@@ -225,18 +222,12 @@ async def test_concurrent_message_callbacks_only_send_one_reply(monkeypatch) -> 
 
     client = FakeTelegramClient(telegram_id=555, telegram_user="juliana")
     handler = TelegramMessageHandler(client, "juliana")
-    message = SimpleNamespace(
-        id=2003,
-        text="hey",
-        outgoing=False,
-        service=None,
-        from_user=SimpleNamespace(id=42),
-        chat=SimpleNamespace(type="private"),
-    )
+    first_update = _make_update_new_message(user_id=42, message_id=2003, text="hey")
+    second_update = _make_update_short_message(user_id=42, message_id=2004, text="hey")
 
     await asyncio.gather(
-        handler._handle_incoming_message(message),
-        handler._handle_incoming_message(message),
+        handler._handle_incoming_text_update(first_update),
+        handler._handle_incoming_text_update(second_update),
     )
 
     assert client.sent_messages == [
@@ -245,32 +236,116 @@ async def test_concurrent_message_callbacks_only_send_one_reply(monkeypatch) -> 
 
 
 @pytest.mark.anyio
-async def test_register_keeps_raw_updates_for_calls_only() -> None:
+async def test_register_routes_text_and_calls_through_raw_updates() -> None:
     client = FakeTelegramClient(telegram_id=555, telegram_user="juliana")
     handler = TelegramMessageHandler(client, "juliana")
     seen: list[str] = []
 
-    async def fake_handle_message(message) -> None:
-        seen.append(f"message:{message.id}")
-
-    async def fake_handle_call(update) -> None:
+    async def fake_handle_text(update) -> None:
         seen.append(type(update).__name__)
 
-    handler._handle_incoming_message = fake_handle_message  # type: ignore[method-assign]
+    async def fake_handle_call(update) -> None:
+        seen.append(f"call:{type(update).__name__}")
+
+    handler._handle_incoming_text_update = fake_handle_text  # type: ignore[method-assign]
     handler._handle_incoming_call = fake_handle_call  # type: ignore[method-assign]
     handler.register()
 
-    assert len(client.message_handlers) == 1
+    assert len(client.message_handlers) == 0
     assert len(client.raw_update_handlers) == 1
 
-    class FakeUpdatePhoneCall:
-        pass
+    phone_update = type("UpdatePhoneCall", (), {"phone_call": None})()
+    text_update = _make_update_short_message(user_id=42, message_id=3001, text="hey")
 
-    await client.message_handlers[0](client, SimpleNamespace(id=3001))
-    await client.raw_update_handlers[0](client, FakeUpdatePhoneCall(), None, None)
+    await client.raw_update_handlers[0](client, text_update, None, None)
+    await client.raw_update_handlers[0](client, phone_update, None, None)
 
-    assert seen[0] == "message:3001"
-    assert seen[1] == "FakeUpdatePhoneCall"
+    assert seen[0] == "UpdateShortMessage"
+    assert seen[1] == "call:UpdateShortMessage"
+    assert seen[2] == "UpdatePhoneCall"
+    assert seen[3] == "call:UpdatePhoneCall"
+
+
+@pytest.mark.anyio
+async def test_fingerprint_dedupe_suppresses_duplicate_raw_updates(monkeypatch) -> None:
+    from app.services.gateways.telegram import handlers as handlers_module
+
+    fake_redis = FakeRedis()
+    monkeypatch.setattr(
+        handlers_module,
+        "asyncio",
+        SimpleNamespace(
+            sleep=lambda _: _noop(),
+        ),
+    )
+    monkeypatch.setattr(
+        "app.utils.infrastructure.concurrency.advisory_lock",
+        _fake_advisory_lock,
+    )
+    monkeypatch.setattr(
+        "app.utils.infrastructure.redis_pool.get_redis",
+        lambda: _return_async(fake_redis),
+    )
+
+    client = FakeTelegramClient(telegram_id=555, telegram_user="juliana")
+    handler = TelegramMessageHandler(client, "juliana")
+
+    await handler._handle_incoming_text_update(
+        _make_update_new_message(user_id=42, message_id=3101, text="same text")
+    )
+    await handler._handle_incoming_text_update(
+        _make_update_short_message(user_id=42, message_id=3102, text="same text")
+    )
+
+    assert client.sent_messages == [
+        {"chat_id": 42, "text": handler.TEXT_REPLIES[0]}
+    ]
+
+
+@pytest.mark.anyio
+async def test_same_text_after_fingerprint_window_advances_reply(monkeypatch) -> None:
+    from app.services.gateways.telegram import handlers as handlers_module
+
+    fake_redis = FakeRedis()
+    monkeypatch.setattr(
+        handlers_module,
+        "asyncio",
+        SimpleNamespace(
+            sleep=lambda _: _noop(),
+        ),
+    )
+    monkeypatch.setattr(
+        "app.utils.infrastructure.concurrency.advisory_lock",
+        _fake_advisory_lock,
+    )
+    monkeypatch.setattr(
+        "app.utils.infrastructure.redis_pool.get_redis",
+        lambda: _return_async(fake_redis),
+    )
+
+    client = FakeTelegramClient(telegram_id=555, telegram_user="juliana")
+    handler = TelegramMessageHandler(client, "juliana")
+
+    normalized_text = handler._normalize_text("same text")
+    session_identity = await handler._get_session_identity()
+    fingerprint_key, _ = handler._build_fingerprint_key(
+        session_identity=session_identity,
+        user_id=42,
+        normalized_text=normalized_text,
+    )
+
+    await handler._handle_incoming_text_update(
+        _make_update_new_message(user_id=42, message_id=3201, text="same text")
+    )
+    await fake_redis.delete(fingerprint_key)
+    await handler._handle_incoming_text_update(
+        _make_update_new_message(user_id=42, message_id=3202, text="same text")
+    )
+
+    assert client.sent_messages == [
+        {"chat_id": 42, "text": handler.TEXT_REPLIES[0]},
+        {"chat_id": 42, "text": handler.TEXT_REPLIES[1]},
+    ]
 
 
 def test_create_session_rejects_duplicate_telegram_account(monkeypatch, tmp_path: Path) -> None:
@@ -286,11 +361,52 @@ def test_create_session_rejects_duplicate_telegram_account(monkeypatch, tmp_path
     monkeypatch.setattr(session_manager_module, "Client", FakeResumeClient)
 
     manager = TelegramSessionManager()
+    monkeypatch.setattr(
+        session_manager_module.AdvisoryLock,
+        "acquire",
+        lambda self: _return_async(True),
+    )
+    monkeypatch.setattr(
+        session_manager_module.AdvisoryLock,
+        "release",
+        lambda self: _return_async(None),
+    )
     existing_client = FakeTelegramClient(telegram_id=999, telegram_user="same_account")
     manager._sessions["existing_influencer"] = existing_client
     (tmp_path / "influencer_new_influencer.session").write_text("placeholder")
 
     with pytest.raises(ValueError, match="existing_influencer"):
+        _run_async(manager.create_session("new_influencer"))
+
+    assert (tmp_path / "influencer_new_influencer.session").exists()
+
+
+def test_create_session_rejects_session_ownership_conflict(monkeypatch, tmp_path: Path) -> None:
+    from app.services.gateways.telegram import session_manager as session_manager_module
+
+    monkeypatch.setattr(session_manager_module.settings, "TELEGRAM_API_ID", 123)
+    monkeypatch.setattr(session_manager_module.settings, "TELEGRAM_API_HASH", "hash")
+    monkeypatch.setattr(
+        session_manager_module.settings,
+        "TELEGRAM_SESSIONS_DIR",
+        str(tmp_path),
+    )
+    monkeypatch.setattr(session_manager_module, "Client", FakeResumeClient)
+    monkeypatch.setattr(
+        session_manager_module.AdvisoryLock,
+        "acquire",
+        lambda self: _return_async(False),
+    )
+    monkeypatch.setattr(
+        session_manager_module.AdvisoryLock,
+        "release",
+        lambda self: _return_async(None),
+    )
+
+    manager = TelegramSessionManager()
+    (tmp_path / "influencer_new_influencer.session").write_text("placeholder")
+
+    with pytest.raises(TelegramSessionOwnershipError, match="telegram_id=999"):
         _run_async(manager.create_session("new_influencer"))
 
     assert (tmp_path / "influencer_new_influencer.session").exists()
@@ -339,6 +455,45 @@ def test_verify_code_route_returns_collision_as_400(monkeypatch) -> None:
     assert "Telegram account collision" in response.json()["detail"]
 
 
+@pytest.mark.anyio
+async def test_start_all_sessions_skips_when_owned_by_another_process(monkeypatch) -> None:
+    from app.services.gateways.telegram import lifecycle as lifecycle_module
+
+    @asynccontextmanager
+    async def _fake_session_local():
+        yield object()
+
+    skipped: list[str] = []
+
+    async def _fake_create_session(influencer_id: str):
+        skipped.append(influencer_id)
+        raise TelegramSessionOwnershipError("already owned")
+
+    monkeypatch.setattr(lifecycle_module.settings, "TELEGRAM_USERBOT_ENABLED", True)
+    monkeypatch.setattr(lifecycle_module.settings, "TELEGRAM_API_ID", 123)
+    monkeypatch.setattr(lifecycle_module.settings, "TELEGRAM_API_HASH", "hash")
+    monkeypatch.setattr(lifecycle_module, "SessionLocal", _fake_session_local)
+    monkeypatch.setattr(
+        lifecycle_module,
+        "cleanup_stale_active_calls",
+        lambda db: _return_async(None),
+    )
+    monkeypatch.setattr(
+        lifecycle_module.session_manager,
+        "list_saved_sessions",
+        lambda: ["juliana"],
+    )
+    monkeypatch.setattr(
+        lifecycle_module.session_manager,
+        "create_session",
+        _fake_create_session,
+    )
+
+    await lifecycle_module.start_all_sessions()
+
+    assert skipped == ["juliana"]
+
+
 @asynccontextmanager
 async def _fake_advisory_lock(*args, **kwargs):
     yield True
@@ -368,6 +523,34 @@ async def _noop() -> None:
 
 async def _return_async(value):
     return value
+
+
+def _make_update_short_message(*, user_id: int, message_id: int, text: str):
+    return type(
+        "UpdateShortMessage",
+        (),
+        {
+            "user_id": user_id,
+            "id": message_id,
+            "message": text,
+            "out": False,
+        },
+    )()
+
+
+def _make_update_new_message(*, user_id: int, message_id: int, text: str, out: bool = False):
+    peer_user = type("PeerUser", (), {"user_id": user_id})()
+    raw_message = type(
+        "RawMessage",
+        (),
+        {
+            "peer_id": peer_user,
+            "id": message_id,
+            "message": text,
+            "out": out,
+        },
+    )()
+    return type("UpdateNewMessage", (), {"message": raw_message})()
 
 
 def _run_async(awaitable):
