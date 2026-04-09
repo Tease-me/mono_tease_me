@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import ProfileMedia from "@/ui/components/ProfileMedia";
@@ -10,12 +10,14 @@ import { useArmloopCheckout } from "@/hooks/useArmloopCheckout";
 import { Modal } from "@/ui/components/modals/Modal";
 import { terms } from "@/ui/screens/terms/termsContent";
 import CloseIconButton from "@/ui/components/inputs/buttons/CloseIconButton";
+import paymentTile from "@/assets/image/TMPaymentTile.png";
 
 type AddCreditsContentProps = {
   influencerId: string;
   influencerName?: string;
   image?: string;
   video?: string;
+  isOpen?: boolean;
   onCancel: () => void;
 };
 
@@ -40,6 +42,8 @@ type PolicyDocument = {
   sections: PolicySection[];
 };
 
+type AddCreditsStep = "amount" | "payment-note";
+
 const paymentTermsSections = terms.terms.sections.filter(
   (section) =>
     section.heading === "Payments and Digital Credits" ||
@@ -61,9 +65,11 @@ export default function AddCreditsContent({
   influencerName,
   image,
   video,
+  isOpen,
   onCancel,
 }: Readonly<AddCreditsContentProps>) {
   const [amount, setAmount] = useState(0);
+  const [step, setStep] = useState<AddCreditsStep>("amount");
   const [showPaymentTerms, setShowPaymentTerms] = useState(false);
   const { startCheckout, loading, error } = useArmloopCheckout();
   const heading = influencerName
@@ -73,7 +79,12 @@ export default function AddCreditsContent({
   const handleDecrease = () => setAmount((a) => Math.max(0, a - 10));
   const handleIncrease = () => setAmount((a) => a + 10);
 
-  const handleConfirm = async () => {
+  const handleProceedToPaymentNote = () => {
+    if (amount < MIN_AMOUNT) return;
+    setStep("payment-note");
+  };
+
+  const handleProceedWithPayment = async () => {
     if (amount < MIN_AMOUNT) return;
     await startCheckout({
       influencerId,
@@ -82,53 +93,88 @@ export default function AddCreditsContent({
     });
   };
 
+  useEffect(() => {
+    if (isOpen === false) {
+      setStep("amount");
+    }
+  }, [isOpen]);
+
   return (
     <div className={styles.addCredits}>
-      <ProfileMedia size="large" imageSrc={image} videoSrc={video} active />
+      {step === "amount" && (
+        <ProfileMedia size="large" imageSrc={image} videoSrc={video} active />
+      )}
 
       <div className={styles.selectionBox}>
-        <div className={styles.presetsBox}>
-          <h3>{heading}</h3>
-          <h4>Quick Presets</h4>
-          <div className={styles.presetList}>
-            {presets.map((p) => (
+        {step === "amount" ? (
+          <>
+            <div className={styles.presetsBox}>
+              <h3>{heading}</h3>
+              <h4>Quick Presets</h4>
+              <div className={styles.presetList}>
+                {presets.map((p) => (
+                  <IconButton
+                    key={p.value}
+                    text={p.label}
+                    color="black"
+                    type="pill"
+                    onClick={() => setAmount(p.value)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.customAmountArea}>
               <IconButton
-                key={p.value}
-                text={p.label}
+                text={"-"}
                 color="black"
                 type="pill"
-                onClick={() => setAmount(p.value)}
+                onClick={handleDecrease}
+                className={styles.customBtn}
               />
-            ))}
+              <TextInput
+                leftIcon="$"
+                className={styles.amountInput}
+                type="number"
+                value={`${amount}`}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setAmount(Number(e.target.value) || 0);
+                }}
+                size="medium"
+              />
+              <IconButton
+                text={"+"}
+                color="black"
+                type="pill"
+                onClick={handleIncrease}
+                className={styles.customBtn}
+              />
+            </div>
+          </>
+        ) : (
+          <div className={styles.paymentNoteStep}>
+            <div className={styles.paymentNoteBanner}>
+              <p className={styles.paymentNoteBannerText}>
+                A quick note before payment
+              </p>
+            </div>
+            <p className={styles.paymentNoteText}>
+              On your bank statement, the charge will appear as{" "}
+              <span className={styles.paymentNoteBrand}>TeaseMe</span>, and
+              funds will be transferred to your{" "}
+              {influencerName ?? "influencer"} account balance.
+            </p>
+            <img
+              src={paymentTile}
+              alt="Example payment statement entry"
+              className={styles.paymentNoteTile}
+            />
+            <p className={styles.paymentNoteSupport}>
+              If you have any questions regarding any charges contact
+              support@teaseme.live
+            </p>
           </div>
-        </div>
-
-        <div className={styles.customAmountArea}>
-          <IconButton
-            text={"-"}
-            color="black"
-            type="pill"
-            onClick={handleDecrease}
-            className={styles.customBtn}
-          />
-          <TextInput
-            leftIcon="$"
-            className={styles.amountInput}
-            type="number"
-            value={`${amount}`}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              setAmount(Number(e.target.value) || 0);
-            }}
-            size="medium"
-          />
-          <IconButton
-            text={"+"}
-            color="black"
-            type="pill"
-            onClick={handleIncrease}
-            className={styles.customBtn}
-          />
-        </div>
+        )}
 
         {loading ? (
           <div className={styles.loadingState}>
@@ -138,17 +184,23 @@ export default function AddCreditsContent({
         ) : (
           <>
             <PrimaryButton
-              text="Confirm"
+              text={step === "amount" ? "Add Credit" : "Proceed with Payment"}
               disabled={amount < MIN_AMOUNT}
               className={styles.confirmBtn}
-              onClick={handleConfirm}
+              onClick={
+                step === "amount"
+                  ? handleProceedToPaymentNote
+                  : handleProceedWithPayment
+              }
             />
-            <NormalButton
-              text="Cancel"
-              type="nobg"
-              className={styles.confirmBtn}
-              onClick={onCancel}
-            />
+            {step === "amount" && (
+              <NormalButton
+                text="Cancel"
+                type="nobg"
+                className={styles.confirmBtn}
+                onClick={onCancel}
+              />
+            )}
             {error && (
               <div className={styles.payError}>{error}</div>
             )}
