@@ -17,6 +17,7 @@ from telethon.tl.types import PhoneCallDiscarded, PhoneCallRequested, UpdatePhon
 
 from app.core.config import settings
 from app.services.gateways.telegram.telethon_client import TelethonClientAdapter
+from app.services.use_cases.telegram_text_queue import enqueue_telegram_text_batch
 
 log = logging.getLogger(__name__)
 
@@ -119,13 +120,31 @@ class TelegramMessageHandler:
             message_text = self._normalize_text(event.raw_text or "")
             if not message_text or not event.sender_id:
                 return
-            await self._process_text_message(
+            session_identity, session_telegram_id = await self._log_session_identity()
+            if not await self._mark_message_seen(
+                session_identity=session_identity,
+                session_telegram_id=session_telegram_id,
                 user_id=event.sender_id,
+                message_id=event.id,
+            ):
+                return
+            await enqueue_telegram_text_batch(
+                session_identity=session_identity,
+                influencer_id=self.influencer_id,
+                telegram_user_id=event.sender_id,
                 message_id=event.id,
                 text=message_text,
                 send_text=lambda outgoing_text, parse_mode=None: event.respond(
                     outgoing_text,
                     parse_mode=parse_mode,
+                ),
+                process_batch=lambda batch_text, batch_message_id, send_text: self._process_text_message(
+                    user_id=event.sender_id,
+                    message_id=batch_message_id,
+                    text=batch_text,
+                    send_text=send_text,
+                    session_identity=session_identity,
+                    session_telegram_id=session_telegram_id,
                 ),
             )
 
@@ -190,6 +209,38 @@ class TelegramMessageHandler:
                 )
         return f"telegram_account:{telegram_id or self.influencer_id}"
 
+    async def _mark_message_seen(
+        self,
+        *,
+        session_identity: str,
+        session_telegram_id: int | None,
+        user_id: int,
+        message_id: int | None,
+    ) -> bool:
+        if message_id is None:
+            return True
+
+        from app.utils.infrastructure.redis_pool import get_redis
+
+        redis = await get_redis()
+        dedupe_key = f"tg:text_message_seen:{session_identity}:{user_id}:{message_id}"
+        is_new_message = await redis.set(
+            dedupe_key,
+            "1",
+            ex=self.MESSAGE_DEDUPE_TTL_SECONDS,
+            nx=True,
+        )
+        if not is_new_message:
+            log.info(
+                "telegram.text_duplicate_suppressed influencer=%s reason=message_id session_tg_id=%s tg_user=%s message_id=%s",
+                self.influencer_id,
+                session_telegram_id,
+                user_id,
+                message_id,
+            )
+            return False
+        return True
+
     async def _process_text_message(
         self,
         *,
@@ -197,12 +248,15 @@ class TelegramMessageHandler:
         message_id: int | None,
         text: str,
         send_text: Callable[[str, str | None], Awaitable[None]],
+        session_identity: str | None = None,
+        session_telegram_id: int | None = None,
     ) -> None:
         from app.utils.infrastructure.concurrency import advisory_lock
         from app.utils.infrastructure.redis_pool import get_redis
 
         redis = await get_redis()
-        session_identity, session_telegram_id = await self._log_session_identity()
+        if session_identity is None:
+            session_identity, session_telegram_id = await self._log_session_identity()
         normalized_text = self._normalize_text(text)
         log.info(
             "telegram.text_processing_start influencer=%s session_identity=%s session_tg_id=%s tg_user=%s message_id=%s preview=%r",
@@ -213,25 +267,6 @@ class TelegramMessageHandler:
             message_id,
             self._build_preview(normalized_text),
         )
-        if message_id is not None:
-            dedupe_key = (
-                f"tg:text_message_seen:{session_identity}:{user_id}:{message_id}"
-            )
-            is_new_message = await redis.set(
-                dedupe_key,
-                "1",
-                ex=self.MESSAGE_DEDUPE_TTL_SECONDS,
-                nx=True,
-            )
-            if not is_new_message:
-                log.info(
-                    "telegram.text_duplicate_suppressed influencer=%s reason=message_id session_tg_id=%s tg_user=%s message_id=%s",
-                    self.influencer_id,
-                    session_telegram_id,
-                    user_id,
-                    message_id,
-                )
-                return
 
         fingerprint_key, fingerprint_digest = self._build_fingerprint_key(
             session_identity=session_identity,
