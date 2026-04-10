@@ -4,15 +4,13 @@ import io
 import logging
 from typing import Optional
 
-from pyrogram import Client
-
 from app.utils.storage.s3 import get_s3_object_bytes
 
 log = logging.getLogger(__name__)
 
 
 async def send_influencer_promo_media(
-    client: Client,
+    client,
     chat_id: int,
     *,
     profile_video_key: Optional[str] = None,
@@ -29,8 +27,6 @@ async def send_influencer_promo_media(
             log.info("Sending promo video from S3 key=%s to chat=%s", profile_video_key, chat_id)
             video_bytes = await get_s3_object_bytes(profile_video_key)
             if video_bytes:
-                if not client.me:
-                    await client.get_me()
                 await client.send_video(
                     chat_id=chat_id,
                     video=io.BytesIO(video_bytes),
@@ -49,8 +45,6 @@ async def send_influencer_promo_media(
             log.info("Sending promo photo from S3 key=%s to chat=%s", profile_photo_key, chat_id)
             photo_bytes = await get_s3_object_bytes(profile_photo_key)
             if photo_bytes:
-                if not client.me:
-                    await client.get_me()
                 await client.send_photo(
                     chat_id=chat_id,
                     photo=io.BytesIO(photo_bytes),

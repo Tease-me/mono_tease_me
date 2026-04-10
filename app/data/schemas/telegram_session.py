@@ -50,7 +50,7 @@ class SendCodeResponse(BaseModel):
     status: str = Field(description="Auth status (e.g. 'code_sent', 'resumed')")
     phone_code_hash: str | None = Field(
         default=None,
-        description="Pyrogram phone code hash (internal)",
+        description="Telegram phone code hash (internal)",
     )
 
 

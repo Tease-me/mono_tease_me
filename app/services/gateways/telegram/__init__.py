@@ -1,1 +1,1 @@
-# Telegram userbot gateway — Pyrogram / pytgcalls integration.
+# Telegram userbot gateway — Telethon / pytgcalls integration.

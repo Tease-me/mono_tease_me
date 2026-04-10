@@ -125,7 +125,7 @@ async def stop_all_sessions():
 
 
 def _register_handlers(influencer_id: str, client):
-    """Register message handlers on a Pyrogram client.
+    """Register message handlers on a Telethon-backed client.
 
     Note: PyTgCalls is already started by session_manager.create_session(),
     so no additional voice-engine registration is needed here.

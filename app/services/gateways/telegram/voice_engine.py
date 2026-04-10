@@ -34,11 +34,6 @@ except ImportError:
     HAS_WEBSOCKETS = False
 
 try:
-    from pyrogram import Client
-except ImportError:
-    Client = None  # type: ignore
-
-try:
     from pytgcalls import PyTgCalls
     from pytgcalls import filters as ptg_filters
     from pytgcalls.types import (
@@ -67,6 +62,7 @@ from app.services.gateways.telegram.audio_bridge import (
     SAMPLE_WIDTH,
     downsample_48k_to_16k,
 )
+from app.services.gateways.telegram.telethon_client import TelethonClientAdapter
 
 log = logging.getLogger(__name__)
 
@@ -160,7 +156,7 @@ class VoiceCallSession:
 
     def __init__(
         self,
-        client: Client,
+        client: TelethonClientAdapter,
         ptg: PyTgCalls,
         influencer_id: str,
         telegram_user_id: int,
@@ -1308,7 +1304,7 @@ class VoiceCallManager:
 
     async def start_call(
         self,
-        client: Client,
+        client: TelethonClientAdapter,
         ptg: PyTgCalls,
         influencer_id: str,
         telegram_user_id: int,
