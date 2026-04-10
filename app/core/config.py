@@ -143,6 +143,8 @@ class Settings(BaseSettings):
     )
     TELEGRAM_USERBOT_ENABLED: bool = False  # Feature flag to enable/disable
     TELEGRAM_SESSIONS_DIR: str = "./telegram_sessions"
+    TELEGRAM_IGNORED_USER_IDS: str = ""
+    TELEGRAM_IGNORED_USERNAMES: str = "BotFather,SpamBot,Telegram"
     FRONTEND_URL: str = "https://www.teaseme.live"  # Web app base URL
 
 

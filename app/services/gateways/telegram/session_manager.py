@@ -11,6 +11,7 @@ import asyncio
 import logging
 from pathlib import Path
 
+from pytgcalls import PyTgCalls
 from telethon import TelegramClient
 from telethon.errors import (
     AuthKeyUnregisteredError,
@@ -20,14 +21,6 @@ from telethon.errors import (
     PhoneNumberUnoccupiedError,
     SessionPasswordNeededError,
 )
-
-try:
-    from pytgcalls import PyTgCalls
-
-    HAS_PYTGCALLS = True
-except ImportError:
-    HAS_PYTGCALLS = False
-    PyTgCalls = None  # type: ignore
 
 from app.core.config import settings
 from app.services.gateways.telegram.telethon_client import TelethonClientAdapter
@@ -97,7 +90,10 @@ class TelegramSessionManager:
             return None
 
         for existing_influencer_id, existing_client in self._sessions.items():
-            if existing_influencer_id == influencer_id or not existing_client.is_connected:
+            if (
+                existing_influencer_id == influencer_id
+                or not existing_client.is_connected
+            ):
                 continue
             if self._get_client_telegram_id(existing_client) == telegram_id:
                 return existing_influencer_id
@@ -211,7 +207,10 @@ class TelegramSessionManager:
         return dict(self._sessions)
 
     def is_active(self, influencer_id: str) -> bool:
-        return influencer_id in self._sessions and self._sessions[influencer_id].is_connected
+        return (
+            influencer_id in self._sessions
+            and self._sessions[influencer_id].is_connected
+        )
 
     def get_pytgcalls(self, influencer_id: str) -> "PyTgCalls | None":
         return self._pytgcalls.get(influencer_id)
@@ -221,10 +220,6 @@ class TelegramSessionManager:
         influencer_id: str,
         client: TelethonClientAdapter,
     ):
-        if not HAS_PYTGCALLS:
-            log.debug("pytgcalls not installed, skipping voice call setup")
-            return
-
         try:
             ptg = PyTgCalls(client.raw)
             await ptg.start()
@@ -250,7 +245,9 @@ class TelegramSessionManager:
                     pass
                 log.info("PyTgCalls stopped for influencer=%s", influencer_id)
             except Exception:
-                log.exception("Error stopping PyTgCalls for influencer=%s", influencer_id)
+                log.exception(
+                    "Error stopping PyTgCalls for influencer=%s", influencer_id
+                )
 
     @staticmethod
     def _describe_code_type(sent_code) -> str:
@@ -259,7 +256,7 @@ class TelegramSessionManager:
             return "unknown"
         name = type(code_type).__name__
         if name.startswith("SentCodeType"):
-            return name[len("SentCodeType"):].lower()
+            return name[len("SentCodeType") :].lower()
         return name.lower()
 
     async def send_code(
@@ -335,7 +332,9 @@ class TelegramSessionManager:
                 "hint": (
                     f"If you don't receive it, you can call /resend-code after "
                     f"{timeout or 60}s to try the fallback method ({next_type_str or 'none available'})."
-                ) if next_type_str else None,
+                )
+                if next_type_str
+                else None,
             }
 
     async def resend_code(
@@ -670,12 +669,14 @@ class TelegramSessionManager:
     def list_sessions(self) -> list[dict]:
         result = []
         for iid, client in self._sessions.items():
-            result.append({
-                "influencer_id": iid,
-                "connected": client.is_connected,
-                "telegram_user": self._get_client_telegram_user(client),
-                "telegram_id": self._get_client_telegram_id(client),
-            })
+            result.append(
+                {
+                    "influencer_id": iid,
+                    "connected": client.is_connected,
+                    "telegram_user": self._get_client_telegram_user(client),
+                    "telegram_id": self._get_client_telegram_id(client),
+                }
+            )
         return result
 
     def list_saved_sessions(self) -> list[str]:

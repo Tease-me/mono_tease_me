@@ -15,6 +15,7 @@ from collections.abc import Awaitable, Callable
 from telethon import events
 from telethon.tl.types import PhoneCallDiscarded, PhoneCallRequested, UpdatePhoneCall
 
+from app.core.config import settings
 from app.services.gateways.telegram.telethon_client import TelethonClientAdapter
 
 log = logging.getLogger(__name__)
@@ -23,6 +24,8 @@ log = logging.getLogger(__name__)
 class TelegramMessageHandler:
     """Handles incoming Telegram private voice calls and text messages."""
 
+    DEFAULT_IGNORED_USERNAMES = frozenset({"botfather", "spambot", "telegram"})
+
     def __init__(
         self,
         client: TelethonClientAdapter,
@@ -30,6 +33,12 @@ class TelegramMessageHandler:
     ):
         self.client = client
         self.influencer_id = influencer_id
+        self._ignored_user_ids = self._parse_ignored_user_ids(
+            settings.TELEGRAM_IGNORED_USER_IDS
+        )
+        self._ignored_usernames = self._parse_ignored_usernames(
+            settings.TELEGRAM_IGNORED_USERNAMES
+        )
 
     TEXT_REPLIES = [
         "Hey baby~ i've been waiting for you~",
@@ -43,10 +52,69 @@ class TelegramMessageHandler:
     FIRST_REPLY_DELAY_SECONDS = 120
     FOLLOW_UP_REPLY_DELAY_SECONDS = 10
 
+    @staticmethod
+    def _parse_ignored_user_ids(raw_value: str) -> set[int]:
+        ignored_user_ids: set[int] = set()
+        for item in raw_value.split(","):
+            value = item.strip()
+            if not value:
+                continue
+            try:
+                ignored_user_ids.add(int(value))
+            except ValueError:
+                log.warning("telegram.ignore_list_invalid_user_id value=%r", value)
+        return ignored_user_ids
+
+    @classmethod
+    def _parse_ignored_usernames(cls, raw_value: str) -> set[str]:
+        ignored_usernames = set(cls.DEFAULT_IGNORED_USERNAMES)
+        for item in raw_value.split(","):
+            value = item.strip().lstrip("@").lower()
+            if value:
+                ignored_usernames.add(value)
+        return ignored_usernames
+
+    async def _should_ignore_private_message(self, event) -> bool:
+        if event.sender_id in self._ignored_user_ids:
+            log.info(
+                "telegram.message_ignored influencer=%s reason=ignored_user_id tg_user=%s",
+                self.influencer_id,
+                event.sender_id,
+            )
+            return True
+
+        sender = getattr(event, "sender", None)
+        if sender is None:
+            try:
+                sender = await event.get_sender()
+            except Exception:
+                log.debug(
+                    "telegram.message_sender_lookup_failed influencer=%s tg_user=%s",
+                    self.influencer_id,
+                    event.sender_id,
+                    exc_info=True,
+                )
+                sender = None
+
+        username = getattr(sender, "username", None)
+        normalized_username = username.lstrip("@").lower() if username else None
+        if normalized_username and normalized_username in self._ignored_usernames:
+            log.info(
+                "telegram.message_ignored influencer=%s reason=ignored_username tg_user=%s username=%s",
+                self.influencer_id,
+                event.sender_id,
+                normalized_username,
+            )
+            return True
+
+        return False
+
     def register(self):
         @self.client.on(events.NewMessage(incoming=True))
         async def handle_new_message(event):
             if not event.is_private or event.out:
+                return
+            if await self._should_ignore_private_message(event):
                 return
             message_text = self._normalize_text(event.raw_text or "")
             if not message_text or not event.sender_id:
