@@ -84,6 +84,7 @@ async def test_get_adult_character_summary_with_latest_call_and_character(
 
     assert result.influencer_id == "loli"
     assert result.balance_cents == 2669
+    assert result.balance_credits == 1601
     assert result.estimated_remaining_call_seconds == 1334
     assert result.latest_adult_call_summary.model_dump() == {
         "duration_seconds": 42.0,
@@ -120,6 +121,7 @@ async def test_get_adult_character_summary_uses_pricing_even_when_character_is_m
     )
 
     assert result.balance_cents == 1000
+    assert result.balance_credits == 600
     assert result.estimated_remaining_call_seconds == 200
     assert result.latest_adult_call_summary is not None
     assert result.latest_adult_call_summary.duration_seconds is None
@@ -144,6 +146,7 @@ async def test_get_adult_character_summary_returns_estimate_without_latest_call(
     )
 
     assert result.balance_cents == 500
+    assert result.balance_credits == 300
     assert result.estimated_remaining_call_seconds == 250
     assert result.latest_adult_call_summary is None
 
@@ -164,6 +167,7 @@ def test_get_adult_character_summary_route_success(monkeypatch) -> None:
         return {
             "influencer_id": influencer_id,
             "balance_cents": 2669,
+            "balance_credits": 1601,
             "estimated_remaining_call_seconds": 1334,
             "latest_adult_call_summary": {
                 "duration_seconds": 149.0,
@@ -186,6 +190,7 @@ def test_get_adult_character_summary_route_success(monkeypatch) -> None:
     assert response.json() == {
         "influencer_id": "loli",
         "balance_cents": 2669,
+        "balance_credits": 1601,
         "estimated_remaining_call_seconds": 1334,
         "latest_adult_call_summary": {
             "duration_seconds": 149.0,
