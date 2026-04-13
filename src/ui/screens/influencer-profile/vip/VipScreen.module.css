@@ -111,6 +111,22 @@
   margin-top: 1.5rem;
 }
 
+.inviteHint {
+  margin: 0.75rem 0 0;
+  color: #ff2a71;
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.875rem;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 140%;
+  text-align: center;
+}
+
+.inviteHint span {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .footer {
   position: absolute;
   right: 0;

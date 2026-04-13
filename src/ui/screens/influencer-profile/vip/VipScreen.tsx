@@ -105,6 +105,10 @@ export default function VipScreen() {
                   onClick={handleRedeemInvite}
                   className={styles.redeemButton}
                 />
+                <p className={styles.inviteHint}>
+                  Heads up: the invite is valid for{" "}
+                  <span>2 days only.</span>
+                </p>
               </>
             ) : (
               <p className={styles.message}>
