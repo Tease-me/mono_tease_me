@@ -54,6 +54,10 @@
   line-height: 20px;
 }
 
+.emailInput input:read-only {
+  background: transparent !important;
+}
+
 .accountGroup > .field:first-child {
   margin-bottom: 10px;
 }

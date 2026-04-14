@@ -115,11 +115,11 @@ export default function VipProfileStep({
 
       <div className={styles.accountGroup}>
         <div className={styles.field}>
-          <TextInput
-            className={styles.input}
-            type="email"
-            placeholder="Email"
-            value={values.email}
+            <TextInput
+              className={`${styles.input} ${styles.emailInput}`}
+              type="email"
+              placeholder="Email"
+              value={values.email}
             leftIcon={
               <Suspense fallback={null}>
                 <SvgPack.Message />

@@ -8,6 +8,7 @@ import { AuthContext } from "@/context/AuthContext";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { Paths } from "@/routes/path";
+import AvatarPicker from "@/ui/components/avatar-picker/AvatarPicker";
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 import DisclaimerModal from "@/ui/components/modals/DisclaimerModal";
 import InfluencerWelcomeVisuals from "@/ui/screens/influencer-profile/components/InfluencerWelcomeVisuals";
@@ -31,6 +32,10 @@ import VipProfileStep, {
 import styles from "./VipScreen.module.css";
 
 type VipStep = "landing" | "complete-invite-profile" | "complete-invite-avatar";
+type InviteAvatarValues = {
+  gender: "male" | "female";
+  avatarUrl?: string;
+};
 type ViewerState = "loading" | "guest" | "following" | "not-following";
 type AutoFollowState = "idle" | "pending" | "complete" | "failed";
 type InviteStatus = "valid" | "expired" | "invalid";
@@ -84,6 +89,7 @@ export default function VipScreen() {
   const invitationValid = inviteValidation.status === "valid";
   const invitationExpired = inviteValidation.status === "expired";
   const [step, setStep] = useState<VipStep>("landing");
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [profileValues, setProfileValues] = useState<InviteProfileValues>({
     userName: "",
     fullName: "",
@@ -91,6 +97,15 @@ export default function VipScreen() {
     email,
     password: "",
     confirmPassword: "",
+  });
+  const [avatarValues, setAvatarValues] = useState<InviteAvatarValues>(() => {
+    const folder = Math.random() < 0.5 ? "human" : "animal";
+    const index = Math.floor(Math.random() * 12) + 1;
+
+    return {
+      gender: "male",
+      avatarUrl: `/avatarImages/${folder}/avatar${index}.jpg`,
+    };
   });
   const [profileErrors, setProfileErrors] = useState<InviteProfileErrors>({});
   const [influencer, setInfluencer] = useState<InfluencerDataModel | null>(null);
@@ -344,6 +359,28 @@ export default function VipScreen() {
     setStep("complete-invite-avatar");
   };
 
+  const handleAvatarContinue = () => {
+    window.alert(
+      JSON.stringify(
+        {
+          invite: inviteValidation,
+          influencer: influencer
+            ? {
+                id: influencer.id,
+                name: influencer.name,
+                username: influencer.username,
+              }
+            : null,
+          viewerState,
+          profile: profileValues,
+          avatar: avatarValues,
+        },
+        null,
+        2,
+      ),
+    );
+  };
+
   if (!influencer || loadingAuth || viewerState === "loading") {
     return (
       <div className={styles.pageContainer}>
@@ -448,11 +485,26 @@ export default function VipScreen() {
             )}
 
             {step === "complete-invite-avatar" && (
-              <VipAvatarStep onBack={() => setStep("complete-invite-profile")} />
+              <VipAvatarStep
+                values={avatarValues}
+                onBack={() => setStep("complete-invite-profile")}
+                onGenderSelect={(gender) =>
+                  setAvatarValues((prev) => ({ ...prev, gender }))
+                }
+                onSelectAvatar={() => setShowAvatarPicker(true)}
+                onContinue={handleAvatarContinue}
+              />
             )}
           </section>
         </div>
       </div>
+      <AvatarPicker
+        isOpen={showAvatarPicker}
+        onClose={() => setShowAvatarPicker(false)}
+        onSelect={(avatarUrl) => {
+          setAvatarValues((prev) => ({ ...prev, avatarUrl }));
+        }}
+      />
     </>
   );
 }
