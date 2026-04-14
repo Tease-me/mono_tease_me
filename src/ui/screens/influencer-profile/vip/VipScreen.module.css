@@ -6,6 +6,10 @@
   background: #000;
 }
 
+.hiddenPreload {
+  display: none;
+}
+
 .outerContainer {
   position: relative;
   display: grid;
@@ -13,8 +17,16 @@
   min-height: 100dvh;
 }
 
+.formOuterContainer {
+  grid-template-rows: 1fr;
+}
+
 .outerContainer > * {
   z-index: 1;
+}
+
+.hideVisualsOnMobile {
+  display: none;
 }
 
 .contentContainer {
@@ -28,6 +40,12 @@
   background: linear-gradient(183deg, rgba(0, 0, 0, 0.3) 49.86%, rgba(63, 63, 63, 0.3) 97.25%);
   -webkit-backdrop-filter: blur(20.8px);
   backdrop-filter: blur(20.8px);
+}
+
+.formContentContainer {
+  min-height: 100dvh;
+  padding: 2rem 1.25rem;
+  overflow-y: auto;
 }
 
 .greetingContainer {
@@ -106,7 +124,8 @@
 }
 
 .redeemButton {
-  width: 100%;
+  width: fit-content;
+  min-width: 15rem;
   min-height: 60px;
   margin-top: 1.5rem;
 }
@@ -161,6 +180,23 @@
   padding: 0;
 }
 
+.formPanel {
+  width: 100%;
+  max-width: 31rem;
+  margin: 0 auto;
+}
+
+.formTitle {
+  margin: 0 0 1.75rem;
+  color: #fff;
+  font-family: "Abril Fatface", serif;
+  font-size: 28px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.1;
+  text-align: center;
+}
+
 @media (min-width: 32rem) {
   .pageContainer {
     display: grid;
@@ -187,9 +223,9 @@
     grid-template-columns: 1fr 1fr;
     position: relative;
     width: 100%;
-    max-width: 60rem;
+    max-width: 66rem;
     min-height: auto;
-    max-height: 35rem;
+    max-height: 40rem;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.27);
     border-radius: 16px;
@@ -201,6 +237,10 @@
       inset 12px -12px 45px -7px #ffffff26,
       -13px 20px 7px -7px #00000054,
       -17px 20px 20px 5px #00000054;
+  }
+
+  .hideVisualsOnMobile {
+    display: flex;
   }
 
   .outerContainer::before {
@@ -215,8 +255,15 @@
   }
 
   .contentContainer {
-    min-height: 35rem;
+    min-height: 40rem;
     padding: 2rem 2rem 4rem;
+  }
+
+  .formContentContainer {
+    min-height: 40rem;
+    max-height: 40rem;
+    padding: 2rem;
+    overflow-y: auto;
   }
 
   .footer {

@@ -1,0 +1,127 @@
+.panel {
+  width: min(100%, 430px);
+  margin: 0 auto;
+}
+
+.title {
+  margin: 0 0 20px;
+  color: #fff;
+  font-family: "Abril Fatface", serif;
+  font-size: 28px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.identityGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 22px;
+  width: 100%;
+}
+
+.accountGroup {
+  width: 100%;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.nameRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  width: 100%;
+}
+
+.input {
+  flex: none;
+  width: 100%;
+  min-height: 52px;
+  border-radius: 8px;
+}
+
+.input input {
+  min-width: 0;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.accountGroup > .field:first-child {
+  margin-bottom: 10px;
+}
+
+.passwordRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+.eyeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.fieldError {
+  color: #ff2a71;
+  font-family: "DM Sans", sans-serif;
+  font-size: 12px;
+  line-height: 140%;
+}
+
+.help {
+  margin: 0;
+  color: var(--colors-tm-text-color10, #5e5e5e);
+  font-family: "DM Sans", sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 140%;
+}
+
+.errorPill {
+  margin-bottom: 0.75rem;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 24px;
+  width: 100%;
+}
+
+.button {
+  width: 100%;
+  min-width: 0;
+  min-height: 52px;
+}
+
+@media (min-width: 48rem) {
+  .nameRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+}
+
+@media (max-width: 24rem) {
+  .passwordRow,
+  .actions {
+    gap: 8px;
+  }
+}

@@ -11,15 +11,17 @@ type InfluencerWelcomeVisualsProps = {
   influencer: InfluencerDataModel;
   landingAssets: InfluencerLandingAssetsResponse | null;
   onHeroLoad?: () => void;
+  className?: string;
 };
 
 export default function InfluencerWelcomeVisuals({
   influencer,
   landingAssets,
   onHeroLoad,
+  className,
 }: InfluencerWelcomeVisualsProps) {
   return (
-    <div className={styles.profileContainer}>
+    <div className={`${styles.profileContainer} ${className ?? ""}`}>
       <div className={styles.bgLpVideo}>
         <video autoPlay muted playsInline loop poster={lpBgMinPoster}>
           <source src={lpBgMinWebm} type="video/webm" />

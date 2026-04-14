@@ -44,7 +44,9 @@ export default function LoginScreen() {
   const location = useLocation();
   const fromPath = (location.state as { from?: string })?.from;
 
-  useEffect(() => { if (isSignedIn) navigate(Paths.home); }, [isSignedIn, navigate]);
+  useEffect(() => {
+    if (isSignedIn) navigate(fromPath ?? Paths.home, { replace: true });
+  }, [fromPath, isSignedIn, navigate]);
 
   useEffect(() => {
     if (authErrors) {
