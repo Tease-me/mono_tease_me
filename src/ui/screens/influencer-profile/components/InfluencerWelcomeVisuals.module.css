@@ -1,0 +1,334 @@
+.profileContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  position: relative;
+  overflow: hidden;
+  background: #000;
+  mask-image: linear-gradient(black 94%, hsl(0deg 0% 0% / 77%) 97%, #00000054 100%);
+}
+
+.lpBodyShot {
+  z-index: 10;
+  bottom: 0;
+  width: 13.5625rem;
+  height: 23.84394rem;
+  position: absolute;
+  transform-origin: bottom center;
+  filter: drop-shadow(-3px 3px 2px rgb(0, 0, 0));
+  mask-image: linear-gradient(black 92%, #00000096 96%, #00000000 99%);
+  animation: kenburns 2s ease-in-out infinite;
+}
+
+.lpBodyShot img {
+  object-fit: cover;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.bgLpVideo {
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  inset: 0;
+  mask-image: radial-gradient(black, transparent 95%);
+  position: relative;
+  overflow: hidden;
+  top: 20%;
+}
+
+.bgLpVideo video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  display: block;
+}
+
+.tileHolder {
+  position: absolute;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  max-width: 30rem;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.imageSignature {
+  z-index: 4;
+  display: flex;
+  width: 100%;
+  max-width: 12.5rem;
+  height: auto;
+  aspect-ratio: 2 / 1;
+  position: absolute;
+  right: 0%;
+  top: 8%;
+  rotate: 17deg;
+  mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.606) 50%, transparent);
+  animation: signature 1s 1.3s ease-in-out both;
+}
+
+.imageSignature img {
+  width: 100%;
+  position: absolute;
+  object-fit: cover;
+}
+
+.image01 {
+  z-index: 1;
+  display: flex;
+  width: 30%;
+  max-width: 8.5rem;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  position: absolute;
+  top: 16%;
+  left: 13%;
+  rotate: -17deg;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 143, 180, 0.15);
+  background: linear-gradient(312deg, #161616 21.97%, #2a2a2a 52.16%, #161616 75.86%);
+  box-shadow: -3px 5px 2px -3px rgba(0, 0, 0, 0.5), -7px 9px 9px 0 rgba(0, 0, 0, 0.4);
+  animation: tile01 1s ease-in 1s both;
+}
+
+.image01 img {
+  inset: 0;
+  height: 100%;
+}
+
+.image02 {
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  width: 31%;
+  max-width: 10rem;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  position: absolute;
+  left: 7%;
+  top: 37%;
+  rotate: -13deg;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 143, 180, 0.15);
+  background: linear-gradient(223deg, #161616 21.45%, #602 51.75%, #161616 75.53%);
+  box-shadow: -3px 5px 2px -3px rgba(0, 0, 0, 0.5), -7px 9px 9px 0 rgba(0, 0, 0, 0.4);
+  animation: tile02 1s ease 1.1s both;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+}
+
+.image02 img {
+  width: 115%;
+  position: absolute;
+  object-fit: cover;
+  inset: 0;
+  translate: -30px 0;
+  height: 100%;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.image03 {
+  z-index: 1;
+  display: flex;
+  width: 38%;
+  max-width: 9.5rem;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  position: absolute;
+  right: 1%;
+  top: 50%;
+  rotate: -7deg;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 143, 180, 0.15);
+  background: linear-gradient(223deg, #161616 21.45%, #3b1348 51.75%, #161616 75.53%);
+  box-shadow: -3px 5px 2px -3px rgba(0, 0, 0, 0.5), -7px 9px 9px 0 rgba(0, 0, 0, 0.4);
+  animation: tile05 1s ease 1.2s both;
+  transform-origin: left;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+}
+
+.image03 img {
+  rotate: 15deg;
+  object-fit: cover;
+  width: 110%;
+  position: absolute;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.lpVideo01 {
+  z-index: 1;
+  display: flex;
+  width: 33%;
+  max-width: 10.5rem;
+  aspect-ratio: 1 / 1;
+  position: absolute;
+  overflow: hidden;
+  left: 6%;
+  top: 59%;
+  transform: rotate(-18deg);
+  border-radius: 0.75rem;
+  background: black;
+  box-shadow: -3px 5px 2px -3px rgba(0, 0, 0, 0.5), -7px 9px 9px 0 rgba(0, 0, 0, 0.4);
+  animation: tile03 1s ease 1.3s both;
+  transform-origin: right;
+}
+
+.lpVideo02 {
+  z-index: 1;
+  display: flex;
+  width: 31%;
+  max-width: 9rem;
+  aspect-ratio: 1 / 1;
+  position: absolute;
+  overflow: hidden;
+  right: 14%;
+  top: 14%;
+  transform: rotate(16deg);
+  border-radius: 0.75rem;
+  box-shadow: -3px 5px 2px -3px rgba(0, 0, 0, 0.5), -7px 9px 9px 0 rgba(0, 0, 0, 0.4);
+  animation: tile04 1s ease 1.4s both;
+  transform-origin: left;
+}
+
+.lpVideo01 video,
+.lpVideo02 video {
+  object-fit: cover;
+  width: 100%;
+  position: absolute;
+}
+
+.audioLottie {
+  border-radius: 0.5rem;
+  border: 1px solid oklch(100% 0.00011 271.152 / 0.1);
+  background: oklch(18% 0.00003 271.152 / 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  width: 44%;
+  height: 9%;
+  padding: 0.3125rem 0.4375rem;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 11;
+  position: absolute;
+  right: 5%;
+  bottom: 9%;
+  box-shadow: inset -6px 6.3px 1px -6px oklch(1 0 0 / 0.5);
+  opacity: 0;
+  animation: audiolottie 1s ease 1.5s both;
+}
+
+@media (min-width: 32rem) {
+  .lpBodyShot {
+    width: 17.5625rem;
+    height: 30.84394rem;
+    mask-image: linear-gradient(black 80%, #00000096 92%, #00000000 99%);
+  }
+
+  .imageSignature {
+    top: 3%;
+  }
+
+  .lpVideo02 {
+    right: 5%;
+    top: 14%;
+  }
+}
+
+@keyframes kenburns {
+  50% {
+    scale: 1.005;
+  }
+}
+
+@keyframes signature {
+  0% {
+    scale: 0.95;
+    opacity: 0;
+  }
+}
+
+@keyframes tile01 {
+  0% {
+    overflow: hidden;
+    top: 16%;
+    left: 13%;
+    filter: blur(10px);
+    opacity: 0.2;
+    scale: 0.7;
+  }
+}
+
+@keyframes tile02 {
+  0% {
+    overflow: hidden;
+    filter: blur(10px);
+    opacity: 0;
+    transform: translate(30px, -20px) scale(0.9) rotate(-13deg) translateZ(0);
+  }
+}
+
+@keyframes tile03 {
+  0% {
+    top: 65%;
+    left: 10%;
+    filter: blur(10px);
+    opacity: 0;
+    scale: 0.8;
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes tile04 {
+  0% {
+    top: 30%;
+    right: 10%;
+    filter: blur(3px);
+    opacity: 0;
+    scale: 0.8;
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes tile05 {
+  0% {
+    transform: rotate(20deg) scale(0.2) translateZ(0);
+    filter: blur(8px);
+    opacity: 0.3;
+  }
+
+  100% {
+    transform: rotate(-7deg) scale(1) translateZ(0);
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+
+@keyframes audiolottie {
+  100% {
+    bottom: 11%;
+    opacity: 1;
+  }
+}
