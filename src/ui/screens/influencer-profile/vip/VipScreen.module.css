@@ -21,6 +21,10 @@
   grid-template-rows: 1fr;
 }
 
+.fullOuterContainer {
+  grid-template-rows: 1fr;
+}
+
 .outerContainer > * {
   z-index: 1;
 }
@@ -46,6 +50,10 @@
   min-height: 100dvh;
   padding: 2rem 1.25rem;
   overflow-y: auto;
+}
+
+.fullContentContainer {
+  min-height: 100dvh;
 }
 
 .greetingContainer {
@@ -239,6 +247,11 @@
       -17px 20px 20px 5px #00000054;
   }
 
+  .fullOuterContainer {
+    grid-template-columns: 1fr;
+    max-width: 44rem;
+  }
+
   .hideVisualsOnMobile {
     display: flex;
   }
@@ -264,6 +277,12 @@
     max-height: 40rem;
     padding: 2rem;
     overflow-y: auto;
+  }
+
+  .fullContentContainer {
+    min-height: 34rem;
+    max-height: none;
+    padding: 2rem;
   }
 
   .footer {

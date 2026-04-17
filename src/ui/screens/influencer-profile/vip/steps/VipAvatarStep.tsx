@@ -1,6 +1,7 @@
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
+import ValidationPill from "@/ui/components/inputs/buttons/ValidationPill";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 import SvgPack from "@/utils/SvgPack";
 import { Suspense } from "react";
@@ -15,6 +16,8 @@ type VipAvatarStepProps = {
   onGenderSelect: (value: "male" | "female") => void;
   onSelectAvatar: () => void;
   onContinue: () => void;
+  isSubmitting?: boolean;
+  error?: string;
 };
 
 export default function VipAvatarStep({
@@ -23,6 +26,8 @@ export default function VipAvatarStep({
   onGenderSelect,
   onSelectAvatar,
   onContinue,
+  isSubmitting = false,
+  error,
 }: VipAvatarStepProps) {
   return (
     <section className={styles.panel}>
@@ -83,12 +88,24 @@ export default function VipAvatarStep({
         </div>
       </div>
 
+      {error && (
+        <ValidationPill variant="error" className={styles.errorPill}>
+          {error}
+        </ValidationPill>
+      )}
+
       <div className={styles.actions}>
-        <NormalButton text="Back" className={styles.button} onClick={onBack} />
+        <NormalButton
+          text="Back"
+          className={styles.button}
+          onClick={onBack}
+          disabled={isSubmitting}
+        />
         <PrimaryButton
-          text="Continue"
+          text={isSubmitting ? "Registering..." : "Continue"}
           className={styles.button}
           onClick={onContinue}
+          disabled={isSubmitting}
         />
       </div>
     </section>

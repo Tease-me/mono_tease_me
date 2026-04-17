@@ -1,5 +1,7 @@
 import { apiClient } from "@/api/apis";
+import { RegisterResponse } from "@/api/models/auth";
 import { InfluencerLandingAssetsResponse } from "@/api/models/influencers";
+import { AuthServices } from "@/api/services/AuthServices";
 import { FollowServices } from "@/api/services/FollowServices";
 import { FunnelServices } from "@/api/services/FunnelServices";
 import { InfluencerServices } from "@/api/services/InfluencerService";
@@ -16,7 +18,14 @@ import logger from "@/utils/logger";
 import { storage } from "@/utils/storage";
 import { validationRules } from "@/utils/validationRules";
 import { required, validateFields } from "@/utils/validations";
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   useLocation,
   useNavigate,
@@ -29,9 +38,14 @@ import VipProfileStep, {
   InviteProfileErrors,
   InviteProfileValues,
 } from "./steps/VipProfileStep";
+import VipVerifyEmailStep from "./steps/VipVerifyEmailStep";
 import styles from "./VipScreen.module.css";
 
-type VipStep = "landing" | "complete-invite-profile" | "complete-invite-avatar";
+type VipStep =
+  | "landing"
+  | "complete-invite-profile"
+  | "complete-invite-avatar"
+  | "verify-email";
 type InviteAvatarValues = {
   gender: "male" | "female";
   avatarUrl?: string;
@@ -52,6 +66,7 @@ type InviteValidationResult = {
 const influencerServices = InfluencerServices(apiClient);
 const followServices = FollowServices(apiClient);
 const funnelServices = FunnelServices(apiClient);
+const authServices = AuthServices(apiClient);
 
 const validateInviteForNow = ({
   inviteCode,
@@ -108,6 +123,9 @@ export default function VipScreen() {
     };
   });
   const [profileErrors, setProfileErrors] = useState<InviteProfileErrors>({});
+  const [registrationError, setRegistrationError] = useState<string>();
+  const [isSubmittingRegistration, setIsSubmittingRegistration] =
+    useState(false);
   const [influencer, setInfluencer] = useState<InfluencerDataModel | null>(null);
   const [landingAssets, setLandingAssets] =
     useState<InfluencerLandingAssetsResponse | null>(null);
@@ -320,7 +338,12 @@ export default function VipScreen() {
     if (field === "password") error = validationRules.password(value);
     if (field === "confirmPassword") {
       error = validationRules.password(value);
-      if (!error && profileValues.password && value && profileValues.password !== value) {
+      if (
+        !error &&
+        profileValues.password &&
+        value &&
+        profileValues.password !== value
+      ) {
         error = "Passwords do not match";
       }
     }
@@ -344,7 +367,10 @@ export default function VipScreen() {
     setStep("complete-invite-profile");
   };
 
-  const handleProfileChange = (field: keyof InviteProfileValues, value: string) => {
+  const handleProfileChange = (
+    field: keyof InviteProfileValues,
+    value: string,
+  ) => {
     setProfileValues((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -356,30 +382,80 @@ export default function VipScreen() {
     }
 
     setProfileErrors({});
+    setRegistrationError(undefined);
     setStep("complete-invite-avatar");
   };
 
-  const handleAvatarContinue = () => {
-    window.alert(
-      JSON.stringify(
-        {
-          invite: inviteValidation,
-          influencer: influencer
-            ? {
-                id: influencer.id,
-                name: influencer.name,
-                username: influencer.username,
-              }
-            : null,
-          viewerState,
-          profile: profileValues,
-          avatar: avatarValues,
-        },
+  const handleAvatarContinue = async () => {
+    if (isSubmittingRegistration) return;
+
+    const nextErrors = validateInviteProfile();
+    if (Object.keys(nextErrors).length) {
+      setProfileErrors(nextErrors);
+      setStep("complete-invite-profile");
+      return;
+    }
+
+    if (!invitationValid) {
+      setRegistrationError("This invite is no longer available.");
+      return;
+    }
+
+    if (!influencer?.id) {
+      setRegistrationError("Registration is unavailable. Please try again.");
+      return;
+    }
+
+    setRegistrationError(undefined);
+    setIsSubmittingRegistration(true);
+
+    try {
+      const absoluteAvatarUrl = avatarValues.avatarUrl
+        ? new URL(avatarValues.avatarUrl, window.location.origin).toString()
+        : null;
+      const response: RegisterResponse = await authServices.register(
+        profileValues.password,
+        profileValues.email.trim().toLowerCase(),
+        influencer.id,
+        profileValues.fullName,
+        avatarValues.gender,
+        profileValues.userName,
+        profileValues.dateOfBirth,
         null,
-        2,
-      ),
-    );
+        inviteCode,
+        absoluteAvatarUrl,
+      );
+      const detailMessage =
+        typeof (response as any)?.detail === "string"
+          ? (response as any).detail
+          : undefined;
+
+      if (detailMessage) {
+        setRegistrationError(detailMessage);
+        return;
+      }
+
+      if (response.ok) {
+        setStep("verify-email");
+        return;
+      }
+
+      setRegistrationError("Registration failed. Please try again later.");
+    } catch (err: any) {
+      const detail = err?.detail || err?.response?.data?.detail;
+      setRegistrationError(
+        typeof detail === "string" && detail.trim()
+          ? detail
+          : "Registration failed. Please try again later.",
+      );
+    } finally {
+      setIsSubmittingRegistration(false);
+    }
   };
+
+  const handleEmailVerified = useCallback(() => {
+    navigate(Paths.home);
+  }, [navigate]);
 
   if (!influencer || loadingAuth || viewerState === "loading") {
     return (
@@ -390,8 +466,8 @@ export default function VipScreen() {
   }
 
   const isFormStep = step !== "landing";
-  const shouldAutoFollow =
-    viewerState === "not-following" && invitationValid;
+  const isVerifyEmailStep = step === "verify-email";
+  const shouldAutoFollow = viewerState === "not-following" && invitationValid;
   const waitingForAutoFollow =
     shouldAutoFollow &&
     (autoFollowState === "idle" || autoFollowState === "pending");
@@ -440,19 +516,21 @@ export default function VipScreen() {
         <div
           className={`${styles.outerContainer} ${
             isFormStep ? styles.formOuterContainer : ""
-          }`}
+          } ${isVerifyEmailStep ? styles.fullOuterContainer : ""}`}
         >
-          <InfluencerWelcomeVisuals
-            influencer={influencer}
-            landingAssets={landingAssets}
-            onHeroLoad={() => setHeroReady(true)}
-            className={isFormStep ? styles.hideVisualsOnMobile : undefined}
-          />
+          {!isVerifyEmailStep && (
+            <InfluencerWelcomeVisuals
+              influencer={influencer}
+              landingAssets={landingAssets}
+              onHeroLoad={() => setHeroReady(true)}
+              className={isFormStep ? styles.hideVisualsOnMobile : undefined}
+            />
+          )}
 
           <section
             className={`${styles.contentContainer} ${
               isFormStep ? styles.formContentContainer : ""
-            }`}
+            } ${isVerifyEmailStep ? styles.fullContentContainer : ""}`}
           >
             {step === "landing" && (
               <VipLandingStep
@@ -493,6 +571,15 @@ export default function VipScreen() {
                 }
                 onSelectAvatar={() => setShowAvatarPicker(true)}
                 onContinue={handleAvatarContinue}
+                isSubmitting={isSubmittingRegistration}
+                error={registrationError}
+              />
+            )}
+
+            {step === "verify-email" && (
+              <VipVerifyEmailStep
+                email={profileValues.email}
+                onVerified={handleEmailVerified}
               />
             )}
           </section>
