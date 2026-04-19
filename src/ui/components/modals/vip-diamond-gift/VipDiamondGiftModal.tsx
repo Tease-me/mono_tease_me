@@ -77,11 +77,13 @@ export default function VipDiamondGiftModal({
           60 Diamonds = 1 Min Talk Time
         </div>
 
-        <PrimaryButton
-          text="Try talk dirty to me!"
-          className={styles.primaryButton}
-          onClick={handlePrimaryAction}
-        />
+        <div className={styles.primaryButtonWrap}>
+          <PrimaryButton
+            text="Try talk dirty to me!"
+            className={styles.primaryButton}
+            onClick={handlePrimaryAction}
+          />
+        </div>
       </div>
     </Modal>
   );
