@@ -15,10 +15,12 @@ from app.data.models import User
 from app.data.schemas.auth import (
     CheckEmailTokenRequest,
     CheckEmailTokenResponse,
-    RegisterRequest,
     LoginRequest,
-    Token,
     PasswordResetRequest,
+    PreregisterRequest,
+    PreregisterResponse,
+    RegisterRequest,
+    Token,
     VerifyEmailResponse,
 )
 from app.core.config import settings
@@ -111,6 +113,51 @@ async def check_token(
     db: AsyncSession = Depends(get_db),
 ):
     return await check_email_verification_token(db, data.email, data.token)
+
+
+@router.post("/preregister", response_model=PreregisterResponse)
+@rate_limit(
+    max_requests=settings.RATE_LIMIT_AUTH_MAX,
+    window_seconds=settings.RATE_LIMIT_AUTH_WINDOW,
+    key_prefix="auth:preregister",
+)
+async def preregister(
+    request: Request,
+    data: PreregisterRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    existing_user = await db.execute(select(User).where(User.email == data.email))
+    if existing_user.scalar():
+        raise HTTPException(status_code=409, detail="Email already registered")
+
+    user = User(
+        email=data.email,
+        password_hash=pwd_context.hash(secrets.token_urlsafe(32)),
+        is_verified=False,
+        email_token=data.email_token,
+        email_token_expires_at=datetime.utcnow() + timedelta(hours=24),
+        full_name=data.full_name,
+    )
+    db.add(user)
+    try:
+        await db.commit()
+    except IntegrityError as exc:
+        await db.rollback()
+        message = str(exc.orig).lower()
+        if "email" in message:
+            raise HTTPException(
+                status_code=409,
+                detail="Email already registered",
+            ) from exc
+        raise
+    await db.refresh(user)
+
+    return PreregisterResponse(
+        ok=True,
+        user_id=user.id,
+        email=user.email,
+        message="User preregistered successfully.",
+    )
 
 @router.post("/register")
 @rate_limit(max_requests=settings.RATE_LIMIT_AUTH_MAX, window_seconds=settings.RATE_LIMIT_AUTH_WINDOW, key_prefix="auth:register")
