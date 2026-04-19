@@ -11,6 +11,8 @@ import { Modal } from "@/ui/components/modals/Modal";
 import { terms } from "@/ui/screens/terms/termsContent";
 import CloseIconButton from "@/ui/components/inputs/buttons/CloseIconButton";
 import paymentTile from "@/assets/image/TMPaymentTile.png";
+import CreditDisplay from "@/ui/components/stats/CreditDisplay";
+import { centsToCredits } from "@/utils/balance_utils";
 
 type AddCreditsContentProps = {
   influencerId: string;
@@ -75,6 +77,8 @@ export default function AddCreditsContent({
   const heading = influencerName
     ? `Top up to talk to ${influencerName}`
     : "Top up to talk";
+  const amountCents = Math.max(0, Math.round(amount * 100));
+  const creditedCredits = centsToCredits(amountCents);
 
   const handleDecrease = () => setAmount((a) => Math.max(0, a - 10));
   const handleIncrease = () => setAmount((a) => a + 10);
@@ -150,6 +154,13 @@ export default function AddCreditsContent({
                 className={styles.customBtn}
               />
             </div>
+            <div className={styles.creditsPreview}>
+              <p className={styles.creditsPreviewLabel}>You&apos;ll receive</p>
+              <CreditDisplay
+                credits={creditedCredits}
+                className={styles.creditsPreviewValue}
+              />
+            </div>
           </>
         ) : (
           <div className={styles.paymentNoteStep}>
@@ -173,6 +184,13 @@ export default function AddCreditsContent({
               If you have any questions regarding any charges contact
               support@teaseme.live
             </p>
+            <div className={styles.creditsPreview}>
+              <p className={styles.creditsPreviewLabel}>You&apos;ll receive</p>
+              <CreditDisplay
+                credits={creditedCredits}
+                className={styles.creditsPreviewValue}
+              />
+            </div>
           </div>
         )}
 

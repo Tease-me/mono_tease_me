@@ -33,6 +33,10 @@
   letter-spacing: 0.2px;
 }
 
+.inlineCredit {
+  margin-inline: 0.15em;
+}
+
 .bolded {
   font-weight: 700;
   ;

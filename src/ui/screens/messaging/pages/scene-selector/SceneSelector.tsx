@@ -16,6 +16,7 @@ import AddCreditsModal from "@/ui/components/modals/payment-modal/AddCreditsModa
 import { Modal } from "@/ui/components/modals/Modal";
 import { useAgeVerification } from "@/hooks/useAgeVerification";
 import { RELATIONSHIP_MODE_AVAILABLE } from "@/constants/featureFlags";
+import CreditDisplay from "@/ui/components/stats/CreditDisplay";
 
 const AdultTermsModal = lazy(() => import("@/ui/components/modals/adult-terms/AdultTermsModal"));
 
@@ -357,20 +358,16 @@ export default function SceneSelector({
 
   const hasConfirmedSummary =
     postCallSummary?.confirmedDurationSeconds != null &&
-    postCallSummary?.confirmedCostCents != null;
+    postCallSummary?.confirmedCostCredits != null;
   const confirmedDurationSeconds = hasConfirmedSummary
     ? postCallSummary.confirmedDurationSeconds
     : null;
-  const confirmedCostCents = hasConfirmedSummary
-    ? postCallSummary.confirmedCostCents
+  const confirmedCostCredits = hasConfirmedSummary
+    ? postCallSummary.confirmedCostCredits
     : null;
 
   const summaryDurationLabel = confirmedDurationSeconds != null
     ? formatTime(Math.max(0, Math.round(confirmedDurationSeconds)))
-    : null;
-
-  const summaryCostLabel = confirmedCostCents != null
-    ? `$${(confirmedCostCents / 100).toFixed(2)}`
     : null;
 
   const isWaitingForConfirmedSummary =
@@ -539,7 +536,14 @@ export default function SceneSelector({
                             <>
                               <div className={styles.sessionTimer}>{summaryDurationLabel}</div>
                               <div className={styles.summaryCostRow}>
-                                <span className={styles.summaryCostLabel}>Cost: {summaryCostLabel}</span>
+                                <span className={styles.summaryCostLabel}>
+                                  Cost:{" "}
+                                  {confirmedCostCredits != null ? (
+                                    <CreditDisplay credits={confirmedCostCredits} />
+                                  ) : (
+                                    "--"
+                                  )}
+                                </span>
                                 <button
                                   type="button"
                                   className={styles.summaryInfoButton}

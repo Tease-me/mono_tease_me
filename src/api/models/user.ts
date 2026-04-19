@@ -57,6 +57,7 @@ export type LatestAdultCallSummary = {
   created_at: string | null;
   adult_character_id: number | null;
   cost_cents: number | null;
+  cost_credits: number | null;
 };
 
 export interface SingleInfluencerUsageResponse {

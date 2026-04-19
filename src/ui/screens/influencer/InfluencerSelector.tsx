@@ -64,7 +64,7 @@ export default function InfluencerSelector({
               balanceService.getBalance(inf.id).catch(() => null),
             ]);
 
-            const balanceValue = blc ? blc.balance_cents / 100 : 0;
+            const balanceValue = blc ? blc.balance_credits : 0;
 
             return {
               id: inf.id,
