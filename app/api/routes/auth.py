@@ -2,7 +2,7 @@ import asyncio
 import secrets
 import logging
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, File, HTTPException, Request, Response, UploadFile, status
 
 from sqlalchemy.exc import IntegrityError
@@ -43,6 +43,7 @@ from app.utils.storage.s3 import (
     save_user_photo_to_s3,
 )
 from app.services.follow import create_follow_if_missing
+from app.services.billing import topup_wallet
 from app.services.email_verification_service import check_email_verification_token
 from app.api.deps.influencer import ensure_influencer
 from app.utils.infrastructure.rate_limiter import rate_limit
@@ -55,6 +56,73 @@ log = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def _get_login_bonus_status(user: User) -> str:
+    if user.login_bonus_granted_at is not None:
+        return "granted"
+    if user.login_bonus_pending:
+        return "pending"
+    return "none"
+
+
+async def _apply_first_login_bonus(db: AsyncSession, user: User) -> None:
+    now = datetime.now(timezone.utc)
+    first_login_detected = user.first_login_at is None
+
+    if first_login_detected:
+        user.first_login_at = now
+
+    should_attempt_bonus = (
+        user.login_bonus_granted_at is None
+        and (first_login_detected or user.login_bonus_pending)
+    )
+    if not should_attempt_bonus:
+        if first_login_detected:
+            db.add(user)
+            await db.commit()
+        return
+
+    bonus_cents = int(settings.FIRST_LOGIN_BONUS_CENTS or 0)
+    bonus_influencer_id = (settings.FIRST_LOGIN_BONUS_INFLUENCER_ID or "").strip()
+    if bonus_cents <= 0 or not bonus_influencer_id:
+        user.login_bonus_pending = True
+        db.add(user)
+        await db.commit()
+        log.warning(
+            "first_login_bonus.misconfigured user=%s cents=%s influencer_id=%s",
+            user.id,
+            bonus_cents,
+            bonus_influencer_id or None,
+        )
+        return
+
+    try:
+        await topup_wallet(
+            db,
+            user_id=user.id,
+            influencer_id=bonus_influencer_id,
+            cents=bonus_cents,
+            source="first_login_bonus",
+        )
+        user.login_bonus_granted_at = now
+        user.login_bonus_pending = False
+        db.add(user)
+        await db.commit()
+    except Exception:
+        log.exception("first_login_bonus.failed user=%s", user.id)
+        await db.rollback()
+        try:
+            fresh_user = await db.get(User, user.id)
+            if fresh_user is None:
+                return
+            if fresh_user.first_login_at is None:
+                fresh_user.first_login_at = now
+            fresh_user.login_bonus_pending = True
+            db.add(fresh_user)
+            await db.commit()
+        except Exception:
+            log.exception("first_login_bonus.pending_mark_failed user=%s", user.id)
 
 def _set_auth_cookies(response: Response, access_token: str, refresh_token: str) -> None:
     access_max_age = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
@@ -332,6 +400,8 @@ async def login(
     
     if not user.is_verified:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Verify Email First")
+
+    await _apply_first_login_bonus(db, user)
     
     access_token = create_token(
         {"sub": str(user.id)}, settings.SECRET_KEY, timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -392,6 +462,7 @@ async def get_me(request: Request, user: User = Depends(get_current_user)):
     )
     user_out = UserOut.model_validate(user)
     user_out.verification_required = verification_required
+    user_out.login_bonus_status = _get_login_bonus_status(user)
     if user.profile_photo_key:
         user_out.profile_photo_url = resolve_user_photo_url(user.profile_photo_key)
     return user_out

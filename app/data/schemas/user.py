@@ -1,5 +1,5 @@
 from pydantic import BaseModel, field_validator
-from typing import Optional
+from typing import Literal, Optional
 from datetime import datetime
 
 class UserBase(BaseModel):
@@ -54,6 +54,7 @@ class UserRead(UserBase):
     is_identity_verified: bool = False
     is_age_verified: bool = False
     verification_level: Optional[str] = None
+    login_bonus_status: Literal["none", "pending", "granted"] = "none"
 
     class Config:
         from_attributes = True
