@@ -153,6 +153,7 @@ async def test_get_user_usage_returns_latest_global_adult_call_summary() -> None
         "created_at": "2026-03-30T12:34:56+00:00",
         "adult_character_id": 9,
         "cost_cents": 160,
+        "cost_credits": 96,
     }
 
 
@@ -219,6 +220,7 @@ async def test_get_user_usage_with_influencer_filter_keeps_global_latest_adult_s
         "created_at": "2026-03-31T08:00:00+00:00",
         "adult_character_id": 4,
         "cost_cents": None,
+        "cost_credits": None,
     }
 
 

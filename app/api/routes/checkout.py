@@ -13,6 +13,11 @@ from app.core.session import get_db
 from app.data.models import Influencer, PayPalTopUp, User
 from app.data.schemas.armloop import ArmloopSessionResponse, ArmloopWebhookPayload
 from app.data.schemas.checkout import PaymentWebhookPayload
+from app.services.credit_conversion import (
+    amount_cents_to_credits,
+    balance_cents_to_credits,
+    get_conversion_rate,
+)
 from app.services.billing import topup_wallet
 from app.services.firstpromoter import fp_track_sale_v2
 from app.services.gateways import armloop_gateway
@@ -182,7 +187,10 @@ async def payment_webhook(
         "user_id": topup.user_id,
         "influencer_id": topup.influencer_id,
         "credited_cents": topup.cents,
+        "credited_credits": amount_cents_to_credits(int(topup.cents)),
         "new_balance_cents": new_balance,
+        "new_balance_credits": balance_cents_to_credits(int(new_balance)),
+        "conversion_rate": get_conversion_rate(),
     }
 
 

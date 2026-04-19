@@ -7,6 +7,20 @@ class LoginRequest(BaseModel):
     email: str
     password: str
 
+
+class PreregisterRequest(BaseModel):
+    email: str
+    email_token: str
+    full_name: str | None = None
+
+
+class PreregisterResponse(BaseModel):
+    ok: bool
+    user_id: int
+    email: str
+    message: str
+
+
 class RegisterRequest(BaseModel):
     password: str
     email: str
