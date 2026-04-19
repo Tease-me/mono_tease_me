@@ -13,6 +13,8 @@ from passlib.context import CryptContext
 from app.core.session import get_db
 from app.data.models import User
 from app.data.schemas.auth import (
+    CheckEmailTokenRequest,
+    CheckEmailTokenResponse,
     RegisterRequest,
     LoginRequest,
     Token,
@@ -39,6 +41,7 @@ from app.utils.storage.s3 import (
     save_user_photo_to_s3,
 )
 from app.services.follow import create_follow_if_missing
+from app.services.email_verification_service import check_email_verification_token
 from app.api.deps.influencer import ensure_influencer
 from app.utils.infrastructure.rate_limiter import rate_limit
 from app.utils.infrastructure.country import (
@@ -100,6 +103,14 @@ async def check_email(email: str, db: AsyncSession = Depends(get_db)):
         "exists": user is not None,
         "email": email,
     }
+
+
+@router.post("/check-token", response_model=CheckEmailTokenResponse)
+async def check_token(
+    data: CheckEmailTokenRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    return await check_email_verification_token(db, data.email, data.token)
 
 @router.post("/register")
 @rate_limit(max_requests=settings.RATE_LIMIT_AUTH_MAX, window_seconds=settings.RATE_LIMIT_AUTH_WINDOW, key_prefix="auth:register")

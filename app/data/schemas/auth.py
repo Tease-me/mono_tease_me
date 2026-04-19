@@ -1,7 +1,7 @@
 from datetime import date
 
 from fastapi import Form
-from pydantic import BaseModel, HttpUrl, field_validator
+from pydantic import BaseModel, Field, HttpUrl, field_validator
 
 class LoginRequest(BaseModel):
     email: str
@@ -73,6 +73,17 @@ class VerifyEmailResponse(BaseModel):
     message: str
     access_token: str
     refresh_token: str
+
+
+class CheckEmailTokenRequest(BaseModel):
+    email: str = Field(min_length=1)
+    token: str = Field(min_length=1)
+
+
+class CheckEmailTokenResponse(BaseModel):
+    ok: bool
+    valid: bool
+    message: str
 
 
 class PasswordResetRequest(BaseModel):

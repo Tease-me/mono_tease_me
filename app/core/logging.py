@@ -86,6 +86,7 @@ def configure_logging() -> None:
                 "hpack.hpack": {"level": "WARNING", "propagate": True},
                 # Telegram voice-call stack — DEBUG dumps every raw protocol message.
                 "pyrogram": {"level": "WARNING", "propagate": True},
+                "telethon": {"level": "WARNING", "propagate": True},
                 "pytgcalls": {"level": "WARNING", "propagate": True},
                 "ntgcalls": {"level": "ERROR", "propagate": True},
                 "aiohttp": {"level": "WARNING", "propagate": True},
