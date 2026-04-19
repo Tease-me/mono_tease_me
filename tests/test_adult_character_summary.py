@@ -89,6 +89,7 @@ async def test_get_adult_character_summary_with_latest_call_and_character(
     assert result.latest_adult_call_summary.model_dump() == {
         "duration_seconds": 42.0,
         "cost_cents": 160,
+        "cost_credits": 96,
     }
 
 
@@ -126,6 +127,7 @@ async def test_get_adult_character_summary_uses_pricing_even_when_character_is_m
     assert result.latest_adult_call_summary is not None
     assert result.latest_adult_call_summary.duration_seconds is None
     assert result.latest_adult_call_summary.cost_cents is None
+    assert result.latest_adult_call_summary.cost_credits is None
 
 
 @pytest.mark.anyio
@@ -172,6 +174,7 @@ def test_get_adult_character_summary_route_success(monkeypatch) -> None:
             "latest_adult_call_summary": {
                 "duration_seconds": 149.0,
                 "cost_cents": 160,
+                "cost_credits": 96,
             },
         }
 
@@ -195,6 +198,7 @@ def test_get_adult_character_summary_route_success(monkeypatch) -> None:
         "latest_adult_call_summary": {
             "duration_seconds": 149.0,
             "cost_cents": 160,
+            "cost_credits": 96,
         },
     }
 

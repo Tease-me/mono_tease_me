@@ -5,6 +5,7 @@ from typing import Literal
 class LatestAdultCallSummaryOut(BaseModel):
     duration_seconds: float | None = None
     cost_cents: int | None = None
+    cost_credits: int | None = None
 
 
 class AdultCharacterSummaryOut(BaseModel):
