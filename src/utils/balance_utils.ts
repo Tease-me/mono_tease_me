@@ -44,11 +44,11 @@ export function formatCentsToDollars(
 }
 
 /**
- * Formats a credit balance for compact badge-style display.
+ * Formats a credit balance as a whole-number string.
  * @param credits Credit amount
- * @returns Formatted credit badge text
+ * @returns Formatted whole-credit text
  */
 export function formatCredits(credits: number | null | undefined): string {
   const wholeCredits = Math.max(0, Math.round(credits ?? 0));
-  return `♦${wholeCredits}`;
+  return String(wholeCredits);
 }
