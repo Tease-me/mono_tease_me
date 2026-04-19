@@ -79,6 +79,7 @@ export type AdultCharacterSummary = {
   latest_adult_call_summary: {
     duration_seconds: number | null;
     cost_cents: number | null;
+    cost_credits: number | null;
   } | null;
 };
 

@@ -22,6 +22,7 @@ import { CallBilledEvent } from "@/hooks/useNotificationSocket";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import { RELATIONSHIP_MODE_AVAILABLE } from "@/constants/featureFlags";
 import { centsToCredits } from "@/utils/balance_utils";
+import CreditDisplay from "@/ui/components/stats/CreditDisplay";
 
 const billingService = BillingServices(apiClient);
 const subscriptionService = SubscriptionsServices(apiClient);
@@ -52,12 +53,6 @@ type RelationData = {
   msgRemaining?: number;
   latestAdultCallSummary?: AdultCharacterSummary["latest_adult_call_summary"];
 };
-
-function formatCents(cents: number | null | undefined): string {
-  if (cents == null) return "--";
-  return `$${(cents / 100).toFixed(2)}`;
-}
-
 
 function formatDuration(totalSeconds: number | null | undefined): string {
   if (totalSeconds == null) return "--";
@@ -207,9 +202,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
 
   const latestAdultCallDuration = formatDuration(data.latestAdultCallSummary?.duration_seconds ?? null);
 
-  const latestAdultCallCost = formatCents(
-    data.latestAdultCallSummary?.cost_cents
-  );
+  const latestAdultCallCost = data.latestAdultCallSummary?.cost_credits ?? null;
 
   if (loading) {
     return (
@@ -292,7 +285,11 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
                     <div className={styles.lastCallCard}>
                       <span className={styles.lastCallCardLabel}>Cost</span>
                       <span className={styles.lastCallCardValue}>
-                        {latestAdultCallCost}
+                        {latestAdultCallCost != null ? (
+                          <CreditDisplay credits={latestAdultCallCost} />
+                        ) : (
+                          "--"
+                        )}
                       </span>
                     </div>
                   </div>

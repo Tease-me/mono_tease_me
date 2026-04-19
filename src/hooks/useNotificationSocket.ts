@@ -5,6 +5,7 @@ import logger from "@/utils/logger";
 export type LatestAdultCallSummary = {
   duration_seconds: number | null;
   cost_cents: number | null;
+  cost_credits: number | null;
 };
 
 export type CallBilledEvent = {

@@ -23,9 +23,9 @@ type UseAdultCallTransportOptions = {
 
 type PostCallSummary = {
   estimatedDurationSeconds: number | null;
-  estimatedCostCents: number | null;
+  estimatedCostCredits: number | null;
   confirmedDurationSeconds: number | null;
-  confirmedCostCents: number | null;
+  confirmedCostCredits: number | null;
   isEstimate: boolean;
 };
 
@@ -60,13 +60,14 @@ function toConfirmedPostCallSummary(
   summary: {
     duration_seconds: number | null;
     cost_cents: number | null;
+    cost_credits: number | null;
   },
 ): PostCallSummary {
   return {
     estimatedDurationSeconds: null,
-    estimatedCostCents: null,
+    estimatedCostCredits: null,
     confirmedDurationSeconds: summary.duration_seconds ?? null,
-    confirmedCostCents: summary.cost_cents ?? null,
+    confirmedCostCredits: summary.cost_credits ?? null,
     isEstimate: false,
   };
 }
@@ -304,9 +305,9 @@ export default function useAdultCallTransport(
     acceptsSummaryUpdatesRef.current = true;
     setPostCallSummary({
       estimatedDurationSeconds: null,
-      estimatedCostCents: null,
+      estimatedCostCredits: null,
       confirmedDurationSeconds: null,
-      confirmedCostCents: null,
+      confirmedCostCredits: null,
       isEstimate: false,
     });
     const sessionToken = summarySessionRef.current;
