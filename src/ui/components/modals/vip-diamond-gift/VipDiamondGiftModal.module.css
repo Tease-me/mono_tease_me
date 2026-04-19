@@ -1,0 +1,243 @@
+.modal {
+  position: relative;
+  width: min(100%, 620px);
+  max-height: min(90dvh, 900px);
+  padding: 0 !important;
+  overflow: hidden !important;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 16px !important;
+  background: #000 !important;
+  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.55) !important;
+}
+
+.topArea {
+  position: relative;
+  height: 118px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  background: #000;
+}
+
+.closeButton {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 64px;
+  height: 64px;
+  flex: 0 0 64px;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.2),
+    0 0 28px rgba(255, 255, 255, 0.22);
+}
+
+.closeButton:global([class*="button-cta-outer"]):global([class*="icon-only"]) {
+  min-height: 64px;
+}
+
+.closeButton :global([class*="button-cta-inner"]) {
+  padding: 0;
+}
+
+.content {
+  --sparkle-dot: rgba(159, 42, 255, 0.48);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 620px;
+  padding: 46px 42px 56px;
+  overflow: hidden;
+  background-image:
+    radial-gradient(circle at 50% 10%, rgba(255, 42, 113, 0.16), transparent 34%),
+    linear-gradient(#000, #000);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+}
+
+.sparklesLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.2;
+  background-image:
+    var(
+      --vip-sparkles-image,
+      radial-gradient(circle at 16% 34%, var(--sparkle-dot) 0 4px, transparent 5px),
+      radial-gradient(circle at 88% 18%, var(--sparkle-dot) 0 6px, transparent 7px),
+      radial-gradient(circle at 82% 92%, var(--sparkle-dot) 0 5px, transparent 6px),
+      radial-gradient(circle at 46% 11%, var(--sparkle-dot) 0 4px, transparent 5px),
+      radial-gradient(circle at 92% 62%, var(--sparkle-dot) 0 3px, transparent 4px)
+    );
+  background-repeat: repeat;
+  background-position: center;
+  background-size: cover;
+}
+
+.content > :not(.sparklesLayer) {
+  position: relative;
+  z-index: 1;
+}
+
+.content::before,
+.content::after {
+  content: "";
+  position: absolute;
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  z-index: 0;
+  pointer-events: none;
+  filter: blur(40px);
+}
+
+.content::before {
+  top: 176px;
+  left: 50%;
+  background: #ff2a71;
+  transform: translateX(-68%);
+}
+
+.content::after {
+  top: 196px;
+  left: 50%;
+  background: #9f2aff;
+  opacity: 0.6;
+  transform: translateX(-16%);
+}
+
+.heading {
+  margin: 0;
+  color: #fff;
+  font-family: "DM Sans", sans-serif;
+  font-size: 28px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 120%;
+  text-align: center;
+}
+
+.diamondAmount {
+  margin: 16px 0 18px;
+  color: var(--colors-tm-primary-color05, #ff2a71);
+  font-family: "DM Sans", sans-serif;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 120%;
+  text-align: center;
+  text-shadow:
+    1px 1px 0 rgba(0, 0, 0, 0.1),
+    1px 3px 3px rgba(0, 0, 0, 0.25);
+}
+
+.diamondStage {
+  display: grid;
+  place-items: center;
+  width: 190px;
+  height: 157px;
+}
+
+.diamondImage {
+  width: min(190px, 100%);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 28px rgba(255, 42, 113, 0.18));
+}
+
+.copy {
+  max-width: 440px;
+  margin: 18px 0 0;
+  color: #fff;
+  font-family: "DM Sans", sans-serif;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 1.55;
+  text-align: center;
+  letter-spacing: 0;
+}
+
+.conversion {
+  margin: 38px 0 28px;
+  color: #ff1f69;
+  font-family: "DM Sans", sans-serif;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 120%;
+  text-align: center;
+}
+
+.primaryButton {
+  width: fit-content;
+  min-width: 320px;
+  min-height: 64px;
+}
+
+.primaryButton :global(.button-text) {
+  font-family: "DM Sans", sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+@media (max-width: 767px) {
+  .modal {
+    width: min(100%, 420px);
+    max-height: 92dvh;
+  }
+
+  .topArea {
+    height: 86px;
+  }
+
+  .closeButton {
+    top: 18px;
+    right: 18px;
+    width: 52px;
+    height: 52px;
+    flex-basis: 52px;
+  }
+
+  .closeButton:global([class*="button-cta-outer"]):global([class*="icon-only"]) {
+    min-height: 52px;
+  }
+
+  .content {
+    min-height: auto;
+    padding: 34px 22px 34px;
+  }
+
+  .heading {
+    font-size: 24px;
+  }
+
+  .diamondStage {
+    height: 157px;
+  }
+
+  .diamondImage {
+    width: min(190px, 100%);
+  }
+
+  .copy {
+    font-size: 19px;
+    line-height: 1.45;
+  }
+
+  .conversion {
+    margin: 28px 0 22px;
+    font-size: 20px;
+  }
+
+  .primaryButton {
+    min-width: min(100%, 280px);
+    min-height: 58px;
+  }
+
+  .primaryButton :global(.button-text) {
+    font-size: 18px;
+  }
+}

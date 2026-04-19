@@ -20,6 +20,7 @@ import type { CallStatus } from "@/hooks/useCallWebRTC";
 import InfluencerSelector from "@/ui/screens/influencer/InfluencerSelector";
 import UserNav from "@/ui/components/nav/UserNav";
 import { constants } from "@/utils/constants";
+import VipDiamondGiftModal from "@/ui/components/modals/vip-diamond-gift/VipDiamondGiftModal";
 
 const UserMenu = React.lazy(() => import("../user-profile/UserMenu"));
 const UserProfile = React.lazy(
@@ -90,6 +91,9 @@ export default function HomeScreenSingle() {
 
   const [activeView, setActiveView] = useState<ActiveView>("scene-selector");
   const [showScenarioNavTitle, setShowScenarioNavTitle] = useState(true);
+  const [showVipDiamondGift, setShowVipDiamondGift] = useState(
+    true,
+  );
   const callStatusRef = useRef<CallStatus>("idle");
 
 
@@ -386,6 +390,11 @@ export default function HomeScreenSingle() {
       >
         {mainContent}
       </SlideDrawerLayout>
+      <VipDiamondGiftModal
+        isOpen={showVipDiamondGift && Boolean(influencer)}
+        influencerName={influencer?.name ?? currentInfluencerName}
+        onClose={() => setShowVipDiamondGift(false)}
+      />
     </SidebarContext.Provider>
   );
 }
