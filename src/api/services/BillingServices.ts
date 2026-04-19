@@ -1,17 +1,30 @@
 import { AxiosInstance } from "axios";
 import { Endpoints } from "../urls";
 
+export type ConversionRate = {
+  cents_per_usd: number;
+  credits_per_usd: number;
+};
+
 export type BalanceRes = {
+  influencer_id: string;
   balance_cents: number;
+  balance_credits: number;
 };
 
 export type TopUpReq = {
+  influencer_id: string;
   cents: number;
 };
 
 export type TopUpRes = {
-  ok: boolean;
-  new_balance_cents: number;
+  ok: true;
+  user_id: number;
+  influencer_id: string;
+  balance_cents: number;
+  credited_credits: number;
+  balance_credits: number;
+  conversion_rate: ConversionRate;
 };
 
 // ── External Checkout (tmservice) ──────────────────────────────────
@@ -31,6 +44,8 @@ export type CreateCheckoutRes = {
   provider: string;
   purpose: string;
   amount_cents: number;
+  credited_credits: number;
+  conversion_rate: ConversionRate;
 };
 
 export type VerifyCheckoutReq = {
@@ -40,11 +55,13 @@ export type VerifyCheckoutReq = {
 };
 
 export type VerifyCheckoutRes = {
-  ok: boolean;
+  ok: true;
   checkout_id: string;
   status: string;
   provider: string;
-  amount_cents: number;
+  amount_cents?: number;
+  credited_credits?: number;
+  conversion_rate?: ConversionRate;
   balance_cents?: number;
   subscription_id?: number;
   subscription_status?: string;
@@ -57,6 +74,7 @@ export type VerifyCheckoutRes = {
 export type AdultCharacterSummary = {
   influencer_id: string;
   balance_cents: number;
+  balance_credits: number;
   estimated_remaining_call_seconds: number | null;
   latest_adult_call_summary: {
     duration_seconds: number | null;

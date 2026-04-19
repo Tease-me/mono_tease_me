@@ -68,7 +68,7 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
     useEffect(() => {
         if (influencer?.id) {
             balanceSvc.getBalance(influencer?.id).then((balance) => {
-                setBalance(balance.balance_cents / 100);
+                setBalance(balance.balance_credits);
             });
         }
     }, [influencer]);

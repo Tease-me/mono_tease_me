@@ -21,6 +21,7 @@ import { FollowServices } from "@/api/services/FollowServices";
 import { CallBilledEvent } from "@/hooks/useNotificationSocket";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import { RELATIONSHIP_MODE_AVAILABLE } from "@/constants/featureFlags";
+import { centsToCredits } from "@/utils/balance_utils";
 
 const billingService = BillingServices(apiClient);
 const subscriptionService = SubscriptionsServices(apiClient);
@@ -73,12 +74,12 @@ function formatMins(totalSeconds: number): string {
 
 function estimatedCallRange(
   estimatedSeconds: number | null | undefined,
-  balanceDollars: number | null | undefined,
+  balanceCredits: number | null | undefined,
 ): string {
   if (estimatedSeconds == null) return "--";
   const minStr = formatMins(estimatedSeconds);
-  if (balanceDollars == null) return minStr;
-  const maxSeconds = Math.floor(balanceDollars * 60);
+  if (balanceCredits == null) return minStr;
+  const maxSeconds = Math.floor(balanceCredits);
   const maxStr = formatMins(maxSeconds);
   if (minStr === maxStr) return maxStr;
   return `${minStr} – ${maxStr}`;
@@ -133,8 +134,8 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
             following.items.find((f) => f.influencer_id === initial.id)
               ?.created_at ?? d.followingSince,
           balance:
-            adultSummary?.balance_cents != null
-              ? adultSummary.balance_cents / 100
+            adultSummary?.balance_credits != null
+              ? adultSummary.balance_credits
               : d.balance,
           hasSubscription: sub?.has_subscription ?? d.hasSubscription,
           subscriptionStatus: sub?.status ?? d.subscriptionStatus,
@@ -164,7 +165,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
 
       setData((d) => ({
         ...d,
-        balance: detail.balance_cents / 100,
+        balance: centsToCredits(detail.balance_cents),
         estimatedRemainingCallSeconds:
           detail.estimated_remaining_call_seconds,
         latestAdultCallSummary: detail.latest_adult_call_summary,
