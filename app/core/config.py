@@ -148,6 +148,8 @@ class Settings(BaseSettings):
     TELEGRAM_TEXT_BATCH_WINDOW_SECONDS: float = 8.0
     TELEGRAM_TEXT_QUEUE_TTL_SECONDS: int = 300
     FRONTEND_URL: str = "https://www.teaseme.live"  # Web app base URL
+    FIRST_LOGIN_BONUS_CENTS: int = 0
+    FIRST_LOGIN_BONUS_INFLUENCER_ID: str | None = None
 
 
 settings = Settings()
