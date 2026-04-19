@@ -12,7 +12,7 @@ from app.api.routes import billing as billing_route
 from app.api.routes import checkout as checkout_route
 from app.core.config import settings
 from app.core.session import get_db
-from app.data.models import Influencer, InfluencerWallet, PayPalTopUp, User
+from app.data.models import Influencer, User
 from app.services.credit_conversion import (
     amount_cents_to_credits,
     balance_cents_to_credits,
