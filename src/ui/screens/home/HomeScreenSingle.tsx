@@ -7,6 +7,7 @@ import React, {
   useState,
 } from "react";
 import { SidebarContext } from "@/hooks/useSidebar";
+import { AuthContext } from "@/context/AuthContext";
 import ChatScreenContent from "../messaging/components/ChatScreenContent";
 import SlideDrawerLayout from "@/ui/templates/SlideDrawerLayout";
 import clsx from "clsx";
@@ -20,6 +21,7 @@ import type { CallStatus } from "@/hooks/useCallWebRTC";
 import InfluencerSelector from "@/ui/screens/influencer/InfluencerSelector";
 import UserNav from "@/ui/components/nav/UserNav";
 import { constants } from "@/utils/constants";
+import VipDiamondGiftModal from "@/ui/components/modals/vip-diamond-gift/VipDiamondGiftModal";
 
 const UserMenu = React.lazy(() => import("../user-profile/UserMenu"));
 const UserProfile = React.lazy(
@@ -68,6 +70,7 @@ type SidebarPage = {
 type ActiveView = "scene-selector" | "girlfriend-mode";
 
 export default function HomeScreenSingle() {
+  const { user } = React.useContext(AuthContext);
   const dispatch = useAppDispatch();
   const { isSubscribing } = useAppSelector((state) => state.subscription);
   const currentInfluencerId = useAppSelector(
@@ -90,6 +93,7 @@ export default function HomeScreenSingle() {
 
   const [activeView, setActiveView] = useState<ActiveView>("scene-selector");
   const [showScenarioNavTitle, setShowScenarioNavTitle] = useState(true);
+  const [showVipDiamondGift, setShowVipDiamondGift] = useState(false);
   const callStatusRef = useRef<CallStatus>("idle");
 
 
@@ -127,6 +131,10 @@ export default function HomeScreenSingle() {
       setShowScenarioNavTitle(true);
     }
   }, [activeView, influencer?.id]);
+
+  useEffect(() => {
+    setShowVipDiamondGift(user?.login_bonus_status === "granted");
+  }, [user?.login_bonus_status]);
 
   useEffect(() => {
     if (currentPageRef.current !== "influencer_profile") return;
@@ -386,6 +394,11 @@ export default function HomeScreenSingle() {
       >
         {mainContent}
       </SlideDrawerLayout>
+      <VipDiamondGiftModal
+        isOpen={showVipDiamondGift && Boolean(influencer)}
+        influencerName={influencer?.name ?? currentInfluencerName}
+        onClose={() => setShowVipDiamondGift(false)}
+      />
     </SidebarContext.Provider>
   );
 }
