@@ -7,6 +7,7 @@ import React, {
   useState,
 } from "react";
 import { SidebarContext } from "@/hooks/useSidebar";
+import { AuthContext } from "@/context/AuthContext";
 import ChatScreenContent from "../messaging/components/ChatScreenContent";
 import SlideDrawerLayout from "@/ui/templates/SlideDrawerLayout";
 import clsx from "clsx";
@@ -69,6 +70,7 @@ type SidebarPage = {
 type ActiveView = "scene-selector" | "girlfriend-mode";
 
 export default function HomeScreenSingle() {
+  const { user } = React.useContext(AuthContext);
   const dispatch = useAppDispatch();
   const { isSubscribing } = useAppSelector((state) => state.subscription);
   const currentInfluencerId = useAppSelector(
@@ -91,9 +93,7 @@ export default function HomeScreenSingle() {
 
   const [activeView, setActiveView] = useState<ActiveView>("scene-selector");
   const [showScenarioNavTitle, setShowScenarioNavTitle] = useState(true);
-  const [showVipDiamondGift, setShowVipDiamondGift] = useState(
-    true,
-  );
+  const [showVipDiamondGift, setShowVipDiamondGift] = useState(false);
   const callStatusRef = useRef<CallStatus>("idle");
 
 
@@ -131,6 +131,10 @@ export default function HomeScreenSingle() {
       setShowScenarioNavTitle(true);
     }
   }, [activeView, influencer?.id]);
+
+  useEffect(() => {
+    setShowVipDiamondGift(user?.login_bonus_status === "granted");
+  }, [user?.login_bonus_status]);
 
   useEffect(() => {
     if (currentPageRef.current !== "influencer_profile") return;
