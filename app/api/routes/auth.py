@@ -58,6 +58,14 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
+def _get_login_bonus_status(user: User) -> str:
+    if user.login_bonus_granted_at is not None:
+        return "granted"
+    if user.login_bonus_pending:
+        return "pending"
+    return "none"
+
+
 async def _apply_first_login_bonus(db: AsyncSession, user: User) -> None:
     now = datetime.now(timezone.utc)
     first_login_detected = user.first_login_at is None
@@ -454,6 +462,7 @@ async def get_me(request: Request, user: User = Depends(get_current_user)):
     )
     user_out = UserOut.model_validate(user)
     user_out.verification_required = verification_required
+    user_out.login_bonus_status = _get_login_bonus_status(user)
     if user.profile_photo_key:
         user_out.profile_photo_url = resolve_user_photo_url(user.profile_photo_key)
     return user_out
