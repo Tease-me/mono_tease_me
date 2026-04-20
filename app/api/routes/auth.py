@@ -70,7 +70,12 @@ def _get_login_bonus_status(user: User) -> str:
     return "none"
 
 
-async def _apply_first_login_bonus(db: AsyncSession, user: User) -> None:
+async def _apply_first_login_bonus(
+    db: AsyncSession,
+    user: User,
+    *,
+    influencer_id: str | None,
+) -> None:
     now = datetime.now(timezone.utc)
     first_login_detected = user.first_login_at is None
 
@@ -88,7 +93,7 @@ async def _apply_first_login_bonus(db: AsyncSession, user: User) -> None:
         return
 
     bonus_cents = int(settings.FIRST_LOGIN_BONUS_CENTS or 0)
-    bonus_influencer_id = (settings.FIRST_LOGIN_BONUS_INFLUENCER_ID or "").strip()
+    bonus_influencer_id = (influencer_id or "").strip()
     if bonus_cents <= 0 or not bonus_influencer_id:
         user.login_bonus_pending = True
         db.add(user)
@@ -387,6 +392,12 @@ async def complete_profile(
         from app.services.funnel_tracking_service import track_influencer_followed
 
         asyncio.create_task(track_influencer_followed(user.id, data.influencer_id))
+
+    await _apply_first_login_bonus(
+        db,
+        user,
+        influencer_id=data.influencer_id,
+    )
 
     try:
         log.info(
@@ -691,7 +702,6 @@ async def verify_email(
     user.email_token = None
     user.email_token_expires_at = None
     await db.commit()
-    await _apply_first_login_bonus(db, user)
 
     access_token = create_token(
         {"sub": str(user.id)},

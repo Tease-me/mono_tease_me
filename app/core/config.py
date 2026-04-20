@@ -133,8 +133,6 @@ class Settings(BaseSettings):
     # LLM configuration
     DEFAULT_SUMMARIZATION_MODEL: str = "gpt-3.5-turbo"
 
-
-
     # Telegram Userbot (pytgcalls) configuration
     TELEGRAM_API_ID: int | None = None  # From https://my.telegram.org
     TELEGRAM_API_HASH: str | None = None  # From https://my.telegram.org
@@ -149,7 +147,6 @@ class Settings(BaseSettings):
     TELEGRAM_TEXT_QUEUE_TTL_SECONDS: int = 300
     FRONTEND_URL: str = "https://www.teaseme.live"  # Web app base URL
     FIRST_LOGIN_BONUS_CENTS: int = 0
-    FIRST_LOGIN_BONUS_INFLUENCER_ID: str | None = None
 
 
 settings = Settings()
