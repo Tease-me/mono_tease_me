@@ -7,6 +7,7 @@ export const Endpoints = {
   auth: {
     login: "/auth/login",
     register: "/auth/register",
+    completeProfile: "/auth/complete-profile",
     refreshToken: "/auth/refresh",
     forgotPassword: "/auth/forgot-password",
     confirmEmail: "/auth/verify-email",
