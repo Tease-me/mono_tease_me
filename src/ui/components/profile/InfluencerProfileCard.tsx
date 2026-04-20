@@ -2,6 +2,7 @@ import styles from "./InfluencerProfileCard.module.css";
 import SvgPack from "@/utils/SvgPack";
 import PlusBadge from "@/ui/components/badges/PlusBadge";
 import ProfileMedia from "@/ui/components/ProfileMedia";
+import onlyFansFullImg from "@/assets/image/onlyFansFull.png";
 
 export type SocialLinks = {
   onlyfans?: string;
@@ -20,6 +21,7 @@ type InfluencerProfileCardProps = {
   followingSince: string;
   isSubscribed?: boolean;
   socials?: SocialLinks;
+  onlyFansFullWidth?: boolean;
 };
 
 type SocialLink = {
@@ -35,9 +37,10 @@ export default function InfluencerProfileCard({
   followingSince,
   isSubscribed = false,
   socials,
+  onlyFansFullWidth = false,
 }: InfluencerProfileCardProps) {
   const socialLinks: SocialLink[] = [
-    ...(socials?.onlyfans ? [{ icon: SvgPack.OnlyFans, label: "OnlyFans", url: socials.onlyfans }] : []),
+    ...(socials?.onlyfans && !onlyFansFullWidth ? [{ icon: SvgPack.OnlyFans, label: "OnlyFans", url: socials.onlyfans }] : []),
     ...(socials?.instagram ? [{ icon: SvgPack.Instagram, label: "Instagram", url: socials.instagram }] : []),
     ...(socials?.tiktok ? [{ icon: SvgPack.TikTok, label: "TikTok", url: socials.tiktok }] : []),
     ...(socials?.snapchat ? [{ icon: SvgPack.SocialSnapChatWhite, label: "Snapchat", url: socials.snapchat }] : []),
@@ -71,6 +74,17 @@ export default function InfluencerProfileCard({
           </div>
         </div>
       </div>
+      {onlyFansFullWidth && socials?.onlyfans && (
+        <a
+          href={socials.onlyfans}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.onlyFansFullRow}
+          aria-label="OnlyFans"
+        >
+          <img src={onlyFansFullImg} alt="OnlyFans" className={styles.onlyFansFullImg} />
+        </a>
+      )}
       {socialLinks.length > 0 && (
         <div className={styles.profileSociallinks}>
           {socialLinks.map((social, index) => {
