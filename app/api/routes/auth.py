@@ -672,18 +672,27 @@ async def logout(response: Response) -> dict:
     return {"ok": True, "message": "Logged out"}
 
 @router.get("/me", response_model=UserOut)
-async def get_me(request: Request, user: User = Depends(get_current_user)):
+async def get_me(
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
     is_age_verified = user.is_age_verified or (
         user.is_identity_verified and user.verification_level in ["full", "premium"]
     )
     verification_required = (not is_age_verified) and (
         is_request_from_age_verification_required_country(request)
     )
+    login_bonus_status = _get_login_bonus_status(user)
     user_out = UserOut.model_validate(user)
     user_out.verification_required = verification_required
-    user_out.login_bonus_status = _get_login_bonus_status(user)
+    user_out.login_bonus_status = login_bonus_status
     if user.profile_photo_key:
         user_out.profile_photo_url = resolve_user_photo_url(user.profile_photo_key)
+    if login_bonus_status == "granted":
+        user.login_bonus_granted_at = None
+        db.add(user)
+        await db.commit()
     return user_out
     
 @router.get("/verify-email", response_model=VerifyEmailResponse)
