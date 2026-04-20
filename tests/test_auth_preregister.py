@@ -6,6 +6,7 @@ from types import SimpleNamespace
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from app.data.models import Influencer
 from sqlalchemy.exc import IntegrityError
 
 from app.api.routes import auth as auth_route
@@ -27,8 +28,16 @@ class FakeExecuteResult:
 
 
 class FakeAsyncSession:
-    def __init__(self, *, existing_user=None, fail_on_commit: bool = False):
-        self._existing_user = existing_user
+    def __init__(
+        self,
+        *,
+        existing_user=None,
+        existing_telegram_user=None,
+        influencer: object | None = None,
+        fail_on_commit: bool = False,
+    ):
+        self._execute_results = [existing_user, existing_telegram_user]
+        self._influencer = influencer
         self._fail_on_commit = fail_on_commit
         self.added: list[object] = []
         self.committed = False
@@ -36,7 +45,14 @@ class FakeAsyncSession:
         self.refreshed = False
 
     async def execute(self, _stmt):
-        return FakeExecuteResult(self._existing_user)
+        if self._execute_results:
+            return FakeExecuteResult(self._execute_results.pop(0))
+        return FakeExecuteResult(None)
+
+    async def get(self, model, key):
+        if model is Influencer and self._influencer is not None:
+            return self._influencer
+        return None
 
     def add(self, obj):
         self.added.append(obj)
@@ -68,9 +84,15 @@ def _build_app(db: FakeAsyncSession) -> FastAPI:
 
 
 def test_preregister_creates_unverified_user_and_returns_minimal_response(monkeypatch) -> None:
-    db = FakeAsyncSession()
+    db = FakeAsyncSession(influencer=SimpleNamespace(id="loli"))
     app = _build_app(db)
+    follow_calls: list[tuple[str, int]] = []
     monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+    monkeypatch.setattr(
+        auth_route,
+        "create_follow_if_missing",
+        _fake_follow_recorder(follow_calls),
+    )
 
     client = TestClient(app)
     response = client.post(
@@ -78,6 +100,8 @@ def test_preregister_creates_unverified_user_and_returns_minimal_response(monkey
         json={
             "email": "user@example.com",
             "email_token": "verify-token",
+            "influencer_id": "loli",
+            "telegram_id": 987654321,
             "full_name": "Jane User",
         },
     )
@@ -95,6 +119,7 @@ def test_preregister_creates_unverified_user_and_returns_minimal_response(monkey
     assert created_user.email == "user@example.com"
     assert created_user.email_token == "verify-token"
     assert created_user.full_name == "Jane User"
+    assert created_user.telegram_id == 987654321
     assert created_user.is_verified is False
     assert created_user.password_hash
     assert created_user.password_hash != "verify-token"
@@ -105,10 +130,14 @@ def test_preregister_creates_unverified_user_and_returns_minimal_response(monkey
     assert "password_hash" not in response.json()
     assert db.committed is True
     assert db.refreshed is True
+    assert follow_calls == [("loli", 1)]
 
 
 def test_preregister_rejects_duplicate_email(monkeypatch) -> None:
-    db = FakeAsyncSession(existing_user=SimpleNamespace(id=99, email="user@example.com"))
+    db = FakeAsyncSession(
+        existing_user=SimpleNamespace(id=99, email="user@example.com"),
+        influencer=SimpleNamespace(id="loli"),
+    )
     app = _build_app(db)
     monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
 
@@ -118,6 +147,8 @@ def test_preregister_rejects_duplicate_email(monkeypatch) -> None:
         json={
             "email": "user@example.com",
             "email_token": "verify-token",
+            "influencer_id": "loli",
+            "telegram_id": 987654321,
         },
     )
 
@@ -127,9 +158,14 @@ def test_preregister_rejects_duplicate_email(monkeypatch) -> None:
 
 
 def test_preregister_allows_missing_full_name(monkeypatch) -> None:
-    db = FakeAsyncSession()
+    db = FakeAsyncSession(influencer=SimpleNamespace(id="loli"))
     app = _build_app(db)
     monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+    monkeypatch.setattr(
+        auth_route,
+        "create_follow_if_missing",
+        _fake_follow_recorder([]),
+    )
 
     client = TestClient(app)
     response = client.post(
@@ -137,6 +173,8 @@ def test_preregister_allows_missing_full_name(monkeypatch) -> None:
         json={
             "email": "user@example.com",
             "email_token": "verify-token",
+            "influencer_id": "loli",
+            "telegram_id": 987654321,
         },
     )
 
@@ -146,7 +184,72 @@ def test_preregister_allows_missing_full_name(monkeypatch) -> None:
 
 
 def test_preregister_maps_commit_race_to_duplicate_email(monkeypatch) -> None:
-    db = FakeAsyncSession(fail_on_commit=True)
+    db = FakeAsyncSession(fail_on_commit=True, influencer=SimpleNamespace(id="loli"))
+    app = _build_app(db)
+    monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+
+    client = TestClient(app)
+    response = client.post(
+        "/auth/preregister",
+        json={
+            "email": "user@example.com",
+            "email_token": "verify-token",
+            "influencer_id": "loli",
+            "telegram_id": 987654321,
+        },
+    )
+
+    assert response.status_code == 409
+    assert response.json() == {"detail": "Email already registered"}
+    assert db.rolled_back is True
+
+
+def test_preregister_rejects_existing_telegram_id(monkeypatch) -> None:
+    db = FakeAsyncSession(
+        existing_telegram_user=SimpleNamespace(id=77, telegram_id=987654321),
+        influencer=SimpleNamespace(id="loli"),
+    )
+    app = _build_app(db)
+    monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+
+    client = TestClient(app)
+    response = client.post(
+        "/auth/preregister",
+        json={
+            "email": "user@example.com",
+            "email_token": "verify-token",
+            "influencer_id": "loli",
+            "telegram_id": 987654321,
+        },
+    )
+
+    assert response.status_code == 409
+    assert response.json() == {"detail": "Telegram ID already registered"}
+    assert db.added == []
+
+
+def test_preregister_rejects_unknown_influencer(monkeypatch) -> None:
+    db = FakeAsyncSession(influencer=None)
+    app = _build_app(db)
+    monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+
+    client = TestClient(app)
+    response = client.post(
+        "/auth/preregister",
+        json={
+            "email": "user@example.com",
+            "email_token": "verify-token",
+            "influencer_id": "missing",
+            "telegram_id": 987654321,
+        },
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Influencer not found"}
+
+
+def test_preregister_requires_influencer_id_and_telegram_id(monkeypatch) -> None:
+    db = FakeAsyncSession(influencer=SimpleNamespace(id="loli"))
     app = _build_app(db)
     monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
 
@@ -159,9 +262,7 @@ def test_preregister_maps_commit_race_to_duplicate_email(monkeypatch) -> None:
         },
     )
 
-    assert response.status_code == 409
-    assert response.json() == {"detail": "Email already registered"}
-    assert db.rolled_back is True
+    assert response.status_code == 422
 
 
 @pytest.mark.anyio
@@ -198,3 +299,11 @@ async def test_preregistered_user_is_compatible_with_check_token() -> None:
         valid=True,
         message="Token is valid.",
     )
+
+
+def _fake_follow_recorder(calls: list[tuple[str, int]]):
+    async def _inner(db, influencer_id: str, user_id: int):
+        calls.append((influencer_id, user_id))
+        return SimpleNamespace(influencer_id=influencer_id, user_id=user_id)
+
+    return _inner

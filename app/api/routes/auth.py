@@ -194,9 +194,17 @@ async def preregister(
     data: PreregisterRequest,
     db: AsyncSession = Depends(get_db),
 ):
+    await ensure_influencer(db, data.influencer_id)
+
     existing_user = await db.execute(select(User).where(User.email == data.email))
     if existing_user.scalar():
         raise HTTPException(status_code=409, detail="Email already registered")
+
+    existing_telegram_user = await db.execute(
+        select(User).where(User.telegram_id == data.telegram_id)
+    )
+    if existing_telegram_user.scalar():
+        raise HTTPException(status_code=409, detail="Telegram ID already registered")
 
     user = User(
         email=data.email,
@@ -205,6 +213,7 @@ async def preregister(
         email_token=data.email_token,
         email_token_expires_at=datetime.utcnow() + timedelta(hours=24),
         full_name=data.full_name,
+        telegram_id=data.telegram_id,
     )
     db.add(user)
     try:
@@ -219,6 +228,7 @@ async def preregister(
             ) from exc
         raise
     await db.refresh(user)
+    await create_follow_if_missing(db, data.influencer_id, user.id)
 
     return PreregisterResponse(
         ok=True,
