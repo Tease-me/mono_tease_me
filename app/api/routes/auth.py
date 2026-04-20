@@ -610,8 +610,6 @@ async def login(
     
     if not user.is_verified:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Verify Email First")
-
-    await _apply_first_login_bonus(db, user)
     
     access_token = create_token(
         {"sub": str(user.id)}, settings.SECRET_KEY, timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -693,6 +691,7 @@ async def verify_email(
     user.email_token = None
     user.email_token_expires_at = None
     await db.commit()
+    await _apply_first_login_bonus(db, user)
 
     access_token = create_token(
         {"sub": str(user.id)},
