@@ -102,7 +102,7 @@ export default function VipAvatarStep({
           disabled={isSubmitting}
         />
         <PrimaryButton
-          text={isSubmitting ? "Registering..." : "Continue"}
+          text={isSubmitting ? "Completing..." : "Continue"}
           className={styles.button}
           onClick={onContinue}
           disabled={isSubmitting}
