@@ -85,6 +85,9 @@ def _user(**overrides):
         "date_of_birth": None,
         "profile_photo_key": None,
         "telegram_id": 987654321,
+        "first_login_at": None,
+        "login_bonus_granted_at": None,
+        "login_bonus_pending": False,
     }
     base.update(overrides)
     return SimpleNamespace(**base)
