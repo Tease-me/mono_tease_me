@@ -81,6 +81,39 @@ class RegisterRequest(BaseModel):
         )
 
 
+class CompleteProfileRequest(RegisterRequest):
+    token: str
+
+    @classmethod
+    def as_form(
+        cls,
+        token: str = Form(...),
+        password: str = Form(...),
+        email: str = Form(...),
+        influencer_id: str | None = Form(default=None),
+        full_name: str | None = Form(default=None),
+        user_name: str | None = Form(default=None),
+        profile_photo_url: str | None = Form(default=None),
+        gender: str | None = Form(default=None),
+        date_of_birth: date | None = Form(default=None),
+        fp_tid: str | None = Form(default=None),
+        invite_code: str | None = Form(default=None),
+    ) -> "CompleteProfileRequest":
+        return cls(
+            token=token,
+            password=password,
+            email=email,
+            influencer_id=influencer_id,
+            full_name=full_name,
+            user_name=user_name,
+            profile_photo_url=profile_photo_url,
+            gender=gender,
+            date_of_birth=date_of_birth,
+            fp_tid=fp_tid,
+            invite_code=invite_code,
+        )
+
+
 class Token(BaseModel):
     access_token: str
     refresh_token: str
