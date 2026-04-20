@@ -22,6 +22,7 @@ class PreregisterResponse(BaseModel):
     user_id: int
     email: str
     message: str
+    verification_url: str
 
 
 class RegisterRequest(BaseModel):

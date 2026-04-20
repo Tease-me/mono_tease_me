@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from types import SimpleNamespace
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 from fastapi import FastAPI
@@ -14,6 +15,8 @@ from app.core.config import settings
 from app.core.session import get_db
 from app.data.schemas.auth import CheckEmailTokenResponse
 from app.services.email_verification_service import check_email_verification_token
+
+INTERNAL_TOKEN = "test-mj-promoter-token"
 
 
 class FakeExecuteResult:
@@ -88,6 +91,8 @@ def test_preregister_creates_unverified_user_and_returns_minimal_response(monkey
     app = _build_app(db)
     follow_calls: list[tuple[str, int]] = []
     monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+    monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
+    monkeypatch.setattr(settings, "FRONTEND_URL", "https://www.teaseme.live")
     monkeypatch.setattr(
         auth_route,
         "create_follow_if_missing",
@@ -97,6 +102,7 @@ def test_preregister_creates_unverified_user_and_returns_minimal_response(monkey
     client = TestClient(app)
     response = client.post(
         "/auth/preregister",
+        headers={"X-Internal-Token": INTERNAL_TOKEN},
         json={
             "email": "user@example.com",
             "email_token": "verify-token",
@@ -107,11 +113,13 @@ def test_preregister_creates_unverified_user_and_returns_minimal_response(monkey
     )
 
     assert response.status_code == 200
-    assert response.json() == {
+    response_json = response.json()
+    assert response_json == {
         "ok": True,
         "user_id": 1,
         "email": "user@example.com",
         "message": "User preregistered successfully.",
+        "verification_url": "https://www.teaseme.live/verify-email?email=user%40example.com&token=verify-token",
     }
     assert len(db.added) == 1
 
@@ -126,11 +134,48 @@ def test_preregister_creates_unverified_user_and_returns_minimal_response(monkey
     assert created_user.email_token_expires_at is not None
     ttl = created_user.email_token_expires_at - datetime.utcnow()
     assert 23 * 3600 <= ttl.total_seconds() <= 24 * 3600
-    assert "email_token" not in response.json()
-    assert "password_hash" not in response.json()
+    assert "email_token" not in response_json
+    assert "password_hash" not in response_json
     assert db.committed is True
     assert db.refreshed is True
     assert follow_calls == [("loli", 1)]
+
+
+def test_preregister_verification_url_is_url_encoded(monkeypatch) -> None:
+    db = FakeAsyncSession(influencer=SimpleNamespace(id="loli"))
+    app = _build_app(db)
+    monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+    monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
+    monkeypatch.setattr(settings, "FRONTEND_URL", "https://www.teaseme.live/")
+    monkeypatch.setattr(
+        auth_route,
+        "create_follow_if_missing",
+        _fake_follow_recorder([]),
+    )
+
+    client = TestClient(app)
+    response = client.post(
+        "/auth/preregister",
+        headers={"X-Internal-Token": INTERNAL_TOKEN},
+        json={
+            "email": "user+alias@example.com",
+            "email_token": "verify token/123",
+            "influencer_id": "loli",
+            "telegram_id": 987654321,
+        },
+    )
+
+    assert response.status_code == 200
+    verification_url = response.json()["verification_url"]
+    parsed = urlparse(verification_url)
+    query = parse_qs(parsed.query)
+    assert parsed.scheme == "https"
+    assert parsed.netloc == "www.teaseme.live"
+    assert parsed.path == "/verify-email"
+    assert query == {
+        "email": ["user+alias@example.com"],
+        "token": ["verify token/123"],
+    }
 
 
 def test_preregister_rejects_duplicate_email(monkeypatch) -> None:
@@ -140,10 +185,12 @@ def test_preregister_rejects_duplicate_email(monkeypatch) -> None:
     )
     app = _build_app(db)
     monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+    monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
 
     client = TestClient(app)
     response = client.post(
         "/auth/preregister",
+        headers={"X-Internal-Token": INTERNAL_TOKEN},
         json={
             "email": "user@example.com",
             "email_token": "verify-token",
@@ -161,6 +208,7 @@ def test_preregister_allows_missing_full_name(monkeypatch) -> None:
     db = FakeAsyncSession(influencer=SimpleNamespace(id="loli"))
     app = _build_app(db)
     monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+    monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
     monkeypatch.setattr(
         auth_route,
         "create_follow_if_missing",
@@ -170,6 +218,7 @@ def test_preregister_allows_missing_full_name(monkeypatch) -> None:
     client = TestClient(app)
     response = client.post(
         "/auth/preregister",
+        headers={"X-Internal-Token": INTERNAL_TOKEN},
         json={
             "email": "user@example.com",
             "email_token": "verify-token",
@@ -187,10 +236,12 @@ def test_preregister_maps_commit_race_to_duplicate_email(monkeypatch) -> None:
     db = FakeAsyncSession(fail_on_commit=True, influencer=SimpleNamespace(id="loli"))
     app = _build_app(db)
     monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+    monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
 
     client = TestClient(app)
     response = client.post(
         "/auth/preregister",
+        headers={"X-Internal-Token": INTERNAL_TOKEN},
         json={
             "email": "user@example.com",
             "email_token": "verify-token",
@@ -211,10 +262,12 @@ def test_preregister_rejects_existing_telegram_id(monkeypatch) -> None:
     )
     app = _build_app(db)
     monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+    monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
 
     client = TestClient(app)
     response = client.post(
         "/auth/preregister",
+        headers={"X-Internal-Token": INTERNAL_TOKEN},
         json={
             "email": "user@example.com",
             "email_token": "verify-token",
@@ -232,10 +285,12 @@ def test_preregister_rejects_unknown_influencer(monkeypatch) -> None:
     db = FakeAsyncSession(influencer=None)
     app = _build_app(db)
     monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+    monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
 
     client = TestClient(app)
     response = client.post(
         "/auth/preregister",
+        headers={"X-Internal-Token": INTERNAL_TOKEN},
         json={
             "email": "user@example.com",
             "email_token": "verify-token",
@@ -252,10 +307,12 @@ def test_preregister_requires_influencer_id_and_telegram_id(monkeypatch) -> None
     db = FakeAsyncSession(influencer=SimpleNamespace(id="loli"))
     app = _build_app(db)
     monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+    monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
 
     client = TestClient(app)
     response = client.post(
         "/auth/preregister",
+        headers={"X-Internal-Token": INTERNAL_TOKEN},
         json={
             "email": "user@example.com",
             "email_token": "verify-token",
@@ -263,6 +320,49 @@ def test_preregister_requires_influencer_id_and_telegram_id(monkeypatch) -> None
     )
 
     assert response.status_code == 422
+
+
+def test_preregister_requires_internal_token(monkeypatch) -> None:
+    db = FakeAsyncSession(influencer=SimpleNamespace(id="loli"))
+    app = _build_app(db)
+    monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+    monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
+
+    client = TestClient(app)
+    response = client.post(
+        "/auth/preregister",
+        json={
+            "email": "user@example.com",
+            "email_token": "verify-token",
+            "influencer_id": "loli",
+            "telegram_id": 987654321,
+        },
+    )
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Invalid MJ promoter token"}
+
+
+def test_preregister_rejects_wrong_internal_token(monkeypatch) -> None:
+    db = FakeAsyncSession(influencer=SimpleNamespace(id="loli"))
+    app = _build_app(db)
+    monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+    monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
+
+    client = TestClient(app)
+    response = client.post(
+        "/auth/preregister",
+        headers={"X-Internal-Token": "wrong-token"},
+        json={
+            "email": "user@example.com",
+            "email_token": "verify-token",
+            "influencer_id": "loli",
+            "telegram_id": 987654321,
+        },
+    )
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Invalid MJ promoter token"}
 
 
 @pytest.mark.anyio
