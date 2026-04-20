@@ -5,11 +5,13 @@ from typing import Literal
 class LatestAdultCallSummaryOut(BaseModel):
     duration_seconds: float | None = None
     cost_cents: int | None = None
+    cost_credits: int | None = None
 
 
 class AdultCharacterSummaryOut(BaseModel):
     influencer_id: str
     balance_cents: int
+    balance_credits: int
     estimated_remaining_call_seconds: int | None = None
     latest_adult_call_summary: LatestAdultCallSummaryOut | None = None
 
@@ -37,6 +39,8 @@ class CheckoutResponse(BaseModel):
     payment_url: str
     provider: str
     amount_cents: int
+    credited_credits: int
+    conversion_rate: dict[str, int]
 
 
 class VerifyCheckoutRequest(BaseModel):

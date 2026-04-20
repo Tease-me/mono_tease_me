@@ -143,7 +143,13 @@ class Settings(BaseSettings):
     )
     TELEGRAM_USERBOT_ENABLED: bool = False  # Feature flag to enable/disable
     TELEGRAM_SESSIONS_DIR: str = "./telegram_sessions"
+    TELEGRAM_IGNORED_USER_IDS: str = ""
+    TELEGRAM_IGNORED_USERNAMES: str = "BotFather,SpamBot,Telegram"
+    TELEGRAM_TEXT_BATCH_WINDOW_SECONDS: float = 8.0
+    TELEGRAM_TEXT_QUEUE_TTL_SECONDS: int = 300
     FRONTEND_URL: str = "https://www.teaseme.live"  # Web app base URL
+    FIRST_LOGIN_BONUS_CENTS: int = 0
+    FIRST_LOGIN_BONUS_INFLUENCER_ID: str | None = None
 
 
 settings = Settings()

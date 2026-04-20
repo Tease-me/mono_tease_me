@@ -10,12 +10,12 @@ import io
 import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from telethon.errors import FloodWaitError
 
 from app.data.models import Influencer
 from app.services.repositories.call_record_repository import (
     get_cumulative_trial_usage,
 )
-from pyrogram.errors import FloodWait
 
 log = logging.getLogger(__name__)
 
@@ -57,7 +57,6 @@ async def send_trial_expired_messages(
     from app.services.telegram_invite_service import get_or_create_invite_code
     from app.utils.telegram_link_builder import build_telegram_cta_html
     from app.utils.telegram_media_sender import send_influencer_promo_media
-    from pyrogram import enums
 
     invite_code = await get_or_create_invite_code(
         db, telegram_user_id, influencer_id,
@@ -68,8 +67,6 @@ async def send_trial_expired_messages(
 
     cta_html = build_telegram_cta_html(invite_code, influencer_id)
 
-    # Ensure client.me is populated — Pyrogram's save_file needs
-    # self.me.is_premium and will crash if client.me is None.
     try:
         if not client.me:
             await client.get_me()
@@ -96,9 +93,9 @@ async def send_trial_expired_messages(
                 telegram_user_id,
                 influencer_id,
             )
-    except FloodWait as e:
-        log.warning("trial_expired: voice note flood wait %ds", e.value)
-        await asyncio.sleep(e.value)
+    except FloodWaitError as e:
+        log.warning("trial_expired: voice note flood wait %ds", e.seconds)
+        await asyncio.sleep(e.seconds)
         try:
             if influencer:
                 sent = await send_telegram_welcome_audio(client, chat_id, influencer)
@@ -143,9 +140,9 @@ async def send_trial_expired_messages(
                 telegram_user_id,
                 influencer_id,
             )
-    except FloodWait as e:
-        log.warning("trial_expired: promo media flood wait %ds", e.value)
-        await asyncio.sleep(e.value)
+    except FloodWaitError as e:
+        log.warning("trial_expired: promo media flood wait %ds", e.seconds)
+        await asyncio.sleep(e.seconds)
     except Exception:
         log.exception("trial_expired: failed to send promo media")
 
@@ -172,9 +169,9 @@ async def send_trial_expired_messages(
                 telegram_user_id,
                 influencer_id,
             )
-    except FloodWait as e:
-        log.warning("trial_expired: voice note 2 flood wait %ds", e.value)
-        await asyncio.sleep(e.value)
+    except FloodWaitError as e:
+        log.warning("trial_expired: voice note 2 flood wait %ds", e.seconds)
+        await asyncio.sleep(e.seconds)
         try:
             if influencer:
                 sent = await send_telegram_welcome_audio(
@@ -204,16 +201,16 @@ async def send_trial_expired_messages(
                 f"Cum in papi~ let's finish what we started pleeease 🍆💦\n\n"
                 f"👉 {cta_html}"
             ),
-            parse_mode=enums.ParseMode.HTML,
+            parse_mode="html",
         )
         log.info(
             "trial_expired.step_sent step=cta_text sent=True tg_user=%s influencer=%s",
             telegram_user_id,
             influencer_id,
         )
-    except FloodWait as e:
-        log.warning("trial_expired: CTA text flood wait %ds", e.value)
-        await asyncio.sleep(e.value)
+    except FloodWaitError as e:
+        log.warning("trial_expired: CTA text flood wait %ds", e.seconds)
+        await asyncio.sleep(e.seconds)
         try:
             await client.send_message(
                 chat_id=chat_id,
@@ -221,7 +218,7 @@ async def send_trial_expired_messages(
                     f"Cum in papi~ let's finish what we started pleeease 🍆💦\n\n"
                     f"👉 {cta_html}"
                 ),
-                parse_mode=enums.ParseMode.HTML,
+                parse_mode="html",
             )
             log.info(
                 "trial_expired.step_sent step=cta_text_retry sent=True tg_user=%s influencer=%s",
@@ -268,8 +265,6 @@ async def send_telegram_welcome_video(
     try:
         video_bytes = await get_s3_object_bytes(video_key)
         if video_bytes:
-            if not client.me:
-                await client.get_me()
             await client.send_video(
                 chat_id=chat_id,
                 video=io.BytesIO(video_bytes),
@@ -315,8 +310,6 @@ async def send_telegram_welcome_audio(
     try:
         audio_bytes = await get_s3_object_bytes(audio_key)
         if audio_bytes:
-            if not client.me:
-                await client.get_me()
             voice_file = io.BytesIO(audio_bytes)
             voice_file.name = "welcome.mp3"
             await client.send_voice(

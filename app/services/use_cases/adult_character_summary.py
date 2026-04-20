@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.data.models import CallRecord, InfluencerCreditTransaction, Pricing
 from app.data.schemas.billing import AdultCharacterSummaryOut, LatestAdultCallSummaryOut
+from app.services.credit_conversion import amount_cents_to_credits, balance_cents_to_credits
 from app.services.repositories.billing_repository import get_wallet_balance_cents
 
 
@@ -54,12 +55,18 @@ async def get_adult_character_summary(
             )
             .order_by(InfluencerCreditTransaction.created_at.desc())
         )
+        cost_cents = (
+            abs(int(latest_adult_call_cost))
+            if latest_adult_call_cost is not None
+            else None
+        )
 
         latest_adult_call_summary = LatestAdultCallSummaryOut(
             duration_seconds=latest_adult_call.call_duration_secs,
-            cost_cents=(
-                abs(int(latest_adult_call_cost))
-                if latest_adult_call_cost is not None
+            cost_cents=cost_cents,
+            cost_credits=(
+                amount_cents_to_credits(cost_cents)
+                if cost_cents is not None
                 else None
             ),
         )
@@ -67,6 +74,7 @@ async def get_adult_character_summary(
     return AdultCharacterSummaryOut(
         influencer_id=influencer_id,
         balance_cents=balance_cents,
+        balance_credits=balance_cents_to_credits(balance_cents),
         estimated_remaining_call_seconds=estimated_remaining_call_seconds,
         latest_adult_call_summary=latest_adult_call_summary,
     )
