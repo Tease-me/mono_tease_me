@@ -1,5 +1,4 @@
 import { apiClient } from "@/api/apis";
-import { RegisterResponse } from "@/api/models/auth";
 import { InfluencerLandingAssetsResponse } from "@/api/models/influencers";
 import { AuthServices } from "@/api/services/AuthServices";
 import { FollowServices } from "@/api/services/FollowServices";
@@ -19,7 +18,6 @@ import { storage } from "@/utils/storage";
 import { validationRules } from "@/utils/validationRules";
 import { required, validateFields } from "@/utils/validations";
 import {
-  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -38,14 +36,12 @@ import VipProfileStep, {
   InviteProfileErrors,
   InviteProfileValues,
 } from "./steps/VipProfileStep";
-import VipVerifyEmailStep from "./steps/VipVerifyEmailStep";
 import styles from "./VipScreen.module.css";
 
 type VipStep =
   | "landing"
   | "complete-invite-profile"
-  | "complete-invite-avatar"
-  | "verify-email";
+  | "complete-invite-avatar";
 type InviteAvatarValues = {
   gender: "male" | "female";
   avatarUrl?: string;
@@ -65,7 +61,7 @@ export default function VipScreen() {
   const { username } = useParams<{ username: string }>();
   const [searchParams] = useSearchParams();
   const influencerRepo = useMemo(() => InfluencerRepo(), []);
-  const { isSignedIn, loadingAuth } = useContext(AuthContext);
+  const { isSignedIn, loadingAuth, loginWithTokens } = useContext(AuthContext);
 
   const inviteCode = searchParams.get("invite");
   const token = searchParams.get("token") ?? "";
@@ -277,6 +273,24 @@ export default function VipScreen() {
       ),
     ) as Partial<T>;
 
+  const getProfileCompletionError = (err: any) => {
+    const detail = err?.detail || err?.response?.data?.detail;
+
+    if (typeof detail === "string" && detail.trim()) return detail;
+
+    if (Array.isArray(detail)) {
+      const firstMessage = detail.find(
+        (item) => typeof item?.msg === "string" && item.msg.trim(),
+      )?.msg;
+      if (firstMessage) return firstMessage;
+    }
+
+    const message = err?.message || err?.response?.data?.message;
+    if (typeof message === "string" && message.trim()) return message;
+
+    return "Profile completion failed. Please try again later.";
+  };
+
   const isAdult = (isoDate: string, minimumAge = 18) => {
     if (!isoDate) return false;
     const dob = new Date(isoDate);
@@ -412,49 +426,28 @@ export default function VipScreen() {
       const absoluteAvatarUrl = avatarValues.avatarUrl
         ? new URL(avatarValues.avatarUrl, window.location.origin).toString()
         : null;
-      const response: RegisterResponse = await authServices.register(
-        profileValues.password,
-        profileValues.email.trim().toLowerCase(),
-        influencer.id,
-        profileValues.fullName,
-        avatarValues.gender,
-        profileValues.userName,
-        profileValues.dateOfBirth,
-        null,
-        inviteCode,
-        absoluteAvatarUrl,
-      );
-      const detailMessage =
-        typeof (response as any)?.detail === "string"
-          ? (response as any).detail
-          : undefined;
+      const response = await authServices.completeProfile({
+        token: token.trim(),
+        password: profileValues.password,
+        email: profileValues.email.trim().toLowerCase(),
+        influencer_id: influencer.id,
+        full_name: profileValues.fullName,
+        gender: avatarValues.gender,
+        user_name: profileValues.userName,
+        date_of_birth: profileValues.dateOfBirth,
+        profile_photo_url: absoluteAvatarUrl,
+        invite_code: inviteCode,
+      });
 
-      if (detailMessage) {
-        setRegistrationError(detailMessage);
-        return;
-      }
-
-      if (response.ok) {
-        setStep("verify-email");
-        return;
-      }
-
-      setRegistrationError("Registration failed. Please try again later.");
+      storage.set(LocalStorageKeys.SelectedId, influencer.id.toString());
+      await loginWithTokens(response.access_token, response.refresh_token);
+      navigate(Paths.home);
     } catch (err: any) {
-      const detail = err?.detail || err?.response?.data?.detail;
-      setRegistrationError(
-        typeof detail === "string" && detail.trim()
-          ? detail
-          : "Registration failed. Please try again later.",
-      );
+      setRegistrationError(getProfileCompletionError(err));
     } finally {
       setIsSubmittingRegistration(false);
     }
   };
-
-  const handleEmailVerified = useCallback(() => {
-    navigate(Paths.home);
-  }, [navigate]);
 
   if (
     !influencer ||
@@ -470,7 +463,6 @@ export default function VipScreen() {
   }
 
   const isFormStep = step !== "landing";
-  const isVerifyEmailStep = step === "verify-email";
   const shouldAutoFollow = viewerState === "not-following" && invitationValid;
   const waitingForAutoFollow =
     shouldAutoFollow &&
@@ -520,21 +512,19 @@ export default function VipScreen() {
         <div
           className={`${styles.outerContainer} ${
             isFormStep ? styles.formOuterContainer : ""
-          } ${isVerifyEmailStep ? styles.fullOuterContainer : ""}`}
+          }`}
         >
-          {!isVerifyEmailStep && (
-            <InfluencerWelcomeVisuals
-              influencer={influencer}
-              landingAssets={landingAssets}
-              onHeroLoad={() => setHeroReady(true)}
-              className={isFormStep ? styles.hideVisualsOnMobile : undefined}
-            />
-          )}
+          <InfluencerWelcomeVisuals
+            influencer={influencer}
+            landingAssets={landingAssets}
+            onHeroLoad={() => setHeroReady(true)}
+            className={isFormStep ? styles.hideVisualsOnMobile : undefined}
+          />
 
           <section
             className={`${styles.contentContainer} ${
               isFormStep ? styles.formContentContainer : ""
-            } ${isVerifyEmailStep ? styles.fullContentContainer : ""}`}
+            }`}
           >
             {step === "landing" && (
               <VipLandingStep
@@ -577,13 +567,6 @@ export default function VipScreen() {
                 onContinue={handleAvatarContinue}
                 isSubmitting={isSubmittingRegistration}
                 error={registrationError}
-              />
-            )}
-
-            {step === "verify-email" && (
-              <VipVerifyEmailStep
-                email={profileValues.email}
-                onVerified={handleEmailVerified}
               />
             )}
           </section>
