@@ -93,6 +93,7 @@ def test_preregister_creates_unverified_user_and_returns_minimal_response(monkey
     monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
     monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
     monkeypatch.setattr(settings, "FRONTEND_URL", "https://www.teaseme.live")
+    monkeypatch.setattr(auth_route.secrets, "token_urlsafe", lambda _n: "generated-verify-token")
     monkeypatch.setattr(
         auth_route,
         "create_follow_if_missing",
@@ -105,7 +106,6 @@ def test_preregister_creates_unverified_user_and_returns_minimal_response(monkey
         headers={"X-Internal-Token": INTERNAL_TOKEN},
         json={
             "email": "user@example.com",
-            "email_token": "verify-token",
             "influencer_id": "loli",
             "telegram_id": 987654321,
             "full_name": "Jane User",
@@ -119,13 +119,13 @@ def test_preregister_creates_unverified_user_and_returns_minimal_response(monkey
         "user_id": 1,
         "email": "user@example.com",
         "message": "User preregistered successfully.",
-        "verification_url": "https://www.teaseme.live/verify-email?email=user%40example.com&token=verify-token",
+        "verification_url": "https://www.teaseme.live/verify-email?email=user%40example.com&token=generated-verify-token",
     }
     assert len(db.added) == 1
 
     created_user = db.added[0]
     assert created_user.email == "user@example.com"
-    assert created_user.email_token == "verify-token"
+    assert created_user.email_token == "generated-verify-token"
     assert created_user.full_name == "Jane User"
     assert created_user.telegram_id == 987654321
     assert created_user.is_verified is False
@@ -147,6 +147,7 @@ def test_preregister_verification_url_is_url_encoded(monkeypatch) -> None:
     monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
     monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
     monkeypatch.setattr(settings, "FRONTEND_URL", "https://www.teaseme.live/")
+    monkeypatch.setattr(auth_route.secrets, "token_urlsafe", lambda _n: "verify token/123")
     monkeypatch.setattr(
         auth_route,
         "create_follow_if_missing",
@@ -159,7 +160,6 @@ def test_preregister_verification_url_is_url_encoded(monkeypatch) -> None:
         headers={"X-Internal-Token": INTERNAL_TOKEN},
         json={
             "email": "user+alias@example.com",
-            "email_token": "verify token/123",
             "influencer_id": "loli",
             "telegram_id": 987654321,
         },
@@ -193,7 +193,6 @@ def test_preregister_rejects_duplicate_email(monkeypatch) -> None:
         headers={"X-Internal-Token": INTERNAL_TOKEN},
         json={
             "email": "user@example.com",
-            "email_token": "verify-token",
             "influencer_id": "loli",
             "telegram_id": 987654321,
         },
@@ -209,6 +208,7 @@ def test_preregister_allows_missing_full_name(monkeypatch) -> None:
     app = _build_app(db)
     monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
     monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
+    monkeypatch.setattr(auth_route.secrets, "token_urlsafe", lambda _n: "generated-verify-token")
     monkeypatch.setattr(
         auth_route,
         "create_follow_if_missing",
@@ -221,7 +221,6 @@ def test_preregister_allows_missing_full_name(monkeypatch) -> None:
         headers={"X-Internal-Token": INTERNAL_TOKEN},
         json={
             "email": "user@example.com",
-            "email_token": "verify-token",
             "influencer_id": "loli",
             "telegram_id": 987654321,
         },
@@ -244,7 +243,6 @@ def test_preregister_maps_commit_race_to_duplicate_email(monkeypatch) -> None:
         headers={"X-Internal-Token": INTERNAL_TOKEN},
         json={
             "email": "user@example.com",
-            "email_token": "verify-token",
             "influencer_id": "loli",
             "telegram_id": 987654321,
         },
@@ -270,7 +268,6 @@ def test_preregister_rejects_existing_telegram_id(monkeypatch) -> None:
         headers={"X-Internal-Token": INTERNAL_TOKEN},
         json={
             "email": "user@example.com",
-            "email_token": "verify-token",
             "influencer_id": "loli",
             "telegram_id": 987654321,
         },
@@ -293,7 +290,6 @@ def test_preregister_rejects_unknown_influencer(monkeypatch) -> None:
         headers={"X-Internal-Token": INTERNAL_TOKEN},
         json={
             "email": "user@example.com",
-            "email_token": "verify-token",
             "influencer_id": "missing",
             "telegram_id": 987654321,
         },
@@ -315,7 +311,6 @@ def test_preregister_requires_influencer_id_and_telegram_id(monkeypatch) -> None
         headers={"X-Internal-Token": INTERNAL_TOKEN},
         json={
             "email": "user@example.com",
-            "email_token": "verify-token",
         },
     )
 
@@ -333,7 +328,6 @@ def test_preregister_requires_internal_token(monkeypatch) -> None:
         "/auth/preregister",
         json={
             "email": "user@example.com",
-            "email_token": "verify-token",
             "influencer_id": "loli",
             "telegram_id": 987654321,
         },
@@ -355,7 +349,6 @@ def test_preregister_rejects_wrong_internal_token(monkeypatch) -> None:
         headers={"X-Internal-Token": "wrong-token"},
         json={
             "email": "user@example.com",
-            "email_token": "verify-token",
             "influencer_id": "loli",
             "telegram_id": 987654321,
         },

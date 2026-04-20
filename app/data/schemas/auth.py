@@ -11,7 +11,6 @@ class LoginRequest(BaseModel):
 
 class PreregisterRequest(BaseModel):
     email: str
-    email_token: str
     influencer_id: str
     telegram_id: int
     full_name: str | None = None
