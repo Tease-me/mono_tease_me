@@ -233,9 +233,15 @@ async def preregister(
         raise
     await db.refresh(user)
     await create_follow_if_missing(db, data.influencer_id, user.id)
+    verification_query = {
+        "email": user.email,
+        "token": verify_token,
+    }
+    if user.full_name:
+        verification_query["full_name"] = user.full_name
     verification_url = (
         f"{settings.FRONTEND_URL.rstrip('/')}/{data.influencer_id}?"
-        f"{urlencode({'email': user.email, 'token': verify_token})}"
+        f"{urlencode(verification_query)}"
     )
 
     return PreregisterResponse(

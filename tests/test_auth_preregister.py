@@ -119,7 +119,7 @@ def test_preregister_creates_unverified_user_and_returns_minimal_response(monkey
         "user_id": 1,
         "email": "user@example.com",
         "message": "User preregistered successfully.",
-        "verification_url": "https://www.teaseme.live/loli?email=user%40example.com&token=generated-verify-token",
+        "verification_url": "https://www.teaseme.live/loli?email=user%40example.com&token=generated-verify-token&full_name=Jane+User",
     }
     assert len(db.added) == 1
 
@@ -229,6 +229,9 @@ def test_preregister_allows_missing_full_name(monkeypatch) -> None:
     assert response.status_code == 200
     created_user = db.added[0]
     assert created_user.full_name is None
+    verification_url = response.json()["verification_url"]
+    query = parse_qs(urlparse(verification_url).query)
+    assert "full_name" not in query
 
 
 def test_preregister_maps_commit_race_to_duplicate_email(monkeypatch) -> None:
