@@ -17,6 +17,7 @@ from app.data.schemas.auth import (
     CheckEmailTokenRequest,
     CheckEmailTokenResponse,
     CompleteProfileRequest,
+    CompleteProfileResponse,
     LoginRequest,
     PasswordResetRequest,
     PreregisterRequest,
@@ -254,7 +255,7 @@ async def preregister(
     )
 
 
-@router.post("/complete-profile", response_model=Token)
+@router.post("/complete-profile", response_model=CompleteProfileResponse)
 @rate_limit(
     max_requests=settings.RATE_LIMIT_AUTH_MAX,
     window_seconds=settings.RATE_LIMIT_AUTH_WINDOW,
@@ -262,7 +263,6 @@ async def preregister(
 )
 async def complete_profile(
     request: Request,
-    response: Response,
     data: CompleteProfileRequest = Depends(CompleteProfileRequest.as_form),
     db: AsyncSession = Depends(get_db),
     file: UploadFile | None = File(default=None),
@@ -316,9 +316,10 @@ async def complete_profile(
             )
             raise HTTPException(500, "Failed to upload profile photo")
 
-    user.is_verified = True
-    user.email_token = None
-    user.email_token_expires_at = None
+    verify_token = secrets.token_urlsafe(32)
+    user.is_verified = False
+    user.email_token = verify_token
+    user.email_token_expires_at = datetime.utcnow() + timedelta(hours=24)
 
     db.add(user)
     try:
@@ -404,19 +405,36 @@ async def complete_profile(
     except Exception:
         log.exception("FirstPromoter track/signup failed during profile completion")
 
-    access_token = create_token(
-        {"sub": str(user.id)},
-        settings.SECRET_KEY,
-        timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
-    )
-    refresh_token = create_token(
-        {"sub": str(user.id)},
-        settings.REFRESH_SECRET_KEY,
-        timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
-    )
-    _set_auth_cookies(response, access_token, refresh_token)
+    try:
+        influencer_verification_header_url = None
+        influencer = None
+        if data.influencer_id:
+            influencer = await ensure_influencer(db, data.influencer_id)
+            verification_header_key = get_influencer_email_header_key(
+                getattr(influencer, "assets_json", None)
+            )
+            if verification_header_key:
+                influencer_verification_header_url = (
+                    get_influencer_email_header_public_url(verification_header_key)
+                )
 
-    return Token(access_token=access_token, refresh_token=refresh_token)
+        await send_verification_email(
+            user.email,
+            verify_token,
+            influencer_id=data.influencer_id,
+            influencer_display_name=getattr(influencer, "display_name", None),
+            influencer_verification_header_url=influencer_verification_header_url,
+            influencer_profile_photo_key=getattr(influencer, "profile_photo_key", None),
+        )
+    except Exception:
+        log.exception("Failed to send verification email during profile completion for user %s", user.id)
+
+    return {
+        "ok": True,
+        "user_id": user.id,
+        "email": user.email,
+        "message": "Check your email to verify your account before logging in.",
+    }
 
 
 @router.post("/register")

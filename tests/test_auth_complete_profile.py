@@ -101,6 +101,7 @@ def test_complete_profile_updates_existing_user_verifies_and_signs_in(monkeypatc
     follow_calls: list[tuple[str, int]] = []
     claim_calls: list[tuple[str, str | None]] = []
     fp_calls: list[dict] = []
+    email_calls: list[dict] = []
 
     async def _fake_claim_and_bind_telegram(_db, invite_code: str, user, influencer_id: str | None):
         claim_calls.append((invite_code, influencer_id))
@@ -112,20 +113,32 @@ def test_complete_profile_updates_existing_user_verifies_and_signs_in(monkeypatc
     async def _fake_track_influencer_followed(*args, **kwargs):
         return None
 
+    async def _fake_send_verification_email(
+        email: str,
+        token: str,
+        influencer_id: str | None = None,
+        influencer_display_name: str | None = None,
+        influencer_verification_header_url: str | None = None,
+        influencer_profile_photo_key: str | None = None,
+    ):
+        email_calls.append(
+            {
+                "email": email,
+                "token": token,
+                "influencer_id": influencer_id,
+                "influencer_display_name": influencer_display_name,
+            }
+        )
+
     from app.services import funnel_tracking_service, telegram_invite_service
 
     monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
     monkeypatch.setattr(auth_route.pwd_context, "hash", lambda value: f"hashed::{value}")
-    monkeypatch.setattr(
-        auth_route,
-        "create_token",
-        lambda payload, secret, expires: (
-            "access-token" if secret == settings.SECRET_KEY else "refresh-token"
-        ),
-    )
+    monkeypatch.setattr(auth_route.secrets, "token_urlsafe", lambda _n: "fresh-verify-token")
     monkeypatch.setattr(auth_route, "create_follow_if_missing", _fake_follow_recorder(follow_calls))
     monkeypatch.setattr(auth_route.asyncio, "create_task", _close_task)
     monkeypatch.setattr(auth_route, "fp_track_signup", _fake_fp_track_signup)
+    monkeypatch.setattr(auth_route, "send_verification_email", _fake_send_verification_email)
     monkeypatch.setattr(telegram_invite_service, "claim_and_bind_telegram", _fake_claim_and_bind_telegram)
     monkeypatch.setattr(funnel_tracking_service, "track_influencer_followed", _fake_track_influencer_followed)
 
@@ -149,12 +162,12 @@ def test_complete_profile_updates_existing_user_verifies_and_signs_in(monkeypatc
 
     assert response.status_code == 200
     assert response.json() == {
-        "access_token": "access-token",
-        "refresh_token": "refresh-token",
+        "ok": True,
+        "user_id": 1,
+        "email": "user@example.com",
+        "message": "Check your email to verify your account before logging in.",
     }
-    set_cookie = response.headers["set-cookie"]
-    assert settings.ACCESS_TOKEN_COOKIE_NAME in set_cookie
-    assert settings.REFRESH_TOKEN_COOKIE_NAME in set_cookie
+    assert "set-cookie" not in response.headers
 
     user = db.user
     assert user.password_hash == "hashed::new-password"
@@ -163,9 +176,12 @@ def test_complete_profile_updates_existing_user_verifies_and_signs_in(monkeypatc
     assert user.gender == "female"
     assert str(user.date_of_birth) == "1999-01-02"
     assert user.profile_photo_key == "https://cdn.example.com/photo.jpg"
-    assert user.is_verified is True
-    assert user.email_token is None
-    assert user.email_token_expires_at is None
+    assert user.is_verified is False
+    assert user.email_token == "fresh-verify-token"
+    assert user.email_token != "verify-token"
+    assert user.email_token_expires_at is not None
+    ttl = user.email_token_expires_at - datetime.utcnow()
+    assert 23 * 3600 <= ttl.total_seconds() <= 24 * 3600
     assert db.refreshed is True
     assert follow_calls == [("juliana", 1)]
     assert claim_calls == [("invite-abc", "loli")]
@@ -176,25 +192,32 @@ def test_complete_profile_updates_existing_user_verifies_and_signs_in(monkeypatc
             "tid": "fp-123",
         }
     ]
+    assert email_calls == [
+        {
+            "email": "user@example.com",
+            "token": "fresh-verify-token",
+            "influencer_id": "juliana",
+            "influencer_display_name": None,
+        }
+    ]
 
 
 def test_complete_profile_supports_uploaded_photo(monkeypatch) -> None:
     db = FakeAsyncSession(user=_user())
     app = _build_app(db)
+    email_calls: list[str] = []
 
     async def _fake_upload(_file, _filename, _content_type, _user_id):
         return "users/1/profile.jpg"
 
+    async def _fake_send_verification_email(email: str, token: str, **kwargs):
+        email_calls.append(token)
+
     monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
     monkeypatch.setattr(auth_route.pwd_context, "hash", lambda value: f"hashed::{value}")
-    monkeypatch.setattr(
-        auth_route,
-        "create_token",
-        lambda payload, secret, expires: (
-            "access-token" if secret == settings.SECRET_KEY else "refresh-token"
-        ),
-    )
+    monkeypatch.setattr(auth_route.secrets, "token_urlsafe", lambda _n: "fresh-verify-token")
     monkeypatch.setattr(auth_route, "save_user_photo_to_s3", _fake_upload)
+    monkeypatch.setattr(auth_route, "send_verification_email", _fake_send_verification_email)
 
     client = TestClient(app)
     response = client.post(
@@ -209,6 +232,8 @@ def test_complete_profile_supports_uploaded_photo(monkeypatch) -> None:
 
     assert response.status_code == 200
     assert db.user.profile_photo_key == "users/1/profile.jpg"
+    assert db.user.email_token == "fresh-verify-token"
+    assert email_calls == ["fresh-verify-token"]
 
 
 def test_complete_profile_rejects_mismatched_token(monkeypatch) -> None:
