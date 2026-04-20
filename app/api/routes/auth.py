@@ -16,6 +16,7 @@ from app.data.models import User
 from app.data.schemas.auth import (
     CheckEmailTokenRequest,
     CheckEmailTokenResponse,
+    CompleteProfileRequest,
     LoginRequest,
     PasswordResetRequest,
     PreregisterRequest,
@@ -233,9 +234,15 @@ async def preregister(
         raise
     await db.refresh(user)
     await create_follow_if_missing(db, data.influencer_id, user.id)
+    verification_query = {
+        "email": user.email,
+        "token": verify_token,
+    }
+    if user.full_name:
+        verification_query["full_name"] = user.full_name
     verification_url = (
         f"{settings.FRONTEND_URL.rstrip('/')}/{data.influencer_id}?"
-        f"{urlencode({'email': user.email, 'token': verify_token})}"
+        f"{urlencode(verification_query)}"
     )
 
     return PreregisterResponse(
@@ -245,6 +252,172 @@ async def preregister(
         message="User preregistered successfully.",
         verification_url=verification_url,
     )
+
+
+@router.post("/complete-profile", response_model=Token)
+@rate_limit(
+    max_requests=settings.RATE_LIMIT_AUTH_MAX,
+    window_seconds=settings.RATE_LIMIT_AUTH_WINDOW,
+    key_prefix="auth:complete-profile",
+)
+async def complete_profile(
+    request: Request,
+    response: Response,
+    data: CompleteProfileRequest = Depends(CompleteProfileRequest.as_form),
+    db: AsyncSession = Depends(get_db),
+    file: UploadFile | None = File(default=None),
+):
+    result = await db.execute(select(User).where(User.email == data.email))
+    user = result.scalar_one_or_none()
+    if not user or not user.email_token or not user.email_token_expires_at:
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
+    if user.is_verified:
+        raise HTTPException(status_code=403, detail="User is already verified")
+    if user.email_token != data.token:
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
+    if user.email_token_expires_at < datetime.utcnow():
+        raise HTTPException(
+            status_code=410,
+            detail="Verification link has expired. Please request a new one.",
+        )
+
+    if data.influencer_id:
+        await ensure_influencer(db, data.influencer_id)
+
+    fp_tid = getattr(data, "fp_tid", None) or request.cookies.get("_fprom_tid") or None
+    previous_key = user.profile_photo_key
+
+    user.password_hash = pwd_context.hash(data.password)
+    if data.full_name is not None:
+        user.full_name = data.full_name
+    if data.user_name is not None:
+        user.username = data.user_name
+    if data.gender is not None:
+        user.gender = data.gender
+    if data.date_of_birth is not None:
+        user.date_of_birth = data.date_of_birth
+    if data.profile_photo_url is not None:
+        user.profile_photo_key = data.profile_photo_url
+
+    if file:
+        try:
+            key = await save_user_photo_to_s3(
+                file.file,
+                file.filename or "profile.jpg",
+                file.content_type or "image/jpeg",
+                user.id,
+            )
+            user.profile_photo_key = key
+        except Exception as exc:
+            log.error(
+                "Failed to upload profile photo during profile completion: %s",
+                exc,
+                exc_info=True,
+            )
+            raise HTTPException(500, "Failed to upload profile photo")
+
+    user.is_verified = True
+    user.email_token = None
+    user.email_token_expires_at = None
+
+    db.add(user)
+    try:
+        await db.commit()
+        await db.refresh(user)
+    except IntegrityError as exc:
+        await db.rollback()
+        if file and user.profile_photo_key and user.profile_photo_key != previous_key:
+            try:
+                await delete_file_from_s3(user.profile_photo_key)
+            except Exception:
+                log.warning(
+                    "Failed to rollback uploaded S3 photo during profile completion",
+                    exc_info=True,
+                )
+        raise HTTPException(
+            status_code=409,
+            detail="Profile completion violates a database constraint",
+        ) from exc
+    except Exception:
+        await db.rollback()
+        if file and user.profile_photo_key and user.profile_photo_key != previous_key:
+            try:
+                await delete_file_from_s3(user.profile_photo_key)
+            except Exception:
+                log.warning(
+                    "Failed to rollback uploaded S3 photo during profile completion",
+                    exc_info=True,
+                )
+        raise
+
+    if data.invite_code:
+        try:
+            from app.services.telegram_invite_service import claim_and_bind_telegram
+
+            bind_result = await claim_and_bind_telegram(
+                db,
+                data.invite_code,
+                user,
+                data.influencer_id,
+            )
+            if bind_result:
+                data.influencer_id = bind_result.influencer_id
+                if bind_result.bound:
+                    from app.services.funnel_tracking_service import (
+                        track_registration_completed,
+                    )
+
+                    asyncio.create_task(
+                        track_registration_completed(
+                            bind_result.telegram_id,
+                            bind_result.influencer_id,
+                            user.id,
+                            data.invite_code,
+                        )
+                    )
+        except Exception:
+            log.exception(
+                "complete_profile.invite_claim_error code=%s",
+                data.invite_code,
+            )
+
+    if data.influencer_id:
+        await create_follow_if_missing(db, data.influencer_id, user.id)
+        from app.services.funnel_tracking_service import track_influencer_followed
+
+        asyncio.create_task(track_influencer_followed(user.id, data.influencer_id))
+
+    try:
+        log.info(
+            "FP complete profile: tid_body=%s tid_cookie=%s chosen=%s",
+            getattr(data, "fp_tid", None),
+            request.cookies.get("_fprom_tid"),
+            fp_tid,
+        )
+
+        if fp_tid:
+            await fp_track_signup(
+                email=user.email,
+                uid=str(user.id),
+                tid=fp_tid,
+            )
+    except Exception:
+        log.exception("FirstPromoter track/signup failed during profile completion")
+
+    access_token = create_token(
+        {"sub": str(user.id)},
+        settings.SECRET_KEY,
+        timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+    )
+    refresh_token = create_token(
+        {"sub": str(user.id)},
+        settings.REFRESH_SECRET_KEY,
+        timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
+    )
+    _set_auth_cookies(response, access_token, refresh_token)
+
+    return Token(access_token=access_token, refresh_token=refresh_token)
+
 
 @router.post("/register")
 @rate_limit(max_requests=settings.RATE_LIMIT_AUTH_MAX, window_seconds=settings.RATE_LIMIT_AUTH_WINDOW, key_prefix="auth:register")
