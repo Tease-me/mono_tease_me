@@ -198,6 +198,7 @@ async def preregister(
     _internal_auth: None = Depends(require_internal_token),
 ):
     await ensure_influencer(db, data.influencer_id)
+    verify_token = secrets.token_urlsafe(32)
 
     existing_user = await db.execute(select(User).where(User.email == data.email))
     if existing_user.scalar():
@@ -213,7 +214,7 @@ async def preregister(
         email=data.email,
         password_hash=pwd_context.hash(secrets.token_urlsafe(32)),
         is_verified=False,
-        email_token=data.email_token,
+        email_token=verify_token,
         email_token_expires_at=datetime.utcnow() + timedelta(hours=24),
         full_name=data.full_name,
         telegram_id=data.telegram_id,
@@ -234,7 +235,7 @@ async def preregister(
     await create_follow_if_missing(db, data.influencer_id, user.id)
     verification_url = (
         f"{settings.FRONTEND_URL.rstrip('/')}/verify-email?"
-        f"{urlencode({'email': user.email, 'token': data.email_token})}"
+        f"{urlencode({'email': user.email, 'token': verify_token})}"
     )
 
     return PreregisterResponse(
