@@ -3,6 +3,12 @@ export interface RegisterResponse {
     message: string
 }
 
+export interface CheckTokenResponse {
+    ok: true;
+    valid: true;
+    message: string;
+}
+
 export interface ForgotPasswordResponse {
     ok: boolean;
     message: string;

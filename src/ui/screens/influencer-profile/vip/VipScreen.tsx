@@ -52,40 +52,12 @@ type InviteAvatarValues = {
 };
 type ViewerState = "loading" | "guest" | "following" | "not-following";
 type AutoFollowState = "idle" | "pending" | "complete" | "failed";
-type InviteStatus = "valid" | "expired" | "invalid";
-type InviteValidationInput = {
-  inviteCode: string | null;
-  email: string;
-};
-type InviteValidationResult = {
-  inviteCode: string | null;
-  email: string;
-  status: InviteStatus;
-};
+type InviteStatus = "loading" | "valid" | "expired" | "invalid";
 
 const influencerServices = InfluencerServices(apiClient);
 const followServices = FollowServices(apiClient);
 const funnelServices = FunnelServices(apiClient);
 const authServices = AuthServices(apiClient);
-
-const validateInviteForNow = ({
-  inviteCode,
-  email,
-}: InviteValidationInput): InviteValidationResult => {
-  const hasEmail = email.trim().length > 0;
-  const testStatus: InviteStatus | null =
-    inviteCode === "expired"
-      ? "expired"
-      : inviteCode === "invalid"
-        ? "invalid"
-        : null;
-
-  return {
-    inviteCode,
-    email,
-    status: testStatus ?? (hasEmail ? "valid" : "invalid"),
-  };
-};
 
 export default function VipScreen() {
   const navigate = useNavigate();
@@ -96,13 +68,11 @@ export default function VipScreen() {
   const { isSignedIn, loadingAuth } = useContext(AuthContext);
 
   const inviteCode = searchParams.get("invite");
+  const token = searchParams.get("token") ?? "";
   const email = searchParams.get("email") ?? "";
-  const inviteValidation = useMemo(
-    () => validateInviteForNow({ inviteCode, email }),
-    [email, inviteCode],
-  );
-  const invitationValid = inviteValidation.status === "valid";
-  const invitationExpired = inviteValidation.status === "expired";
+  const [inviteStatus, setInviteStatus] = useState<InviteStatus>("loading");
+  const invitationValid = inviteStatus === "valid";
+  const invitationExpired = inviteStatus === "expired";
   const [step, setStep] = useState<VipStep>("landing");
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [profileValues, setProfileValues] = useState<InviteProfileValues>({
@@ -145,6 +115,35 @@ export default function VipScreen() {
       void funnelServices.reportEvent("link_clicked", inviteCode);
     }
   }, [inviteCode, viewerState]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const inviteEmail = email.trim();
+    const inviteToken = token.trim();
+
+    setInviteStatus("loading");
+
+    if (!inviteEmail || !inviteToken) {
+      setInviteStatus("invalid");
+      return;
+    }
+
+    void authServices
+      .checkToken(inviteEmail, inviteToken)
+      .then((response) => {
+        if (cancelled) return;
+        setInviteStatus(response.ok && response.valid ? "valid" : "invalid");
+      })
+      .catch((error) => {
+        logger.debug(error);
+        if (cancelled) return;
+        setInviteStatus(error?.status === 410 ? "expired" : "invalid");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [email, token]);
 
   useEffect(() => {
     if (!username) {
@@ -457,7 +456,12 @@ export default function VipScreen() {
     navigate(Paths.home);
   }, [navigate]);
 
-  if (!influencer || loadingAuth || viewerState === "loading") {
+  if (
+    !influencer ||
+    loadingAuth ||
+    viewerState === "loading" ||
+    inviteStatus === "loading"
+  ) {
     return (
       <div className={styles.pageContainer}>
         <BlockingLoader />
@@ -535,7 +539,7 @@ export default function VipScreen() {
             {step === "landing" && (
               <VipLandingStep
                 influencer={influencer}
-                email={inviteValidation.email}
+                email={email}
                 invitationValid={invitationValid}
                 invitationExpired={invitationExpired}
                 existingAccountMode={existingAccountMode}
