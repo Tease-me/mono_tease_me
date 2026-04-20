@@ -11,12 +11,14 @@ import styles from "./EmailVerificationWaiting.module.css";
 
 type EmailVerificationWaitingProps = {
   email: string;
+  message?: string;
   className?: string;
   onVerified?: () => void;
 };
 
 export default function EmailVerificationWaiting({
   email,
+  message,
   className,
   onVerified,
 }: EmailVerificationWaitingProps) {
@@ -88,7 +90,10 @@ export default function EmailVerificationWaiting({
     <div className={clsx(styles.container, className)}>
       <div className={styles.title}>Verify Your Email</div>
       <p className={styles.description}>
-        We've sent a verification email to: <strong>{email}</strong>.<br />
+        {message ?? "We've sent a verification email."}
+        <br />
+        Email: <strong>{email}</strong>
+        <br />
         Please check your inbox and confirm your email address.
         <br />
         The verification link will expire in 24 hours.
