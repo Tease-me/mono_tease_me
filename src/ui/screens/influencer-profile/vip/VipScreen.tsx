@@ -36,12 +36,14 @@ import VipProfileStep, {
   InviteProfileErrors,
   InviteProfileValues,
 } from "./steps/VipProfileStep";
+import VipVerifyEmailStep from "./steps/VipVerifyEmailStep";
 import styles from "./VipScreen.module.css";
 
 type VipStep =
   | "landing"
   | "complete-invite-profile"
-  | "complete-invite-avatar";
+  | "complete-invite-avatar"
+  | "verify-email";
 type InviteAvatarValues = {
   gender: "male" | "female";
   avatarUrl?: string;
@@ -61,7 +63,7 @@ export default function VipScreen() {
   const { username } = useParams<{ username: string }>();
   const [searchParams] = useSearchParams();
   const influencerRepo = useMemo(() => InfluencerRepo(), []);
-  const { isSignedIn, loadingAuth, loginWithTokens } = useContext(AuthContext);
+  const { isSignedIn, loadingAuth } = useContext(AuthContext);
 
   const inviteCode = searchParams.get("invite");
   const token = searchParams.get("token") ?? "";
@@ -90,6 +92,8 @@ export default function VipScreen() {
   });
   const [profileErrors, setProfileErrors] = useState<InviteProfileErrors>({});
   const [registrationError, setRegistrationError] = useState<string>();
+  const [verificationMessage, setVerificationMessage] = useState<string>();
+  const [verificationEmail, setVerificationEmail] = useState(email);
   const [isSubmittingRegistration, setIsSubmittingRegistration] =
     useState(false);
   const [influencer, setInfluencer] = useState<InfluencerDataModel | null>(null);
@@ -440,8 +444,9 @@ export default function VipScreen() {
       });
 
       storage.set(LocalStorageKeys.SelectedId, influencer.id.toString());
-      await loginWithTokens(response.access_token, response.refresh_token);
-      navigate(Paths.home);
+      setVerificationEmail(response.email || profileValues.email);
+      setVerificationMessage(response.message);
+      setStep("verify-email");
     } catch (err: any) {
       setRegistrationError(getProfileCompletionError(err));
     } finally {
@@ -462,6 +467,7 @@ export default function VipScreen() {
     );
   }
 
+  const isVerificationStep = step === "verify-email";
   const isFormStep = step !== "landing";
   const shouldAutoFollow = viewerState === "not-following" && invitationValid;
   const waitingForAutoFollow =
@@ -511,19 +517,29 @@ export default function VipScreen() {
       <div className={styles.pageContainer}>
         <div
           className={`${styles.outerContainer} ${
-            isFormStep ? styles.formOuterContainer : ""
+            isVerificationStep
+              ? styles.fullOuterContainer
+              : isFormStep
+                ? styles.formOuterContainer
+                : ""
           }`}
         >
-          <InfluencerWelcomeVisuals
-            influencer={influencer}
-            landingAssets={landingAssets}
-            onHeroLoad={() => setHeroReady(true)}
-            className={isFormStep ? styles.hideVisualsOnMobile : undefined}
-          />
+          {!isVerificationStep && (
+            <InfluencerWelcomeVisuals
+              influencer={influencer}
+              landingAssets={landingAssets}
+              onHeroLoad={() => setHeroReady(true)}
+              className={isFormStep ? styles.hideVisualsOnMobile : undefined}
+            />
+          )}
 
           <section
             className={`${styles.contentContainer} ${
-              isFormStep ? styles.formContentContainer : ""
+              isVerificationStep
+                ? styles.fullContentContainer
+                : isFormStep
+                  ? styles.formContentContainer
+                  : ""
             }`}
           >
             {step === "landing" && (
@@ -567,6 +583,14 @@ export default function VipScreen() {
                 onContinue={handleAvatarContinue}
                 isSubmitting={isSubmittingRegistration}
                 error={registrationError}
+              />
+            )}
+
+            {step === "verify-email" && (
+              <VipVerifyEmailStep
+                email={verificationEmail}
+                message={verificationMessage}
+                onVerified={() => navigate(Paths.login)}
               />
             )}
           </section>

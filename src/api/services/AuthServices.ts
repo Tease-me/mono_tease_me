@@ -1,6 +1,7 @@
 import { AxiosInstance } from "axios";
 import {
   CheckTokenResponse,
+  CompleteProfileResponse,
   ForgotPasswordResponse,
   RegisterResponse,
   TokenResponse,
@@ -101,7 +102,7 @@ export const AuthServices = (apiClient: AxiosInstance) => ({
     file,
     fp_tid,
     invite_code,
-  }: CompleteProfileParams): Promise<TokenResponse> => {
+  }: CompleteProfileParams): Promise<CompleteProfileResponse> => {
     try {
       const formData = new FormData();
       formData.append("token", token);
@@ -117,7 +118,7 @@ export const AuthServices = (apiClient: AxiosInstance) => ({
       if (fp_tid) formData.append("fp_tid", fp_tid);
       if (invite_code) formData.append("invite_code", invite_code);
 
-      const response = await apiClient.post<TokenResponse>(
+      const response = await apiClient.post<CompleteProfileResponse>(
         Endpoints.auth.completeProfile,
         formData,
         {
