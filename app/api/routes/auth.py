@@ -234,7 +234,7 @@ async def preregister(
     await db.refresh(user)
     await create_follow_if_missing(db, data.influencer_id, user.id)
     verification_url = (
-        f"{settings.FRONTEND_URL.rstrip('/')}/verify-email?"
+        f"{settings.FRONTEND_URL.rstrip('/')}/{data.influencer_id}?"
         f"{urlencode({'email': user.email, 'token': verify_token})}"
     )
 
