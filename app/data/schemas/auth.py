@@ -3,6 +3,7 @@ from datetime import date
 from fastapi import Form
 from pydantic import BaseModel, Field, HttpUrl, field_validator
 
+
 class LoginRequest(BaseModel):
     email: str
     password: str
@@ -11,6 +12,8 @@ class LoginRequest(BaseModel):
 class PreregisterRequest(BaseModel):
     email: str
     email_token: str
+    influencer_id: str
+    telegram_id: int
     full_name: str | None = None
 
 
@@ -19,6 +22,7 @@ class PreregisterResponse(BaseModel):
     user_id: int
     email: str
     message: str
+    verification_url: str
 
 
 class RegisterRequest(BaseModel):
@@ -76,7 +80,8 @@ class RegisterRequest(BaseModel):
             fp_tid=fp_tid,
             invite_code=invite_code,
         )
-    
+
+
 class Token(BaseModel):
     access_token: str
     refresh_token: str

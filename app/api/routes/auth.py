@@ -3,6 +3,7 @@ import secrets
 import logging
 
 from datetime import datetime, timedelta, timezone
+from urllib.parse import urlencode
 from fastapi import APIRouter, Depends, File, HTTPException, Request, Response, UploadFile, status
 
 from sqlalchemy.exc import IntegrityError
@@ -46,6 +47,7 @@ from app.services.follow import create_follow_if_missing
 from app.services.billing import topup_wallet
 from app.services.email_verification_service import check_email_verification_token
 from app.api.deps.influencer import ensure_influencer
+from app.api.deps.internal_auth import require_internal_token
 from app.utils.infrastructure.rate_limiter import rate_limit
 from app.utils.infrastructure.country import (
     is_request_from_age_verification_required_country,
@@ -193,10 +195,19 @@ async def preregister(
     request: Request,
     data: PreregisterRequest,
     db: AsyncSession = Depends(get_db),
+    _internal_auth: None = Depends(require_internal_token),
 ):
+    await ensure_influencer(db, data.influencer_id)
+
     existing_user = await db.execute(select(User).where(User.email == data.email))
     if existing_user.scalar():
         raise HTTPException(status_code=409, detail="Email already registered")
+
+    existing_telegram_user = await db.execute(
+        select(User).where(User.telegram_id == data.telegram_id)
+    )
+    if existing_telegram_user.scalar():
+        raise HTTPException(status_code=409, detail="Telegram ID already registered")
 
     user = User(
         email=data.email,
@@ -205,6 +216,7 @@ async def preregister(
         email_token=data.email_token,
         email_token_expires_at=datetime.utcnow() + timedelta(hours=24),
         full_name=data.full_name,
+        telegram_id=data.telegram_id,
     )
     db.add(user)
     try:
@@ -219,12 +231,18 @@ async def preregister(
             ) from exc
         raise
     await db.refresh(user)
+    await create_follow_if_missing(db, data.influencer_id, user.id)
+    verification_url = (
+        f"{settings.FRONTEND_URL.rstrip('/')}/verify-email?"
+        f"{urlencode({'email': user.email, 'token': data.email_token})}"
+    )
 
     return PreregisterResponse(
         ok=True,
         user_id=user.id,
         email=user.email,
         message="User preregistered successfully.",
+        verification_url=verification_url,
     )
 
 @router.post("/register")
