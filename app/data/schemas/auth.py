@@ -114,6 +114,13 @@ class CompleteProfileRequest(RegisterRequest):
         )
 
 
+class CompleteProfileResponse(BaseModel):
+    ok: bool
+    user_id: int
+    email: str
+    message: str
+
+
 class Token(BaseModel):
     access_token: str
     refresh_token: str
