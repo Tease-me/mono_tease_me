@@ -64,8 +64,8 @@ const AdminPreInfluencerDetail = lazy(
 const AdminAnalytics = lazy(
   () => import("@/ui/screens/admin/analytics/AdminAnalytics"),
 );
-const InfluencerProfileScreen = lazy(
-  () => import("@/ui/screens/influencer-profile/InfluencerProfileScreen"),
+const VipScreen = lazy(
+  () => import("@/ui/screens/influencer-profile/vip/VipScreen"),
 );
 const LoginScreen = lazy(() => import("@/ui/screens/login/LoginScreen"));
 const RegisterScreen = lazy(
@@ -159,7 +159,7 @@ function AdultModeRoute() {
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.all, element: <LandingPage /> },
-    { path: Paths.influencerProfile(), element: <InfluencerProfileScreen /> },
+    { path: Paths.influencerProfile(), element: <VipScreen /> },
     { path: Paths.join, element: <JoinPage /> },
     { path: Paths.incomeCalculator, element: <IncomeCalculatorScreen /> },
     { path: Paths.profileSurvey, element: <ProfileSurvey /> },

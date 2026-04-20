@@ -93,6 +93,7 @@ export default {
     PayPalLogo: lazy(() => import("@/assets/svg/PayPalLogo.svg?react")),
     StripeLogo: lazy(() => import("@/assets/svg/StripeLogo.svg?react")),
     CreditCard: lazy(() => import("@/assets/svg/CreditCard.svg?react")),
+    CreditDiamond: lazy(() => import("@/assets/svg/credit-diamond.svg?react")),
     // End of Payment Icons
 
     Calling: lazy(() => import("@/assets/svg/Calling.svg?react")),

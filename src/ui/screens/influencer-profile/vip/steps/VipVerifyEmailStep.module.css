@@ -1,0 +1,8 @@
+.panel {
+  width: min(100%, 520px);
+  margin: 0 auto;
+}
+
+.card {
+  width: 100%;
+}

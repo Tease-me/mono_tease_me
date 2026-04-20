@@ -1,11 +1,15 @@
+export type LoginBonusStatus = "none" | "pending" | "granted";
+
 export interface UserDetailResponse {
   id: number;
   full_name?: string;
   username?: string;
   email: string;
-  is_varified: boolean;
+  is_verified?: boolean;
+  is_varified?: boolean;
   verification_required?: boolean;
   profile_photo_url?: string;
+  login_bonus_status: LoginBonusStatus;
 }
 
 export type UsageMessages = {
@@ -57,6 +61,7 @@ export type LatestAdultCallSummary = {
   created_at: string | null;
   adult_character_id: number | null;
   cost_cents: number | null;
+  cost_credits: number | null;
 };
 
 export interface SingleInfluencerUsageResponse {

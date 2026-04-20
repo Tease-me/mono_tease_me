@@ -7,7 +7,6 @@ import AnimatedButton from "@/ui/components/inputs/buttons/AnimatedButton";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import WelcomeCallModal from "@/ui/components/modals/welcome-call/WelcomeCallModal";
 import ValidationPill from "@/ui/components/inputs/buttons/ValidationPill";
-import LottieAnimation from "@/ui/components/LottieAnimation";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import { FollowServices } from "@/api/services/FollowServices";
 import { FunnelServices } from "@/api/services/FunnelServices";
@@ -19,13 +18,10 @@ import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Howl } from "howler";
 import styles from "./WelcomeScreen.module.css";
 
-import lpBgMinWebm from "@/assets/influencerWelcome/video/lpbgmin.webm";
-import lpBgMinMp4 from "@/assets/influencerWelcome/video/lpbgmin.mp4";
-import lpBgMinPoster from "@/assets/influencerWelcome/video/lpbgminPoster.jpg";
-import lottieAudioWave from "@/assets/influencerWelcome/lottie/lottieAudiowave.json";
 import teaseMeIcon3D from "@/assets/logos/3D-IconTeaseMe-Dark.svg";
 import { InfluencerServices } from "@/api/services/InfluencerService";
 import { InfluencerLandingAssetsResponse } from "@/api/models/influencers";
+import InfluencerWelcomeVisuals from "../components/InfluencerWelcomeVisuals";
 
 const influencerServices = InfluencerServices(apiClient);
 const funnelServices = FunnelServices(apiClient);
@@ -168,94 +164,11 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
     <div className={styles.pageContainer}>
       <div className={styles.outerContainer}>
 
-        {/* Left panel — profile visuals */}
-        <div className={styles.profileContainer}>
-          <div className={styles.bgLpVideo}>
-            <video autoPlay muted playsInline loop poster={lpBgMinPoster}>
-              <source src={lpBgMinWebm} type="video/webm" />
-              <source src={lpBgMinMp4} type="video/mp4" />
-            </video>
-          </div>
-
-          <div className={styles.tileHolder}>
-            {landingAssets?.signature_png_url && (
-              <div className={styles.imageSignature}>
-                <img
-                  src={landingAssets.signature_png_url}
-                  alt=""
-                  srcSet={landingAssets.signature_png_2x_url ? `${landingAssets.signature_png_url} 1x, ${landingAssets.signature_png_2x_url} 2x` : undefined}
-                />
-              </div>
-            )}
-
-            {landingAssets?.background_image_1_url && (
-              <div className={styles.image01}>
-                <img
-                  src={landingAssets.background_image_1_url}
-                  alt=""
-                  srcSet={landingAssets.background_image_1_2x_url ? `${landingAssets.background_image_1_url} 1x, ${landingAssets.background_image_1_2x_url} 2x` : undefined}
-                />
-              </div>
-            )}
-
-            {landingAssets?.background_image_2_url && (
-              <div className={styles.image02}>
-                <img
-                  src={landingAssets.background_image_2_url}
-                  alt=""
-                  srcSet={landingAssets.background_image_2_2x_url ? `${landingAssets.background_image_2_url} 1x, ${landingAssets.background_image_2_2x_url} 2x` : undefined}
-                />
-              </div>
-            )}
-
-            {landingAssets?.background_video_1_mp4_url && (
-              <div className={styles.lpVideo01}>
-                <video autoPlay muted playsInline loop poster={landingAssets.background_video_1_poster_jpg_url ?? undefined}>
-                  {landingAssets.background_video_1_webm_url && (
-                    <source src={landingAssets.background_video_1_webm_url} type="video/webm" />
-                  )}
-                  <source src={landingAssets.background_video_1_mp4_url} type="video/mp4" />
-                </video>
-              </div>
-            )}
-
-            {landingAssets?.background_video_2_mp4_url && (
-              <div className={styles.lpVideo02}>
-                <video autoPlay muted playsInline loop poster={landingAssets.background_video_2_poster_jpg_url ?? undefined}>
-                  {landingAssets.background_video_2_webm_url && (
-                    <source src={landingAssets.background_video_2_webm_url} type="video/webm" />
-                  )}
-                  <source src={landingAssets.background_video_2_mp4_url} type="video/mp4" />
-                </video>
-              </div>
-            )}
-
-            {landingAssets?.background_image_3_url && (
-              <div className={styles.image03}>
-                <img
-                  src={landingAssets.background_image_3_url}
-                  alt=""
-                  srcSet={landingAssets.background_image_3_2x_url ? `${landingAssets.background_image_3_url} 1x, ${landingAssets.background_image_3_2x_url} 2x` : undefined}
-                />
-              </div>
-            )}
-
-            <div className={styles.audioLottie}>
-              <LottieAnimation loop autoplay animationData={lottieAudioWave} />
-            </div>
-          </div>
-
-          {landingAssets?.hero_png_url && (
-            <div className={styles.lpBodyShot}>
-              <img
-                src={landingAssets.hero_png_url}
-                alt={influencer?.name}
-                srcSet={landingAssets.hero_png_2x_url ? `${landingAssets.hero_png_url} 1x, ${landingAssets.hero_png_2x_url} 2x` : undefined}
-                onLoad={() => setHeroReady(true)}
-              />
-            </div>
-          )}
-        </div>
+        <InfluencerWelcomeVisuals
+          influencer={influencer}
+          landingAssets={landingAssets}
+          onHeroLoad={() => setHeroReady(true)}
+        />
 
         {/* Right panel — content */}
         <div className={styles.contentContainer}>

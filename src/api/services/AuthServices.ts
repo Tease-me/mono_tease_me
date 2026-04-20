@@ -1,5 +1,6 @@
 import { AxiosInstance } from "axios";
 import {
+  CheckTokenResponse,
   ForgotPasswordResponse,
   RegisterResponse,
   TokenResponse,
@@ -16,6 +17,23 @@ export const AuthServices = (apiClient: AxiosInstance) => ({
       return response.data;
     } catch (error: any) {
       throw error.response?.data || error;
+    }
+  },
+  checkToken: async (
+    email: string,
+    token: string,
+  ): Promise<CheckTokenResponse> => {
+    try {
+      const response = await apiClient.post<CheckTokenResponse>(
+        Endpoints.auth.checkToken,
+        { email, token },
+      );
+      return response.data;
+    } catch (error: any) {
+      throw {
+        status: error?.response?.status,
+        detail: error?.response?.data?.detail,
+      };
     }
   },
   register: async (

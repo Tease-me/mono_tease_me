@@ -1,0 +1,17 @@
+.creditDisplay {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.icon {
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+}
+
+.value {
+  line-height: 1;
+}
