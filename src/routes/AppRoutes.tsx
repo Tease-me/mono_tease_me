@@ -68,9 +68,9 @@ const VipScreen = lazy(
   () => import("@/ui/screens/influencer-profile/vip/VipScreen"),
 );
 const LoginScreen = lazy(() => import("@/ui/screens/login/LoginScreen"));
-const RegisterScreen = lazy(
-  () => import("@/ui/screens/register/RegisterScreen"),
-);
+// const RegisterScreen = lazy(
+//   () => import("@/ui/screens/register/RegisterScreen"),
+// );
 const Confirmation = lazy(() => import("@/ui/screens/register/Confirmation"));
 const ResetPassword = lazy(
   () => import("@/ui/screens/forgot-password/ResetPassword"),
@@ -222,7 +222,8 @@ function AppRoutes() {
   const guestRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.root, element: <LandingPage /> },
     { path: Paths.login, element: <LoginScreen /> },
-    { path: Paths.register(), element: <RegisterScreen /> },
+    // Registration is invite-only for now.
+    // { path: Paths.register(), element: <RegisterScreen /> },
     { path: Paths.registerVerify, element: <Confirmation /> },
     { path: Paths.resetPassword, element: <ResetPassword /> },
     { path: Paths.forgotPassword, element: <ForgotPassword /> },
