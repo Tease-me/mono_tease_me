@@ -669,7 +669,7 @@ export default function SceneSelector({
           <div className={styles.summaryInfoModalCard}>
             <h3 className={styles.summaryInfoHeading}>How are call costs calculated?</h3>
             <p className={styles.summaryInfoSubtitle}>
-              Standard call charge $1.00 – $1.30 per minute
+              Standard call charge 60 – 78 credits per minute
             </p>
             <div className={styles.summaryInfoNote}>
               <p className={styles.summaryInfoNoteTitle}>Notes on Call Charges</p>
