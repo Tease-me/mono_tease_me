@@ -1,5 +1,13 @@
-import { Suspense } from "react";
-import SvgPack from "@/utils/SvgPack";
+const DotLottieWC = "dotlottie-wc" as unknown as React.ComponentType<{
+  src?: string;
+  speed?: string | number;
+  mode?: string;
+  loop?: boolean;
+  autoplay?: boolean;
+  width?: string;
+  class?: string;
+}>;
+import lottieDiamondUrl from "@/assets/lottie/lottieDiamond.lottie?url";
 import { formatCredits } from "@/utils/balance_utils";
 import styles from "./CreditDisplay.module.css";
 
@@ -19,9 +27,16 @@ export default function CreditDisplay({
       className={[styles.creditDisplay, className].filter(Boolean).join(" ")}
       aria-label={`${value} credits`}
     >
-      <Suspense fallback={null}>
-        <SvgPack.CreditDiamond className={styles.icon} aria-hidden="true" />
-      </Suspense>
+      <span className={styles.icon} aria-hidden="true">
+        <DotLottieWC
+          src={lottieDiamondUrl}
+          speed={1}
+          mode="forward"
+          loop
+          autoplay
+          width="100%"
+        />
+      </span>
       <span className={styles.value}>{value}</span>
     </span>
   );
