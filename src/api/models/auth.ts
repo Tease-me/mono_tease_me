@@ -3,6 +3,13 @@ export interface RegisterResponse {
     message: string
 }
 
+export interface CompleteProfileResponse {
+    ok: true;
+    user_id: number;
+    email: string;
+    message: string;
+}
+
 export interface CheckTokenResponse {
     ok: true;
     valid: true;
