@@ -14,6 +14,12 @@ export interface CheckTokenResponse {
     ok: true;
     valid: true;
     message: string;
+    email: string;
+    full_name: string | null;
+    user_name: string | null;
+    profile_photo_url: string | null;
+    gender: string | null;
+    date_of_birth: string | null;
 }
 
 export interface ForgotPasswordResponse {

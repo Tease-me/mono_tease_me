@@ -129,7 +129,6 @@ export default function VipProfileStep({
             readOnly
             autoComplete="email"
           />
-          {fieldError("email")}
         </div>
 
         <div className={styles.passwordRow}>
