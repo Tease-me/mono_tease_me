@@ -66,8 +66,7 @@ export default function VipScreen() {
   const { isSignedIn, loadingAuth } = useContext(AuthContext);
 
   const inviteCode = searchParams.get("invite");
-  const token = searchParams.get("token") ?? "";
-  const email = searchParams.get("email") ?? "";
+  const token = searchParams.get("t") ?? "";
   const [inviteStatus, setInviteStatus] = useState<InviteStatus>("loading");
   const invitationValid = inviteStatus === "valid";
   const invitationExpired = inviteStatus === "expired";
@@ -77,7 +76,7 @@ export default function VipScreen() {
     userName: "",
     fullName: "",
     dateOfBirth: "",
-    email,
+    email: "",
     password: "",
     confirmPassword: "",
   });
@@ -93,7 +92,7 @@ export default function VipScreen() {
   const [profileErrors, setProfileErrors] = useState<InviteProfileErrors>({});
   const [registrationError, setRegistrationError] = useState<string>();
   const [verificationMessage, setVerificationMessage] = useState<string>();
-  const [verificationEmail, setVerificationEmail] = useState(email);
+  const [verificationEmail, setVerificationEmail] = useState("");
   const [isSubmittingRegistration, setIsSubmittingRegistration] =
     useState(false);
   const [influencer, setInfluencer] = useState<InfluencerDataModel | null>(null);
@@ -107,6 +106,31 @@ export default function VipScreen() {
   const autoFollowStartedRef = useRef<string | null>(null);
   const [heroReady, setHeroReady] = useState(false);
 
+  const applyInvitePrefill = (response: {
+    email: string;
+    full_name: string | null;
+    user_name: string | null;
+    profile_photo_url: string | null;
+    gender: string | null;
+    date_of_birth: string | null;
+  }) => {
+    setProfileValues((prev) => ({
+      ...prev,
+      email: response.email ?? "",
+      fullName: response.full_name ?? "",
+      userName: response.user_name ?? "",
+      dateOfBirth: response.date_of_birth ?? "",
+    }));
+
+    setAvatarValues((prev) => ({
+      gender:
+        response.gender === "male" || response.gender === "female"
+          ? response.gender
+          : prev.gender,
+      avatarUrl: response.profile_photo_url ?? prev.avatarUrl,
+    }));
+  };
+
   useEffect(() => {
     if (
       inviteCode &&
@@ -118,20 +142,20 @@ export default function VipScreen() {
 
   useEffect(() => {
     let cancelled = false;
-    const inviteEmail = email.trim();
     const inviteToken = token.trim();
 
     setInviteStatus("loading");
 
-    if (!inviteEmail || !inviteToken) {
+    if (!inviteToken) {
       setInviteStatus("invalid");
       return;
     }
 
     void authServices
-      .checkToken(inviteEmail, inviteToken)
+      .checkToken(inviteToken)
       .then((response) => {
         if (cancelled) return;
+        applyInvitePrefill(response);
         setInviteStatus(response.ok && response.valid ? "valid" : "invalid");
       })
       .catch((error) => {
@@ -143,7 +167,7 @@ export default function VipScreen() {
     return () => {
       cancelled = true;
     };
-  }, [email, token]);
+  }, [token]);
 
   useEffect(() => {
     if (!username) {
@@ -264,10 +288,6 @@ export default function VipScreen() {
       });
   }, [autoFollowRetryKey, influencer?.id, invitationValid, viewerState]);
 
-  useEffect(() => {
-    setProfileValues((prev) => ({ ...prev, email }));
-  }, [email]);
-
   const cleanErrors = <T extends Record<string, string | undefined>>(
     errors: T,
   ) =>
@@ -314,7 +334,6 @@ export default function VipScreen() {
         userName: profileValues.userName,
         fullName: profileValues.fullName,
         dateOfBirth: profileValues.dateOfBirth,
-        email: profileValues.email,
         password: profileValues.password,
         confirmPassword: profileValues.confirmPassword,
       },
@@ -322,7 +341,6 @@ export default function VipScreen() {
         userName: validationRules.username,
         fullName: required("Full name"),
         dateOfBirth: required("Date of birth"),
-        email: validationRules.email,
         password: validationRules.password,
         confirmPassword: validationRules.password,
       },
@@ -351,7 +369,6 @@ export default function VipScreen() {
 
     if (field === "userName") error = validationRules.nickName(value);
     if (field === "fullName") error = required("Full name")(value);
-    if (field === "email") error = validationRules.email(value);
     if (field === "password") error = validationRules.password(value);
     if (field === "confirmPassword") {
       error = validationRules.password(value);
@@ -433,7 +450,6 @@ export default function VipScreen() {
       const response = await authServices.completeProfile({
         token: token.trim(),
         password: profileValues.password,
-        email: profileValues.email.trim().toLowerCase(),
         influencer_id: influencer.id,
         full_name: profileValues.fullName,
         gender: avatarValues.gender,
@@ -444,7 +460,7 @@ export default function VipScreen() {
       });
 
       storage.set(LocalStorageKeys.SelectedId, influencer.id.toString());
-      setVerificationEmail(response.email || profileValues.email);
+      setVerificationEmail(response.email || "");
       setVerificationMessage(response.message);
       setStep("verify-email");
     } catch (err: any) {
@@ -545,7 +561,7 @@ export default function VipScreen() {
             {step === "landing" && (
               <VipLandingStep
                 influencer={influencer}
-                email={email}
+                email={profileValues.email}
                 invitationValid={invitationValid}
                 invitationExpired={invitationExpired}
                 existingAccountMode={existingAccountMode}
