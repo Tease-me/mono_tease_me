@@ -36,6 +36,9 @@ class User(Base):
         DateTime(timezone=True), 
         default=lambda: datetime.now(timezone.utc)
     )
+    first_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    login_bonus_granted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    login_bonus_pending: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     
     # Moderation fields
     moderation_status: Mapped[str] = mapped_column(String, default="CLEAN") 

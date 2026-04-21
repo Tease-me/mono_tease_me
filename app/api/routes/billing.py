@@ -4,13 +4,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.session import get_db
-from app.data.models import Influencer, InfluencerWallet
+from app.data.models import Influencer, InfluencerWallet, PayPalTopUp
 from app.data.schemas.billing import (
     AdultCharacterSummaryOut,
     CheckoutResponse,
     CreateCheckoutRequest,
     TopUpRequest,
     VerifyCheckoutRequest,
+)
+from app.services.credit_conversion import (
+    amount_cents_to_credits,
+    balance_cents_to_credits,
+    get_conversion_rate,
 )
 from app.services.repositories.billing_repository import get_wallet_balance_cents
 from app.services.use_cases.adult_character_summary import (
@@ -34,14 +39,16 @@ async def get_balance(
     if not infl:
         raise HTTPException(status_code=404, detail="Influencer not found")
 
+    balance_cents = await get_wallet_balance_cents(
+        db,
+        user_id=user.id,
+        influencer_id=influencer_id,
+        is_18=is_18,
+    )
     return {
         "influencer_id": influencer_id,
-        "balance_cents": await get_wallet_balance_cents(
-            db,
-            user_id=user.id,
-            influencer_id=influencer_id,
-            is_18=is_18,
-        ),
+        "balance_cents": balance_cents,
+        "balance_credits": balance_cents_to_credits(balance_cents),
     }
 
 
@@ -109,6 +116,9 @@ async def topup(
         "user_id": user.id,
         "influencer_id": wallet.influencer_id,
         "balance_cents": wallet.balance_cents,
+        "credited_credits": amount_cents_to_credits(int(req.cents)),
+        "balance_credits": balance_cents_to_credits(int(wallet.balance_cents or 0)),
+        "conversion_rate": get_conversion_rate(),
     }
 
 
@@ -155,6 +165,8 @@ async def create_checkout(
         payment_url=payment["payment_url"],
         provider=payment["provider"],
         amount_cents=payment["amount_cents"],
+        credited_credits=amount_cents_to_credits(payment["amount_cents"]),
+        conversion_rate=get_conversion_rate(),
     )
 
 
@@ -181,10 +193,21 @@ async def verify_checkout_endpoint(
 
     status = await _verify(checkout_id=req.checkout_id, user_id=user.id)
 
+    topup = await db.scalar(
+        select(PayPalTopUp).where(
+            PayPalTopUp.order_id == req.checkout_id,
+            PayPalTopUp.user_id == user.id,
+        )
+    )
+
     result = {
         "ok": True,
         "checkout_id": req.checkout_id,
         "status": status,
     }
+    if topup:
+        result["amount_cents"] = topup.cents
+        result["credited_credits"] = amount_cents_to_credits(int(topup.cents))
+        result["conversion_rate"] = get_conversion_rate()
 
     return result
