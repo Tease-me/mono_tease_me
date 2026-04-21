@@ -1,0 +1,43 @@
+const DotLottieWC = "dotlottie-wc" as unknown as React.ComponentType<{
+  src?: string;
+  speed?: string | number;
+  mode?: string;
+  loop?: boolean;
+  autoplay?: boolean;
+  width?: string;
+  class?: string;
+}>;
+import lottieDiamondUrl from "@/assets/lottie/lottieDiamond.lottie?url";
+import { formatCredits } from "@/utils/balance_utils";
+import styles from "./CreditDisplay.module.css";
+
+type CreditDisplayProps = {
+  credits: number | null | undefined;
+  className?: string;
+};
+
+export default function CreditDisplay({
+  credits,
+  className,
+}: Readonly<CreditDisplayProps>) {
+  const value = formatCredits(credits);
+
+  return (
+    <span
+      className={[styles.creditDisplay, className].filter(Boolean).join(" ")}
+      aria-label={`${value} credits`}
+    >
+      <span className={styles.icon} aria-hidden="true">
+        <DotLottieWC
+          src={lottieDiamondUrl}
+          speed={1}
+          mode="forward"
+          loop
+          autoplay
+          width="100%"
+        />
+      </span>
+      <span className={styles.value}>{value}</span>
+    </span>
+  );
+}

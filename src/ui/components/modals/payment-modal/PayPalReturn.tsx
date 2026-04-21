@@ -8,6 +8,7 @@ import styles from "./PayPalReturn.module.css";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import { storage } from "@/utils/storage";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
+import { centsToCredits } from "@/utils/balance_utils";
 
 const billing = BillingServices(apiClient);
 
@@ -16,6 +17,7 @@ export default function PayPalReturn() {
     "loading",
   );
   const [amount, setAmount] = useState<number | undefined>();
+  const [creditedCredits, setCreditedCredits] = useState<number | undefined>();
   const [influencerName, setInfluencerName] = useState<string | undefined>();
   const navigate = useNavigate();
   const fallbackAmount = useMemo(() => {
@@ -44,6 +46,18 @@ export default function PayPalReturn() {
         });
 
         if (res?.ok && res.status === "succeeded") {
+          const resolvedAmount =
+            res.amount_cents != null ? res.amount_cents / 100 : fallbackAmount;
+          const resolvedCredits =
+            res.credited_credits ??
+            (res.amount_cents != null
+              ? centsToCredits(res.amount_cents)
+              : fallbackAmount != null
+                ? centsToCredits(Math.round(fallbackAmount * 100))
+                : undefined);
+
+          setAmount(resolvedAmount);
+          setCreditedCredits(resolvedCredits);
           storage.remove(LocalStorageKeys.CheckoutId);
           storage.remove(LocalStorageKeys.TopUpInfluencerId);
           storage.remove(LocalStorageKeys.TopUpAmount);
@@ -66,6 +80,7 @@ export default function PayPalReturn() {
   useEffect(() => {
     if (fallbackAmount !== undefined) {
       setAmount(fallbackAmount);
+      setCreditedCredits(centsToCredits(Math.round(fallbackAmount * 100)));
     }
     if (fallbackInfluencerName) {
       setInfluencerName(fallbackInfluencerName);
@@ -84,6 +99,7 @@ export default function PayPalReturn() {
           <PaymentResult
             isSuccessful={status === "success"}
             amount={amount}
+            creditedCredits={creditedCredits}
             influencerName={influencerName}
             onBack={() => navigate(Paths.home)}
           />

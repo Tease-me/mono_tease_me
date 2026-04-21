@@ -76,7 +76,7 @@ const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
               balanceSvc.getBalance(inf.id).catch(() => null),
             ]);
 
-            const balanceValue = balanceRes ? balanceRes.balance_cents / 100 : 0;
+            const balanceValue = balanceRes ? balanceRes.balance_credits : 0;
 
             return {
               influencerId: inf.id,

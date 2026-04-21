@@ -6,12 +6,14 @@ import styles from "./PayPalReturn.module.css";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import { storage } from "@/utils/storage";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
+import { centsToCredits } from "@/utils/balance_utils";
 
 export default function ArmloopReturn() {
   const [status, setStatus] = useState<"loading" | "success" | "error">(
     "loading",
   );
   const [amount, setAmount] = useState<number | undefined>();
+  const [creditedCredits, setCreditedCredits] = useState<number | undefined>();
   const [influencerName, setInfluencerName] = useState<string | undefined>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -29,6 +31,9 @@ export default function ArmloopReturn() {
 
   useEffect(() => {
     if (fallbackAmount !== undefined) setAmount(fallbackAmount);
+    if (fallbackAmount !== undefined) {
+      setCreditedCredits(centsToCredits(Math.round(fallbackAmount * 100)));
+    }
     if (fallbackInfluencerName) setInfluencerName(fallbackInfluencerName);
   }, [fallbackAmount, fallbackInfluencerName]);
 
@@ -65,6 +70,7 @@ export default function ArmloopReturn() {
           <PaymentResult
             isSuccessful={status === "success"}
             amount={amount}
+            creditedCredits={creditedCredits}
             influencerName={influencerName}
             onBack={() => navigate(Paths.home)}
           />

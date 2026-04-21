@@ -11,7 +11,6 @@ export const Paths = {
     influencerHome: "/influencer-home",
     influencerHomeExpired: "/influencer-home-expired",
     intencionInfluencerHome: "/intencion-influencer-home",
-
     login: "/login",
     register: (username = ":username") => `/${username}/register`,
     registerPlain: "/register",
