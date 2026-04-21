@@ -149,7 +149,6 @@ def test_complete_profile_updates_existing_user_verifies_and_signs_in(monkeypatc
     response = client.post(
         "/auth/complete-profile",
         data={
-            "email": "user@example.com",
             "token": "verify-token",
             "password": "new-password",
             "influencer_id": "loli",
@@ -226,7 +225,6 @@ def test_complete_profile_supports_uploaded_photo(monkeypatch) -> None:
     response = client.post(
         "/auth/complete-profile",
         data={
-            "email": "user@example.com",
             "token": "verify-token",
             "password": "new-password",
         },
@@ -240,7 +238,7 @@ def test_complete_profile_supports_uploaded_photo(monkeypatch) -> None:
 
 
 def test_complete_profile_rejects_mismatched_token(monkeypatch) -> None:
-    db = FakeAsyncSession(user=_user())
+    db = FakeAsyncSession(user=None)
     app = _build_app(db)
     monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
 
@@ -248,7 +246,6 @@ def test_complete_profile_rejects_mismatched_token(monkeypatch) -> None:
     response = client.post(
         "/auth/complete-profile",
         data={
-            "email": "user@example.com",
             "token": "wrong-token",
             "password": "new-password",
         },
@@ -269,7 +266,6 @@ def test_complete_profile_rejects_expired_token(monkeypatch) -> None:
     response = client.post(
         "/auth/complete-profile",
         data={
-            "email": "user@example.com",
             "token": "verify-token",
             "password": "new-password",
         },
@@ -290,7 +286,6 @@ def test_complete_profile_rejects_already_verified_user(monkeypatch) -> None:
     response = client.post(
         "/auth/complete-profile",
         data={
-            "email": "user@example.com",
             "token": "verify-token",
             "password": "new-password",
         },
@@ -310,7 +305,6 @@ def test_complete_profile_maps_integrity_error_to_conflict(monkeypatch) -> None:
     response = client.post(
         "/auth/complete-profile",
         data={
-            "email": "user@example.com",
             "token": "verify-token",
             "password": "new-password",
             "user_name": "taken-name",

@@ -119,7 +119,7 @@ def test_preregister_creates_unverified_user_and_returns_minimal_response(monkey
         "user_id": 1,
         "email": "user@example.com",
         "message": "User preregistered successfully.",
-        "verification_url": "https://www.teaseme.live/loli?email=user%40example.com&token=generated-verify-token&full_name=Jane+User",
+        "verification_url": "https://www.teaseme.live/loli?t=generated-verify-token",
     }
     assert len(db.added) == 1
 
@@ -173,8 +173,7 @@ def test_preregister_verification_url_is_url_encoded(monkeypatch) -> None:
     assert parsed.netloc == "www.teaseme.live"
     assert parsed.path == "/loli"
     assert query == {
-        "email": ["user+alias@example.com"],
-        "token": ["verify token/123"],
+        "t": ["verify token/123"],
     }
 
 
@@ -231,7 +230,7 @@ def test_preregister_allows_missing_full_name(monkeypatch) -> None:
     assert created_user.full_name is None
     verification_url = response.json()["verification_url"]
     query = parse_qs(urlparse(verification_url).query)
-    assert "full_name" not in query
+    assert query == {"t": ["generated-verify-token"]}
 
 
 def test_preregister_maps_commit_race_to_duplicate_email(monkeypatch) -> None:
@@ -368,10 +367,15 @@ async def test_preregistered_user_is_compatible_with_check_token() -> None:
         email_token="verify-token",
         email_token_expires_at=datetime.utcnow().replace(microsecond=0),
         is_verified=False,
+        full_name="Jane User",
+        username="janeuser",
+        profile_photo_key="https://cdn.example.com/profile.jpg",
+        gender="female",
+        date_of_birth=datetime(1999, 1, 2),
     )
 
-    async def _fake_get_by_email(_db, email: str):
-        if email == "user@example.com":
+    async def _fake_get_by_email_token(_db, token: str):
+        if token == "verify-token":
             return user
         return None
 
@@ -380,11 +384,10 @@ async def test_preregistered_user_is_compatible_with_check_token() -> None:
     original_expiry = user.email_token_expires_at
     user.email_token_expires_at = original_expiry.replace(year=original_expiry.year + 1)
     monkeypatch = pytest.MonkeyPatch()
-    monkeypatch.setattr(email_verification_service_module, "get_by_email", _fake_get_by_email)
+    monkeypatch.setattr(email_verification_service_module, "get_by_email_token", _fake_get_by_email_token)
     try:
         result = await check_email_verification_token(
             db=None,
-            email="user@example.com",
             token="verify-token",
         )
     finally:
@@ -394,6 +397,12 @@ async def test_preregistered_user_is_compatible_with_check_token() -> None:
         ok=True,
         valid=True,
         message="Token is valid.",
+        email="user@example.com",
+        full_name="Jane User",
+        user_name="janeuser",
+        profile_photo_url="https://cdn.example.com/profile.jpg",
+        gender="female",
+        date_of_birth=datetime(1999, 1, 2).date(),
     )
 
 
