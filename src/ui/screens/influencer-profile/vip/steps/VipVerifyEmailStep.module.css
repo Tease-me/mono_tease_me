@@ -1,0 +1,16 @@
+.panel {
+  width: min(100%, 520px);
+  margin: 0 auto;
+}
+
+.card {
+  width: 100%;
+}
+
+.panel .card {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}

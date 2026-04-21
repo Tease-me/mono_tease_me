@@ -64,13 +64,13 @@ const AdminPreInfluencerDetail = lazy(
 const AdminAnalytics = lazy(
   () => import("@/ui/screens/admin/analytics/AdminAnalytics"),
 );
-const InfluencerProfileScreen = lazy(
-  () => import("@/ui/screens/influencer-profile/InfluencerProfileScreen"),
+const VipScreen = lazy(
+  () => import("@/ui/screens/influencer-profile/vip/VipScreen"),
 );
 const LoginScreen = lazy(() => import("@/ui/screens/login/LoginScreen"));
-const RegisterScreen = lazy(
-  () => import("@/ui/screens/register/RegisterScreen"),
-);
+// const RegisterScreen = lazy(
+//   () => import("@/ui/screens/register/RegisterScreen"),
+// );
 const Confirmation = lazy(() => import("@/ui/screens/register/Confirmation"));
 const ResetPassword = lazy(
   () => import("@/ui/screens/forgot-password/ResetPassword"),
@@ -159,7 +159,7 @@ function AdultModeRoute() {
 function AppRoutes() {
   const publicRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.all, element: <LandingPage /> },
-    { path: Paths.influencerProfile(), element: <InfluencerProfileScreen /> },
+    { path: Paths.influencerProfile(), element: <VipScreen /> },
     { path: Paths.join, element: <JoinPage /> },
     { path: Paths.incomeCalculator, element: <IncomeCalculatorScreen /> },
     { path: Paths.profileSurvey, element: <ProfileSurvey /> },
@@ -222,7 +222,8 @@ function AppRoutes() {
   const guestRoutes: { path: string; element: JSX.Element }[] = [
     { path: Paths.root, element: <LandingPage /> },
     { path: Paths.login, element: <LoginScreen /> },
-    { path: Paths.register(), element: <RegisterScreen /> },
+    // Registration is invite-only for now.
+    // { path: Paths.register(), element: <RegisterScreen /> },
     { path: Paths.registerVerify, element: <Confirmation /> },
     { path: Paths.resetPassword, element: <ResetPassword /> },
     { path: Paths.forgotPassword, element: <ForgotPassword /> },

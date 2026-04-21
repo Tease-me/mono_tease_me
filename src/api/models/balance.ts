@@ -1,8 +1,18 @@
 export interface BalanceResponse {
-    balance_cents: number;
+  influencer_id: string;
+  balance_cents: number;
+  balance_credits: number;
 }
 
 export interface TopupResponse {
-    ok: boolean;
-    new_balance_cents: number;
+  ok: true;
+  user_id: number;
+  influencer_id: string;
+  balance_cents: number;
+  credited_credits: number;
+  balance_credits: number;
+  conversion_rate: {
+    cents_per_usd: number;
+    credits_per_usd: number;
+  };
 }

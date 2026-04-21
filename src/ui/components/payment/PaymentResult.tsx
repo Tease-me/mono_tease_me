@@ -3,6 +3,8 @@ import SvgPack from "@/utils/SvgPack"
 import styles from "./PaymentResult.module.css"
 import IconButton from "../inputs/buttons/IconButton"
 import clsx from "clsx"
+import { formatCentsToDollars } from "@/utils/balance_utils";
+import CreditDisplay from "../stats/CreditDisplay";
 
 
 
@@ -11,14 +13,22 @@ type PaymentResultProps = {
   onBack?: () => void;
   onContactSupport?: () => void;
   amount?: number;
+  creditedCredits?: number;
   influencerName?: string;
 }
 
-export default function PaymentResult({ isSuccessful, onBack, amount, influencerName }: PaymentResultProps) {
-  const hasSuccessContext = Number.isFinite(amount) && Boolean(influencerName);
-  const successText = hasSuccessContext
-    ? `You have successfully recharged $${amount} towards ${influencerName}'s account.`
-    : "Your payment was successful.";
+export default function PaymentResult({
+  isSuccessful,
+  onBack,
+  amount,
+  creditedCredits,
+  influencerName,
+}: PaymentResultProps) {
+  const hasSuccessContext =
+    Number.isFinite(creditedCredits) || Number.isFinite(amount) || Boolean(influencerName);
+  const formattedAmount = Number.isFinite(amount)
+    ? formatCentsToDollars(Math.round((amount ?? 0) * 100))
+    : undefined;
   const failureText = `Please check that you have the required funds and try again. Perhaps try with a different payment method. You have not been charged for this transaction.`;
 
   return (
@@ -36,9 +46,29 @@ export default function PaymentResult({ isSuccessful, onBack, amount, influencer
       </div>
       <div className={styles.details}>
         {!isSuccessful && <span className={styles.error}>We cannot make this payment.</span>}<br />
-        <span>
-          {isSuccessful ? successText : failureText}
-        </span>
+        {isSuccessful ? (
+          <span>
+            {hasSuccessContext ? (
+              <>
+                You have successfully added{" "}
+                {Number.isFinite(creditedCredits) ? (
+                  <CreditDisplay
+                    credits={creditedCredits}
+                    className={styles.inlineCredit}
+                  />
+                ) : (
+                  "credits"
+                )}{" "}
+                to {influencerName ? `${influencerName}'s` : "your"} balance.
+                {formattedAmount ? ` Payment amount: ${formattedAmount}.` : ""}
+              </>
+            ) : (
+              "Your payment was successful."
+            )}
+          </span>
+        ) : (
+          <span>{failureText}</span>
+        )}
         <br></br>
       </div>
       <div className={clsx('u-sidebar-footer', styles.footer)}>

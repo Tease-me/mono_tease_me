@@ -1,6 +1,6 @@
 import { AuthContext } from "@/context/AuthContext";
 import React, { ReactNode, useContext } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 import { Paths } from "@/routes/path";
 
@@ -10,6 +10,8 @@ interface PrivateRouteProps {
 
 const GuestRoute: React.FC<PrivateRouteProps> = ({ children }) => {
     const { isSignedIn, loadingAuth } = useContext(AuthContext);
+    const location = useLocation();
+    const fromPath = (location.state as { from?: string })?.from;
 
     if (loadingAuth) {
         return (
@@ -18,7 +20,7 @@ const GuestRoute: React.FC<PrivateRouteProps> = ({ children }) => {
     }
 
     if (isSignedIn) {
-        return <Navigate to={Paths.home} />;
+        return <Navigate to={fromPath ?? Paths.home} replace />;
     }
 
     return <>{children}</>;

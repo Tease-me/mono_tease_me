@@ -1,0 +1,26 @@
+.creditDisplay {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.icon {
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon dotlottie-wc {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.value {
+  line-height: 1;
+}

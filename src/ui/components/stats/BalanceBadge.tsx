@@ -1,5 +1,6 @@
 import styles from "./BalanceBadge.module.css";
 import clsx from "clsx";
+import CreditDisplay from "./CreditDisplay";
 
 type BalanceBadgeProps = {
   balance: number;
@@ -15,7 +16,7 @@ export default function BalanceBadge({ balance }: BalanceBadgeProps) {
         [styles.hasBalance]: !noBalance,
       })}
     >
-      ${balance.toFixed(2)}
+      <CreditDisplay credits={balance} />
     </div>
   );
 }

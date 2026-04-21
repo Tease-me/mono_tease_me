@@ -21,6 +21,8 @@ import { FollowServices } from "@/api/services/FollowServices";
 import { CallBilledEvent } from "@/hooks/useNotificationSocket";
 import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import { RELATIONSHIP_MODE_AVAILABLE } from "@/constants/featureFlags";
+import { centsToCredits } from "@/utils/balance_utils";
+import CreditDisplay from "@/ui/components/stats/CreditDisplay";
 
 const billingService = BillingServices(apiClient);
 const subscriptionService = SubscriptionsServices(apiClient);
@@ -52,12 +54,6 @@ type RelationData = {
   latestAdultCallSummary?: AdultCharacterSummary["latest_adult_call_summary"];
 };
 
-function formatCents(cents: number | null | undefined): string {
-  if (cents == null) return "--";
-  return `$${(cents / 100).toFixed(2)}`;
-}
-
-
 function formatDuration(totalSeconds: number | null | undefined): string {
   if (totalSeconds == null) return "--";
   return `${Math.round(totalSeconds)}s`;
@@ -73,12 +69,12 @@ function formatMins(totalSeconds: number): string {
 
 function estimatedCallRange(
   estimatedSeconds: number | null | undefined,
-  balanceDollars: number | null | undefined,
+  balanceCredits: number | null | undefined,
 ): string {
   if (estimatedSeconds == null) return "--";
   const minStr = formatMins(estimatedSeconds);
-  if (balanceDollars == null) return minStr;
-  const maxSeconds = Math.floor(balanceDollars * 60);
+  if (balanceCredits == null) return minStr;
+  const maxSeconds = Math.floor(balanceCredits);
   const maxStr = formatMins(maxSeconds);
   if (minStr === maxStr) return maxStr;
   return `${minStr} – ${maxStr}`;
@@ -133,8 +129,8 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
             following.items.find((f) => f.influencer_id === initial.id)
               ?.created_at ?? d.followingSince,
           balance:
-            adultSummary?.balance_cents != null
-              ? adultSummary.balance_cents / 100
+            adultSummary?.balance_credits != null
+              ? adultSummary.balance_credits
               : d.balance,
           hasSubscription: sub?.has_subscription ?? d.hasSubscription,
           subscriptionStatus: sub?.status ?? d.subscriptionStatus,
@@ -164,7 +160,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
 
       setData((d) => ({
         ...d,
-        balance: detail.balance_cents / 100,
+        balance: centsToCredits(detail.balance_cents),
         estimatedRemainingCallSeconds:
           detail.estimated_remaining_call_seconds,
         latestAdultCallSummary: detail.latest_adult_call_summary,
@@ -206,9 +202,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
 
   const latestAdultCallDuration = formatDuration(data.latestAdultCallSummary?.duration_seconds ?? null);
 
-  const latestAdultCallCost = formatCents(
-    data.latestAdultCallSummary?.cost_cents
-  );
+  const latestAdultCallCost = data.latestAdultCallSummary?.cost_credits ?? null;
 
   if (loading) {
     return (
@@ -291,7 +285,11 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
                     <div className={styles.lastCallCard}>
                       <span className={styles.lastCallCardLabel}>Cost</span>
                       <span className={styles.lastCallCardValue}>
-                        {latestAdultCallCost}
+                        {latestAdultCallCost != null ? (
+                          <CreditDisplay credits={latestAdultCallCost} />
+                        ) : (
+                          "--"
+                        )}
                       </span>
                     </div>
                   </div>
@@ -313,7 +311,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         <Modal isOpen onClose={() => setShowCallInfoModal(false)} className={styles.callInfoModal}>
           <div className={styles.callInfoModalCard}>
             <h3 className={styles.callInfoHeading}>How are call costs calculated?</h3>
-            <p className={styles.callInfoSubtitle}>Standard call charge $1.00 – $1.30 per minute</p>
+            <p className={styles.callInfoSubtitle}>Standard call charge 60-78 credits per minute</p>
             <div className={styles.callInfoNote}>
               <p className={styles.callInfoNoteTitle}>Notes on Call Charges</p>
               <p className={styles.callInfoNoteText}>The total duration of the connection.<br></br> Includes the time it takes to establish the connection and is usually longer than the conversation.</p>
