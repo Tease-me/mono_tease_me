@@ -311,7 +311,7 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
         <Modal isOpen onClose={() => setShowCallInfoModal(false)} className={styles.callInfoModal}>
           <div className={styles.callInfoModalCard}>
             <h3 className={styles.callInfoHeading}>How are call costs calculated?</h3>
-            <p className={styles.callInfoSubtitle}>Standard call charge $1.00 – $1.30 per minute</p>
+            <p className={styles.callInfoSubtitle}>Standard call charge 60-78 credits per minute</p>
             <div className={styles.callInfoNote}>
               <p className={styles.callInfoNoteTitle}>Notes on Call Charges</p>
               <p className={styles.callInfoNoteText}>The total duration of the connection.<br></br> Includes the time it takes to establish the connection and is usually longer than the conversation.</p>

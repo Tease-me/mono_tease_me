@@ -112,6 +112,7 @@ export default function UserMenu({ goTo, onSwitchInfluencer }: UserMenuProps) {
               video={selectedInfluencer.video}
               followingSince={selectedInfluencer.followingSince}
               socials={selectedInfluencer.socials}
+              onlyFansFullWidth
             />
           </div>
         )}
