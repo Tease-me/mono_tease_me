@@ -25,10 +25,12 @@ async def test_notify_call_billed_sends_adult_character_summary_payload() -> Non
             summary=AdultCharacterSummaryOut(
                 influencer_id="loli",
                 balance_cents=2669,
+                balance_credits=1601,
                 estimated_remaining_call_seconds=1334,
                 latest_adult_call_summary=LatestAdultCallSummaryOut(
                     duration_seconds=149.0,
                     cost_cents=160,
+                    cost_credits=96,
                 ),
             ),
         )
@@ -40,10 +42,12 @@ async def test_notify_call_billed_sends_adult_character_summary_payload() -> Non
             "type": "call_billed",
             "influencer_id": "loli",
             "balance_cents": 2669,
+            "balance_credits": 1601,
             "estimated_remaining_call_seconds": 1334,
             "latest_adult_call_summary": {
                 "duration_seconds": 149.0,
                 "cost_cents": 160,
+                "cost_credits": 96,
             },
         }
     ]

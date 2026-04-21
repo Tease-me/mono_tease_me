@@ -34,11 +34,6 @@ except ImportError:
     HAS_WEBSOCKETS = False
 
 try:
-    from pyrogram import Client
-except ImportError:
-    Client = None  # type: ignore
-
-try:
     from pytgcalls import PyTgCalls
     from pytgcalls import filters as ptg_filters
     from pytgcalls.types import (
@@ -67,6 +62,7 @@ from app.services.gateways.telegram.audio_bridge import (
     SAMPLE_WIDTH,
     downsample_48k_to_16k,
 )
+from app.services.gateways.telegram.telethon_client import TelethonClientAdapter
 
 log = logging.getLogger(__name__)
 
@@ -160,7 +156,7 @@ class VoiceCallSession:
 
     def __init__(
         self,
-        client: Client,
+        client: TelethonClientAdapter,
         ptg: PyTgCalls,
         influencer_id: str,
         telegram_user_id: int,
@@ -1106,51 +1102,25 @@ class VoiceCallSession:
                 self.max_duration_secs,
             )
 
-            # Track trial exhaustion (mid-call timer expiry)
-            from app.services.funnel_tracking_service import track_trial_exhausted
-
-            asyncio.create_task(
-                track_trial_exhausted(
-                    self.telegram_user_id,
-                    self.influencer_id,
-                )
-            )
-
             await self.stop(reason="trial_expired")
 
-            # Send voice note → promo media → CTA (all handled by send_trial_expired_messages)
-            try:
-                from app.core.session import SessionLocal as _SessionFactory
-                from app.services.telegram_call_service import (
-                    send_trial_expired_messages,
-                )
-
-                async with _SessionFactory() as _db:
-                    await send_trial_expired_messages(
-                        self.client,
-                        _db,
-                        self.chat_id,
-                        self.telegram_user_id,
-                        self.influencer_id,
-                    )
-            except Exception:
-                log.exception("Failed to send trial-ended messages")
+            await self._send_trial_end_sequence_once()
 
         except asyncio.CancelledError:
             pass
 
-    async def _send_trial_ended_on_hangup(self):
-        """Send trial-ended messages after the user hangs up early.
+    async def _send_trial_end_sequence_once(self):
+        """Send the post-trial conversion sequence at most once per session.
 
         Tracks trial_exhausted in funnel, then delegates to
         send_trial_expired_messages which sends: voice note → media → CTA.
 
-        Guarded by _trial_messages_sent to prevent duplicate sends when both
-        LEFT_CALL and DISCARDED_CALL events fire for the same disconnection.
+        Guarded by _trial_messages_sent to prevent duplicate sends when
+        timeout and hangup/discard paths race for the same session.
         """
         if self._trial_messages_sent:
             log.debug(
-                "trial_ended_on_hangup: already sent for influencer=%s user=%s",
+                "trial_end_sequence.skip_already_sent influencer=%s user=%s",
                 self.influencer_id, self.telegram_user_id,
             )
             return
@@ -1178,7 +1148,15 @@ class VoiceCallSession:
                     self.influencer_id,
                 )
         except Exception:
-            log.exception("Failed to send trial-ended messages after hangup")
+            log.exception(
+                "Failed to send trial-ended messages influencer=%s user=%s",
+                self.influencer_id,
+                self.telegram_user_id,
+            )
+
+    async def _send_trial_ended_on_hangup(self):
+        """Send trial-ended messages after the user hangs up early."""
+        await self._send_trial_end_sequence_once()
 
 
     async def _send_trial_voice_note(self):
@@ -1326,7 +1304,7 @@ class VoiceCallManager:
 
     async def start_call(
         self,
-        client: Client,
+        client: TelethonClientAdapter,
         ptg: PyTgCalls,
         influencer_id: str,
         telegram_user_id: int,

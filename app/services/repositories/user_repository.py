@@ -14,6 +14,24 @@ from app.data.models import User
 log = logging.getLogger(__name__)
 
 
+async def get_by_email(
+    db: AsyncSession,
+    email: str,
+) -> User | None:
+    """Fetch a user by email address."""
+    result = await db.execute(select(User).where(User.email == email))
+    return result.scalar_one_or_none()
+
+
+async def get_by_email_token(
+    db: AsyncSession,
+    token: str,
+) -> User | None:
+    """Fetch a user by email verification token."""
+    result = await db.execute(select(User).where(User.email_token == token))
+    return result.scalar_one_or_none()
+
+
 async def bind_telegram_id(
     db: AsyncSession,
     user: User,

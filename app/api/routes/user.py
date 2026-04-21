@@ -21,6 +21,7 @@ from app.data.schemas.user import (
     UserOut,
     UserUpdate,
 )
+from app.services.credit_conversion import amount_cents_to_credits
 from app.utils.auth.dependencies import get_current_user
 from app.utils.storage.s3 import (
     delete_file_from_s3,
@@ -112,6 +113,11 @@ async def get_user_usage(
             .order_by(InfluencerCreditTransaction.created_at.desc())
         )
         latest_adult_call_cost = latest_adult_call_cost_result.scalars().first()
+        cost_cents = (
+            abs(int(latest_adult_call_cost))
+            if latest_adult_call_cost is not None
+            else None
+        )
         latest_adult_call_summary = {
             "conversation_id": latest_adult_call.conversation_id,
             "status": latest_adult_call.status,
@@ -120,9 +126,12 @@ async def get_user_usage(
             if latest_adult_call.created_at
             else None,
             "adult_character_id": latest_adult_call.adult_character_id,
-            "cost_cents": abs(int(latest_adult_call_cost))
-            if latest_adult_call_cost is not None
-            else None,
+            "cost_cents": cost_cents,
+            "cost_credits": (
+                amount_cents_to_credits(cost_cents)
+                if cost_cents is not None
+                else None
+            ),
         }
 
     last_call_result = await db.execute(
