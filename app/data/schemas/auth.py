@@ -82,6 +82,7 @@ class RegisterRequest(BaseModel):
 
 
 class CompleteProfileRequest(RegisterRequest):
+    email: str | None = None
     token: str
 
     @classmethod
@@ -89,7 +90,6 @@ class CompleteProfileRequest(RegisterRequest):
         cls,
         token: str = Form(...),
         password: str = Form(...),
-        email: str = Form(...),
         influencer_id: str | None = Form(default=None),
         full_name: str | None = Form(default=None),
         user_name: str | None = Form(default=None),
@@ -102,7 +102,6 @@ class CompleteProfileRequest(RegisterRequest):
         return cls(
             token=token,
             password=password,
-            email=email,
             influencer_id=influencer_id,
             full_name=full_name,
             user_name=user_name,
@@ -134,7 +133,6 @@ class VerifyEmailResponse(BaseModel):
 
 
 class CheckEmailTokenRequest(BaseModel):
-    email: str = Field(min_length=1)
     token: str = Field(min_length=1)
 
 
@@ -142,6 +140,12 @@ class CheckEmailTokenResponse(BaseModel):
     ok: bool
     valid: bool
     message: str
+    email: str
+    full_name: str | None = None
+    user_name: str | None = None
+    profile_photo_url: str | None = None
+    gender: str | None = None
+    date_of_birth: date | None = None
 
 
 class PasswordResetRequest(BaseModel):
