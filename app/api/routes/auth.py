@@ -60,6 +60,7 @@ log = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+EMAIL_VERIFICATION_TOKEN_BYTES = 12
 
 
 def _get_login_bonus_status(user: User) -> str:
@@ -68,6 +69,10 @@ def _get_login_bonus_status(user: User) -> str:
     if user.login_bonus_pending:
         return "pending"
     return "none"
+
+
+def _generate_email_verification_token() -> str:
+    return secrets.token_urlsafe(EMAIL_VERIFICATION_TOKEN_BYTES)
 
 
 async def _apply_first_login_bonus(
@@ -189,7 +194,7 @@ async def check_token(
     data: CheckEmailTokenRequest,
     db: AsyncSession = Depends(get_db),
 ):
-    return await check_email_verification_token(db, data.email, data.token)
+    return await check_email_verification_token(db, data.token)
 
 
 @router.post("/preregister", response_model=PreregisterResponse)
@@ -205,7 +210,7 @@ async def preregister(
     _internal_auth: None = Depends(require_internal_token),
 ):
     await ensure_influencer(db, data.influencer_id)
-    verify_token = secrets.token_urlsafe(32)
+    verify_token = _generate_email_verification_token()
 
     existing_user = await db.execute(select(User).where(User.email == data.email))
     if existing_user.scalar():
@@ -240,12 +245,7 @@ async def preregister(
         raise
     await db.refresh(user)
     await create_follow_if_missing(db, data.influencer_id, user.id)
-    verification_query = {
-        "email": user.email,
-        "token": verify_token,
-    }
-    if user.full_name:
-        verification_query["full_name"] = user.full_name
+    verification_query = {"t": verify_token}
     verification_url = (
         f"{settings.FRONTEND_URL.rstrip('/')}/{data.influencer_id}?"
         f"{urlencode(verification_query)}"
@@ -272,14 +272,12 @@ async def complete_profile(
     db: AsyncSession = Depends(get_db),
     file: UploadFile | None = File(default=None),
 ):
-    result = await db.execute(select(User).where(User.email == data.email))
+    result = await db.execute(select(User).where(User.email_token == data.token))
     user = result.scalar_one_or_none()
     if not user or not user.email_token or not user.email_token_expires_at:
         raise HTTPException(status_code=400, detail="Invalid or expired token")
     if user.is_verified:
         raise HTTPException(status_code=403, detail="User is already verified")
-    if user.email_token != data.token:
-        raise HTTPException(status_code=400, detail="Invalid or expired token")
     if user.email_token_expires_at < datetime.utcnow():
         raise HTTPException(
             status_code=410,
@@ -321,7 +319,7 @@ async def complete_profile(
             )
             raise HTTPException(500, "Failed to upload profile photo")
 
-    verify_token = secrets.token_urlsafe(32)
+    verify_token = _generate_email_verification_token()
     user.is_verified = False
     user.email_token = verify_token
     user.email_token_expires_at = datetime.utcnow() + timedelta(hours=24)
@@ -464,7 +462,7 @@ async def register(
     if data.influencer_id:
         influencer = await ensure_influencer(db, data.influencer_id)
 
-    verify_token = secrets.token_urlsafe(32)
+    verify_token = _generate_email_verification_token()
     token_expires = datetime.utcnow() + timedelta(hours=24)
 
     fp_tid = getattr(data, "fp_tid", None) or request.cookies.get("_fprom_tid") or None
@@ -751,7 +749,7 @@ async def resend_verification_email(request: Request, email: str, db: AsyncSessi
     if user.is_verified:
         raise HTTPException(status_code=400, detail="Email is already verified")
 
-    verify_token = secrets.token_urlsafe(32)
+    verify_token = _generate_email_verification_token()
     user.email_token = verify_token
     user.email_token_expires_at = datetime.utcnow() + timedelta(hours=24)
     await db.commit()
