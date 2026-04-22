@@ -60,7 +60,7 @@ from app.utils.storage.s3 import (
 )
 
 log = logging.getLogger(__name__)
-router = APIRouter(prefix="/pre-influencers", tags=["pre-influencers"])
+router = APIRouter(prefix="/pre-influencers", tags=["Pre Influencers"])
 
 
 def normalize_influencer_id(username: str) -> str:

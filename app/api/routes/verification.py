@@ -37,7 +37,7 @@ from app.core.config import settings
 
 log = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/verification", tags=["verification"])
+router = APIRouter(prefix="/verification", tags=["Verification"])
 
 
 @router.post("/session", response_model=VerificationSessionResponse)

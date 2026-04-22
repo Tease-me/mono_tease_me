@@ -32,7 +32,7 @@ from app.utils.storage.s3 import (
 
 log = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/user", tags=["user"])
+router = APIRouter(prefix="/user", tags=["User"])
 
 
 @router.get("/{id}/usage")

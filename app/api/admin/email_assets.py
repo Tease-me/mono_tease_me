@@ -9,7 +9,7 @@ from app.services.use_cases.admin_email_assets import (
 )
 from app.utils.auth.dependencies import get_current_user
 
-router = APIRouter(tags=["admin-email-assets"])
+router = APIRouter(tags=["Admin Email Assets"])
 
 
 @router.get(

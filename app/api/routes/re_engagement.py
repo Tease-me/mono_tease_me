@@ -15,7 +15,7 @@ from app.services.re_engagement import (
 
 log = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/re-engagement", tags=["re-engagement"])
+router = APIRouter(prefix="/re-engagement", tags=["Re Engagement"])
 
 
 @router.post("/run")

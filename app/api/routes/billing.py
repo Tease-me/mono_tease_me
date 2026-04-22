@@ -25,7 +25,7 @@ from app.utils.auth.dependencies import get_current_user
 from app.utils.infrastructure.idempotency import idempotent
 from app.utils.infrastructure.rate_limiter import rate_limit
 
-router = APIRouter(prefix="/billing", tags=["billing"])
+router = APIRouter(prefix="/billing", tags=["Billing"])
 
 
 @router.get("/balance")

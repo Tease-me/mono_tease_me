@@ -56,7 +56,7 @@ from app.utils.character_name import (
 
 log = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/influencer", tags=["influencer"])
+router = APIRouter(prefix="/influencer", tags=["Influencer"])
 
 
 def _parse_iso_datetime(value: Optional[str]) -> Optional[datetime]:
