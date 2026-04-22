@@ -36,7 +36,6 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
         influencer_id: string,
         display_name: string,
         prompt_template: string,
-        daily_scripts: string[],
         influencer_agent_id_third_part?: string,
         bio_json?: unknown,
         voice_id?: string,
@@ -48,7 +47,6 @@ export const InfluencerServices = (apiClient: AxiosInstance) => ({
                 {
                     "display_name": display_name,
                     "prompt_template": prompt_template,
-                    "daily_scripts": daily_scripts,
                     ...(influencer_agent_id_third_part !== undefined && { "influencer_agent_id_third_part": influencer_agent_id_third_part }),
                     ...bioPayload,
                     ...(voice_id !== undefined && { "voice_id": voice_id }),
