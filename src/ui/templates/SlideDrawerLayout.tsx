@@ -71,7 +71,7 @@ const SlideDrawerLayout: React.FC<SlideDrawerLayoutProps> = ({
             >
               <Suspense fallback={null}><SvgPack.ArrowLeft /></Suspense>
             </button>
-            <TeaseMeLogo size="small" variant="full" className={styles.logo} />
+            <TeaseMeLogo size="small" variant="icon-only-dark" className={styles.logo} />
             <div className={styles.title}>{title}</div>
           </div>
           <div className={styles.headerRight}>
