@@ -10,7 +10,6 @@ export interface InfluencerDataModel {
   isSelected: boolean;
   voice_id?: string;
   prompt_template?: string;
-  daily_scripts?: string[];
   influencer_agent_id_third_part?: string;
   bio_json?: any;
   fp_ref_id?: string | null;
