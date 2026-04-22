@@ -1,5 +1,5 @@
 import json
-from datetime import date, datetime
+from datetime import datetime
 import random
 from typing import Any, Optional
 
@@ -9,9 +9,6 @@ from langchain_core.prompts import (
     ChatPromptTemplate,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.data.models import Influencer
-from fastapi import Depends, HTTPException
-from app.core.session import get_db
 from app.services.system_prompt_service import get_system_prompt
 from app.utils.time import (
     check_is_weekend,
@@ -359,17 +356,3 @@ def build_relationship_prompt(
     expected = set(getattr(prompt_template, "input_variables", []) or [])
     filtered = {k: v for k, v in partial_vars.items() if k in expected}
     return prompt_template.partial(**filtered)
-
-async def get_today_script(
-    db: AsyncSession = Depends(get_db),
-    influencer_id: str = None
-) -> str:
-    if not influencer_id:
-        raise HTTPException(400, "influencer_id is required")
-    influencer = await db.get(Influencer, influencer_id)
-    scripts = influencer.daily_scripts if influencer and influencer.daily_scripts else []
-    if not scripts:
-        return ""
-    idx = date.today().timetuple().tm_yday % len(scripts)
-    frase = scripts[idx]
-    return frase
