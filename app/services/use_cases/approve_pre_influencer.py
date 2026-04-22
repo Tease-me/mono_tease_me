@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.data.enums import InfluencerPublicationStatus
 from app.data.models import Influencer, PreInfluencer
 from app.services.email.mailers import send_new_influencer_email_with_picture
 from app.services.firstpromoter import (
@@ -210,6 +211,7 @@ async def approve_pre_influencer(db: AsyncSession, pre_id: int) -> dict:
                 display_name=display_name,
                 bio_json=bio_payload,
                 voice_id=voice_id,
+                publication_status=InfluencerPublicationStatus.DRAFT.value,
                 fp_promoter_id=pre.fp_promoter_id,
                 fp_ref_id=pre.fp_ref_id,
                 email=pre.email,
@@ -228,6 +230,7 @@ async def approve_pre_influencer(db: AsyncSession, pre_id: int) -> dict:
             influencer.samples = samples_meta
             influencer.fp_promoter_id = pre.fp_promoter_id
             influencer.fp_ref_id = pre.fp_ref_id
+            influencer.publication_status = InfluencerPublicationStatus.DRAFT.value
             db.add(influencer)
 
         answers = pre.survey_answers or {}
