@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.admin import router as admin_router
 from app.api.adult import router as adult_router
+from app.api.mjpromoter import router as mjpromoter_router
 from app.api.openapi_tags import OPENAPI_TAGS
 from app.api.routes.auth import router as auth_router
 from app.api.routes.billing import router as billing_router
@@ -102,6 +103,7 @@ app.include_router(elevenlabs_router)
 app.include_router(webhooks_router)
 app.include_router(follow_router)
 app.include_router(pre_influencers_router)
+app.include_router(mjpromoter_router)
 app.include_router(social_router)
 app.include_router(admin_router)
 app.include_router(relationship_router)

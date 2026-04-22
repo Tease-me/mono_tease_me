@@ -1,31 +1,113 @@
 OPENAPI_TAGS = [
-    {"name": "auth", "description": "Authentication, login, logout, token refresh, and account session endpoints."},
-    {"name": "chat", "description": "Main chat endpoints for user conversations and chat interactions."},
-    {"name": "chat18", "description": "Adult chat endpoints for 18+ conversation flows."},
-    {"name": "adult-calls", "description": "Adult character voice token endpoints using character prompts and first-message selection."},
-    {"name": "push", "description": "Push notification registration and delivery preference endpoints."},
-    {"name": "billing", "description": "Billing and wallet-related endpoints for credits and usage."},
+    {
+        "name": "auth",
+        "description": "Authentication, login, logout, token refresh, and account session endpoints.",
+    },
+    {
+        "name": "chat",
+        "description": "Main chat endpoints for user conversations and chat interactions.",
+    },
+    {
+        "name": "chat18",
+        "description": "Adult chat endpoints for 18+ conversation flows.",
+    },
+    {
+        "name": "adult-calls",
+        "description": "Adult character voice token endpoints using character prompts and first-message selection.",
+    },
+    {
+        "name": "push",
+        "description": "Push notification registration and delivery preference endpoints.",
+    },
+    {
+        "name": "billing",
+        "description": "Billing and wallet-related endpoints for credits and usage.",
+    },
     {"name": "checkout", "description": "Checkout and payment initiation endpoints."},
-    {"name": "influencer", "description": "Influencer profile, bio, media, and public influencer data endpoints."},
-    {"name": "user", "description": "User profile, account, and user-owned resource endpoints."},
-    {"name": "elevenlabs", "description": "ElevenLabs voice, call, and conversation integration endpoints."},
-    {"name": "follow", "description": "Follow and unfollow endpoints for influencer relationships."},
-    {"name": "subscriptions", "description": "Influencer subscription and recurring billing endpoints."},
+    {
+        "name": "influencer",
+        "description": "Influencer profile, bio, media, and public influencer data endpoints.",
+    },
+    {
+        "name": "user",
+        "description": "User profile, account, and user-owned resource endpoints.",
+    },
+    {
+        "name": "elevenlabs",
+        "description": "ElevenLabs voice, call, and conversation integration endpoints.",
+    },
+    {
+        "name": "follow",
+        "description": "Follow and unfollow endpoints for influencer relationships.",
+    },
+    {
+        "name": "subscriptions",
+        "description": "Influencer subscription and recurring billing endpoints.",
+    },
     {"name": "health", "description": "Health check and service readiness endpoints."},
-    {"name": "webhooks", "description": "Webhook endpoints for external providers and async integration callbacks."},
-    {"name": "system-prompts", "description": "Admin endpoints for managing system prompt configuration."},
-    {"name": "pre-influencers", "description": "Pre-influencer onboarding, survey, and setup endpoints."},
-    {"name": "social", "description": "Social platform and social graph integration endpoints."},
-    {"name": "relationship", "description": "Relationship state and relationship progression endpoints."},
-    {"name": "re-engagement", "description": "Re-engagement campaign and outreach-related endpoints."},
+    {
+        "name": "webhooks",
+        "description": "Webhook endpoints for external providers and async integration callbacks.",
+    },
+    {
+        "name": "system-prompts",
+        "description": "Admin endpoints for managing system prompt configuration.",
+    },
+    {
+        "name": "pre-influencers",
+        "description": "Pre-influencer onboarding, survey, and setup endpoints.",
+    },
+    {
+        "name": "social",
+        "description": "Social platform and social graph integration endpoints.",
+    },
+    {
+        "name": "relationship",
+        "description": "Relationship state and relationship progression endpoints.",
+    },
+    {
+        "name": "re-engagement",
+        "description": "Re-engagement campaign and outreach-related endpoints.",
+    },
     {"name": "verification", "description": "Identity and age verification endpoints."},
-    {"name": "admin-chats", "description": "Admin chat history cleanup and chat inspection endpoints."},
-    {"name": "admin-logs", "description": "Admin log browsing, download, and streaming endpoints."},
-    {"name": "admin-users", "description": "Admin user listing and user lookup endpoints."},
-    {"name": "admin-relationships", "description": "Admin relationship inspection and relationship override endpoints."},
-    {"name": "admin-moderation", "description": "Admin moderation dashboard and violation review endpoints."},
-    {"name": "admin-characters", "description": "Admin adult character catalog, influencer character assets, and sample media endpoints."},
-    {"name": "admin-knowledge", "description": "Admin influencer knowledge management endpoints."},
-    {"name": "admin-usage", "description": "Admin API usage reporting and error analytics endpoints."},
-    {"name": "admin-analytics", "description": "Admin product, growth, engagement, spending, and retention analytics endpoints."},
+    {
+        "name": "admin-chats",
+        "description": "Admin chat history cleanup and chat inspection endpoints.",
+    },
+    {
+        "name": "admin-logs",
+        "description": "Admin log browsing, download, and streaming endpoints.",
+    },
+    {
+        "name": "admin-users",
+        "description": "Admin user listing and user lookup endpoints.",
+    },
+    {
+        "name": "admin-relationships",
+        "description": "Admin relationship inspection and relationship override endpoints.",
+    },
+    {
+        "name": "admin-moderation",
+        "description": "Admin moderation dashboard and violation review endpoints.",
+    },
+    {
+        "name": "admin-characters",
+        "description": "Admin adult character catalog, influencer character assets, and sample media endpoints.",
+    },
+    {
+        "name": "admin-knowledge",
+        "description": "Admin influencer knowledge management endpoints.",
+    },
+    {
+        "name": "admin-usage",
+        "description": "Admin API usage reporting and error analytics endpoints.",
+    },
+    {
+        "name": "admin-analytics",
+        "description": "Admin product, growth, engagement, spending, and retention analytics endpoints.",
+    },
+    {
+        "name": "MJ Promoter",
+        "description": "Internal MJ Promoter service-to-service endpoints.",
+    },
 ]
