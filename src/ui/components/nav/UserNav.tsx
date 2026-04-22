@@ -32,7 +32,7 @@ const UserNav: React.FC<UserNavProps> = ({
 
   return (
     <div className={styles.bar}>
-      <div className={styles.logoLeft}><TeaseMeLogo variant="full" /></div>
+      <div className={styles.logoLeft}><TeaseMeLogo size="small" variant="icon-only-dark" /></div>
       <div className={styles.maxWidthSpacer}>
         <div className={styles.leftSlot}>
           {isMobile && (
@@ -57,7 +57,7 @@ const UserNav: React.FC<UserNavProps> = ({
           ) : title ? (
             <span className={styles.navTitle}>{title}</span>
           ) : (
-            <div className={styles.logoArea}><TeaseMeLogo variant="full" /></div>
+            <div className={styles.logoArea}><TeaseMeLogo variant="icon-only-dark" /></div>
           )}
         </div>
 
