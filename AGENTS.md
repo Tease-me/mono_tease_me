@@ -177,6 +177,8 @@ async def create_chat(...):
 
 Routes should stay thin. They should parse input, call a service or use case, and return a schema response. They should not contain business rules or direct persistence logic.
 
+Do not write route-local helper functions in `api/routes/` or other route modules for reusable shaping, serialization, or decision logic. If logic is shared or non-trivial, move it into `services/use_cases/` for application behavior or `utils/` for pure stateless helpers, then import it into the route.
+
 ### WebSocket pattern
 
 ```python

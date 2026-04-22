@@ -14,7 +14,6 @@ from fastapi import (
     UploadFile,
     status,
 )
-from fastapi.encoders import jsonable_encoder
 from pydantic import ValidationError
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,6 +23,7 @@ from app.core.session import get_db
 from app.data.models import Influencer, PreInfluencer, User
 from app.data.schemas.pre_influencer import (
     InfluencerAudioDeleteRequest,
+    PreInfluencerAdminOut,
     PreInfluencerAcceptTermsRequest,
     PreInfluencerRegisterRequest,
     PreInfluencerRegisterResponse,
@@ -46,6 +46,7 @@ from app.services.firstpromoter import (
 from app.services.use_cases.approve_pre_influencer import (
     approve_pre_influencer as run_pre_influencer_approval,
 )
+from app.services.use_cases.pre_influencer_output import build_pre_influencer_admin_out
 from app.services.use_cases.pre_influencer_survey_prompt import (
     format_survey_markdown,
     generate_prompt_from_markdown,
@@ -71,7 +72,7 @@ def normalize_influencer_id(username: str) -> str:
 async def get_pre_influencer_me(
     current_pre: PreInfluencer = Depends(get_current_pre_influencer),
 ):
-    return _pre_influencer_with_profile_picture_url(current_pre)
+    return build_pre_influencer_admin_out(current_pre)
 
 
 @router.get("/check-ig/{instagram_username}")
@@ -652,18 +653,7 @@ async def get_default_voices(db: AsyncSession = Depends(get_db)):
         "voices": voices,
     }
 
-
-def _pre_influencer_with_profile_picture_url(pre: PreInfluencer) -> dict:
-    data = jsonable_encoder(pre)
-    answers = data.get("survey_answers") or {}
-    key = answers.get("profile_picture_key")
-    if key:
-        answers["profile_picture_url"] = generate_presigned_url(key, expires=3600)
-    data["survey_answers"] = answers
-    return data
-
-
-@router.get("")
+@router.get("", response_model=list[PreInfluencerAdminOut])
 async def list_pre_influencers(
     status: str | None = None,
     current_user: User = Depends(get_current_user),
@@ -675,10 +665,10 @@ async def list_pre_influencers(
     if status:
         q = q.where(PreInfluencer.status == status)
     rows = (await db.execute(q)).scalars().all()
-    return [_pre_influencer_with_profile_picture_url(r) for r in rows]
+    return [build_pre_influencer_admin_out(row) for row in rows]
 
 
-@router.get("/{pre_id}")
+@router.get("/{pre_id}", response_model=PreInfluencerAdminOut)
 async def get_pre_influencer(
     pre_id: int,
     current_user: User = Depends(get_current_user),
@@ -690,7 +680,7 @@ async def get_pre_influencer(
     row = (await db.execute(q)).scalar_one_or_none()
     if not row:
         raise HTTPException(status_code=404, detail="PreInfluencer not found")
-    return _pre_influencer_with_profile_picture_url(row)
+    return build_pre_influencer_admin_out(row)
 
 
 @router.post("/{pre_id}/approve")
