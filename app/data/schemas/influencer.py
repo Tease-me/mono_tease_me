@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
 
@@ -7,7 +7,6 @@ class InfluencerBase(BaseModel):
     display_name: str
     voice_id: Optional[str] = None
     prompt_template: Optional[str] = None
-    daily_scripts: Optional[List[str]] = None
     bio_json: Optional[Dict[str, Any]] = None
 
     influencer_agent_id_third_part: Optional[str] = None
@@ -24,14 +23,15 @@ class InfluencerBase(BaseModel):
 
 
 class InfluencerCreate(InfluencerBase):
+    model_config = ConfigDict(extra="forbid")
     id: str
 
 
 class InfluencerUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     display_name: Optional[str] = None
     voice_id: Optional[str] = None
     prompt_template: Optional[str] = None
-    daily_scripts: Optional[List[str]] = None
     bio_json: Optional[Dict[str, Any]] = None
     influencer_agent_id_third_part: Optional[str] = None
     native_language: Optional[str] = None
