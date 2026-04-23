@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { apiClient } from "@/api/apis";
+import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
+import { AdminInfluencerRepo } from "@/data/repositories/AdminInfluencerRepo";
 import {
   AdminServices,
   AdminUserRow,
@@ -8,14 +10,12 @@ import {
   HistoryClearMode,
   ChatInfoStats,
 } from "@/api/services/AdminServices";
-import { InfluencerServices } from "@/api/services/InfluencerService";
-import { InfluencerResponse } from "@/api/models/influencers";
 import AdminLayout from "@/ui/screens/admin/AdminLayout";
 import AdminTwoColumn from "@/ui/screens/admin/AdminTwoColumn";
 import styles from "./AdminChatHistory.module.css";
 
 const admin = AdminServices(apiClient);
-const influencerSvc = InfluencerServices(apiClient);
+const adminInfluencerRepo = AdminInfluencerRepo();
 
 const MODES: { value: HistoryClearMode; label: string }[] = [
   { value: "both", label: "Both" },
@@ -51,9 +51,9 @@ function StatCard({ label, stats }: { label: string; stats: ChatInfoStats }) {
 
 const AdminChatHistory: React.FC = () => {
   // ── Influencer list ─────────────────────────────────────────
-  const [influencers, setInfluencers] = useState<InfluencerResponse[]>([]);
+  const [influencers, setInfluencers] = useState<InfluencerDataModel[]>([]);
   const [loadingInfluencers, setLoadingInfluencers] = useState(false);
-  const [selectedInfluencer, setSelectedInfluencer] = useState<InfluencerResponse | null>(null);
+  const [selectedInfluencer, setSelectedInfluencer] = useState<InfluencerDataModel | null>(null);
 
   // ── User search / list ───────────────────────────────────────
   const [userSearch, setUserSearch] = useState("");
@@ -81,7 +81,7 @@ const AdminChatHistory: React.FC = () => {
   useEffect(() => {
     let alive = true;
     setLoadingInfluencers(true);
-    influencerSvc
+    adminInfluencerRepo
       .getInfluencers()
       .then((data) => {
         if (!alive) return;
@@ -245,7 +245,7 @@ const AdminChatHistory: React.FC = () => {
                 }`}
                 onClick={() => setSelectedInfluencer(inf)}
               >
-                {inf.display_name || inf.id}
+                {inf.name || inf.id}
               </button>
             ))}
           </div>
@@ -264,7 +264,7 @@ const AdminChatHistory: React.FC = () => {
                 <div className={styles["panel-title"]}>
                   {userLabel(selectedUser!)}
                   <span className={styles["pair-sep"]}> × </span>
-                  {selectedInfluencer!.display_name || selectedInfluencer!.id}
+                  {selectedInfluencer!.name || selectedInfluencer!.id}
                 </div>
                 <div className={styles["pair-ids"]}>
                   User ID: {selectedUser!.id} · Influencer: {selectedInfluencer!.id}
