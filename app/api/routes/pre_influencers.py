@@ -206,6 +206,17 @@ async def register_pre_influencer(
         )
 
     verify_token = secrets.token_urlsafe(32)
+    registration_meta = {
+        "fpr": data.fpr,
+        "invite_code": data.invite_code,
+        "new_user_email": data.new_user_email,
+        "inviter_email": data.inviter_email,
+        "account_manager_email": data.account_manager_email,
+        "parent_ref_id": data.parent_ref_id,
+    }
+    registration_meta = {
+        key: value for key, value in registration_meta.items() if value is not None
+    }
 
     pre = PreInfluencer(
         full_name=data.full_name,
@@ -214,30 +225,13 @@ async def register_pre_influencer(
         email=data.email,
         password=data.password,
         survey_token=verify_token,
-        survey_answers={"__meta": {"parent_ref_id": data.parent_ref_id}}
-        if data.parent_ref_id
-        else None,
+        survey_answers={"__meta": registration_meta} if registration_meta else None,
         terms_agreement=False,
     )
 
     db.add(pre)
     await db.commit()
     await db.refresh(pre)
-
-    # Store parent_ref_id in survey_answers metadata for later use at approval
-    if data.parent_ref_id:
-        answers = pre.survey_answers or {}
-        if isinstance(answers, dict):
-            meta = answers.get("__meta")
-            if not isinstance(meta, dict):
-                meta = {}
-            if "parent_ref_id" not in meta:
-                meta["parent_ref_id"] = data.parent_ref_id
-            answers["__meta"] = meta
-            pre.survey_answers = answers
-            db.add(pre)
-            await db.commit()
-            await db.refresh(pre)
 
     # Track pre-influencer signup in FirstPromoter (if fp_tid provided)
     if data.fp_tid:

@@ -12,6 +12,11 @@ class PreInfluencerRegisterRequest(BaseModel):
     terms_agreement: bool = False
     fp_tid: str | None = None
     parent_ref_id: str | None = None
+    fpr: str | None = None
+    invite_code: str | None = None
+    new_user_email: str | None = None
+    inviter_email: str | None = None
+    account_manager_email: str | None = None
 
 class PreInfluencerRegisterResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
