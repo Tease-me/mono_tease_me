@@ -29,6 +29,7 @@ from app.services.use_cases.admin_influencer_assets import (
     build_public_landing_assets_out,
     build_public_telegram_welcome_media_out,
 )
+from app.services.use_cases.influencer_detail import build_influencer_detail
 from app.services.influencer_cleanup import (
     InfluencerDeleteError,
     InfluencerDeleteNotFoundError,
@@ -43,7 +44,6 @@ from app.services.repositories.adult_character_assets_repository import (
 from app.utils.storage.s3 import (
     generate_presigned_url,
     get_influencer_audio_download_url,
-    get_influencer_profile_from_s3,
     list_influencer_audio_keys,
     save_influencer_audio_to_s3,
     save_influencer_photo_to_s3,
@@ -68,19 +68,6 @@ def _parse_iso_datetime(value: Optional[str]) -> Optional[datetime]:
         return datetime.fromisoformat(value)
     except Exception:
         return None
-
-
-async def _build_influencer_detail(influencer: Influencer) -> InfluencerDetail:
-    profile_json = await get_influencer_profile_from_s3(influencer.id)
-    photo_url = generate_presigned_url(influencer.profile_photo_key) if influencer.profile_photo_key else None
-    video_url = generate_presigned_url(influencer.profile_video_key) if influencer.profile_video_key else None
-
-    about_text = profile_json.get("about") if isinstance(profile_json, dict) else None
-    detail = InfluencerDetail.model_validate(influencer)
-    detail.about = about_text
-    detail.photo_url = photo_url
-    detail.video_url = video_url
-    return detail
 
 
 def _resolve_sample_urls(meta_json: dict | None) -> dict | None:
@@ -188,7 +175,7 @@ async def list_influencers(db: AsyncSession = Depends(get_db)):
         )
     )
     influencers = result.scalars().all()
-    return [await _build_influencer_detail(influencer) for influencer in influencers]
+    return [await build_influencer_detail(influencer) for influencer in influencers]
 
 @router.get("/{influencer_id}/bio", response_model=InfluencerBio)
 async def get_influencer_bio(influencer_id: str, db: AsyncSession = Depends(get_db)):
@@ -225,7 +212,7 @@ async def get_influencer_bio(influencer_id: str, db: AsyncSession = Depends(get_
 async def get_influencer(id: str, db: AsyncSession = Depends(get_db)):
     influencer = await ensure_published_influencer(db, id)
 
-    return await _build_influencer_detail(influencer)
+    return await build_influencer_detail(influencer)
 
 
 @router.get("/{influencer_id}/adult-characters", response_model=List[InfluencerAdultCharacterOut])
