@@ -346,6 +346,17 @@ textarea.input {
   gap: 12px;
 }
 
+.submitRow {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.submitButtonWrap {
+  width: 320px;
+  display: flex;
+}
+
 .buttonRow>div {
   flex: 1;
   display: flex;

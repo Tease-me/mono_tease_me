@@ -146,6 +146,20 @@ export function validateAudioStep(
   };
 }
 
+export function validateAssetStep(answers: Record<string, any>): ValidationResult {
+  const errors: Record<string, string> = {};
+  const link = answers['asset_link'];
+
+  if (!link || typeof link !== 'string' || !link.trim()) {
+    errors['asset_link'] = ERROR_MESSAGES.ASSET_LINK_REQUIRED;
+  }
+
+  return {
+    valid: Object.keys(errors).length === 0,
+    errors,
+  };
+}
+
 export function validateSocialHandle(handle: string): string | undefined {
   const trimmed = (handle || '').trim();
   if (!trimmed) {
