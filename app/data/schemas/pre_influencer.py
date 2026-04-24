@@ -14,7 +14,7 @@ class PreInfluencerRegisterRequest(BaseModel):
     parent_ref_id: str | None = None
     fpr: str | None = None
     invite_code: str | None = None
-    new_user_email: str | None = None
+    invitee_email: str | None = None
     inviter_email: str | None = None
     account_manager_email: str | None = None
 
@@ -89,7 +89,7 @@ class PreInfluencerAdminOut(BaseModel):
 
 class MJPreInfluencerStepProgressRequest(BaseModel):
     invite_code: str
-    new_user_email: EmailStr
+    invitee_email: EmailStr
 
 
 class MJPreInfluencerStepProgressOut(BaseModel):
@@ -99,3 +99,11 @@ class MJPreInfluencerStepProgressOut(BaseModel):
     username: str
     survey_step: int
     status: str
+
+
+class MJPreInfluencerAssetLinkOut(BaseModel):
+    ok: bool = True
+    exists: bool = True
+    pre_influencer_id: int
+    username: str
+    asset_link: str | None = None
