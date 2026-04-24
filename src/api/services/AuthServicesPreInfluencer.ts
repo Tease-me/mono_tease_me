@@ -12,7 +12,7 @@ import { LocalStorageKeys } from "@/constants/localStorageKeys";
 type JoinAttribution = {
   fpr?: string;
   inviteCode?: string;
-  newUserEmail?: string;
+  inviteeEmail?: string;
   inviterEmail?: string;
   accountManagerEmail?: string;
 };
@@ -48,8 +48,8 @@ export const AuthServicesPreInfluencer = (apiClient: AxiosInstance) => ({
         storage.get(LocalStorageKeys.ParentRefId);
       const invite_code =
         searchParams.get("inviteCode") ?? storedJoinAttribution.inviteCode;
-      const new_user_email =
-        searchParams.get("newUserEmail") ?? storedJoinAttribution.newUserEmail;
+      const invitee_email =
+        searchParams.get("inviteeEmail") ?? storedJoinAttribution.inviteeEmail;
       const inviter_email =
         searchParams.get("inviterEmail") ?? storedJoinAttribution.inviterEmail;
       const account_manager_email =
@@ -62,14 +62,14 @@ export const AuthServicesPreInfluencer = (apiClient: AxiosInstance) => ({
       if (
         parent_ref_id ||
         invite_code ||
-        new_user_email ||
+        invitee_email ||
         inviter_email ||
         account_manager_email
       ) {
         storage.setObject(LocalStorageKeys.JoinAttribution, {
           fpr: parent_ref_id ?? undefined,
           inviteCode: invite_code ?? undefined,
-          newUserEmail: new_user_email ?? undefined,
+          inviteeEmail: invitee_email ?? undefined,
           inviterEmail: inviter_email ?? undefined,
           accountManagerEmail: account_manager_email ?? undefined,
         });
@@ -80,7 +80,7 @@ export const AuthServicesPreInfluencer = (apiClient: AxiosInstance) => ({
           ...payload,
           parent_ref_id,
           invite_code,
-          new_user_email,
+          invitee_email,
           inviter_email,
           account_manager_email,
         },
