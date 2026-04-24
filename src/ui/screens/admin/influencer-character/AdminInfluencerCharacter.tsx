@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { apiClient } from "@/api/apis";
+import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
+import { AdminInfluencerRepo } from "@/data/repositories/AdminInfluencerRepo";
 import {
   AdminInfluencerCharacterAssetsPayload,
   AdminServices,
@@ -8,8 +10,6 @@ import {
 } from "@/api/services/AdminServices";
 import type { AdminInfluencerCharacter as AdminInfluencerCharacterRow } from "@/api/services/AdminServices";
 import type { CharacterAudioSample, CharacterSamples } from "@/api/models/adultCharacters";
-import { InfluencerServices } from "@/api/services/InfluencerService";
-import { InfluencerResponse } from "@/api/models/influencers";
 import AssetPreview, { AssetPreviewType } from "@/ui/components/uploads/AssetPreview";
 import AdminLayout from "@/ui/screens/admin/AdminLayout";
 import AdminTwoColumn from "@/ui/screens/admin/AdminTwoColumn";
@@ -18,7 +18,7 @@ import chrome from "@/ui/screens/admin/shared/AdminChrome.module.css";
 import styles from "./AdminInfluencerCharacter.module.css";
 
 const admin = AdminServices(apiClient);
-const influencerSvc = InfluencerServices(apiClient);
+const adminInfluencerRepo = AdminInfluencerRepo();
 
 const parseSamples = (meta: Record<string, unknown> | null): CharacterSamples => {
   const raw = meta?.samples as { normal?: CharacterAudioSample[]; explicit?: CharacterAudioSample[] } | undefined;
@@ -91,7 +91,7 @@ const getErrorMessage = (error: any, fallback: string) =>
   error?.response?.data?.detail || error?.message || fallback;
 
 const AdminInfluencerCharacter: React.FC = () => {
-  const [influencers, setInfluencers] = useState<InfluencerResponse[]>([]);
+  const [influencers, setInfluencers] = useState<InfluencerDataModel[]>([]);
   const [selectedInfluencerId, setSelectedInfluencerId] = useState<string | null>(null);
   const [loadingInfluencers, setLoadingInfluencers] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
@@ -122,7 +122,7 @@ const AdminInfluencerCharacter: React.FC = () => {
     let active = true;
     setLoadingInfluencers(true);
     setListError(null);
-    influencerSvc
+    adminInfluencerRepo
       .getInfluencers()
       .then((data) => {
         if (!active) return;
@@ -394,7 +394,7 @@ const AdminInfluencerCharacter: React.FC = () => {
             }`}
             onClick={() => setSelectedInfluencerId(item.id)}
           >
-            {item.display_name || item.id}
+            {item.name || item.id}
           </button>
         ))}
       </div>
@@ -419,7 +419,7 @@ const AdminInfluencerCharacter: React.FC = () => {
               <div className={chrome["panelHeader"]}>
                 <div>
                   <div className={chrome["panelTitle"]}>
-                    {selectedInfluencer?.display_name || selectedInfluencerId}
+                    {selectedInfluencer?.name || selectedInfluencerId}
                   </div>
                   <div className={chrome["panelMeta"]}>
                     {loadingCharacters

@@ -6,8 +6,10 @@ import { useNavigate } from "react-router-dom";
 
 import { apiClient } from "@/api/apis";
 import { AuthServicesPreInfluencer } from "@/api/services/AuthServicesPreInfluencer";
+import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { Paths } from "@/routes/path";
 import ResendEmailModal from "@/ui/screens/join/components/ResendEmailModal";
+import { storage } from "@/utils/storage";
 import SvgPack from "@/utils/SvgPack";
 import "./ProfileSurvey.css";
 
@@ -80,6 +82,8 @@ const ProfileSurvey: React.FC = () => {
       });
 
       if (response.ok) {
+        storage.remove(LocalStorageKeys.JoinAttribution);
+        storage.remove(LocalStorageKeys.ParentRefId);
         navigate(Paths.thankYou);
         return;
       }

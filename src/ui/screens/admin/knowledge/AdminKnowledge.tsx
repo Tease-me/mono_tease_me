@@ -1,17 +1,17 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { apiClient } from "@/api/apis";
+import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
+import { AdminInfluencerRepo } from "@/data/repositories/AdminInfluencerRepo";
 import { AdminServices, KnowledgeGetResponse } from "@/api/services/AdminServices";
-import { InfluencerServices } from "@/api/services/InfluencerService";
-import { InfluencerResponse } from "@/api/models/influencers";
 import AdminLayout from "@/ui/screens/admin/AdminLayout";
 import AdminTwoColumn from "@/ui/screens/admin/AdminTwoColumn";
 import styles from "./AdminKnowledge.module.css";
 
 const admin = AdminServices(apiClient);
-const influencerSvc = InfluencerServices(apiClient);
+const adminInfluencerRepo = AdminInfluencerRepo();
 
 const AdminKnowledge: React.FC = () => {
-  const [influencers, setInfluencers] = useState<InfluencerResponse[]>([]);
+  const [influencers, setInfluencers] = useState<InfluencerDataModel[]>([]);
   const [loadingList, setLoadingList] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
 
@@ -32,7 +32,7 @@ const AdminKnowledge: React.FC = () => {
     let alive = true;
     setLoadingList(true);
     setListError(null);
-    influencerSvc
+    adminInfluencerRepo
       .getInfluencers()
       .then((data) => {
         if (!alive) return;
@@ -169,7 +169,7 @@ const AdminKnowledge: React.FC = () => {
                 className={`${styles["sidebar-item"]} ${selectedId === inf.id ? styles["sidebar-item--active"] : ""}`}
                 onClick={() => setSelectedId(inf.id)}
               >
-                {inf.display_name || inf.id}
+                {inf.name || inf.id}
               </button>
             ))}
           </div>
@@ -185,7 +185,7 @@ const AdminKnowledge: React.FC = () => {
               <div className={styles["panel-header"]}>
                 <div>
                   <div className={styles["panel-title"]}>
-                    {selectedInfluencer?.display_name || selectedId}
+                    {selectedInfluencer?.name || selectedId}
                   </div>
                   {hasKb && kbData && (
                     <div className={styles["meta"]}>
