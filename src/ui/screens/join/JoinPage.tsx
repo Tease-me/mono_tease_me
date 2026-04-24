@@ -13,13 +13,13 @@ export default function JoinPage() {
     const searchParams = new URLSearchParams(window.location.search);
     const fpr = searchParams.get("fpr");
     const inviteCode = searchParams.get("inviteCode");
-    const newUserEmail = searchParams.get("newUserEmail");
+    const inviteeEmail = searchParams.get("inviteeEmail");
     const inviterEmail = searchParams.get("inviterEmail");
     const accountManagerEmail = searchParams.get("accountManagerEmail");
     const joinAttribution = {
       fpr: fpr ?? undefined,
       inviteCode: inviteCode ?? undefined,
-      newUserEmail: newUserEmail ?? undefined,
+      inviteeEmail: inviteeEmail ?? undefined,
       inviterEmail: inviterEmail ?? undefined,
       accountManagerEmail: accountManagerEmail ?? undefined,
     };
