@@ -85,3 +85,17 @@ class PreInfluencerAdminOut(BaseModel):
     terms_agreement: bool
     fp_promoter_id: Optional[str] = None
     fp_ref_id: Optional[str] = None
+
+
+class MJPreInfluencerStepProgressRequest(BaseModel):
+    invite_code: str
+    new_user_email: EmailStr
+
+
+class MJPreInfluencerStepProgressOut(BaseModel):
+    ok: bool = True
+    exists: bool = True
+    pre_influencer_id: int
+    username: str
+    survey_step: int
+    status: str

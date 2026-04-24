@@ -38,12 +38,12 @@ def test_internal_pre_influencer_approve_requires_valid_internal_token(
 
     monkeypatch.setattr(settings, "MJFP_TOKEN", "internal-secret")
     monkeypatch.setattr(
-        "app.api.internal.pre_influencers.run_pre_influencer_approval",
+        "app.api.mjpromoter.pre_influencers.run_pre_influencer_approval",
         _fake_approve,
     )
 
     response = client.post(
-        "/internal/pre-influencers/123/approve",
+        "/mjpromoter/pre-influencers/123/approve",
         headers={"X-Internal-Token": "internal-secret"},
     )
 
@@ -59,7 +59,7 @@ def test_internal_pre_influencer_approve_rejects_missing_token(monkeypatch) -> N
 
     monkeypatch.setattr(settings, "MJFP_TOKEN", "internal-secret")
 
-    response = client.post("/internal/pre-influencers/123/approve")
+    response = client.post("/mjpromoter/pre-influencers/123/approve")
 
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid MJ promoter token"
@@ -72,7 +72,7 @@ def test_internal_pre_influencer_approve_rejects_invalid_token(monkeypatch) -> N
     monkeypatch.setattr(settings, "MJFP_TOKEN", "internal-secret")
 
     response = client.post(
-        "/internal/pre-influencers/123/approve",
+        "/mjpromoter/pre-influencers/123/approve",
         headers={"X-Internal-Token": "wrong-token"},
     )
 
