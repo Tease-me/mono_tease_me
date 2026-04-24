@@ -10,8 +10,26 @@ import { LocalStorageKeys } from "@/constants/localStorageKeys";
 
 export default function JoinPage() {
   useEffect(() => {
-    const fpr = new URLSearchParams(window.location.search).get("fpr");
+    const searchParams = new URLSearchParams(window.location.search);
+    const fpr = searchParams.get("fpr");
+    const inviteCode = searchParams.get("inviteCode");
+    const newUserEmail = searchParams.get("newUserEmail");
+    const inviterEmail = searchParams.get("inviterEmail");
+    const accountManagerEmail = searchParams.get("accountManagerEmail");
+    const joinAttribution = {
+      fpr: fpr ?? undefined,
+      inviteCode: inviteCode ?? undefined,
+      newUserEmail: newUserEmail ?? undefined,
+      inviterEmail: inviterEmail ?? undefined,
+      accountManagerEmail: accountManagerEmail ?? undefined,
+    };
+
     if (fpr) storage.set(LocalStorageKeys.ParentRefId, fpr);
+    if (Object.values(joinAttribution).some(Boolean)) {
+      storage.setObject(LocalStorageKeys.JoinAttribution, joinAttribution);
+      return;
+    }
+    storage.remove(LocalStorageKeys.JoinAttribution);
   }, []);
 
   return (
