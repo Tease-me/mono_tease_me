@@ -209,7 +209,7 @@ async def register_pre_influencer(
     registration_meta = {
         "fpr": data.fpr,
         "invite_code": data.invite_code,
-        "new_user_email": data.new_user_email,
+        "invitee_email": data.invitee_email,
         "inviter_email": data.inviter_email,
         "account_manager_email": data.account_manager_email,
         "parent_ref_id": data.parent_ref_id,
