@@ -5,9 +5,11 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Request, BackgroundTasks
 from app.api.admin.common import ensure_admin
+from app.api.deps.influencer import ensure_published_influencer
 from app.api.routes.webhooks import _process_relationship_update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from app.data.enums import InfluencerPublicationStatus
 from app.data.models import AdultCharacter, Influencer, InfluencerCharacterMeta, User
 from app.utils.auth.dependencies import get_current_user
 
@@ -27,6 +29,7 @@ from app.services.use_cases.admin_influencer_assets import (
     build_public_landing_assets_out,
     build_public_telegram_welcome_media_out,
 )
+from app.services.use_cases.influencer_detail import build_influencer_detail
 from app.services.influencer_cleanup import (
     InfluencerDeleteError,
     InfluencerDeleteNotFoundError,
@@ -41,7 +44,6 @@ from app.services.repositories.adult_character_assets_repository import (
 from app.utils.storage.s3 import (
     generate_presigned_url,
     get_influencer_audio_download_url,
-    get_influencer_profile_from_s3,
     list_influencer_audio_keys,
     save_influencer_audio_to_s3,
     save_influencer_photo_to_s3,
@@ -56,7 +58,7 @@ from app.utils.character_name import (
 
 log = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/influencer", tags=["influencer"])
+router = APIRouter(prefix="/influencer", tags=["Influencer"])
 
 
 def _parse_iso_datetime(value: Optional[str]) -> Optional[datetime]:
@@ -66,19 +68,6 @@ def _parse_iso_datetime(value: Optional[str]) -> Optional[datetime]:
         return datetime.fromisoformat(value)
     except Exception:
         return None
-
-
-async def _build_influencer_detail(influencer: Influencer) -> InfluencerDetail:
-    profile_json = await get_influencer_profile_from_s3(influencer.id)
-    photo_url = generate_presigned_url(influencer.profile_photo_key) if influencer.profile_photo_key else None
-    video_url = generate_presigned_url(influencer.profile_video_key) if influencer.profile_video_key else None
-
-    about_text = profile_json.get("about") if isinstance(profile_json, dict) else None
-    detail = InfluencerDetail.model_validate(influencer)
-    detail.about = about_text
-    detail.photo_url = photo_url
-    detail.video_url = video_url
-    return detail
 
 
 def _resolve_sample_urls(meta_json: dict | None) -> dict | None:
@@ -180,15 +169,17 @@ async def _build_influencer_adult_characters(
 
 @router.get("", response_model=List[InfluencerDetail])
 async def list_influencers(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Influencer))
+    result = await db.execute(
+        select(Influencer).where(
+            Influencer.publication_status == InfluencerPublicationStatus.PUBLISHED.value
+        )
+    )
     influencers = result.scalars().all()
-    return [await _build_influencer_detail(influencer) for influencer in influencers]
+    return [await build_influencer_detail(influencer) for influencer in influencers]
 
 @router.get("/{influencer_id}/bio", response_model=InfluencerBio)
 async def get_influencer_bio(influencer_id: str, db: AsyncSession = Depends(get_db)):
-    influencer = await db.get(Influencer, influencer_id)
-    if not influencer:
-        raise HTTPException(404, "Influencer not found")
+    influencer = await ensure_published_influencer(db, influencer_id)
 
     bio = influencer.bio_json if isinstance(influencer.bio_json, dict) else {}
 
@@ -219,11 +210,9 @@ async def get_influencer_bio(influencer_id: str, db: AsyncSession = Depends(get_
 
 @router.get("/{id}", response_model=InfluencerDetail)
 async def get_influencer(id: str, db: AsyncSession = Depends(get_db)):
-    influencer = await db.get(Influencer, id)
-    if not influencer:
-        raise HTTPException(404, "Influencer not found")
+    influencer = await ensure_published_influencer(db, id)
 
-    return await _build_influencer_detail(influencer)
+    return await build_influencer_detail(influencer)
 
 
 @router.get("/{influencer_id}/adult-characters", response_model=List[InfluencerAdultCharacterOut])
@@ -232,9 +221,7 @@ async def get_influencer_adult_characters(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    influencer = await db.get(Influencer, influencer_id)
-    if not influencer:
-        raise HTTPException(404, "Influencer not found")
+    influencer = await ensure_published_influencer(db, influencer_id)
 
     return await _build_influencer_adult_characters(
         db,
@@ -252,9 +239,7 @@ async def get_influencer_landing_assets(
     influencer_id: str,
     db: AsyncSession = Depends(get_db),
 ):
-    influencer = await db.get(Influencer, influencer_id)
-    if not influencer:
-        raise HTTPException(status_code=404, detail="Influencer not found")
+    influencer = await ensure_published_influencer(db, influencer_id)
 
     return await build_public_landing_assets_out(influencer)
 
@@ -267,9 +252,7 @@ async def get_influencer_telegram_welcome_media(
     influencer_id: str,
     db: AsyncSession = Depends(get_db),
 ):
-    influencer = await db.get(Influencer, influencer_id)
-    if not influencer:
-        raise HTTPException(status_code=404, detail="Influencer not found")
+    influencer = await ensure_published_influencer(db, influencer_id)
 
     return await build_public_telegram_welcome_media_out(influencer)
 
@@ -523,7 +506,9 @@ async def upload_influencer_audio(
 @router.get("/influencer-audio/{influencer_id}")
 async def list_influencer_audio(
     influencer_id: str,
+    db: AsyncSession = Depends(get_db),
 ):
+    await ensure_published_influencer(db, influencer_id)
     keys = await list_influencer_audio_keys(influencer_id)
     if not keys:
         raise HTTPException(status_code=404, detail="Influencer has no audio file stored")
@@ -545,9 +530,7 @@ async def list_influencer_audio(
 
 @router.get("/{influencer_id}/samples")
 async def list_influencer_samples(influencer_id: str, db: AsyncSession = Depends(get_db)):
-    influencer = await db.get(Influencer, influencer_id)
-    if not influencer:
-        raise HTTPException(status_code=404, detail="Influencer not found")
+    influencer = await ensure_published_influencer(db, influencer_id)
 
     samples = influencer.samples or []
 

@@ -16,7 +16,7 @@ from app.services.use_cases.admin_telegram_funnel_analytics import (
 )
 from app.utils.auth.dependencies import get_current_user
 
-router = APIRouter(tags=["admin-telegram-funnel"])
+router = APIRouter(tags=["Admin Telegram Funnel"])
 log = logging.getLogger(__name__)
 
 

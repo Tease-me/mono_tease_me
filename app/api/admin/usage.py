@@ -9,7 +9,7 @@ from app.data.models import ApiUsageLog, User
 from app.core.session import get_db
 from app.utils.auth.dependencies import get_current_user
 
-router = APIRouter(tags=["admin-usage"])
+router = APIRouter(tags=["Admin Usage"])
 
 
 def _parse_period(period: str) -> datetime:

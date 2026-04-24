@@ -2,12 +2,15 @@ from pydantic import BaseModel, ConfigDict, field_validator
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
 
+from app.data.enums import InfluencerPublicationStatus
+
 
 class InfluencerBase(BaseModel):
     display_name: str
     voice_id: Optional[str] = None
     prompt_template: Optional[str] = None
     bio_json: Optional[Dict[str, Any]] = None
+    publication_status: InfluencerPublicationStatus = InfluencerPublicationStatus.DRAFT
 
     influencer_agent_id_third_part: Optional[str] = None
     created_at: Optional[datetime] = None
@@ -33,6 +36,7 @@ class InfluencerUpdate(BaseModel):
     voice_id: Optional[str] = None
     prompt_template: Optional[str] = None
     bio_json: Optional[Dict[str, Any]] = None
+    publication_status: Optional[InfluencerPublicationStatus] = None
     influencer_agent_id_third_part: Optional[str] = None
     native_language: Optional[str] = None
     date_of_birth: Optional[datetime] = None

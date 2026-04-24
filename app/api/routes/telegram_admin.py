@@ -36,7 +36,7 @@ from app.data.schemas.telegram_session import (
 
 log = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/telegram", tags=["telegram-admin"])
+router = APIRouter(prefix="/telegram", tags=["Telegram Admin"])
 
 
 # ─────────────────────── guards ───────────────────────

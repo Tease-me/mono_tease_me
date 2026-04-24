@@ -21,7 +21,7 @@ from app.services.use_cases.admin_influencer_assets import (
 )
 from app.utils.auth.dependencies import get_current_user
 
-router = APIRouter(tags=["admin-influencer-assets"])
+router = APIRouter(tags=["Admin Influencer Assets"])
 log = logging.getLogger(__name__)
 
 

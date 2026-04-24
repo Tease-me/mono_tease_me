@@ -52,7 +52,7 @@ from app.utils.elevenlabs_conversation import (
 )
 from app.utils.logging.prompt_logging import log_prompt
 
-router = APIRouter(prefix="/elevenlabs", tags=["elevenlabs"])
+router = APIRouter(prefix="/elevenlabs", tags=["ElevenLabs"])
 log = logging.getLogger(__name__)
 
 ELEVENLABS_API_KEY = settings.ELEVENLABS_API_KEY

@@ -13,7 +13,7 @@ from app.services.system_prompt_service import (
 )
 from enum import Enum
 
-router = APIRouter(prefix="/admin/system-prompts", tags=["system-prompts"])
+router = APIRouter(prefix="/admin/system-prompts", tags=["System Prompts"])
 
 class PromptType(str, Enum):
     NORMAL = "normal"

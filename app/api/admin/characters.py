@@ -36,7 +36,7 @@ from app.utils.prompt_template import validate_required_template_variables
 from app.utils.auth.dependencies import get_current_user
 from app.utils.storage.s3 import delete_file_from_s3, generate_presigned_url, save_sample_audio_to_s3, save_character_sample_audio_to_s3
 
-router = APIRouter(tags=["admin-characters"])
+router = APIRouter(tags=["Admin Characters"])
 log = logging.getLogger(__name__)
 ADULT_REQUIRED_PROMPT_VARIABLES = frozenset({"influencer_name", "user_name"})
 

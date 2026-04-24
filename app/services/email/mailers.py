@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 from typing import Optional
+from urllib.parse import urlencode
 
 from fastapi.concurrency import run_in_threadpool
 
@@ -20,7 +21,48 @@ from app.services.gateways.email_gateway import send_email_via_ses
 
 log = logging.getLogger(__name__)
 
-CONFIRM_BASE_URL = settings.FRONTEND_URL
+# Frontend routes used by mailer-generated links.
+VERIFY_EMAIL_ROUTE = "/verify-email"
+PASSWORD_RESET_ROUTE = "/reset-password"
+PROFILE_SURVEY_ONBOARDING_ROUTE = "/join/onboarding"
+INFLUENCER_PROFILE_ROUTE = "/{influencer_id}"
+
+
+def _frontend_base_url() -> str:
+    return settings.FRONTEND_URL.rstrip("/")
+
+
+def _frontend_url(path: str, query: dict[str, str] | None = None) -> str:
+    url = f"{_frontend_base_url()}{path}"
+    if query:
+        url = f"{url}?{urlencode(query)}"
+    return url
+
+
+def _verify_email_url(token: str) -> str:
+    return _frontend_url(VERIFY_EMAIL_ROUTE, {"token": token})
+
+
+def _profile_survey_onboarding_url(token: str, temp_password: str) -> str:
+    return _frontend_url(
+        PROFILE_SURVEY_ONBOARDING_ROUTE,
+        {"token": token, "temp_password": temp_password},
+    )
+
+
+def _password_reset_url(token: str) -> str:
+    return _frontend_url(PASSWORD_RESET_ROUTE, {"token": token})
+
+
+def _influencer_profile_url(influencer_id: str) -> str:
+    return _frontend_url(INFLUENCER_PROFILE_ROUTE.format(influencer_id=influencer_id))
+
+
+def _influencer_referral_url(influencer_id: str, fp_ref_id: str) -> str:
+    return _frontend_url(
+        INFLUENCER_PROFILE_ROUTE.format(influencer_id=influencer_id),
+        {"fpr": fp_ref_id},
+    )
 
 
 async def send_verification_email(
@@ -33,7 +75,7 @@ async def send_verification_email(
     influencer_profile_photo_key: Optional[str] = None,
 ):
     subject = "Just One More Step – Confirm Your Email"
-    confirm_url = f"{CONFIRM_BASE_URL}/verify-email?token={token}"
+    confirm_url = _verify_email_url(token)
     logo_url = influencer_verification_header_url or EMAIL_VERIFY_HEADER_URL
 
     if (
@@ -133,7 +175,7 @@ async def send_verification_email(
 
 def send_profile_survey_email(to_email: str, token: str, temp_password: str):
     subject = "Complete Your TeaseMe Profile Survey"
-    survey_url = f"{CONFIRM_BASE_URL}/profile-survey-form?token={token}&temp_password={temp_password}"
+    survey_url = _profile_survey_onboarding_url(token, temp_password)
     logo_url = EMAIL_VERIFY_HEADER_URL
 
     body_html = f"""
@@ -209,7 +251,7 @@ Your persona can't wait to meet you. ❤️
 
 def send_password_reset_email(to_email: str, token: str):
     subject = "Redefine your TeaseMe password"
-    reset_url = f"{CONFIRM_BASE_URL}/reset-password?token={token}"
+    reset_url = _password_reset_url(token)
     logo_url = EMAIL_RESET_HEADER_URL
 
     body_html = f"""
@@ -280,8 +322,10 @@ def send_new_influencer_email(
     fp_ref_id: str | None = None,
 ):
     subject = "🎉 Your TeaseMe profile is live!"
-    public_url = f"{settings.FRONTEND_URL.rstrip('/')}/{influencer.id}"
-    referral_url = f"{public_url}?fpr={fp_ref_id}" if fp_ref_id else None
+    public_url = _influencer_profile_url(str(influencer.id))
+    referral_url = (
+        _influencer_referral_url(str(influencer.id), fp_ref_id) if fp_ref_id else None
+    )
 
     logo_url = EMAIL_VERIFY_HEADER_URL
     if influencer.profile_picture_key:
@@ -382,7 +426,7 @@ def send_new_influencer_email_with_picture(
     influencer: Influencer,
 ):
     subject = "🎉 Your TeaseMe profile is live!"
-    public_url = f"{settings.FRONTEND_URL.rstrip('/')}/{influencer.id}"
+    public_url = _influencer_profile_url(str(influencer.id))
     image_background_url = EMAIL_INFLUENCER_HEADER_BG_URL
     key = getattr(influencer, "profile_photo_key", None)
     log.info(
@@ -493,7 +537,7 @@ def send_influencer_survey_completed_email_to_promoter(
     influencer_email: str | None = None,
 ):
     subject = "Influencer completed TeaseMe survey"
-    public_url = f"{settings.FRONTEND_URL.rstrip('/')}/{influencer_username}"
+    public_url = _influencer_profile_url(influencer_username)
     influencer_line = influencer_username
     if influencer_full_name:
         influencer_line = f"{influencer_full_name} (@{influencer_username})"

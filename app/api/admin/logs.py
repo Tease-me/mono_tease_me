@@ -16,7 +16,7 @@ from app.services.use_cases.admin_logs import (
 )
 from app.utils.auth.dependencies import get_current_user
 
-router = APIRouter(tags=["admin-logs"])
+router = APIRouter(tags=["Admin Logs"])
 log = logging.getLogger(__name__)
 
 
