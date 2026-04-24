@@ -52,6 +52,7 @@ export interface UseSurveyFormState {
   pictureStepIndex: number;
   socialStepIndex: number;
   audioStepIndex: number;
+  assetStepIndex: number;
   totalSteps: number;
 }
 
@@ -136,7 +137,8 @@ export function useSurveyForm({
   const pictureStepIndex = surveyStepsCount;
   const socialStepIndex = surveyStepsCount + 1;
   const audioStepIndex = surveyStepsCount + 2;
-  const totalSteps = surveyStepsCount + 3;
+  const assetStepIndex = surveyStepsCount + 3;
+  const totalSteps = surveyStepsCount + 4;
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -190,7 +192,7 @@ export function useSurveyForm({
         setSurveySteps(fetchedSteps);
 
         // Calculate safe step index
-        const maxStep = fetchedSteps.length + 2; // +3 for picture/social/audio, -1 for zero-index
+        const maxStep = fetchedSteps.length + 3; // +4 for picture/social/audio/asset, -1 for zero-index
         const safeStep = Math.min(surveyData.survey_step || 0, maxStep);
 
         // Set survey data
@@ -327,6 +329,7 @@ export function useSurveyForm({
     pictureStepIndex,
     socialStepIndex,
     audioStepIndex,
+    assetStepIndex,
     totalSteps,
   };
 

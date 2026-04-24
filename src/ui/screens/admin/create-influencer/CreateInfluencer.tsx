@@ -1,6 +1,7 @@
 import defaultAvatar from "@/assets/image/avatar.png";
 import mbtiData from "@/data/mbti.json";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
+import { AdminInfluencerRepo } from "@/data/repositories/AdminInfluencerRepo";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { splitName } from "@/utils/StringUtils";
 import SvgPack from "@/utils/SvgPack";
@@ -290,6 +291,7 @@ const CreateInfluencer: React.FC = () => {
     dislikes: "",
   });
   const influencerRepo = useMemo(() => InfluencerRepo(), []);
+  const adminInfluencerRepo = useMemo(() => AdminInfluencerRepo(), []);
 
   // ── Knowledge base state ──────────────────────────────────────
   const [kbText, setKbText]       = useState("");
@@ -385,7 +387,7 @@ const CreateInfluencer: React.FC = () => {
     (async () => {
       setIsLoading(true);
       try {
-        const data = await influencerRepo.getInfluencers();
+        const data = await adminInfluencerRepo.getInfluencers();
         if (!isMounted) return;
         setInfluencers(data);
         setSelectedId(data.length ? data[0].id : null);
@@ -399,7 +401,7 @@ const CreateInfluencer: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [influencerRepo]);
+  }, [adminInfluencerRepo]);
 
   useEffect(() => {
     if (selectedId === null) {

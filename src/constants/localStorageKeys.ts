@@ -10,6 +10,7 @@ export const LocalStorageKeys = {
   TopUpInfluencerId: "topup_influencer_id",
   TopUpAmount: "topup_amount",
   ParentRefId: "parent_ref_id",
+  JoinAttribution: "join_attribution",
   AdultVerificationTarget: "adultVerificationTarget",
   AdultConfirmed: "adultConfirmed",
   SelectedId: "selected_id",

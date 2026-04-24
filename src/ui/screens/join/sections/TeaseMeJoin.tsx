@@ -90,7 +90,7 @@ const TeaseMeJoin: React.FC = () => {
 
         <div className="ctaContainer">
             <PrimaryButton
-            onClick={() => navigate(Paths.profileSurvey)}
+            onClick={() => navigate(Paths.joinRegister)}
             text="Start Building Persona"
             rightIcon={<SvgPack.ArrowRight />}
           />
