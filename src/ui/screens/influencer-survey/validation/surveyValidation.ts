@@ -152,6 +152,12 @@ export function validateAssetStep(answers: Record<string, any>): ValidationResul
 
   if (!link || typeof link !== 'string' || !link.trim()) {
     errors['asset_link'] = ERROR_MESSAGES.ASSET_LINK_REQUIRED;
+  } else {
+    try {
+      new URL(link.trim());
+    } catch {
+      errors['asset_link'] = 'Please enter a valid link (e.g. from Google Drive, Dropbox or iCloud).';
+    }
   }
 
   return {
