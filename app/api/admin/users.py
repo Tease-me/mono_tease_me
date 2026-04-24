@@ -7,7 +7,7 @@ from app.data.models import User
 from app.core.session import get_db
 from app.utils.auth.dependencies import get_current_user
 
-router = APIRouter(tags=["admin-users"])
+router = APIRouter(tags=["Admin Users"])
 
 
 @router.get(

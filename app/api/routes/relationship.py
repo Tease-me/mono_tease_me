@@ -11,7 +11,7 @@ from app.services.relationship_dimension_service import (
 )
 from app.data.enums.relationship_stages import STAGE_RANGES
 
-router = APIRouter(prefix="/relationship", tags=["relationship"])
+router = APIRouter(prefix="/relationship", tags=["Relationship"])
 
 
 def calculate_stage_progress(stage_points: float, state: str) -> float:

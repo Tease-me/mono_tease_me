@@ -7,6 +7,8 @@ from sqlalchemy import String, Text, ForeignKey, DateTime, JSON, Index, Boolean,
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.data.enums import InfluencerPublicationStatus
+
 from .base import Base
 
 if TYPE_CHECKING:
@@ -32,6 +34,11 @@ class Influencer(Base):
     samples: Mapped[list[dict] | None] = mapped_column(JSONB, nullable=True)
     assets_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     influencer_agent_id_third_part: Mapped[str | None] = mapped_column(String, nullable=True)
+    publication_status: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+        default=InfluencerPublicationStatus.DRAFT.value,
+    )
 
     fp_promoter_id: Mapped[str | None] = mapped_column(String, nullable=True)
     fp_ref_id: Mapped[str | None] = mapped_column(String, nullable=True)

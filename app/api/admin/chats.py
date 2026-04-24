@@ -23,7 +23,7 @@ from app.services.use_cases.admin_history_cleanup import (
 )
 from app.utils.auth.dependencies import get_current_user
 
-router = APIRouter(tags=["admin-chats"])
+router = APIRouter(tags=["Admin Chats"])
 log = logging.getLogger(__name__)
 
 

@@ -25,7 +25,7 @@ from app.services.use_cases.adult.adult_conversation_token import (
 )
 from app.utils.auth.dependencies import get_current_user
 
-router = APIRouter(prefix="/adult", tags=["adult-calls"])
+router = APIRouter(prefix="/adult", tags=["Adult Calls"])
 log = logging.getLogger(__name__)
 
 

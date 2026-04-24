@@ -21,7 +21,7 @@ from app.services.use_cases.knowledge_sync import (
 )
 from app.utils.auth.dependencies import get_current_user
 
-router = APIRouter(tags=["admin-knowledge"])
+router = APIRouter(tags=["Admin Knowledge"])
 log = logging.getLogger(__name__)
 
 

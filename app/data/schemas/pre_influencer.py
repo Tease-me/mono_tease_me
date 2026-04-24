@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional, Dict, Any, List
 from typing import Literal
@@ -11,6 +12,11 @@ class PreInfluencerRegisterRequest(BaseModel):
     terms_agreement: bool = False
     fp_tid: str | None = None
     parent_ref_id: str | None = None
+    fpr: str | None = None
+    invite_code: str | None = None
+    new_user_email: str | None = None
+    inviter_email: str | None = None
+    account_manager_email: str | None = None
 
 class PreInfluencerRegisterResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -58,3 +64,24 @@ class SurveyPromptResponse(BaseModel):
     personality_rules: str
     tone: str
     stages: SurveyStages
+
+
+class PreInfluencerAdminOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    full_name: str
+    location: Optional[str] = None
+    username: str
+    email: EmailStr
+    survey_token: Optional[str] = None
+    survey_answers: Dict[str, Any] | None = None
+    survey_step: int
+    ig_user_id: Optional[str] = None
+    ig_access_token: Optional[str] = None
+    status: str
+    created_at: datetime
+    updated_at: datetime
+    terms_agreement: bool
+    fp_promoter_id: Optional[str] = None
+    fp_ref_id: Optional[str] = None

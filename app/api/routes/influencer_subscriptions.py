@@ -19,7 +19,7 @@ from app.utils.infrastructure.idempotency import idempotent
 from app.core.config import settings
 
 
-router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
+router = APIRouter(prefix="/subscriptions", tags=["Subscriptions"])
 
 # Constants
 SUBSCRIPTION_NOT_FOUND = "Subscription not found"
