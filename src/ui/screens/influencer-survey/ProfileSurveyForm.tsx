@@ -46,7 +46,6 @@ const ProfileSurveyForm: React.FC = () => {
     assetStepIndex: state.assetStepIndex,
     answers: state.answers,
     audioCount: state.audioCount,
-    audioHasRecorded: state.audioHasRecorded,
   });
 
   useEffect(() => {
@@ -392,10 +391,8 @@ const ProfileSurveyForm: React.FC = () => {
                     influencerId={state.preInfluencerId}
                     token={token}
                     temp_password={temp_password}
-                    audioHasRecorded={state.audioHasRecorded}
                     audioError={state.audioError}
                     onCountChange={actions.setAudioCount}
-                    onHasRecordedChange={actions.setAudioHasRecorded}
                     onIsRecordingChange={actions.setAudioIsRecording}
                     onErrorChange={actions.setAudioError}
                   />

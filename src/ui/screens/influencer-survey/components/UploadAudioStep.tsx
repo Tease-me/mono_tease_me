@@ -33,10 +33,8 @@ interface UploadAudioStepProps {
   influencerId: number | null;
   token: string;
   temp_password: string;
-  audioHasRecorded: boolean;
   audioError: string | null;
   onCountChange: (count: number) => void;
-  onHasRecordedChange: (hasRecorded: boolean) => void;
   onIsRecordingChange: (isRecording: boolean) => void;
   onErrorChange: (error: string | null) => void;
 }
@@ -52,10 +50,8 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
   influencerId,
   token,
   temp_password,
-  audioHasRecorded,
   audioError,
   onCountChange,
-  onHasRecordedChange,
   onIsRecordingChange,
   onErrorChange,
 }) => {
@@ -130,14 +126,9 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
 
         const files = response.data.files ?? [];
         const count = response.data.count ?? files.length ?? 0;
-        const newHasRecorded = audioHasRecorded || count > 0;
 
         setAudioData({ ...response.data, files, count });
-        onCountChange(newHasRecorded ? count : 0);
-
-        if (newHasRecorded) {
-          onHasRecordedChange(true);
-        }
+        onCountChange(count);
 
         onErrorChange(null);
       } catch (error: any) {
@@ -150,7 +141,8 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
           onErrorChange(null);
         } else {
           console.error('Failed to load audio files:', error);
-          onErrorChange('Unable to load your audio. Please re-upload.');
+          onCountChange(0);
+          onErrorChange('Unable to load your audio. Please try again.');
         }
       } finally {
         if (!canceled) {
@@ -159,12 +151,12 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
       }
     };
 
-    loadAudioFiles();
+    void loadAudioFiles();
 
     return () => {
       canceled = true;
     };
-  }, [influencerId, token, temp_password, refreshKey, audioHasRecorded]);
+  }, [influencerId, token, temp_password, refreshKey, onCountChange, onErrorChange]);
 
   const startCountdown = useCallback(() => {
     if (!isGetUserMediaSupported() || !isMediaRecorderSupported()) {
@@ -330,8 +322,6 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
           throw new Error(result.error || ERROR_MESSAGES.AUDIO_UPLOAD_FAILED);
         }
 
-        onHasRecordedChange(true);
-        onCountChange(1);
         setRefreshKey((n) => n + 1);
         onErrorChange(null);
         setRecordingState({ status: 'idle' });
@@ -349,8 +339,6 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
       temp_password,
       uploadAudioFile,
       cleanup,
-      onHasRecordedChange,
-      onCountChange,
       onErrorChange,
     ]
   );

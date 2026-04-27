@@ -130,13 +130,10 @@ export function validateSocialStep(answers: Record<string, any>): ValidationResu
   };
 }
 
-export function validateAudioStep(
-  audioCount: number,
-  hasRecorded: boolean
-): ValidationResult {
+export function validateAudioStep(audioCount: number): ValidationResult {
   const errors: Record<string, string> = {};
 
-  if (!hasRecorded || audioCount <= 0) {
+  if (audioCount <= 0) {
     errors['audio'] = ERROR_MESSAGES.AUDIO_REQUIRED;
   }
 
