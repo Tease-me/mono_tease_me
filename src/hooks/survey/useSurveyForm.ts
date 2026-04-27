@@ -30,7 +30,6 @@ export interface UseSurveyFormState {
 
   // Audio state
   audioCount: number;
-  audioHasRecorded: boolean;
   audioIsRecording: boolean;
   audioError: string | null;
 
@@ -75,7 +74,6 @@ interface UseSurveyFormActions {
 
   // Audio
   setAudioCount: (count: number) => void;
-  setAudioHasRecorded: (hasRecorded: boolean) => void;
   setAudioIsRecording: (isRecording: boolean) => void;
   setAudioError: (error: string | null) => void;
 
@@ -122,7 +120,6 @@ export function useSurveyForm({
   const [isCropOpen, setIsCropOpen] = useState(false);
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [audioCount, setAudioCount] = useState<number>(0);
-  const [audioHasRecorded, setAudioHasRecorded] = useState<boolean>(false);
   const [audioIsRecording, setAudioIsRecording] = useState<boolean>(false);
   const [audioError, setAudioError] = useState<string | null>(null);
   const [socialError, setSocialError] = useState<string | null>(null);
@@ -315,7 +312,6 @@ export function useSurveyForm({
     isCropOpen,
     cropImageSrc,
     audioCount,
-    audioHasRecorded,
     audioIsRecording,
     audioError,
     socialError,
@@ -345,7 +341,6 @@ export function useSurveyForm({
     setIsCropOpen,
     setCropImageSrc,
     setAudioCount,
-    setAudioHasRecorded,
     setAudioIsRecording,
     setAudioError,
     setSocialError,

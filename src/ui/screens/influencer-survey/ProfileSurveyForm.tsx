@@ -46,7 +46,6 @@ const ProfileSurveyForm: React.FC = () => {
     assetStepIndex: state.assetStepIndex,
     answers: state.answers,
     audioCount: state.audioCount,
-    audioHasRecorded: state.audioHasRecorded,
   });
 
   useEffect(() => {
@@ -291,9 +290,6 @@ const ProfileSurveyForm: React.FC = () => {
             <div className={styles.headerRow}>
               <div>
                 <h2 className={styles.title}>{stepTitle}</h2>
-                <p className={styles.subtitle}>
-                  Step {state.currentStep + 1} of {state.totalSteps}
-                </p>
               </div>
               <span className={styles.saving}>{state.isSaving ? 'Saving...' : 'Saved'}</span>
             </div>
@@ -392,13 +388,11 @@ const ProfileSurveyForm: React.FC = () => {
               {isAudioStep && state.preInfluencerId && (
                 <Suspense fallback={<LoadingFallback />}>
                   <UploadAudioStep
-                    influencerId={state.preInfluencerId}
+                    preInfluencerId={state.preInfluencerId}
                     token={token}
                     temp_password={temp_password}
-                    audioHasRecorded={state.audioHasRecorded}
                     audioError={state.audioError}
                     onCountChange={actions.setAudioCount}
-                    onHasRecordedChange={actions.setAudioHasRecorded}
                     onIsRecordingChange={actions.setAudioIsRecording}
                     onErrorChange={actions.setAudioError}
                   />
