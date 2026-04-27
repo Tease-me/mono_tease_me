@@ -9,6 +9,7 @@ from app.api.mjpromoter import router as mjpromoter_router
 from app.api.mjpromoter import pre_influencers as mj_pre_influencers_route
 from app.core.config import settings
 from app.core.session import get_db
+from app.services.use_cases import mj_pre_influencer_progress
 
 
 class FakeSession:
@@ -59,7 +60,7 @@ def test_step_progress_rejects_invalid_internal_token(monkeypatch) -> None:
     assert response.json()["detail"] == "Invalid MJ promoter token"
 
 
-def test_step_progress_returns_step_two_without_asset_link(monkeypatch) -> None:
+def test_step_progress_returns_step_one_with_survey_token_only(monkeypatch) -> None:
     db = FakeSession()
     client = TestClient(_build_app(db))
     captured: dict[str, str] = {}
@@ -67,6 +68,7 @@ def test_step_progress_returns_step_two_without_asset_link(monkeypatch) -> None:
         id=123,
         username="creatorname",
         survey_step=99,
+        survey_token="survey-token",
         survey_answers={},
         status="pending",
     )
@@ -77,11 +79,20 @@ def test_step_progress_returns_step_two_without_asset_link(monkeypatch) -> None:
         captured["invitee_email"] = invitee_email
         return pre
 
+    async def _fake_load_survey_questions(db_arg):
+        assert db_arg is db
+        return [{"id": str(index)} for index in range(101)]
+
     monkeypatch.setattr(settings, "MJFP_TOKEN", "internal-secret")
     monkeypatch.setattr(
         mj_pre_influencers_route,
         "get_pre_influencer_by_progress_identity",
         _fake_lookup,
+    )
+    monkeypatch.setattr(
+        mj_pre_influencer_progress,
+        "load_survey_questions",
+        _fake_load_survey_questions,
     )
 
     response = client.post(
@@ -99,7 +110,7 @@ def test_step_progress_returns_step_two_without_asset_link(monkeypatch) -> None:
         "exists": True,
         "pre_influencer_id": 123,
         "username": "creatorname",
-        "survey_step": 2,
+        "survey_step": 1,
         "status": "pending",
     }
     assert captured == {
@@ -110,6 +121,49 @@ def test_step_progress_returns_step_two_without_asset_link(monkeypatch) -> None:
     assert db.committed is False
 
 
+def test_step_progress_returns_step_two_when_survey_is_completed(monkeypatch) -> None:
+    db = FakeSession()
+    client = TestClient(_build_app(db))
+    pre = SimpleNamespace(
+        id=123,
+        username="creatorname",
+        survey_step=2,
+        survey_token="survey-token",
+        survey_answers={"q_about_me": "Blah Blah"},
+        status="pending",
+    )
+
+    async def _fake_lookup(_db_arg, *, invite_code: str, invitee_email: str):
+        return pre
+
+    async def _fake_load_survey_questions(db_arg):
+        assert db_arg is db
+        return [{"id": "one"}, {"id": "two"}, {"id": "three"}]
+
+    monkeypatch.setattr(settings, "MJFP_TOKEN", "internal-secret")
+    monkeypatch.setattr(
+        mj_pre_influencers_route,
+        "get_pre_influencer_by_progress_identity",
+        _fake_lookup,
+    )
+    monkeypatch.setattr(
+        mj_pre_influencer_progress,
+        "load_survey_questions",
+        _fake_load_survey_questions,
+    )
+
+    response = client.post(
+        "/mjpromoter/pre-influencers/step-progress",
+        json={"invite_code": "invite-123", "invitee_email": "user@example.com"},
+        headers={"X-Internal-Token": "internal-secret"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["survey_step"] == 2
+    assert pre.survey_step == 2
+    assert db.committed is False
+
+
 def test_step_progress_returns_step_three_with_asset_link(monkeypatch) -> None:
     db = FakeSession()
     client = TestClient(_build_app(db))
@@ -117,6 +171,7 @@ def test_step_progress_returns_step_three_with_asset_link(monkeypatch) -> None:
         id=123,
         username="creatorname",
         survey_step=0,
+        survey_token="survey-token",
         survey_answers={"asset_link": "https://googledrive/assetlinktest"},
         status="pending",
     )
@@ -149,7 +204,8 @@ def test_step_progress_returns_step_two_with_blank_asset_link(monkeypatch) -> No
     pre = SimpleNamespace(
         id=123,
         username="creatorname",
-        survey_step=0,
+        survey_step=2,
+        survey_token="survey-token",
         survey_answers={"asset_link": "   "},
         status="pending",
     )
@@ -157,11 +213,19 @@ def test_step_progress_returns_step_two_with_blank_asset_link(monkeypatch) -> No
     async def _fake_lookup(_db_arg, *, invite_code: str, invitee_email: str):
         return pre
 
+    async def _fake_load_survey_questions(_db_arg):
+        return [{"id": "one"}, {"id": "two"}, {"id": "three"}]
+
     monkeypatch.setattr(settings, "MJFP_TOKEN", "internal-secret")
     monkeypatch.setattr(
         mj_pre_influencers_route,
         "get_pre_influencer_by_progress_identity",
         _fake_lookup,
+    )
+    monkeypatch.setattr(
+        mj_pre_influencer_progress,
+        "load_survey_questions",
+        _fake_load_survey_questions,
     )
 
     response = client.post(
@@ -172,7 +236,7 @@ def test_step_progress_returns_step_two_with_blank_asset_link(monkeypatch) -> No
 
     assert response.status_code == 200
     assert response.json()["survey_step"] == 2
-    assert pre.survey_step == 0
+    assert pre.survey_step == 2
     assert db.committed is False
 
 
