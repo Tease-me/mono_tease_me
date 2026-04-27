@@ -27,20 +27,20 @@ async def test_copy_pre_influencer_audio_to_influencer_audio_preserves_extension
     monkeypatch.setattr(s3_module.uuid, "uuid4", lambda: "fixed-uuid")
 
     destination_key = await s3_module.copy_pre_influencer_audio_to_influencer_audio(
-        "pre-influencer-audio/123/sample.webm",
+        "pre-influencers/123/audio/sample.webm",
         "creatorname",
     )
 
     assert destination_key == "influencer-audio/creatorname/fixed-uuid.webm"
     assert fake_s3.head_calls == [
-        {"Bucket": "test-bucket", "Key": "pre-influencer-audio/123/sample.webm"}
+        {"Bucket": "test-bucket", "Key": "pre-influencers/123/audio/sample.webm"}
     ]
     assert fake_s3.copy_calls == [
         {
             "Bucket": "test-bucket",
             "CopySource": {
                 "Bucket": "test-bucket",
-                "Key": "pre-influencer-audio/123/sample.webm",
+                "Key": "pre-influencers/123/audio/sample.webm",
             },
             "Key": "influencer-audio/creatorname/fixed-uuid.webm",
             "ContentType": "audio/webm",

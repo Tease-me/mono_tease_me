@@ -21,11 +21,11 @@ from app.services.use_cases.pre_influencer_survey_prompt import (
     generate_prompt_from_markdown,
     load_survey_questions,
 )
+from app.services.use_cases import pre_influencer_storage
 from app.utils.storage.s3 import (
     copy_pre_influencer_audio_to_influencer_audio,
     get_s3_object_bytes,
     list_influencer_audio_keys,
-    list_pre_influencer_audio_keys,
 )
 
 log = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ def _normalize_influencer_id(username: str) -> str:
 
 
 async def _get_approval_audio_keys(pre_id: int, influencer_id: str) -> list[str]:
-    keys = await list_pre_influencer_audio_keys(str(pre_id))
+    keys = await pre_influencer_storage.list_audio_keys(str(pre_id))
     if keys:
         return keys
 
@@ -57,9 +57,8 @@ async def _prepare_approval_audio_keys(
     keys = await _get_approval_audio_keys(pre_id, influencer_id)
     prepared_keys: list[str] = []
 
-    expected_pre_prefix = f"pre-influencer-audio/{pre_id}/"
     for key in keys:
-        if key.startswith(expected_pre_prefix):
+        if pre_influencer_storage.is_audio_key_for_pre_influencer(str(pre_id), key):
             copied_key = await copy_pre_influencer_audio_to_influencer_audio(
                 key,
                 influencer_id,
