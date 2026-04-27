@@ -49,6 +49,7 @@ from app.services.use_cases.approve_pre_influencer import (
     approve_pre_influencer as run_pre_influencer_approval,
 )
 from app.services.use_cases.pre_influencer_output import build_pre_influencer_admin_out
+from app.services.use_cases import pre_influencer_storage
 from app.services.use_cases.pre_influencer_survey_prompt import (
     format_survey_markdown,
     generate_prompt_from_markdown,
@@ -58,8 +59,6 @@ from app.utils.auth.dependencies import get_current_pre_influencer, get_current_
 from app.utils.storage.s3 import (
     delete_file_from_s3,
     generate_presigned_url,
-    list_pre_influencer_audio_keys,
-    save_pre_influencer_audio_to_s3,
     s3,
     save_influencer_photo_to_s3,
 )
@@ -615,14 +614,14 @@ async def upload_pre_influencer_audio(
     if not file_bytes:
         raise HTTPException(400, "Empty file")
 
-    key = await save_pre_influencer_audio_to_s3(
+    key = await pre_influencer_storage.save_audio(
         io.BytesIO(file_bytes),
         file.filename or "audio.webm",
         file.content_type or "audio/webm",
         str(pre.id),
     )
 
-    return {"key": key, "url": generate_presigned_url(key)}
+    return {"key": key, "url": pre_influencer_storage.generate_audio_download_url(key)}
 
 
 @router.get("/{pre_id}/audio", response_model=PreInfluencerAudioListOut)
@@ -640,17 +639,11 @@ async def list_pre_influencer_audio(
 
     _require_pre_influencer_survey_access(pre, token, temp_password)
 
-    keys = await list_pre_influencer_audio_keys(str(pre.id))
-    if not keys:
-        raise HTTPException(
-            status_code=404,
-            detail="Pre-influencer has no audio file stored",
-        )
-
+    keys = await pre_influencer_storage.list_audio_keys(str(pre.id))
     files = [
         {
             "key": key,
-            "download_url": generate_presigned_url(key),
+            "download_url": pre_influencer_storage.generate_audio_download_url(key),
         }
         for key in keys
     ]
@@ -670,13 +663,12 @@ async def delete_influencer_audio(
 ):
     key = payload.key
 
-    expected_prefix = f"pre-influencer-audio/{influencer_id}/"
-    if not key.startswith(expected_prefix):
+    try:
+        await pre_influencer_storage.delete_audio(influencer_id, key)
+    except ValueError:
         raise HTTPException(
             status_code=400, detail="Invalid audio key for this influencer"
-        )
-
-    await delete_file_from_s3(key)
+        ) from None
 
     return {"ok": True}
 

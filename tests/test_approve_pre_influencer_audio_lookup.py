@@ -11,18 +11,18 @@ async def test_get_approval_audio_keys_prefers_pre_influencer_audio(monkeypatch)
 
     async def _fake_list_pre(pre_id: str):
         calls.append(("pre", pre_id))
-        return ["pre-influencer-audio/123/voice.webm"]
+        return ["pre-influencers/123/audio/voice.webm"]
 
     async def _fake_list_influencer(influencer_id: str):
         calls.append(("influencer", influencer_id))
         return ["influencer-audio/test/legacy.webm"]
 
-    monkeypatch.setattr(approval_module, "list_pre_influencer_audio_keys", _fake_list_pre)
+    monkeypatch.setattr(approval_module.pre_influencer_storage, "list_audio_keys", _fake_list_pre)
     monkeypatch.setattr(approval_module, "list_influencer_audio_keys", _fake_list_influencer)
 
     keys = await approval_module._get_approval_audio_keys(123, "creatorname")
 
-    assert keys == ["pre-influencer-audio/123/voice.webm"]
+    assert keys == ["pre-influencers/123/audio/voice.webm"]
     assert calls == [("pre", "123")]
 
 
@@ -40,7 +40,7 @@ async def test_get_approval_audio_keys_falls_back_to_legacy_paths(monkeypatch) -
             return []
         return ["influencer-audio/creatorname/legacy.webm"]
 
-    monkeypatch.setattr(approval_module, "list_pre_influencer_audio_keys", _fake_list_pre)
+    monkeypatch.setattr(approval_module.pre_influencer_storage, "list_audio_keys", _fake_list_pre)
     monkeypatch.setattr(approval_module, "list_influencer_audio_keys", _fake_list_influencer)
 
     keys = await approval_module._get_approval_audio_keys(123, "creatorname")
@@ -60,7 +60,7 @@ async def test_prepare_approval_audio_keys_copies_pre_influencer_audio(monkeypat
     async def _fake_get_keys(pre_id: int, influencer_id: str):
         assert pre_id == 123
         assert influencer_id == "creatorname"
-        return ["pre-influencer-audio/123/voice.webm"]
+        return ["pre-influencers/123/audio/voice.webm"]
 
     async def _fake_copy(source_key: str, influencer_id: str):
         copied.append((source_key, influencer_id))
@@ -76,7 +76,7 @@ async def test_prepare_approval_audio_keys_copies_pre_influencer_audio(monkeypat
     keys = await approval_module._prepare_approval_audio_keys(123, "creatorname")
 
     assert keys == ["influencer-audio/creatorname/copied.webm"]
-    assert copied == [("pre-influencer-audio/123/voice.webm", "creatorname")]
+    assert copied == [("pre-influencers/123/audio/voice.webm", "creatorname")]
 
 
 @pytest.mark.anyio
