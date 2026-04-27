@@ -9,7 +9,6 @@ from app.api.mjpromoter import router as mjpromoter_router
 from app.api.mjpromoter import pre_influencers as mj_pre_influencers_route
 from app.core.config import settings
 from app.core.session import get_db
-from app.services.use_cases import mj_pre_influencer_progress
 
 
 class FakeSession:
@@ -70,6 +69,7 @@ def test_step_progress_returns_step_one_with_survey_token_only(monkeypatch) -> N
         survey_step=99,
         survey_token="survey-token",
         survey_answers={},
+        terms_agreement=False,
         status="pending",
     )
 
@@ -79,20 +79,11 @@ def test_step_progress_returns_step_one_with_survey_token_only(monkeypatch) -> N
         captured["invitee_email"] = invitee_email
         return pre
 
-    async def _fake_load_survey_questions(db_arg):
-        assert db_arg is db
-        return [{"id": str(index)} for index in range(101)]
-
     monkeypatch.setattr(settings, "MJFP_TOKEN", "internal-secret")
     monkeypatch.setattr(
         mj_pre_influencers_route,
         "get_pre_influencer_by_progress_identity",
         _fake_lookup,
-    )
-    monkeypatch.setattr(
-        mj_pre_influencer_progress,
-        "load_survey_questions",
-        _fake_load_survey_questions,
     )
 
     response = client.post(
@@ -121,35 +112,27 @@ def test_step_progress_returns_step_one_with_survey_token_only(monkeypatch) -> N
     assert db.committed is False
 
 
-def test_step_progress_returns_step_two_when_survey_is_completed(monkeypatch) -> None:
+def test_step_progress_returns_step_two_when_terms_agreement_is_true(monkeypatch) -> None:
     db = FakeSession()
     client = TestClient(_build_app(db))
     pre = SimpleNamespace(
         id=123,
         username="creatorname",
-        survey_step=2,
+        survey_step=0,
         survey_token="survey-token",
         survey_answers={"q_about_me": "Blah Blah"},
+        terms_agreement=True,
         status="pending",
     )
 
     async def _fake_lookup(_db_arg, *, invite_code: str, invitee_email: str):
         return pre
 
-    async def _fake_load_survey_questions(db_arg):
-        assert db_arg is db
-        return [{"id": "one"}, {"id": "two"}, {"id": "three"}]
-
     monkeypatch.setattr(settings, "MJFP_TOKEN", "internal-secret")
     monkeypatch.setattr(
         mj_pre_influencers_route,
         "get_pre_influencer_by_progress_identity",
         _fake_lookup,
-    )
-    monkeypatch.setattr(
-        mj_pre_influencer_progress,
-        "load_survey_questions",
-        _fake_load_survey_questions,
     )
 
     response = client.post(
@@ -160,7 +143,7 @@ def test_step_progress_returns_step_two_when_survey_is_completed(monkeypatch) ->
 
     assert response.status_code == 200
     assert response.json()["survey_step"] == 2
-    assert pre.survey_step == 2
+    assert pre.survey_step == 0
     assert db.committed is False
 
 
@@ -173,6 +156,7 @@ def test_step_progress_returns_step_three_with_asset_link(monkeypatch) -> None:
         survey_step=0,
         survey_token="survey-token",
         survey_answers={"asset_link": "https://googledrive/assetlinktest"},
+        terms_agreement=False,
         status="pending",
     )
 
@@ -207,25 +191,18 @@ def test_step_progress_returns_step_two_with_blank_asset_link(monkeypatch) -> No
         survey_step=2,
         survey_token="survey-token",
         survey_answers={"asset_link": "   "},
+        terms_agreement=True,
         status="pending",
     )
 
     async def _fake_lookup(_db_arg, *, invite_code: str, invitee_email: str):
         return pre
 
-    async def _fake_load_survey_questions(_db_arg):
-        return [{"id": "one"}, {"id": "two"}, {"id": "three"}]
-
     monkeypatch.setattr(settings, "MJFP_TOKEN", "internal-secret")
     monkeypatch.setattr(
         mj_pre_influencers_route,
         "get_pre_influencer_by_progress_identity",
         _fake_lookup,
-    )
-    monkeypatch.setattr(
-        mj_pre_influencer_progress,
-        "load_survey_questions",
-        _fake_load_survey_questions,
     )
 
     response = client.post(
