@@ -13,6 +13,7 @@ from app.services.repositories.pre_influencer_repository import (
     get_pre_influencer_by_progress_identity,
     list_pre_influencers as list_pre_influencers_repo,
 )
+from app.services.use_cases.mj_pre_influencer_progress import derive_mj_survey_step
 from app.services.use_cases.pre_influencer_output import build_pre_influencer_admin_out
 from app.services.use_cases.approve_pre_influencer import (
     approve_pre_influencer as run_pre_influencer_approval,
@@ -51,14 +52,6 @@ async def _get_pre_influencer_by_mj_lookup(
     )
 
 
-def _derive_mj_survey_step(pre) -> int:
-    answers = pre.survey_answers if isinstance(pre.survey_answers, dict) else {}
-    asset_link = answers.get("asset_link")
-    if isinstance(asset_link, str) and asset_link.strip():
-        return 3
-    return 2
-
-
 @router.post("/step-progress", response_model=MJPreInfluencerStepProgressOut)
 async def get_pre_influencer_step_progress_internal(
     payload: MJPreInfluencerStepProgressRequest,
@@ -76,7 +69,7 @@ async def get_pre_influencer_step_progress_internal(
     return MJPreInfluencerStepProgressOut(
         pre_influencer_id=pre.id,
         username=pre.username,
-        survey_step=_derive_mj_survey_step(pre),
+        survey_step=await derive_mj_survey_step(db, pre),
         status=pre.status,
     )
 
