@@ -61,16 +61,16 @@ def test_upload_pre_influencer_audio_returns_key_and_url(monkeypatch) -> None:
         captured["filename"] = filename
         captured["content_type"] = content_type
         captured["pre_id"] = pre_id
-        return "pre-influencer-audio/123/test.webm"
+        return "pre-influencers/123/audio/test.webm"
 
     monkeypatch.setattr(
-        pre_influencers_route,
-        "save_pre_influencer_audio_to_s3",
+        pre_influencers_route.pre_influencer_storage,
+        "save_audio",
         _fake_save,
     )
     monkeypatch.setattr(
-        pre_influencers_route,
-        "generate_presigned_url",
+        pre_influencers_route.pre_influencer_storage,
+        "generate_audio_download_url",
         lambda key: f"https://cdn.test/{key}",
     )
 
@@ -82,8 +82,8 @@ def test_upload_pre_influencer_audio_returns_key_and_url(monkeypatch) -> None:
 
     assert response.status_code == 200
     assert response.json() == {
-        "key": "pre-influencer-audio/123/test.webm",
-        "url": "https://cdn.test/pre-influencer-audio/123/test.webm",
+        "key": "pre-influencers/123/audio/test.webm",
+        "url": "https://cdn.test/pre-influencers/123/audio/test.webm",
     }
     assert captured == {
         "filename": "voice.webm",
@@ -145,18 +145,18 @@ def test_list_pre_influencer_audio_returns_files(monkeypatch) -> None:
     async def _fake_list(pre_id: str):
         assert pre_id == "123"
         return [
-            "pre-influencer-audio/123/one.webm",
-            "pre-influencer-audio/123/two.webm",
+            "pre-influencers/123/audio/one.webm",
+            "pre-influencers/123/audio/two.webm",
         ]
 
     monkeypatch.setattr(
-        pre_influencers_route,
-        "list_pre_influencer_audio_keys",
+        pre_influencers_route.pre_influencer_storage,
+        "list_audio_keys",
         _fake_list,
     )
     monkeypatch.setattr(
-        pre_influencers_route,
-        "generate_presigned_url",
+        pre_influencers_route.pre_influencer_storage,
+        "generate_audio_download_url",
         lambda key: f"https://cdn.test/{key}",
     )
 
@@ -171,12 +171,12 @@ def test_list_pre_influencer_audio_returns_files(monkeypatch) -> None:
         "count": 2,
         "files": [
             {
-                "key": "pre-influencer-audio/123/one.webm",
-                "download_url": "https://cdn.test/pre-influencer-audio/123/one.webm",
+                "key": "pre-influencers/123/audio/one.webm",
+                "download_url": "https://cdn.test/pre-influencers/123/audio/one.webm",
             },
             {
-                "key": "pre-influencer-audio/123/two.webm",
-                "download_url": "https://cdn.test/pre-influencer-audio/123/two.webm",
+                "key": "pre-influencers/123/audio/two.webm",
+                "download_url": "https://cdn.test/pre-influencers/123/audio/two.webm",
             },
         ],
     }
@@ -191,8 +191,8 @@ def test_list_pre_influencer_audio_returns_404_when_missing(monkeypatch) -> None
         return []
 
     monkeypatch.setattr(
-        pre_influencers_route,
-        "list_pre_influencer_audio_keys",
+        pre_influencers_route.pre_influencer_storage,
+        "list_audio_keys",
         _fake_list,
     )
 
@@ -209,34 +209,42 @@ def test_list_pre_influencer_audio_returns_404_when_missing(monkeypatch) -> None
 def test_delete_pre_influencer_audio_accepts_new_prefix(monkeypatch) -> None:
     db = FakeSession(FakePreInfluencer(pre_id=123))
     client = TestClient(_build_app(db))
-    captured: list[str] = []
+    captured: list[tuple[str, str]] = []
 
-    async def _fake_delete(key: str):
-        captured.append(key)
+    async def _fake_delete(pre_id: str, key: str):
+        captured.append((pre_id, key))
 
-    monkeypatch.setattr(pre_influencers_route, "delete_file_from_s3", _fake_delete)
+    monkeypatch.setattr(
+        pre_influencers_route.pre_influencer_storage,
+        "delete_audio",
+        _fake_delete,
+    )
 
     response = client.request(
         "DELETE",
         "/pre-influencers/influencer-audio/123",
-        json={"key": "pre-influencer-audio/123/test.webm"},
+        json={"key": "pre-influencers/123/audio/test.webm"},
     )
 
     assert response.status_code == 200
     assert response.json() == {"ok": True}
-    assert captured == ["pre-influencer-audio/123/test.webm"]
+    assert captured == [("123", "pre-influencers/123/audio/test.webm")]
 
 
 def test_delete_pre_influencer_audio_rejects_invalid_prefix(monkeypatch) -> None:
     db = FakeSession(FakePreInfluencer(pre_id=123))
     client = TestClient(_build_app(db))
-    called = False
+    captured: list[tuple[str, str]] = []
 
-    async def _fake_delete(_key: str):
-        nonlocal called
-        called = True
+    async def _fake_delete(_pre_id: str, _key: str):
+        captured.append((_pre_id, _key))
+        raise ValueError("Invalid audio key for this pre-influencer")
 
-    monkeypatch.setattr(pre_influencers_route, "delete_file_from_s3", _fake_delete)
+    monkeypatch.setattr(
+        pre_influencers_route.pre_influencer_storage,
+        "delete_audio",
+        _fake_delete,
+    )
 
     response = client.request(
         "DELETE",
@@ -246,4 +254,4 @@ def test_delete_pre_influencer_audio_rejects_invalid_prefix(monkeypatch) -> None
 
     assert response.status_code == 400
     assert response.json()["detail"] == "Invalid audio key for this influencer"
-    assert called is False
+    assert captured == [("123", "influencer-audio/123/test.webm")]
