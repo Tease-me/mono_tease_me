@@ -388,7 +388,7 @@ const ProfileSurveyForm: React.FC = () => {
               {isAudioStep && state.preInfluencerId && (
                 <Suspense fallback={<LoadingFallback />}>
                   <UploadAudioStep
-                    influencerId={state.preInfluencerId}
+                    preInfluencerId={state.preInfluencerId}
                     token={token}
                     temp_password={temp_password}
                     audioError={state.audioError}
