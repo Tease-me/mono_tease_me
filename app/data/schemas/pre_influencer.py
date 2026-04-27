@@ -107,3 +107,11 @@ class MJPreInfluencerAssetLinkOut(BaseModel):
     pre_influencer_id: int
     username: str
     asset_link: str | None = None
+
+
+class MJPreInfluencerSurveyLinkOut(BaseModel):
+    ok: bool = True
+    exists: bool = True
+    pre_influencer_id: int
+    username: str
+    survey_link: str | None = None
