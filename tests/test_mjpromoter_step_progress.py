@@ -68,6 +68,7 @@ def test_step_progress_returns_step_one_with_survey_token_only(monkeypatch) -> N
         username="creatorname",
         survey_step=0,
         survey_token="survey-token",
+        password="temporary password",
         survey_answers={},
         terms_agreement=False,
         status="pending",
@@ -80,6 +81,7 @@ def test_step_progress_returns_step_one_with_survey_token_only(monkeypatch) -> N
         return pre
 
     monkeypatch.setattr(settings, "MJFP_TOKEN", "internal-secret")
+    monkeypatch.setattr(settings, "FRONTEND_URL", "https://www.teaseme.live/")
     monkeypatch.setattr(
         mj_pre_influencers_route,
         "get_pre_influencer_by_progress_identity",
@@ -103,6 +105,11 @@ def test_step_progress_returns_step_one_with_survey_token_only(monkeypatch) -> N
         "username": "creatorname",
         "survey_step": 1,
         "status": "pending",
+        "asset_link": None,
+        "survey_link": (
+            "https://www.teaseme.live/join/onboarding?"
+            "token=survey-token&temp_password=temporary+password"
+        ),
     }
     assert captured == {
         "invite_code": "invite-123",
@@ -120,6 +127,7 @@ def test_step_progress_returns_step_two_when_survey_step_is_four(monkeypatch) ->
         username="creatorname",
         survey_step=4,
         survey_token="survey-token",
+        password="temporary-password",
         survey_answers={"q_about_me": "Blah Blah"},
         status="pending",
     )
@@ -128,6 +136,7 @@ def test_step_progress_returns_step_two_when_survey_step_is_four(monkeypatch) ->
         return pre
 
     monkeypatch.setattr(settings, "MJFP_TOKEN", "internal-secret")
+    monkeypatch.setattr(settings, "FRONTEND_URL", "https://www.teaseme.live/")
     monkeypatch.setattr(
         mj_pre_influencers_route,
         "get_pre_influencer_by_progress_identity",
@@ -141,7 +150,13 @@ def test_step_progress_returns_step_two_when_survey_step_is_four(monkeypatch) ->
     )
 
     assert response.status_code == 200
-    assert response.json()["survey_step"] == 2
+    body = response.json()
+    assert body["survey_step"] == 2
+    assert body["asset_link"] is None
+    assert body["survey_link"] == (
+        "https://www.teaseme.live/join/onboarding?"
+        "token=survey-token&temp_password=temporary-password"
+    )
     assert pre.survey_step == 4
     assert db.committed is False
 
@@ -154,7 +169,8 @@ def test_step_progress_returns_step_three_with_asset_link(monkeypatch) -> None:
         username="creatorname",
         survey_step=0,
         survey_token="survey-token",
-        survey_answers={"asset_link": "https://googledrive/assetlinktest"},
+        password="temporary-password",
+        survey_answers={"asset_link": "  https://googledrive/assetlinktest  "},
         terms_agreement=False,
         status="pending",
     )
@@ -163,6 +179,7 @@ def test_step_progress_returns_step_three_with_asset_link(monkeypatch) -> None:
         return pre
 
     monkeypatch.setattr(settings, "MJFP_TOKEN", "internal-secret")
+    monkeypatch.setattr(settings, "FRONTEND_URL", "https://www.teaseme.live/")
     monkeypatch.setattr(
         mj_pre_influencers_route,
         "get_pre_influencer_by_progress_identity",
@@ -176,7 +193,13 @@ def test_step_progress_returns_step_three_with_asset_link(monkeypatch) -> None:
     )
 
     assert response.status_code == 200
-    assert response.json()["survey_step"] == 3
+    body = response.json()
+    assert body["survey_step"] == 3
+    assert body["asset_link"] == "https://googledrive/assetlinktest"
+    assert body["survey_link"] == (
+        "https://www.teaseme.live/join/onboarding?"
+        "token=survey-token&temp_password=temporary-password"
+    )
     assert pre.survey_step == 0
     assert db.committed is False
 
@@ -189,6 +212,7 @@ def test_step_progress_returns_step_two_with_blank_asset_link(monkeypatch) -> No
         username="creatorname",
         survey_step=4,
         survey_token="survey-token",
+        password=None,
         survey_answers={"asset_link": "   "},
         status="pending",
     )
@@ -210,7 +234,10 @@ def test_step_progress_returns_step_two_with_blank_asset_link(monkeypatch) -> No
     )
 
     assert response.status_code == 200
-    assert response.json()["survey_step"] == 2
+    body = response.json()
+    assert body["survey_step"] == 2
+    assert body["asset_link"] is None
+    assert body["survey_link"] is None
     assert pre.survey_step == 4
     assert db.committed is False
 

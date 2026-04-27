@@ -99,6 +99,8 @@ class MJPreInfluencerStepProgressOut(BaseModel):
     username: str
     survey_step: int
     status: str
+    asset_link: str | None = None
+    survey_link: str | None = None
 
 
 class MJPreInfluencerAssetLinkOut(BaseModel):
