@@ -66,7 +66,7 @@ def test_step_progress_returns_step_one_with_survey_token_only(monkeypatch) -> N
     pre = SimpleNamespace(
         id=123,
         username="creatorname",
-        survey_step=99,
+        survey_step=0,
         survey_token="survey-token",
         survey_answers={},
         terms_agreement=False,
@@ -108,20 +108,19 @@ def test_step_progress_returns_step_one_with_survey_token_only(monkeypatch) -> N
         "invite_code": "invite-123",
         "invitee_email": "user@example.com",
     }
-    assert pre.survey_step == 99
+    assert pre.survey_step == 0
     assert db.committed is False
 
 
-def test_step_progress_returns_step_two_when_terms_agreement_is_true(monkeypatch) -> None:
+def test_step_progress_returns_step_two_when_survey_step_is_four(monkeypatch) -> None:
     db = FakeSession()
     client = TestClient(_build_app(db))
     pre = SimpleNamespace(
         id=123,
         username="creatorname",
-        survey_step=0,
+        survey_step=4,
         survey_token="survey-token",
         survey_answers={"q_about_me": "Blah Blah"},
-        terms_agreement=True,
         status="pending",
     )
 
@@ -143,7 +142,7 @@ def test_step_progress_returns_step_two_when_terms_agreement_is_true(monkeypatch
 
     assert response.status_code == 200
     assert response.json()["survey_step"] == 2
-    assert pre.survey_step == 0
+    assert pre.survey_step == 4
     assert db.committed is False
 
 
@@ -188,10 +187,9 @@ def test_step_progress_returns_step_two_with_blank_asset_link(monkeypatch) -> No
     pre = SimpleNamespace(
         id=123,
         username="creatorname",
-        survey_step=2,
+        survey_step=4,
         survey_token="survey-token",
         survey_answers={"asset_link": "   "},
-        terms_agreement=True,
         status="pending",
     )
 
@@ -213,7 +211,7 @@ def test_step_progress_returns_step_two_with_blank_asset_link(monkeypatch) -> No
 
     assert response.status_code == 200
     assert response.json()["survey_step"] == 2
-    assert pre.survey_step == 2
+    assert pre.survey_step == 4
     assert db.committed is False
 
 
