@@ -25,6 +25,7 @@ from app.data.schemas.influencer import (
     InfluencerUpdate,
     SocialLink,
 )
+from app.data.schemas.pre_influencer import InfluencerAudioDeleteRequest
 from app.services.use_cases.admin_influencer_assets import (
     build_public_landing_assets_out,
     build_public_telegram_welcome_media_out,
@@ -526,6 +527,24 @@ async def list_influencer_audio(
         "count": len(files),
         "files": files,
     }
+
+
+@router.delete("/influencer-audio/{influencer_id}")
+async def delete_influencer_audio(
+    influencer_id: str,
+    payload: InfluencerAudioDeleteRequest,
+):
+    key = payload.key
+
+    expected_prefix = f"influencer-audio/{influencer_id}/"
+    if not key.startswith(expected_prefix):
+        raise HTTPException(
+            status_code=400, detail="Invalid audio key for this influencer"
+        )
+
+    await delete_file_from_s3(key)
+
+    return {"ok": True}
 
 
 @router.get("/{influencer_id}/samples")
