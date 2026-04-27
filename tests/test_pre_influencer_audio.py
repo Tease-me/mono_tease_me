@@ -183,7 +183,7 @@ def test_list_pre_influencer_audio_returns_files(monkeypatch) -> None:
     assert db.committed is False
 
 
-def test_list_pre_influencer_audio_returns_404_when_missing(monkeypatch) -> None:
+def test_list_pre_influencer_audio_returns_empty_result_when_missing(monkeypatch) -> None:
     db = FakeSession(FakePreInfluencer(pre_id=123))
     client = TestClient(_build_app(db))
 
@@ -201,8 +201,12 @@ def test_list_pre_influencer_audio_returns_404_when_missing(monkeypatch) -> None
         params={"token": "survey-token", "temp_password": "temporary-password"},
     )
 
-    assert response.status_code == 404
-    assert response.json()["detail"] == "Pre-influencer has no audio file stored"
+    assert response.status_code == 200
+    assert response.json() == {
+        "pre_influencer_id": 123,
+        "count": 0,
+        "files": [],
+    }
     assert db.committed is False
 
 

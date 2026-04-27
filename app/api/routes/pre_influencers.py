@@ -640,12 +640,6 @@ async def list_pre_influencer_audio(
     _require_pre_influencer_survey_access(pre, token, temp_password)
 
     keys = await pre_influencer_storage.list_audio_keys(str(pre.id))
-    if not keys:
-        raise HTTPException(
-            status_code=404,
-            detail="Pre-influencer has no audio file stored",
-        )
-
     files = [
         {
             "key": key,
