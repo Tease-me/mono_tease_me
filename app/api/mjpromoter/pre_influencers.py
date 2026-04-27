@@ -7,6 +7,7 @@ from app.data.schemas.pre_influencer import (
     MJPreInfluencerAssetLinkOut,
     MJPreInfluencerStepProgressRequest,
     MJPreInfluencerStepProgressOut,
+    MJPreInfluencerSurveyLinkOut,
     PreInfluencerAdminOut,
 )
 from app.services.repositories.pre_influencer_repository import (
@@ -15,6 +16,9 @@ from app.services.repositories.pre_influencer_repository import (
 )
 from app.services.use_cases.mj_pre_influencer_progress import derive_mj_survey_step
 from app.services.use_cases.pre_influencer_output import build_pre_influencer_admin_out
+from app.services.use_cases.pre_influencer_survey_link import (
+    build_pre_influencer_survey_link,
+)
 from app.services.use_cases.approve_pre_influencer import (
     approve_pre_influencer as run_pre_influencer_approval,
 )
@@ -96,6 +100,30 @@ async def get_pre_influencer_asset_link_internal(
         pre_influencer_id=pre.id,
         username=pre.username,
         asset_link=asset_link or None,
+    )
+
+
+@router.post("/survey-link", response_model=MJPreInfluencerSurveyLinkOut)
+async def get_pre_influencer_survey_link_internal(
+    payload: MJPreInfluencerStepProgressRequest,
+    _internal_auth: None = Depends(require_internal_token),
+    db: AsyncSession = Depends(get_db),
+):
+    pre = await _get_pre_influencer_by_mj_lookup(db, payload)
+
+    if not pre:
+        raise HTTPException(
+            status_code=404,
+            detail="Pre-influencer survey link target not found",
+        )
+
+    return MJPreInfluencerSurveyLinkOut(
+        pre_influencer_id=pre.id,
+        username=pre.username,
+        survey_link=build_pre_influencer_survey_link(
+            token=pre.survey_token,
+            temp_password=pre.password,
+        ),
     )
 
 
