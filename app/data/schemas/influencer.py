@@ -42,6 +42,16 @@ class InfluencerUpdate(BaseModel):
     date_of_birth: Optional[datetime] = None
 
 
+class InfluencerPublicationUpdateRequest(BaseModel):
+    published: bool
+
+
+class InfluencerPublicationStatusResponse(BaseModel):
+    ok: bool = True
+    influencer_id: str
+    publication_status: InfluencerPublicationStatus
+
+
 class InfluencerOut(InfluencerBase):
     id: str
     profile_photo_key: Optional[str] = None
