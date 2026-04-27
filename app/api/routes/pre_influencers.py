@@ -1,3 +1,4 @@
+import io
 import logging
 import re
 import secrets
@@ -25,6 +26,7 @@ from app.data.schemas.pre_influencer import (
     InfluencerAudioDeleteRequest,
     PreInfluencerAdminOut,
     PreInfluencerAcceptTermsRequest,
+    PreInfluencerAudioListOut,
     PreInfluencerRegisterRequest,
     PreInfluencerRegisterResponse,
     SurveyPromptResponse,
@@ -56,6 +58,8 @@ from app.utils.auth.dependencies import get_current_pre_influencer, get_current_
 from app.utils.storage.s3 import (
     delete_file_from_s3,
     generate_presigned_url,
+    list_pre_influencer_audio_keys,
+    save_pre_influencer_audio_to_s3,
     s3,
     save_influencer_photo_to_s3,
 )
@@ -591,6 +595,73 @@ async def get_pre_influencer_picture_url(
     return {"url": url}
 
 
+@router.post("/{pre_id}/audio")
+async def upload_pre_influencer_audio(
+    pre_id: int,
+    token: str = Query(...),
+    temp_password: str = Query(...),
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(PreInfluencer).where(PreInfluencer.id == pre_id))
+    pre = result.scalar_one_or_none()
+
+    if not pre:
+        raise HTTPException(status_code=404, detail="Pre-influencer not found")
+
+    _require_pre_influencer_survey_access(pre, token, temp_password)
+
+    file_bytes = await file.read()
+    if not file_bytes:
+        raise HTTPException(400, "Empty file")
+
+    key = await save_pre_influencer_audio_to_s3(
+        io.BytesIO(file_bytes),
+        file.filename or "audio.webm",
+        file.content_type or "audio/webm",
+        str(pre.id),
+    )
+
+    return {"key": key, "url": generate_presigned_url(key)}
+
+
+@router.get("/{pre_id}/audio", response_model=PreInfluencerAudioListOut)
+async def list_pre_influencer_audio(
+    pre_id: int,
+    token: str = Query(...),
+    temp_password: str = Query(...),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(PreInfluencer).where(PreInfluencer.id == pre_id))
+    pre = result.scalar_one_or_none()
+
+    if not pre:
+        raise HTTPException(status_code=404, detail="Pre-influencer not found")
+
+    _require_pre_influencer_survey_access(pre, token, temp_password)
+
+    keys = await list_pre_influencer_audio_keys(str(pre.id))
+    if not keys:
+        raise HTTPException(
+            status_code=404,
+            detail="Pre-influencer has no audio file stored",
+        )
+
+    files = [
+        {
+            "key": key,
+            "download_url": generate_presigned_url(key),
+        }
+        for key in keys
+    ]
+
+    return PreInfluencerAudioListOut(
+        pre_influencer_id=pre.id,
+        count=len(files),
+        files=files,
+    )
+
+
 @router.delete("/influencer-audio/{influencer_id}")
 async def delete_influencer_audio(
     influencer_id: str,
@@ -599,7 +670,7 @@ async def delete_influencer_audio(
 ):
     key = payload.key
 
-    expected_prefix = f"influencer-audio/{influencer_id}/"
+    expected_prefix = f"pre-influencer-audio/{influencer_id}/"
     if not key.startswith(expected_prefix):
         raise HTTPException(
             status_code=400, detail="Invalid audio key for this influencer"
