@@ -113,6 +113,56 @@ async def save_influencer_audio_to_s3(file_obj, filename: str | None, content_ty
     return key
 
 
+async def save_pre_influencer_audio_to_s3(
+    file_obj,
+    filename: str | None,
+    content_type: str,
+    pre_id: str,
+) -> str:
+    ext = (filename.split(".")[-1] if filename and "." in filename else "webm").lower()
+    key = f"pre-influencer-audio/{pre_id}/{uuid.uuid4()}.{ext}"
+    file_obj.seek(0)
+    s3.upload_fileobj(
+        file_obj,
+        settings.BUCKET_NAME,
+        key,
+        ExtraArgs={"ContentType": content_type},
+    )
+    return key
+
+
+async def copy_pre_influencer_audio_to_influencer_audio(
+    source_key: str,
+    influencer_id: str,
+) -> str:
+    filename = source_key.rsplit("/", 1)[-1]
+    ext = (filename.split(".")[-1] if "." in filename else "webm").lower()
+    destination_key = f"influencer-audio/{influencer_id}/{uuid.uuid4()}.{ext}"
+
+    copy_source = {
+        "Bucket": settings.BUCKET_NAME,
+        "Key": source_key,
+    }
+
+    extra_args = {}
+    try:
+        head = s3.head_object(Bucket=settings.BUCKET_NAME, Key=source_key)
+        content_type = head.get("ContentType")
+        if content_type:
+            extra_args["ContentType"] = content_type
+            extra_args["MetadataDirective"] = "COPY"
+    except botocore.exceptions.ClientError:
+        log.warning("Failed to head source audio key %s before copy", source_key, exc_info=True)
+
+    s3.copy_object(
+        Bucket=settings.BUCKET_NAME,
+        CopySource=copy_source,
+        Key=destination_key,
+        **extra_args,
+    )
+    return destination_key
+
+
 async def save_influencer_ia_audio_to_s3(audio_bytes: bytes, influencer_id: str) -> str:
     key = f"influencer-iaudio/{influencer_id}/{uuid.uuid4()}.mp3"
     s3.upload_fileobj(
@@ -140,6 +190,17 @@ def get_influencer_audio_download_url(key: str, expires: int = 3600) -> str:
 
 async def list_influencer_audio_keys(influencer_id: str) -> list[str]:
     prefix = f"influencer-audio/{influencer_id}/"
+    resp = s3.list_objects_v2(Bucket=settings.BUCKET_NAME, Prefix=prefix)
+
+    contents = resp.get("Contents")
+    if not contents:
+        return []
+
+    return [obj["Key"] for obj in contents]
+
+
+async def list_pre_influencer_audio_keys(pre_id: str) -> list[str]:
+    prefix = f"pre-influencer-audio/{pre_id}/"
     resp = s3.list_objects_v2(Bucket=settings.BUCKET_NAME, Prefix=prefix)
 
     contents = resp.get("Contents")

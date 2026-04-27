@@ -41,6 +41,15 @@ class SurveySaveRequest(BaseModel):
 class InfluencerAudioDeleteRequest(BaseModel):
     key: str
 
+class PreInfluencerAudioFileOut(BaseModel):
+    key: str
+    download_url: str
+
+class PreInfluencerAudioListOut(BaseModel):
+    pre_influencer_id: int
+    count: int
+    files: List[PreInfluencerAudioFileOut]
+
 class SurveyQuestionsResponse(BaseModel):
     sections: List[Dict[str, Any]]
 

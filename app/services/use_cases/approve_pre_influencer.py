@@ -21,7 +21,12 @@ from app.services.use_cases.pre_influencer_survey_prompt import (
     generate_prompt_from_markdown,
     load_survey_questions,
 )
-from app.utils.storage.s3 import get_s3_object_bytes, list_influencer_audio_keys
+from app.utils.storage.s3 import (
+    copy_pre_influencer_audio_to_influencer_audio,
+    get_s3_object_bytes,
+    list_influencer_audio_keys,
+    list_pre_influencer_audio_keys,
+)
 
 log = logging.getLogger(__name__)
 
@@ -31,6 +36,39 @@ _agents_gateway = ElevenLabsAgentsGateway()
 
 def _normalize_influencer_id(username: str) -> str:
     return re.sub(r"[^a-z0-9_]", "", username.lower())
+
+
+async def _get_approval_audio_keys(pre_id: int, influencer_id: str) -> list[str]:
+    keys = await list_pre_influencer_audio_keys(str(pre_id))
+    if keys:
+        return keys
+
+    keys = await list_influencer_audio_keys(str(pre_id))
+    if keys:
+        return keys
+
+    return await list_influencer_audio_keys(influencer_id)
+
+
+async def _prepare_approval_audio_keys(
+    pre_id: int,
+    influencer_id: str,
+) -> list[str]:
+    keys = await _get_approval_audio_keys(pre_id, influencer_id)
+    prepared_keys: list[str] = []
+
+    expected_pre_prefix = f"pre-influencer-audio/{pre_id}/"
+    for key in keys:
+        if key.startswith(expected_pre_prefix):
+            copied_key = await copy_pre_influencer_audio_to_influencer_audio(
+                key,
+                influencer_id,
+            )
+            prepared_keys.append(copied_key)
+        else:
+            prepared_keys.append(key)
+
+    return prepared_keys
 
 
 async def approve_pre_influencer(db: AsyncSession, pre_id: int) -> dict:
@@ -82,9 +120,7 @@ async def approve_pre_influencer(db: AsyncSession, pre_id: int) -> dict:
                 voice_id = None
                 samples_meta = []
         if not voice_id:
-            keys = await list_influencer_audio_keys(str(pre_id))
-            if not keys:
-                keys = await list_influencer_audio_keys(influencer_id)
+            keys = await _prepare_approval_audio_keys(pre_id, influencer_id)
             if not keys:
                 raise HTTPException(
                     400,
