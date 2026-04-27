@@ -56,6 +56,13 @@ async def _get_pre_influencer_by_mj_lookup(
     )
 
 
+def _get_asset_link(pre) -> str | None:
+    answers = pre.survey_answers if isinstance(pre.survey_answers, dict) else {}
+    raw_asset_link = answers.get("asset_link")
+    asset_link = raw_asset_link.strip() if isinstance(raw_asset_link, str) else None
+    return asset_link or None
+
+
 @router.post("/step-progress", response_model=MJPreInfluencerStepProgressOut)
 async def get_pre_influencer_step_progress_internal(
     payload: MJPreInfluencerStepProgressRequest,
@@ -75,6 +82,11 @@ async def get_pre_influencer_step_progress_internal(
         username=pre.username,
         survey_step=await derive_mj_survey_step(db, pre),
         status=pre.status,
+        asset_link=_get_asset_link(pre),
+        survey_link=build_pre_influencer_survey_link(
+            token=pre.survey_token,
+            temp_password=pre.password,
+        ),
     )
 
 
@@ -92,14 +104,10 @@ async def get_pre_influencer_asset_link_internal(
             detail="Pre-influencer asset link target not found",
         )
 
-    answers = pre.survey_answers if isinstance(pre.survey_answers, dict) else {}
-    raw_asset_link = answers.get("asset_link")
-    asset_link = raw_asset_link.strip() if isinstance(raw_asset_link, str) else None
-
     return MJPreInfluencerAssetLinkOut(
         pre_influencer_id=pre.id,
         username=pre.username,
-        asset_link=asset_link or None,
+        asset_link=_get_asset_link(pre),
     )
 
 
