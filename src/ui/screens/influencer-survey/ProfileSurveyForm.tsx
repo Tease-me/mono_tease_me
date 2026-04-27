@@ -291,9 +291,6 @@ const ProfileSurveyForm: React.FC = () => {
             <div className={styles.headerRow}>
               <div>
                 <h2 className={styles.title}>{stepTitle}</h2>
-                <p className={styles.subtitle}>
-                  Step {state.currentStep + 1} of {state.totalSteps}
-                </p>
               </div>
               <span className={styles.saving}>{state.isSaving ? 'Saving...' : 'Saved'}</span>
             </div>
