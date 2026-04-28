@@ -18,56 +18,54 @@ You can import from either:
 # This allows imports like "from app.utils import create_token" to work
 
 # Auth utilities
+from .auth.dependencies import get_current_user, oauth2_scheme, require_age_verification
 from .auth.tokens import create_token
-from .auth.dependencies import get_current_user, require_age_verification, oauth2_scheme
-
-# Messaging utilities
-from .messaging.chat import (
-    transcribe_audio,
-    get_ai_reply_via_websocket,
-    # synthesize_audio_with_elevenlabs,
-    format_for_eleven_v3,
-    synthesize_audio_with_elevenlabs_v3,
-    pcm_bytes_to_wav_bytes,
-)
-from .messaging.push import send_push, send_push_rich
-from .messaging.tts_sanitizer import sanitize_tts_text
-
-# Storage utilities  
-from .storage.s3 import (
-    save_audio_to_s3,
-    save_ia_audio_to_s3,
-    generate_presigned_url,
-    message_to_schema_with_presigned,
-    message18_to_schema_with_presigned,
-    save_knowledge_file_to_s3,
-    delete_file_from_s3,
-    save_influencer_audio_to_s3,
-    save_pre_influencer_audio_to_s3,
-    copy_pre_influencer_audio_to_influencer_audio,
-    save_influencer_ia_audio_to_s3,
-    get_s3_object_bytes,
-    save_sample_audio_to_s3,
-    get_influencer_audio_download_url,
-    list_influencer_audio_keys,
-    list_pre_influencer_audio_keys,
-    generate_presigned_urls_for_keys,
-    save_influencer_photo_to_s3,
-    save_influencer_video_to_s3,
-    save_influencer_profile_to_s3,
-    get_influencer_profile_from_s3,
-    save_user_photo_to_s3,
-    generate_user_presigned_url,
-)
 
 # Infrastructure utilities
 from .infrastructure.concurrency import AdvisoryLock, advisory_lock, with_lock
 from .infrastructure.idempotency import IdempotencyLock, idempotent
-from .infrastructure.rate_limiter import check_rate_limit, rate_limit, get_user_key
-from .infrastructure.redis_pool import get_redis, close_redis
+from .infrastructure.rate_limiter import check_rate_limit, get_user_key, rate_limit
+from .infrastructure.redis_pool import close_redis, get_redis
 
 # Logging utilities
 from .logging.prompt_logging import log_prompt
+
+# Messaging utilities
+from .messaging.chat import (
+    # synthesize_audio_with_elevenlabs,
+    format_for_eleven_v3,
+    get_ai_reply_via_websocket,
+    pcm_bytes_to_wav_bytes,
+    synthesize_audio_with_elevenlabs_v3,
+    transcribe_audio,
+)
+from .messaging.push import send_push, send_push_rich
+from .messaging.tts_sanitizer import sanitize_tts_text
+
+# Storage utilities
+from .storage.s3 import (
+    copy_pre_influencer_audio_to_influencer_audio,
+    delete_file_from_s3,
+    generate_presigned_url,
+    generate_presigned_urls_for_keys,
+    generate_user_presigned_url,
+    get_influencer_audio_download_url,
+    get_influencer_profile_from_s3,
+    get_s3_object_bytes,
+    list_influencer_audio_keys,
+    message18_to_schema_with_presigned,
+    message_to_schema_with_presigned,
+    save_audio_to_s3,
+    save_ia_audio_to_s3,
+    save_influencer_audio_to_s3,
+    save_influencer_ia_audio_to_s3,
+    save_influencer_photo_to_s3,
+    save_influencer_profile_to_s3,
+    save_influencer_video_to_s3,
+    save_knowledge_file_to_s3,
+    save_sample_audio_to_s3,
+    save_user_photo_to_s3,
+)
 
 __all__ = [
     # Auth
@@ -96,14 +94,12 @@ __all__ = [
     "save_knowledge_file_to_s3",
     "delete_file_from_s3",
     "save_influencer_audio_to_s3",
-    "save_pre_influencer_audio_to_s3",
     "copy_pre_influencer_audio_to_influencer_audio",
     "save_influencer_ia_audio_to_s3",
     "get_s3_object_bytes",
     "save_sample_audio_to_s3",
     "get_influencer_audio_download_url",
     "list_influencer_audio_keys",
-    "list_pre_influencer_audio_keys",
     "generate_presigned_urls_for_keys",
     "save_influencer_photo_to_s3",
     "save_influencer_video_to_s3",
