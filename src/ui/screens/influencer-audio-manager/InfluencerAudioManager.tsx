@@ -1,5 +1,6 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+import { API_BASE_URL, Endpoints } from "@/api/urls";
 
 interface InfluencerAudioFile {
   key: string;
@@ -17,10 +18,6 @@ interface Props {
   onCountChange?: (count: number) => void;
 }
 
-const API_BASE_URL = `${import.meta.env.VITE_TEASE_ME_PROTOCOL}://${
-  import.meta.env.VITE_TEASE_ME_HOST
-}`;
-
 const InfluencerAudioManager: React.FC<Props> = ({
   influencerId,
   onCountChange,
@@ -35,7 +32,7 @@ const InfluencerAudioManager: React.FC<Props> = ({
       setLoading(true);
 
       const res = await axios.get<InfluencerAudioResponse>(
-        `${API_BASE_URL}/influencer/influencer-audio/${influencerId}`
+        `${API_BASE_URL}${Endpoints.influencerAudio(influencerId)}`
       );
 
       setData(res.data);
@@ -73,7 +70,7 @@ const InfluencerAudioManager: React.FC<Props> = ({
 
     try {
       await axios.delete(
-        `${API_BASE_URL}/influencer/influencer-audio/${influencerId}`,
+        `${API_BASE_URL}${Endpoints.influencerAudio(influencerId)}`,
         {
           data: { key },
         }
@@ -97,7 +94,7 @@ const InfluencerAudioManager: React.FC<Props> = ({
       formData.append("file", file);
 
       await axios.post(
-        `${API_BASE_URL}/influencer/influencer-audio/${influencerId}`,
+        `${API_BASE_URL}${Endpoints.influencerAudio(influencerId)}`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { apiClient } from '@/api/apis';
+import { Endpoints } from '@/api/urls';
 import surveyStyles from '../ProfileSurvey.module.css';
 import styles from './UploadAudioStep.module.css';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
@@ -115,7 +116,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
         setLoadingList(true);
 
         const response = await apiClient.get<AudioResponse>(
-          `/pre-influencers/${preInfluencerId}/audio`,
+          Endpoints.influencerAudio(preInfluencerId),
           {
             params: { token, temp_password },
           }

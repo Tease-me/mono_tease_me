@@ -1,6 +1,7 @@
 import React, { lazy, Suspense, useCallback, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { apiClient } from '@/api/apis';
+import { Endpoints } from '@/api/urls';
 import { Paths } from '@/routes/path';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
@@ -78,7 +79,7 @@ const ProfileSurveyForm: React.FC = () => {
       actions.setTermsError(null);
 
       await apiClient.post(
-        `/pre-influencers/${state.preInfluencerId}/accept-terms`,
+        Endpoints.pre_influencers.acceptTerms(state.preInfluencerId),
         { terms_agreement: true },
         {
           params: token ? { token } : undefined,

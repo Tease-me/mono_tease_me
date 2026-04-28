@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { apiClient } from '@/api/apis';
+import { Endpoints } from '@/api/urls';
 import { SurveyStep } from '@/ui/screens/influencer-survey/validation/surveyValidation';
 import { useAutoSave } from './useAutoSave';
 import { ERROR_MESSAGES } from '@/ui/screens/influencer-survey/utils/constants';
@@ -161,10 +162,10 @@ export function useSurveyForm({
       try {
         // Fetch survey data and questions in parallel
         const [surveyResponse, questionsResponse] = await Promise.all([
-          apiClient.get<SurveyState>('/pre-influencers/survey', {
+          apiClient.get<SurveyState>(Endpoints.pre_influencers.survey, {
             params: { token, temp_password },
           }),
-          apiClient.get('/pre-influencers/survey/questions', {
+          apiClient.get(Endpoints.pre_influencers.surveyQuestions, {
             params: { token, temp_password },
           }),
         ]);
@@ -226,7 +227,7 @@ export function useSurveyForm({
     const fetchPictureUrl = async () => {
       try {
         const { data } = await apiClient.get<{ url: string }>(
-          `/pre-influencers/${preInfluencerId}/picture-url`,
+          Endpoints.pre_influencers.pictureUrl(preInfluencerId),
           { params: { token, temp_password } }
         );
         setPictureUrl(data.url);

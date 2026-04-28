@@ -1,4 +1,5 @@
 import { AxiosInstance } from "axios";
+import { Endpoints } from "../urls";
 import { RelationshipResponse } from "../models/relationship";
 
 export interface DimensionDetail {
@@ -33,12 +34,11 @@ export interface RelationshipDimensions {
 
 export const RelationshipServices = (apiClient: AxiosInstance) => ({
   getRelationship: async (influencerId: string): Promise<RelationshipResponse> => {
-    const res = await apiClient.get(`/relationship/${encodeURIComponent(influencerId)}`);
+    const res = await apiClient.get(Endpoints.relationship.get(influencerId));
     return res.data;
   },
   getDimensions: async (influencerId: string): Promise<RelationshipDimensions> => {
-    const res = await apiClient.get(`/relationship/${encodeURIComponent(influencerId)}/dimensions`);
+    const res = await apiClient.get(Endpoints.relationship.dimensions(influencerId));
     return res.data;
   },
 });
-

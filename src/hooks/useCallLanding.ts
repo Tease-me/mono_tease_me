@@ -6,6 +6,7 @@ import logger from "@/utils/logger";
 import { AuthContext } from "@/context/AuthContext";
 import { useConversation } from "@elevenlabs/react";
 import { showErrorModal } from "@/utils/errorModal";
+import { PublicAssetPaths } from "@/constants/publicAssetPaths";
 
 export default function useCallLanding() {
   const [status, setStatus] = useState<
@@ -22,7 +23,7 @@ export default function useCallLanding() {
 
   const getRingtone = useCallback((): Howl => {
     if (!ringtoneRef.current) {
-      ringtoneRef.current = new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: false });
+      ringtoneRef.current = new Howl({ src: [PublicAssetPaths.ringtone], loop: true, html5: false });
     }
     return ringtoneRef.current;
   }, []);
