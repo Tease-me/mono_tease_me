@@ -135,6 +135,23 @@ async def get_pre_influencer_survey_link_internal(
     )
 
 
+@router.post("/approve")
+async def approve_pre_influencer_by_mj_lookup_internal(
+    payload: MJPreInfluencerStepProgressRequest,
+    _internal_auth: None = Depends(require_internal_token),
+    db: AsyncSession = Depends(get_db),
+):
+    pre = await _get_pre_influencer_by_mj_lookup(db, payload)
+
+    if not pre:
+        raise HTTPException(
+            status_code=404,
+            detail="Pre-influencer approval target not found",
+        )
+
+    return await run_pre_influencer_approval(db, pre.id)
+
+
 @router.post("/{pre_id}/approve")
 async def approve_pre_influencer_internal(
     pre_id: int,
