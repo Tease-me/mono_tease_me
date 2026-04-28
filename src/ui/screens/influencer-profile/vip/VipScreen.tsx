@@ -5,6 +5,7 @@ import { FollowServices } from "@/api/services/FollowServices";
 import { FunnelServices } from "@/api/services/FunnelServices";
 import { InfluencerServices } from "@/api/services/InfluencerService";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
+import { PublicAssetPaths } from "@/constants/publicAssetPaths";
 import { AuthContext } from "@/context/AuthContext";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
@@ -86,7 +87,7 @@ export default function VipScreen() {
 
     return {
       gender: "male",
-      avatarUrl: `/avatarImages/${folder}/avatar${index}.jpg`,
+      avatarUrl: PublicAssetPaths.avatarImage(folder, index),
     };
   });
   const [profileErrors, setProfileErrors] = useState<InviteProfileErrors>({});

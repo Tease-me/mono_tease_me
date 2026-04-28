@@ -1,11 +1,12 @@
 import { useState } from "react";
+import { PublicAssetPaths } from "@/constants/publicAssetPaths";
 import CloseIconButton from "@/ui/components/inputs/buttons/CloseIconButton";
 import styles from "./AvatarPicker.module.css";
 
 type AvatarTab = "human" | "animals";
 
 const generatePaths = (folder: string, count: number) =>
-  Array.from({ length: count }, (_, i) => `/avatarImages/${folder}/avatar${i + 1}.jpg`);
+  Array.from({ length: count }, (_, i) => PublicAssetPaths.avatarImage(folder, i + 1));
 
 const HUMAN_AVATARS = generatePaths("human", 12);
 const ANIMAL_AVATARS = generatePaths("animal", 12);
