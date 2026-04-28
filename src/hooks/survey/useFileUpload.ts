@@ -27,13 +27,15 @@ interface UploadImageResult {
 
 interface UploadAudioParams {
   file: File;
-  influencerId: number;
+  preInfluencerId: number;
   token?: string;
   temp_password?: string;
 }
 
 interface UploadAudioResult {
   success: boolean;
+  key?: string;
+  url?: string;
   error?: string;
 }
 
@@ -100,7 +102,7 @@ export function useFileUpload() {
   const uploadAudioFile = useCallback(
     async ({
       file,
-      influencerId,
+      preInfluencerId,
       token,
       temp_password,
     }: UploadAudioParams): Promise<UploadAudioResult> => {
@@ -119,20 +121,18 @@ export function useFileUpload() {
         const formData = new FormData();
         formData.append('file', file);
 
-        const headers: Record<string, string> = {
-          'Content-Type': 'multipart/form-data',
-        };
-
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
-        }
-
-        await apiClient.post(Endpoints.influencerAudio(influencerId), formData, {
-          headers,
-          params: token ? { token, temp_password } : undefined,
+        const { data } = await apiClient.post(Endpoints.influencerAudio(preInfluencerId), formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          params: { token, temp_password },
         });
 
-        return { success: true };
+        return {
+          success: true,
+          key: data?.key,
+          url: data?.url,
+        };
       } catch (error) {
         console.error('Audio upload failed:', error);
         return {
@@ -149,21 +149,20 @@ export function useFileUpload() {
    */
   const deleteAudioFile = useCallback(
     async ({
-      influencerId,
+      preInfluencerId,
       key,
       token,
       temp_password,
     }: {
-      influencerId: number;
+      preInfluencerId: number;
       key: string;
       token?: string;
       temp_password?: string;
     }): Promise<{ success: boolean; error?: string }> => {
       try {
-        await apiClient.delete(Endpoints.pre_influencers.influencerAudio(influencerId), {
+        await apiClient.delete(Endpoints.pre_influencers.influencerAudio(preInfluencerId), {
           data: { key },
           params: token ? { token, temp_password } : undefined,
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
 
         return { success: true };

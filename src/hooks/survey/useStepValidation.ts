@@ -21,7 +21,6 @@ interface UseStepValidationProps {
   assetStepIndex: number;
   answers: Record<string, any>;
   audioCount: number;
-  audioHasRecorded: boolean;
 }
 
 /**
@@ -37,7 +36,6 @@ export function useStepValidation({
   assetStepIndex,
   answers,
   audioCount,
-  audioHasRecorded,
 }: UseStepValidationProps) {
   /**
    * Validate the current step
@@ -67,7 +65,7 @@ export function useStepValidation({
 
     // Audio upload step
     if (stepIndex === audioStepIndex) {
-      return validateAudioStep(audioCount, audioHasRecorded);
+      return validateAudioStep(audioCount);
     }
 
     // Asset upload step
@@ -86,7 +84,6 @@ export function useStepValidation({
     assetStepIndex,
     answers,
     audioCount,
-    audioHasRecorded,
   ]);
 
   return { validateCurrentStep };
