@@ -7,6 +7,7 @@ import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import SvgPack from "@/utils/SvgPack";
 import { AuthContext } from "@/context/AuthContext";
 import { apiClient } from "@/api/apis";
+import { Endpoints } from "@/api/urls";
 import { UserDataModel } from "@/data/models/UserDataModel";
 import AvatarPicker from "@/ui/components/avatar-picker/AvatarPicker";
 import clsx from "clsx";
@@ -66,14 +67,14 @@ const UserProfile: React.FC<UserProfileProps> = ({ goTo }) => {
         }),
       );
 
-      await apiClient.patch(`/user/${user.id}/profile`, form, {
+      await apiClient.patch(Endpoints.user.profile(user.id), form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
       if (photoBlob && user?.id) {
         const form = new FormData();
         form.append("file", photoBlob, "avatar.jpg");
-        await apiClient.post(`/user/${user.id}/photo`, form, {
+        await apiClient.post(Endpoints.user.photo(user.id), form, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         setLocalUser((u) => (u ? { ...u, imgUrl: previewUrl ?? u.imgUrl } : u));

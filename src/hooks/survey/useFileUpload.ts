@@ -3,6 +3,7 @@
 
 import { useCallback } from 'react';
 import { apiClient } from '@/api/apis';
+import { Endpoints } from '@/api/urls';
 import {
   validateImageFile,
   validateAudioFile,
@@ -72,7 +73,7 @@ export function useFileUpload() {
         formData.append('file', file);
         formData.append('pre_influencer_id', String(preInfluencerId));
 
-        const { data } = await apiClient.post('/pre-influencers/upload-picture', formData, {
+        const { data } = await apiClient.post(Endpoints.pre_influencers.uploadPicture, formData, {
           params: { token, temp_password },
           headers: { 'Content-Type': 'multipart/form-data' },
         });
@@ -120,7 +121,7 @@ export function useFileUpload() {
         const formData = new FormData();
         formData.append('file', file);
 
-        const { data } = await apiClient.post(`/pre-influencers/${preInfluencerId}/audio`, formData, {
+        const { data } = await apiClient.post(Endpoints.influencerAudio(preInfluencerId), formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -159,7 +160,7 @@ export function useFileUpload() {
       temp_password?: string;
     }): Promise<{ success: boolean; error?: string }> => {
       try {
-        await apiClient.delete(`/pre-influencers/influencer-audio/${preInfluencerId}`, {
+        await apiClient.delete(Endpoints.pre_influencers.influencerAudio(preInfluencerId), {
           data: { key },
           params: token ? { token, temp_password } : undefined,
         });

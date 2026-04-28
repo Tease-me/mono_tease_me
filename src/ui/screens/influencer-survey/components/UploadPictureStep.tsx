@@ -11,6 +11,7 @@ import ImageCropModal from '@/ui/components/modals/image-crop-modal/ImageCropMod
 import { validateImageFile } from '../utils/fileUploadHelpers';
 import { useFileUpload } from '@/hooks/survey/useFileUpload';
 import { apiClient } from '@/api/apis';
+import { Endpoints } from '@/api/urls';
 
 interface UploadPictureStepProps {
   preInfluencerId: number | null;
@@ -157,7 +158,7 @@ const UploadPictureStep: React.FC<UploadPictureStepProps> = ({
           setTimeout(async () => {
             try {
               const { data } = await apiClient.get<{ url: string }>(
-                `/pre-influencers/${preInfluencerId}/picture-url`,
+                Endpoints.pre_influencers.pictureUrl(preInfluencerId),
                 { params: { token, temp_password } }
               );
               onPictureUrlChange(data.url);

@@ -7,7 +7,7 @@ import {
   LogFileInfo,
   AdminLogsParams,
 } from "@/api/services/AdminServices";
-import { API_BASE_URL } from "@/api/urls";
+import { API_BASE_URL, Endpoints } from "@/api/urls";
 import AdminLayout from "@/ui/screens/admin/AdminLayout";
 import AdminTwoColumn from "@/ui/screens/admin/AdminTwoColumn";
 import styles from "./AdminLogs.module.css";
@@ -204,7 +204,7 @@ const AdminLogs: React.FC = () => {
     if (level) params.set("level", level);
     if (liveSourceFile.trim()) params.set("file", liveSourceFile.trim());
     const qs = params.toString() ? `?${params}` : "";
-    const url = `${API_BASE_URL}/admin/logs/stream${qs}`;
+    const url = `${API_BASE_URL}/${Endpoints.admin.logStream}${qs}`;
 
     const controller = new AbortController();
     abortRef.current = controller;

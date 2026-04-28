@@ -73,7 +73,7 @@ const AdminNav: React.FC<AdminNavProps> = ({ isOpen, onClose }) => {
                 </div>
 
                 {/* Logout */}
-                <button className={styles["logout-btn"]} onClick={() => navigate("/")}>
+                <button className={styles["logout-btn"]} onClick={() => navigate(Paths.root)}>
                     <span className={styles["nav-icon"]}>
                         <Suspense fallback={null}><SvgPack.Logout /></Suspense>
                     </span>

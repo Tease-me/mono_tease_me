@@ -23,6 +23,20 @@ export const Endpoints = {
     forgotPassword: "/pre-influencers/forgot-password",
     resendSurvey: "/pre-influencers/resend-survey",
     me: "/pre-influencers/me",
+    list: "/pre-influencers",
+    survey: "/pre-influencers/survey",
+    surveyQuestions: "/pre-influencers/survey/questions",
+    uploadPicture: "/pre-influencers/upload-picture",
+    surveyById: (preInfluencerId: number | string) =>
+      `/pre-influencers/${preInfluencerId}/survey`,
+    pictureUrl: (preInfluencerId: number | string) =>
+      `/pre-influencers/${preInfluencerId}/picture-url`,
+    acceptTerms: (preInfluencerId: number | string) =>
+      `/pre-influencers/${preInfluencerId}/accept-terms`,
+    approve: (preInfluencerId: number | string) =>
+      `/pre-influencers/${preInfluencerId}/approve`,
+    influencerAudio: (preInfluencerId: number | string) =>
+      `/pre-influencers/influencer-audio/${preInfluencerId}`,
   },
   billing: {
     balance: "/billing/balance",
@@ -77,9 +91,15 @@ export const Endpoints = {
   },
   influencers: "/influencer",
   influencer: (id: string) => `/influencer/${id}`,
+  influencerAudio: (id: number | string) => `/influencer/influencer-audio/${id}`,
   influencerProfile: (id: string) => `/influencer/${id}/profile`,
   influencerBio: (id: string) => `/influencer/${id}/bio`,
   influencerLandingAssets: (id: string) => `/influencer/${id}/landing-assets`,
+  relationship: {
+    get: (influencerId: string) => `/relationship/${encodeURIComponent(influencerId)}`,
+    dimensions: (influencerId: string) =>
+      `/relationship/${encodeURIComponent(influencerId)}/dimensions`,
+  },
   relationship_update: `influencer/relationship_update`,
   adult_characters: (id: string) => `/influencer/${id}/adult-characters`,
   uploadCsv: "persona/import-csv",
@@ -180,8 +200,13 @@ export const Endpoints = {
     history: "/verification/history",
     webhook: "/verification/webhook",
   },
+  social: {
+    followers: "/social/api/followers",
+  },
   user: {
     usage: (id: string) => `/user/${id}/usage`,
+    profile: (id: number | string) => `/user/${id}/profile`,
+    photo: (id: number | string) => `/user/${id}/photo`,
   },
   funnel: {
     event: "/funnel/event",

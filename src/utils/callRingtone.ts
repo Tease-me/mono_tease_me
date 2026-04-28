@@ -1,6 +1,5 @@
 import { Howl } from "howler";
-
-const RINGTONE_SRC = "/audio/ringtone.mp3";
+import { PublicAssetPaths } from "@/constants/publicAssetPaths";
 
 export type CallRingtoneController = {
   start: () => void;
@@ -14,7 +13,7 @@ export function createCallRingtoneController(): CallRingtoneController {
   const getRingtone = (): Howl => {
     if (!ringtone) {
       ringtone = new Howl({
-        src: [RINGTONE_SRC],
+        src: [PublicAssetPaths.ringtone],
         loop: true,
         html5: false,
       });
