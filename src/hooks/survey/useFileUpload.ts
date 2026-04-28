@@ -3,6 +3,7 @@
 
 import { useCallback } from 'react';
 import { apiClient } from '@/api/apis';
+import { Endpoints } from '@/api/urls';
 import {
   validateImageFile,
   validateAudioFile,
@@ -70,7 +71,7 @@ export function useFileUpload() {
         formData.append('file', file);
         formData.append('pre_influencer_id', String(preInfluencerId));
 
-        const { data } = await apiClient.post('/pre-influencers/upload-picture', formData, {
+        const { data } = await apiClient.post(Endpoints.pre_influencers.uploadPicture, formData, {
           params: { token, temp_password },
           headers: { 'Content-Type': 'multipart/form-data' },
         });
@@ -126,7 +127,7 @@ export function useFileUpload() {
           headers['Authorization'] = `Bearer ${token}`;
         }
 
-        await apiClient.post(`/influencer/influencer-audio/${influencerId}`, formData, {
+        await apiClient.post(Endpoints.influencerAudio(influencerId), formData, {
           headers,
           params: token ? { token, temp_password } : undefined,
         });
@@ -159,7 +160,7 @@ export function useFileUpload() {
       temp_password?: string;
     }): Promise<{ success: boolean; error?: string }> => {
       try {
-        await apiClient.delete(`/pre-influencers/influencer-audio/${influencerId}`, {
+        await apiClient.delete(Endpoints.pre_influencers.influencerAudio(influencerId), {
           data: { key },
           params: token ? { token, temp_password } : undefined,
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,

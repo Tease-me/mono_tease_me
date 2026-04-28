@@ -9,6 +9,7 @@ import TextInput from '@/ui/components/inputs/text-inputs/TextInput';
 import ValidationPill from '@/ui/components/inputs/buttons/ValidationPill';
 import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
 import { apiClient } from '@/api/apis';
+import { Endpoints } from '@/api/urls';
 import { VERIFIABLE_PLATFORMS, PLATFORM_SERVICE_MAP, ERROR_MESSAGES } from '../utils/constants';
 import { validateSocialHandle, parseFollowerCount } from '../validation/surveyValidation';
 
@@ -193,7 +194,7 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
       const service = PLATFORM_SERVICE_MAP[openId] || openId;
       const cleanHandle = trimmedHandle.replace(/^@/, '');
 
-      const { data } = await apiClient.get('/social/api/followers', {
+      const { data } = await apiClient.get(Endpoints.social.followers, {
         params: { service, username: cleanHandle },
       });
 
