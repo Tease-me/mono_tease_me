@@ -121,7 +121,7 @@ export function useFileUpload() {
         const formData = new FormData();
         formData.append('file', file);
 
-        const { data } = await apiClient.post(Endpoints.pre_influencers.influencerAudio(preInfluencerId), formData, {
+        const { data } = await apiClient.post(Endpoints.pre_influencers.audio(preInfluencerId), formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -160,7 +160,7 @@ export function useFileUpload() {
       temp_password?: string;
     }): Promise<{ success: boolean; error?: string }> => {
       try {
-        await apiClient.delete(Endpoints.pre_influencers.influencerAudio(preInfluencerId), {
+        await apiClient.delete(Endpoints.pre_influencers.audio(preInfluencerId), {
           data: { key },
           params: token ? { token, temp_password } : undefined,
         });
