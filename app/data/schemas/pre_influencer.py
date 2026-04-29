@@ -126,3 +126,9 @@ class MJPreInfluencerSurveyLinkOut(BaseModel):
     pre_influencer_id: int
     username: str
     survey_link: str | None = None
+
+
+class MJPreInfluencerApproveOut(BaseModel):
+    ok: bool = True
+    pre_influencer_id: int
+    status: str
