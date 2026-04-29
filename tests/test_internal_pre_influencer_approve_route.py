@@ -37,11 +37,16 @@ def test_internal_pre_influencer_approve_requires_valid_internal_token(
 
     async def _fake_approve(db, pre_id: int):
         calls.append((db, pre_id))
-        return {"ok": True, "pre_influencer_id": pre_id, "status": "approved"}
+        return {
+            "ok": True,
+            "influencer_id": "creatorname",
+            "fp_ref_id": "fp-ref-123",
+            "fp_promoter_id": "fp-promoter-123",
+        }
 
     monkeypatch.setattr(settings, "MJFP_TOKEN", "internal-secret")
     monkeypatch.setattr(
-        "app.api.mjpromoter.pre_influencers.approve_pre_influencer_status_only",
+        "app.api.mjpromoter.pre_influencers.run_pre_influencer_approval",
         _fake_approve,
     )
 
@@ -78,8 +83,9 @@ def test_internal_pre_influencer_approve_by_invite_identity(monkeypatch) -> None
         captured_approval["pre_id"] = pre_id
         return {
             "ok": True,
-            "pre_influencer_id": pre_id,
-            "status": "approved",
+            "influencer_id": "creatorname",
+            "fp_ref_id": "fp-ref-456",
+            "fp_promoter_id": "fp-promoter-456",
         }
 
     monkeypatch.setattr(settings, "MJFP_TOKEN", "internal-secret")
@@ -89,7 +95,7 @@ def test_internal_pre_influencer_approve_by_invite_identity(monkeypatch) -> None
         _fake_lookup,
     )
     monkeypatch.setattr(
-        "app.api.mjpromoter.pre_influencers.approve_pre_influencer_status_only",
+        "app.api.mjpromoter.pre_influencers.run_pre_influencer_approval",
         _fake_approve,
     )
 
@@ -135,7 +141,7 @@ def test_internal_pre_influencer_approve_by_invite_identity_returns_404(
         _fake_lookup,
     )
     monkeypatch.setattr(
-        "app.api.mjpromoter.pre_influencers.approve_pre_influencer_status_only",
+        "app.api.mjpromoter.pre_influencers.run_pre_influencer_approval",
         _fake_approve,
     )
 
@@ -206,7 +212,7 @@ def test_internal_pre_influencer_approve_by_id_returns_404(monkeypatch) -> None:
 
     monkeypatch.setattr(settings, "MJFP_TOKEN", "internal-secret")
     monkeypatch.setattr(
-        "app.api.mjpromoter.pre_influencers.approve_pre_influencer_status_only",
+        "app.api.mjpromoter.pre_influencers.run_pre_influencer_approval",
         _fake_approve,
     )
 
