@@ -116,7 +116,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
         setLoadingList(true);
 
         const response = await apiClient.get<AudioResponse>(
-          Endpoints.influencerAudio(preInfluencerId),
+          Endpoints.pre_influencers.influencerAudio(preInfluencerId),
           {
             params: { token, temp_password },
           }
