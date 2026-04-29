@@ -5,6 +5,7 @@ from app.api.deps.internal_auth import require_internal_token
 from app.core.session import get_db
 from app.data.schemas.pre_influencer import (
     MJPreInfluencerAssetLinkOut,
+    MJPreInfluencerApproveOut,
     MJPreInfluencerStepProgressRequest,
     MJPreInfluencerStepProgressOut,
     MJPreInfluencerSurveyLinkOut,
@@ -61,6 +62,17 @@ def _get_asset_link(pre) -> str | None:
     raw_asset_link = answers.get("asset_link")
     asset_link = raw_asset_link.strip() if isinstance(raw_asset_link, str) else None
     return asset_link or None
+
+
+async def _approve_pre_influencer_for_mj(
+    db: AsyncSession,
+    pre_id: int,
+) -> MJPreInfluencerApproveOut:
+    await run_pre_influencer_approval(db, pre_id)
+    return MJPreInfluencerApproveOut(
+        pre_influencer_id=pre_id,
+        status="approved",
+    )
 
 
 @router.post("/step-progress", response_model=MJPreInfluencerStepProgressOut)
@@ -135,7 +147,7 @@ async def get_pre_influencer_survey_link_internal(
     )
 
 
-@router.post("/approve")
+@router.post("/approve", response_model=MJPreInfluencerApproveOut)
 async def approve_pre_influencer_by_mj_lookup_internal(
     payload: MJPreInfluencerStepProgressRequest,
     _internal_auth: None = Depends(require_internal_token),
@@ -149,13 +161,13 @@ async def approve_pre_influencer_by_mj_lookup_internal(
             detail="Pre-influencer approval target not found",
         )
 
-    return await run_pre_influencer_approval(db, pre.id)
+    return await _approve_pre_influencer_for_mj(db, pre.id)
 
 
-@router.post("/{pre_id}/approve")
+@router.post("/{pre_id}/approve", response_model=MJPreInfluencerApproveOut)
 async def approve_pre_influencer_internal(
     pre_id: int,
     _internal_auth: None = Depends(require_internal_token),
     db: AsyncSession = Depends(get_db),
 ):
-    return await run_pre_influencer_approval(db, pre_id)
+    return await _approve_pre_influencer_for_mj(db, pre_id)

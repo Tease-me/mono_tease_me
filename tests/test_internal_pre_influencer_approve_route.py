@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
 from app.api.mjpromoter import router as internal_router
@@ -37,7 +37,12 @@ def test_internal_pre_influencer_approve_requires_valid_internal_token(
 
     async def _fake_approve(db, pre_id: int):
         calls.append((db, pre_id))
-        return {"ok": True, "influencer_id": "loli"}
+        return {
+            "ok": True,
+            "influencer_id": "creatorname",
+            "fp_ref_id": "fp-ref-123",
+            "fp_promoter_id": "fp-promoter-123",
+        }
 
     monkeypatch.setattr(settings, "MJFP_TOKEN", "internal-secret")
     monkeypatch.setattr(
@@ -51,7 +56,11 @@ def test_internal_pre_influencer_approve_requires_valid_internal_token(
     )
 
     assert response.status_code == 200
-    assert response.json() == {"ok": True, "influencer_id": "loli"}
+    assert response.json() == {
+        "ok": True,
+        "pre_influencer_id": 123,
+        "status": "approved",
+    }
     assert len(calls) == 1
     assert calls[0][1] == 123
 
@@ -75,8 +84,8 @@ def test_internal_pre_influencer_approve_by_invite_identity(monkeypatch) -> None
         return {
             "ok": True,
             "influencer_id": "creatorname",
-            "fp_ref_id": "ref123",
-            "fp_promoter_id": "promoter123",
+            "fp_ref_id": "fp-ref-456",
+            "fp_promoter_id": "fp-promoter-456",
         }
 
     monkeypatch.setattr(settings, "MJFP_TOKEN", "internal-secret")
@@ -102,9 +111,8 @@ def test_internal_pre_influencer_approve_by_invite_identity(monkeypatch) -> None
     assert response.status_code == 200
     assert response.json() == {
         "ok": True,
-        "influencer_id": "creatorname",
-        "fp_ref_id": "ref123",
-        "fp_promoter_id": "promoter123",
+        "pre_influencer_id": 456,
+        "status": "approved",
     }
     assert captured_lookup["invite_code"] == "invite-123"
     assert captured_lookup["invitee_email"] == "user@example.com"
@@ -193,6 +201,28 @@ def test_internal_pre_influencer_approve_rejects_missing_token(monkeypatch) -> N
 
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid MJ promoter token"
+
+
+def test_internal_pre_influencer_approve_by_id_returns_404(monkeypatch) -> None:
+    app = _build_app()
+    client = TestClient(app)
+
+    async def _fake_approve(_db, _pre_id: int):
+        raise HTTPException(status_code=404, detail="PreInfluencer not found")
+
+    monkeypatch.setattr(settings, "MJFP_TOKEN", "internal-secret")
+    monkeypatch.setattr(
+        "app.api.mjpromoter.pre_influencers.run_pre_influencer_approval",
+        _fake_approve,
+    )
+
+    response = client.post(
+        "/mjpromoter/pre-influencers/999/approve",
+        headers={"X-Internal-Token": "internal-secret"},
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "PreInfluencer not found"}
 
 
 def test_internal_pre_influencer_approve_rejects_invalid_token(monkeypatch) -> None:

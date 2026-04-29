@@ -1,8 +1,16 @@
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.data.enums import InfluencerPublicationStatus
+from app.data.models import Influencer
+
+
+def _normalize_influencer_id(username: str | None) -> str:
+    return re.sub(r"[^a-z0-9_]", "", (username or "").lower())
 
 
 def _has_nonblank_asset_link(answers: dict[str, Any]) -> bool:
@@ -17,8 +25,23 @@ def _is_survey_step_complete(survey_step: Any) -> bool:
         return False
 
 
-async def derive_mj_survey_step(_db: AsyncSession, pre: Any) -> int:
+def _is_published_influencer(influencer: Any) -> bool:
+    return (
+        getattr(influencer, "publication_status", None)
+        == InfluencerPublicationStatus.PUBLISHED.value
+    )
+
+
+async def derive_mj_survey_step(db: AsyncSession, pre: Any) -> int:
     answers = pre.survey_answers if isinstance(pre.survey_answers, dict) else {}
+    influencer_id = _normalize_influencer_id(getattr(pre, "username", None))
+    influencer = await db.get(Influencer, influencer_id) if influencer_id else None
+
+    if influencer and _is_published_influencer(influencer):
+        return 5
+
+    if getattr(pre, "status", None) == "approved":
+        return 4
 
     if _has_nonblank_asset_link(answers):
         return 3
