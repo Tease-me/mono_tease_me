@@ -121,7 +121,7 @@ export function useFileUpload() {
         const formData = new FormData();
         formData.append('file', file);
 
-        const { data } = await apiClient.post(Endpoints.influencerAudio(preInfluencerId), formData, {
+        const { data } = await apiClient.post(Endpoints.pre_influencers.influencerAudio(preInfluencerId), formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
