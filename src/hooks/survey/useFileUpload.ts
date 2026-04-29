@@ -13,7 +13,7 @@ import { ERROR_MESSAGES } from '@/ui/screens/influencer-survey/utils/constants';
 
 interface UploadImageParams {
   file: File;
-  preInfluencerId: number;
+  preInfluencerId: number | string;
   token: string;
   temp_password: string;
 }
@@ -27,9 +27,9 @@ interface UploadImageResult {
 
 interface UploadAudioParams {
   file: File;
-  preInfluencerId: number;
-  token?: string;
-  temp_password?: string;
+  preInfluencerId: number | string;
+  token: string;
+  temp_password: string;
 }
 
 interface UploadAudioResult {
@@ -151,18 +151,13 @@ export function useFileUpload() {
     async ({
       preInfluencerId,
       key,
-      token,
-      temp_password,
     }: {
-      preInfluencerId: number;
+      preInfluencerId: number | string;
       key: string;
-      token?: string;
-      temp_password?: string;
     }): Promise<{ success: boolean; error?: string }> => {
       try {
-        await apiClient.delete(Endpoints.pre_influencers.audio(preInfluencerId), {
+        await apiClient.delete(Endpoints.pre_influencers.deleteAudio(preInfluencerId), {
           data: { key },
-          params: token ? { token, temp_password } : undefined,
         });
 
         return { success: true };

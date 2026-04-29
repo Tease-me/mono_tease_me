@@ -115,7 +115,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
       try {
         setLoadingList(true);
 
-        const response = await apiClient.post<AudioResponse>(
+        const response = await apiClient.get<AudioResponse>(
           Endpoints.pre_influencers.audio(preInfluencerId),
           {
             params: { token, temp_password },
@@ -345,6 +345,9 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
     ]
   );
 
+  const files = audioData?.files ?? [];
+  const filesNewestFirst = [...files].reverse();
+
   const handleDelete = useCallback(
     async (key: string) => {
       if (!window.confirm('Are you sure you want to delete this audio?')) {
@@ -353,12 +356,12 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
 
       if (!preInfluencerId) return;
 
-      const result = await deleteAudioFile({ preInfluencerId, key, token, temp_password });
+      const result = await deleteAudioFile({ preInfluencerId, key });
 
       if (result.success) {
+        const nextFiles = files.filter((file) => file.key !== key);
         setAudioData((prev) => {
           if (!prev) return prev;
-          const nextFiles = prev.files.filter((file) => file.key !== key);
           return {
             ...prev,
             files: nextFiles,
@@ -366,18 +369,16 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
           };
         });
         setLoadingList(true);
-        onCountChange(0);
+        onCountChange(nextFiles.length);
         onErrorChange(null);
         setRefreshKey((n) => n + 1);
       } else {
         onErrorChange(result.error || ERROR_MESSAGES.AUDIO_DELETE_FAILED);
       }
     },
-    [preInfluencerId, token, temp_password, deleteAudioFile, onErrorChange]
+    [preInfluencerId, files, deleteAudioFile, onCountChange, onErrorChange]
   );
 
-  const files = audioData?.files ?? [];
-  const filesNewestFirst = [...files].reverse();
   const isRecordingNow = recordingState.status === 'recording';
   const isCountdown = recordingState.status === 'countdown';
   const isUploading = recordingState.status === 'uploading';

@@ -37,6 +37,8 @@ export const Endpoints = {
       `/pre-influencers/${preInfluencerId}/approve`,
     audio: (preInfluencerId: number | string) =>
       `/pre-influencers/${preInfluencerId}/audio`,
+    deleteAudio: (preInfluencerId: number | string) =>
+      `/pre-influencers/influencer-audio/${preInfluencerId}`,
   },
   billing: {
     balance: "/billing/balance",
