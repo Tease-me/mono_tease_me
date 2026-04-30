@@ -13,6 +13,7 @@ export interface InfluencerDataModel {
   influencer_agent_id_third_part?: string;
   bio_json?: any;
   fp_ref_id?: string | null;
+  publication_status?: "draft" | "published" | "archived";
   social_connections?: {
     instagram: boolean;
     facebook: boolean;
