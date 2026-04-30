@@ -12,6 +12,7 @@ import { FollowServices } from "@/api/services/FollowServices";
 import { FunnelServices } from "@/api/services/FunnelServices";
 import { apiClient } from "@/api/apis";
 import { Paths } from "@/routes/path";
+import { PublicAssetPaths } from "@/constants/publicAssetPaths";
 import { storage } from "@/utils/storage";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
@@ -44,7 +45,7 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
   const { status, startConversation, stopConversation, setInfluencerId } = useCall();
 
   const audioRef = useRef(
-    new Howl({ src: ["/audio/ringtone.mp3"], loop: true, html5: false }),
+    new Howl({ src: [PublicAssetPaths.ringtone], loop: true, html5: false }),
   );
 
   const [error, setError] = useState<string | null>(null);

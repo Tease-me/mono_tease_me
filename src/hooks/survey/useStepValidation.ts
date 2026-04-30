@@ -8,6 +8,7 @@ import {
   validatePictureStep,
   validateSocialStep,
   validateAudioStep,
+  validateAssetStep,
   ValidationResult,
 } from '@/ui/screens/influencer-survey/validation/surveyValidation';
 
@@ -17,9 +18,9 @@ interface UseStepValidationProps {
   pictureStepIndex: number;
   socialStepIndex: number;
   audioStepIndex: number;
+  assetStepIndex: number;
   answers: Record<string, any>;
   audioCount: number;
-  audioHasRecorded: boolean;
 }
 
 /**
@@ -32,9 +33,9 @@ export function useStepValidation({
   pictureStepIndex,
   socialStepIndex,
   audioStepIndex,
+  assetStepIndex,
   answers,
   audioCount,
-  audioHasRecorded,
 }: UseStepValidationProps) {
   /**
    * Validate the current step
@@ -64,7 +65,12 @@ export function useStepValidation({
 
     // Audio upload step
     if (stepIndex === audioStepIndex) {
-      return validateAudioStep(audioCount, audioHasRecorded);
+      return validateAudioStep(audioCount);
+    }
+
+    // Asset upload step
+    if (stepIndex === assetStepIndex) {
+      return validateAssetStep(answers);
     }
 
     // Unknown step - pass validation
@@ -75,9 +81,9 @@ export function useStepValidation({
     pictureStepIndex,
     socialStepIndex,
     audioStepIndex,
+    assetStepIndex,
     answers,
     audioCount,
-    audioHasRecorded,
   ]);
 
   return { validateCurrentStep };

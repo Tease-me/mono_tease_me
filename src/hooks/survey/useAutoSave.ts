@@ -3,6 +3,7 @@
 
 import { useEffect, useRef } from 'react';
 import { apiClient } from '@/api/apis';
+import { Endpoints } from '@/api/urls';
 import { AUTO_SAVE_DEBOUNCE_MS } from '@/ui/screens/influencer-survey/utils/constants';
 
 interface UseAutoSaveProps {
@@ -73,7 +74,7 @@ export function useAutoSave({
           onSaveStart();
 
           await apiClient.put(
-            `/pre-influencers/${preInfluencerId}/survey`,
+            Endpoints.pre_influencers.surveyById(preInfluencerId),
             {
               survey_answers: answers,
               survey_step: currentStep,
@@ -151,7 +152,7 @@ export function useAutoSave({
         onSaveStart();
 
         await apiClient.put(
-          `/pre-influencers/${preInfluencerId}/survey`,
+          Endpoints.pre_influencers.surveyById(preInfluencerId),
           {
             survey_answers: answers,
             survey_step: currentStep,

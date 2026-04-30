@@ -22,6 +22,7 @@ import AvatarPicker from "@/ui/components/avatar-picker/AvatarPicker";
 import BlockingLoader from "@/ui/components/loading/BlockingLoader";
 import { storage } from "@/utils/storage";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
+import { PublicAssetPaths } from "@/constants/publicAssetPaths";
 
 export default function RegisterScreen() {
   const [step, setStep] = useState<1 | 2>(1);
@@ -29,7 +30,7 @@ export default function RegisterScreen() {
   const [selectedAvatarUrl, setSelectedAvatarUrl] = useState<string | undefined>(() => {
     const folder = Math.random() < 0.5 ? "human" : "animal";
     const index = Math.floor(Math.random() * 12) + 1;
-    return `/avatarImages/${folder}/avatar${index}.jpg`;
+    return PublicAssetPaths.avatarImage(folder, index);
   });
   const [account, setAccount] = useState({
     email: "",

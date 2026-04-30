@@ -162,13 +162,13 @@ function AppRoutes() {
     { path: Paths.influencerProfile(), element: <VipScreen /> },
     { path: Paths.join, element: <JoinPage /> },
     { path: Paths.incomeCalculator, element: <IncomeCalculatorScreen /> },
-    { path: Paths.profileSurvey, element: <ProfileSurvey /> },
+    { path: Paths.joinRegister, element: <ProfileSurvey /> },
     {
       path: Paths.influencerAudioManager(),
       element: <InfluencerAudioManagerRoute />,
     },
     { path: Paths.thankYou, element: <ThankYouScreen /> },
-    { path: Paths.profileSurveyForm, element: <ProfileSurveyForm /> },
+    { path: Paths.joinOnboarding, element: <ProfileSurveyForm /> },
     { path: Paths.voiceTerms, element: <RecordTerms /> },
     { path: Paths.influencerHome, element: <InfluencerHome /> },
     {

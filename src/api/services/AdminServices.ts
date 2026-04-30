@@ -46,6 +46,32 @@ export type AdminRelPatch = {
   last_interaction_at?: string; // ISO string
 };
 
+export type AdminInfluencerResponse = {
+  id: string;
+  display_name: string;
+  voice_id: string;
+  prompt_template: string;
+  influencer_agent_id_third_part: string;
+  bio_json: string;
+  fp_ref_id: string | null;
+  photo_url: string;
+  video_url: string;
+  created_at: string;
+  publication_status?: InfluencerPublicationStatus;
+};
+
+export type InfluencerPublicationStatus = "draft" | "published" | "archived";
+
+export type UpdateInfluencerPublicationRequest = {
+  published: boolean;
+};
+
+export type UpdateInfluencerPublicationResponse = {
+  ok: true;
+  influencer_id: string;
+  publication_status: InfluencerPublicationStatus;
+};
+
 export type ApiUsageSummaryGroup = {
   key: string;
   total_calls: number;
@@ -572,6 +598,22 @@ export interface FunnelCohortsResponse {
 }
 
 export const AdminServices = (apiClient: AxiosInstance) => ({
+  getInfluencers: async (): Promise<AdminInfluencerResponse[]> => {
+    const response = await apiClient.get(Endpoints.admin.influencers);
+    return response.data;
+  },
+
+  updateInfluencerPublication: async (
+    influencerId: string,
+    payload: UpdateInfluencerPublicationRequest
+  ): Promise<UpdateInfluencerPublicationResponse> => {
+    const response = await apiClient.post(
+      Endpoints.admin.influencerPublication(influencerId),
+      payload
+    );
+    return response.data;
+  },
+
   listAdultCharacters: async (): Promise<AdminAdultCharacter[]> => {
     const response = await apiClient.get(Endpoints.admin.adultCharacters.list);
     return response.data;
