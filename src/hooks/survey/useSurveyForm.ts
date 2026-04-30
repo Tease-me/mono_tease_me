@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { apiClient } from '@/api/apis';
+import { Endpoints } from '@/api/urls';
 import { SurveyStep } from '@/ui/screens/influencer-survey/validation/surveyValidation';
 import { useAutoSave } from './useAutoSave';
 import { ERROR_MESSAGES } from '@/ui/screens/influencer-survey/utils/constants';
@@ -30,7 +31,6 @@ export interface UseSurveyFormState {
 
   // Audio state
   audioCount: number;
-  audioHasRecorded: boolean;
   audioIsRecording: boolean;
   audioError: string | null;
 
@@ -52,6 +52,7 @@ export interface UseSurveyFormState {
   pictureStepIndex: number;
   socialStepIndex: number;
   audioStepIndex: number;
+  assetStepIndex: number;
   totalSteps: number;
 }
 
@@ -74,7 +75,6 @@ interface UseSurveyFormActions {
 
   // Audio
   setAudioCount: (count: number) => void;
-  setAudioHasRecorded: (hasRecorded: boolean) => void;
   setAudioIsRecording: (isRecording: boolean) => void;
   setAudioError: (error: string | null) => void;
 
@@ -121,7 +121,6 @@ export function useSurveyForm({
   const [isCropOpen, setIsCropOpen] = useState(false);
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [audioCount, setAudioCount] = useState<number>(0);
-  const [audioHasRecorded, setAudioHasRecorded] = useState<boolean>(false);
   const [audioIsRecording, setAudioIsRecording] = useState<boolean>(false);
   const [audioError, setAudioError] = useState<string | null>(null);
   const [socialError, setSocialError] = useState<string | null>(null);
@@ -136,7 +135,8 @@ export function useSurveyForm({
   const pictureStepIndex = surveyStepsCount;
   const socialStepIndex = surveyStepsCount + 1;
   const audioStepIndex = surveyStepsCount + 2;
-  const totalSteps = surveyStepsCount + 3;
+  const assetStepIndex = surveyStepsCount + 3;
+  const totalSteps = surveyStepsCount + 4;
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -162,10 +162,10 @@ export function useSurveyForm({
       try {
         // Fetch survey data and questions in parallel
         const [surveyResponse, questionsResponse] = await Promise.all([
-          apiClient.get<SurveyState>('/pre-influencers/survey', {
+          apiClient.get<SurveyState>(Endpoints.pre_influencers.survey, {
             params: { token, temp_password },
           }),
-          apiClient.get('/pre-influencers/survey/questions', {
+          apiClient.get(Endpoints.pre_influencers.surveyQuestions, {
             params: { token, temp_password },
           }),
         ]);
@@ -190,7 +190,7 @@ export function useSurveyForm({
         setSurveySteps(fetchedSteps);
 
         // Calculate safe step index
-        const maxStep = fetchedSteps.length + 2; // +3 for picture/social/audio, -1 for zero-index
+        const maxStep = fetchedSteps.length + 3; // +4 for picture/social/audio/asset, -1 for zero-index
         const safeStep = Math.min(surveyData.survey_step || 0, maxStep);
 
         // Set survey data
@@ -227,7 +227,7 @@ export function useSurveyForm({
     const fetchPictureUrl = async () => {
       try {
         const { data } = await apiClient.get<{ url: string }>(
-          `/pre-influencers/${preInfluencerId}/picture-url`,
+          Endpoints.pre_influencers.pictureUrl(preInfluencerId),
           { params: { token, temp_password } }
         );
         setPictureUrl(data.url);
@@ -313,7 +313,6 @@ export function useSurveyForm({
     isCropOpen,
     cropImageSrc,
     audioCount,
-    audioHasRecorded,
     audioIsRecording,
     audioError,
     socialError,
@@ -327,6 +326,7 @@ export function useSurveyForm({
     pictureStepIndex,
     socialStepIndex,
     audioStepIndex,
+    assetStepIndex,
     totalSteps,
   };
 
@@ -342,7 +342,6 @@ export function useSurveyForm({
     setIsCropOpen,
     setCropImageSrc,
     setAudioCount,
-    setAudioHasRecorded,
     setAudioIsRecording,
     setAudioError,
     setSocialError,

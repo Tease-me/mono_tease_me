@@ -6,8 +6,10 @@ import { useNavigate } from "react-router-dom";
 
 import { apiClient } from "@/api/apis";
 import { AuthServicesPreInfluencer } from "@/api/services/AuthServicesPreInfluencer";
+import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { Paths } from "@/routes/path";
 import ResendEmailModal from "@/ui/screens/join/components/ResendEmailModal";
+import { storage } from "@/utils/storage";
 import SvgPack from "@/utils/SvgPack";
 import "./ProfileSurvey.css";
 
@@ -19,7 +21,10 @@ const ProfileSurvey: React.FC = () => {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
+  const [email] = useState(() => {
+    const attribution = storage.getObject<{ inviteeEmail?: string }>(LocalStorageKeys.JoinAttribution);
+    return attribution?.inviteeEmail ?? "";
+  });
   const [showResendDialog, setShowResendDialog] = useState(false);
   const [resendEmail, setResendEmail] = useState("");
   const [resendError, setResendError] = useState("");
@@ -80,6 +85,8 @@ const ProfileSurvey: React.FC = () => {
       });
 
       if (response.ok) {
+        storage.remove(LocalStorageKeys.JoinAttribution);
+        storage.remove(LocalStorageKeys.ParentRefId);
         navigate(Paths.thankYou);
         return;
       }
@@ -195,14 +202,14 @@ const ProfileSurvey: React.FC = () => {
           {/* Email */}
           <div className="ps-field">
             <label className="ps-label">
-              Email <span className="ps-required">*</span>
+              Email
             </label>
             {errors.email && <span className="ps-error">{errors.email}</span>}
             <input
               className="ps-input"
               placeholder="Your email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              disabled
             />
           </div>
 

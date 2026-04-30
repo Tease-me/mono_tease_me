@@ -1,6 +1,7 @@
 import React, { lazy, Suspense, useCallback, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { apiClient } from '@/api/apis';
+import { Endpoints } from '@/api/urls';
 import { Paths } from '@/routes/path';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
@@ -16,6 +17,7 @@ import { isMediaRecorderSupported, isGetUserMediaSupported } from './utils/fileU
 const UploadPictureStep = lazy(() => import('./components/UploadPictureStep'));
 const UploadAudioStep = lazy(() => import('./components/UploadAudioStep'));
 const SocialMediaStep = lazy(() => import('./components/SocialMediaStep'));
+const AssetUploadStep = lazy(() => import('./components/AssetUploadStep'));
 
 // Loading fallback component
 const LoadingFallback: React.FC = () => (
@@ -42,9 +44,9 @@ const ProfileSurveyForm: React.FC = () => {
     pictureStepIndex: state.pictureStepIndex,
     socialStepIndex: state.socialStepIndex,
     audioStepIndex: state.audioStepIndex,
+    assetStepIndex: state.assetStepIndex,
     answers: state.answers,
     audioCount: state.audioCount,
-    audioHasRecorded: state.audioHasRecorded,
   });
 
   useEffect(() => {
@@ -77,7 +79,7 @@ const ProfileSurveyForm: React.FC = () => {
       actions.setTermsError(null);
 
       await apiClient.post(
-        `/pre-influencers/${state.preInfluencerId}/accept-terms`,
+        Endpoints.pre_influencers.acceptTerms(state.preInfluencerId),
         { terms_agreement: true },
         {
           params: token ? { token } : undefined,
@@ -96,7 +98,7 @@ const ProfileSurveyForm: React.FC = () => {
       }
 
       actions.setShowTermsModal(false);
-      navigate(Paths.thankYou);
+      navigate(Paths.thankYou, { replace: true });
     } catch (error) {
       console.error('Error accepting terms:', error);
       actions.setTermsError('Failed to record acceptance. Please try again.');
@@ -180,7 +182,7 @@ const ProfileSurveyForm: React.FC = () => {
       actions.goToNextStep();
       requestAnimationFrame(scrollToTop);
     } else {
-      navigate(Paths.thankYou);
+      navigate(Paths.thankYou, { replace: true });
     }
   }, [
     validateCurrentStep,
@@ -244,6 +246,7 @@ const ProfileSurveyForm: React.FC = () => {
   const isPictureStep = state.currentStep === state.pictureStepIndex;
   const isSocialsStep = state.currentStep === state.socialStepIndex;
   const isAudioStep = state.currentStep === state.audioStepIndex;
+  const isAssetStep = state.currentStep === state.assetStepIndex;
   const isLastStep = state.currentStep === state.totalSteps - 1;
 
   // Get current survey step
@@ -266,6 +269,8 @@ const ProfileSurveyForm: React.FC = () => {
     stepTitle = 'Add Your Social Media';
   } else if (isAudioStep) {
     stepTitle = 'Upload Your Audio';
+  } else if (isAssetStep) {
+    stepTitle = 'Asset Upload';
   }
 
   return (
@@ -286,9 +291,6 @@ const ProfileSurveyForm: React.FC = () => {
             <div className={styles.headerRow}>
               <div>
                 <h2 className={styles.title}>{stepTitle}</h2>
-                <p className={styles.subtitle}>
-                  Step {state.currentStep + 1} of {state.totalSteps}
-                </p>
               </div>
               <span className={styles.saving}>{state.isSaving ? 'Saving...' : 'Saved'}</span>
             </div>
@@ -387,15 +389,26 @@ const ProfileSurveyForm: React.FC = () => {
               {isAudioStep && state.preInfluencerId && (
                 <Suspense fallback={<LoadingFallback />}>
                   <UploadAudioStep
-                    influencerId={state.preInfluencerId}
+                    preInfluencerId={state.preInfluencerId}
                     token={token}
                     temp_password={temp_password}
-                    audioHasRecorded={state.audioHasRecorded}
                     audioError={state.audioError}
                     onCountChange={actions.setAudioCount}
-                    onHasRecordedChange={actions.setAudioHasRecorded}
                     onIsRecordingChange={actions.setAudioIsRecording}
                     onErrorChange={actions.setAudioError}
+                  />
+                </Suspense>
+              )}
+
+              {/* Asset Upload Step */}
+              {isAssetStep && (
+                <Suspense fallback={<LoadingFallback />}>
+                  <AssetUploadStep
+                    pictureUrl={state.pictureUrl}
+                    username={state.preInfluencerUsername}
+                    assetLink={state.answers['asset_link'] || ''}
+                    assetError={state.fieldErrors['asset_link'] || null}
+                    onAssetLinkChange={(value) => actions.updateAnswer('asset_link', value)}
                   />
                 </Suspense>
               )}
@@ -403,24 +416,36 @@ const ProfileSurveyForm: React.FC = () => {
 
             {/* Bottom Navigation */}
             <div className={styles.bottomBar}>
-              <div className={styles.buttonRow}>
-                <div>
-                  <NormalButton
-                    onClick={handleBack}
-                    text="Back"
-                    disabled={state.currentStep === 0 || state.audioIsRecording}
-                    leftIcon={<SvgPack.ArrowLeft />}
-                  />
+              {isAssetStep ? (
+                <div className={styles.submitRow}>
+                  <div className={styles.submitButtonWrap}>
+                    <PrimaryButton
+                      onClick={handleNext}
+                      text="Submit"
+                      disabled={!validateCurrentStep().valid}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <PrimaryButton
-                    onClick={handleNext}
-                    text={isLastStep ? 'Finish' : 'Next'}
-                    disabled={state.audioIsRecording || !validateCurrentStep().valid}
-                    rightIcon={<SvgPack.ArrowRight />}
-                  />
+              ) : (
+                <div className={styles.buttonRow}>
+                  <div>
+                    <NormalButton
+                      onClick={handleBack}
+                      text="Back"
+                      disabled={state.currentStep === 0 || state.audioIsRecording}
+                      leftIcon={<SvgPack.ArrowLeft />}
+                    />
+                  </div>
+                  <div>
+                    <PrimaryButton
+                      onClick={handleNext}
+                      text={isLastStep ? 'Finish' : 'Next'}
+                      disabled={state.audioIsRecording || !validateCurrentStep().valid}
+                      rightIcon={<SvgPack.ArrowRight />}
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             <div className={styles.spacerSurvey}></div>

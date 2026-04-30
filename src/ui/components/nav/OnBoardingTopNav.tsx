@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from "./OnBoardingTopNav.module.css"
 import BackArrowIcon from "@/assets/svg/ArrowLeft.svg?react"
-import TeaseMeLogo from "@/ui/components/logos/TeaseMeLogo";
+import teaseMeIconDark from "@/assets/logos/3D-IconTeaseMe-Dark.svg";
 import { useNavigate } from 'react-router-dom';
 import { Paths } from "@/routes/path";
 
@@ -17,7 +17,9 @@ const OnBoardingTopNav: React.FC<OnBoardingTopNavProps> = ({ onBackClicked }) =>
                 {onBackClicked && <BackArrowIcon onClick={onBackClicked} />}
             </div>
             <div className={styles["right-container"]}>
-                <TeaseMeLogo onClick={() => navigate(Paths.root)} variant='icon-only-light' />
+                <div className={styles.logoWrap} onClick={() => navigate(Paths.root)}>
+                    <img src={teaseMeIconDark} alt="TeaseMe" />
+                </div>
             </div>
         </div>
     );

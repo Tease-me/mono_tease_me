@@ -130,14 +130,31 @@ export function validateSocialStep(answers: Record<string, any>): ValidationResu
   };
 }
 
-export function validateAudioStep(
-  audioCount: number,
-  hasRecorded: boolean
-): ValidationResult {
+export function validateAudioStep(audioCount: number): ValidationResult {
   const errors: Record<string, string> = {};
 
-  if (!hasRecorded || audioCount <= 0) {
+  if (audioCount <= 0) {
     errors['audio'] = ERROR_MESSAGES.AUDIO_REQUIRED;
+  }
+
+  return {
+    valid: Object.keys(errors).length === 0,
+    errors,
+  };
+}
+
+export function validateAssetStep(answers: Record<string, any>): ValidationResult {
+  const errors: Record<string, string> = {};
+  const link = answers['asset_link'];
+
+  if (!link || typeof link !== 'string' || !link.trim()) {
+    errors['asset_link'] = ERROR_MESSAGES.ASSET_LINK_REQUIRED;
+  } else {
+    try {
+      new URL(link.trim());
+    } catch {
+      errors['asset_link'] = 'Please enter a valid link (e.g. from Google Drive, Dropbox or iCloud).';
+    }
   }
 
   return {

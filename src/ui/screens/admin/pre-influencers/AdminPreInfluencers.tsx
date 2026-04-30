@@ -1,4 +1,5 @@
 import { apiClient } from "@/api/apis";
+import { Endpoints } from "@/api/urls";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Paths } from "@/routes/path";
@@ -41,7 +42,7 @@ export default function AdminPreInfluencers() {
     setMsg("");
     try {
       const { data } = await apiClient.get<PreInfluencer[]>(
-        "/pre-influencers",
+        Endpoints.pre_influencers.list,
         { params: { status: "pending" } }
       );
       setItems(data);
@@ -80,7 +81,7 @@ export default function AdminPreInfluencers() {
     setMsg("");
     try {
       const { data } = await apiClient.post<ApproveResponse>(
-        `/pre-influencers/${preId}/approve`
+        Endpoints.pre_influencers.approve(preId)
       );
 
       if (data?.ok) {

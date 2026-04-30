@@ -105,6 +105,9 @@ export const ERROR_MESSAGES = {
   SOCIAL_HANDLE_REQUIRED_CONNECT: 'Please enter your handle before connecting.',
   SOCIAL_CONNECTION_FAILED: 'Connection failed. Please enter manually.',
 
+  // Asset Upload
+  ASSET_LINK_REQUIRED: 'Please paste a link to your assets before continuing.',
+
   // Terms
   TERMS_ACCEPT_FAILED: 'Failed to record acceptance. Please try again.',
 

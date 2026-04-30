@@ -1,4 +1,5 @@
 import { apiClient } from "@/api/apis";
+import { Endpoints } from "@/api/urls";
 import { Paths } from "@/routes/path";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -147,7 +148,7 @@ export default function AdminPreInfluencerDetail() {
     const fetchPictureUrl = async () => {
       try {
         const { data } = await apiClient.get<{ url: string }>(
-          `/pre-influencers/${preInfluencerId}/picture-url`
+          Endpoints.pre_influencers.pictureUrl(preInfluencerId)
         );
         if (!canceled) {
           setPictureUrl(data.url);
@@ -174,7 +175,7 @@ export default function AdminPreInfluencerDetail() {
       setAudioState((prev) => ({ ...prev, loading: true, error: null }));
       try {
         const { data } = await apiClient.get<AudioResponse>(
-          `/influencer/influencer-audio/${preInfluencerId}`
+          Endpoints.influencerAudio(preInfluencerId)
         );
         if (canceled) return;
         const files = data?.files ?? [];
@@ -209,7 +210,7 @@ export default function AdminPreInfluencerDetail() {
     setMessage("");
     try {
       const { data } = await apiClient.post<ApproveResponse>(
-        `/pre-influencers/${preInfluencerId}/approve`
+        Endpoints.pre_influencers.approve(preInfluencerId)
       );
       if (data?.ok) {
         setMessage(

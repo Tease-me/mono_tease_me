@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { apiClient } from '@/api/apis';
+import { Endpoints } from '@/api/urls';
 import surveyStyles from '../ProfileSurvey.module.css';
 import styles from './UploadAudioStep.module.css';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
@@ -24,19 +25,17 @@ interface AudioFile {
 }
 
 interface AudioResponse {
-  influencer_id?: string;
+  pre_influencer_id?: number | string;
   count?: number;
   files: AudioFile[];
 }
 
 interface UploadAudioStepProps {
-  influencerId: number | null;
+  preInfluencerId: number | null;
   token: string;
   temp_password: string;
-  audioHasRecorded: boolean;
   audioError: string | null;
   onCountChange: (count: number) => void;
-  onHasRecordedChange: (hasRecorded: boolean) => void;
   onIsRecordingChange: (isRecording: boolean) => void;
   onErrorChange: (error: string | null) => void;
 }
@@ -49,13 +48,11 @@ type RecordingState =
   | { status: 'uploading' };
 
 const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
-  influencerId,
+  preInfluencerId,
   token,
   temp_password,
-  audioHasRecorded,
   audioError,
   onCountChange,
-  onHasRecordedChange,
   onIsRecordingChange,
   onErrorChange,
 }) => {
@@ -105,8 +102,8 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
   }, []);
 
   useEffect(() => {
-    if (!influencerId) {
-      setAudioData({ influencer_id: String(influencerId), count: 0, files: [] });
+    if (!preInfluencerId) {
+      setAudioData({ pre_influencer_id: String(preInfluencerId), count: 0, files: [] });
       onCountChange(0);
       setLoadingList(false);
       return;
@@ -119,10 +116,9 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
         setLoadingList(true);
 
         const response = await apiClient.get<AudioResponse>(
-          `/influencer/influencer-audio/${influencerId}`,
+          Endpoints.pre_influencers.audio(preInfluencerId),
           {
-            params: token ? { token, temp_password } : undefined,
-            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+            params: { token, temp_password },
           }
         );
 
@@ -130,14 +126,9 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
 
         const files = response.data.files ?? [];
         const count = response.data.count ?? files.length ?? 0;
-        const newHasRecorded = audioHasRecorded || count > 0;
 
         setAudioData({ ...response.data, files, count });
-        onCountChange(newHasRecorded ? count : 0);
-
-        if (newHasRecorded) {
-          onHasRecordedChange(true);
-        }
+        onCountChange(count);
 
         onErrorChange(null);
       } catch (error: any) {
@@ -145,12 +136,14 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
 
         const detail = error?.response?.data?.detail;
         if (detail === 'Influencer has no audio file stored') {
-          setAudioData({ influencer_id: String(influencerId), count: 0, files: [] });
+          setAudioData({ pre_influencer_id: String(preInfluencerId), count: 0, files: [] });
           onCountChange(0);
           onErrorChange(null);
         } else {
           console.error('Failed to load audio files:', error);
-          onErrorChange('Unable to load your audio. Please re-upload.');
+          setAudioData(null);
+          onCountChange(0);
+          onErrorChange('Unable to load your audio. Please try again.');
         }
       } finally {
         if (!canceled) {
@@ -159,12 +152,12 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
       }
     };
 
-    loadAudioFiles();
+    void loadAudioFiles();
 
     return () => {
       canceled = true;
     };
-  }, [influencerId, token, temp_password, refreshKey, audioHasRecorded]);
+  }, [preInfluencerId, token, temp_password, refreshKey, onCountChange, onErrorChange]);
 
   const startCountdown = useCallback(() => {
     if (!isGetUserMediaSupported() || !isMediaRecorderSupported()) {
@@ -317,11 +310,11 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
           type: mimeType || 'audio/webm',
         });
 
-        if (!influencerId) throw new Error('Missing influencer ID');
+        if (!preInfluencerId) throw new Error('Missing pre-influencer ID');
 
         const result = await uploadAudioFile({
           file,
-          influencerId,
+          preInfluencerId,
           token,
           temp_password,
         });
@@ -330,8 +323,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
           throw new Error(result.error || ERROR_MESSAGES.AUDIO_UPLOAD_FAILED);
         }
 
-        onHasRecordedChange(true);
-        onCountChange(1);
+        setLoadingList(true);
         setRefreshKey((n) => n + 1);
         onErrorChange(null);
         setRecordingState({ status: 'idle' });
@@ -344,16 +336,17 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
       }
     },
     [
-      influencerId,
+      preInfluencerId,
       token,
       temp_password,
       uploadAudioFile,
       cleanup,
-      onHasRecordedChange,
-      onCountChange,
       onErrorChange,
     ]
   );
+
+  const files = audioData?.files ?? [];
+  const filesNewestFirst = [...files].reverse();
 
   const handleDelete = useCallback(
     async (key: string) => {
@@ -361,22 +354,31 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
         return;
       }
 
-      if (!influencerId) return;
+      if (!preInfluencerId) return;
 
-      const result = await deleteAudioFile({ influencerId, key, token, temp_password });
+      const result = await deleteAudioFile({ preInfluencerId, key });
 
       if (result.success) {
+        const nextFiles = files.filter((file) => file.key !== key);
+        setAudioData((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            files: nextFiles,
+            count: nextFiles.length,
+          };
+        });
+        setLoadingList(true);
+        onCountChange(nextFiles.length);
         onErrorChange(null);
         setRefreshKey((n) => n + 1);
       } else {
         onErrorChange(result.error || ERROR_MESSAGES.AUDIO_DELETE_FAILED);
       }
     },
-    [influencerId, token, temp_password, deleteAudioFile, onErrorChange]
+    [preInfluencerId, files, deleteAudioFile, onCountChange, onErrorChange]
   );
 
-  const files = audioData?.files ?? [];
-  const filesNewestFirst = [...files].reverse();
   const isRecordingNow = recordingState.status === 'recording';
   const isCountdown = recordingState.status === 'countdown';
   const isUploading = recordingState.status === 'uploading';
@@ -523,7 +525,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
 
           {loadingList && <div>Loading audio files…</div>}
 
-          {!loadingList && files.length === 0 && <div>No audio files uploaded yet.</div>}
+          {!loadingList && files.length === 0 && !audioError && <div>No audio files uploaded yet.</div>}
 
           {!loadingList && filesNewestFirst.length > 0 && (
             <ul style={{ listStyle: 'none', padding: 0, margin: '16px 0 0' }}>
@@ -543,7 +545,9 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
                     controls
                     src={file.download_url}
                     style={{ width: '100%', marginBottom: 8 }}
-                    onError={() => onErrorChange('Some audio files failed to load. Please try re-uploading.')}
+                    onError={() => {
+                      console.warn('Failed to preview audio file', file.key ?? file.download_url);
+                    }}
                   />
 
                   <div style={{ display: 'flex', gap: 8 }}>

@@ -136,7 +136,7 @@ const TeaseMeIncomeCalculator: React.FC = () => {
 
         <div className="tm-income-button-container">
           <PrimaryButton
-            onClick={() => navigate(Paths.profileSurvey)}
+            onClick={() => navigate(Paths.joinRegister)}
             text="Start Building Persona"
             rightIcon={<SvgPack.ArrowRight />}
           />

@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { apiClient } from "@/api/apis";
+import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
+import { AdminInfluencerRepo } from "@/data/repositories/AdminInfluencerRepo";
 import {
   AdminInfluencerEmailHeaderResponse,
   AdminInfluencerLandingAssetsPayload,
@@ -7,11 +9,9 @@ import {
   AdminServices,
   AdminTelegramWelcomeMediaResponse,
 } from "@/api/services/AdminServices";
+import type { InfluencerPublicationStatus } from "@/api/services/AdminServices";
 import { InfluencerServices } from "@/api/services/InfluencerService";
-import {
-  InfluencerProfileUploadResponse,
-  InfluencerResponse,
-} from "@/api/models/influencers";
+import { InfluencerProfileUploadResponse } from "@/api/models/influencers";
 import AssetPreview, {
   AssetPreviewFrame,
   AssetPreviewType,
@@ -23,6 +23,7 @@ import styles from "./AdminInfluencerAssets.module.css";
 
 const admin = AdminServices(apiClient);
 const influencerSvc = InfluencerServices(apiClient);
+const adminInfluencerRepo = AdminInfluencerRepo();
 
 type LandingSlotConfig = {
   field: keyof AdminInfluencerLandingAssetsPayload;
@@ -332,7 +333,7 @@ const isValidJpegFile = (file: File) => {
 };
 
 const AdminInfluencerAssets: React.FC = () => {
-  const [influencers, setInfluencers] = useState<InfluencerResponse[]>([]);
+  const [influencers, setInfluencers] = useState<InfluencerDataModel[]>([]);
   const [selectedInfluencerId, setSelectedInfluencerId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [loadingInfluencers, setLoadingInfluencers] = useState(false);
@@ -389,12 +390,14 @@ const AdminInfluencerAssets: React.FC = () => {
   const [uploadingTelegramMedia, setUploadingTelegramMedia] = useState(false);
 
   const [pageMessage, setPageMessage] = useState<string | null>(null);
+  const [publicationError, setPublicationError] = useState<string | null>(null);
+  const [updatingPublication, setUpdatingPublication] = useState(false);
 
   useEffect(() => {
     let active = true;
     setLoadingInfluencers(true);
     setListError(null);
-    influencerSvc
+    adminInfluencerRepo
       .getInfluencers()
       .then((data) => {
         if (!active) return;
@@ -523,7 +526,7 @@ const AdminInfluencerAssets: React.FC = () => {
     const normalized = searchTerm.trim().toLowerCase();
     return influencers.filter((item) => {
       return (
-        item.display_name?.toLowerCase().includes(normalized) ||
+        item.name?.toLowerCase().includes(normalized) ||
         item.id.toLowerCase().includes(normalized)
       );
     });
@@ -533,12 +536,15 @@ const AdminInfluencerAssets: React.FC = () => {
     () => influencers.find((item) => item.id === selectedInfluencerId) ?? null,
     [influencers, selectedInfluencerId]
   );
+  const selectedPublicationStatus: InfluencerPublicationStatus =
+    selectedInfluencer?.publication_status ?? "draft";
+  const isSelectedPublished = selectedPublicationStatus === "published";
 
   useEffect(() => {
     setOpenTopLevelGroup(TOP_LEVEL_PROFILE);
     setProfileMedia({
-      photoUrl: selectedInfluencer?.photo_url ?? null,
-      videoUrl: selectedInfluencer?.video_url ?? null,
+      photoUrl: selectedInfluencer?.img ?? null,
+      videoUrl: selectedInfluencer?.videoUrl ?? null,
     });
     setPendingProfilePhoto(null);
     setPendingProfileVideo(null);
@@ -556,7 +562,8 @@ const AdminInfluencerAssets: React.FC = () => {
     setTelegramAudio2ReplaceMode(false);
     setTelegramVideoReplaceMode(false);
     setTelegramMediaError(null);
-  }, [selectedInfluencerId, selectedInfluencer?.photo_url, selectedInfluencer?.video_url]);
+    setPublicationError(null);
+  }, [selectedInfluencerId, selectedInfluencer?.img, selectedInfluencer?.videoUrl]);
 
   const landingStagedCount = countPendingLandingFiles(pendingLandingUploads);
   const profileStagedCount =
@@ -646,8 +653,8 @@ const AdminInfluencerAssets: React.FC = () => {
           item.id === selectedInfluencerId
             ? {
               ...item,
-              photo_url: updated.photo_url ?? item.photo_url,
-              video_url: updated.video_url ?? item.video_url,
+              img: updated.photo_url ?? item.img,
+              videoUrl: updated.video_url ?? item.videoUrl,
             }
             : item
         )
@@ -746,6 +753,43 @@ const AdminInfluencerAssets: React.FC = () => {
       );
     } finally {
       setUploadingEmailHeader(false);
+    }
+  };
+
+  const handleTogglePublication = async () => {
+    if (!selectedInfluencerId) return;
+
+    const nextPublished = !isSelectedPublished;
+    setUpdatingPublication(true);
+    setPublicationError(null);
+    setPageMessage(null);
+
+    try {
+      const updated = await adminInfluencerRepo.updatePublication(
+        selectedInfluencerId,
+        nextPublished
+      );
+      setInfluencers((prev) =>
+        prev.map((item) =>
+          item.id === selectedInfluencerId
+            ? { ...item, publication_status: updated.publication_status }
+            : item
+        )
+      );
+      setPageMessage(
+        updated.publication_status === "published"
+          ? "Influencer published."
+          : "Influencer moved to draft."
+      );
+    } catch (e: any) {
+      setPublicationError(
+        getErrorMessage(
+          e,
+          nextPublished ? "Failed to publish influencer." : "Failed to unpublish influencer."
+        )
+      );
+    } finally {
+      setUpdatingPublication(false);
     }
   };
 
@@ -859,7 +903,7 @@ const AdminInfluencerAssets: React.FC = () => {
                         onClick={() => setSelectedInfluencerId(influencer.id)}
                       >
                         <span className={styles["influencer-name"]}>
-                          {influencer.display_name || influencer.id}
+                      {influencer.name || influencer.id}
                         </span>
                         <span className={styles["influencer-id"]}>@{influencer.id}</span>
                       </button>
@@ -881,7 +925,7 @@ const AdminInfluencerAssets: React.FC = () => {
               <div className={styles["detail-card"]}>
                 <div className={styles["detail-header"]}>
                   <div>
-                    <h2>{selectedInfluencer?.display_name || selectedInfluencerId}</h2>
+                    <h2>{selectedInfluencer?.name || selectedInfluencerId}</h2>
                     <p>Review and stage profile, landing, and Telegram media from one place.</p>
                   </div>
                   <div className={styles["detail-meta"]}>
@@ -890,11 +934,40 @@ const AdminInfluencerAssets: React.FC = () => {
                       Updated {formatDate(landingAssets?.updated_at || telegramMedia?.updated_at)}
                     </span>
                   </div>
+                  <div className={styles["publication-actions"]}>
+                    <span
+                      className={`${styles["publication-status"]} ${
+                        isSelectedPublished
+                          ? styles["publication-status--published"]
+                          : styles["publication-status--draft"]
+                      }`}
+                    >
+                      {selectedPublicationStatus}
+                    </span>
+                    <button
+                      type="button"
+                      className={styles["publication-button"]}
+                      onClick={handleTogglePublication}
+                      disabled={updatingPublication}
+                    >
+                      {updatingPublication
+                        ? "Updating..."
+                        : isSelectedPublished
+                          ? "Unpublish"
+                          : "Publish"}
+                    </button>
+                  </div>
                 </div>
 
                 {pageMessage && (
                   <div className={`${styles["message"]} ${styles["message--success"]}`}>
                     {pageMessage}
+                  </div>
+                )}
+
+                {publicationError && (
+                  <div className={`${styles["message"]} ${styles["message--error"]}`}>
+                    {publicationError}
                   </div>
                 )}
 
