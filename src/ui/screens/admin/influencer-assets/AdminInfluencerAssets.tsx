@@ -9,6 +9,7 @@ import {
   AdminServices,
   AdminTelegramWelcomeMediaResponse,
 } from "@/api/services/AdminServices";
+import type { InfluencerPublicationStatus } from "@/api/services/AdminServices";
 import { InfluencerServices } from "@/api/services/InfluencerService";
 import { InfluencerProfileUploadResponse } from "@/api/models/influencers";
 import AssetPreview, {
@@ -389,6 +390,8 @@ const AdminInfluencerAssets: React.FC = () => {
   const [uploadingTelegramMedia, setUploadingTelegramMedia] = useState(false);
 
   const [pageMessage, setPageMessage] = useState<string | null>(null);
+  const [publicationError, setPublicationError] = useState<string | null>(null);
+  const [updatingPublication, setUpdatingPublication] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -533,6 +536,9 @@ const AdminInfluencerAssets: React.FC = () => {
     () => influencers.find((item) => item.id === selectedInfluencerId) ?? null,
     [influencers, selectedInfluencerId]
   );
+  const selectedPublicationStatus: InfluencerPublicationStatus =
+    selectedInfluencer?.publication_status ?? "draft";
+  const isSelectedPublished = selectedPublicationStatus === "published";
 
   useEffect(() => {
     setOpenTopLevelGroup(TOP_LEVEL_PROFILE);
@@ -556,6 +562,7 @@ const AdminInfluencerAssets: React.FC = () => {
     setTelegramAudio2ReplaceMode(false);
     setTelegramVideoReplaceMode(false);
     setTelegramMediaError(null);
+    setPublicationError(null);
   }, [selectedInfluencerId, selectedInfluencer?.img, selectedInfluencer?.videoUrl]);
 
   const landingStagedCount = countPendingLandingFiles(pendingLandingUploads);
@@ -749,6 +756,43 @@ const AdminInfluencerAssets: React.FC = () => {
     }
   };
 
+  const handleTogglePublication = async () => {
+    if (!selectedInfluencerId) return;
+
+    const nextPublished = !isSelectedPublished;
+    setUpdatingPublication(true);
+    setPublicationError(null);
+    setPageMessage(null);
+
+    try {
+      const updated = await adminInfluencerRepo.updatePublication(
+        selectedInfluencerId,
+        nextPublished
+      );
+      setInfluencers((prev) =>
+        prev.map((item) =>
+          item.id === selectedInfluencerId
+            ? { ...item, publication_status: updated.publication_status }
+            : item
+        )
+      );
+      setPageMessage(
+        updated.publication_status === "published"
+          ? "Influencer published."
+          : "Influencer moved to draft."
+      );
+    } catch (e: any) {
+      setPublicationError(
+        getErrorMessage(
+          e,
+          nextPublished ? "Failed to publish influencer." : "Failed to unpublish influencer."
+        )
+      );
+    } finally {
+      setUpdatingPublication(false);
+    }
+  };
+
   const openLandingReplaceMode = (
     field: keyof AdminInfluencerLandingAssetsPayload
   ) => {
@@ -890,11 +934,40 @@ const AdminInfluencerAssets: React.FC = () => {
                       Updated {formatDate(landingAssets?.updated_at || telegramMedia?.updated_at)}
                     </span>
                   </div>
+                  <div className={styles["publication-actions"]}>
+                    <span
+                      className={`${styles["publication-status"]} ${
+                        isSelectedPublished
+                          ? styles["publication-status--published"]
+                          : styles["publication-status--draft"]
+                      }`}
+                    >
+                      {selectedPublicationStatus}
+                    </span>
+                    <button
+                      type="button"
+                      className={styles["publication-button"]}
+                      onClick={handleTogglePublication}
+                      disabled={updatingPublication}
+                    >
+                      {updatingPublication
+                        ? "Updating..."
+                        : isSelectedPublished
+                          ? "Unpublish"
+                          : "Publish"}
+                    </button>
+                  </div>
                 </div>
 
                 {pageMessage && (
                   <div className={`${styles["message"]} ${styles["message--success"]}`}>
                     {pageMessage}
+                  </div>
+                )}
+
+                {publicationError && (
+                  <div className={`${styles["message"]} ${styles["message--error"]}`}>
+                    {publicationError}
                   </div>
                 )}
 

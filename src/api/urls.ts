@@ -107,6 +107,8 @@ export const Endpoints = {
   uploadCsv: "persona/import-csv",
   admin: {
     influencers: `admin/influencers`,
+    influencerPublication: (influencerId: string) =>
+      `admin/influencers/${encodeURIComponent(influencerId)}/publication`,
     adultCharacters: {
       list: `admin/adult-characters`,
       byId: (characterId: number) => `admin/adult-characters/${characterId}`,

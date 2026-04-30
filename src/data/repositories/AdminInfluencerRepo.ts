@@ -1,5 +1,9 @@
 import { apiClient } from "@/api/apis";
-import { AdminInfluencerResponse, AdminServices } from "@/api/services/AdminServices";
+import {
+  AdminInfluencerResponse,
+  AdminServices,
+  UpdateInfluencerPublicationResponse,
+} from "@/api/services/AdminServices";
 
 import { InfluencerDataModel } from "../models/InfluencerDataModel";
 
@@ -20,6 +24,7 @@ const toInfluencerDataModel = (
   voice_id: response.voice_id,
   created_at: response.created_at,
   fp_ref_id: response.fp_ref_id,
+  publication_status: response.publication_status,
   earnings: existing?.earnings ?? 0,
   isSelected: existing?.isSelected ?? false,
 });
@@ -28,5 +33,12 @@ export const AdminInfluencerRepo = () => ({
   getInfluencers: async (): Promise<InfluencerDataModel[]> => {
     const response = await adminServices.getInfluencers();
     return response.map((item) => toInfluencerDataModel(item));
+  },
+
+  updatePublication: async (
+    influencerId: string,
+    published: boolean
+  ): Promise<UpdateInfluencerPublicationResponse> => {
+    return adminServices.updateInfluencerPublication(influencerId, { published });
   },
 });
