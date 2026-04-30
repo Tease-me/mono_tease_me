@@ -9,19 +9,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.data.enums import InfluencerPublicationStatus
 from app.data.models import Influencer, PreInfluencer
-from app.services.email.mailers import send_new_influencer_email_with_picture
 from app.services.firstpromoter import (
     fp_create_promoter,
     fp_find_promoter_id_by_ref_token,
 )
 from app.services.gateways.elevenlabs.agents_gateway import ElevenLabsAgentsGateway
 from app.services.gateways.elevenlabs.voices_gateway import ElevenLabsVoicesGateway
+from app.services.use_cases import pre_influencer_storage
 from app.services.use_cases.pre_influencer_survey_prompt import (
     format_survey_markdown,
     generate_prompt_from_markdown,
     load_survey_questions,
 )
-from app.services.use_cases import pre_influencer_storage
 from app.utils.storage.s3 import (
     copy_pre_influencer_audio_to_influencer_audio,
     get_s3_object_bytes,
@@ -278,11 +277,6 @@ async def approve_pre_influencer(db: AsyncSession, pre_id: int) -> dict:
 
         await db.commit()
         await db.refresh(influencer)
-
-        send_new_influencer_email_with_picture(
-            to_email=pre.email,
-            influencer=influencer,
-        )
 
         return {
             "ok": True,
