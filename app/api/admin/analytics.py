@@ -16,7 +16,7 @@ from app.services.use_cases.admin_user_analytics import (
 )
 from app.utils.auth.dependencies import get_current_user
 
-router = APIRouter(tags=["admin-analytics"])
+router = APIRouter(tags=["Admin Analytics"])
 log = logging.getLogger(__name__)
 
 

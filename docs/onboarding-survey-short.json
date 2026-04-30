@@ -1,0 +1,38 @@
+[
+    {
+        "id": "basic-info",
+        "title": "Basic Info",
+        "questions": [
+            {
+                "id": "q3_social_name",
+                "label": "Social Name / Stage Name",
+                "type": "text",
+                "required": true
+            },
+            {
+                "id": "q4_country",
+                "label": "Country / Nationality",
+                "type": "text",
+                "required": true
+            },
+            {
+                "id": "q5_main_language",
+                "label": "Main Language",
+                "type": "text",
+                "required": true
+            },
+            {
+                "id": "q6_secondary_language",
+                "label": "Secondary Language",
+                "type": "text"
+            },
+            {
+                "id": "q_about_me",
+                "label": "Tell us about yourself (e.g. Where you come from, any siblings, etc.)",
+                "type": "textarea",
+                "required": true,
+                "placeholder": "Example: I'm 23, originally from Texas but living in LA for school. I'm the youngest of three, so I can be a bit spoiled, but I'm super independent! I spend my weekends exploring new coffee shops and vintage stores, though secretly I'm a huge homebody who loves binge-watching reality TV. I can be a little shy at first, but once I'm comfortable, I'll talk your ear off and tease you constantly. I value loyalty above everything and I'm totally the \"mom friend\" who makes sure everyone is doing okay."
+            }
+        ]
+    }
+]

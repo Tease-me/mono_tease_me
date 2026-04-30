@@ -10,7 +10,7 @@ from app.services.follow import create_follow_if_missing, get_follow
 from app.api.deps.influencer import ensure_influencer
 from app.utils.auth.dependencies import get_current_user
 
-router = APIRouter(prefix="/follow", tags=["follow"])
+router = APIRouter(prefix="/follow", tags=["Follow"])
 
 @router.post("/{influencer_id}", response_model=FollowActionResponse, status_code=201)
 async def follow_influencer(

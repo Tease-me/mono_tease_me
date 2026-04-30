@@ -14,7 +14,7 @@ from bs4 import BeautifulSoup
 import re
 import json
 
-router = APIRouter(prefix="/social", tags=["social"])
+router = APIRouter(prefix="/social", tags=["Social"])
 
 class SocialValidateIn(BaseModel):
     platform: str

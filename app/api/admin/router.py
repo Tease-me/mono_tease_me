@@ -5,6 +5,7 @@ from .characters import router as characters_router
 from .chats import router as chats_router
 from .email_assets import router as email_assets_router
 from .influencer_assets import router as influencer_assets_router
+from .influencers import router as influencers_router
 from .knowledge import router as knowledge_router
 from .logs import router as logs_router
 from .moderation import router as moderation_router
@@ -20,6 +21,7 @@ router.include_router(users_router)
 router.include_router(relationships_router)
 router.include_router(moderation_router)
 router.include_router(characters_router)
+router.include_router(influencers_router)
 router.include_router(influencer_assets_router)
 router.include_router(email_assets_router)
 router.include_router(knowledge_router)

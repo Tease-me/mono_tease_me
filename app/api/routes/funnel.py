@@ -14,7 +14,7 @@ from app.utils.infrastructure.rate_limiter import rate_limit
 
 log = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/funnel", tags=["funnel"])
+router = APIRouter(prefix="/funnel", tags=["Funnel"])
 
 
 @router.post("/event")

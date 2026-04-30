@@ -10,11 +10,13 @@ from fastapi.testclient import TestClient
 from app.data.models import Influencer
 from sqlalchemy.exc import IntegrityError
 
+from app.api.mjpromoter import router as mjpromoter_router
 from app.api.routes import auth as auth_route
 from app.core.config import settings
 from app.core.session import get_db
 from app.data.schemas.auth import CheckEmailTokenResponse
 from app.services.email_verification_service import check_email_verification_token
+from app.services.use_cases import preregister_user as preregister_use_case
 
 INTERNAL_TOKEN = "test-mj-promoter-token"
 
@@ -86,6 +88,17 @@ def _build_app(db: FakeAsyncSession) -> FastAPI:
     return app
 
 
+def _build_mj_app(db: FakeAsyncSession) -> FastAPI:
+    app = FastAPI()
+    app.include_router(mjpromoter_router)
+
+    async def _override_db():
+        yield db
+
+    app.dependency_overrides[get_db] = _override_db
+    return app
+
+
 def test_preregister_creates_unverified_user_and_returns_minimal_response(monkeypatch) -> None:
     db = FakeAsyncSession(influencer=SimpleNamespace(id="loli"))
     app = _build_app(db)
@@ -93,9 +106,13 @@ def test_preregister_creates_unverified_user_and_returns_minimal_response(monkey
     monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
     monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
     monkeypatch.setattr(settings, "FRONTEND_URL", "https://www.teaseme.live")
-    monkeypatch.setattr(auth_route.secrets, "token_urlsafe", lambda _n: "generated-verify-token")
     monkeypatch.setattr(
-        auth_route,
+        preregister_use_case.secrets,
+        "token_urlsafe",
+        lambda _n: "generated-verify-token",
+    )
+    monkeypatch.setattr(
+        preregister_use_case,
         "create_follow_if_missing",
         _fake_follow_recorder(follow_calls),
     )
@@ -141,15 +158,62 @@ def test_preregister_creates_unverified_user_and_returns_minimal_response(monkey
     assert follow_calls == [("loli", 1)]
 
 
+def test_mjpromoter_preregister_uses_same_contract(monkeypatch) -> None:
+    db = FakeAsyncSession(influencer=SimpleNamespace(id="loli"))
+    app = _build_mj_app(db)
+    follow_calls: list[tuple[str, int]] = []
+    monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+    monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
+    monkeypatch.setattr(settings, "FRONTEND_URL", "https://www.teaseme.live")
+    monkeypatch.setattr(
+        preregister_use_case.secrets,
+        "token_urlsafe",
+        lambda _n: "generated-verify-token",
+    )
+    monkeypatch.setattr(
+        preregister_use_case,
+        "create_follow_if_missing",
+        _fake_follow_recorder(follow_calls),
+    )
+
+    client = TestClient(app)
+    response = client.post(
+        "/mjpromoter/preregister",
+        headers={"X-Internal-Token": INTERNAL_TOKEN},
+        json={
+            "email": "user@example.com",
+            "influencer_id": "loli",
+            "telegram_id": 987654321,
+            "full_name": "Jane User",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "ok": True,
+        "user_id": 1,
+        "email": "user@example.com",
+        "message": "User preregistered successfully.",
+        "verification_url": "https://www.teaseme.live/loli?t=generated-verify-token",
+    }
+    assert db.committed is True
+    assert db.refreshed is True
+    assert follow_calls == [("loli", 1)]
+
+
 def test_preregister_verification_url_is_url_encoded(monkeypatch) -> None:
     db = FakeAsyncSession(influencer=SimpleNamespace(id="loli"))
     app = _build_app(db)
     monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
     monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
     monkeypatch.setattr(settings, "FRONTEND_URL", "https://www.teaseme.live/")
-    monkeypatch.setattr(auth_route.secrets, "token_urlsafe", lambda _n: "verify token/123")
     monkeypatch.setattr(
-        auth_route,
+        preregister_use_case.secrets,
+        "token_urlsafe",
+        lambda _n: "verify token/123",
+    )
+    monkeypatch.setattr(
+        preregister_use_case,
         "create_follow_if_missing",
         _fake_follow_recorder([]),
     )
@@ -207,9 +271,13 @@ def test_preregister_allows_missing_full_name(monkeypatch) -> None:
     app = _build_app(db)
     monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
     monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
-    monkeypatch.setattr(auth_route.secrets, "token_urlsafe", lambda _n: "generated-verify-token")
     monkeypatch.setattr(
-        auth_route,
+        preregister_use_case.secrets,
+        "token_urlsafe",
+        lambda _n: "generated-verify-token",
+    )
+    monkeypatch.setattr(
+        preregister_use_case,
         "create_follow_if_missing",
         _fake_follow_recorder([]),
     )
