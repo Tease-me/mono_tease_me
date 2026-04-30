@@ -35,7 +35,7 @@ from app.services.chat_buffer_service import (
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.ALGORITHM
 
-router = APIRouter(prefix="/chat", tags=["chat"])
+router = APIRouter(prefix="/chat", tags=["Chat"])
 
 log = logging.getLogger(__name__)
 

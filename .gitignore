@@ -39,6 +39,7 @@ data/geoip/*
 
 # Claude Code (personal — never commit)
 .claude/
+.kilo/
 CLAUDE.md
 STRUCTURE.md
 MEMORY.md

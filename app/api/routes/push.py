@@ -8,7 +8,7 @@ from app.utils.auth.dependencies import get_current_user
 from app.utils.messaging.push import send_push
 from app.data.schemas.push import SubscriptionRequest, SubscriptionResponse
 
-router = APIRouter(prefix="/push", tags=["push"])
+router = APIRouter(prefix="/push", tags=["Push"])
 
 @router.post("/subscribe", response_model=SubscriptionResponse)
 async def push_subscribe(

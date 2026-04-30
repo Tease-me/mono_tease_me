@@ -12,7 +12,7 @@ from app.data.models import RelationshipState, User
 from app.core.session import get_db
 from app.utils.auth.dependencies import get_current_user
 
-router = APIRouter(tags=["admin-relationships"])
+router = APIRouter(tags=["Admin Relationships"])
 
 
 def sentiment_label(score: float) -> str:

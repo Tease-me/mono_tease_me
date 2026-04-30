@@ -26,7 +26,7 @@ from app.utils.infrastructure.rate_limiter import rate_limit
 
 log = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/checkout", tags=["checkout"])
+router = APIRouter(prefix="/checkout", tags=["Checkout"])
 
 
 def _verify_signature(raw_body: bytes, signature: str | None) -> None:
