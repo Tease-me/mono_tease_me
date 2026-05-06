@@ -596,11 +596,90 @@ def send_influencer_survey_completed_email_to_promoter(
     return send_email_via_ses(to_email, subject, body_html, body_text)
 
 
+def send_pre_influencer_converted_admin_email(
+    *,
+    to_email: str,
+    pre_influencer_id: int,
+    influencer_id: str,
+    display_name: str | None = None,
+    creator_email: str | None = None,
+    publication_status: str | None = None,
+):
+    subject = "Pre-influencer converted to influencer"
+    public_url = _influencer_profile_url(influencer_id)
+    display_label = display_name or influencer_id
+    status_label = publication_status or "unknown"
+
+    body_html = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{subject}</title>
+</head>
+<body style="background:#f7f8fc;padding:0;margin:0;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f7f8fc;padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table width="520" cellpadding="0" cellspacing="0" border="0"
+          style="background:#fff;border-radius:24px;box-shadow:0 10px 32px rgba(50,50,93,0.10),0 2px 4px rgba(0,0,0,0.07);overflow:hidden;">
+          <tr>
+            <td align="center" style="padding:28px 30px 10px 30px;">
+              <h2 style="font-family:'Arial Rounded MT Bold', Arial, sans-serif; font-size:26px; font-weight:bold; margin:0 0 12px 0; color:#444;">
+                Pre-influencer converted
+              </h2>
+              <p style="font-size:16px;color:#666;margin:0 0 16px 0;">
+                {display_label} has been converted into an influencer profile.
+              </p>
+              <p style="font-size:14px;color:#666;margin:0 0 8px 0;">Pre-influencer ID: {pre_influencer_id}</p>
+              <p style="font-size:14px;color:#666;margin:0 0 8px 0;">Influencer ID: {influencer_id}</p>
+              {f'<p style="font-size:14px;color:#666;margin:0 0 8px 0;">Creator email: {creator_email}</p>' if creator_email else ""}
+              <p style="font-size:14px;color:#666;margin:0 0 16px 0;">Publication status: {status_label}</p>
+              <p style="font-size:14px;color:#666;margin:0 0 16px 0;">
+                Profile link: <a href="{public_url}" style="color:#FF5C74;text-decoration:none;">{public_url}</a>
+              </p>
+              <p style="margin:22px 0 0 0; font-size:12px; color:#999;">
+                This is an automated message from TeaseMe.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:18px 0 12px 0;background:#e5e5e5;color:#bbb;font-size:14px;border-bottom-left-radius:24px;border-bottom-right-radius:24px;">
+              © {datetime.now().year} TeaseMe. All rights reserved.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+"""
+    lines = [
+        "Pre-influencer converted",
+        "",
+        f"Pre-influencer ID: {pre_influencer_id}",
+        f"Influencer ID: {influencer_id}",
+        f"Display name: {display_label}",
+    ]
+    if creator_email:
+        lines.append(f"Creator email: {creator_email}")
+    lines.extend(
+        [
+            f"Publication status: {status_label}",
+            f"Profile link: {public_url}",
+        ]
+    )
+    body_text = "\n".join(lines)
+    return send_email_via_ses(to_email, subject, body_html, body_text)
+
+
 __all__ = [
     "send_influencer_survey_completed_email_to_promoter",
     "send_new_influencer_email",
     "send_new_influencer_email_with_picture",
     "send_password_reset_email",
+    "send_pre_influencer_converted_admin_email",
     "send_profile_survey_email",
     "send_verification_email",
 ]
