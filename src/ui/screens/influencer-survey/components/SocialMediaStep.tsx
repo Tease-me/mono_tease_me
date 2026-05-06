@@ -48,12 +48,12 @@ interface SocialMediaStepProps {
 }
 
 const platforms: SocialPlatform[] = [
+  { id: 'onlyfans', label: 'Only Fans', icon: onlyfansWhite, iconError: onlyfansRed, placeholder: 'username' },
   { id: 'instagram', label: 'Instagram', icon: igWhite, iconError: igRed, placeholder: 'username' },
   { id: 'tiktok', label: 'TikTok', icon: tiktokWhite, iconError: tiktokRed, placeholder: 'username' },
   { id: 'snapchat', label: 'SnapChat', icon: snapWhite, iconError: snapRed, placeholder: 'username' },
   { id: 'telegram', label: 'Telegram', icon: telegramWhite, iconError: telegramRed, placeholder: 'handle' },
   { id: 'x', label: 'X', icon: xWhite, iconError: xRed, placeholder: 'username' },
-  { id: 'onlyfans', label: 'Only Fans', icon: onlyfansWhite, iconError: onlyfansRed, placeholder: 'username' },
   { id: 'whatsapp', label: 'Whatsapp', icon: whatsappWhite, iconError: whatsappRed, placeholder: 'phone or wa.me/number' },
 ];
 
