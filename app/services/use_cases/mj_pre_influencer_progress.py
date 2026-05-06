@@ -18,6 +18,10 @@ def _has_nonblank_asset_link(answers: dict[str, Any]) -> bool:
     return isinstance(asset_link, str) and bool(asset_link.strip())
 
 
+def _has_accepted_terms(pre: Any) -> bool:
+    return getattr(pre, "terms_agreement", False) is True
+
+
 def _is_survey_step_complete(survey_step: Any) -> bool:
     try:
         return int(survey_step or 0) >= 4
@@ -43,7 +47,7 @@ async def derive_mj_survey_step(db: AsyncSession, pre: Any) -> int:
     if getattr(pre, "status", None) == "approved":
         return 4
 
-    if _has_nonblank_asset_link(answers):
+    if _has_nonblank_asset_link(answers) and _has_accepted_terms(pre):
         return 3
 
     if _is_survey_step_complete(getattr(pre, "survey_step", 0)):
