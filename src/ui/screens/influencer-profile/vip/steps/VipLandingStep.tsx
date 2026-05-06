@@ -2,10 +2,11 @@ import teaseMeIcon3D from "@/assets/logos/3D-IconTeaseMe-Dark.svg";
 import { InfluencerDataModel } from "@/data/models/InfluencerDataModel";
 import IconButton from "@/ui/components/inputs/buttons/IconButton";
 import styles from "../VipScreen.module.css";
+import { InviteProfileValues } from "./VipProfileStep";
 
 type VipLandingStepProps = {
   influencer: InfluencerDataModel;
-  email: string;
+  profileValues: InviteProfileValues;
   invitationValid: boolean;
   invitationExpired: boolean;
   existingAccountMode: boolean;
@@ -19,7 +20,7 @@ type VipLandingStepProps = {
 
 export default function VipLandingStep({
   influencer,
-  email,
+  profileValues,
   invitationValid,
   invitationExpired,
   existingAccountMode,
@@ -31,6 +32,11 @@ export default function VipLandingStep({
   onLogin,
 }: VipLandingStepProps) {
   const showInviteUnavailable = !invitationValid && !invitationExpired;
+  const userName = profileValues.userName.trim();
+  const firstName = profileValues.fullName.trim().split(/\s+/)[0];
+  const recipientName = userName || firstName || profileValues.email.trim();
+  const influencerFirstName =
+    influencer.name.trim().split(/\s+/)[0] || influencer.name;
 
   return (
     <>
@@ -43,19 +49,19 @@ export default function VipLandingStep({
         ) : (
           <h1 className={styles.title}>
             Hi, I'm your{" "}
-            <span className={styles.modelName}>{influencer.name}</span>
+            <span className={styles.modelName}>{influencerFirstName}</span>
           </h1>
         )}
 
         {existingAccountMode ? (
           <>
             <p className={styles.message}>
-              You already have a TeaseMe Account, {influencer.name} has
+              You already have a TeaseMe Account, {influencerFirstName} has
               automatically been added to your list of models.
             </p>
             <IconButton
               type="square"
-              text={`Take me to ${influencer.name}`}
+              text={`Take me to ${influencerFirstName}`}
               onClick={onContinueToInfluencer}
               className={styles.redeemButton}
             />
@@ -63,7 +69,7 @@ export default function VipLandingStep({
         ) : existingAccountFollowFailed ? (
           <>
             <p className={styles.message}>
-              We couldn't add {influencer.name} automatically. Please try
+              We couldn't add {influencerFirstName} automatically. Please try
               again.
             </p>
             <IconButton
@@ -76,8 +82,8 @@ export default function VipLandingStep({
         ) : invitationValid ? (
           <>
             <p className={styles.message}>
-              This invite is for <span className={styles.email}>{email}</span>{" "}
-              ONLY,
+              This invite is for{" "}
+              <span className={styles.email}>{recipientName}</span> ONLY,
               <br />
               please do not share it.
             </p>
@@ -94,8 +100,8 @@ export default function VipLandingStep({
         ) : invitationExpired ? (
           <>
             <p className={styles.message}>
-              The invite for <span className={styles.email}>{email}</span> has
-              expired.
+              The invite for{" "}
+              <span className={styles.email}>{recipientName}</span> has expired.
             </p>
             <IconButton
               type="square"

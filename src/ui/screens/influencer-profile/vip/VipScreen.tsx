@@ -562,7 +562,7 @@ export default function VipScreen() {
             {step === "landing" && (
               <VipLandingStep
                 influencer={influencer}
-                email={profileValues.email}
+                profileValues={profileValues}
                 invitationValid={invitationValid}
                 invitationExpired={invitationExpired}
                 existingAccountMode={existingAccountMode}
