@@ -620,6 +620,11 @@ def send_pre_influencer_converted_admin_email(
     public_url = _influencer_profile_url(influencer_id)
     display_label = display_name or influencer_id
     status_label = publication_status or "unknown"
+    creator_email_row = (
+        f'<p style="font-size:14px;color:#b8b8be;margin:0 0 6px 0;">Creator email: <span style="color:#ffffff;">{creator_email}</span></p>'
+        if creator_email
+        else ""
+    )
 
     body_html = f"""
 <!DOCTYPE html>
@@ -646,7 +651,7 @@ def send_pre_influencer_converted_admin_email(
                   <td style="padding:14px 20px;">
                     <p style="font-size:14px;color:#b8b8be;margin:0 0 6px 0;">Pre-influencer ID: <span style="color:#ffffff;">{pre_influencer_id}</span><span style="display:none;mso-hide:all;">Pre-influencer ID: {pre_influencer_id}</span></p>
                     <p style="font-size:14px;color:#b8b8be;margin:0 0 6px 0;">Influencer ID: <span style="color:#ffffff;">{influencer_id}</span><span style="display:none;mso-hide:all;">Influencer ID: {influencer_id}</span></p>
-                    {f'<p style="font-size:14px;color:#b8b8be;margin:0 0 6px 0;">Creator email: <span style=\'color:#ffffff;\'>{creator_email}</span></p>' if creator_email else ""}
+                    {creator_email_row}
                     <p style="font-size:14px;color:#b8b8be;margin:0 0 6px 0;">Publication status: <span style="color:#ffffff;">{status_label}</span><span style="display:none;mso-hide:all;">Publication status: {status_label}</span></p>
                     <p style="font-size:14px;color:#b8b8be;margin:0;">Profile link: <a href="{public_url}" style="color:#ff2f7d;text-decoration:none;">{public_url}</a></p>
                   </td>
