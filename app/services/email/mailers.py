@@ -128,7 +128,7 @@ async def send_verification_email(
               </h1>
               <p style="margin:0 0 34px 0;font-size:16px;line-height:1.55;color:#b8b8be;text-align:center;">
                 You are almost done! Before we get started, please verify your email
-                address to activate your account. It’s quick and helps us keep your account
+                address to activate your account. It's quick and helps us keep your account
                 safe.
               </p>
               <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 34px auto;">
@@ -179,60 +179,65 @@ def send_profile_survey_email(to_email: str, token: str, temp_password: str):
     logo_url = EMAIL_VERIFY_HEADER_URL
 
     body_html = f"""
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Complete Your Profile</title>
-    </head>
-    <body style="background:#f7f8fc;padding:0;margin:0;font-family:Arial,sans-serif;">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f7f8fc;padding:40px 0;">
-        <tr>
-          <td align="center">
-            <table width="520" cellpadding="0" cellspacing="0" border="0" style="background:#fff;border-radius:24px;box-shadow:0 10px 32px rgba(50,50,93,0.10),0 2px 4px rgba(0,0,0,0.07);overflow:hidden;">
-              <tr>
-                <td align="center" style="background:#23293b;padding:0;">
-                  <img
-                    src="{logo_url}"
-                    alt="TeaseMe"
-                    style="width:100%;max-width:520px;display:block;border-top-left-radius:24px;border-top-right-radius:24px;"
-                  />
-                </td>
-              </tr>
-              <tr>
-                <td align="center" style="padding:32px 30px 8px 30px;">
-                  <h2 style="font-family:'Arial Rounded MT Bold', Arial, sans-serif; font-size:30px; font-weight:bold; margin:0 0 14px 0; color:#444;">
-                    Let's Build Your Perfect AI Persona
-                  </h2>
-                  <p style="font-size:16px;color:#666;margin:0 0 24px 0;">
-                    You're all set! Before your AI companion goes live, we just need a
-                    little more information from you.
-                    This short survey helps us personalize your experience and tailor
-                    the persona to your unique style.
-                  </p>
-                  <a href="{survey_url}"
-                    style="background:#FF5C74; border-radius:8px; color:#fff; text-decoration:none; display:inline-block;
-                          padding:18px 50px; font-size:22px; font-weight:bold; box-shadow:0 6px 24px #ffb5c7; margin-bottom:20px;">
-                    Start Profile Survey
-                  </a>
-                  <p style="margin:24px 0 0 0; font-size:14px; color:#bbb;">
-                    If you didn’t request this, you can safely ignore the email.<br/>
-                    Your persona can't wait to meet you. ❤️
-                  </p>
-                </td>
-              </tr>
-              <tr>
-                <td align="center" style="padding:20px 0 12px 0;background:#e5e5e5;color:#bbb;font-size:14px;border-bottom-left-radius:24px;border-bottom-right-radius:24px;">
-                  © {datetime.now().year} TeaseMe. All rights reserved.
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-      </table>
-    </body>
-    </html>
-    """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Complete Your Profile</title>
+</head>
+<body style="margin:0;padding:0;background:#0d0d0d;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0d0d0d;padding:28px 0;">
+    <tr>
+      <td align="center">
+        <table width="560" cellpadding="0" cellspacing="0" border="0" style="width:560px;max-width:560px;background:#050505;border-radius:28px;overflow:hidden;box-shadow:0 18px 48px rgba(0,0,0,0.28);">
+          <tr>
+            <td align="center" style="padding:0;background:#050505;">
+              <img
+                src="{logo_url}"
+                alt="TeaseMe"
+                style="display:block;width:100%;max-width:560px;height:auto;border:0;outline:none;text-decoration:none;"
+              />
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:36px 42px 18px 42px;background:#050505;">
+              <h1 style="margin:0 0 18px 0;font-family:Arial,sans-serif;font-size:32px;line-height:1.2;font-weight:700;color:#ffffff;">
+                Let's Build Your Perfect AI Persona
+              </h1>
+              <p style="margin:0 0 34px 0;font-size:16px;line-height:1.55;color:#b8b8be;text-align:center;">
+                You're all set! Before your AI companion goes live, we just need a
+                little more information from you.
+                This short survey helps us personalize your experience and tailor
+                the persona to your unique style.
+              </p>
+              <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 34px auto;">
+                <tr>
+                  <td align="center" bgcolor="#ff2f7d" style="border-radius:999px;box-shadow:0 10px 28px rgba(255,47,125,0.35);">
+                    <a
+                      href="{survey_url}"
+                      style="display:inline-block;padding:18px 50px;font-size:20px;line-height:1;font-weight:700;font-family:Arial,sans-serif;color:#ffffff;text-decoration:none;border-radius:999px;background:#ff2f7d;"
+                    >
+                      Start Profile Survey
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:0 0 88px 0;font-size:15px;line-height:1.6;color:#a2a2aa;text-align:center;">
+                If you didn't request this, you can safely ignore the email.<br/>
+                Your persona can't wait to meet you. ❤️
+              </p>
+              <p style="margin:0;font-size:14px;line-height:1.4;color:#76767d;text-align:center;">
+                © {datetime.now().year} TeaseMe. All rights reserved.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+"""
     body_text = f"""
 Complete Your TeaseMe Profile
 
@@ -241,7 +246,7 @@ You're all set! Before your AI companion goes live, we just need a little more i
 Start your profile survey here:
 {survey_url}
 
-If you didn’t request this, you can safely ignore this email.
+If you didn't request this, you can safely ignore this email.
 Your persona can't wait to meet you. ❤️
 
 © {datetime.now().year} TeaseMe. All rights reserved.
@@ -297,7 +302,7 @@ def send_password_reset_email(to_email: str, token: str):
                 </tr>
               </table>
               <p style="margin:0 0 88px 0;font-size:15px;line-height:1.6;color:#a2a2aa;text-align:center;">
-                This link will expire in 30 minutes to keep your account safe. If you didn’t<br/>
+                This link will expire in 30 minutes to keep your account safe. If you didn't<br/>
                 request a password reset, you can safely ignore this email.
               </p>
               <p style="margin:0;font-size:14px;line-height:1.4;color:#76767d;text-align:center;">
@@ -337,74 +342,78 @@ def send_new_influencer_email(
     referral_block = ""
     if referral_url:
         referral_block = f"""
-          <p style="font-size:14px;color:#666;margin:8px 0 10px 0;">
+          <p style="font-size:14px;color:#b8b8be;margin:8px 0 10px 0;">
             Your referral link:
           </p>
-          <div style="display:inline-block;padding:10px 18px;border-radius:10px;background:#f3f4ff;
-                      font-family:monospace;font-size:13px;color:#333;word-break:break-all;max-width:460px;">
+          <div style="display:inline-block;padding:10px 18px;border-radius:10px;background:#1a1a22;
+                      font-family:monospace;font-size:13px;color:#e0e0e8;word-break:break-all;max-width:460px;">
             {referral_url}
           </div>
-          <p style="font-size:12px;color:#777;margin:10px 0 0 0;">
+          <p style="font-size:12px;color:#a2a2aa;margin:10px 0 0 0;">
             Share this link if you want your manager / parent promoter to get credit too.
           </p>
         """
 
     temp_pw_block = ""
     body_html = f"""
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <title>Your TeaseMe profile is live</title>
-    </head>
-    <body style="background:#f7f8fc;padding:0;margin:0;font-family:Arial,sans-serif;">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f7f8fc;padding:40px 0;">
-        <tr>
-          <td align="center">
-            <table width="520" cellpadding="0" cellspacing="0" border="0"
-              style="background:#fff;border-radius:24px;box-shadow:0 10px 32px rgba(50,50,93,0.10),0 2px 4px rgba(0,0,0,0.07);overflow:hidden;">
-              <tr>
-                <td align="center" style="background:#23293b;padding:0;">
-                  <img src="{logo_url}" alt="TeaseMe"
-                    style="width:100%;max-width:520px;display:block;border-top-left-radius:24px;border-top-right-radius:24px;" />
-                </td>
-              </tr>
-              <tr>
-                <td align="center" style="padding:32px 30px 16px 30px;">
-                  <h2 style="font-family:'Arial Rounded MT Bold', Arial, sans-serif; font-size:30px; font-weight:bold; margin:0 0 12px 0; color:#444;">
-                    You’re live on TeaseMe 🎉
-                  </h2>
-                  <p style="font-size:16px;color:#666;margin:0 0 22px 0;">
-                    Your influencer profile is now active. Fans can find you and join your page instantly.
-                  </p>
-                  <a href="{public_url}"
-                    style="background:#FF5C74; border-radius:10px; color:#fff; text-decoration:none; display:inline-block;
-                           padding:16px 44px; font-size:20px; font-weight:bold; box-shadow:0 6px 24px #ffb5c7; margin-bottom:18px;">
-                    Open My Profile
-                  </a>
-                  <div style="margin-top:10px; font-size:13px; color:#777; word-break:break-all;">
-                    {public_url}
-                  </div>
-                  {referral_block}
-                  {temp_pw_block}
-                  <p style="margin:26px 0 0 0; font-size:14px; color:#bbb;">
-                    If you didn’t request this, you can safely ignore the email.<br/>
-                    Let’s get you discovered. ❤️
-                  </p>
-                </td>
-              </tr>
-              <tr>
-                <td align="center" style="padding:20px 0 12px 0;background:#e5e5e5;color:#bbb;font-size:14px;border-bottom-left-radius:24px;border-bottom-right-radius:24px;">
-                  © {datetime.now().year} TeaseMe. All rights reserved.
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-      </table>
-    </body>
-    </html>
-    """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Your TeaseMe profile is live</title>
+</head>
+<body style="margin:0;padding:0;background:#0d0d0d;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0d0d0d;padding:28px 0;">
+    <tr>
+      <td align="center">
+        <table width="560" cellpadding="0" cellspacing="0" border="0" style="width:560px;max-width:560px;background:#050505;border-radius:28px;overflow:hidden;box-shadow:0 18px 48px rgba(0,0,0,0.28);">
+          <tr>
+            <td align="center" style="padding:0;background:#050505;">
+              <img src="{logo_url}" alt="TeaseMe"
+                style="display:block;width:100%;max-width:560px;height:auto;border:0;outline:none;text-decoration:none;" />
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:36px 42px 18px 42px;background:#050505;">
+              <h1 style="margin:0 0 18px 0;font-family:Arial,sans-serif;font-size:32px;line-height:1.2;font-weight:700;color:#ffffff;">
+                You're live on TeaseMe 🎉
+              </h1>
+              <p style="margin:0 0 34px 0;font-size:16px;line-height:1.55;color:#b8b8be;text-align:center;">
+                Your influencer profile is now active. Fans can find you and join your page instantly.
+              </p>
+              <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 18px auto;">
+                <tr>
+                  <td align="center" bgcolor="#ff2f7d" style="border-radius:999px;box-shadow:0 10px 28px rgba(255,47,125,0.35);">
+                    <a
+                      href="{public_url}"
+                      style="display:inline-block;padding:18px 44px;font-size:20px;line-height:1;font-weight:700;font-family:Arial,sans-serif;color:#ffffff;text-decoration:none;border-radius:999px;background:#ff2f7d;"
+                    >
+                      Open My Profile
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <div style="margin-top:10px;font-size:13px;color:#a2a2aa;word-break:break-all;text-align:center;">
+                {public_url}
+              </div>
+              {referral_block}
+              {temp_pw_block}
+              <p style="margin:34px 0 88px 0;font-size:15px;line-height:1.6;color:#a2a2aa;text-align:center;">
+                If you didn't request this, you can safely ignore the email.<br/>
+                Let's get you discovered. ❤️
+              </p>
+              <p style="margin:0;font-size:14px;line-height:1.4;color:#76767d;text-align:center;">
+                © {datetime.now().year} TeaseMe. All rights reserved.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+"""
     body_text = (
         f"""
 Your TeaseMe profile is live 🎉
@@ -465,59 +474,64 @@ def send_new_influencer_email_with_picture(
 
     temp_pw_block = ""
     body_html = f"""
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <title>Your TeaseMe profile is live</title>
-    </head>
-    <body style="background:#f7f8fc;padding:0;margin:0;font-family:Arial,sans-serif;">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f7f8fc;padding:40px 0;">
-        <tr>
-          <td align="center">
-            <table width="520" cellpadding="0" cellspacing="0" border="0"
-              style="background:#fff;border-radius:24px;box-shadow:0 10px 32px rgba(50,50,93,0.10),0 2px 4px rgba(0,0,0,0.07);overflow:hidden;">
-              <tr>
-                <td align="center" style="background:#23293b;padding:0;">
-                  <img
-                    src="{logo_url}"
-                    alt="TeaseMe"
-                    height="{EMAIL_HEADER_SIZE[1]}"
-                    style="width:100%;max-width:520px;height:{EMAIL_HEADER_SIZE[1]}px;display:block;border-top-left-radius:24px;border-top-right-radius:24px;object-fit:cover;"
-                  />
-                </td>
-              </tr>
-              <tr>
-                <td align="center" style="padding:32px 30px 16px 30px;">
-                  <h2 style="font-family:'Arial Rounded MT Bold', Arial, sans-serif; font-size:30px; font-weight:bold; margin:0 0 12px 0; color:#444;">
-                    You’re live on TeaseMe 🎉
-                  </h2>
-                  <p style="font-size:16px;color:#666;margin:0 0 22px 0;">
-                    Your influencer profile is now active. Fans can find you and join your page instantly.
-                  </p>
-                  {temp_pw_block}
-                  <a href="{public_url}"
-                    style="background:#FF5C74;border-radius:8px;color:#fff;text-decoration:none;display:inline-block;padding:16px 42px;font-size:20px;font-weight:bold;box-shadow:0 6px 24px #ffb5c7;margin:10px 0 6px 0;">
-                    View my profile
-                  </a>
-                  <p style="margin:26px 0 0 0; font-size:14px; color:#bbb;">
-                    If you didn’t request this, you can safely ignore the email.<br/>
-                    Let’s get you discovered. ❤️
-                  </p>
-                </td>
-              </tr>
-              <tr>
-                <td align="center" style="padding:20px 0 12px 0;background:#e5e5e5;color:#bbb;font-size:14px;border-bottom-left-radius:24px;border-bottom-right-radius:24px;">
-                  © {datetime.now().year} TeaseMe. All rights reserved.
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-      </table>
-    </body>
-    </html>
-    """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Your TeaseMe profile is live</title>
+</head>
+<body style="margin:0;padding:0;background:#0d0d0d;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0d0d0d;padding:28px 0;">
+    <tr>
+      <td align="center">
+        <table width="560" cellpadding="0" cellspacing="0" border="0" style="width:560px;max-width:560px;background:#050505;border-radius:28px;overflow:hidden;box-shadow:0 18px 48px rgba(0,0,0,0.28);">
+          <tr>
+            <td align="center" style="padding:0;background:#050505;">
+              <img
+                src="{logo_url}"
+                alt="TeaseMe"
+                height="{EMAIL_HEADER_SIZE[1]}"
+                style="display:block;width:100%;max-width:560px;height:{EMAIL_HEADER_SIZE[1]}px;border:0;outline:none;text-decoration:none;object-fit:cover;"
+              />
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:36px 42px 18px 42px;background:#050505;">
+              <h1 style="margin:0 0 18px 0;font-family:Arial,sans-serif;font-size:32px;line-height:1.2;font-weight:700;color:#ffffff;">
+                You're live on TeaseMe 🎉
+              </h1>
+              <p style="margin:0 0 34px 0;font-size:16px;line-height:1.55;color:#b8b8be;text-align:center;">
+                Your influencer profile is now active. Fans can find you and join your page instantly.
+              </p>
+              {temp_pw_block}
+              <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 18px auto;">
+                <tr>
+                  <td align="center" bgcolor="#ff2f7d" style="border-radius:999px;box-shadow:0 10px 28px rgba(255,47,125,0.35);">
+                    <a
+                      href="{public_url}"
+                      style="display:inline-block;padding:18px 44px;font-size:20px;line-height:1;font-weight:700;font-family:Arial,sans-serif;color:#ffffff;text-decoration:none;border-radius:999px;background:#ff2f7d;"
+                    >
+                      View my profile
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:26px 0 88px 0;font-size:15px;line-height:1.6;color:#a2a2aa;text-align:center;">
+                If you didn't request this, you can safely ignore the email.<br/>
+                Let's get you discovered. ❤️
+              </p>
+              <p style="margin:0;font-size:14px;line-height:1.4;color:#76767d;text-align:center;">
+                © {datetime.now().year} TeaseMe. All rights reserved.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+"""
     body_text = f"""
 Your TeaseMe profile is live 🎉
 
@@ -549,32 +563,29 @@ def send_influencer_survey_completed_email_to_promoter(
   <meta charset="UTF-8">
   <title>Influencer survey completed</title>
 </head>
-<body style="background:#f7f8fc;padding:0;margin:0;font-family:Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f7f8fc;padding:40px 0;">
+<body style="margin:0;padding:0;background:#0d0d0d;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0d0d0d;padding:28px 0;">
     <tr>
       <td align="center">
-        <table width="520" cellpadding="0" cellspacing="0" border="0"
-          style="background:#fff;border-radius:24px;box-shadow:0 10px 32px rgba(50,50,93,0.10),0 2px 4px rgba(0,0,0,0.07);overflow:hidden;">
+        <table width="560" cellpadding="0" cellspacing="0" border="0" style="width:560px;max-width:560px;background:#050505;border-radius:28px;overflow:hidden;box-shadow:0 18px 48px rgba(0,0,0,0.28);">
           <tr>
-            <td align="center" style="padding:28px 30px 10px 30px;">
-              <h2 style="font-family:'Arial Rounded MT Bold', Arial, sans-serif; font-size:26px; font-weight:bold; margin:0 0 12px 0; color:#444;">
+            <td align="center" style="padding:36px 42px 18px 42px;background:#050505;">
+              <h1 style="margin:0 0 18px 0;font-family:Arial,sans-serif;font-size:28px;line-height:1.2;font-weight:700;color:#ffffff;">
                 Influencer survey completed
-              </h2>
-              <p style="font-size:16px;color:#666;margin:0 0 16px 0;">
+              </h1>
+              <p style="margin:0 0 16px 0;font-size:16px;line-height:1.55;color:#b8b8be;text-align:center;">
                 {influencer_line} has finished their TeaseMe profile survey.
               </p>
-              <p style="font-size:14px;color:#666;margin:0 0 16px 0;">
-                Profile link: <a href="{public_url}" style="color:#FF5C74;text-decoration:none;">{public_url}</a>
+              <p style="font-size:14px;color:#b8b8be;margin:0 0 16px 0;text-align:center;">
+                Profile link: <a href="{public_url}" style="color:#ff2f7d;text-decoration:none;">{public_url}</a>
               </p>
-              {f'<p style="font-size:14px;color:#666;margin:0 0 16px 0;">Influencer email: {influencer_email}</p>' if influencer_email else ""}
-              <p style="margin:22px 0 0 0; font-size:12px; color:#999;">
+              {f'<p style="font-size:14px;color:#b8b8be;margin:0 0 16px 0;text-align:center;">Influencer email: {influencer_email}</p>' if influencer_email else ""}
+              <p style="margin:34px 0 0 0;font-size:12px;color:#76767d;text-align:center;">
                 This is an automated message from TeaseMe.
               </p>
-            </td>
-          </tr>
-          <tr>
-            <td align="center" style="padding:18px 0 12px 0;background:#e5e5e5;color:#bbb;font-size:14px;border-bottom-left-radius:24px;border-bottom-right-radius:24px;">
-              © {datetime.now().year} TeaseMe. All rights reserved.
+              <p style="margin:16px 0 0 0;font-size:14px;line-height:1.4;color:#76767d;text-align:center;">
+                © {datetime.now().year} TeaseMe. All rights reserved.
+              </p>
             </td>
           </tr>
         </table>
@@ -617,35 +628,36 @@ def send_pre_influencer_converted_admin_email(
   <meta charset="UTF-8">
   <title>{subject}</title>
 </head>
-<body style="background:#f7f8fc;padding:0;margin:0;font-family:Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f7f8fc;padding:40px 0;">
+<body style="margin:0;padding:0;background:#0d0d0d;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0d0d0d;padding:28px 0;">
     <tr>
       <td align="center">
-        <table width="520" cellpadding="0" cellspacing="0" border="0"
-          style="background:#fff;border-radius:24px;box-shadow:0 10px 32px rgba(50,50,93,0.10),0 2px 4px rgba(0,0,0,0.07);overflow:hidden;">
+        <table width="560" cellpadding="0" cellspacing="0" border="0" style="width:560px;max-width:560px;background:#050505;border-radius:28px;overflow:hidden;box-shadow:0 18px 48px rgba(0,0,0,0.28);">
           <tr>
-            <td align="center" style="padding:28px 30px 10px 30px;">
-              <h2 style="font-family:'Arial Rounded MT Bold', Arial, sans-serif; font-size:26px; font-weight:bold; margin:0 0 12px 0; color:#444;">
+            <td align="center" style="padding:36px 42px 18px 42px;background:#050505;">
+              <h1 style="margin:0 0 18px 0;font-family:Arial,sans-serif;font-size:28px;line-height:1.2;font-weight:700;color:#ffffff;">
                 Pre-influencer converted
-              </h2>
-              <p style="font-size:16px;color:#666;margin:0 0 16px 0;">
+              </h1>
+              <p style="margin:0 0 24px 0;font-size:16px;line-height:1.55;color:#b8b8be;text-align:center;">
                 {display_label} has been converted into an influencer profile.
               </p>
-              <p style="font-size:14px;color:#666;margin:0 0 8px 0;">Pre-influencer ID: {pre_influencer_id}</p>
-              <p style="font-size:14px;color:#666;margin:0 0 8px 0;">Influencer ID: {influencer_id}</p>
-              {f'<p style="font-size:14px;color:#666;margin:0 0 8px 0;">Creator email: {creator_email}</p>' if creator_email else ""}
-              <p style="font-size:14px;color:#666;margin:0 0 16px 0;">Publication status: {status_label}</p>
-              <p style="font-size:14px;color:#666;margin:0 0 16px 0;">
-                Profile link: <a href="{public_url}" style="color:#FF5C74;text-decoration:none;">{public_url}</a>
-              </p>
-              <p style="margin:22px 0 0 0; font-size:12px; color:#999;">
+              <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 24px auto;border-left:3px solid #ff2f7d;background:#111111;border-radius:0 8px 8px 0;">
+                <tr>
+                  <td style="padding:14px 20px;">
+                    <p style="font-size:14px;color:#b8b8be;margin:0 0 6px 0;">Pre-influencer ID: <span style="color:#ffffff;">{pre_influencer_id}</span></p>
+                    <p style="font-size:14px;color:#b8b8be;margin:0 0 6px 0;">Influencer ID: <span style="color:#ffffff;">{influencer_id}</span></p>
+                    {f'<p style="font-size:14px;color:#b8b8be;margin:0 0 6px 0;">Creator email: <span style=\'color:#ffffff;\'>{creator_email}</span></p>' if creator_email else ""}
+                    <p style="font-size:14px;color:#b8b8be;margin:0 0 6px 0;">Publication status: <span style="color:#ffffff;">{status_label}</span></p>
+                    <p style="font-size:14px;color:#b8b8be;margin:0;">Profile link: <a href="{public_url}" style="color:#ff2f7d;text-decoration:none;">{public_url}</a></p>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:0 0 0 0;font-size:12px;color:#76767d;text-align:center;">
                 This is an automated message from TeaseMe.
               </p>
-            </td>
-          </tr>
-          <tr>
-            <td align="center" style="padding:18px 0 12px 0;background:#e5e5e5;color:#bbb;font-size:14px;border-bottom-left-radius:24px;border-bottom-right-radius:24px;">
-              © {datetime.now().year} TeaseMe. All rights reserved.
+              <p style="margin:16px 0 0 0;font-size:14px;line-height:1.4;color:#76767d;text-align:center;">
+                © {datetime.now().year} TeaseMe. All rights reserved.
+              </p>
             </td>
           </tr>
         </table>
