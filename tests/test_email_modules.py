@@ -12,6 +12,7 @@ def test_email_modules_export_expected_public_symbols():
     assert callable(mailers.send_new_influencer_email)
     assert callable(mailers.send_new_influencer_email_with_picture)
     assert callable(mailers.send_influencer_survey_completed_email_to_promoter)
+    assert callable(mailers.send_pre_influencer_converted_admin_email)
     assert callable(header_images.image_data_url)
     assert callable(header_images.compose_email_header_image_url)
     assert isinstance(header_images.EMAIL_VERIFY_HEADER_URL, str)
@@ -60,7 +61,7 @@ async def test_send_verification_email_uses_transport(monkeypatch):
 
     assert result == {"MessageId": "ses-1"}
     assert captured["to_email"] == "user@example.com"
-    assert captured["subject"] == "Confirm your email on TeaseMe!"
+    assert captured["subject"] == "Just One More Step – Confirm Your Email"
     assert header_images.EMAIL_VERIFY_HEADER_URL in captured["body_html"]
     assert "Hi! Welcome to TeaseMe" in captured["body_html"]
     assert "Confirm Email" in captured["body_html"]
@@ -89,7 +90,7 @@ async def test_send_verification_email_uses_dynamic_influencer_heading(monkeypat
     )
 
     assert result == {"MessageId": "ses-1b"}
-    assert captured["subject"] == "Confirm your email on TeaseMe!"
+    assert captured["subject"] == "Just One More Step – Confirm Your Email"
     assert "Hi! Welcome to your Juliana" in captured["body_html"]
 
 
@@ -234,3 +235,37 @@ def test_send_new_influencer_email_with_picture_builds_and_sends(monkeypatch):
     assert captured["to_email"] == "creator@example.com"
     assert captured["subject"] == "🎉 Your TeaseMe profile is live!"
     assert "https://signed.example/composed-header.jpg" in captured["body_html"]
+
+
+def test_send_pre_influencer_converted_admin_email_builds_and_sends(monkeypatch):
+    captured = {}
+
+    def fake_send_email_via_ses(to_email, subject, body_html, body_text=None):
+        captured["to_email"] = to_email
+        captured["subject"] = subject
+        captured["body_html"] = body_html
+        captured["body_text"] = body_text
+        return {"MessageId": "ses-admin-1"}
+
+    monkeypatch.setattr(mailers, "send_email_via_ses", fake_send_email_via_ses)
+
+    result = mailers.send_pre_influencer_converted_admin_email(
+        to_email="admin@example.com",
+        pre_influencer_id=123,
+        influencer_id="creatorname",
+        display_name="Creator Name",
+        creator_email="creator@example.com",
+        publication_status="draft",
+    )
+
+    assert result == {"MessageId": "ses-admin-1"}
+    assert captured["to_email"] == "admin@example.com"
+    assert captured["subject"] == "Pre-influencer converted to influencer"
+    assert "Creator Name" in captured["body_html"]
+    assert "Pre-influencer ID: 123" in captured["body_html"]
+    assert "Influencer ID: creatorname" in captured["body_html"]
+    assert "creator@example.com" in captured["body_html"]
+    assert "Publication status: draft" in captured["body_html"]
+    assert "/creatorname" in captured["body_html"]
+    assert "Profile link:" in captured["body_text"]
+    assert "/creatorname" in captured["body_text"]

@@ -5,10 +5,12 @@ import re
 from datetime import datetime, timezone
 
 from fastapi import HTTPException
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.data.enums import InfluencerPublicationStatus
-from app.data.models import Influencer, PreInfluencer
+from app.data.models import Influencer, PreInfluencer, User
+from app.services.email.mailers import send_pre_influencer_converted_admin_email
 from app.services.firstpromoter import (
     fp_create_promoter,
     fp_find_promoter_id_by_ref_token,
@@ -67,6 +69,38 @@ async def _prepare_approval_audio_keys(
             prepared_keys.append(key)
 
     return prepared_keys
+
+
+async def _notify_admin_pre_influencer_converted(
+    db: AsyncSession,
+    *,
+    pre: PreInfluencer,
+    influencer: Influencer,
+) -> None:
+    try:
+        admin = await db.get(User, 1)
+        admin_email = getattr(admin, "email", None)
+        if not admin_email:
+            log.info(
+                "Skipping pre-influencer conversion admin email: admin user missing or has no email"
+            )
+            return
+
+        await run_in_threadpool(
+            send_pre_influencer_converted_admin_email,
+            to_email=admin_email,
+            pre_influencer_id=pre.id,
+            influencer_id=str(influencer.id),
+            display_name=influencer.display_name or pre.full_name or pre.username,
+            creator_email=pre.email,
+            publication_status=influencer.publication_status,
+        )
+    except Exception:
+        log.exception(
+            "Failed to send pre-influencer conversion admin email pre_id=%s influencer_id=%s",
+            getattr(pre, "id", None),
+            getattr(influencer, "id", None),
+        )
 
 
 async def approve_pre_influencer(db: AsyncSession, pre_id: int) -> dict:
@@ -277,6 +311,11 @@ async def approve_pre_influencer(db: AsyncSession, pre_id: int) -> dict:
 
         await db.commit()
         await db.refresh(influencer)
+        await _notify_admin_pre_influencer_converted(
+            db,
+            pre=pre,
+            influencer=influencer,
+        )
 
         return {
             "ok": True,
