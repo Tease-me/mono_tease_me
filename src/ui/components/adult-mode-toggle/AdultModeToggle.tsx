@@ -1,9 +1,9 @@
+import LipsIcon from "@/assets/svg/angel_lips.svg?react";
+import HornyLips from "@/assets/svg/devil_lips.svg?react";
+import { ADULT_MODE_AVAILABLE } from "@/constants/adultModeAvailable";
+import { minutesToTime } from "@/utils/DateTimeUtils";
 import clsx from "clsx";
 import styles from "./AdultModeToggle.module.css";
-import LipsIcon from "@/assets/svg/angel_lips.svg?react";
-import HorneyLips from "@/assets/svg/devil_lips.svg?react";
-import { minutesToTime } from "@/utils/DateTimeUtils";
-import { ADULT_MODE_AVAILABLE } from "@/constants/adultModeAvailable";
 
 interface AdultModeToggleProps {
   checked: boolean;
@@ -29,13 +29,25 @@ const AdultModeToggle: React.FC<AdultModeToggleProps> = ({
   };
 
   return (
-    <div className={clsx(styles.adultModeToggleContainer, (!ADULT_MODE_AVAILABLE || !showMinutes) && styles.toggleOnly)}>
+    <div
+      className={clsx(
+        styles.adultModeToggleContainer,
+        (!ADULT_MODE_AVAILABLE || !showMinutes) && styles.toggleOnly,
+      )}
+    >
       {ADULT_MODE_AVAILABLE && showMinutes && (
-        <div className={clsx(styles.minutesArea, checked ? styles.minutesEnabled : styles.minutesDisabled)}>
+        <div
+          className={clsx(
+            styles.minutesArea,
+            checked ? styles.minutesEnabled : styles.minutesDisabled,
+          )}
+        >
           <span>{minutesLeft ? minutesToTime(minutesLeft) : "0"} mins</span>
         </div>
       )}
-      <div className={styles.toggleArea} onClick={handleToggle}
+      <div
+        className={styles.toggleArea}
+        onClick={handleToggle}
         role="button"
         aria-pressed={checked}
         aria-disabled={disabled}
@@ -45,14 +57,40 @@ const AdultModeToggle: React.FC<AdultModeToggleProps> = ({
             event.preventDefault();
             handleToggle();
           }
-        }}>
-        <div className={clsx(className, disabled && styles.disabled, styles.pill, checked && styles.pillActive)}>
-          <span className={clsx(styles.rightIcon, checked && styles.rightIconActive)}>
-            {checked ? <HorneyLips className={styles.lipsIcon} /> : <LipsIcon className={styles.lipsIcon} />}
+        }}
+      >
+        <div
+          className={clsx(
+            className,
+            disabled && styles.disabled,
+            styles.pill,
+            checked && styles.pillActive,
+          )}
+        >
+          <span
+            className={clsx(
+              styles.rightIcon,
+              checked && styles.rightIconActive,
+            )}
+          >
+            {checked ? (
+              <HornyLips className={styles.lipsIcon} />
+            ) : (
+              <LipsIcon className={styles.lipsIcon} />
+            )}
           </span>
         </div>
-        <div className={clsx(className, disabled && styles.disabled, styles.pillLabel, checked && styles.pillLabelActive)}>
-          <span className={clsx(styles.label, checked && styles.labelActive)}>18+</span>
+        <div
+          className={clsx(
+            className,
+            disabled && styles.disabled,
+            styles.pillLabel,
+            checked && styles.pillLabelActive,
+          )}
+        >
+          <span className={clsx(styles.label, checked && styles.labelActive)}>
+            18+
+          </span>
         </div>
       </div>
     </div>
