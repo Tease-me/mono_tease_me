@@ -104,12 +104,12 @@ const ProfileSurvey: React.FC = () => {
           (response as any).message ||
           "Registration failed, please try again later",
       });
+      setIsSubmitting(false);
     } catch (err) {
       console.error(err);
       setErrors({
         general: "Unexpected error, please try again later",
       });
-    } finally {
       setIsSubmitting(false);
     }
   };
