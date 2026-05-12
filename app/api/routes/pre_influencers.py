@@ -579,7 +579,8 @@ async def upload_pre_influencer_picture(
                 "Failed to delete previous S3 picture %s", previous_key, exc_info=True
             )
 
-    schedule_mjfp_pre_influencer_step_webhook(pre.id)
+    if not previous_key and s3_key:
+        schedule_mjfp_pre_influencer_step_webhook(pre.id)
     return {"s3_key": s3_key}
 
 

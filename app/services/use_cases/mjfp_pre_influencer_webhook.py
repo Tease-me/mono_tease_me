@@ -49,14 +49,14 @@ async def _run_mjfp_pre_influencer_step_webhook(pre_id: int) -> None:
             payload["inviteCode"] = invite
 
     delivered = await post_mjfp_teaseme_step_webhook(url=url, secret=secret, payload=payload)
-    if not delivered:
+    if delivered is not True:
         return
 
     async with SessionLocal() as db:
         pre2 = await db.get(PreInfluencer, pre_id)
         if not pre2:
             return
-        pre2.mjfp_last_notified_derived_step = await derive_mj_survey_step(db, pre2)
+        pre2.mjfp_last_notified_derived_step = derived
         await db.commit()
 
 
@@ -71,4 +71,8 @@ def schedule_mjfp_pre_influencer_step_webhook(pre_id: int) -> None:
         except Exception:
             log.exception("[mjfp-webhook] failed pre_id=%s", pre_id)
 
-    asyncio.create_task(_wrapper())
+    try:
+        asyncio.create_task(_wrapper())
+    except RuntimeError:
+        log.exception("[mjfp-webhook] failed to schedule pre_id=%s", pre_id)
+        return
