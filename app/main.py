@@ -46,6 +46,14 @@ log = logging.getLogger(__name__)
 
 origins_str = os.getenv("CORS_ORIGINS", "")
 origins = [o.strip() for o in origins_str.split(",") if o.strip()]
+# Optional regex so LAN / IP dev origins work without listing every host, e.g.:
+# CORS_ORIGIN_REGEX=^https?://(localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})(:\d+)?$
+cors_origin_regex = os.getenv("CORS_ORIGIN_REGEX", "").strip() or None
+
+# Browsers (and Starlette) reject ACAO: * together with Allow-Credentials: true.
+_use_wildcard = not origins and not cors_origin_regex
+_allow_credentials = not _use_wildcard
+_allow_origins = ["*"] if _use_wildcard else origins
 
 
 @asynccontextmanager
@@ -81,8 +89,9 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins if origins else ["*"],
-    allow_credentials=True,
+    allow_origins=_allow_origins,
+    allow_origin_regex=cors_origin_regex,
+    allow_credentials=_allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )

@@ -7,6 +7,10 @@ def _extract_first_name(value: str | None) -> str | None:
     return parts[0]
 
 
+def extract_first_name(value: str | None) -> str | None:
+    return _extract_first_name(value)
+
+
 def _resolve_user_name(username: str | None) -> str:
     if username and username.strip():
         return username.strip()

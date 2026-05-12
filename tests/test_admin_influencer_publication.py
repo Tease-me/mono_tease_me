@@ -14,12 +14,32 @@ from app.data.enums import InfluencerPublicationStatus
 from app.utils.auth.dependencies import get_current_user
 
 
+class _FakeScalars:
+    def __init__(self, rows: list):
+        self._rows = rows
+
+    def all(self):
+        return self._rows
+
+
+class _FakeResult:
+    def __init__(self, rows: list | None = None):
+        self._rows = rows or []
+
+    def scalars(self):
+        return _FakeScalars(self._rows)
+
+
 class FakeSession:
     def __init__(self, influencer=None):
         self.influencer = influencer
         self.added = None
         self.committed = False
         self.refreshed = None
+
+    async def execute(self, _stmt):
+        """Routes that load related rows after commit; publication tests omit pre-influencers."""
+        return _FakeResult([])
 
     async def get(self, _model, key: str):
         if self.influencer and key == self.influencer.id:

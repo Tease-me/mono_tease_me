@@ -11,7 +11,13 @@ from app.data.schemas.influencer import (
     InfluencerPublicationStatusResponse,
     InfluencerPublicationUpdateRequest,
 )
+from app.services.repositories.pre_influencer_repository import (
+    list_pre_influencer_ids_for_influencer_id,
+)
 from app.services.use_cases.influencer_detail import build_influencer_detail
+from app.services.use_cases.mjfp_pre_influencer_webhook import (
+    schedule_mjfp_pre_influencer_step_webhook,
+)
 from app.utils.auth.dependencies import get_current_user
 
 router = APIRouter(tags=["Admin Influencers"])
@@ -57,6 +63,12 @@ async def update_admin_influencer_publication(
     db.add(influencer)
     await db.commit()
     await db.refresh(influencer)
+
+    pre_ids = await list_pre_influencer_ids_for_influencer_id(
+        db, influencer_id=influencer.id
+    )
+    for pre_id in pre_ids:
+        schedule_mjfp_pre_influencer_step_webhook(pre_id)
 
     return InfluencerPublicationStatusResponse(
         influencer_id=influencer.id,

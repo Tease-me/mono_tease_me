@@ -11,13 +11,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.data.enums import InfluencerPublicationStatus
 from app.data.models import Influencer, PreInfluencer, User
 from app.services.email.mailers import send_pre_influencer_converted_admin_email
-from app.services.firstpromoter import (
+from app.services.mjpromoter import (
     fp_create_promoter,
     fp_find_promoter_id_by_ref_token,
 )
 from app.services.gateways.elevenlabs.agents_gateway import ElevenLabsAgentsGateway
 from app.services.gateways.elevenlabs.voices_gateway import ElevenLabsVoicesGateway
 from app.services.use_cases import pre_influencer_storage
+from app.services.use_cases.mjfp_pre_influencer_webhook import (
+    schedule_mjfp_pre_influencer_step_webhook,
+)
 from app.services.use_cases.pre_influencer_survey_prompt import (
     format_survey_markdown,
     generate_prompt_from_markdown,
@@ -268,7 +271,7 @@ async def approve_pre_influencer(db: AsyncSession, pre_id: int) -> dict:
                     )
             except Exception:
                 log.exception(
-                    "FirstPromoter create promoter failed on approval for pre_id=%s",
+                    "MJFP create promoter failed on approval for pre_id=%s",
                     pre.id,
                 )
 
@@ -311,6 +314,7 @@ async def approve_pre_influencer(db: AsyncSession, pre_id: int) -> dict:
 
         await db.commit()
         await db.refresh(influencer)
+        schedule_mjfp_pre_influencer_step_webhook(pre.id)
         await _notify_admin_pre_influencer_converted(
             db,
             pre=pre,
