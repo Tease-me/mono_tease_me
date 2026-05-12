@@ -778,7 +778,6 @@
 .button-cta-outer.loading {
     cursor: wait;
     opacity: 0.75;
-    pointer-events: none;
 }
 
 .button-cta-outer.loading .button-cta-inner {
