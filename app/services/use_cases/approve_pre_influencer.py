@@ -18,6 +18,9 @@ from app.services.firstpromoter import (
 from app.services.gateways.elevenlabs.agents_gateway import ElevenLabsAgentsGateway
 from app.services.gateways.elevenlabs.voices_gateway import ElevenLabsVoicesGateway
 from app.services.use_cases import pre_influencer_storage
+from app.services.use_cases.mjfp_pre_influencer_webhook import (
+    schedule_mjfp_pre_influencer_step_webhook,
+)
 from app.services.use_cases.pre_influencer_survey_prompt import (
     format_survey_markdown,
     generate_prompt_from_markdown,
@@ -311,6 +314,7 @@ async def approve_pre_influencer(db: AsyncSession, pre_id: int) -> dict:
 
         await db.commit()
         await db.refresh(influencer)
+        schedule_mjfp_pre_influencer_step_webhook(pre.id)
         await _notify_admin_pre_influencer_converted(
             db,
             pre=pre,

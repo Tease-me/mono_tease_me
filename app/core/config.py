@@ -1,5 +1,7 @@
 from pathlib import Path
+from typing import Self
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -65,7 +67,8 @@ class Settings(BaseSettings):
 
     LANDING_PAGE_AGENT_ID: str
     BUCKET_NAME: str
-    PUBLIC_ASSET_BUCKET_NAME: str
+    # If omitted in .env, use BUCKET_NAME (common for local/Docker).
+    PUBLIC_ASSET_BUCKET_NAME: str = ""
     BUCKET_PUBLIC_URL: str = "https://bucket-image-tease-me.s3.us-east-1.amazonaws.com"
     INFLUENCER_BUCKET_PREFIX: str
     USER_PREFIX: str = "user-content"  # Default fallback if missing in .env
@@ -91,6 +94,8 @@ class Settings(BaseSettings):
     MJFP_API_KEY: str | None = None
     MJFP_TOKEN: str | None = None
     MJFP_ACCOUNT_ID: str | None = None
+    MJFP_WEBHOOK_URL: str | None = None
+    MJFP_WEBHOOK_SECRET: str | None = None
 
     # Didit Identity Verification (v3 API)
     DIDIT_BASE_URL: str = "https://verification.didit.me/v3"
@@ -147,6 +152,12 @@ class Settings(BaseSettings):
     TELEGRAM_TEXT_QUEUE_TTL_SECONDS: int = 300
     FRONTEND_URL: str = "https://www.teaseme.live"  # Web app base URL
     FIRST_LOGIN_BONUS_CENTS: int = 200
+
+    @model_validator(mode="after")
+    def default_public_asset_bucket(self) -> Self:
+        if not (self.PUBLIC_ASSET_BUCKET_NAME or "").strip():
+            object.__setattr__(self, "PUBLIC_ASSET_BUCKET_NAME", self.BUCKET_NAME)
+        return self
 
 
 settings = Settings()
