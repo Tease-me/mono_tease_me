@@ -13,6 +13,11 @@ def _normalize_influencer_id(username: str | None) -> str:
     return re.sub(r"[^a-z0-9_]", "", (username or "").lower())
 
 
+def normalize_influencer_id_from_username(username: str | None) -> str:
+    """Normalize username to influencer id (matches Influencer.id / admin routes)."""
+    return _normalize_influencer_id(username)
+
+
 def _has_nonblank_asset_link(answers: dict[str, Any]) -> bool:
     asset_link = answers.get("asset_link")
     return isinstance(asset_link, str) and bool(asset_link.strip())

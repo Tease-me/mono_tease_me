@@ -3,17 +3,24 @@ import logging
 from datetime import datetime
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Request, BackgroundTasks
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    HTTPException,
+    Request,
+    UploadFile,
+)
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+
 from app.api.admin.common import ensure_admin
 from app.api.deps.influencer import ensure_published_influencer
 from app.api.routes.webhooks import _process_relationship_update
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
+from app.core.session import get_db
 from app.data.enums import InfluencerPublicationStatus
 from app.data.models import AdultCharacter, Influencer, InfluencerCharacterMeta, User
-from app.utils.auth.dependencies import get_current_user
-
-from app.core.session import get_db
 from app.data.schemas.influencer import (
     InfluencerAdultCharacterOut,
     InfluencerBio,
@@ -26,23 +33,30 @@ from app.data.schemas.influencer import (
     SocialLink,
 )
 from app.data.schemas.pre_influencer import InfluencerAudioDeleteRequest
-from app.services.use_cases.admin_influencer_assets import (
-    build_public_landing_assets_out,
-    build_public_telegram_welcome_media_out,
-)
-from app.services.use_cases.influencer_detail import build_influencer_detail
 from app.services.influencer_cleanup import (
     InfluencerDeleteError,
     InfluencerDeleteNotFoundError,
     delete_influencer_and_chat_history,
 )
-from app.services.repositories.influencer_character_assets_repository import (
-    get_influencer_character_asset_state,
-)
 from app.services.repositories.adult_character_assets_repository import (
     get_adult_character_asset_state,
 )
+from app.services.repositories.influencer_character_assets_repository import (
+    get_influencer_character_asset_state,
+)
+from app.services.use_cases.admin_influencer_assets import (
+    build_public_landing_assets_out,
+    build_public_telegram_welcome_media_out,
+)
+from app.services.use_cases.influencer_detail import build_influencer_detail
+from app.utils.auth.dependencies import get_current_user
+from app.utils.character_name import (
+    build_character_template_context,
+    extract_first_name,
+    render_character_ui_text,
+)
 from app.utils.storage.s3 import (
+    delete_file_from_s3,
     generate_presigned_url,
     get_influencer_audio_download_url,
     list_influencer_audio_keys,
@@ -50,11 +64,6 @@ from app.utils.storage.s3 import (
     save_influencer_photo_to_s3,
     save_influencer_profile_to_s3,
     save_influencer_video_to_s3,
-    delete_file_from_s3,
-)
-from app.utils.character_name import (
-    build_character_template_context,
-    render_character_ui_text,
 )
 
 log = logging.getLogger(__name__)
@@ -77,7 +86,9 @@ def _resolve_sample_urls(meta_json: dict | None) -> dict | None:
     resolved = dict(meta_json)
     resolved["samples"] = {
         sample_type: [
-            {**entry, "url": generate_presigned_url(entry["s3_key"])} if entry.get("s3_key") else entry
+            {**entry, "url": generate_presigned_url(entry["s3_key"])}
+            if entry.get("s3_key")
+            else entry
             for entry in entries
         ]
         for sample_type, entries in meta_json["samples"].items()
@@ -121,7 +132,9 @@ async def _build_influencer_adult_characters(
     )
     for character in characters:
         overlay = overlays.get(character.id)
-        asset_state = await get_influencer_character_asset_state(influencer_id, character.id)
+        asset_state = await get_influencer_character_asset_state(
+            influencer_id, character.id
+        )
         base_asset_state = await get_adult_character_asset_state(
             character.id,
             character.default_artwork_key,
@@ -134,7 +147,8 @@ async def _build_influencer_adult_characters(
                 name=render_character_ui_text(
                     character.name,
                     context=template_context,
-                ) or character.name,
+                )
+                or character.name,
                 description=render_character_ui_text(
                     character.description,
                     context=template_context,
@@ -144,9 +158,11 @@ async def _build_influencer_adult_characters(
                     context=template_context,
                 ),
                 first_messages=[
-                    render_character_ui_text(message, context=template_context) or message
+                    render_character_ui_text(message, context=template_context)
+                    or message
                     for message in (character.first_messages or [])
-                ] or None,
+                ]
+                or None,
                 prompt_template=character.prompt_template,
                 is_active=character.is_active,
                 display_order=character.display_order,
@@ -177,6 +193,7 @@ async def list_influencers(db: AsyncSession = Depends(get_db)):
     )
     influencers = result.scalars().all()
     return [await build_influencer_detail(influencer) for influencer in influencers]
+
 
 @router.get("/{influencer_id}/bio", response_model=InfluencerBio)
 async def get_influencer_bio(influencer_id: str, db: AsyncSession = Depends(get_db)):
@@ -216,7 +233,10 @@ async def get_influencer(id: str, db: AsyncSession = Depends(get_db)):
     return await build_influencer_detail(influencer)
 
 
-@router.get("/{influencer_id}/adult-characters", response_model=List[InfluencerAdultCharacterOut])
+@router.get(
+    "/{influencer_id}/adult-characters",
+    response_model=List[InfluencerAdultCharacterOut],
+)
 async def get_influencer_adult_characters(
     influencer_id: str,
     current_user: User = Depends(get_current_user),
@@ -227,7 +247,7 @@ async def get_influencer_adult_characters(
     return await _build_influencer_adult_characters(
         db,
         influencer_id,
-        influencer.display_name,
+        extract_first_name(influencer.display_name),
         current_user,
     )
 
@@ -257,8 +277,13 @@ async def get_influencer_telegram_welcome_media(
 
     return await build_public_telegram_welcome_media_out(influencer)
 
+
 @router.post("", response_model=InfluencerOut, status_code=201)
-async def create_influencer(data: InfluencerCreate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def create_influencer(
+    data: InfluencerCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
     ensure_admin(current_user)
     if await db.get(Influencer, data.id):
         raise HTTPException(400, "Influencer with this id already exists")
@@ -269,12 +294,13 @@ async def create_influencer(data: InfluencerCreate, current_user: User = Depends
     await db.refresh(influencer)
     return influencer
 
+
 @router.patch("/{id}", response_model=InfluencerOut)
 async def update_influencer(
-    id: str, 
-    data: InfluencerUpdate, 
-    current_user: User = Depends(get_current_user), 
-    db: AsyncSession = Depends(get_db)
+    id: str,
+    data: InfluencerUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
     influencer = await db.get(Influencer, id)
     if not influencer:
@@ -287,8 +313,13 @@ async def update_influencer(
     await db.refresh(influencer)
     return influencer
 
+
 @router.delete("/{id}")
-async def delete_influencer(id: str, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def delete_influencer(
+    id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
     ensure_admin(current_user)
     influencer = await db.get(Influencer, id)
     if not influencer:
@@ -302,7 +333,8 @@ async def delete_influencer(id: str, current_user: User = Depends(get_current_us
     return result.as_dict()
 
 
-@router.post("/{influencer_id}/profile", 
+@router.post(
+    "/{influencer_id}/profile",
     description="Update influencer profile. Send photo/video as multipart form fields.",
     openapi_extra={
         "requestBody": {
@@ -314,14 +346,22 @@ async def delete_influencer(id: str, current_user: User = Depends(get_current_us
                             "about": {"type": "string", "nullable": True},
                             "native_language": {"type": "string", "nullable": True},
                             "date_of_birth": {"type": "string", "nullable": True},
-                            "photo": {"type": "string", "format": "binary", "nullable": True},
-                            "video": {"type": "string", "format": "binary", "nullable": True},
-                        }
+                            "photo": {
+                                "type": "string",
+                                "format": "binary",
+                                "nullable": True,
+                            },
+                            "video": {
+                                "type": "string",
+                                "format": "binary",
+                                "nullable": True,
+                            },
+                        },
                     }
                 }
             }
         }
-    }
+    },
 )
 async def update_influencer_profile(
     influencer_id: str,
@@ -337,17 +377,25 @@ async def update_influencer_profile(
     about = form.get("about")
     native_language = form.get("native_language")
     date_of_birth = form.get("date_of_birth")
-    
+
     photo_field = form.get("photo")
     video_field = form.get("video")
-    
+
     photo_bytes = None
     video_bytes = None
-    
-    if hasattr(photo_field, 'read') and hasattr(photo_field, 'filename') and photo_field.filename:
+
+    if (
+        hasattr(photo_field, "read")
+        and hasattr(photo_field, "filename")
+        and photo_field.filename
+    ):
         photo_bytes = await photo_field.read()
-        
-    if hasattr(video_field, 'read') and hasattr(video_field, 'filename') and video_field.filename:
+
+    if (
+        hasattr(video_field, "read")
+        and hasattr(video_field, "filename")
+        and video_field.filename
+    ):
         video_bytes = await video_field.read()
 
     previous_photo_key = influencer.profile_photo_key
@@ -377,7 +425,11 @@ async def update_influencer_profile(
         if native_language:
             influencer.native_language = native_language
 
-        dt_val = _parse_iso_datetime(date_of_birth) if date_of_birth and date_of_birth not in ("", "string") else None
+        dt_val = (
+            _parse_iso_datetime(date_of_birth)
+            if date_of_birth and date_of_birth not in ("", "string")
+            else None
+        )
         if dt_val:
             influencer.date_of_birth = dt_val
 
@@ -394,7 +446,10 @@ async def update_influencer_profile(
         try:
             await db.rollback()
         except Exception:
-            log.warning("Failed to rollback DB session after profile update error", exc_info=True)
+            log.warning(
+                "Failed to rollback DB session after profile update error",
+                exc_info=True,
+            )
 
         for key, previous in (
             (uploaded_photo_key, previous_photo_key),
@@ -404,7 +459,9 @@ async def update_influencer_profile(
                 try:
                     await delete_file_from_s3(key)
                 except Exception:
-                    log.warning("Failed to rollback uploaded S3 object %s", key, exc_info=True)
+                    log.warning(
+                        "Failed to rollback uploaded S3 object %s", key, exc_info=True
+                    )
 
         if isinstance(exc, HTTPException):
             raise
@@ -432,9 +489,13 @@ async def update_influencer_profile(
                 try:
                     await delete_file_from_s3(key)
                 except Exception:
-                    log.warning("Failed to rollback uploaded S3 object %s", key, exc_info=True)
+                    log.warning(
+                        "Failed to rollback uploaded S3 object %s", key, exc_info=True
+                    )
         log.error("Failed to persist influencer profile: %s", exc, exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to persist influencer profile")
+        raise HTTPException(
+            status_code=500, detail="Failed to persist influencer profile"
+        )
 
     for key, new_key in (
         (previous_photo_key, influencer.profile_photo_key),
@@ -444,14 +505,18 @@ async def update_influencer_profile(
             try:
                 await delete_file_from_s3(key)
             except Exception:
-                log.warning("Failed to delete previous S3 object %s", key, exc_info=True)
+                log.warning(
+                    "Failed to delete previous S3 object %s", key, exc_info=True
+                )
 
     return {
         "ok": True,
         "profile_photo_key": influencer.profile_photo_key,
         "profile_video_key": influencer.profile_video_key,
         "native_language": influencer.native_language,
-        "date_of_birth": influencer.date_of_birth.isoformat() if influencer.date_of_birth else None,
+        "date_of_birth": influencer.date_of_birth.isoformat()
+        if influencer.date_of_birth
+        else None,
         "photo_url": generate_presigned_url(influencer.profile_photo_key)
         if influencer.profile_photo_key
         else None,
@@ -460,13 +525,14 @@ async def update_influencer_profile(
         else None,
     }
 
+
 @router.post("/relationship_update")
 async def update_relationship_api(
     background_tasks: BackgroundTasks,
     user_text: Optional[str] = None,
     conversation_id: Optional[str] = None,
     current_user: User = Depends(get_current_user),
-):  
+):
     try:
         log.info(
             "Received relationship update - user_text: %s, conversation_id: %s, user_id: %s",
@@ -476,7 +542,7 @@ async def update_relationship_api(
         )
     except Exception:
         log.warning("Failed to log relationship update details", exc_info=True)
-    
+
     relationship = await _process_relationship_update(
         user_text=user_text,
         conversation_id=conversation_id,
@@ -488,7 +554,7 @@ async def update_relationship_api(
 async def upload_influencer_audio(
     influencer_id: str,
     file: UploadFile = File(...),
-):  
+):
 
     file_bytes = await file.read()
     if not file_bytes:
@@ -504,6 +570,7 @@ async def upload_influencer_audio(
     url = get_influencer_audio_download_url(key)
     return {"key": key, "url": url}
 
+
 @router.get("/influencer-audio/{influencer_id}")
 async def list_influencer_audio(
     influencer_id: str,
@@ -512,7 +579,9 @@ async def list_influencer_audio(
     await ensure_published_influencer(db, influencer_id)
     keys = await list_influencer_audio_keys(influencer_id)
     if not keys:
-        raise HTTPException(status_code=404, detail="Influencer has no audio file stored")
+        raise HTTPException(
+            status_code=404, detail="Influencer has no audio file stored"
+        )
 
     files = [
         {
@@ -548,7 +617,9 @@ async def delete_influencer_audio(
 
 
 @router.get("/{influencer_id}/samples")
-async def list_influencer_samples(influencer_id: str, db: AsyncSession = Depends(get_db)):
+async def list_influencer_samples(
+    influencer_id: str, db: AsyncSession = Depends(get_db)
+):
     influencer = await ensure_published_influencer(db, influencer_id)
 
     samples = influencer.samples or []
@@ -562,7 +633,9 @@ async def list_influencer_samples(influencer_id: str, db: AsyncSession = Depends
                 "s3_key": s.get("s3_key"),
                 "original_filename": s.get("original_filename"),
                 "content_type": s.get("content_type"),
-                "url": generate_presigned_url(s.get("s3_key")) if s.get("s3_key") else None,
+                "url": generate_presigned_url(s.get("s3_key"))
+                if s.get("s3_key")
+                else None,
                 "created_at": s.get("created_at"),
             }
             for s in samples

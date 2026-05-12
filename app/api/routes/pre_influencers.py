@@ -38,7 +38,7 @@ from app.services.email.mailers import (
     send_influencer_survey_completed_email_to_promoter,
     send_profile_survey_email,
 )
-from app.services.firstpromoter import (
+from app.services.mjpromoter import (
     fp_extract_email,
     fp_extract_parent_promoter_id,
     fp_find_promoter_id_by_ref_token,
@@ -47,6 +47,10 @@ from app.services.firstpromoter import (
 )
 from app.services.use_cases.approve_pre_influencer import (
     approve_pre_influencer as run_pre_influencer_approval,
+)
+from app.services.use_cases.mj_pre_influencer_progress import derive_mj_survey_step
+from app.services.use_cases.mjfp_pre_influencer_webhook import (
+    schedule_mjfp_pre_influencer_step_webhook,
 )
 from app.services.use_cases.pre_influencer_output import build_pre_influencer_admin_out
 from app.services.use_cases import pre_influencer_storage
@@ -186,6 +190,7 @@ async def accept_pre_influencer_terms(
 
     pre.terms_agreement = True
     await db.commit()
+    schedule_mjfp_pre_influencer_step_webhook(pre.id)
     return {"ok": True, "terms_agreement": True}
 
 
@@ -235,8 +240,9 @@ async def register_pre_influencer(
     db.add(pre)
     await db.commit()
     await db.refresh(pre)
+    schedule_mjfp_pre_influencer_step_webhook(pre.id)
 
-    # Track pre-influencer signup in FirstPromoter (if fp_tid provided)
+    # Track pre-influencer signup in MJFP (if fp_tid provided)
     if data.fp_tid:
         try:
             await fp_track_signup(
@@ -246,7 +252,7 @@ async def register_pre_influencer(
             )
         except Exception:
             log.exception(
-                "FirstPromoter track signup failed for pre-influencer %s", pre.id
+                "MJFP track signup failed for pre-influencer %s", pre.id
             )
 
     send_profile_survey_email(
@@ -399,10 +405,14 @@ async def _notify_parent_promoter_if_needed(
     if meta.get("parent_promoter_survey_completed_notified"):
         return
 
-    parent_promoter_id: int | None = None
+    parent_promoter_id: int | str | None = None
     raw_parent_promoter_id = meta.get("parent_promoter_id")
-    if raw_parent_promoter_id is not None and str(raw_parent_promoter_id).isdigit():
-        parent_promoter_id = int(raw_parent_promoter_id)
+    if raw_parent_promoter_id is not None:
+        raw_s = str(raw_parent_promoter_id).strip()
+        if raw_s.isdigit():
+            parent_promoter_id = int(raw_s)
+        elif raw_s:
+            parent_promoter_id = raw_s
 
     if parent_promoter_id is None:
         parent_ref_id = meta.get("parent_ref_id")
@@ -425,9 +435,6 @@ async def _notify_parent_promoter_if_needed(
     if parent_promoter_id is not None:
         parent_payload = await fp_get_promoter_v2(parent_promoter_id)
         to_email = fp_extract_email(parent_payload)
-
-    if not to_email:
-        to_email = settings.FIRSTPROMOTER_NOTIFY_EMAIL
 
     if not to_email:
         answers["__meta"] = meta
@@ -496,9 +503,15 @@ async def save_survey_state(
             await _notify_parent_promoter_if_needed(pre, db)
         except Exception:
             log.exception(
-                "Failed to notify FirstPromoter on survey completion pre_id=%s", pre.id
+                "Failed to notify parent promoter on survey completion pre_id=%s", pre.id
             )
         await db.refresh(pre)
+
+    if (settings.MJFP_WEBHOOK_URL or "").strip() and (settings.MJFP_WEBHOOK_SECRET or ""):
+        derived = await derive_mj_survey_step(db, pre)
+        stored = pre.mjfp_last_notified_derived_step
+        if stored is None or stored != derived:
+            schedule_mjfp_pre_influencer_step_webhook(pre.id)
 
     return SurveyState(
         pre_influencer_id=pre.id,
@@ -567,6 +580,8 @@ async def upload_pre_influencer_picture(
                 "Failed to delete previous S3 picture %s", previous_key, exc_info=True
             )
 
+    if not previous_key and s3_key:
+        schedule_mjfp_pre_influencer_step_webhook(pre.id)
     return {"s3_key": s3_key}
 
 

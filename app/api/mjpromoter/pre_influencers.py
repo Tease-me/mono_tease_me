@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.internal_auth import require_internal_token
+from app.core.config import settings
 from app.core.session import get_db
 from app.data.schemas.pre_influencer import (
     MJPreInfluencerAssetLinkOut,
@@ -22,6 +23,9 @@ from app.services.use_cases.pre_influencer_survey_link import (
 )
 from app.services.use_cases.approve_pre_influencer import (
     approve_pre_influencer as run_pre_influencer_approval,
+)
+from app.services.use_cases.mjfp_pre_influencer_webhook import (
+    schedule_mjfp_pre_influencer_step_webhook,
 )
 
 router = APIRouter(
@@ -89,10 +93,18 @@ async def get_pre_influencer_step_progress_internal(
             detail="Pre-influencer progress target not found",
         )
 
+    derived = await derive_mj_survey_step(db, pre)
+    if (settings.MJFP_WEBHOOK_URL or "").strip() and (settings.MJFP_WEBHOOK_SECRET or ""):
+        if (
+            pre.mjfp_last_notified_derived_step is None
+            or pre.mjfp_last_notified_derived_step != derived
+        ):
+            schedule_mjfp_pre_influencer_step_webhook(pre.id)
+
     return MJPreInfluencerStepProgressOut(
         pre_influencer_id=pre.id,
         username=pre.username,
-        survey_step=await derive_mj_survey_step(db, pre),
+        survey_step=derived,
         status=pre.status,
         asset_link=_get_asset_link(pre),
         survey_link=build_pre_influencer_survey_link(

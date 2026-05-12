@@ -120,3 +120,6 @@ class PreInfluencer(Base):
     terms_agreement: Mapped[bool] = mapped_column(Boolean, default=False)
     fp_promoter_id: Mapped[str | None] = mapped_column(String, nullable=True)
     fp_ref_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    mjfp_last_notified_derived_step: Mapped[int | None] = mapped_column(
+        Integer, nullable=True
+    )
