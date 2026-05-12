@@ -71,4 +71,8 @@ def schedule_mjfp_pre_influencer_step_webhook(pre_id: int) -> None:
         except Exception:
             log.exception("[mjfp-webhook] failed pre_id=%s", pre_id)
 
-    asyncio.create_task(_wrapper())
+    try:
+        asyncio.create_task(_wrapper())
+    except RuntimeError:
+        log.exception("[mjfp-webhook] failed to schedule pre_id=%s", pre_id)
+        return
