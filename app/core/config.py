@@ -81,15 +81,7 @@ class Settings(BaseSettings):
     # External checkout webhook (Stripe/PayPal payment confirmation)
     PAYMENT_WEBHOOK_SECRET: str | None = None
 
-    FIRSTPROMOTER_TOKEN: str | None = None
-    FIRSTPROMOTER_ACCOUNT_ID: str | None = None
-    FIRSTPROMOTER_API_KEY: str | None = None
-    FIRSTPROMOTER_API_BASE_URL: str = "https://v2.firstpromoter.com/api/v2"
-    FIRSTPROMOTER_API_V1_BASE_URL: str = "https://firstpromoter.com/api/v1"
-    FIRSTPROMOTER_COMPANY_API_BASE_URL: str = "https://api.firstpromoter.com/api/v2"
-    FIRSTPROMOTER_NOTIFY_EMAIL: str | None = None
-
-    # MJ First Promoter (MJFP) - Drop-in replacement for FirstPromoter
+    # MJ First Promoter (MJFP) referral / affiliate API
     MJFP_API_URL: str | None = None
     MJFP_API_KEY: str | None = None
     MJFP_TOKEN: str | None = None

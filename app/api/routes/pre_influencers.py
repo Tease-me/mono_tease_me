@@ -38,7 +38,7 @@ from app.services.email.mailers import (
     send_influencer_survey_completed_email_to_promoter,
     send_profile_survey_email,
 )
-from app.services.firstpromoter import (
+from app.services.mjpromoter import (
     fp_extract_email,
     fp_extract_parent_promoter_id,
     fp_find_promoter_id_by_ref_token,
@@ -242,7 +242,7 @@ async def register_pre_influencer(
     await db.refresh(pre)
     schedule_mjfp_pre_influencer_step_webhook(pre.id)
 
-    # Track pre-influencer signup in FirstPromoter (if fp_tid provided)
+    # Track pre-influencer signup in MJFP (if fp_tid provided)
     if data.fp_tid:
         try:
             await fp_track_signup(
@@ -252,7 +252,7 @@ async def register_pre_influencer(
             )
         except Exception:
             log.exception(
-                "FirstPromoter track signup failed for pre-influencer %s", pre.id
+                "MJFP track signup failed for pre-influencer %s", pre.id
             )
 
     send_profile_survey_email(
@@ -405,10 +405,14 @@ async def _notify_parent_promoter_if_needed(
     if meta.get("parent_promoter_survey_completed_notified"):
         return
 
-    parent_promoter_id: int | None = None
+    parent_promoter_id: int | str | None = None
     raw_parent_promoter_id = meta.get("parent_promoter_id")
-    if raw_parent_promoter_id is not None and str(raw_parent_promoter_id).isdigit():
-        parent_promoter_id = int(raw_parent_promoter_id)
+    if raw_parent_promoter_id is not None:
+        raw_s = str(raw_parent_promoter_id).strip()
+        if raw_s.isdigit():
+            parent_promoter_id = int(raw_s)
+        elif raw_s:
+            parent_promoter_id = raw_s
 
     if parent_promoter_id is None:
         parent_ref_id = meta.get("parent_ref_id")
@@ -431,9 +435,6 @@ async def _notify_parent_promoter_if_needed(
     if parent_promoter_id is not None:
         parent_payload = await fp_get_promoter_v2(parent_promoter_id)
         to_email = fp_extract_email(parent_payload)
-
-    if not to_email:
-        to_email = settings.FIRSTPROMOTER_NOTIFY_EMAIL
 
     if not to_email:
         answers["__meta"] = meta
@@ -502,7 +503,7 @@ async def save_survey_state(
             await _notify_parent_promoter_if_needed(pre, db)
         except Exception:
             log.exception(
-                "Failed to notify FirstPromoter on survey completion pre_id=%s", pre.id
+                "Failed to notify parent promoter on survey completion pre_id=%s", pre.id
             )
         await db.refresh(pre)
 

@@ -44,6 +44,20 @@ class MJFPConfig:
         log.info(f"[MJFP]   ACCOUNT_ID: {cls.MJFP_ACCOUNT_ID}")
 
 
+def _ensure_mjfp_config_from_settings() -> None:
+    """Populate MJFPConfig from app settings when class attributes are unset."""
+    from app.core.config import settings
+
+    if MJFPConfig.MJFP_API_URL is None:
+        MJFPConfig.MJFP_API_URL = settings.MJFP_API_URL
+    if MJFPConfig.MJFP_API_KEY is None:
+        MJFPConfig.MJFP_API_KEY = settings.MJFP_API_KEY
+    if MJFPConfig.MJFP_TOKEN is None:
+        MJFPConfig.MJFP_TOKEN = settings.MJFP_TOKEN
+    if MJFPConfig.MJFP_ACCOUNT_ID is None:
+        MJFPConfig.MJFP_ACCOUNT_ID = settings.MJFP_ACCOUNT_ID
+
+
 def _fp_unwrap(payload: dict | None) -> dict | None:
     """Unwrap FirstPromoter-style response (compatibility helper)"""
     if not payload or not isinstance(payload, dict):
@@ -90,6 +104,7 @@ async def fp_get_promoter_v2(promoter_id: int | str) -> dict | None:
     Returns:
         Promoter data or None if not found
     """
+    _ensure_mjfp_config_from_settings()
     log.info(f"[MJFP] Getting promoter: id={promoter_id}")
     token = MJFPConfig.MJFP_TOKEN
     account_id = MJFPConfig.MJFP_ACCOUNT_ID
@@ -156,6 +171,7 @@ async def fp_track_sale_v2(
     Returns:
         Response with commission details
     """
+    _ensure_mjfp_config_from_settings()
     log.info(f"[MJFP] Tracking sale: event_id={event_id}, amount=${amount_cents/100:.2f}, email={email}, uid={uid}, ref_id={ref_id}")
     token = MJFPConfig.MJFP_TOKEN
     account_id = MJFPConfig.MJFP_ACCOUNT_ID
@@ -241,8 +257,9 @@ async def fp_track_signup(
     Returns:
         Response with referral details
     """
+    _ensure_mjfp_config_from_settings()
     log.info(f"[MJFP] Tracking signup: email={email}, uid={uid}, tid={tid}")
-    
+
     if not tid:
         log.warning("[MJFP] Track signup skipped: tid is required but not provided")
         return None
@@ -336,6 +353,7 @@ async def fp_create_promoter(
     Returns:
         Promoter data with ref_id
     """
+    _ensure_mjfp_config_from_settings()
     log.info(f"[MJFP] Creating promoter: email={email}, name={first_name} {last_name}, cust_id={cust_id}, username={username}, parent={parent_promoter_id}")
     api_key = MJFPConfig.MJFP_API_KEY
     base_url = MJFPConfig.get_base_url()
@@ -429,6 +447,7 @@ async def fp_track_refund(
     Returns:
         Response confirming refund processed
     """
+    _ensure_mjfp_config_from_settings()
     log.info(f"[MJFP] Tracking refund: event_id={event_id}, amount=${amount_cents/100:.2f}, email={email}, uid={uid}")
     token = MJFPConfig.MJFP_TOKEN
     account_id = MJFPConfig.MJFP_ACCOUNT_ID
@@ -500,6 +519,7 @@ async def fp_find_promoter_id_by_ref_token(ref_token: str) -> str | None:
     Returns:
         Promoter ID or None if not found
     """
+    _ensure_mjfp_config_from_settings()
     log.info(f"[MJFP] Finding promoter by ref_token: {ref_token}")
     token = MJFPConfig.MJFP_TOKEN
     account_id = MJFPConfig.MJFP_ACCOUNT_ID
@@ -567,6 +587,7 @@ async def fp_find_promoter_id_by_username(username: str) -> str | None:
     Returns:
         Promoter ID or None if not found
     """
+    _ensure_mjfp_config_from_settings()
     log.info(f"[MJFP] Finding promoter by username: {username}")
     token = MJFPConfig.MJFP_TOKEN
     account_id = MJFPConfig.MJFP_ACCOUNT_ID

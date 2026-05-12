@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.data.enums import InfluencerPublicationStatus
 from app.data.models import Influencer, PreInfluencer, User
 from app.services.email.mailers import send_pre_influencer_converted_admin_email
-from app.services.firstpromoter import (
+from app.services.mjpromoter import (
     fp_create_promoter,
     fp_find_promoter_id_by_ref_token,
 )
@@ -271,7 +271,7 @@ async def approve_pre_influencer(db: AsyncSession, pre_id: int) -> dict:
                     )
             except Exception:
                 log.exception(
-                    "FirstPromoter create promoter failed on approval for pre_id=%s",
+                    "MJFP create promoter failed on approval for pre_id=%s",
                     pre.id,
                 )
 

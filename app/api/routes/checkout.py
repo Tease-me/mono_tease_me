@@ -19,7 +19,7 @@ from app.services.credit_conversion import (
     get_conversion_rate,
 )
 from app.services.billing import topup_wallet
-from app.services.firstpromoter import fp_track_sale_v2
+from app.services.mjpromoter import fp_track_sale_v2
 from app.services.gateways import armloop_gateway
 from app.utils.auth.dependencies import get_current_user
 from app.utils.infrastructure.rate_limiter import rate_limit
@@ -143,7 +143,7 @@ async def payment_webhook(
         payload.checkout_id,
     )
 
-    # ── 6. FirstPromoter tracking ───────────────────────────────────
+    # ── 6. MJFP sale tracking ────────────────────────────────────────
     if not topup.fp_tracked:
         if not influencer:
             log.warning(
@@ -391,7 +391,7 @@ async def armloop_webhook(
             notification.merchantReference,
         )
 
-        # ── 6. FirstPromoter tracking ───────────────────────────────
+        # ── 6. MJFP sale tracking ───────────────────────────────────
         if not topup.fp_tracked:
             if not influencer:
                 log.warning(
