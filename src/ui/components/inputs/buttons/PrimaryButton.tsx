@@ -6,6 +6,7 @@ export interface PrimaryButtonProps extends React.HTMLAttributes<HTMLDivElement>
     rightIcon?: React.ReactNode;
     text?: string;
     disabled?: boolean;
+    loading?: boolean;
     selected?: boolean;
     variant?: "pink" | "purple";
 }
@@ -15,6 +16,7 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({
     rightIcon,
     text,
     disabled,
+    loading,
     selected,
     variant = "pink",
     onClick,
@@ -46,7 +48,7 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({
     }
 
     const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (disabled) {
+        if (disabled || loading) {
             e.preventDefault();
             e.stopPropagation();
             return;
@@ -63,9 +65,10 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({
                 styles["button-cta-outer"],
                 !disabled && styles[variant],
                 disabled && styles["disabled"],
-                (!disabled && hovered) && styles["hover"],
-                (!disabled && pressed) && styles["pressed"],
-                (!disabled && selected) && styles["selected"],
+                loading && styles["loading"],
+                (!disabled && !loading && hovered) && styles["hover"],
+                (!disabled && !loading && pressed) && styles["pressed"],
+                (!disabled && !loading && selected) && styles["selected"],
                 rest.className
             )}
             onMouseEnter={handleMouseEnter}
@@ -76,19 +79,19 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({
             onTouchEnd={handleTouchEnd}
         >
             <div className={styles["button-cta-inner"]}>
-                <div className={styles["button-cta-content-container"]}>
-                    {leftIcon && <div className={styles["left-icon"]}>
-                        {leftIcon}
-                    </div>}
-                    {text && <div className={clsx(styles["button-text"])}>{text}</div>}
-                    {rightIcon && <div className={styles["right-icon"]}>
-                        {rightIcon}
-                    </div>}
-                </div>
+                {loading ? (
+                    <div className={styles["spinner"]} />
+                ) : (
+                    <div className={styles["button-cta-content-container"]}>
+                        {leftIcon && <div className={styles["left-icon"]}>{leftIcon}</div>}
+                        {text && <div className={clsx(styles["button-text"])}>{text}</div>}
+                        {rightIcon && <div className={styles["right-icon"]}>{rightIcon}</div>}
+                    </div>
+                )}
             </div>
-            {!disabled && <div className={styles["circle-shine"]} />}
-            {!disabled && <div className={styles["circle-shine-02"]} />}
-            {!disabled && <div className={styles["circle-shine-03"]} />}
+            {!disabled && !loading && <div className={styles["circle-shine"]} />}
+            {!disabled && !loading && <div className={styles["circle-shine-02"]} />}
+            {!disabled && !loading && <div className={styles["circle-shine-03"]} />}
         </div>
     );
 };

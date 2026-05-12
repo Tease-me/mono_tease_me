@@ -25,6 +25,7 @@ const ProfileSurvey: React.FC = () => {
     const attribution = storage.getObject<{ inviteeEmail?: string }>(LocalStorageKeys.JoinAttribution);
     return attribution?.inviteeEmail ?? "";
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showResendDialog, setShowResendDialog] = useState(false);
   const [resendEmail, setResendEmail] = useState("");
   const [resendError, setResendError] = useState("");
@@ -65,7 +66,13 @@ const ProfileSurvey: React.FC = () => {
     // Validation
     if (!name.trim()) newErrors.name = "Full name is required";
     if (!location.trim()) newErrors.location = "Location is required";
-    if (!username.trim()) newErrors.username = "Username is required";
+    if (!username.trim()) {
+      newErrors.username = "Username is required";
+    } else if (username.length < 3) {
+      newErrors.username = "Username must be at least 3 characters";
+    } else if (!/^[a-z0-9_.]+$/.test(username)) {
+      newErrors.username = "Username can only contain lowercase letters, numbers, underscores and dots";
+    }
     if (!email.trim()) newErrors.email = "Email is required";
 
     if (Object.keys(newErrors).length) {
@@ -75,6 +82,7 @@ const ProfileSurvey: React.FC = () => {
 
     const tempPassword = generateTempPassword(6);
 
+    setIsSubmitting(true);
     try {
       const response: RegisterResponse = await PreInfluencerAPI.register({
         full_name: name.trim(),
@@ -96,11 +104,13 @@ const ProfileSurvey: React.FC = () => {
           (response as any).message ||
           "Registration failed, please try again later",
       });
+      setIsSubmitting(false);
     } catch (err) {
       console.error(err);
       setErrors({
         general: "Unexpected error, please try again later",
       });
+      setIsSubmitting(false);
     }
   };
 
@@ -195,7 +205,15 @@ const ProfileSurvey: React.FC = () => {
               className="ps-input"
               placeholder="yourusername"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => {
+                const sanitized = e.target.value
+                  .toLowerCase()
+                  .replace(/[^a-z0-9_.]/g, "");
+                setUsername(sanitized);
+              }}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
             />
           </div>
 
@@ -219,6 +237,7 @@ const ProfileSurvey: React.FC = () => {
               onClick={handleSubmit}
               text="Next"
               rightIcon={<SvgPack.ArrowRight />}
+              loading={isSubmitting}
             />
           </div>
           <div className="ps-secondary-action">
