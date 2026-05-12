@@ -5,16 +5,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.admin.common import ensure_admin
 from app.core.session import get_db
 from app.data.enums import InfluencerPublicationStatus
-from app.data.models import Influencer, PreInfluencer, User
+from app.data.models import Influencer, User
 from app.data.schemas.influencer import (
     InfluencerDetail,
     InfluencerPublicationStatusResponse,
     InfluencerPublicationUpdateRequest,
 )
-from app.services.use_cases.influencer_detail import build_influencer_detail
-from app.services.use_cases.mj_pre_influencer_progress import (
-    normalize_influencer_id_from_username,
+from app.services.repositories.pre_influencer_repository import (
+    list_pre_influencer_ids_for_influencer_id,
 )
+from app.services.use_cases.influencer_detail import build_influencer_detail
 from app.services.use_cases.mjfp_pre_influencer_webhook import (
     schedule_mjfp_pre_influencer_step_webhook,
 )
@@ -64,10 +64,11 @@ async def update_admin_influencer_publication(
     await db.commit()
     await db.refresh(influencer)
 
-    result = await db.execute(select(PreInfluencer))
-    for pre in result.scalars().all():
-        if normalize_influencer_id_from_username(pre.username) == influencer_id:
-            schedule_mjfp_pre_influencer_step_webhook(pre.id)
+    pre_ids = await list_pre_influencer_ids_for_influencer_id(
+        db, influencer_id=influencer.id
+    )
+    for pre_id in pre_ids:
+        schedule_mjfp_pre_influencer_step_webhook(pre_id)
 
     return InfluencerPublicationStatusResponse(
         influencer_id=influencer.id,

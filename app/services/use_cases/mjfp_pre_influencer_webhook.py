@@ -48,7 +48,9 @@ async def _run_mjfp_pre_influencer_step_webhook(pre_id: int) -> None:
         if invite:
             payload["inviteCode"] = invite
 
-    await post_mjfp_teaseme_step_webhook(url=url, secret=secret, payload=payload)
+    delivered = await post_mjfp_teaseme_step_webhook(url=url, secret=secret, payload=payload)
+    if not delivered:
+        return
 
     async with SessionLocal() as db:
         pre2 = await db.get(PreInfluencer, pre_id)

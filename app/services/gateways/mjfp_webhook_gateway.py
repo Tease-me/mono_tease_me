@@ -17,8 +17,12 @@ def _mjfp_webhook_log_target(url: str) -> str:
         return url[:200]
 
 
-async def post_mjfp_teaseme_step_webhook(*, url: str, secret: str, payload: dict) -> None:
-    """POST JSON to MJFP. Logs failures; does not raise for transport errors."""
+async def post_mjfp_teaseme_step_webhook(*, url: str, secret: str, payload: dict) -> bool:
+    """POST JSON to MJFP.
+
+    Returns True on 2xx. Logs and returns False for non-success responses and for
+    transport errors (``httpx.RequestError``); does not raise for those cases.
+    """
     headers = {
         "Content-Type": "application/json",
         "x-webhook-secret": secret,
@@ -28,13 +32,14 @@ async def post_mjfp_teaseme_step_webhook(*, url: str, secret: str, payload: dict
         async with httpx.AsyncClient(timeout=5.0) as client:
             response = await client.post(url, json=payload, headers=headers)
             if response.is_success:
-                return
+                return True
             log.warning(
                 "[mjfp-webhook] non-success url=%s status=%s body=%s",
                 target,
                 response.status_code,
                 response.text[:500],
             )
+            return False
     except httpx.RequestError as exc:
         # str(exc) is often empty; repr + type + __cause__ surface TLS/DNS/refused details.
         cause = exc.__cause__ or exc.__context__
@@ -45,3 +50,4 @@ async def post_mjfp_teaseme_step_webhook(*, url: str, secret: str, payload: dict
             exc,
             cause,
         )
+        return False

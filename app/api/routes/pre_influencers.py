@@ -48,6 +48,7 @@ from app.services.firstpromoter import (
 from app.services.use_cases.approve_pre_influencer import (
     approve_pre_influencer as run_pre_influencer_approval,
 )
+from app.services.use_cases.mj_pre_influencer_progress import derive_mj_survey_step
 from app.services.use_cases.mjfp_pre_influencer_webhook import (
     schedule_mjfp_pre_influencer_step_webhook,
 )
@@ -505,7 +506,11 @@ async def save_survey_state(
             )
         await db.refresh(pre)
 
-    schedule_mjfp_pre_influencer_step_webhook(pre.id)
+    if (settings.MJFP_WEBHOOK_URL or "").strip() and (settings.MJFP_WEBHOOK_SECRET or ""):
+        derived = await derive_mj_survey_step(db, pre)
+        stored = pre.mjfp_last_notified_derived_step
+        if stored is None or stored != derived:
+            schedule_mjfp_pre_influencer_step_webhook(pre.id)
 
     return SurveyState(
         pre_influencer_id=pre.id,
