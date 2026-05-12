@@ -37,7 +37,7 @@ from app.services.repositories.influencer_email_assets_repository import (
 from app.utils.auth.dependencies import get_current_user
 from app.utils.auth.tokens import create_token
 from app.api.routes.notify_ws import notify_email_verified
-from app.services.firstpromoter import fp_track_signup
+from app.services.mjpromoter import fp_track_signup
 from app.data.schemas.user import UserOut
 from app.utils.storage.s3 import (
     delete_file_from_s3,
@@ -364,7 +364,7 @@ async def complete_profile(
                 tid=fp_tid,
             )
     except Exception:
-        log.exception("FirstPromoter track/signup failed during profile completion")
+        log.exception("MJFP track/signup failed during profile completion")
 
     try:
         influencer_verification_header_url = None
@@ -523,7 +523,7 @@ async def register(
                 tid=fp_tid,
             )
     except Exception:
-        log.exception("FirstPromoter track/signup failed")
+        log.exception("MJFP track/signup failed")
     
     try:
         influencer_verification_header_url = None

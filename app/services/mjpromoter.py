@@ -44,6 +44,20 @@ class MJFPConfig:
         log.info(f"[MJFP]   ACCOUNT_ID: {cls.MJFP_ACCOUNT_ID}")
 
 
+def _ensure_mjfp_config_from_settings() -> None:
+    """Populate MJFPConfig from app settings when class attributes are unset."""
+    from app.core.config import settings
+
+    if MJFPConfig.MJFP_API_URL is None:
+        MJFPConfig.MJFP_API_URL = settings.MJFP_API_URL
+    if MJFPConfig.MJFP_API_KEY is None:
+        MJFPConfig.MJFP_API_KEY = settings.MJFP_API_KEY
+    if MJFPConfig.MJFP_TOKEN is None:
+        MJFPConfig.MJFP_TOKEN = settings.MJFP_TOKEN
+    if MJFPConfig.MJFP_ACCOUNT_ID is None:
+        MJFPConfig.MJFP_ACCOUNT_ID = settings.MJFP_ACCOUNT_ID
+
+
 def _fp_unwrap(payload: dict | None) -> dict | None:
     """Unwrap FirstPromoter-style response (compatibility helper)"""
     if not payload or not isinstance(payload, dict):
@@ -63,20 +77,36 @@ def fp_extract_email(payload: dict | None) -> str | None:
     return str(email) if email else None
 
 
-def fp_extract_parent_promoter_id(payload: dict | None) -> int | None:
-    """Extract parent promoter ID from response payload"""
+def fp_extract_parent_promoter_id(payload: dict | None) -> int | str | None:
+    """Extract parent promoter ID from response payload.
+
+    MJFP promoter IDs are non-numeric CUIDs (e.g. ``"cmml946th00004c171d4othnn"``),
+    while legacy FirstPromoter responses used integer IDs. Return an ``int`` when
+    the value is digit-only (back-compat) and a ``str`` for non-numeric IDs.
+    """
     data = _fp_unwrap(payload)
     if not data:
         return None
+
+    def _coerce(val: object) -> int | str | None:
+        if val is None:
+            return None
+        s = str(val).strip()
+        if not s:
+            return None
+        if s.isdigit():
+            return int(s)
+        return s
+
     for key in ("parent_promoter_id", "parent_id"):
-        val = data.get(key)
-        if val is not None and str(val).isdigit():
-            return int(val)
+        coerced = _coerce(data.get(key))
+        if coerced is not None:
+            return coerced
     parent = data.get("parent_promoter") or data.get("parent")
     if isinstance(parent, dict):
-        val = parent.get("id")
-        if val is not None and str(val).isdigit():
-            return int(val)
+        coerced = _coerce(parent.get("id"))
+        if coerced is not None:
+            return coerced
     return None
 
 
@@ -90,6 +120,7 @@ async def fp_get_promoter_v2(promoter_id: int | str) -> dict | None:
     Returns:
         Promoter data or None if not found
     """
+    _ensure_mjfp_config_from_settings()
     log.info(f"[MJFP] Getting promoter: id={promoter_id}")
     token = MJFPConfig.MJFP_TOKEN
     account_id = MJFPConfig.MJFP_ACCOUNT_ID
@@ -156,6 +187,7 @@ async def fp_track_sale_v2(
     Returns:
         Response with commission details
     """
+    _ensure_mjfp_config_from_settings()
     log.info(f"[MJFP] Tracking sale: event_id={event_id}, amount=${amount_cents/100:.2f}, email={email}, uid={uid}, ref_id={ref_id}")
     token = MJFPConfig.MJFP_TOKEN
     account_id = MJFPConfig.MJFP_ACCOUNT_ID
@@ -241,8 +273,9 @@ async def fp_track_signup(
     Returns:
         Response with referral details
     """
+    _ensure_mjfp_config_from_settings()
     log.info(f"[MJFP] Tracking signup: email={email}, uid={uid}, tid={tid}")
-    
+
     if not tid:
         log.warning("[MJFP] Track signup skipped: tid is required but not provided")
         return None
@@ -336,6 +369,7 @@ async def fp_create_promoter(
     Returns:
         Promoter data with ref_id
     """
+    _ensure_mjfp_config_from_settings()
     log.info(f"[MJFP] Creating promoter: email={email}, name={first_name} {last_name}, cust_id={cust_id}, username={username}, parent={parent_promoter_id}")
     api_key = MJFPConfig.MJFP_API_KEY
     base_url = MJFPConfig.get_base_url()
@@ -429,6 +463,7 @@ async def fp_track_refund(
     Returns:
         Response confirming refund processed
     """
+    _ensure_mjfp_config_from_settings()
     log.info(f"[MJFP] Tracking refund: event_id={event_id}, amount=${amount_cents/100:.2f}, email={email}, uid={uid}")
     token = MJFPConfig.MJFP_TOKEN
     account_id = MJFPConfig.MJFP_ACCOUNT_ID
@@ -500,6 +535,7 @@ async def fp_find_promoter_id_by_ref_token(ref_token: str) -> str | None:
     Returns:
         Promoter ID or None if not found
     """
+    _ensure_mjfp_config_from_settings()
     log.info(f"[MJFP] Finding promoter by ref_token: {ref_token}")
     token = MJFPConfig.MJFP_TOKEN
     account_id = MJFPConfig.MJFP_ACCOUNT_ID
@@ -543,7 +579,8 @@ async def fp_find_promoter_id_by_ref_token(ref_token: str) -> str | None:
             
             # MJ Promoter returns the promoter directly
             if data and isinstance(data, dict):
-                promoter_id = data.get("id")
+                raw_id = data.get("id")
+                promoter_id = str(raw_id) if raw_id is not None else None
                 log.info(f"[MJFP] ✅ Found promoter: ref_token={ref_token} -> id={promoter_id}")
                 return promoter_id
             
@@ -567,6 +604,7 @@ async def fp_find_promoter_id_by_username(username: str) -> str | None:
     Returns:
         Promoter ID or None if not found
     """
+    _ensure_mjfp_config_from_settings()
     log.info(f"[MJFP] Finding promoter by username: {username}")
     token = MJFPConfig.MJFP_TOKEN
     account_id = MJFPConfig.MJFP_ACCOUNT_ID
@@ -610,7 +648,8 @@ async def fp_find_promoter_id_by_username(username: str) -> str | None:
             
             # MJ Promoter returns the promoter directly
             if data and isinstance(data, dict):
-                promoter_id = data.get("id")
+                raw_id = data.get("id")
+                promoter_id = str(raw_id) if raw_id is not None else None
                 log.info(f"[MJFP] ✅ Found promoter: username={username} -> id={promoter_id}")
                 return promoter_id
             
