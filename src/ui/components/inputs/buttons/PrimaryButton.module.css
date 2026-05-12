@@ -775,6 +775,32 @@
     text-shadow: none;
 }
 
+.button-cta-outer.loading {
+    cursor: wait;
+    opacity: 0.75;
+    pointer-events: none;
+}
+
+.button-cta-outer.loading .button-cta-inner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.spinner {
+    width: 1.6rem;
+    height: 1.6rem;
+    border: 2.5px solid rgba(255, 255, 255, 0.3);
+    border-top-color: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
 @keyframes shine-left-to-right {
     0% {
         left: -50%;
