@@ -77,20 +77,36 @@ def fp_extract_email(payload: dict | None) -> str | None:
     return str(email) if email else None
 
 
-def fp_extract_parent_promoter_id(payload: dict | None) -> int | None:
-    """Extract parent promoter ID from response payload"""
+def fp_extract_parent_promoter_id(payload: dict | None) -> int | str | None:
+    """Extract parent promoter ID from response payload.
+
+    MJFP promoter IDs are non-numeric CUIDs (e.g. ``"cmml946th00004c171d4othnn"``),
+    while legacy FirstPromoter responses used integer IDs. Return an ``int`` when
+    the value is digit-only (back-compat) and a ``str`` for non-numeric IDs.
+    """
     data = _fp_unwrap(payload)
     if not data:
         return None
+
+    def _coerce(val: object) -> int | str | None:
+        if val is None:
+            return None
+        s = str(val).strip()
+        if not s:
+            return None
+        if s.isdigit():
+            return int(s)
+        return s
+
     for key in ("parent_promoter_id", "parent_id"):
-        val = data.get(key)
-        if val is not None and str(val).isdigit():
-            return int(val)
+        coerced = _coerce(data.get(key))
+        if coerced is not None:
+            return coerced
     parent = data.get("parent_promoter") or data.get("parent")
     if isinstance(parent, dict):
-        val = parent.get("id")
-        if val is not None and str(val).isdigit():
-            return int(val)
+        coerced = _coerce(parent.get("id"))
+        if coerced is not None:
+            return coerced
     return None
 
 
@@ -563,7 +579,8 @@ async def fp_find_promoter_id_by_ref_token(ref_token: str) -> str | None:
             
             # MJ Promoter returns the promoter directly
             if data and isinstance(data, dict):
-                promoter_id = data.get("id")
+                raw_id = data.get("id")
+                promoter_id = str(raw_id) if raw_id is not None else None
                 log.info(f"[MJFP] ✅ Found promoter: ref_token={ref_token} -> id={promoter_id}")
                 return promoter_id
             
@@ -631,7 +648,8 @@ async def fp_find_promoter_id_by_username(username: str) -> str | None:
             
             # MJ Promoter returns the promoter directly
             if data and isinstance(data, dict):
-                promoter_id = data.get("id")
+                raw_id = data.get("id")
+                promoter_id = str(raw_id) if raw_id is not None else None
                 log.info(f"[MJFP] ✅ Found promoter: username={username} -> id={promoter_id}")
                 return promoter_id
             
