@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 
 # Use AsyncOpenAI for non-blocking API calls
 # This prevents blocking the event loop during embedding requests
-client = AsyncOpenAI()
+client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
 
 backup_client = AsyncOpenAI(
     api_key=settings.QWEN_API_KEY,

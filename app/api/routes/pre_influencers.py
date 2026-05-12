@@ -48,6 +48,9 @@ from app.services.firstpromoter import (
 from app.services.use_cases.approve_pre_influencer import (
     approve_pre_influencer as run_pre_influencer_approval,
 )
+from app.services.use_cases.mjfp_pre_influencer_webhook import (
+    schedule_mjfp_pre_influencer_step_webhook,
+)
 from app.services.use_cases.pre_influencer_output import build_pre_influencer_admin_out
 from app.services.use_cases import pre_influencer_storage
 from app.services.use_cases.pre_influencer_survey_prompt import (
@@ -186,6 +189,7 @@ async def accept_pre_influencer_terms(
 
     pre.terms_agreement = True
     await db.commit()
+    schedule_mjfp_pre_influencer_step_webhook(pre.id)
     return {"ok": True, "terms_agreement": True}
 
 
@@ -235,6 +239,7 @@ async def register_pre_influencer(
     db.add(pre)
     await db.commit()
     await db.refresh(pre)
+    schedule_mjfp_pre_influencer_step_webhook(pre.id)
 
     # Track pre-influencer signup in FirstPromoter (if fp_tid provided)
     if data.fp_tid:
@@ -500,6 +505,8 @@ async def save_survey_state(
             )
         await db.refresh(pre)
 
+    schedule_mjfp_pre_influencer_step_webhook(pre.id)
+
     return SurveyState(
         pre_influencer_id=pre.id,
         username=pre.username,
@@ -567,6 +574,7 @@ async def upload_pre_influencer_picture(
                 "Failed to delete previous S3 picture %s", previous_key, exc_info=True
             )
 
+    schedule_mjfp_pre_influencer_step_webhook(pre.id)
     return {"s3_key": s3_key}
 
 

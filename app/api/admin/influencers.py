@@ -5,13 +5,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.admin.common import ensure_admin
 from app.core.session import get_db
 from app.data.enums import InfluencerPublicationStatus
-from app.data.models import Influencer, User
+from app.data.models import Influencer, PreInfluencer, User
 from app.data.schemas.influencer import (
     InfluencerDetail,
     InfluencerPublicationStatusResponse,
     InfluencerPublicationUpdateRequest,
 )
 from app.services.use_cases.influencer_detail import build_influencer_detail
+from app.services.use_cases.mj_pre_influencer_progress import (
+    normalize_influencer_id_from_username,
+)
+from app.services.use_cases.mjfp_pre_influencer_webhook import (
+    schedule_mjfp_pre_influencer_step_webhook,
+)
 from app.utils.auth.dependencies import get_current_user
 
 router = APIRouter(tags=["Admin Influencers"])
@@ -57,6 +63,11 @@ async def update_admin_influencer_publication(
     db.add(influencer)
     await db.commit()
     await db.refresh(influencer)
+
+    result = await db.execute(select(PreInfluencer))
+    for pre in result.scalars().all():
+        if normalize_influencer_id_from_username(pre.username) == influencer_id:
+            schedule_mjfp_pre_influencer_step_webhook(pre.id)
 
     return InfluencerPublicationStatusResponse(
         influencer_id=influencer.id,
