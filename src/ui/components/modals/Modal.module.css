@@ -8,6 +8,7 @@
     background-color: rgba(0, 0, 0, 0.6);
     display: none;
     overflow: hidden;
+    -webkit-overflow-scrolling: touch;
 }
 
 .overlay.open {
