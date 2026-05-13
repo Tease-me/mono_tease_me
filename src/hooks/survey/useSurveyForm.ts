@@ -44,6 +44,7 @@ export interface UseSurveyFormState {
   acceptingTerms: boolean;
   termsError: string | null;
 
+
   // Validation
   fieldErrors: Record<string, string>;
 
@@ -87,6 +88,7 @@ interface UseSurveyFormActions {
   setTermsAccepted: (accepted: boolean) => void;
   setAcceptingTerms: (accepting: boolean) => void;
   setTermsError: (error: string | null) => void;
+
 
   // Validation
   setFieldErrors: (errors: Record<string, string>) => void;
@@ -205,6 +207,7 @@ export function useSurveyForm({
             surveyData.survey_answers?.terms_accepted
         );
         setTermsAccepted(termsAcceptedValue);
+
 
         setLoadError(null);
       } catch (error) {
