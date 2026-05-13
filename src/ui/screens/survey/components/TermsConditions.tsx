@@ -289,7 +289,12 @@ export const TermsModal: React.FC<TermsModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       size="lg"
-      body={<TermsContent />}
+      className="terms-modal"
+      body={
+        <div className="terms-modal__scroll">
+          <TermsContent />
+        </div>
+      }
       footer={footer}
       ariaLabel="Terms and Conditions"
     />
