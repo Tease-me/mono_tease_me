@@ -2,6 +2,7 @@ const COMPANY_NAME = "TeaseMe";
 const SUPPORT_EMAIL = "support@teaseme.live";
 const LEGAL_EMAIL = "legal@teaseme.live";
 const lastUpdated = "23 December 2025";
+const contentAgreementLastUpdated = "13 May 2026";
 
 export const terms = {
 
@@ -858,7 +859,7 @@ cookies: {
 
 contentAgreement: {
   title: "Content Agreement",
-  lastUpdated,
+  lastUpdated: contentAgreementLastUpdated,
   intro: [
     `This Agreement is entered into by and between ${COMPANY_NAME} (the "Company") and the individual signing this agreement (the "Creator"). By providing assets to the Company and accessing the ${COMPANY_NAME} platform, the Creator agrees to the following terms:`,
   ],
