@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import "./terms-conditions.css";
-import UnifiedPopup from "@/ui/components/modals/UnifiedPopup";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 import CheckBox from "@/ui/components/inputs/check-boxes/CheckBox";
@@ -260,44 +260,103 @@ export const TermsModal: React.FC<TermsModalProps> = ({
   error,
 }) => {
   const [checked, setChecked] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isOpen) setChecked(false);
   }, [isOpen]);
 
-  const footer = (
-    <div className="terms-modal__footer">
-      <div className="terms-modal__checkbox">
-        <CheckBox checked={checked} onChange={(val) => setChecked(val)}>
-          I have read and agree to the Terms and Conditions.
-        </CheckBox>
-      </div>
-      <div className="terms-modal__actions">
-        <NormalButton text="Cancel" onClick={onClose} />
-        <PrimaryButton
-          text={accepting ? "Accepting..." : "Accept"}
-          disabled={!checked || accepting}
-          onClick={onAccept}
-        />
-      </div>
-      {error && <div className="terms-modal__error">{error}</div>}
-    </div>
-  );
+  useEffect(() => {
+    if (!isOpen) return;
+    const y = window.scrollY;
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${y}px`;
+    document.body.style.width = "100%";
+    return () => {
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+      window.scrollTo(0, y);
+    };
+  }, [isOpen]);
 
-  return (
-    <UnifiedPopup
-      isOpen={isOpen}
-      onClose={onClose}
-      size="lg"
-      className="terms-modal"
-      body={
-        <div className="terms-modal__scroll">
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div
+      role="presentation"
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 1000,
+        background: "rgba(0,0,0,0.6)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "16px",
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Terms and Conditions"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "#0e0f12",
+          border: "1px solid rgba(255,255,255,0.2)",
+          borderRadius: "16px",
+          width: "100%",
+          maxWidth: "920px",
+          height: "min(90vh, 90svh)",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        {/* Scroll area — flex:1 1 0% + height:0 gives iOS a definite height to scroll within */}
+        <div
+          ref={scrollRef}
+          style={{
+            flex: "1 1 0%",
+            height: 0,
+            overflowY: "scroll",
+            WebkitOverflowScrolling: "touch" as React.CSSProperties["WebkitOverflowScrolling"],
+            touchAction: "pan-y",
+            overscrollBehavior: "contain",
+            padding: "24px",
+          }}
+        >
           <TermsContent />
         </div>
-      }
-      footer={footer}
-      ariaLabel="Terms and Conditions"
-    />
+
+        {/* Pinned footer */}
+        <div
+          style={{
+            flexShrink: 0,
+            padding: "16px 24px 24px",
+            borderTop: "1px solid rgba(255,255,255,0.12)",
+            background: "#0e0f12",
+          }}
+        >
+          <div className="terms-modal__checkbox">
+            <CheckBox checked={checked} onChange={(val) => setChecked(val)}>
+              I have read and agree to the Terms and Conditions.
+            </CheckBox>
+          </div>
+          <div className="terms-modal__actions" style={{ marginTop: "12px" }}>
+            <NormalButton text="Cancel" onClick={onClose} />
+            <PrimaryButton
+              text={accepting ? "Accepting..." : "Accept"}
+              disabled={!checked || accepting}
+              onClick={onAccept}
+            />
+          </div>
+          {error && <div className="terms-modal__error">{error}</div>}
+        </div>
+      </div>
+    </div>,
+    document.body
   );
 };
 
