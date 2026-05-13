@@ -7,6 +7,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  touch-action: none;
 }
 
 .container {
@@ -46,8 +47,10 @@
 
 .body {
   flex: 1 1 auto;
-  overflow-y: auto;
+  overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
   min-height: 0;
   padding: var(--space-px-28, 28px) var(--space-px-28, 28px) var(--space-px-52, 52px) var(--space-px-28, 28px);
 }

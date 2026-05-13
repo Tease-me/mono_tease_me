@@ -2,6 +2,7 @@ const COMPANY_NAME = "TeaseMe";
 const SUPPORT_EMAIL = "support@teaseme.live";
 const LEGAL_EMAIL = "legal@teaseme.live";
 const lastUpdated = "23 December 2025";
+const contentAgreementLastUpdated = "13 May 2026";
 
 export const terms = {
 
@@ -850,6 +851,75 @@ cookies: {
       heading: "Contact",
       paragraphs: [
         `For questions regarding this Cookie Policy, contact: ${LEGAL_EMAIL}`,
+      ],
+    },
+
+  ],
+},
+
+contentAgreement: {
+  title: "Content Agreement",
+  lastUpdated: contentAgreementLastUpdated,
+  intro: [
+    `This Agreement is entered into by and between ${COMPANY_NAME} (the "Company") and the individual signing this agreement (the "Creator"). By providing assets to the Company and accessing the ${COMPANY_NAME} platform, the Creator agrees to the following terms:`,
+  ],
+  sections: [
+
+    {
+      heading: "Age Representation & Verification",
+      paragraphs: [
+        `The Creator hereby warrants and represents that they are at least 18 years of age (or the legal age of majority in their jurisdiction). The Creator understands that providing false information regarding their age is a violation of law and will result in immediate termination of this agreement and potential legal action.`,
+      ],
+    },
+
+    {
+      heading: "Grant of License",
+      paragraphs: [
+        `The Creator grants ${COMPANY_NAME} a non-exclusive, worldwide, royalty-free license to use the image and video library provided by the Creator (the "Assets") for the purpose of creating, promoting, and operating an AI version of the Creator's likeness (the "Persona").`,
+      ],
+    },
+
+    {
+      heading: "Authorization for Synthetic Content",
+      paragraphs: [
+        `The Creator expressly grants ${COMPANY_NAME} permission to use the Assets as training data or reference material for generative artificial intelligence. This includes, but is not limited to:`,
+      ],
+      bullets: [
+        `Landing Pages: The creation of marketing visuals and promotional banners.`,
+        `Synthetic Scenarios: The creation of "synthetic scenarios," wherein AI is used to generate images or videos of the Creator in digital environments, settings, or situations that were not present in the original Assets provided.`,
+        `AI Marketing Materials: The generation of synthetic imagery for use on social media and other marketing channels to promote the ${COMPANY_NAME} Persona.`,
+      ],
+    },
+
+    {
+      heading: "Limitation of Use (Marketing Only)",
+      paragraphs: [
+        `The license granted herein is strictly for marketing and persona-development purposes. ${COMPANY_NAME} agrees that it shall not sell the Creator's raw Assets as standalone products to third parties. The use of synthetic imagery is intended solely to attract users to the Persona and enhance the user experience within the ${COMPANY_NAME} ecosystem.`,
+      ],
+    },
+
+    {
+      heading: "Ownership",
+      paragraphs: [
+        `Original Assets: The Creator retains all ownership rights to the original images and videos provided to the Company.`,
+        `Derived Works: Any AI-generated imagery, synthetic scenarios, or marketing materials created by ${COMPANY_NAME} shall be owned by the Company for the duration of this agreement.`,
+      ],
+    },
+
+    {
+      heading: "Withdrawal of Consent & Right to Be Forgotten",
+      paragraphs: [
+        `The Creator maintains the right to withdraw their consent and request the deletion of their Persona.`,
+        `Request Process: To initiate a deletion, the Creator must submit a written request to the Company.`,
+        `Deletion Timeline: Upon receipt of a valid request, ${COMPANY_NAME} agrees to delete the AI Persona and remove associated marketing assets from active use within fourteen (14) calendar days.`,
+        `Final Payment: Upon termination of this agreement via withdrawal of consent, ${COMPANY_NAME} will calculate and issue any outstanding payments owed to the Creator up to the date of the deletion request.`,
+      ],
+    },
+
+    {
+      heading: "Indemnification & Warranties",
+      paragraphs: [
+        `The Creator warrants that they have the full legal right to grant this license and that the Assets provided do not infringe upon the intellectual property or privacy rights of any third party. The Creator agrees to indemnify ${COMPANY_NAME} against any claims arising from a breach of these warranties.`,
       ],
     },
 
