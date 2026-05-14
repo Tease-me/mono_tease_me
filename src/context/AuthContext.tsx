@@ -11,6 +11,7 @@ import logger from "@/utils/logger";
 import { storage } from "@/utils/storage";
 
 import React, { createContext, useState, useEffect, useCallback, useMemo } from "react";
+import { usePostHog } from "@posthog/react";
 
 export interface AuthContextType {
     accessToken?: string;
@@ -37,6 +38,7 @@ export const AuthContext = createContext<AuthContextType>(
 );
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+    const posthog = usePostHog();
     const [isSignedIn, setIsSignedIn] = useState(false);
     const [loadingAuth, setLoadingAuth] = useState(true);
     const [authErrors, setAuthErrors] = useState<AuthErrors>();
@@ -139,6 +141,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             const response = await authServices.login(email, password);
             if (response) {
                 await loginWithTokens(response.access_token, response.refresh_token);
+                posthog?.identify(email);
+                posthog?.capture("user_logged_in");
                 return true;
             }
             return false;
@@ -154,6 +158,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const logout = async (callback?: () => void) => {
+        posthog?.capture("user_logged_out");
+        posthog?.reset();
         setIsSignedIn(false);
         const disclaimerSeen = storage.get(LocalStorageKeys.DisclaimerSeen);
         storage.clear();

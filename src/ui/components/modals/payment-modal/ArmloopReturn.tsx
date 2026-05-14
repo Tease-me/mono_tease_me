@@ -7,8 +7,10 @@ import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import { storage } from "@/utils/storage";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { centsToCredits } from "@/utils/balance_utils";
+import { usePostHog } from "@posthog/react";
 
 export default function ArmloopReturn() {
+  const posthog = usePostHog();
   const [status, setStatus] = useState<"loading" | "success" | "error">(
     "loading",
   );
@@ -42,6 +44,7 @@ export default function ArmloopReturn() {
     const sessionResult = searchParams.get("sessionResult");
 
     if (!sessionId || !sessionResult) {
+      posthog?.capture("top_up_failed", { reason: "missing_session_params" });
       setStatus("error");
       return;
     }
@@ -49,11 +52,16 @@ export default function ArmloopReturn() {
     // Payment verification is handled server-side via Armloop webhook.
     // The return URL is only for redirecting the user — show success and
     // clean up localStorage.
+    const topUpAmount = storage.get(LocalStorageKeys.TopUpAmount);
     storage.remove(LocalStorageKeys.CheckoutId);
     storage.remove(LocalStorageKeys.TopUpInfluencerId);
     storage.remove(LocalStorageKeys.TopUpAmount);
     storage.remove(LocalStorageKeys.TopUpInfluencerName);
 
+    posthog?.capture("top_up_completed", {
+      amount_dollars: topUpAmount ? Number(topUpAmount) : undefined,
+      provider: "armloop",
+    });
     setStatus("success");
     setTimeout(() => navigate(Paths.home), 3000);
   }, [navigate, searchParams]);

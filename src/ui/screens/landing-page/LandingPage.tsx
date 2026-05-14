@@ -9,6 +9,7 @@ import logger from "@/utils/logger";
 import SvgPack from "@/utils/SvgPack";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { usePostHog } from "@posthog/react";
 import imageHPHero from "@/assets/image/creator-collage.jpg";
 import imageTeaseMeLight from "@/assets/image/iconTeaseMeLight.png";
 
@@ -17,6 +18,7 @@ import "./LandingPage.css";
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const posthog = usePostHog();
   //const { isSignedIn } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
@@ -57,6 +59,7 @@ const LandingPage: React.FC = () => {
   }, [navigate]);
 
   const handleSearch = async () => {
+    posthog?.capture("influencer_searched");
     setSearching(true);
     try {
       // Try to find influencer by username

@@ -12,6 +12,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
 import { useQuery } from "@tanstack/react-query";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
+import { usePostHog } from "@posthog/react";
 
 
 const waveformBars = new Array(24).fill(0);
@@ -34,6 +35,7 @@ const AdultModePage = ({
   influencerName,
   onBackClicked
 }: AdultModePageProps) => {
+  const posthog = usePostHog();
   const influencerRepo = useMemo(() => InfluencerRepo(), []);
   const [samples, setSamples] = useState<InfluencerSampleModel[]>([]);
   const [samplesError, setSamplesError] = useState<string | null>(null);
@@ -170,7 +172,14 @@ const AdultModePage = ({
 
           <div className={styles.bottomRightCol}>   <p className={styles.tagline}>Let&apos;s heat things up...</p>
             <div className={styles.subscribeButton}>
-              <PrimaryButton text={basicPlan ? `Subscribe for $${(basicPlan.price_cents / 100).toFixed(2)}` : "Subscribe"} onClick={onSubscribePressed} variant="purple" />
+              <PrimaryButton text={basicPlan ? `Subscribe for $${(basicPlan.price_cents / 100).toFixed(2)}` : "Subscribe"} onClick={() => {
+                posthog?.capture("adult_mode_subscribe_clicked", {
+                  influencer_id: influencerId,
+                  influencer_name: influencerName,
+                  plan_price_cents: basicPlan?.price_cents,
+                });
+                onSubscribePressed();
+              }} variant="purple" />
             </div>
 
             <div className={styles.footer}>

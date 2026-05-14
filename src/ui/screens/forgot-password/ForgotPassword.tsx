@@ -13,6 +13,7 @@ import logger from '@/utils/logger';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
 import { Paths } from '@/routes/path';
+import { usePostHog } from '@posthog/react';
 
 interface ForgotPasswordProps { }
 
@@ -23,6 +24,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ }) => {
     const [isLoading, setIsLoading] = useState(false);
 
     const navigate = useNavigate();
+    const posthog = usePostHog();
     const authServices = AuthServices(apiClient);
     const handleSubmit = async (e?: React.FormEvent) => {
         e?.preventDefault()
@@ -42,6 +44,8 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ }) => {
                 throw new Error(`Server error: ${data.message}`);
             }
 
+            const emailDomain = email.includes("@") ? email.split("@")[1].toLowerCase() : undefined;
+            posthog?.capture("password_reset_requested", emailDomain ? { email_domain: emailDomain } : {});
             setStatus("If an account with that email exists, you will receive an email with instructions to reset your password.");
             setIsSuccess(true);
             setTimeout(() => {

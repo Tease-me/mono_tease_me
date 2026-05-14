@@ -10,6 +10,7 @@ import { showErrorModal } from "@/utils/errorModal";
 import logger from "@/utils/logger";
 import { useCallback, useEffect, useState } from "react";
 import { ADULT_MODE_AVAILABLE } from "@/constants/adultModeAvailable";
+import { usePostHog } from "@posthog/react";
 
 interface UseSubscriptionStateProps {
   influencer?: InfluencerDataModel;
@@ -22,6 +23,7 @@ export function useSubscriptionState({
   openSubscribe,
   callStatus,
 }: UseSubscriptionStateProps) {
+  const posthog = usePostHog();
   const dispatch = useAppDispatch();
   const { isSubscribing } = useAppSelector((state) => state.subscription);
   const subscriptionStatus = useAppSelector((state) =>
@@ -121,6 +123,7 @@ export function useSubscriptionState({
               return;
             }
           }
+          posthog?.capture("adult_mode_enabled", { influencer_id: influencer.id });
           setShowSubscriptionPage(false);
           setAdultMode(true);
           setAdultModeSwitch(true);
@@ -190,6 +193,7 @@ export function useSubscriptionState({
       await dispatch(
         fetchSubscriptionStatus({ influencerId: influencer.id, force: true }),
       );
+      posthog?.capture("subscription_started", { influencer_id: influencer.id });
       window.alert(result.message);
       setAdultMode(true);
       setAdultModeSwitch(true);
