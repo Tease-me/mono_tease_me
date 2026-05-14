@@ -6,6 +6,7 @@ import clsx from 'clsx';
 import IconButton from '@/ui/components/inputs/buttons/IconButton';
 import useIsDesktop from '@/hooks/layout/useIsDesktop';
 import RemainingCreditBadge from '@/ui/components/badges/RemainingCreditBadge';
+import { usePostHog } from '@posthog/react';
 
 interface ChatInputAreaProps extends React.HTMLAttributes<HTMLDivElement> {
     onSendMessage?: (forcedAudio?: Blob) => boolean | void;
@@ -28,6 +29,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     disabled = false,
     creditsRemaining }) => {
     const isDesktop = useIsDesktop();
+    const posthog = usePostHog();
 
     const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
@@ -49,6 +51,9 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = ({
             if (didSend === false) {
                 return;
             }
+            posthog?.capture("message_sent", {
+                message_type: inputAudio ? "audio" : "text",
+            });
         }
         setInputText?.("");
         setInputAudio?.(undefined);

@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { useState } from "react";
+import { usePostHog } from "@posthog/react";
 import AnimatedButton from "../../inputs/buttons/AnimatedButton";
 import CircularIconButton from "../../inputs/buttons/CircularIconButton";
 import NormalButton from "../../inputs/buttons/NormalButton";
@@ -26,6 +27,7 @@ interface TopUpModalProps {
 }
 
 export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
+  const posthog = usePostHog();
   type Step = "amount" | "low" | "success" | "error";
   const tabs: Step[] = ["amount", "low"];
   const stepLabels: Record<Step, string> = {
@@ -83,6 +85,12 @@ export default function TopUpModal({ isOpen, onClose }: TopUpModalProps) {
       // store for return page
       storage.set(LocalStorageKeys.CheckoutId, checkout_id);
       storage.set(LocalStorageKeys.TopUpAmount, String(dollars));
+
+      posthog?.capture("top_up_checkout_initiated", {
+        amount_dollars: dollars,
+        amount_cents: cents,
+        provider,
+      });
 
       // redirect user to payment page
       window.location.href = payment_url;
