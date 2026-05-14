@@ -46,6 +46,7 @@ telethon = "^1.42.0"
 py-tgcalls = "^2.2.11"
 ffmpeg-python = "^0.2.0"
 twilio = "*"
+sentry-sdk = {extras = ["fastapi"], version = "^2.60.0"}
 
 [tool.poetry.group.dev.dependencies]
 alembic = "*"
