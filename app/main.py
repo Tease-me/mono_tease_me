@@ -33,7 +33,9 @@ from app.api.routes.telegram_admin import router as telegram_admin_router
 from app.api.routes.user import router as user_router
 from app.api.routes.verification import router as verification_router
 from app.api.routes.webhooks import router as webhooks_router
+from app.core.config import settings
 from app.core.logging import configure_logging
+from app.core.sentry import init_sentry
 from app.services.checkout import close_checkout_client
 from app.services.gateways.armloop_gateway import close_armloop_client
 from app.services.gateways.elevenlabs.client import close_elevenlabs_client
@@ -43,6 +45,16 @@ from app.workers.scheduler import start_scheduler, stop_scheduler
 
 configure_logging()
 log = logging.getLogger(__name__)
+
+if settings.SENTRY_DSN and settings.APP_ENV == "production":
+    init_sentry(
+        dsn=settings.SENTRY_DSN,
+        app_env=settings.APP_ENV,
+        traces_sample_rate=settings.SENTRY_TRACES_SAMPLE_RATE,
+        profiles_sample_rate=settings.SENTRY_PROFILES_SAMPLE_RATE,
+        release=settings.SENTRY_RELEASE,
+        send_default_pii=settings.SENTRY_SEND_DEFAULT_PII,
+    )
 
 origins_str = os.getenv("CORS_ORIGINS", "")
 origins = [o.strip() for o in origins_str.split(",") if o.strip()]

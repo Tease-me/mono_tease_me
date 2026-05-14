@@ -127,6 +127,13 @@ class Settings(BaseSettings):
     MAXMIND_DB_PATH: str = ""
     TRUST_X_FORWARDED_FOR: bool = True
 
+    # Sentry error tracking
+    SENTRY_DSN: str | None = None
+    SENTRY_TRACES_SAMPLE_RATE: float = 0.1
+    SENTRY_PROFILES_SAMPLE_RATE: float = 0.1
+    SENTRY_RELEASE: str | None = None
+    SENTRY_SEND_DEFAULT_PII: bool = False
+
     # LLM configuration
     DEFAULT_SUMMARIZATION_MODEL: str = "gpt-3.5-turbo"
 
