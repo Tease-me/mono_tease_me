@@ -1,4 +1,5 @@
 window.global ||= window;
+import * as Sentry from "@sentry/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { AuthProvider } from "./context/AuthContext";
@@ -12,6 +13,14 @@ import { store } from "./store/store";
 import posthog from "posthog-js";
 import { PostHogErrorBoundary, PostHogProvider } from "@posthog/react";
 import { IS_PRODUCTION } from "./env";
+
+const sentryDsn: string | undefined = import.meta.env.VITE_SENTRY_DSN;
+
+Sentry.init({
+  dsn: sentryDsn,
+  enabled: IS_PRODUCTION && Boolean(sentryDsn),
+  sendDefaultPii: true,
+});
 
 const posthogToken: string | undefined = import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN;
 const posthogHost: string | undefined = import.meta.env.VITE_PUBLIC_POSTHOG_HOST;
@@ -76,13 +85,15 @@ if (rootElement) {
   );
 
   createRoot(rootElement).render(
-    posthogEnabled ? (
-      <PostHogProvider client={posthog}>
-        <PostHogErrorBoundary>{appTree}</PostHogErrorBoundary>
-      </PostHogProvider>
-    ) : (
-      appTree
-    ),
+    <Sentry.ErrorBoundary>
+      {posthogEnabled ? (
+        <PostHogProvider client={posthog}>
+          <PostHogErrorBoundary>{appTree}</PostHogErrorBoundary>
+        </PostHogProvider>
+      ) : (
+        appTree
+      )}
+    </Sentry.ErrorBoundary>,
   );
 } else {
   throw new Error("Root element not found");

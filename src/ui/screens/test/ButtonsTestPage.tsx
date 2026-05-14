@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react';
 import React from 'react';
 import styles from "./ButtonsTestPage.module.css"
 import IconButton from '@/ui/components/inputs/buttons/IconButton';
@@ -413,6 +414,18 @@ const ButtonsTestPage: React.FC<ButtonsTestPageProps> = ({ }) => {
                     text="Call now"
                     disabled
                 />
+            </div>
+            <h2>Sentry</h2>
+            <div className={styles["grid-test"]}>
+                <Sentry.ErrorBoundary fallback={<p>Something went wrong (caught by Sentry)</p>}>
+                    <button
+                        onClick={() => {
+                            throw new Error('This is your first error!');
+                        }}
+                    >
+                        Break the world
+                    </button>
+                </Sentry.ErrorBoundary>
             </div>
         </div>
     );
