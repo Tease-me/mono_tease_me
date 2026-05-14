@@ -44,7 +44,8 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ }) => {
                 throw new Error(`Server error: ${data.message}`);
             }
 
-            posthog?.capture("password_reset_requested", { email });
+            const emailDomain = email.includes("@") ? email.split("@")[1].toLowerCase() : undefined;
+            posthog?.capture("password_reset_requested", emailDomain ? { email_domain: emailDomain } : {});
             setStatus("If an account with that email exists, you will receive an email with instructions to reset your password.");
             setIsSuccess(true);
             setTimeout(() => {
