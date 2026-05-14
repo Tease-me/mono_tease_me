@@ -11,7 +11,16 @@ import CircularIconButton from '@/ui/components/inputs/buttons/CircularIconButto
 interface ButtonsTestPageProps {
 }
 
+const SentryTestError: React.FC<{ shouldThrow: boolean }> = ({ shouldThrow }) => {
+    if (shouldThrow) {
+        throw new Error('This is your first error!');
+    }
+
+    return null;
+};
+
 const ButtonsTestPage: React.FC<ButtonsTestPageProps> = ({ }) => {
+    const [shouldThrowSentryError, setShouldThrowSentryError] = React.useState(false);
     const circularSizes = ["xsmall", "small", "medium", "large"] as const;
     const circularVariants = ["primary", "secondary", "tertiary"] as const;
 
@@ -418,9 +427,10 @@ const ButtonsTestPage: React.FC<ButtonsTestPageProps> = ({ }) => {
             <h2>Sentry</h2>
             <div className={styles["grid-test"]}>
                 <Sentry.ErrorBoundary fallback={<p>Something went wrong (caught by Sentry)</p>}>
+                    <SentryTestError shouldThrow={shouldThrowSentryError} />
                     <button
                         onClick={() => {
-                            throw new Error('This is your first error!');
+                            setShouldThrowSentryError(true);
                         }}
                     >
                         Break the world

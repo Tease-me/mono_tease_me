@@ -1,4 +1,4 @@
-window.global ||= window;
+import "./polyfills";
 import * as Sentry from "@sentry/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -84,16 +84,20 @@ if (rootElement) {
     </StrictMode>
   );
 
+  const sentryWrappedAppTree = (
+    <Sentry.ErrorBoundary fallback={<p>Something went wrong</p>}>
+      {appTree}
+    </Sentry.ErrorBoundary>
+  );
+
   createRoot(rootElement).render(
-    <Sentry.ErrorBoundary>
-      {posthogEnabled ? (
-        <PostHogProvider client={posthog}>
-          <PostHogErrorBoundary>{appTree}</PostHogErrorBoundary>
-        </PostHogProvider>
-      ) : (
-        appTree
-      )}
-    </Sentry.ErrorBoundary>,
+    posthogEnabled ? (
+      <PostHogProvider client={posthog}>
+        <PostHogErrorBoundary>{sentryWrappedAppTree}</PostHogErrorBoundary>
+      </PostHogProvider>
+    ) : (
+      sentryWrappedAppTree
+    ),
   );
 } else {
   throw new Error("Root element not found");
