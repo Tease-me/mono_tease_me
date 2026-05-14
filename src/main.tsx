@@ -1,4 +1,5 @@
-window.global ||= window;
+import "./polyfills";
+import * as Sentry from "@sentry/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { AuthProvider } from "./context/AuthContext";
@@ -12,6 +13,14 @@ import { store } from "./store/store";
 import posthog from "posthog-js";
 import { PostHogErrorBoundary, PostHogProvider } from "@posthog/react";
 import { IS_PRODUCTION } from "./env";
+
+const sentryDsn: string | undefined = import.meta.env.VITE_SENTRY_DSN;
+
+Sentry.init({
+  dsn: sentryDsn,
+  enabled: IS_PRODUCTION && Boolean(sentryDsn),
+  sendDefaultPii: false,
+});
 
 const posthogToken: string | undefined = import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN;
 const posthogHost: string | undefined = import.meta.env.VITE_PUBLIC_POSTHOG_HOST;
@@ -75,13 +84,19 @@ if (rootElement) {
     </StrictMode>
   );
 
+  const sentryWrappedAppTree = (
+    <Sentry.ErrorBoundary fallback={<p>Something went wrong</p>}>
+      {appTree}
+    </Sentry.ErrorBoundary>
+  );
+
   createRoot(rootElement).render(
     posthogEnabled ? (
       <PostHogProvider client={posthog}>
-        <PostHogErrorBoundary>{appTree}</PostHogErrorBoundary>
+        <PostHogErrorBoundary>{sentryWrappedAppTree}</PostHogErrorBoundary>
       </PostHogProvider>
     ) : (
-      appTree
+      sentryWrappedAppTree
     ),
   );
 } else {
