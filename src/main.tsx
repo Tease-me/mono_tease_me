@@ -13,11 +13,19 @@ import posthog from "posthog-js";
 import { PostHogErrorBoundary, PostHogProvider } from "@posthog/react";
 import { IS_PRODUCTION } from "./env";
 
-posthog.init(import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN, {
-  api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
-  defaults: "2026-01-30",
-  opt_out_capturing_by_default: !IS_PRODUCTION,
-});
+const posthogToken: string | undefined = import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN;
+const posthogHost: string | undefined = import.meta.env.VITE_PUBLIC_POSTHOG_HOST;
+const posthogEnabled = Boolean(posthogToken && posthogHost);
+
+if (posthogEnabled) {
+  posthog.init(posthogToken!, {
+    api_host: posthogHost,
+    defaults: "2026-01-30",
+    opt_out_capturing_by_default: !IS_PRODUCTION,
+  });
+} else {
+  logger.warn("PostHog analytics is disabled: VITE_PUBLIC_POSTHOG_PROJECT_TOKEN or VITE_PUBLIC_POSTHOG_HOST is not set.");
+}
 
 function cleanupPwaArtifacts() {
   if ("serviceWorker" in navigator) {
@@ -54,21 +62,27 @@ if (rootElement) {
   if (import.meta.env.PROD) {
     cleanupPwaArtifacts();
   }
-  createRoot(rootElement).render(
+  const appTree = (
     <StrictMode>
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <ErrorModalProvider />
+            <AppRoutes />
+          </AuthProvider>
+        </QueryClientProvider>
+      </Provider>
+    </StrictMode>
+  );
+
+  createRoot(rootElement).render(
+    posthogEnabled ? (
       <PostHogProvider client={posthog}>
-        <PostHogErrorBoundary>
-          <Provider store={store}>
-            <QueryClientProvider client={queryClient}>
-              <AuthProvider>
-                <ErrorModalProvider />
-                <AppRoutes />
-              </AuthProvider>
-            </QueryClientProvider>
-          </Provider>
-        </PostHogErrorBoundary>
+        <PostHogErrorBoundary>{appTree}</PostHogErrorBoundary>
       </PostHogProvider>
-    </StrictMode>,
+    ) : (
+      appTree
+    ),
   );
 } else {
   throw new Error("Root element not found");
