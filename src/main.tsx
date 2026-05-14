@@ -19,7 +19,7 @@ const sentryDsn: string | undefined = import.meta.env.VITE_SENTRY_DSN;
 Sentry.init({
   dsn: sentryDsn,
   enabled: IS_PRODUCTION && Boolean(sentryDsn),
-  sendDefaultPii: true,
+  sendDefaultPii: false,
 });
 
 const posthogToken: string | undefined = import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN;
