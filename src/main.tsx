@@ -9,6 +9,13 @@ import logger from "./utils/logger";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Provider } from "react-redux";
 import { store } from "./store/store";
+import posthog from "posthog-js";
+import { PostHogErrorBoundary, PostHogProvider } from "@posthog/react";
+
+posthog.init(import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN, {
+  api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+  defaults: "2026-01-30",
+});
 
 function cleanupPwaArtifacts() {
   if ("serviceWorker" in navigator) {
@@ -47,14 +54,18 @@ if (rootElement) {
   }
   createRoot(rootElement).render(
     <StrictMode>
-      <Provider store={store}>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <ErrorModalProvider />
-            <AppRoutes />
-          </AuthProvider>
-        </QueryClientProvider>
-      </Provider>
+      <PostHogProvider client={posthog}>
+        <PostHogErrorBoundary>
+          <Provider store={store}>
+            <QueryClientProvider client={queryClient}>
+              <AuthProvider>
+                <ErrorModalProvider />
+                <AppRoutes />
+              </AuthProvider>
+            </QueryClientProvider>
+          </Provider>
+        </PostHogErrorBoundary>
+      </PostHogProvider>
     </StrictMode>,
   );
 } else {

@@ -25,6 +25,7 @@ import { InfluencerServices } from "@/api/services/InfluencerService";
 import { InfluencerBioResponse } from "@/api/models/influencers";
 import { SocialLinks } from "@/ui/components/profile/InfluencerProfileCard";
 import { useIsMobile } from "@/hooks/layout/useIsDesktop";
+import { usePostHog } from "@posthog/react";
 
 const balanceSvc = BalanceServices(apiClient);
 const relationshipService = RelationshipServices(apiClient);
@@ -47,6 +48,7 @@ type CallModePageProps = {
 };
 
 const CallModePage = ({ influencer, relationship, startConversation, stopConversation, status, errorMessage, cancelCall, onChangeInfluencer, conversationId, isSubscribed = false }: CallModePageProps) => {
+    const posthog = usePostHog();
     const [balance, setBalance] = React.useState<number>(0);
     const [isPopupOpen, setIsPopupOpen] = useState(false);
     const [isProfilePopupOpen, setIsProfilePopupOpen] = useState(false);
@@ -58,10 +60,18 @@ const CallModePage = ({ influencer, relationship, startConversation, stopConvers
 
     const handleCallButtonClicked = () => {
         if (status === "connected") {
+            posthog?.capture("call_ended", {
+                influencer_id: influencer?.id,
+                influencer_name: influencer?.name,
+            });
             stopConversation?.();
         } else if (status === "connecting") {
             cancelCall?.();
         } else {
+            posthog?.capture("call_started", {
+                influencer_id: influencer?.id,
+                influencer_name: influencer?.name,
+            });
             startConversation?.();
         }
     }
