@@ -638,7 +638,7 @@
 
 "@posthog/react@^1.9.0":
   version "1.9.0"
-  resolved "https://registry.npmjs.org/@posthog/react/-/react-1.9.0.tgz"
+  resolved "https://registry.npmjs.org/@posthog/react/-/react-1.9.0.tgz#0bbd868b0ed664e413c4c5a7ffdad203b4939818"
   integrity sha512-lVdTsWT5+PtHBu44gSQ7QohbLjAYqHkFAIGAQ+HV8Eh9yj+OcnQ7mXCmyhaMlTBD3z7D0H1eWMp4vQaFnsIyWQ==
 
 "@posthog/types@1.373.4":
@@ -2463,7 +2463,7 @@ postcss@^8.5.3, postcss@^8.5.6:
 
 posthog-js@^1.373.4:
   version "1.373.4"
-  resolved "https://registry.npmjs.org/posthog-js/-/posthog-js-1.373.4.tgz"
+  resolved "https://registry.npmjs.org/posthog-js/-/posthog-js-1.373.4.tgz#014e2802d0a0b9035301a8250b9c986fdb33d143"
   integrity sha512-6DueUS5KOGZlKsQlelLURmtp9PA52rdCxt/IvuoYKAErlkh2LczogMopUIpeqbwfOnGDQEf8gmDh4z/IFeU4CQ==
   dependencies:
     "@opentelemetry/api" "^1.9.0"
@@ -2694,9 +2694,9 @@ rollup@^4.34.9:
     "@rollup/rollup-win32-x64-msvc" "4.57.0"
     fsevents "~2.3.2"
 
-rxjs@*:
+rxjs@^7.5.2:
   version "7.8.2"
-  resolved "https://registry.npmjs.org/rxjs/-/rxjs-7.8.2.tgz"
+  resolved "https://registry.npmjs.org/rxjs/-/rxjs-7.8.2.tgz#955bc473ed8af11a002a2be52071bf475638607b"
   integrity sha512-dhKf903U/PQZY6boNNtAGdWbG85WAbjT/1xYoZIC7FAY0yWapOBQVsVrDl58W86//e1VpMNBtRV4MaXfdMySFA==
   dependencies:
     tslib "^2.1.0"
