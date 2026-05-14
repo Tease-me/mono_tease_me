@@ -29,6 +29,7 @@ const posthogEnabled = Boolean(posthogToken && posthogHost);
 if (posthogEnabled) {
   posthog.init(posthogToken!, {
     api_host: posthogHost,
+    ui_host: "https://us.posthog.com",
     defaults: "2026-01-30",
     opt_out_capturing_by_default: !IS_PRODUCTION,
   });
