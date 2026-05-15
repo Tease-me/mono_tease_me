@@ -245,6 +245,40 @@ def test_mjpromoter_preregister_without_email_succeeds(monkeypatch) -> None:
     assert follow_calls == [("loli", 1)]
 
 
+def test_mjpromoter_preregister_empty_string_email_treated_as_omitted(monkeypatch) -> None:
+    db = FakeAsyncSession(influencer=SimpleNamespace(id="loli"))
+    app = _build_mj_app(db)
+    follow_calls: list[tuple[str, int]] = []
+    monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+    monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
+    monkeypatch.setattr(settings, "FRONTEND_URL", "https://www.teaseme.live")
+    monkeypatch.setattr(
+        mjpromoter_preregister_uc.secrets,
+        "token_urlsafe",
+        lambda _n: "generated-verify-token",
+    )
+    monkeypatch.setattr(
+        mjpromoter_preregister_uc,
+        "create_follow_if_missing",
+        _fake_follow_recorder(follow_calls),
+    )
+
+    client = TestClient(app)
+    response = client.post(
+        "/mjpromoter/preregister",
+        headers={"X-Internal-Token": INTERNAL_TOKEN},
+        json={
+            "email": "",
+            "influencer_id": "loli",
+            "telegram_id": 111222334,
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["email"] is None
+    assert db.added[0].email == "telegram-111222334@mjpromoter.placeholder.invalid"
+
+
 def test_preregister_verification_url_is_url_encoded(monkeypatch) -> None:
     db = FakeAsyncSession(influencer=SimpleNamespace(id="loli"))
     app = _build_app(db)
