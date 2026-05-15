@@ -17,6 +17,7 @@ from app.core.session import get_db
 from app.data.schemas.auth import CheckEmailTokenResponse
 from app.services.email_verification_service import check_email_verification_token
 from app.services.use_cases import preregister_user as preregister_use_case
+from app.services.use_cases import preregister_mjpromoter_user as mjpromoter_preregister_uc
 
 INTERNAL_TOKEN = "test-mj-promoter-token"
 
@@ -166,12 +167,12 @@ def test_mjpromoter_preregister_uses_same_contract(monkeypatch) -> None:
     monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
     monkeypatch.setattr(settings, "FRONTEND_URL", "https://www.teaseme.live")
     monkeypatch.setattr(
-        preregister_use_case.secrets,
+        mjpromoter_preregister_uc.secrets,
         "token_urlsafe",
         lambda _n: "generated-verify-token",
     )
     monkeypatch.setattr(
-        preregister_use_case,
+        mjpromoter_preregister_uc,
         "create_follow_if_missing",
         _fake_follow_recorder(follow_calls),
     )
@@ -196,6 +197,49 @@ def test_mjpromoter_preregister_uses_same_contract(monkeypatch) -> None:
         "message": "User preregistered successfully.",
         "verification_url": "https://www.teaseme.live/loli?t=generated-verify-token",
     }
+    assert db.committed is True
+    assert db.refreshed is True
+    assert follow_calls == [("loli", 1)]
+
+
+def test_mjpromoter_preregister_without_email_succeeds(monkeypatch) -> None:
+    db = FakeAsyncSession(influencer=SimpleNamespace(id="loli"))
+    app = _build_mj_app(db)
+    follow_calls: list[tuple[str, int]] = []
+    monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+    monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
+    monkeypatch.setattr(settings, "FRONTEND_URL", "https://www.teaseme.live")
+    monkeypatch.setattr(
+        mjpromoter_preregister_uc.secrets,
+        "token_urlsafe",
+        lambda _n: "generated-verify-token",
+    )
+    monkeypatch.setattr(
+        mjpromoter_preregister_uc,
+        "create_follow_if_missing",
+        _fake_follow_recorder(follow_calls),
+    )
+
+    client = TestClient(app)
+    response = client.post(
+        "/mjpromoter/preregister",
+        headers={"X-Internal-Token": INTERNAL_TOKEN},
+        json={
+            "influencer_id": "loli",
+            "telegram_id": 111222333,
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "ok": True,
+        "user_id": 1,
+        "email": None,
+        "message": "User preregistered successfully.",
+        "verification_url": "https://www.teaseme.live/loli?t=generated-verify-token",
+    }
+    created_user = db.added[0]
+    assert created_user.email == "telegram-111222333@mjpromoter.placeholder.invalid"
     assert db.committed is True
     assert db.refreshed is True
     assert follow_calls == [("loli", 1)]
