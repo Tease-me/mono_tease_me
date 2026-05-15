@@ -58,6 +58,9 @@ const followServices = FollowServices(apiClient);
 const funnelServices = FunnelServices(apiClient);
 const authServices = AuthServices(apiClient);
 
+const isTelegramPlaceholderEmail = (email: string) =>
+  /^telegram-\d+@mjpromoter\.placeholder\.invalid$/.test(email);
+
 export default function VipScreen() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -90,6 +93,7 @@ export default function VipScreen() {
       avatarUrl: PublicAssetPaths.avatarImage(folder, index),
     };
   });
+  const [isEmailEditable, setIsEmailEditable] = useState(false);
   const [profileErrors, setProfileErrors] = useState<InviteProfileErrors>({});
   const [registrationError, setRegistrationError] = useState<string>();
   const [verificationMessage, setVerificationMessage] = useState<string>();
@@ -115,9 +119,11 @@ export default function VipScreen() {
     gender: string | null;
     date_of_birth: string | null;
   }) => {
+    const emailIsPlaceholder = isTelegramPlaceholderEmail(response.email ?? "");
+    setIsEmailEditable(emailIsPlaceholder);
     setProfileValues((prev) => ({
       ...prev,
-      email: response.email ?? "",
+      email: emailIsPlaceholder ? "" : (response.email ?? ""),
       fullName: response.full_name ?? "",
       userName: response.user_name ?? "",
       dateOfBirth: response.date_of_birth ?? "",
@@ -330,22 +336,25 @@ export default function VipScreen() {
   };
 
   const validateInviteProfile = () => {
-    const fieldErrors = validateFields(
-      {
-        userName: profileValues.userName,
-        fullName: profileValues.fullName,
-        dateOfBirth: profileValues.dateOfBirth,
-        password: profileValues.password,
-        confirmPassword: profileValues.confirmPassword,
-      },
-      {
-        userName: validationRules.username,
-        fullName: required("Full name"),
-        dateOfBirth: required("Date of birth"),
-        password: validationRules.password,
-        confirmPassword: validationRules.password,
-      },
-    );
+    const fieldsToValidate: Record<string, string> = {
+      userName: profileValues.userName,
+      fullName: profileValues.fullName,
+      dateOfBirth: profileValues.dateOfBirth,
+      password: profileValues.password,
+      confirmPassword: profileValues.confirmPassword,
+    };
+    const rulesToApply: Record<string, (v: string) => string | undefined> = {
+      userName: validationRules.username,
+      fullName: required("Full name"),
+      dateOfBirth: required("Date of birth"),
+      password: validationRules.password,
+      confirmPassword: validationRules.password,
+    };
+    if (isEmailEditable) {
+      fieldsToValidate.email = profileValues.email;
+      rulesToApply.email = validationRules.email;
+    }
+    const fieldErrors = validateFields(fieldsToValidate, rulesToApply);
 
     const nextErrors: InviteProfileErrors = { ...fieldErrors };
 
@@ -370,6 +379,7 @@ export default function VipScreen() {
 
     if (field === "userName") error = validationRules.nickName(value);
     if (field === "fullName") error = required("Full name")(value);
+    if (field === "email" && isEmailEditable) error = validationRules.email(value);
     if (field === "password") error = validationRules.password(value);
     if (field === "confirmPassword") {
       error = validationRules.password(value);
@@ -458,6 +468,9 @@ export default function VipScreen() {
         date_of_birth: profileValues.dateOfBirth,
         profile_photo_url: absoluteAvatarUrl,
         invite_code: inviteCode,
+        ...(isEmailEditable && profileValues.email
+          ? { email: profileValues.email }
+          : {}),
       });
 
       storage.set(LocalStorageKeys.SelectedId, influencer.id.toString());
@@ -582,6 +595,7 @@ export default function VipScreen() {
               <VipProfileStep
                 values={profileValues}
                 errors={profileErrors}
+                isEmailEditable={isEmailEditable}
                 onChange={handleProfileChange}
                 onBlur={validateInviteField}
                 onDecline={() => setStep("landing")}
