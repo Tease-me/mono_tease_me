@@ -11,6 +11,7 @@ import { Endpoints } from "../urls";
 type CompleteProfileParams = {
   token: string;
   password: string;
+  email?: string | null;
   influencer_id?: string | null;
   full_name?: string | null;
   user_name?: string | null;
@@ -88,6 +89,7 @@ export const AuthServices = (apiClient: AxiosInstance) => ({
   completeProfile: async ({
     token,
     password,
+    email,
     influencer_id,
     full_name,
     user_name,
@@ -102,6 +104,7 @@ export const AuthServices = (apiClient: AxiosInstance) => ({
       const formData = new FormData();
       formData.append("token", token);
       formData.append("password", password);
+      if (email) formData.append("email", email);
       if (influencer_id) formData.append("influencer_id", influencer_id);
       if (full_name) formData.append("full_name", full_name);
       if (user_name) formData.append("user_name", user_name);
