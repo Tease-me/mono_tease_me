@@ -23,6 +23,7 @@ export type InviteProfileErrors = Partial<
 type VipProfileStepProps = {
   values: InviteProfileValues;
   errors: InviteProfileErrors;
+  isEmailEditable?: boolean;
   onChange: (field: keyof InviteProfileValues, value: string) => void;
   onBlur: (field: keyof InviteProfileValues) => void;
   onDecline: () => void;
@@ -32,6 +33,7 @@ type VipProfileStepProps = {
 export default function VipProfileStep({
   values,
   errors,
+  isEmailEditable = false,
   onChange,
   onBlur,
   onDecline,
@@ -125,10 +127,15 @@ export default function VipProfileStep({
                 <SvgPack.Message />
               </Suspense>
             }
-            disabled
-            readOnly
+            {...(isEmailEditable
+              ? {
+                  onChange: handleTextChange("email"),
+                  onBlur: () => onBlur("email"),
+                }
+              : { disabled: true, readOnly: true })}
             autoComplete="email"
           />
+          {fieldError("email")}
         </div>
 
         <div className={styles.passwordRow}>
