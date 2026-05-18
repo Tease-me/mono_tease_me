@@ -53,6 +53,12 @@
   justify-content: center;
 }
 
+.previewAvatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+}
 
 .label {
   font-size: 1rem;
