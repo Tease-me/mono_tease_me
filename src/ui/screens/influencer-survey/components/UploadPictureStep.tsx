@@ -5,7 +5,6 @@ import iconCheckCircle from '@/assets/svg/iconCheckCircle.svg';
 import iconCross from '@/assets/svg/iconCross.svg';
 import ProfileMedia from '@/ui/components/ProfileMedia';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
-import IconButton from '@/ui/components/inputs/buttons/IconButton';
 import SvgPack from '@/utils/SvgPack';
 import ImageCropModal from '@/ui/components/modals/image-crop-modal/ImageCropModal';
 import { validateImageFile } from '../utils/fileUploadHelpers';
@@ -15,7 +14,6 @@ import { Endpoints } from '@/api/urls';
 
 interface UploadPictureStepProps {
   preInfluencerId: number | null;
-  preInfluencerUsername: string | null;
   token: string;
   temp_password: string;
   pictureUrl: string | null;
@@ -34,7 +32,6 @@ interface UploadPictureStepProps {
 
 const UploadPictureStep: React.FC<UploadPictureStepProps> = ({
   preInfluencerId,
-  preInfluencerUsername,
   token,
   temp_password,
   pictureUrl,
@@ -264,35 +261,6 @@ const UploadPictureStep: React.FC<UploadPictureStepProps> = ({
           onChange={handlePictureSelect}
           disabled={uploadingPicture}
         />
-      </div>
-
-      {/* Preview Section */}
-      <div className={styles.previewSection}>
-        <label className={styles.label}>Preview</label>
-        <div className={styles.previewCard}>
-          <div className={styles.previewLeft}>
-            <ProfileMedia
-              key={pictureUrl || 'default'}
-              className={styles.previewAvatar}
-              size="medium"
-              active
-              mediaType="image"
-              imageSrc={pictureUrl || undefined}
-              altText="Preview photo"
-            />
-          </div>
-
-          <div className={styles.previewRight}>
-            <h2 className={styles.previewTitle}>{preInfluencerUsername || 'Your Name'}</h2>
-            <p className={surveyStyles.surveySubtitle}>00:15</p>
-
-            <div className={styles.previewButtons}>
-              <IconButton leftIcon={<SvgPack.Speaker />} color="black" />
-              <IconButton leftIcon={<SvgPack.Voice />} color="black" />
-              <IconButton leftIcon={<SvgPack.Call />} color="red" />
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Crop Modal */}
