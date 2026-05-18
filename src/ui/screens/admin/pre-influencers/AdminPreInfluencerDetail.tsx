@@ -1,7 +1,7 @@
 import { apiClient } from "@/api/apis";
 import { Endpoints } from "@/api/urls";
 import { Paths } from "@/routes/path";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import AdminLayout from "../AdminLayout";
 import styles from "./AdminPreInfluencerDetail.module.css";
@@ -107,6 +107,22 @@ const formatDate = (value?: string | null) => {
   return date.toLocaleString();
 };
 
+const getSafeAssetLink = (value?: string | null) => {
+  const trimmedValue = value?.trim();
+  if (!trimmedValue) return null;
+
+  try {
+    const url = new URL(trimmedValue);
+    if (url.protocol === "http:" || url.protocol === "https:") {
+      return url.toString();
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+};
+
 type LocationState = { preInfluencer?: Partial<PreInfluencerDetail> };
 
 export default function AdminPreInfluencerDetail() {
@@ -133,6 +149,7 @@ export default function AdminPreInfluencerDetail() {
     detail?.survey_answers?.asset_link ?? null
   );
   const [assetLinkCopied, setAssetLinkCopied] = useState(false);
+  const assetLinkCopiedResetRef = useRef<number | null>(null);
 
   const pictureKey = useMemo(
     () =>
@@ -140,6 +157,30 @@ export default function AdminPreInfluencerDetail() {
       detail?.survey_answers?.profile_picture_key ||
       null,
     [detail]
+  );
+  const safeAssetLink = useMemo(() => getSafeAssetLink(assetLink), [assetLink]);
+
+  const clearAssetLinkCopiedReset = useCallback(() => {
+    if (assetLinkCopiedResetRef.current !== null) {
+      window.clearTimeout(assetLinkCopiedResetRef.current);
+      assetLinkCopiedResetRef.current = null;
+    }
+  }, []);
+
+  const markAssetLinkCopied = useCallback(() => {
+    clearAssetLinkCopiedReset();
+    setAssetLinkCopied(true);
+    assetLinkCopiedResetRef.current = window.setTimeout(() => {
+      setAssetLinkCopied(false);
+      assetLinkCopiedResetRef.current = null;
+    }, 2000);
+  }, [clearAssetLinkCopiedReset]);
+
+  useEffect(
+    () => () => {
+      clearAssetLinkCopiedReset();
+    },
+    [clearAssetLinkCopiedReset]
   );
 
   useEffect(() => {
@@ -233,10 +274,11 @@ export default function AdminPreInfluencerDetail() {
 
   const handleCopyAssetLink = useCallback(async () => {
     if (!assetLink) return;
+    let copied = false;
+
     try {
       await navigator.clipboard.writeText(assetLink);
-      setAssetLinkCopied(true);
-      setTimeout(() => setAssetLinkCopied(false), 2000);
+      copied = true;
     } catch {
       // fallback for non-secure contexts
       const el = document.createElement("textarea");
@@ -245,12 +287,14 @@ export default function AdminPreInfluencerDetail() {
       el.style.opacity = "0";
       document.body.appendChild(el);
       el.select();
-      document.execCommand("copy");
+      copied = document.execCommand("copy");
       document.body.removeChild(el);
-      setAssetLinkCopied(true);
-      setTimeout(() => setAssetLinkCopied(false), 2000);
     }
-  }, [assetLink]);
+
+    if (copied) {
+      markAssetLinkCopied();
+    }
+  }, [assetLink, markAssetLinkCopied]);
 
   const handleApprove = async () => {
     if (!preInfluencerId) return;
@@ -548,13 +592,19 @@ export default function AdminPreInfluencerDetail() {
                     )}
                   </button>
                   <a
-                    href={assetLink ?? undefined}
+                    href={safeAssetLink ?? undefined}
                     target="_blank"
                     rel="noreferrer"
-                    className={`${styles["icon-btn"]} ${!assetLink ? styles["icon-btn--disabled"] : ""}`}
-                    title="Open link"
+                    className={`${styles["icon-btn"]} ${!safeAssetLink ? styles["icon-btn--disabled"] : ""}`}
+                    title={
+                      safeAssetLink
+                        ? "Open link"
+                        : "Open is only available for valid http(s) URLs"
+                    }
                     aria-label="Open asset link in new tab"
-                    onClick={(e) => { if (!assetLink) e.preventDefault(); }}
+                    onClick={(e) => {
+                      if (!safeAssetLink) e.preventDefault();
+                    }}
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
