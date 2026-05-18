@@ -160,7 +160,7 @@ export default function AdminPreInfluencerDetail() {
   );
   const safeAssetLink = useMemo(() => getSafeAssetLink(assetLink), [assetLink]);
 
-  const clearAssetLinkCopiedReset = useCallback(() => {
+  const cancelAssetLinkCopiedTimer = useCallback(() => {
     if (assetLinkCopiedResetRef.current !== null) {
       window.clearTimeout(assetLinkCopiedResetRef.current);
       assetLinkCopiedResetRef.current = null;
@@ -168,19 +168,19 @@ export default function AdminPreInfluencerDetail() {
   }, []);
 
   const markAssetLinkCopied = useCallback(() => {
-    clearAssetLinkCopiedReset();
+    cancelAssetLinkCopiedTimer();
     setAssetLinkCopied(true);
     assetLinkCopiedResetRef.current = window.setTimeout(() => {
       setAssetLinkCopied(false);
       assetLinkCopiedResetRef.current = null;
     }, 2000);
-  }, [clearAssetLinkCopiedReset]);
+  }, [cancelAssetLinkCopiedTimer]);
 
   useEffect(
     () => () => {
-      clearAssetLinkCopiedReset();
+      cancelAssetLinkCopiedTimer();
     },
-    [clearAssetLinkCopiedReset]
+    [cancelAssetLinkCopiedTimer]
   );
 
   useEffect(() => {
