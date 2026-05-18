@@ -353,7 +353,6 @@ const ProfileSurveyForm: React.FC = () => {
                 <Suspense fallback={<LoadingFallback />}>
                   <UploadPictureStep
                     preInfluencerId={state.preInfluencerId}
-                    preInfluencerUsername={state.preInfluencerUsername}
                     token={token}
                     temp_password={temp_password}
                     pictureUrl={state.pictureUrl}

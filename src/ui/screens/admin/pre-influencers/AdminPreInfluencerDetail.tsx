@@ -1,7 +1,7 @@
 import { apiClient } from "@/api/apis";
 import { Endpoints } from "@/api/urls";
 import { Paths } from "@/routes/path";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import AdminLayout from "../AdminLayout";
 import styles from "./AdminPreInfluencerDetail.module.css";
@@ -129,6 +129,10 @@ export default function AdminPreInfluencerDetail() {
     count: number;
     error: string | null;
   }>({ loading: false, files: [], count: 0, error: null });
+  const [assetLink, setAssetLink] = useState<string | null>(
+    detail?.survey_answers?.asset_link ?? null
+  );
+  const [assetLinkCopied, setAssetLinkCopied] = useState(false);
 
   const pictureKey = useMemo(
     () =>
@@ -203,6 +207,50 @@ export default function AdminPreInfluencerDetail() {
       canceled = true;
     };
   }, [preInfluencerId, audioRefreshKey]);
+
+  useEffect(() => {
+    if (!preInfluencerId) return;
+    let canceled = false;
+
+    const fetchAssetLink = async () => {
+      try {
+        const { data } = await apiClient.get<{ survey_answers?: Record<string, any> }>(
+          Endpoints.pre_influencers.surveyById(preInfluencerId)
+        );
+        if (canceled) return;
+        const link = data?.survey_answers?.asset_link ?? null;
+        setAssetLink(link);
+      } catch {
+        // asset_link is optional — silently ignore
+      }
+    };
+
+    void fetchAssetLink();
+    return () => {
+      canceled = true;
+    };
+  }, [preInfluencerId]);
+
+  const handleCopyAssetLink = useCallback(async () => {
+    if (!assetLink) return;
+    try {
+      await navigator.clipboard.writeText(assetLink);
+      setAssetLinkCopied(true);
+      setTimeout(() => setAssetLinkCopied(false), 2000);
+    } catch {
+      // fallback for non-secure contexts
+      const el = document.createElement("textarea");
+      el.value = assetLink;
+      el.style.position = "fixed";
+      el.style.opacity = "0";
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+      setAssetLinkCopied(true);
+      setTimeout(() => setAssetLinkCopied(false), 2000);
+    }
+  }, [assetLink]);
 
   const handleApprove = async () => {
     if (!preInfluencerId) return;
@@ -471,6 +519,56 @@ export default function AdminPreInfluencerDetail() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            <div className={styles["card"]}>
+              <div className={styles["card__header"]}>
+                <div>
+                  <div className={styles["eyebrow"]}>03</div>
+                  <h3 className={styles["card__title"]}>Assets</h3>
+                </div>
+                <div className={styles["asset-actions"]}>
+                  <button
+                    type="button"
+                    className={styles["icon-btn"]}
+                    onClick={handleCopyAssetLink}
+                    disabled={!assetLink}
+                    title={assetLinkCopied ? "Copied!" : "Copy link"}
+                    aria-label="Copy asset link"
+                  >
+                    {assetLinkCopied ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                      </svg>
+                    )}
+                  </button>
+                  <a
+                    href={assetLink ?? undefined}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={`${styles["icon-btn"]} ${!assetLink ? styles["icon-btn--disabled"] : ""}`}
+                    title="Open link"
+                    aria-label="Open asset link in new tab"
+                    onClick={(e) => { if (!assetLink) e.preventDefault(); }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                      <polyline points="15 3 21 3 21 9" />
+                      <line x1="10" y1="14" x2="21" y2="3" />
+                    </svg>
+                  </a>
+                </div>
+              </div>
+              {assetLink ? (
+                <div className={styles["asset-link"]}>{assetLink}</div>
+              ) : (
+                <div className={styles["empty"]}>No asset link submitted yet.</div>
+              )}
             </div>
 
             <div className={styles["card"]}>
