@@ -438,19 +438,22 @@ def _merge_survey_answers(
 
 
 async def _try_notify_parent_promoter_when_ready(
-    pre: PreInfluencer, db: AsyncSession
+    pre: PreInfluencer,
+    db: AsyncSession,
+    completed: bool | None = None,
 ) -> None:
     if not pre.terms_agreement:
         return
-    try:
-        total_sections = len(await load_survey_questions(db))
-        completed = _survey_is_completed(int(pre.survey_step or 0), total_sections)
-    except Exception:
-        log.exception(
-            "Failed to evaluate survey completion for parent promoter notify pre_id=%s",
-            pre.id,
-        )
-        return
+    if completed is None:
+        try:
+            total_sections = len(await load_survey_questions(db))
+            completed = _survey_is_completed(int(pre.survey_step or 0), total_sections)
+        except Exception:
+            log.exception(
+                "Failed to evaluate survey completion for parent promoter notify pre_id=%s",
+                pre.id,
+            )
+            return
     if not completed:
         return
     await _notify_parent_promoter_if_needed(pre, db)
