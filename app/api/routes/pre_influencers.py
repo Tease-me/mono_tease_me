@@ -190,7 +190,15 @@ async def accept_pre_influencer_terms(
 
     pre.terms_agreement = True
     await db.commit()
+    await db.refresh(pre)
     schedule_mjfp_pre_influencer_step_webhook(pre.id)
+    try:
+        await _try_notify_parent_promoter_when_ready(pre, db)
+    except Exception:
+        log.exception(
+            "Failed to notify parent promoter after terms acceptance pre_id=%s",
+            pre.id,
+        )
     return {"ok": True, "terms_agreement": True}
 
 
@@ -394,6 +402,60 @@ def _survey_is_completed(survey_step: int, total_sections: int) -> bool:
     return int(survey_step) >= max(total_sections - 1, 0)
 
 
+_SERVER_PRESERVED_SURVEY_META_KEYS = (
+    "parent_promoter_survey_completed_notified",
+    "parent_promoter_survey_completed_notified_at",
+    "parent_promoter_id",
+)
+
+
+def _merge_survey_answers(
+    existing_answers: dict | None,
+    incoming_answers: dict,
+) -> dict:
+    """Merge survey answers while keeping server-owned __meta fields."""
+    if not isinstance(existing_answers, dict):
+        return incoming_answers
+
+    existing_meta = existing_answers.get("__meta")
+    if not isinstance(existing_meta, dict):
+        return incoming_answers
+
+    incoming_meta = incoming_answers.get("__meta")
+    if not isinstance(incoming_meta, dict):
+        merged = dict(incoming_answers)
+        merged["__meta"] = dict(existing_meta)
+        return merged
+
+    preserved = {
+        key: existing_meta[key]
+        for key in _SERVER_PRESERVED_SURVEY_META_KEYS
+        if key in existing_meta
+    }
+    merged = dict(incoming_answers)
+    merged["__meta"] = {**incoming_meta, **preserved}
+    return merged
+
+
+async def _try_notify_parent_promoter_when_ready(
+    pre: PreInfluencer, db: AsyncSession
+) -> None:
+    if not pre.terms_agreement:
+        return
+    try:
+        total_sections = len(await load_survey_questions(db))
+        completed = _survey_is_completed(int(pre.survey_step or 0), total_sections)
+    except Exception:
+        log.exception(
+            "Failed to evaluate survey completion for parent promoter notify pre_id=%s",
+            pre.id,
+        )
+        return
+    if not completed:
+        return
+    await _notify_parent_promoter_if_needed(pre, db)
+
+
 async def _notify_parent_promoter_if_needed(
     pre: PreInfluencer, db: AsyncSession
 ) -> None:
@@ -437,11 +499,25 @@ async def _notify_parent_promoter_if_needed(
         to_email = fp_extract_email(parent_payload)
 
     if not to_email:
+        account_manager_email = meta.get("account_manager_email")
+        if isinstance(account_manager_email, str):
+            to_email = account_manager_email.strip() or None
+
+    if not to_email:
         answers["__meta"] = meta
         pre.survey_answers = answers
         db.add(pre)
         await db.commit()
         return
+
+    notified_at = datetime.now(timezone.utc).isoformat()
+    meta["parent_promoter_survey_completed_notified"] = True
+    meta["parent_promoter_survey_completed_notified_at"] = notified_at
+    answers["__meta"] = meta
+    pre.survey_answers = answers
+    db.add(pre)
+    await db.commit()
+    await db.refresh(pre)
 
     resp = send_influencer_survey_completed_email_to_promoter(
         to_email=to_email,
@@ -449,16 +525,12 @@ async def _notify_parent_promoter_if_needed(
         influencer_full_name=pre.full_name,
         influencer_email=pre.email,
     )
-    if resp:
-        meta["parent_promoter_survey_completed_notified"] = True
-        meta["parent_promoter_survey_completed_notified_at"] = datetime.now(
-            timezone.utc
-        ).isoformat()
-
-    answers["__meta"] = meta
-    pre.survey_answers = answers
-    db.add(pre)
-    await db.commit()
+    if not resp:
+        log.warning(
+            "Survey completion email not sent for pre_id=%s parent_email=%s",
+            pre.id,
+            to_email,
+        )
 
 
 @router.put("/{pre_id}/survey", response_model=SurveyState)
@@ -479,12 +551,8 @@ async def save_survey_state(
 
     incoming_answers: dict = data.survey_answers or {}
     existing_answers = pre.survey_answers or {}
-    if (
-        isinstance(existing_answers, dict)
-        and "__meta" in existing_answers
-        and "__meta" not in incoming_answers
-    ):
-        incoming_answers["__meta"] = existing_answers.get("__meta")
+    if isinstance(existing_answers, dict):
+        incoming_answers = _merge_survey_answers(existing_answers, incoming_answers)
 
     pre.survey_answers = incoming_answers
     pre.survey_step = data.survey_step
@@ -500,7 +568,7 @@ async def save_survey_state(
 
     if completed:
         try:
-            await _notify_parent_promoter_if_needed(pre, db)
+            await _try_notify_parent_promoter_when_ready(pre, db)
         except Exception:
             log.exception(
                 "Failed to notify parent promoter on survey completion pre_id=%s", pre.id
