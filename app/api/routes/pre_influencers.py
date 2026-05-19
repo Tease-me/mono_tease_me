@@ -433,7 +433,7 @@ def _merge_survey_answers(
         if key in existing_meta
     }
     merged = dict(incoming_answers)
-    merged["__meta"] = {**incoming_meta, **preserved}
+    merged["__meta"] = {**existing_meta, **incoming_meta, **preserved}
     return merged
 
 
