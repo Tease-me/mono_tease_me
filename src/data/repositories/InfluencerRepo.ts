@@ -51,9 +51,15 @@ export const InfluencerRepo = () => ({
         })
       );
 
-      return results
-        .filter((r): r is PromiseFulfilledResult<InfluencerDataModel> => r.status === "fulfilled")
-        .map((r) => r.value);
+      const fulfilledResults = results.filter(
+        (r): r is PromiseFulfilledResult<InfluencerDataModel> => r.status === "fulfilled"
+      );
+
+      if (!fulfilledResults.length) {
+        throw new Error("Failed to load followed influencers");
+      }
+
+      return fulfilledResults.map((r) => r.value);
     } catch (e) {
       throw e;
     }
