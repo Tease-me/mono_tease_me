@@ -8,10 +8,12 @@ import { LocalStorageKeys } from "@/constants/localStorageKeys";
 
 let followedInfluencersCache: InfluencerDataModel[] | null = null;
 let followedInfluencersInFlight: Promise<InfluencerDataModel[]> | null = null;
+let followedInfluencersCacheGeneration = 0;
 
 export const invalidateFollowedInfluencersCache = () => {
   followedInfluencersCache = null;
   followedInfluencersInFlight = null;
+  followedInfluencersCacheGeneration++;
 };
 
 const influencerRepo = InfluencerRepo();
@@ -23,10 +25,13 @@ const getFollowedInfluencersCached = async () => {
   if (followedInfluencersInFlight) {
     return followedInfluencersInFlight;
   }
+  const generation = followedInfluencersCacheGeneration;
   followedInfluencersInFlight = influencerRepo
     .getFollowedInfluencers()
     .then((list: InfluencerDataModel[]) => {
-      followedInfluencersCache = list;
+      if (followedInfluencersCacheGeneration === generation) {
+        followedInfluencersCache = list;
+      }
       return list;
     })
     .finally(() => {
