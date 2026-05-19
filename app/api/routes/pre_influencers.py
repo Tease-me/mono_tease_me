@@ -525,6 +525,10 @@ async def _notify_parent_promoter_if_needed(
             pre.id,
             to_email,
         )
+        answers["__meta"] = meta
+        pre.survey_answers = answers
+        db.add(pre)
+        await db.commit()
         return
 
     notified_at = datetime.now(timezone.utc).isoformat()
