@@ -141,7 +141,11 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           latestAdultCallSummary:
             adultSummary?.latest_adult_call_summary ?? null,
         }));
-      } catch {
+      } catch (error) {
+        console.debug(
+          "Failed to load influencer relation data",
+          { influencerId: initial.id, error },
+        );
         // influencer not found or request failed — leave existing data unchanged
       } finally {
         if (!cancelled) setLoading(false);
