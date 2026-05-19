@@ -571,7 +571,7 @@ async def save_survey_state(
 
     if completed:
         try:
-            await _try_notify_parent_promoter_when_ready(pre, db)
+            await _try_notify_parent_promoter_when_ready(pre, db, completed=completed)
         except Exception:
             log.exception(
                 "Failed to notify parent promoter on survey completion pre_id=%s", pre.id
