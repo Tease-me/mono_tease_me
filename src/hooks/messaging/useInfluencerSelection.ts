@@ -93,7 +93,10 @@ export function useInfluencerSelection(
       setHasMultipleInfluencers(list.length > 1);
       setInfluencers(list);
     }).catch(() => {
-      // follow list fetch failed — leave influencers empty
+      if (!isMounted) return;
+      setNeedsSelection(false);
+      setHasMultipleInfluencers(false);
+      setInfluencers([]);
     });
     return () => {
       isMounted = false;
