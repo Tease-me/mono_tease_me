@@ -462,28 +462,37 @@ async def _try_notify_parent_promoter_when_ready(
     locked_pre = await _lock_pre_influencer_for_survey_notify(db, pre.id)
     if not locked_pre:
         return
+
     pre = locked_pre
-
-    answers = pre.survey_answers or {}
-    meta = answers.get("__meta") if isinstance(answers, dict) else None
-    if isinstance(meta, dict) and meta.get("parent_promoter_survey_completed_notified"):
-        return
-
-    if not pre.terms_agreement:
-        return
-    if completed is None:
-        try:
-            total_sections = len(await load_survey_questions(db))
-            completed = _survey_is_completed(int(pre.survey_step or 0), total_sections)
-        except Exception:
-            log.exception(
-                "Failed to evaluate survey completion for parent promoter notify pre_id=%s",
-                pre.id,
-            )
+    try:
+        answers = pre.survey_answers or {}
+        meta = answers.get("__meta") if isinstance(answers, dict) else None
+        if isinstance(meta, dict) and meta.get("parent_promoter_survey_completed_notified"):
+            await db.commit()
             return
-    if not completed:
-        return
-    await _notify_parent_promoter_if_needed(pre, db)
+
+        if not pre.terms_agreement:
+            await db.commit()
+            return
+        if completed is None:
+            try:
+                total_sections = len(await load_survey_questions(db))
+                completed = _survey_is_completed(int(pre.survey_step or 0), total_sections)
+            except Exception:
+                log.exception(
+                    "Failed to evaluate survey completion for parent promoter notify pre_id=%s",
+                    pre.id,
+                )
+                await db.commit()
+                return
+        if not completed:
+            await db.commit()
+            return
+        await _notify_parent_promoter_if_needed(pre, db)
+        await db.commit()
+    except Exception:
+        await db.rollback()
+        raise
 
 
 async def _notify_parent_promoter_if_needed(
