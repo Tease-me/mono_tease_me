@@ -141,6 +141,8 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           latestAdultCallSummary:
             adultSummary?.latest_adult_call_summary ?? null,
         }));
+      } catch {
+        // influencer not found or request failed — leave existing data unchanged
       } finally {
         if (!cancelled) setLoading(false);
       }

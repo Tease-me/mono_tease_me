@@ -44,14 +44,16 @@ export const InfluencerRepo = () => ({
       const { items } = await followServices.list();
       if (!items.length) return [];
 
-      const influencers = await Promise.all(
+      const results = await Promise.allSettled(
         items.map(async (follow) => {
           const response: InfluencerResponse = await influencerServices.getInfluencer(follow.influencer_id);
           return toInfluencerDataModel(response);
         })
       );
 
-      return influencers;
+      return results
+        .filter((r): r is PromiseFulfilledResult<InfluencerDataModel> => r.status === "fulfilled")
+        .map((r) => r.value);
     } catch (e) {
       throw e;
     }

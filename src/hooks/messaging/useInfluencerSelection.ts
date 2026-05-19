@@ -9,6 +9,11 @@ import { LocalStorageKeys } from "@/constants/localStorageKeys";
 let followedInfluencersCache: InfluencerDataModel[] | null = null;
 let followedInfluencersInFlight: Promise<InfluencerDataModel[]> | null = null;
 
+export const invalidateFollowedInfluencersCache = () => {
+  followedInfluencersCache = null;
+  followedInfluencersInFlight = null;
+};
+
 const influencerRepo = InfluencerRepo();
 
 const getFollowedInfluencersCached = async () => {
@@ -52,9 +57,17 @@ export function useInfluencerSelection(
         if (isMounted) setInfluencer(undefined);
         return;
       }
-      const localInfluencer = await influencerRepo.getInfluencer(selectedId);
-      if (isMounted) {
-        setInfluencer(localInfluencer);
+      try {
+        const localInfluencer = await influencerRepo.getInfluencer(selectedId);
+        if (isMounted) {
+          setInfluencer(localInfluencer);
+        }
+      } catch {
+        if (isMounted) {
+          setInfluencer(undefined);
+          storage.set(LocalStorageKeys.SelectedId, "");
+          setSelectedId(undefined);
+        }
       }
     })();
     return () => {
@@ -79,6 +92,8 @@ export function useInfluencerSelection(
       }
       setHasMultipleInfluencers(list.length > 1);
       setInfluencers(list);
+    }).catch(() => {
+      // follow list fetch failed — leave influencers empty
     });
     return () => {
       isMounted = false;
