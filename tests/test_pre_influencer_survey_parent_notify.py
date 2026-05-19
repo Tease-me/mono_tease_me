@@ -243,8 +243,11 @@ async def test_notify_parent_promoter_uses_account_manager_email_fallback(
     async def fake_commit():
         db.committed += 1
 
+    async def fake_refresh(_obj):
+        return None
+
     db.commit = fake_commit
-    db.refresh = lambda _obj: None
+    db.refresh = fake_refresh
     db.add = lambda _obj: None
 
     sent: list[str] = []
