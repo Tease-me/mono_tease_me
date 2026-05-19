@@ -18,6 +18,7 @@ from fastapi import (
 from pydantic import ValidationError
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm.attributes import flag_modified
 
 from app.core.config import settings
 from app.core.session import get_db
@@ -432,9 +433,25 @@ def _merge_survey_answers(
         for key in _SERVER_PRESERVED_SURVEY_META_KEYS
         if key in existing_meta
     }
+    merged_meta = {**existing_meta, **incoming_meta, **preserved}
+    if existing_meta.get("parent_promoter_survey_completed_notified") is True:
+        merged_meta["parent_promoter_survey_completed_notified"] = True
+        notified_at = existing_meta.get("parent_promoter_survey_completed_notified_at")
+        if notified_at:
+            merged_meta["parent_promoter_survey_completed_notified_at"] = notified_at
     merged = dict(incoming_answers)
-    merged["__meta"] = {**existing_meta, **incoming_meta, **preserved}
+    merged["__meta"] = merged_meta
     return merged
+
+
+async def _lock_pre_influencer_for_survey_notify(
+    db: AsyncSession, pre_id: int
+) -> PreInfluencer | None:
+    """Row lock so concurrent survey save + accept-terms cannot double-send email."""
+    result = await db.execute(
+        select(PreInfluencer).where(PreInfluencer.id == pre_id).with_for_update()
+    )
+    return result.scalar_one_or_none()
 
 
 async def _try_notify_parent_promoter_when_ready(
@@ -442,6 +459,16 @@ async def _try_notify_parent_promoter_when_ready(
     db: AsyncSession,
     completed: bool | None = None,
 ) -> None:
+    locked_pre = await _lock_pre_influencer_for_survey_notify(db, pre.id)
+    if not locked_pre:
+        return
+    pre = locked_pre
+
+    answers = pre.survey_answers or {}
+    meta = answers.get("__meta") if isinstance(answers, dict) else None
+    if isinstance(meta, dict) and meta.get("parent_promoter_survey_completed_notified"):
+        return
+
     if not pre.terms_agreement:
         return
     if completed is None:
@@ -509,6 +536,7 @@ async def _notify_parent_promoter_if_needed(
     if not to_email:
         answers["__meta"] = meta
         pre.survey_answers = answers
+        flag_modified(pre, "survey_answers")
         db.add(pre)
         await db.commit()
         return
@@ -527,6 +555,7 @@ async def _notify_parent_promoter_if_needed(
         )
         answers["__meta"] = meta
         pre.survey_answers = answers
+        flag_modified(pre, "survey_answers")
         db.add(pre)
         await db.commit()
         return
@@ -536,6 +565,7 @@ async def _notify_parent_promoter_if_needed(
     meta["parent_promoter_survey_completed_notified_at"] = notified_at
     answers["__meta"] = meta
     pre.survey_answers = answers
+    flag_modified(pre, "survey_answers")
     db.add(pre)
     await db.commit()
 
@@ -555,6 +585,7 @@ async def save_survey_state(
         raise HTTPException(status_code=404, detail="Pre-influencer not found")
 
     _require_pre_influencer_survey_access(pre, token, temp_password)
+    await db.refresh(pre)
 
     incoming_answers: dict = data.survey_answers or {}
     existing_answers = pre.survey_answers or {}
@@ -562,6 +593,7 @@ async def save_survey_state(
         incoming_answers = _merge_survey_answers(existing_answers, incoming_answers)
 
     pre.survey_answers = incoming_answers
+    flag_modified(pre, "survey_answers")
     pre.survey_step = data.survey_step
 
     try:
@@ -570,10 +602,17 @@ async def save_survey_state(
     except Exception:
         completed = False
 
+    already_notified = False
+    merged_meta = incoming_answers.get("__meta")
+    if isinstance(merged_meta, dict):
+        already_notified = bool(
+            merged_meta.get("parent_promoter_survey_completed_notified")
+        )
+
     await db.commit()
     await db.refresh(pre)
 
-    if completed:
+    if completed and not already_notified:
         try:
             await _try_notify_parent_promoter_when_ready(pre, db, completed=completed)
         except Exception:

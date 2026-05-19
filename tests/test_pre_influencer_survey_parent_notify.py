@@ -7,6 +7,18 @@ import pytest
 from app.api.routes import pre_influencers as pre_influencers_route
 
 
+def _patch_notify_lock(monkeypatch, pre) -> None:
+    async def fake_lock(_db, pre_id):
+        assert pre_id == pre.id
+        return pre
+
+    monkeypatch.setattr(
+        pre_influencers_route,
+        "_lock_pre_influencer_for_survey_notify",
+        fake_lock,
+    )
+
+
 def test_merge_survey_answers_preserves_server_notification_meta() -> None:
     existing = {
         "q1": "old",
@@ -34,6 +46,27 @@ def test_merge_survey_answers_preserves_server_notification_meta() -> None:
         "2026-05-19T12:00:00+00:00"
     )
     assert merged["__meta"]["parent_promoter_id"] == "parent-1"
+
+
+def test_merge_survey_answers_keeps_notified_when_client_clears_flag() -> None:
+    existing = {
+        "__meta": {
+            "parent_promoter_survey_completed_notified": True,
+            "parent_promoter_survey_completed_notified_at": "2026-05-19T12:00:00+00:00",
+        }
+    }
+    incoming = {
+        "__meta": {
+            "parent_promoter_survey_completed_notified": False,
+        }
+    }
+
+    merged = pre_influencers_route._merge_survey_answers(existing, incoming)
+
+    assert merged["__meta"]["parent_promoter_survey_completed_notified"] is True
+    assert merged["__meta"]["parent_promoter_survey_completed_notified_at"] == (
+        "2026-05-19T12:00:00+00:00"
+    )
 
 
 def test_merge_survey_answers_copies_meta_when_incoming_omits_it() -> None:
@@ -213,6 +246,7 @@ async def test_notify_parent_promoter_sends_only_once(monkeypatch) -> None:
         "send_influencer_survey_completed_email_to_promoter",
         fake_send_email,
     )
+    _patch_notify_lock(monkeypatch, pre)
 
     await pre_influencers_route._notify_parent_promoter_if_needed(pre, db)
     await pre_influencers_route._notify_parent_promoter_if_needed(pre, db)
@@ -257,6 +291,7 @@ async def test_notify_parent_promoter_uses_account_manager_email_fallback(
         "send_influencer_survey_completed_email_to_promoter",
         lambda **kwargs: sent.append(kwargs["to_email"]) or {"MessageId": "x"},
     )
+    _patch_notify_lock(monkeypatch, pre)
 
     await pre_influencers_route._notify_parent_promoter_if_needed(pre, db)
 
@@ -299,6 +334,7 @@ async def test_notify_parent_promoter_retries_after_send_failure(monkeypatch) ->
         "send_influencer_survey_completed_email_to_promoter",
         fake_send_email,
     )
+    _patch_notify_lock(monkeypatch, pre)
 
     await pre_influencers_route._notify_parent_promoter_if_needed(pre, db)
     assert pre.survey_answers["__meta"].get("parent_promoter_survey_completed_notified") is not True
