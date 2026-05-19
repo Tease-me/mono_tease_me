@@ -258,3 +258,49 @@ async def test_notify_parent_promoter_uses_account_manager_email_fallback(
     await pre_influencers_route._notify_parent_promoter_if_needed(pre, db)
 
     assert sent == ["manager@example.com"]
+
+
+@pytest.mark.asyncio
+async def test_notify_parent_promoter_retries_after_send_failure(monkeypatch) -> None:
+    pre = SimpleNamespace(
+        id=9,
+        username="creator",
+        full_name=None,
+        email="creator@example.com",
+        fp_promoter_id=None,
+        survey_answers={
+            "__meta": {
+                "account_manager_email": "manager@example.com",
+            }
+        },
+    )
+    db = SimpleNamespace(committed=0)
+
+    async def fake_commit():
+        db.committed += 1
+
+    db.commit = fake_commit
+    db.refresh = lambda _obj: None
+    db.add = lambda _obj: None
+
+    send_attempts = {"count": 0}
+
+    def fake_send_email(**_kwargs):
+        send_attempts["count"] += 1
+        if send_attempts["count"] == 1:
+            return None
+        return {"MessageId": "msg-1"}
+
+    monkeypatch.setattr(
+        pre_influencers_route,
+        "send_influencer_survey_completed_email_to_promoter",
+        fake_send_email,
+    )
+
+    await pre_influencers_route._notify_parent_promoter_if_needed(pre, db)
+    assert pre.survey_answers["__meta"].get("parent_promoter_survey_completed_notified") is not True
+
+    await pre_influencers_route._notify_parent_promoter_if_needed(pre, db)
+    assert pre.survey_answers["__meta"]["parent_promoter_survey_completed_notified"] is True
+    assert send_attempts["count"] == 2
+    assert db.committed == 1

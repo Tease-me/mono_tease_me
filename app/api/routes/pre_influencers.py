@@ -510,15 +510,6 @@ async def _notify_parent_promoter_if_needed(
         await db.commit()
         return
 
-    notified_at = datetime.now(timezone.utc).isoformat()
-    meta["parent_promoter_survey_completed_notified"] = True
-    meta["parent_promoter_survey_completed_notified_at"] = notified_at
-    answers["__meta"] = meta
-    pre.survey_answers = answers
-    db.add(pre)
-    await db.commit()
-    await db.refresh(pre)
-
     resp = send_influencer_survey_completed_email_to_promoter(
         to_email=to_email,
         influencer_username=pre.username,
@@ -531,6 +522,15 @@ async def _notify_parent_promoter_if_needed(
             pre.id,
             to_email,
         )
+        return
+
+    notified_at = datetime.now(timezone.utc).isoformat()
+    meta["parent_promoter_survey_completed_notified"] = True
+    meta["parent_promoter_survey_completed_notified_at"] = notified_at
+    answers["__meta"] = meta
+    pre.survey_answers = answers
+    db.add(pre)
+    await db.commit()
 
 
 @router.put("/{pre_id}/survey", response_model=SurveyState)
