@@ -8,6 +8,7 @@ import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
 import BalanceBadge from "@/ui/components/stats/BalanceBadge";
 import { Modal } from "@/ui/components/modals/Modal";
+import logger from "@/utils/logger";
 import InfluencerProfileCard from "@/ui/components/profile/InfluencerProfileCard";
 import ProfileMedia from "@/ui/components/ProfileMedia";
 
@@ -141,6 +142,9 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           latestAdultCallSummary:
             adultSummary?.latest_adult_call_summary ?? null,
         }));
+      } catch (error) {
+        logger.error("Failed to load influencer relation data", { influencerId: initial.id, error });
+        // influencer not found or request failed — leave existing data unchanged
       } finally {
         if (!cancelled) setLoading(false);
       }

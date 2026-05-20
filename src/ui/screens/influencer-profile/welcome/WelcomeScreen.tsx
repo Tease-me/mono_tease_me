@@ -13,6 +13,7 @@ import { FunnelServices } from "@/api/services/FunnelServices";
 import { apiClient } from "@/api/apis";
 import { Paths } from "@/routes/path";
 import { PublicAssetPaths } from "@/constants/publicAssetPaths";
+import { invalidateFollowedInfluencersCache } from "@/hooks/messaging/useInfluencerSelection";
 import { storage } from "@/utils/storage";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
@@ -130,6 +131,7 @@ export default function WelcomeScreen({ influencer, showFollowBtn }: WelcomeScre
     try {
       setWaiting(true);
       await followServices.follow(influencer.id);
+      invalidateFollowedInfluencersCache();
       setError(null);
       storage.set(LocalStorageKeys.SelectedId, influencer.id);
       navigate(Paths.home);
