@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { showErrorModal } from "@/utils/errorModal";
 import { storage } from "@/utils/storage";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
+import { isAxiosError } from "axios";
 
 let followedInfluencersCache: InfluencerDataModel[] | null = null;
 let followedInfluencersInFlight: Promise<InfluencerDataModel[]> | null = null;
@@ -68,7 +69,7 @@ export function useInfluencerSelection(
           setInfluencer(localInfluencer);
         }
       } catch (error) {
-        const status = (error as { response?: { status?: number } })?.response?.status;
+        const status = isAxiosError(error) ? error.response?.status : undefined;
         if (isMounted && (status === 404 || status === 410)) {
           setInfluencer(undefined);
           storage.set(LocalStorageKeys.SelectedId, "");
