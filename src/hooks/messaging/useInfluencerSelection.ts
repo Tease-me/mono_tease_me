@@ -67,8 +67,9 @@ export function useInfluencerSelection(
         if (isMounted) {
           setInfluencer(localInfluencer);
         }
-      } catch {
-        if (isMounted) {
+      } catch (error) {
+        const status = (error as { response?: { status?: number } })?.response?.status;
+        if (isMounted && (status === 404 || status === 410)) {
           setInfluencer(undefined);
           storage.set(LocalStorageKeys.SelectedId, "");
           setSelectedId(undefined);
