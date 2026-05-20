@@ -3,6 +3,7 @@ import { InfluencerResponse } from "@/api/models/influencers";
 import { KnowledgeFile } from "@/api/models/knowledgeFiles";
 import { InfluencerServices } from "@/api/services/InfluencerService";
 import { FollowServices } from "@/api/services/FollowServices";
+import logger from "@/utils/logger";
 
 import {
   InfluencerDataModel,
@@ -51,15 +52,34 @@ export const InfluencerRepo = () => ({
         })
       );
 
-      const fulfilledResults = results.filter(
-        (r): r is PromiseFulfilledResult<InfluencerDataModel> => r.status === "fulfilled"
-      );
+      const fulfilled: InfluencerDataModel[] = [];
+      const transientErrors: unknown[] = [];
 
-      if (!fulfilledResults.length) {
+      for (const result of results) {
+        if (result.status === "fulfilled") {
+          fulfilled.push(result.value);
+        } else {
+          const status = (result.reason as { response?: { status?: number } })?.response?.status;
+          if (status === 404 || status === 410) {
+            // Influencer no longer exists — expected, skip silently
+          } else {
+            transientErrors.push(result.reason);
+          }
+        }
+      }
+
+      if (transientErrors.length > 0) {
+        for (const err of transientErrors) {
+          logger.error("Transient error fetching followed influencer:", err);
+        }
+        throw new Error("Failed to load some followed influencers due to transient errors");
+      }
+
+      if (!fulfilled.length && items.length > 0) {
         throw new Error("Failed to load followed influencers");
       }
 
-      return fulfilledResults.map((r) => r.value);
+      return fulfilled;
     } catch (e) {
       throw e;
     }
