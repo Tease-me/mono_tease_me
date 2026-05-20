@@ -5,9 +5,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { showErrorModal } from "@/utils/errorModal";
 import { storage } from "@/utils/storage";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
+import { isAxiosError } from "axios";
 
 let followedInfluencersCache: InfluencerDataModel[] | null = null;
 let followedInfluencersInFlight: Promise<InfluencerDataModel[]> | null = null;
+let followedInfluencersCacheGeneration = 0;
+
+export const invalidateFollowedInfluencersCache = () => {
+  followedInfluencersCache = null;
+  followedInfluencersInFlight = null;
+  followedInfluencersCacheGeneration++;
+};
 
 const influencerRepo = InfluencerRepo();
 
@@ -18,10 +26,13 @@ const getFollowedInfluencersCached = async () => {
   if (followedInfluencersInFlight) {
     return followedInfluencersInFlight;
   }
+  const generation = followedInfluencersCacheGeneration;
   followedInfluencersInFlight = influencerRepo
     .getFollowedInfluencers()
     .then((list: InfluencerDataModel[]) => {
-      followedInfluencersCache = list;
+      if (followedInfluencersCacheGeneration === generation) {
+        followedInfluencersCache = list;
+      }
       return list;
     })
     .finally(() => {
@@ -52,9 +63,18 @@ export function useInfluencerSelection(
         if (isMounted) setInfluencer(undefined);
         return;
       }
-      const localInfluencer = await influencerRepo.getInfluencer(selectedId);
-      if (isMounted) {
-        setInfluencer(localInfluencer);
+      try {
+        const localInfluencer = await influencerRepo.getInfluencer(selectedId);
+        if (isMounted) {
+          setInfluencer(localInfluencer);
+        }
+      } catch (error) {
+        const status = isAxiosError(error) ? error.response?.status : undefined;
+        if (isMounted && (status === 404 || status === 410)) {
+          setInfluencer(undefined);
+          storage.set(LocalStorageKeys.SelectedId, "");
+          setSelectedId(undefined);
+        }
       }
     })();
     return () => {
@@ -79,6 +99,11 @@ export function useInfluencerSelection(
       }
       setHasMultipleInfluencers(list.length > 1);
       setInfluencers(list);
+    }).catch(() => {
+      if (!isMounted) return;
+      setNeedsSelection(false);
+      setHasMultipleInfluencers(false);
+      setInfluencers([]);
     });
     return () => {
       isMounted = false;

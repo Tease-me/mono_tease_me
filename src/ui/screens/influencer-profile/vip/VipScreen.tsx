@@ -18,6 +18,7 @@ import logger from "@/utils/logger";
 import { storage } from "@/utils/storage";
 import { validationRules } from "@/utils/validationRules";
 import { required, validateFields } from "@/utils/validations";
+import { invalidateFollowedInfluencersCache } from "@/hooks/messaging/useInfluencerSelection";
 import {
   useContext,
   useEffect,
@@ -286,6 +287,7 @@ export default function VipScreen() {
     void followServices
       .follow(influencer.id)
       .then(() => {
+        invalidateFollowedInfluencersCache();
         storage.set(LocalStorageKeys.SelectedId, influencer.id.toString());
         setAutoFollowState("complete");
       })
