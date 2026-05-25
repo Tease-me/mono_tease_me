@@ -46,4 +46,3 @@ fi
 echo "Restore completed successfully."
 echo "Restored file: ${FILE}"
 echo "Target DB    : ${DB_NAME} (service=${DB_SERVICE})"
-

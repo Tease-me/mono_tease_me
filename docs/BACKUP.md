@@ -1,5 +1,23 @@
 # Database Backup & Restore Guide
 
+## Production app database
+
+Production does **not** run Postgres in Docker. The backend container connects to **AWS RDS** via `DB_URL` in the server-local `.env`:
+
+```bash
+DB_URL=postgresql+asyncpg://postgres:<RDS_PASSWORD>@db-mjpro.cjag2o6ykz8c.ap-southeast-2.rds.amazonaws.com:5432/teaseme
+```
+
+Deploy with:
+
+```bash
+docker compose -f compose.production.yml up -d --build
+```
+
+Alembic reads the same `DB_URL` at container startup (converted to sync `psycopg2` automatically).
+
+---
+
 ## Infrastructure
 
 | Component           | Details                                                  |
@@ -64,22 +82,22 @@ gunzip -c ~/backups/teaseme/teaseme_YYYY_MM_DD.sql.gz | \
 # Create test DB
 /usr/lib/postgresql/18/bin/psql \
   "postgresql://postgres:<RDS_PASSWORD>@db-mjpro.cjag2o6ykz8c.ap-southeast-2.rds.amazonaws.com:5432/postgres" \
-  -c "CREATE DATABASE teaseme_restore_test;"
+  -c "CREATE DATABASE teaseme;"
 
 # Restore
 gunzip -c /home/mxj/backups/teaseme/<backup_file>.sql.gz | \
 /usr/lib/postgresql/18/bin/psql \
-  "postgresql://postgres:<RDS_PASSWORD>@db-mjpro.cjag2o6ykz8c.ap-southeast-2.rds.amazonaws.com:5432/teaseme_restore_test"
+  "postgresql://postgres:<RDS_PASSWORD>@db-mjpro.cjag2o6ykz8c.ap-southeast-2.rds.amazonaws.com:5432/teaseme"
 
 # Verify
 /usr/lib/postgresql/18/bin/psql \
-  "postgresql://postgres:<RDS_PASSWORD>@db-mjpro.cjag2o6ykz8c.ap-southeast-2.rds.amazonaws.com:5432/teaseme_restore_test" \
+  "postgresql://postgres:<RDS_PASSWORD>@db-mjpro.cjag2o6ykz8c.ap-southeast-2.rds.amazonaws.com:5432/teaseme" \
   -c "SELECT COUNT(*) FROM users;"
 
 # Clean up when done
 /usr/lib/postgresql/18/bin/psql \
   "postgresql://postgres:<RDS_PASSWORD>@db-mjpro.cjag2o6ykz8c.ap-southeast-2.rds.amazonaws.com:5432/postgres" \
-  -c "DROP DATABASE teaseme_restore_test;"
+  -c "DROP DATABASE teaseme;"
 ```
 
 ---
