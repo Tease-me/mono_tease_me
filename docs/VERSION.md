@@ -147,4 +147,4 @@ Set on the server:
 APP_VERSION=1.0.1
 ```
 
-This affects the backend `/health` response and startup log only.
+This affects the backend `/health` response, startup log, and the OpenAPI / Swagger version shown in `/docs`.
