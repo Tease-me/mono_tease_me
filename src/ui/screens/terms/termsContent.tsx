@@ -269,6 +269,17 @@ refunds: {
     },
 
     {
+      heading: "Influencer Departure and Credit Transfers",
+      paragraphs: [
+        `If an influencer is removed from or chooses to leave the ${COMPANY_NAME} platform, access to that influencer's AI persona, conversations, and related content may immediately cease.`,
+        `Users will be notified through the platform and prompted to select a new ${COMPANY_NAME} influencer AI persona for the transfer of any remaining unused credits associated with the departed influencer.`,
+        `To support the transition, ${COMPANY_NAME} will provide an additional 10% bonus credit based on the transferred balance.`,
+        `Following an influencer's departure, users will no longer be able to interact with the former influencer AI persona or access related content and conversations through the platform.`,
+        `Credits associated with departed influencers are non-refundable and must be transferred in accordance with this policy.`,
+      ],
+    },
+
+    {
       heading: "Legal Exceptions",
       paragraphs: [
         `Nothing in this policy limits statutory consumer rights that cannot be waived under applicable law.`,
