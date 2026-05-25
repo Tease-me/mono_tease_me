@@ -1,13 +1,17 @@
 {
   "name": "tease-me",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "start": "vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "version:sync": "node scripts/version.mjs sync",
+    "version:patch": "node scripts/version.mjs patch",
+    "version:minor": "node scripts/version.mjs minor",
+    "version:major": "node scripts/version.mjs major",
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "test:headed": "playwright test --headed",

@@ -12,6 +12,7 @@ import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
 import { FollowServices } from "@/api/services/FollowServices";
 import { apiClient } from "@/api/apis";
 import { InfluencerServices } from "@/api/services/InfluencerService";
+import AppVersionBadge from "@/ui/components/app-version/AppVersionBadge";
 
 type UserMenuProps = {
   goTo: (id: string, payload?: any) => void;
@@ -151,6 +152,9 @@ export default function UserMenu({ goTo, onSwitchInfluencer }: UserMenuProps) {
             <SvgPack.Logout />
             Logout
           </button>
+          <div className={styles.versionContainer}>
+            <AppVersionBadge />
+          </div>
         </div>
       </div>
     </div>
