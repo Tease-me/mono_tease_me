@@ -6,12 +6,12 @@ How to bump the backend version and deploy so `/health` and the API docs show th
 
 ## How versioning works
 
-| What | Where |
-|------|--------|
-| **Source of truth** | `version` in root `pyproject.toml` (`[tool.poetry]`) |
-| **Runtime reader** | `app/utils/version.py` |
-| **OpenAPI / Swagger** | FastAPI app metadata (`/docs`) |
-| **Health check** | `GET /health` returns `{ "status": "ok", "version": "1.0.0", ... }` |
+| What                  | Where                                                               |
+| --------------------- | ------------------------------------------------------------------- |
+| **Source of truth**   | `version` in root `pyproject.toml` (`[tool.poetry]`)                |
+| **Runtime reader**    | `app/utils/version.py`                                              |
+| **OpenAPI / Swagger** | FastAPI app metadata (`/docs`)                                      |
+| **Health check**      | `GET /health` returns `{ "status": "ok", "version": "1.0.0", ... }` |
 
 Always bump the version **before** you build and deploy.
 
@@ -124,10 +124,10 @@ Open `/docs` — the API title shows the same version string.
 
 ## Semver quick reference
 
-| Change type | Command | Example |
-|-------------|---------|---------|
-| Bug fix | `make version-patch` | `1.0.0` → `1.0.1` |
-| New feature | `make version-minor` | `1.0.0` → `1.1.0` |
+| Change type     | Command              | Example           |
+| --------------- | -------------------- | ----------------- |
+| Bug fix         | `make version-patch` | `1.0.0` → `1.0.1` |
+| New feature     | `make version-minor` | `1.0.0` → `1.1.0` |
 | Breaking change | `make version-major` | `1.0.0` → `2.0.0` |
 
 ---
