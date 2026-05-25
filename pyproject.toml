@@ -1,7 +1,7 @@
 
 [tool.poetry]
 name = "teaseme-backend"
-version = "0.1.0"
+version = "1.0.0"
 description = "TeaseMe chat backend (FastAPI + Parlant)"
 authors = ["Kako"]
 packages = [{include = "app"}]
