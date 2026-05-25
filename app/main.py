@@ -36,6 +36,7 @@ from app.api.routes.webhooks import router as webhooks_router
 from app.core.config import settings
 from app.core.logging import configure_logging
 from app.core.sentry import init_sentry
+from app.utils.version import get_app_version
 from app.services.checkout import close_checkout_client
 from app.services.gateways.armloop_gateway import close_armloop_client
 from app.services.gateways.elevenlabs.client import close_elevenlabs_client
@@ -70,6 +71,7 @@ _allow_origins = ["*"] if _use_wildcard else origins
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    log.info("App version: %s", get_app_version())
     log.info("Starting re-engagement scheduler...")
     start_scheduler()
     log.info("Starting Telegram sessions...")
@@ -94,7 +96,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="TeaseMe API",
     description="Backend API for auth, chat, influencer, admin, and analytics flows.",
-    version="1.0.0",
+    version=get_app_version(),
     lifespan=lifespan,
     openapi_tags=OPENAPI_TAGS,
 )
