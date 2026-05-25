@@ -13,6 +13,7 @@ import { store } from "./store/store";
 import posthog from "posthog-js";
 import { PostHogErrorBoundary, PostHogProvider } from "@posthog/react";
 import { IS_PRODUCTION } from "./env";
+import { APP_VERSION } from "@/version";
 
 const sentryDsn: string | undefined = import.meta.env.VITE_SENTRY_DSN;
 
@@ -67,6 +68,8 @@ function cleanupPwaArtifacts() {
 
 const rootElement = document.getElementById("root");
 const queryClient = new QueryClient();
+
+logger.info(`App version: ${APP_VERSION}`);
 
 if (rootElement) {
   if (import.meta.env.PROD) {

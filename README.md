@@ -10,6 +10,7 @@ A React + Vite application providing the frontend for the TeaseMe AI Virtual Gir
 - [Installation](#installation)
 - [Development](#development)
 - [Building for Production](#building-for-production)
+- [Versioning](#versioning)
 - [Project Structure](#project-structure)
 - [Environment Variables](#environment-variables)
 - [Contributing](#contributing)
@@ -76,6 +77,26 @@ npm run preview
 # or
 yarn preview
 ```
+
+## Versioning
+
+The app version comes from the root `package.json` and is injected into the frontend build, displayed in the UI, and generated into `public/version.json` for deploy verification.
+
+Common commands:
+
+```bash
+npm run version:patch
+npm run version:minor
+npm run version:major
+```
+
+If you edit `package.json` manually, run:
+
+```bash
+npm run version:sync
+```
+
+See `docs/VERSIONING.md` for the full bump and deploy flow.
 
 ## Project Structure
 

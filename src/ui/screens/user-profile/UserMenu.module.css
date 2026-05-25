@@ -37,3 +37,7 @@
 .logoutButton:hover {
     opacity: 0.85;
 }
+
+.versionContainer {
+    margin-top: var(--space-px-12);
+}
