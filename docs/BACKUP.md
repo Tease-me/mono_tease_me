@@ -20,18 +20,18 @@ Alembic reads the same `DB_URL` at container startup (converted to sync `psycopg
 
 ## Infrastructure
 
-| Component           | Details                                                  |
+| Component           | Details                                                  | Notes                                                         |
 | ------------------- | -------------------------------------------------------- | ------------------------------------------------------------- |
-| **DB**              | AWS RDS PostgreSQL 18.4 (`ap-southeast-2` Sydney)        |
-| **RDS Host**        | `db-mjpro.cjag2o6ykz8c.ap-southeast-2.rds.amazonaws.com` |
-| **DB Name**         | `teaseme`                                                |
-| **DB User**         | `postgres`                                               |
-| **Backup Server**   | Linux Mint 22.2 (`mjserver`) — user `mxj`                |
-| **pg_dump binary**  | `/usr/lib/postgresql/18/bin/pg_dump`                     |
-| **Backup location** | `/home/mxj/backups/teaseme/`                             |
-| **pgAdmin 4**       | http://127.0.0.1:5050 · login `dev.mjpro@gmail.com`      |
+| **DB**              | AWS RDS PostgreSQL 18.4 (`ap-southeast-2` Sydney)        |                                                               |
+| **RDS Host**        | `db-mjpro.cjag2o6ykz8c.ap-southeast-2.rds.amazonaws.com` |                                                               |
+| **DB Name**         | `teaseme`                                                |                                                               |
+| **DB User**         | `postgres`                                               |                                                               |
+| **Backup Server**   | Linux Mint 22.2 (`mjserver`) — user `mxj`                |                                                               |
+| **pg_dump binary**  | `/usr/lib/postgresql/18/bin/pg_dump`                     |                                                               |
+| **Backup location** | `/home/mxj/backups/teaseme/`                             |                                                               |
+| **pgAdmin 4**       | http://127.0.0.1:5050 · login `dev.mjpro@gmail.com`      |                                                               |
 | **pgAdmin start**   | `/usr/pgadmin4/bin/pgadmin4`                             | `nohup /usr/pgadmin4/bin/pgadmin4 > /tmp/pgadmin4.log 2>&1 &` |
-| **AnyDesk ID**      | `1251151096`                                             |
+| **AnyDesk ID**      | `1251151096`                                             |                                                               |
 
 > The RDS password is stored in pgAdmin — right-click **TEASEME - PRODUCTION** → **Properties** → **Connection** tab.
 
