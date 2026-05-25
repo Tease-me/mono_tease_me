@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from fastapi import APIRouter, Request
 
 from app.utils.infrastructure.country import (
@@ -5,6 +7,7 @@ from app.utils.infrastructure.country import (
     extract_client_ip,
     get_request_country_context,
 )
+from app.utils.version import get_app_version
 
 router = APIRouter(prefix="/health", tags=["Health"])
 
@@ -13,6 +16,9 @@ router = APIRouter(prefix="/health", tags=["Health"])
 def health(request: Request):
     country = get_request_country_context(request)
     return {
+        "status": "ok",
+        "version": get_app_version(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "ok": True,
         "country_allowed": not country["is_blocked"],
         "country_code": country["country_code"],
