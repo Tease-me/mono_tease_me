@@ -20,7 +20,7 @@ def main() -> int:
 
     try:
         new_version = bump_pyproject_version(args.part)
-    except (RuntimeError, ValueError) as exc:
+    except (OSError, RuntimeError, ValueError) as exc:
         print(str(exc), file=sys.stderr)
         return 1
 
