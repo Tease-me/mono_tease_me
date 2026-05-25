@@ -47,6 +47,18 @@ from app.workers.scheduler import start_scheduler, stop_scheduler
 configure_logging()
 log = logging.getLogger(__name__)
 
+
+def _resolve_app_version() -> str:
+    try:
+        return get_app_version()
+    except (OSError, RuntimeError) as exc:
+        log.warning("Failed to resolve app version; using 'unknown': %s", exc)
+        return "unknown"
+
+
+app_version = _resolve_app_version()
+
+
 if settings.SENTRY_DSN and settings.APP_ENV == "production":
     init_sentry(
         dsn=settings.SENTRY_DSN,
@@ -71,7 +83,7 @@ _allow_origins = ["*"] if _use_wildcard else origins
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    log.info("App version: %s", get_app_version())
+    log.info("App version: %s", app_version)
     log.info("Starting re-engagement scheduler...")
     start_scheduler()
     log.info("Starting Telegram sessions...")
@@ -96,7 +108,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="TeaseMe API",
     description="Backend API for auth, chat, influencer, admin, and analytics flows.",
-    version=get_app_version(),
+    version=app_version,
     lifespan=lifespan,
     openapi_tags=OPENAPI_TAGS,
 )
