@@ -5,6 +5,7 @@ import SideBarButton from './components/SideBarButton';
 import clsx from 'clsx';
 import SvgPack from '@/utils/SvgPack';
 import { SideBarEntry, SideBarItem } from '../../Dashboard';
+import AppVersionBadge from '@/ui/components/app-version/AppVersionBadge';
 
 const isSideBarItem = (entry: SideBarEntry): entry is SideBarItem =>
     'leftIcon' in entry;
@@ -35,6 +36,9 @@ const SideBar: React.FC<SideBarProps> = ({ sideBarItems, onItemClick }) => {
                 <div className={styles["bottom-menu"]}>
                     <div className={clsx(styles["logout-button"])}>
                         <SvgPack.Logout /> <p>Logout</p>
+                    </div>
+                    <div className={styles["version-container"]}>
+                        <AppVersionBadge />
                     </div>
                 </div>
             </div>
