@@ -1,10 +1,3 @@
-from app.core.config import settings
-
-MJ_PROMOTER_OPENAPI_TAG = {
-    "name": "MJ Promoter",
-    "description": "Internal MJ Promoter service-to-service endpoints.",
-}
-
 OPENAPI_TAGS = [
     {
         "name": "Auth",
@@ -125,8 +118,8 @@ OPENAPI_TAGS = [
         "name": "Admin Telegram Funnel",
         "description": "Admin Telegram funnel analytics and reporting endpoints.",
     },
+    {
+        "name": "MJ Promoter",
+        "description": "Internal MJ Promoter service-to-service endpoints.",
+    },
 ]
-
-_is_production = settings.APP_ENV.strip().lower() == "production"
-if not _is_production:
-    OPENAPI_TAGS.append(MJ_PROMOTER_OPENAPI_TAG)
