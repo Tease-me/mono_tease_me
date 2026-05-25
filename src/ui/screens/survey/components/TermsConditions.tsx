@@ -78,7 +78,42 @@ const TermsContent: React.FC = () => (
       </article>
 
       <article className="tm-clause">
-        <h3 className="tm-clause__title">7. Indemnification &amp; Warranties</h3>
+        <h3 className="tm-clause__title">7. Influencer Account Deletion and User Credit Transfers</h3>
+        <p className="tm-clause__text">
+          An influencer may request deletion or removal of their account from the TeaseMe platform at any time by submitting a formal account
+          deletion request through the platform or designated support channels.
+        </p>
+        <p className="tm-clause__text">
+          Following submission of a deletion request, the influencer acknowledges and agrees that account deletion may not occur immediately.
+          TeaseMe may retain the influencer account for up to fourteen (14) days, or until the completion of the current payment cycle, in order
+          to process outstanding earnings, commissions, chargeback reviews, adjustments, or other financial obligations associated with the
+          account.
+        </p>
+        <p className="tm-clause__text">
+          Once the applicable payment cycle has been completed and all approved commissions or earnings owed to the influencer have been paid,
+          TeaseMe may permanently disable or remove the influencer's AI persona, profile, content, conversations, media, and related services
+          from user access.
+        </p>
+        <p className="tm-clause__text"><strong>Following removal of the influencer from the platform:</strong></p>
+        <ul className="tm-list">
+          <li>Users will no longer be able to interact with the influencer's AI persona or access associated content or conversations.</li>
+          <li>Users with remaining unused credits connected to the departing influencer may be notified and provided with a platform-managed credit transfer process to another available influencer AI persona.</li>
+          <li>Any replacement or transferred user credits are issued solely by TeaseMe as a platform-funded promotional or service continuity measure and are not funded, reimbursed, or payable by the departing influencer.</li>
+        </ul>
+        <p className="tm-clause__text"><strong>The departing influencer acknowledges and agrees that:</strong></p>
+        <ul className="tm-list">
+          <li>They have no ownership rights, royalty rights, commission rights, revenue share rights, or continuing financial interest in any future user spending, credits, subscriptions, or purchases made with another influencer following a transfer.</li>
+          <li>Users transferred to another influencer AI persona shall be treated as users of the newly selected influencer for all future platform activity and revenue allocation purposes.</li>
+          <li>TeaseMe retains sole discretion regarding user migration, transfer mechanics, platform continuity measures, bonus credits, and the handling of inactive or departing influencer accounts.</li>
+        </ul>
+        <p className="tm-clause__text">
+          TeaseMe reserves the right to suspend, delay, or deny account deletion requests where required for fraud prevention, legal compliance,
+          payment disputes, investigations, or enforcement of platform policies.
+        </p>
+      </article>
+
+      <article className="tm-clause">
+        <h3 className="tm-clause__title">8. Indemnification &amp; Warranties</h3>
         <p className="tm-clause__text">
           The Creator warrants that they have the full legal right to grant this license and that the Assets provided do not infringe upon the
           intellectual property or privacy rights of any third party. The Creator agrees to indemnify TeaseMe against any claims arising from
@@ -88,7 +123,7 @@ const TermsContent: React.FC = () => (
 
       {/* ── Voice & Content Terms ── */}
       <article className="tm-clause">
-        <h3 className="tm-clause__title">8. Content and Influencer Voice Models; Models</h3>
+        <h3 className="tm-clause__title">9. Content and Influencer Voice Models; Models</h3>
         <p className="tm-clause__text">
           TeaseMe uses influencer voices only for chat services on the TeaseMe platform, and (only if the influencer opts in) for TeaseMe
           marketing/advertising.

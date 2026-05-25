@@ -928,9 +928,37 @@ contentAgreement: {
     },
 
     {
+      heading: "Influencer Account Deletion and User Credit Transfers",
+      paragraphs: [
+        `An influencer may request deletion or removal of their account from the ${COMPANY_NAME} platform at any time by submitting a formal account deletion request through the platform or designated support channels.`,
+        `Following submission of a deletion request, the influencer acknowledges and agrees that account deletion may not occur immediately. ${COMPANY_NAME} may retain the influencer account for up to fourteen (14) days, or until the completion of the current payment cycle, in order to process outstanding earnings, commissions, chargeback reviews, adjustments, or other financial obligations associated with the account.`,
+        `Once the applicable payment cycle has been completed and all approved commissions or earnings owed to the influencer have been paid, ${COMPANY_NAME} may permanently disable or remove the influencer's AI persona, profile, content, conversations, media, and related services from user access.`,
+        `Following removal of the influencer from the platform:`,
+      ],
+      bullets: [
+        `Users will no longer be able to interact with the influencer's AI persona or access associated content or conversations.`,
+        `Users with remaining unused credits connected to the departing influencer may be notified and provided with a platform-managed credit transfer process to another available influencer AI persona.`,
+        `Any replacement or transferred user credits are issued solely by ${COMPANY_NAME} as a platform-funded promotional or service continuity measure and are not funded, reimbursed, or payable by the departing influencer.`,
+      ],
+    },
+
+    {
+      heading: "Departing Influencer Acknowledgements",
+      paragraphs: [
+        `The departing influencer acknowledges and agrees that:`,
+      ],
+      bullets: [
+        `They have no ownership rights, royalty rights, commission rights, revenue share rights, or continuing financial interest in any future user spending, credits, subscriptions, or purchases made with another influencer following a transfer.`,
+        `Users transferred to another influencer AI persona shall be treated as users of the newly selected influencer for all future platform activity and revenue allocation purposes.`,
+        `${COMPANY_NAME} retains sole discretion regarding user migration, transfer mechanics, platform continuity measures, bonus credits, and the handling of inactive or departing influencer accounts.`,
+      ],
+    },
+
+    {
       heading: "Indemnification & Warranties",
       paragraphs: [
         `The Creator warrants that they have the full legal right to grant this license and that the Assets provided do not infringe upon the intellectual property or privacy rights of any third party. The Creator agrees to indemnify ${COMPANY_NAME} against any claims arising from a breach of these warranties.`,
+        `${COMPANY_NAME} reserves the right to suspend, delay, or deny account deletion requests where required for fraud prevention, legal compliance, payment disputes, investigations, or enforcement of platform policies.`,
       ],
     },
 
