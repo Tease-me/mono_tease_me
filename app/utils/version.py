@@ -22,7 +22,9 @@ def bump_version(current: str, part: str) -> str:
         return f"{major + 1}.0.0"
     if part == "minor":
         return f"{major}.{minor + 1}.0"
-    return f"{major}.{minor}.{patch + 1}"
+    if part == "patch":
+        return f"{major}.{minor}.{patch + 1}"
+    raise ValueError(f"Unsupported version part {part!r}; expected one of: 'major', 'minor', 'patch'")
 
 
 def bump_pyproject_version(part: str) -> str:
