@@ -136,3 +136,13 @@ format-docker-check:
 .PHONY: doctor-python-env
 doctor-python-env:
 	$(COMPOSE) exec $(SERVICE) python -c "import sqlalchemy,fastapi,httpx; print('ok')"
+
+.PHONY: version-patch version-minor version-major
+version-patch:
+	poetry run python scripts/bump_version.py patch
+
+version-minor:
+	poetry run python scripts/bump_version.py minor
+
+version-major:
+	poetry run python scripts/bump_version.py major

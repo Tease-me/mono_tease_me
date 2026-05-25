@@ -19,6 +19,8 @@ TeaseMe is a multi-persona conversational AI platform with audio, long-term memo
    docker compose up --build -d
    ```
 
+   Local dev uses the Docker Postgres container. **Production** uses AWS RDS — set `DB_URL` on the server (see `docs/BACKUP.md`).
+
 3. **Tail logs or stop services**
 
    ```bash
@@ -67,7 +69,7 @@ Prefer running services directly? Install dependencies with Poetry and use Docke
 ```bash
 poetry install
 cp .env.example .env
-docker compose -f compose.yml up -d db redis
+docker compose up -d db redis
 poetry run alembic upgrade head
 poetry run uvicorn app.main:app --reload --port 8000
 # or run everything (migrations + TLS-enabled dev server) in one go:

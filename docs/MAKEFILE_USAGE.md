@@ -41,6 +41,8 @@ Optional overrides (for backup/restore):
 - `BACKUP_DIR` (default `./backups/db`, backup only)
 - `KEEP_LAST` (default `10`, backup only)
 
+Production RDS backups use `pg_dump` directly — see `docs/BACKUP.md`.
+
 ## Alembic migrations
 
 ### Docker (dentro do container)

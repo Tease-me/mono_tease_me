@@ -33,14 +33,26 @@ if config.config_file_name is not None:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
+def _sync_url_from_db_url(db_url: str) -> str:
+    """Convert the async runtime URL to a sync psycopg2 URL for Alembic."""
+    if "postgresql+asyncpg" in db_url:
+        return db_url.replace("postgresql+asyncpg", "postgresql+psycopg2", 1)
+    if db_url.startswith("postgresql://"):
+        return db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+    return db_url
+
+
 def _get_sqlalchemy_url() -> str:
     """
     Prefer env override (DATABASE_URL or SYNC_DATABASE_URL) so host vs container can differ.
-    Fallback to alembic.ini sqlalchemy.url.
+    Fall back to DB_URL (same host as the app), then alembic.ini sqlalchemy.url.
     """
     env_url = os.getenv("DATABASE_URL") or os.getenv("SYNC_DATABASE_URL")
     if env_url:
         return env_url
+    db_url = os.getenv("DB_URL")
+    if db_url:
+        return _sync_url_from_db_url(db_url)
     return config.get_main_option("sqlalchemy.url")
 
 
