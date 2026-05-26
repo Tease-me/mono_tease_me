@@ -1,7 +1,9 @@
 from app.core.config import settings
 
 
-is_production = settings.APP_ENV.strip().lower() == "production"
+is_production = getattr(
+    settings, "is_production", settings.APP_ENV.strip().lower() == "production"
+)
 
 
 OPENAPI_TAGS = [
