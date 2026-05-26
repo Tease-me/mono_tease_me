@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { apiClient } from '@/api/apis';
 import { Endpoints } from '@/api/urls';
 import { Paths } from '@/routes/path';
+import { THANK_YOU_VARIANTS } from '@/ui/screens/join/subscreens/thankYouVariants';
 import NormalButton from '@/ui/components/inputs/buttons/NormalButton';
 import PrimaryButton from '@/ui/components/inputs/buttons/PrimaryButton';
 import SvgPack from '@/utils/SvgPack';
@@ -98,7 +99,9 @@ const ProfileSurveyForm: React.FC = () => {
       }
 
       actions.setShowTermsModal(false);
-      navigate(Paths.thankYou, { replace: true });
+      navigate(`${Paths.thankYou}?variant=${THANK_YOU_VARIANTS.profileComplete}`, {
+        replace: true,
+      });
     } catch (error) {
       console.error('Error accepting terms:', error);
       actions.setTermsError('Failed to record acceptance. Please try again.');
@@ -182,7 +185,9 @@ const ProfileSurveyForm: React.FC = () => {
       actions.goToNextStep();
       requestAnimationFrame(scrollToTop);
     } else {
-      navigate(Paths.thankYou, { replace: true });
+      navigate(`${Paths.thankYou}?variant=${THANK_YOU_VARIANTS.profileComplete}`, {
+        replace: true,
+      });
     }
   }, [
     validateCurrentStep,
