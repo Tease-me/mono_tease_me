@@ -152,6 +152,10 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "https://www.teaseme.live"  # Web app base URL
     FIRST_LOGIN_BONUS_CENTS: int = 200
 
+    @property
+    def is_production(self) -> bool:
+        return self.APP_ENV.strip().lower() == "production"
+
     @model_validator(mode="after")
     def default_public_asset_bucket(self) -> Self:
         if not (self.PUBLIC_ASSET_BUCKET_NAME or "").strip():
