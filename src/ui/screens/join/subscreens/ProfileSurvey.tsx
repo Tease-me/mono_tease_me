@@ -9,6 +9,7 @@ import { AuthServicesPreInfluencer } from "@/api/services/AuthServicesPreInfluen
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { Paths } from "@/routes/path";
 import ResendEmailModal from "@/ui/screens/join/components/ResendEmailModal";
+import { THANK_YOU_VARIANTS } from "@/ui/screens/join/subscreens/thankYouVariants";
 import { storage } from "@/utils/storage";
 import SvgPack from "@/utils/SvgPack";
 import "./ProfileSurvey.css";
@@ -96,7 +97,7 @@ const ProfileSurvey: React.FC = () => {
         storage.remove(LocalStorageKeys.JoinAttribution);
         storage.remove(LocalStorageKeys.ParentRefId);
         navigate(Paths.thankYou, {
-          state: { variant: "received" },
+          state: { variant: THANK_YOU_VARIANTS.received },
         });
         return;
       }

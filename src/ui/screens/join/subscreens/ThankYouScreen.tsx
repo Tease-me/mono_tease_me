@@ -1,9 +1,8 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
 import logoTeaseMeOutline from "@/assets/logos/lipsOutline.svg"
+import { THANK_YOU_VARIANTS, type ThankYouVariant } from "./thankYouVariants";
 import "./ThankYouScreen.css";
-
-type ThankYouVariant = "received" | "profileComplete";
 
 type ThankYouLocationState = {
   variant?: ThankYouVariant;
@@ -11,10 +10,10 @@ type ThankYouLocationState = {
 
 const ThankYouScreen: React.FC = () => {
   const { state } = useLocation();
-  const variant = (state as ThankYouLocationState | null)?.variant ?? "received";
+  const variant = (state as ThankYouLocationState | null)?.variant ?? THANK_YOU_VARIANTS.received;
 
   const message =
-    variant === "profileComplete"
+    variant === THANK_YOU_VARIANTS.profileComplete
       ? {
           primary: "Your Profile is complete",
           secondary: "Your account manager will contact you when it's live",
