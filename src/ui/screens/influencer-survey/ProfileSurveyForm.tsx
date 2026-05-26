@@ -99,9 +99,8 @@ const ProfileSurveyForm: React.FC = () => {
       }
 
       actions.setShowTermsModal(false);
-      navigate(Paths.thankYou, {
+      navigate(`${Paths.thankYou}?variant=${THANK_YOU_VARIANTS.profileComplete}`, {
         replace: true,
-        state: { variant: THANK_YOU_VARIANTS.profileComplete },
       });
     } catch (error) {
       console.error('Error accepting terms:', error);
@@ -186,9 +185,8 @@ const ProfileSurveyForm: React.FC = () => {
       actions.goToNextStep();
       requestAnimationFrame(scrollToTop);
     } else {
-      navigate(Paths.thankYou, {
+      navigate(`${Paths.thankYou}?variant=${THANK_YOU_VARIANTS.profileComplete}`, {
         replace: true,
-        state: { variant: THANK_YOU_VARIANTS.profileComplete },
       });
     }
   }, [

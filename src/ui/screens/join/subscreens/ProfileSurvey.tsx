@@ -96,9 +96,7 @@ const ProfileSurvey: React.FC = () => {
       if (response.ok) {
         storage.remove(LocalStorageKeys.JoinAttribution);
         storage.remove(LocalStorageKeys.ParentRefId);
-        navigate(Paths.thankYou, {
-          state: { variant: THANK_YOU_VARIANTS.received },
-        });
+        navigate(`${Paths.thankYou}?variant=${THANK_YOU_VARIANTS.received}`);
         return;
       }
 

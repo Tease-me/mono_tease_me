@@ -1,16 +1,16 @@
 import React from "react";
-import { useLocation } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import logoTeaseMeOutline from "@/assets/logos/lipsOutline.svg"
 import { THANK_YOU_VARIANTS, type ThankYouVariant } from "./thankYouVariants";
 import "./ThankYouScreen.css";
 
-type ThankYouLocationState = {
-  variant?: ThankYouVariant;
-};
-
 const ThankYouScreen: React.FC = () => {
-  const { state } = useLocation();
-  const variant = (state as ThankYouLocationState | null)?.variant ?? THANK_YOU_VARIANTS.received;
+  const [searchParams] = useSearchParams();
+  const variantParam = searchParams.get("variant");
+  const variant: ThankYouVariant =
+    variantParam === THANK_YOU_VARIANTS.profileComplete || variantParam === THANK_YOU_VARIANTS.received
+      ? variantParam
+      : THANK_YOU_VARIANTS.received;
 
   const message =
     variant === THANK_YOU_VARIANTS.profileComplete
