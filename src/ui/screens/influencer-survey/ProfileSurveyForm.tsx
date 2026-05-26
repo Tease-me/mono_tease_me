@@ -98,7 +98,10 @@ const ProfileSurveyForm: React.FC = () => {
       }
 
       actions.setShowTermsModal(false);
-      navigate(Paths.thankYou, { replace: true });
+      navigate(Paths.thankYou, {
+        replace: true,
+        state: { variant: 'profileComplete' },
+      });
     } catch (error) {
       console.error('Error accepting terms:', error);
       actions.setTermsError('Failed to record acceptance. Please try again.');
@@ -182,7 +185,10 @@ const ProfileSurveyForm: React.FC = () => {
       actions.goToNextStep();
       requestAnimationFrame(scrollToTop);
     } else {
-      navigate(Paths.thankYou, { replace: true });
+      navigate(Paths.thankYou, {
+        replace: true,
+        state: { variant: 'profileComplete' },
+      });
     }
   }, [
     validateCurrentStep,
