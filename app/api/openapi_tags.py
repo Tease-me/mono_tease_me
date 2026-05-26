@@ -1,9 +1,6 @@
 from app.core.config import settings
 
 
-is_production = settings.is_production
-
-
 OPENAPI_TAGS = [
     {
         "name": "Auth",
@@ -130,5 +127,5 @@ OPENAPI_TAGS = [
     },
 ]
 
-if is_production:
+if settings.is_production:
     OPENAPI_TAGS = [tag for tag in OPENAPI_TAGS if tag["name"] != "MJ Promoter"]
