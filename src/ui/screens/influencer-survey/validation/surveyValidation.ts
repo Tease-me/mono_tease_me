@@ -147,13 +147,12 @@ export function validateAssetStep(answers: Record<string, any>): ValidationResul
   const errors: Record<string, string> = {};
   const link = answers['asset_link'];
 
-  if (!link || typeof link !== 'string' || !link.trim()) {
-    errors['asset_link'] = ERROR_MESSAGES.ASSET_LINK_REQUIRED;
-  } else {
+  if (link && typeof link === 'string' && link.trim()) {
     try {
       new URL(link.trim());
     } catch {
-      errors['asset_link'] = 'Please enter a valid link (e.g. from Google Drive, Dropbox or iCloud).';
+      errors['asset_link'] =
+        'Please enter a valid link (e.g. from Google Drive, Dropbox or iCloud).';
     }
   }
 

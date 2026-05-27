@@ -2,6 +2,16 @@ import axios from 'axios';
 import { API_BASE_URL } from './urls';
 import { showErrorModal } from '@/utils/errorModal';
 
+declare module 'axios' {
+    interface AxiosRequestConfig {
+        skipAuth?: boolean;
+    }
+
+    interface InternalAxiosRequestConfig {
+        skipAuth?: boolean;
+    }
+}
+
 export const apiClient = axios.create({
     baseURL: API_BASE_URL,
     timeout: 30_000,
@@ -11,6 +21,7 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use(config => {
+    if (config.skipAuth) return config;
     const token = localStorage.getItem('access_token');
     if (token) config.headers!['Authorization'] = `Bearer ${token}`;
     return config;

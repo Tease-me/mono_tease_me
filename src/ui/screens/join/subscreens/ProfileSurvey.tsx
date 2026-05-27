@@ -12,20 +12,27 @@ import ResendEmailModal from "@/ui/screens/join/components/ResendEmailModal";
 import { THANK_YOU_VARIANTS } from "@/ui/screens/join/subscreens/thankYouVariants";
 import { storage } from "@/utils/storage";
 import SvgPack from "@/utils/SvgPack";
+import { validationRules } from "@/utils/validationRules";
 import "./ProfileSurvey.css";
 
 const PreInfluencerAPI = AuthServicesPreInfluencer(apiClient);
 
-const ProfileSurvey: React.FC = () => {
+type ProfileSurveyProps = {
+  initialEmail?: string;
+};
+
+const ProfileSurvey: React.FC<ProfileSurveyProps> = ({ initialEmail = "" }) => {
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [username, setUsername] = useState("");
-  const [email] = useState(() => {
+  const [email, setEmail] = useState(() => {
     const attribution = storage.getObject<{ inviteeEmail?: string }>(LocalStorageKeys.JoinAttribution);
-    return attribution?.inviteeEmail ?? "";
+    return initialEmail || attribution?.inviteeEmail || "";
   });
+  const [mainLanguage, setMainLanguage] = useState("");
+  const [secondaryLanguage, setSecondaryLanguage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showResendDialog, setShowResendDialog] = useState(false);
   const [resendEmail, setResendEmail] = useState("");
@@ -37,6 +44,7 @@ const ProfileSurvey: React.FC = () => {
     location?: string;
     username?: string;
     email?: string;
+    mainLanguage?: string;
     general?: string;
   }>({});
 
@@ -53,6 +61,11 @@ const ProfileSurvey: React.FC = () => {
     return pwd;
   };
 
+  const clearJoinAttribution = () => {
+    storage.remove(LocalStorageKeys.JoinAttribution);
+    storage.remove(LocalStorageKeys.ParentRefId);
+  };
+
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
@@ -61,6 +74,7 @@ const ProfileSurvey: React.FC = () => {
       location?: string;
       username?: string;
       email?: string;
+      mainLanguage?: string;
       general?: string;
     } = {};
 
@@ -74,7 +88,12 @@ const ProfileSurvey: React.FC = () => {
     } else if (!/^[a-z0-9_.]+$/.test(username)) {
       newErrors.username = "Username can only contain lowercase letters, numbers, underscores and dots";
     }
-    if (!email.trim()) newErrors.email = "Email is required";
+    const normalizedEmail = email.trim().toLowerCase();
+    const emailError = validationRules.email(normalizedEmail);
+    if (emailError) newErrors.email = emailError;
+    if (!mainLanguage.trim()) {
+      newErrors.mainLanguage = "Main language is required";
+    }
 
     if (Object.keys(newErrors).length) {
       setErrors(newErrors);
@@ -89,13 +108,41 @@ const ProfileSurvey: React.FC = () => {
         full_name: name.trim(),
         location: location.trim(),
         username: username.trim(),
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
         password: tempPassword,
+        survey_answers: {
+          q4_country: location.trim(),
+          q5_main_language: mainLanguage.trim(),
+          ...(secondaryLanguage.trim()
+            ? { q6_secondary_language: secondaryLanguage.trim() }
+            : {}),
+        },
       });
 
       if (response.ok) {
-        storage.remove(LocalStorageKeys.JoinAttribution);
-        storage.remove(LocalStorageKeys.ParentRefId);
+        const onboardingUrl = response.onboarding_url?.trim();
+        clearJoinAttribution();
+
+        if (onboardingUrl) {
+          const nextUrl = new URL(
+            onboardingUrl.startsWith("/") ? onboardingUrl : `/${onboardingUrl}`,
+            window.location.origin,
+          );
+          nextUrl.searchParams.set("start_step", "picture");
+          navigate(`${nextUrl.pathname}${nextUrl.search}`);
+          return;
+        }
+
+        if (response.token && response.temp_password) {
+          const params = new URLSearchParams({
+            token: response.token,
+            temp_password: response.temp_password,
+            start_step: "picture",
+          });
+          navigate(`${Paths.joinOnboarding}?${params.toString()}`);
+          return;
+        }
+
         navigate(`${Paths.thankYou}?variant=${THANK_YOU_VARIANTS.received}`);
         return;
       }
@@ -105,12 +152,12 @@ const ProfileSurvey: React.FC = () => {
           (response as any).message ||
           "Registration failed, please try again later",
       });
-      setIsSubmitting(false);
     } catch (err) {
       console.error(err);
       setErrors({
         general: "Unexpected error, please try again later",
       });
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -158,7 +205,7 @@ const ProfileSurvey: React.FC = () => {
           </div>
 
           <h2 className="ps-title">Profile Survey</h2>
-          <p className="ps-subtitle">Tell us about yourself</p>
+          <p className="ps-subtitle">Complete your basic details</p>
 
           {errors.general && (
             <div className="ps-error ps-error-general">{errors.general}</div>
@@ -222,13 +269,43 @@ const ProfileSurvey: React.FC = () => {
           <div className="ps-field">
             <label className="ps-label">
               Email
+              <span className="ps-required"> *</span>
             </label>
             {errors.email && <span className="ps-error">{errors.email}</span>}
             <input
               className="ps-input"
               placeholder="Your email"
               value={email}
-              disabled
+              onChange={(e) => setEmail(e.target.value)}
+              type="email"
+              autoComplete="email"
+            />
+          </div>
+
+          {/* Main Language */}
+          <div className="ps-field">
+            <label className="ps-label">
+              Main Language <span className="ps-required">*</span>
+            </label>
+            {errors.mainLanguage && (
+              <span className="ps-error">{errors.mainLanguage}</span>
+            )}
+            <input
+              className="ps-input"
+              placeholder="Your main language"
+              value={mainLanguage}
+              onChange={(e) => setMainLanguage(e.target.value)}
+            />
+          </div>
+
+          {/* Secondary Language */}
+          <div className="ps-field">
+            <label className="ps-label">Secondary Language</label>
+            <input
+              className="ps-input"
+              placeholder="Optional secondary language"
+              value={secondaryLanguage}
+              onChange={(e) => setSecondaryLanguage(e.target.value)}
             />
           </div>
 
@@ -246,7 +323,7 @@ const ProfileSurvey: React.FC = () => {
               className="ps-secondary-link"
               type="button"
               onClick={() => {
-                setResendEmail(email);
+                setResendEmail(email || username);
                 setResendError("");
                 setResendSuccess("");
                 setShowResendDialog(true);

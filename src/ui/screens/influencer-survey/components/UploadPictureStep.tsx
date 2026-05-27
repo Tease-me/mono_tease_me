@@ -28,6 +28,7 @@ interface UploadPictureStepProps {
   onCropOpenChange: (open: boolean) => void;
   onCropImageSrcChange: (src: string | null) => void;
   onAnswerChange: (key: string, value: any) => void;
+  onPersistSurvey?: (patch: Record<string, any>) => Promise<void>;
 }
 
 const UploadPictureStep: React.FC<UploadPictureStepProps> = ({
@@ -46,6 +47,7 @@ const UploadPictureStep: React.FC<UploadPictureStepProps> = ({
   onCropOpenChange,
   onCropImageSrcChange,
   onAnswerChange,
+  onPersistSurvey,
 }) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const pendingFileRef = useRef<File | null>(null);
@@ -152,11 +154,20 @@ const UploadPictureStep: React.FC<UploadPictureStepProps> = ({
           onAnswerChange('profile_picture_key', result.s3_key);
           onPictureKeyChange(result.s3_key);
 
+          try {
+            await onPersistSurvey?.({ profile_picture_key: result.s3_key });
+          } catch (persistError) {
+            console.error('Failed to persist profile picture in survey:', persistError);
+          }
+
           setTimeout(async () => {
             try {
               const { data } = await apiClient.get<{ url: string }>(
                 Endpoints.pre_influencers.pictureUrl(preInfluencerId),
-                { params: { token, temp_password } }
+                {
+                  skipAuth: true,
+                  params: { token, temp_password },
+                }
               );
               onPictureUrlChange(data.url);
             } catch (err) {
@@ -197,6 +208,7 @@ const UploadPictureStep: React.FC<UploadPictureStepProps> = ({
       onUploadingChange,
       onErrorChange,
       onAnswerChange,
+      onPersistSurvey,
     ]
   );
 

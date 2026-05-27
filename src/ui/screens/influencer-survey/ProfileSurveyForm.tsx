@@ -34,9 +34,10 @@ const ProfileSurveyForm: React.FC = () => {
 
   const token = params.get('token') || '';
   const temp_password = params.get('temp_password') || '';
+  const startStep = params.get('start_step') || '';
 
   // Core survey form state (centralized in one hook)
-  const [state, actions] = useSurveyForm({ token, temp_password });
+  const [state, actions] = useSurveyForm({ token, temp_password, startStep });
 
   // Validation hook
   const { validateCurrentStep } = useStepValidation({
@@ -83,6 +84,7 @@ const ProfileSurveyForm: React.FC = () => {
         Endpoints.pre_influencers.acceptTerms(state.preInfluencerId),
         { terms_agreement: true },
         {
+          skipAuth: true,
           params: token ? { token } : undefined,
         }
       );
@@ -253,6 +255,8 @@ const ProfileSurveyForm: React.FC = () => {
   const isAudioStep = state.currentStep === state.audioStepIndex;
   const isAssetStep = state.currentStep === state.assetStepIndex;
   const isLastStep = state.currentStep === state.totalSteps - 1;
+  const lockBackOnPictureEntry =
+    startStep === 'picture' && state.currentStep === state.pictureStepIndex;
 
   // Get current survey step
   const currentSurveyStep = isSurveyStep && state.surveySteps[state.currentStep]
@@ -372,6 +376,7 @@ const ProfileSurveyForm: React.FC = () => {
                     onCropOpenChange={actions.setIsCropOpen}
                     onCropImageSrcChange={actions.setCropImageSrc}
                     onAnswerChange={actions.updateAnswer}
+                    onPersistSurvey={actions.persistSurvey}
                   />
                 </Suspense>
               )}
@@ -400,6 +405,7 @@ const ProfileSurveyForm: React.FC = () => {
                     onCountChange={actions.setAudioCount}
                     onIsRecordingChange={actions.setAudioIsRecording}
                     onErrorChange={actions.setAudioError}
+                    onPersistSurvey={() => actions.persistSurvey()}
                   />
                 </Suspense>
               )}
@@ -436,7 +442,11 @@ const ProfileSurveyForm: React.FC = () => {
                     <NormalButton
                       onClick={handleBack}
                       text="Back"
-                      disabled={state.currentStep === 0 || state.audioIsRecording}
+                      disabled={
+                        state.currentStep === 0 ||
+                        state.audioIsRecording ||
+                        lockBackOnPictureEntry
+                      }
                       leftIcon={<SvgPack.ArrowLeft />}
                     />
                   </div>

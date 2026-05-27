@@ -1,6 +1,12 @@
 export interface RegisterResponse {
     ok: boolean,
-    message: string
+    message: string,
+    user_id?: number;
+    email?: string;
+    token?: string;
+    temp_password?: string;
+    survey_step?: number;
+    onboarding_url?: string;
 }
 
 export interface CompleteProfileResponse {
