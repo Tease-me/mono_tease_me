@@ -9,6 +9,7 @@ class PreInfluencerRegisterRequest(BaseModel):
     username: str
     email: EmailStr
     password: str
+    survey_answers: Dict[str, Any] | None = None
     terms_agreement: bool = False
     fp_tid: str | None = None
     parent_ref_id: str | None = None
@@ -24,6 +25,10 @@ class PreInfluencerRegisterResponse(BaseModel):
     user_id: int
     email: EmailStr
     message: str
+    token: str
+    temp_password: str
+    survey_step: int
+    onboarding_url: str
     
 class PreInfluencerAcceptTermsRequest(BaseModel):
     terms_agreement: Literal[True]
@@ -108,6 +113,8 @@ class MJPreInfluencerStepProgressOut(BaseModel):
     username: str
     survey_step: int
     status: str
+    terms_agreement: bool = False
+    assets_complete: bool = False
     asset_link: str | None = None
     survey_link: str | None = None
 

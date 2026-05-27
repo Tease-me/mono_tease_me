@@ -64,9 +64,6 @@ RELATIONSHIP_DIMENSIONS = json.loads(
 # Load MBTI definitions from JSON config
 MBTI_JSON = (_CONFIGS_DIR / "mbti_definitions.json").read_text()
 
-# Load survey questions from JSON config
-SURVEY_QUESTIONS_JSON = (_CONFIGS_DIR / "survey_questions.json").read_text()
-
 # Prompt registry for relationship prompts
 PROMPTS = {
     prompt_keys.RELATIONSHIP_SIGNAL_PROMPT: {
@@ -92,11 +89,5 @@ PROMPTS = {
         "description": "MBTI personality definitions used for profiling and prompt generation.",
         "prompt": MBTI_JSON,
         "type": "normal"
-    },
-    prompt_keys.SURVEY_QUESTIONS_JSON: {
-        "name": "Influencer Onboarding Survey Questions JSON",
-        "description": "JSON survey questions used for influencer onboarding.",
-        "prompt": SURVEY_QUESTIONS_JSON,
-        "type": "others"
     },
 }
