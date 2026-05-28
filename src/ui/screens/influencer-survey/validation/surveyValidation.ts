@@ -1,4 +1,4 @@
-import { ERROR_MESSAGES, SOCIAL_PLATFORMS } from '../utils/constants';
+import { ERROR_MESSAGES, REQUIRED_SOCIAL_PLATFORMS, SOCIAL_PLATFORMS } from '../utils/constants';
 
 export interface SurveyQuestion {
   id: string;
@@ -98,15 +98,14 @@ export function validatePictureStep(answers: Record<string, any>): ValidationRes
 export function validateSocialStep(answers: Record<string, any>): ValidationResult {
   const errors: Record<string, string> = {};
 
-  // Check all social platform handles
-  const handles = SOCIAL_PLATFORMS.map((platform) => answers[`social_${platform}`]);
+  for (const platform of REQUIRED_SOCIAL_PLATFORMS) {
+    const handle = answers[`social_${platform}`];
+    const hasHandle = typeof handle === 'string' && handle.trim().length > 0;
 
-  const hasAtLeastOne = handles.some(
-    (handle) => typeof handle === 'string' && handle.trim().length > 0
-  );
-
-  if (!hasAtLeastOne) {
-    errors['social_media'] = ERROR_MESSAGES.SOCIAL_REQUIRED;
+    if (!hasHandle) {
+      errors['social_media'] = ERROR_MESSAGES.SOCIAL_REQUIRED;
+      break;
+    }
   }
 
   // Validate follower count for all platforms with handles
@@ -143,17 +142,29 @@ export function validateAudioStep(audioCount: number): ValidationResult {
   };
 }
 
+/** Step 02 — profile photo and at least one voice sample. */
+export function validatePhotoVoiceStep(
+  answers: Record<string, any>,
+  audioCount: number
+): ValidationResult {
+  const picture = validatePictureStep(answers);
+  const audio = validateAudioStep(audioCount);
+  return {
+    valid: picture.valid && audio.valid,
+    errors: { ...picture.errors, ...audio.errors },
+  };
+}
+
 export function validateAssetStep(answers: Record<string, any>): ValidationResult {
   const errors: Record<string, string> = {};
   const link = answers['asset_link'];
 
-  if (!link || typeof link !== 'string' || !link.trim()) {
-    errors['asset_link'] = ERROR_MESSAGES.ASSET_LINK_REQUIRED;
-  } else {
+  if (link && typeof link === 'string' && link.trim()) {
     try {
       new URL(link.trim());
     } catch {
-      errors['asset_link'] = 'Please enter a valid link (e.g. from Google Drive, Dropbox or iCloud).';
+      errors['asset_link'] =
+        'Please enter a valid link (e.g. from Google Drive, Dropbox or iCloud).';
     }
   }
 

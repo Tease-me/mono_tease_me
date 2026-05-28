@@ -21,6 +21,14 @@
   width: 100%;
 }
 
+/* Register sidebar — single column beside profile fields on desktop */
+@media (min-width: 56rem) {
+  .socialGridRegister {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
 /* ERROR */
 .error {
   color: #ff5f5f;

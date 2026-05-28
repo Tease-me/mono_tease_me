@@ -38,6 +38,7 @@ interface UploadAudioStepProps {
   onCountChange: (count: number) => void;
   onIsRecordingChange: (isRecording: boolean) => void;
   onErrorChange: (error: string | null) => void;
+  onPersistSurvey?: () => Promise<void>;
 }
 
 // Recording state machine
@@ -55,6 +56,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
   onCountChange,
   onIsRecordingChange,
   onErrorChange,
+  onPersistSurvey,
 }) => {
   const [recordingState, setRecordingState] = useState<RecordingState>({ status: 'idle' });
   const [audioData, setAudioData] = useState<AudioResponse | null>(null);
@@ -118,6 +120,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
         const response = await apiClient.get<AudioResponse>(
           Endpoints.pre_influencers.audio(preInfluencerId),
           {
+            skipAuth: true,
             params: { token, temp_password },
           }
         );
@@ -327,6 +330,12 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
         setRefreshKey((n) => n + 1);
         onErrorChange(null);
         setRecordingState({ status: 'idle' });
+
+        try {
+          await onPersistSurvey?.();
+        } catch (persistError) {
+          console.error('Failed to persist survey after audio upload:', persistError);
+        }
       } catch (error) {
         console.error('Upload failed:', error);
         onErrorChange(ERROR_MESSAGES.AUDIO_UPLOAD_FAILED);
@@ -342,6 +351,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
       uploadAudioFile,
       cleanup,
       onErrorChange,
+      onPersistSurvey,
     ]
   );
 
@@ -356,7 +366,12 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
 
       if (!preInfluencerId) return;
 
-      const result = await deleteAudioFile({ preInfluencerId, key });
+      const result = await deleteAudioFile({
+        preInfluencerId,
+        key,
+        token,
+        temp_password,
+      });
 
       if (result.success) {
         const nextFiles = files.filter((file) => file.key !== key);
@@ -376,7 +391,7 @@ const UploadAudioStep: React.FC<UploadAudioStepProps> = ({
         onErrorChange(result.error || ERROR_MESSAGES.AUDIO_DELETE_FAILED);
       }
     },
-    [preInfluencerId, files, deleteAudioFile, onCountChange, onErrorChange]
+    [preInfluencerId, files, deleteAudioFile, token, temp_password, onCountChange, onErrorChange]
   );
 
   const isRecordingNow = recordingState.status === 'recording';

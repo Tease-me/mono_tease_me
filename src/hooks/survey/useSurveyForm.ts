@@ -1,9 +1,13 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { apiClient } from '@/api/apis';
 import { Endpoints } from '@/api/urls';
 import { SurveyStep } from '@/ui/screens/influencer-survey/validation/surveyValidation';
 import { useAutoSave } from './useAutoSave';
 import { ERROR_MESSAGES } from '@/ui/screens/influencer-survey/utils/constants';
+import {
+  buildSurveySaveBody,
+  normalizeLoadedSurveyAnswers,
+} from '@/ui/screens/influencer-survey/utils/surveyAnswers';
 
 interface SurveyState {
   pre_influencer_id: number;
@@ -96,16 +100,20 @@ interface UseSurveyFormActions {
 
   // Save
   saveNow: () => Promise<void>;
+  /** Persist survey immediately after photo/audio upload (optional answer patch). */
+  persistSurvey: (patch?: Record<string, any>) => Promise<void>;
 }
 
 interface UseSurveyFormParams {
   token: string;
   temp_password: string;
+  startStep?: string;
 }
 
 export function useSurveyForm({
   token,
   temp_password,
+  startStep,
 }: UseSurveyFormParams): [UseSurveyFormState, UseSurveyFormActions] {
   const [preInfluencerId, setPreInfluencerId] = useState<number | null>(null);
   const [preInfluencerUsername, setPreInfluencerUsername] = useState<string | null>(null);
@@ -132,13 +140,20 @@ export function useSurveyForm({
   const [acceptingTerms, setAcceptingTerms] = useState(false);
   const [termsError, setTermsError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const answersRef = useRef<Record<string, any>>({});
+  const currentStepRef = useRef(0);
 
   const surveyStepsCount = surveySteps.length;
+  /** MJpromoter step 02: photo + voice on one screen. Step 03: assets. */
   const pictureStepIndex = surveyStepsCount;
-  const socialStepIndex = surveyStepsCount + 1;
-  const audioStepIndex = surveyStepsCount + 2;
-  const assetStepIndex = surveyStepsCount + 3;
-  const totalSteps = surveyStepsCount + 4;
+  const socialStepIndex = -1;
+  const audioStepIndex = pictureStepIndex;
+  const assetStepIndex = surveyStepsCount + 1;
+  const totalSteps = surveyStepsCount + 2;
+  const minOnboardingStep = pictureStepIndex;
+
+  answersRef.current = answers;
+  currentStepRef.current = currentStep;
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -162,44 +177,56 @@ export function useSurveyForm({
       }
 
       try {
-        // Fetch survey data and questions in parallel
-        const [surveyResponse, questionsResponse] = await Promise.all([
-          apiClient.get<SurveyState>(Endpoints.pre_influencers.survey, {
+        const { data: surveyData } = await apiClient.get<SurveyState>(
+          Endpoints.pre_influencers.survey,
+          {
+            skipAuth: true,
             params: { token, temp_password },
-          }),
-          apiClient.get(Endpoints.pre_influencers.surveyQuestions, {
-            params: { token, temp_password },
-          }),
-        ]);
+          }
+        );
 
-        const surveyData = surveyResponse.data;
-        const questionsData = questionsResponse.data;
+        // Referral onboarding: no personality quiz (step 01 is register).
+        setSurveySteps([]);
 
-        // Parse questions data (handle different response formats)
-        const fetchedSteps: SurveyStep[] = Array.isArray(questionsData)
-          ? questionsData
-          : Array.isArray(questionsData?.sections)
-          ? questionsData.sections
-          : Array.isArray(questionsData?.steps)
-          ? questionsData.steps
-          : [];
-
-        if (!fetchedSteps.length) {
-          throw new Error(ERROR_MESSAGES.NO_SURVEY_QUESTIONS);
-        }
-
-        // Set survey steps
-        setSurveySteps(fetchedSteps);
-
-        // Calculate safe step index
-        const maxStep = fetchedSteps.length + 3; // +4 for picture/social/audio/asset, -1 for zero-index
-        const safeStep = Math.min(surveyData.survey_step || 0, maxStep);
+        const pictureStartStep = 0;
+        const maxStep = 1;
+        const prefersPictureStart = startStep === 'picture';
+        const backendStep = surveyData.survey_step || 0;
+        const normalizedBackendStep =
+          backendStep >= pictureStartStep ? Math.min(backendStep, maxStep) : pictureStartStep;
+        const requestedStep = prefersPictureStart
+          ? Math.max(normalizedBackendStep, pictureStartStep)
+          : normalizedBackendStep;
+        const safeStep = Math.min(Math.max(requestedStep, pictureStartStep), maxStep);
 
         // Set survey data
         setPreInfluencerId(surveyData.pre_influencer_id);
         setPreInfluencerUsername(surveyData.username);
-        setAnswers(surveyData.survey_answers || {});
+        setAnswers(
+          normalizeLoadedSurveyAnswers(surveyData.survey_answers || {}) as Record<
+            string,
+            any
+          >
+        );
         setCurrentStep(safeStep);
+
+        if (prefersPictureStart && (surveyData.survey_step || 0) < pictureStartStep) {
+          try {
+            await apiClient.put(
+              Endpoints.pre_influencers.surveyById(surveyData.pre_influencer_id),
+              buildSurveySaveBody(
+                normalizeLoadedSurveyAnswers(surveyData.survey_answers || {}),
+                pictureStartStep
+              ),
+              {
+                skipAuth: true,
+                params: { token, temp_password },
+              }
+            );
+          } catch (persistError) {
+            console.error('Failed to persist picture start step:', persistError);
+          }
+        }
 
         // Check if terms already accepted
         const termsAcceptedValue = Boolean(
@@ -219,7 +246,7 @@ export function useSurveyForm({
     };
 
     loadSurveyData();
-  }, [token, temp_password]);
+  }, [startStep, temp_password, token]);
 
   // Load picture URL from S3 key on page reload
   useEffect(() => {
@@ -231,7 +258,10 @@ export function useSurveyForm({
       try {
         const { data } = await apiClient.get<{ url: string }>(
           Endpoints.pre_influencers.pictureUrl(preInfluencerId),
-          { params: { token, temp_password } }
+          {
+            skipAuth: true,
+            params: { token, temp_password },
+          }
         );
         setPictureUrl(data.url);
       } catch (error) {
@@ -242,6 +272,40 @@ export function useSurveyForm({
 
     fetchPictureUrl();
   }, [preInfluencerId, answers, token, temp_password, pictureUrl]);
+
+  // Keep audio count in sync when resuming onboarding (audio step may not be mounted yet)
+  useEffect(() => {
+    if (!preInfluencerId || isLoading) return;
+
+    let canceled = false;
+
+    const loadAudioCount = async () => {
+      try {
+        const { data } = await apiClient.get<{ count?: number; files?: unknown[] }>(
+          Endpoints.pre_influencers.audio(preInfluencerId),
+          {
+            skipAuth: true,
+            params: { token, temp_password },
+          }
+        );
+        if (canceled) return;
+        const count = data.count ?? data.files?.length ?? 0;
+        setAudioCount(count);
+      } catch (error: any) {
+        if (canceled) return;
+        const detail = error?.response?.data?.detail;
+        if (detail === 'Influencer has no audio file stored') {
+          setAudioCount(0);
+        }
+      }
+    };
+
+    void loadAudioCount();
+
+    return () => {
+      canceled = true;
+    };
+  }, [preInfluencerId, isLoading, token, temp_password]);
 
   const { saveNow } = useAutoSave({
     preInfluencerId,
@@ -262,7 +326,13 @@ export function useSurveyForm({
   });
 
   const updateAnswer = useCallback((key: string, value: any) => {
-    setAnswers((prev) => ({ ...prev, [key]: value }));
+    const normalizedValue =
+      key === 'asset_link' && typeof value === 'string' ? value.trim() : value;
+    setAnswers((prev) => {
+      const next = { ...prev, [key]: normalizedValue };
+      answersRef.current = next;
+      return next;
+    });
     setIsDirty(true);
     setFieldErrors((prev) => {
       if (!(key in prev)) return prev;
@@ -272,6 +342,32 @@ export function useSurveyForm({
     });
   }, []);
 
+  const persistSurvey = useCallback(
+    async (patch?: Record<string, any>) => {
+      if (!preInfluencerId) return;
+
+      const merged = patch
+        ? { ...answersRef.current, ...patch }
+        : { ...answersRef.current };
+
+      if (patch) {
+        setAnswers(merged);
+        answersRef.current = merged;
+      }
+
+      setIsDirty(true);
+      try {
+        await saveNow({
+          answers: merged,
+          step: currentStepRef.current,
+        });
+      } catch (error) {
+        console.error('Failed to persist survey after media upload:', error);
+      }
+    },
+    [preInfluencerId, saveNow]
+  );
+
   const goToNextStep = useCallback(() => {
     if (currentStep < totalSteps - 1) {
       setCurrentStep((prev) => prev + 1);
@@ -280,11 +376,11 @@ export function useSurveyForm({
   }, [currentStep, totalSteps]);
 
   const goToPreviousStep = useCallback(() => {
-    if (currentStep > 0) {
+    if (currentStep > minOnboardingStep) {
       setCurrentStep((prev) => prev - 1);
       setIsDirty(true);
     }
-  }, [currentStep]);
+  }, [currentStep, minOnboardingStep]);
 
   const clearFieldError = useCallback((key: string) => {
     setFieldErrors((prev) => {
@@ -356,6 +452,7 @@ export function useSurveyForm({
     setFieldErrors,
     clearFieldError,
     saveNow,
+    persistSurvey,
   };
 
   return [state, actions];
