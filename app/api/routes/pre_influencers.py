@@ -383,18 +383,29 @@ async def get_survey_questions(
     temp_password: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
-    if token and temp_password:
+    if token is not None or temp_password is not None:
+        if not token or not temp_password:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Both token and temp_password are required",
+            )
+
         result = await db.execute(
             select(PreInfluencer).where(PreInfluencer.survey_token == token)
         )
         pre = result.scalar_one_or_none()
-        if pre:
-            _require_pre_influencer_survey_access(pre, token, temp_password)
-            if is_mj_referral_pre_influencer(pre):
-                return SurveyQuestionsResponse(
-                    sections=[],
-                    personality_quiz_enabled=False,
-                )
+        if not pre:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Invalid or expired survey link",
+            )
+
+        _require_pre_influencer_survey_access(pre, token, temp_password)
+        if is_mj_referral_pre_influencer(pre):
+            return SurveyQuestionsResponse(
+                sections=[],
+                personality_quiz_enabled=False,
+            )
     return SurveyQuestionsResponse(
         sections=await load_active_onboarding_sections(db),
         personality_quiz_enabled=True,
