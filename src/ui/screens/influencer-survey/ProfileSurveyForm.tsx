@@ -69,7 +69,7 @@ const ProfileSurveyForm: React.FC = () => {
   const isMediaStep = state.currentStep === state.pictureStepIndex;
   const isAssetStep = state.currentStep === state.assetStepIndex;
   const isLastStep = state.currentStep === state.totalSteps - 1;
-  const lockBack = state.currentStep <= state.pictureStepIndex;
+  const lockBack = state.currentStep === state.pictureStepIndex;
 
   const handleAcceptTerms = useCallback(async () => {
     if (!state.preInfluencerId) return;
