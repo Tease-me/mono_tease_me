@@ -11,7 +11,7 @@ from app.services.use_cases.pre_influencer_onboarding import (
     survey_answers_indicate_terms_accepted,
 )
 
-USERNAME_PATTERN = re.compile(r"^[a-z0-9_.]+$")
+USERNAME_PATTERN = re.compile(r"^[a-z0-9_]+$")
 
 # Stored on pre_influencer.survey_step for MJ funnel rows only.
 MJ_FUNNEL_STEP_PHOTO_VOICE = 0
@@ -80,7 +80,7 @@ def validate_mj_promoter_register(
 
     if not USERNAME_PATTERN.fullmatch(username):
         raise ValueError(
-            "username must contain only lowercase letters, numbers, underscores, and dots"
+            "username must contain only lowercase letters, numbers, and underscores"
         )
 
     answers = survey_answers if isinstance(survey_answers, dict) else {}
