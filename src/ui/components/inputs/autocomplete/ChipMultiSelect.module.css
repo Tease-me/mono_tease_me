@@ -1,0 +1,41 @@
+.wrapper {
+  width: 100%;
+}
+
+.inputRow {
+  position: relative;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  min-height: 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 79, 129, 0.45);
+  background: rgba(255, 79, 129, 0.15);
+  color: #fff;
+  font-size: 0.85rem;
+}
+
+.chipRemove {
+  border: none;
+  background: transparent;
+  color: #ffd3df;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.chipRemove:hover {
+  color: #fff;
+}

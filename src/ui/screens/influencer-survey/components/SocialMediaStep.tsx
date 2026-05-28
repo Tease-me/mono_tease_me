@@ -2,6 +2,7 @@
 // Social media handle collection with verification
 
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import clsx from 'clsx';
 import { Modal } from '@/ui/components/modals/Modal';
 import SocialSelectorButton from '@/ui/components/inputs/buttons/SocialSelectorButton';
 import styles from './SocialMediaStep.module.css';
@@ -45,6 +46,7 @@ interface SocialMediaStepProps {
   verifyingSocial: Record<string, boolean>;
   onAnswerChange: (key: string, value: any) => void;
   onVerifyingSocialChange: (platform: string, verifying: boolean) => void;
+  gridClassName?: string;
 }
 
 const platforms: SocialPlatform[] = [
@@ -69,6 +71,7 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
   verifyingSocial,
   onAnswerChange,
   onVerifyingSocialChange,
+  gridClassName,
 }) => {
   // Modal state
   const [openId, setOpenId] = useState<SocialId | null>(null);
@@ -259,7 +262,7 @@ const SocialMediaStep: React.FC<SocialMediaStepProps> = ({
 
   return (
     <div>
-      <div className={styles.socialGrid}>
+      <div className={clsx(styles.socialGrid, gridClassName)}>
         {platforms.map((platform) => (
           <SocialSelectorButton
             key={platform.id}

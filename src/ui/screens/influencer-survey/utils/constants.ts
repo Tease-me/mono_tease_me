@@ -51,6 +51,8 @@ export const SOCIAL_PLATFORMS = [
   'whatsapp',
 ] as const;
 
+export const REQUIRED_SOCIAL_PLATFORMS = ['onlyfans'] as const;
+
 // Platforms that support auto-verification
 export const VERIFIABLE_PLATFORMS = new Set(['instagram', 'x']);
 
@@ -100,7 +102,7 @@ export const ERROR_MESSAGES = {
   AUDIO_TOO_SHORT: `Please record at least ${MIN_RECORDING_SECONDS} seconds before stopping.`,
 
   // Social Media
-  SOCIAL_REQUIRED: 'Please add at least one social media handle.',
+  SOCIAL_REQUIRED: 'OnlyFans is required.',
   SOCIAL_HANDLE_REQUIRED: 'Please enter your handle before continuing.',
   SOCIAL_HANDLE_REQUIRED_CONNECT: 'Please enter your handle before connecting.',
   SOCIAL_CONNECTION_FAILED: 'Connection failed. Please enter manually.',

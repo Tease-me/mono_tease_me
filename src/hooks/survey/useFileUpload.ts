@@ -74,6 +74,7 @@ export function useFileUpload() {
         formData.append('pre_influencer_id', String(preInfluencerId));
 
         const { data } = await apiClient.post(Endpoints.pre_influencers.uploadPicture, formData, {
+          skipAuth: true,
           params: { token, temp_password },
           headers: { 'Content-Type': 'multipart/form-data' },
         });
@@ -122,6 +123,7 @@ export function useFileUpload() {
         formData.append('file', file);
 
         const { data } = await apiClient.post(Endpoints.pre_influencers.audio(preInfluencerId), formData, {
+          skipAuth: true,
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -151,13 +153,19 @@ export function useFileUpload() {
     async ({
       preInfluencerId,
       key,
+      token,
+      temp_password,
     }: {
       preInfluencerId: number | string;
       key: string;
+      token: string;
+      temp_password: string;
     }): Promise<{ success: boolean; error?: string }> => {
       try {
         await apiClient.delete(Endpoints.pre_influencers.deleteAudio(preInfluencerId), {
+          skipAuth: true,
           data: { key },
+          params: { token, temp_password },
         });
 
         return { success: true };
