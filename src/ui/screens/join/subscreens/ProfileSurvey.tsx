@@ -153,13 +153,20 @@ const ProfileSurvey: React.FC<ProfileSurveyProps> = ({ initialEmail = "" }) => {
         clearJoinAttribution();
 
         if (onboardingUrl) {
-          const nextUrl = new URL(
-            onboardingUrl.startsWith("/") ? onboardingUrl : `/${onboardingUrl}`,
-            window.location.origin,
-          );
-          nextUrl.searchParams.set("start_step", "picture");
-          navigate(`${nextUrl.pathname}${nextUrl.search}`);
-          return;
+          try {
+            const nextUrl = new URL(onboardingUrl);
+            nextUrl.searchParams.set("start_step", "picture");
+            window.location.assign(nextUrl.toString());
+            return;
+          } catch {
+            const nextUrl = new URL(
+              onboardingUrl.startsWith("/") ? onboardingUrl : `/${onboardingUrl}`,
+              window.location.origin,
+            );
+            nextUrl.searchParams.set("start_step", "picture");
+            navigate(`${nextUrl.pathname}${nextUrl.search}`);
+            return;
+          }
         }
 
         if (response.token && response.temp_password) {
