@@ -8,6 +8,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.data.enums import InfluencerPublicationStatus
 from app.data.models import Influencer
 from app.services.use_cases import pre_influencer_storage
+from app.services.use_cases.pre_influencer_mj_funnel import (
+    derive_mj_funnel_progress_step,
+    is_mj_referral_pre_influencer,
+)
 from app.services.use_cases.pre_influencer_onboarding import (
     extract_asset_link_from_answers,
     is_onboarding_survey_completed,
@@ -104,6 +108,9 @@ async def derive_mj_survey_step(db: AsyncSession, pre: Any) -> int:
 
     if getattr(pre, "status", None) == "approved":
         return 4
+
+    if is_mj_referral_pre_influencer(pre):
+        return await derive_mj_funnel_progress_step(pre, answers)
 
     if await _has_completed_assets(pre, answers):
         return 3

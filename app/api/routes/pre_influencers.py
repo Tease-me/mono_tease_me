@@ -16,7 +16,7 @@ from fastapi import (
     status,
 )
 from pydantic import ValidationError
-from sqlalchemy import or_, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.attributes import flag_modified
 
@@ -53,6 +53,12 @@ from app.services.use_cases.mj_pre_influencer_progress import derive_mj_survey_s
 from app.services.use_cases.mjfp_pre_influencer_webhook import (
     schedule_mjfp_pre_influencer_step_webhook,
 )
+from app.services.use_cases.pre_influencer_mj_funnel import (
+    MJ_FUNNEL_STEP_PHOTO_VOICE,
+    is_mj_referral_pre_influencer,
+    mark_mj_funnel_survey_meta,
+    validate_mj_promoter_register,
+)
 from app.services.use_cases.pre_influencer_onboarding import (
     derive_initial_onboarding_step,
     extract_asset_link_from_answers,
@@ -62,6 +68,7 @@ from app.services.use_cases.pre_influencer_onboarding import (
     seed_register_survey_answers,
     survey_answers_indicate_terms_accepted,
 )
+
 from app.services.use_cases.pre_influencer_output import build_pre_influencer_admin_out
 from app.services.use_cases.pre_influencer_survey_link import (
     build_pre_influencer_onboarding_path,
@@ -194,6 +201,8 @@ def _require_pre_influencer_survey_access(
 async def accept_pre_influencer_terms(
     pre_id: int,
     payload: PreInfluencerAcceptTermsRequest,
+    token: str = Query(...),
+    temp_password: str = Query(...),
     db: AsyncSession = Depends(get_db),
 ):
     res = await db.execute(select(PreInfluencer).where(PreInfluencer.id == pre_id))
@@ -201,10 +210,19 @@ async def accept_pre_influencer_terms(
     if not pre:
         raise HTTPException(status_code=404, detail="Pre-influencer not found")
 
+    _require_pre_influencer_survey_access(pre, token, temp_password)
+
     pre.terms_agreement = True
     await db.commit()
     await db.refresh(pre)
     schedule_mjfp_pre_influencer_step_webhook(pre.id)
+    try:
+        await _try_send_signup_complete_email(pre, db)
+    except Exception:
+        log.exception(
+            "Failed to send signup complete email after terms acceptance pre_id=%s",
+            pre.id,
+        )
     try:
         await _try_notify_parent_promoter_when_ready(pre, db)
     except Exception:
@@ -222,10 +240,8 @@ async def register_pre_influencer(
 ):
     existing = await db.execute(
         select(PreInfluencer).where(
-            or_(
-                PreInfluencer.email == data.email,
-                PreInfluencer.username == data.username,
-            )
+            (PreInfluencer.email == data.email)
+            | (PreInfluencer.username == data.username)
         )
     )
     if existing.scalar():
@@ -246,23 +262,43 @@ async def register_pre_influencer(
     registration_meta = {
         key: value for key, value in registration_meta.items() if value is not None
     }
+    is_mj_register = bool((data.invite_code or "").strip())
+    if is_mj_register:
+        try:
+            validate_mj_promoter_register(
+                email=str(data.email),
+                username=data.username,
+                location=data.location,
+                survey_answers=data.survey_answers,
+                invitee_email=data.invitee_email,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
     seeded_answers = seed_register_survey_answers(
         location=data.location,
         survey_answers=data.survey_answers,
         registration_meta=registration_meta,
     )
-    seeded_survey_step = 0
-    try:
-        onboarding_sections = await load_active_onboarding_sections(db)
-        seeded_survey_step = derive_initial_onboarding_step(
+    if is_mj_register:
+        seeded_answers = mark_mj_funnel_survey_meta(
             seeded_answers,
-            sections=onboarding_sections,
+            registration_meta=registration_meta,
         )
-    except Exception:
-        log.exception(
-            "Failed to derive initial onboarding step for pre-influencer email=%s",
-            data.email,
-        )
+        seeded_survey_step = MJ_FUNNEL_STEP_PHOTO_VOICE
+    else:
+        seeded_survey_step = 0
+        try:
+            onboarding_sections = await load_active_onboarding_sections(db)
+            seeded_survey_step = derive_initial_onboarding_step(
+                seeded_answers,
+                sections=onboarding_sections,
+            )
+        except Exception:
+            log.exception(
+                "Failed to derive initial onboarding step for pre-influencer email=%s",
+                data.email,
+            )
 
     pre = PreInfluencer(
         full_name=data.full_name,
@@ -295,12 +331,7 @@ async def register_pre_influencer(
                 "MJFP track signup failed for pre-influencer %s", pre.id
             )
 
-    send_profile_survey_email(
-        pre.email,
-        verify_token,
-        data.password,
-    )
-
+    onboarding_start_step = "picture" if is_mj_register else None
     return PreInfluencerRegisterResponse(
         ok=True,
         user_id=pre.id,
@@ -312,48 +343,10 @@ async def register_pre_influencer(
         onboarding_url=build_pre_influencer_onboarding_path(
             token=verify_token,
             temp_password=data.password,
+            start_step=onboarding_start_step,
         )
         or "",
     )
-
-
-@router.post("/resend-survey")
-async def resend_pre_influencer_survey(
-    identifier: str,
-    db: AsyncSession = Depends(get_db),
-):
-    """
-    identifier = username OR email
-    """
-
-    result = await db.execute(
-        select(PreInfluencer).where(
-            or_(
-                PreInfluencer.username == identifier,
-                PreInfluencer.email == identifier,
-            )
-        )
-    )
-    pre = result.scalar_one_or_none()
-
-    if not pre:
-        raise HTTPException(status_code=404, detail="Pre-influencer not found")
-
-    if not pre.survey_token:
-        raise HTTPException(status_code=400, detail="Survey token missing")
-
-    send_profile_survey_email(
-        pre.email,
-        pre.survey_token,
-        pre.password,
-    )
-
-    return {
-        "ok": True,
-        "username": pre.username,
-        "email": pre.email,
-        "message": "Survey email resent",
-    }
 
 
 @router.get("/survey", response_model=SurveyState)
@@ -384,8 +377,38 @@ async def open_survey(
 
 
 @router.get("/survey/questions", response_model=SurveyQuestionsResponse)
-async def get_survey_questions(db: AsyncSession = Depends(get_db)):
-    return SurveyQuestionsResponse(sections=await load_active_onboarding_sections(db))
+async def get_survey_questions(
+    token: str | None = Query(None),
+    temp_password: str | None = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    if token is not None or temp_password is not None:
+        if not token or not temp_password:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Both token and temp_password are required",
+            )
+
+        result = await db.execute(
+            select(PreInfluencer).where(PreInfluencer.survey_token == token)
+        )
+        pre = result.scalar_one_or_none()
+        if not pre:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Invalid or expired survey link",
+            )
+
+        _require_pre_influencer_survey_access(pre, token, temp_password)
+        if is_mj_referral_pre_influencer(pre):
+            return SurveyQuestionsResponse(
+                sections=[],
+                personality_quiz_enabled=False,
+            )
+    return SurveyQuestionsResponse(
+        sections=await load_active_onboarding_sections(db),
+        personality_quiz_enabled=True,
+    )
 
 
 @router.get("/{pre_id}/survey/markdown")
@@ -452,6 +475,8 @@ _SERVER_PRESERVED_SURVEY_META_KEYS = (
     "parent_promoter_survey_completed_notified_at",
     "parent_promoter_id",
     "mjfp_last_notified_asset_link",
+    "signup_complete_email_sent",
+    "signup_complete_email_sent_at",
 )
 
 # Set via POST /upload-picture; survey PUT must not wipe it when the client omits it.
@@ -508,6 +533,11 @@ def _merge_survey_answers(
         notified_at = existing_meta.get("parent_promoter_survey_completed_notified_at")
         if notified_at:
             merged_meta["parent_promoter_survey_completed_notified_at"] = notified_at
+    if existing_meta.get("signup_complete_email_sent") is True:
+        merged_meta["signup_complete_email_sent"] = True
+        sent_at = existing_meta.get("signup_complete_email_sent_at")
+        if sent_at:
+            merged_meta["signup_complete_email_sent_at"] = sent_at
     merged = dict(incoming_answers)
     merged["__meta"] = merged_meta
     _preserve_server_survey_answer_keys(merged, existing_answers, incoming_answers)
@@ -522,6 +552,63 @@ async def _lock_pre_influencer_for_survey_notify(
         select(PreInfluencer).where(PreInfluencer.id == pre_id).with_for_update()
     )
     return result.scalar_one_or_none()
+
+
+async def _try_send_signup_complete_email(
+    pre: PreInfluencer,
+    db: AsyncSession,
+) -> None:
+    locked_pre = await _lock_pre_influencer_for_survey_notify(db, pre.id)
+    if not locked_pre:
+        return
+
+    pre = locked_pre
+    try:
+        if not pre.terms_agreement:
+            await db.commit()
+            return
+
+        answers = pre.survey_answers or {}
+        meta = answers.get("__meta") if isinstance(answers, dict) else None
+        if not isinstance(meta, dict):
+            meta = {}
+
+        if meta.get("signup_complete_email_sent"):
+            await db.commit()
+            return
+
+        profile_picture_key = None
+        if isinstance(answers, dict):
+            raw_key = answers.get("profile_picture_key")
+            if isinstance(raw_key, str) and raw_key.strip():
+                profile_picture_key = raw_key.strip()
+
+        resp = send_profile_survey_email(
+            to_email=pre.email,
+            full_name=pre.full_name,
+            profile_picture_key=profile_picture_key,
+            pre_influencer_id=pre.id,
+        )
+        if not resp:
+            log.warning(
+                "Signup complete email not sent for pre_id=%s email=%s",
+                pre.id,
+                pre.email,
+            )
+            await db.commit()
+            return
+
+        notified_at = datetime.now(timezone.utc).isoformat()
+        meta["signup_complete_email_sent"] = True
+        meta["signup_complete_email_sent_at"] = notified_at
+        answers["__meta"] = meta
+        pre.survey_answers = answers
+        flag_modified(pre, "survey_answers")
+        db.add(pre)
+        await db.commit()
+    except Exception:
+        await db.rollback()
+        raise
 
 
 async def _try_notify_parent_promoter_when_ready(
@@ -699,6 +786,16 @@ async def save_survey_state(
 
     await db.commit()
     await db.refresh(pre)
+
+    if pre.terms_agreement:
+        try:
+            await _try_send_signup_complete_email(pre, db)
+        except Exception:
+            log.exception(
+                "Failed to send signup complete email on survey save pre_id=%s",
+                pre.id,
+            )
+        await db.refresh(pre)
 
     if completed and not already_notified:
         try:

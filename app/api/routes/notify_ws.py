@@ -43,6 +43,26 @@ async def notify_call_billed(
         except Exception:
             notification_sockets.pop(email, None)
 
+
+async def notify_influencer_published(
+    email: str,
+    *,
+    influencer_id: str,
+    message: str,
+):
+    ws = notification_sockets.get(email)
+    if ws:
+        try:
+            await ws.send_json(
+                {
+                    "type": "influencer_published",
+                    "influencer_id": influencer_id,
+                    "msg": message,
+                }
+            )
+        except Exception:
+            notification_sockets.pop(email, None)
+
 @router.websocket("/ws/notifications")
 async def websocket_notifications(ws: WebSocket):
     await ws.accept()
