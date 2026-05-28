@@ -37,7 +37,7 @@ from app.data.schemas.pre_influencer import (
 )
 from app.services.email.mailers import (
     send_influencer_survey_completed_email_to_promoter,
-    send_pre_influencer_signup_complete_email,
+    send_profile_survey_email,
 )
 from app.services.mjpromoter import (
     fp_extract_email,
@@ -69,7 +69,6 @@ from app.services.use_cases.pre_influencer_onboarding import (
     survey_answers_indicate_terms_accepted,
 )
 
-send_profile_survey_email = send_pre_influencer_signup_complete_email
 from app.services.use_cases.pre_influencer_output import build_pre_influencer_admin_out
 from app.services.use_cases.pre_influencer_survey_link import (
     build_pre_influencer_onboarding_path,
@@ -584,7 +583,7 @@ async def _try_send_signup_complete_email(
             if isinstance(raw_key, str) and raw_key.strip():
                 profile_picture_key = raw_key.strip()
 
-        resp = send_pre_influencer_signup_complete_email(
+        resp = send_profile_survey_email(
             to_email=pre.email,
             full_name=pre.full_name,
             profile_picture_key=profile_picture_key,

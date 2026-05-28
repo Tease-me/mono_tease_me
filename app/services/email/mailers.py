@@ -261,7 +261,21 @@ Thanks for joining TeaseMe. ❤️
     return send_email_via_ses(to_email, subject, body_html, body_text)
 
 
-send_profile_survey_email = send_pre_influencer_signup_complete_email
+def send_profile_survey_email(
+    to_email: str,
+    token: str | None = None,
+    temp_password: str | None = None,
+    *,
+    full_name: str | None = None,
+    profile_picture_key: str | None = None,
+    pre_influencer_id: str | int | None = None,
+):
+    return send_pre_influencer_signup_complete_email(
+        to_email=to_email,
+        full_name=full_name,
+        profile_picture_key=profile_picture_key,
+        pre_influencer_id=pre_influencer_id,
+    )
 
 
 def send_password_reset_email(to_email: str, token: str):
