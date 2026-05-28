@@ -10,6 +10,7 @@ from app.data.models import Influencer
 from app.services.email.mailers import send_influencer_published_email
 from app.services.gateways.sms_gateway import send_sms_via_sns
 from app.services.repositories.pre_influencer_repository import (
+    get_pre_influencer_for_email,
     get_pre_influencer_for_influencer_id,
 )
 
@@ -81,6 +82,8 @@ async def notify_creator_influencer_published(
         )
 
     pre = await get_pre_influencer_for_influencer_id(db, influencer_id=influencer.id)
+    if pre is None and creator_email:
+        pre = await get_pre_influencer_for_email(db, email=creator_email)
     phone_number = extract_creator_phone_from_survey_answers(
         pre.survey_answers if pre else None
     )

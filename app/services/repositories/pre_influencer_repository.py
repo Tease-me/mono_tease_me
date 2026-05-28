@@ -40,6 +40,20 @@ async def get_pre_influencer_for_influencer_id(
     return result.scalar_one_or_none()
 
 
+async def get_pre_influencer_for_email(
+    db: AsyncSession,
+    *,
+    email: str,
+) -> PreInfluencer | None:
+    result = await db.execute(
+        select(PreInfluencer)
+        .where(func.lower(PreInfluencer.email) == email.lower())
+        .order_by(PreInfluencer.id.desc())
+        .limit(1)
+    )
+    return result.scalar_one_or_none()
+
+
 async def list_pre_influencers(
     db: AsyncSession,
     *,
