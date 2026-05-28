@@ -29,6 +29,7 @@ RUN apt-get purge -y curl build-essential \
 # Copy the rest of your app
 COPY ./alembic ./alembic
 COPY ./app ./app
+COPY ./docs/onboarding-survey.json ./app/data/configs/survey_questions.json
 COPY ./alembic.ini ./
 COPY ./poetry.lock ./
 COPY ./pyproject.toml ./
