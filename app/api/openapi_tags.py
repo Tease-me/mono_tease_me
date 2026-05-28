@@ -1,3 +1,6 @@
+from app.core.config import settings
+
+
 OPENAPI_TAGS = [
     {
         "name": "Auth",
@@ -123,3 +126,6 @@ OPENAPI_TAGS = [
         "description": "Internal MJ Promoter service-to-service endpoints.",
     },
 ]
+
+if settings.is_production:
+    OPENAPI_TAGS = [tag for tag in OPENAPI_TAGS if tag["name"] != "MJ Promoter"]

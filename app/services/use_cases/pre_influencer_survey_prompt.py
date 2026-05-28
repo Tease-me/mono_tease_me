@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import time
+from pathlib import Path
 from typing import Any
 
 from fastapi import HTTPException, status
@@ -16,6 +17,12 @@ from app.services.system_prompt_service import get_system_prompt
 from app.services.token_tracker import track_usage_bg
 
 log = logging.getLogger(__name__)
+_APP_DIR = Path(__file__).resolve().parents[2]
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+_SURVEY_QUESTIONS_CANDIDATE_PATHS = (
+    _APP_DIR / "data" / "configs" / "survey_questions.json",
+    _REPO_ROOT / "docs" / "onboarding-survey.json",
+)
 
 
 def format_survey_markdown(
@@ -177,9 +184,19 @@ async def generate_prompt_from_markdown(
 
 
 async def load_survey_questions(db: AsyncSession) -> list[dict[str, Any]]:
-    raw = await get_system_prompt(db, prompt_keys.SURVEY_QUESTIONS_JSON)
-    if not raw:
-        raise HTTPException(500, "Missing system prompt: SURVEY_QUESTIONS_JSON")
+    _ = db
+    raw: str | None = None
+    for path in _SURVEY_QUESTIONS_CANDIDATE_PATHS:
+        try:
+            raw = path.read_text()
+            break
+        except OSError:
+            continue
+    if raw is None:
+        raise HTTPException(
+            500,
+            "Missing survey questions config: checked app/data/configs/survey_questions.json and docs/onboarding-survey.json",
+        )
     try:
         data = json.loads(raw)
     except json.JSONDecodeError as exc:
