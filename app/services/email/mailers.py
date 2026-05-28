@@ -173,17 +173,38 @@ async def send_verification_email(
     )
 
 
-def send_profile_survey_email(to_email: str, token: str, temp_password: str):
-    subject = "Complete Your TeaseMe Profile Survey"
-    survey_url = _profile_survey_onboarding_url(token, temp_password)
+def send_pre_influencer_signup_complete_email(
+    *,
+    to_email: str,
+    full_name: str | None = None,
+    profile_picture_key: str | None = None,
+    pre_influencer_id: str | int | None = None,
+):
+    subject = "You're all signed up!"
     logo_url = EMAIL_VERIFY_HEADER_URL
+    header_id = str(pre_influencer_id or "pre-influencer")
+    if profile_picture_key and str(profile_picture_key).strip():
+        try:
+            logo_url = compose_email_header_image_url(
+                photo_key=str(profile_picture_key).strip(),
+                background_url=EMAIL_INFLUENCER_HEADER_BG_URL,
+                influencer_id=header_id,
+            )
+        except Exception:
+            log.warning(
+                "send_pre_influencer_signup_complete_email: failed to compose header pre_influencer_id=%s",
+                header_id,
+                exc_info=True,
+            )
+
+    greeting = f"Hi {full_name}," if full_name and full_name.strip() else "Hi there,"
 
     body_html = f"""
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Complete Your Profile</title>
+    <title>Signup complete</title>
 </head>
 <body style="margin:0;padding:0;background:#0d0d0d;font-family:Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0d0d0d;padding:28px 0;">
@@ -195,36 +216,26 @@ def send_profile_survey_email(to_email: str, token: str, temp_password: str):
               <img
                 src="{logo_url}"
                 alt="TeaseMe"
-                style="display:block;width:100%;max-width:560px;height:auto;border:0;outline:none;text-decoration:none;"
+                height="{EMAIL_HEADER_SIZE[1]}"
+                style="display:block;width:100%;max-width:560px;height:{EMAIL_HEADER_SIZE[1]}px;border:0;outline:none;text-decoration:none;object-fit:cover;"
               />
             </td>
           </tr>
           <tr>
             <td align="center" style="padding:36px 42px 18px 42px;background:#050505;">
               <h1 style="margin:0 0 18px 0;font-family:Arial,sans-serif;font-size:32px;line-height:1.2;font-weight:700;color:#ffffff;">
-                Let's Build Your Perfect AI Persona
+                Signup complete
               </h1>
-              <p style="margin:0 0 34px 0;font-size:16px;line-height:1.55;color:#b8b8be;text-align:center;">
-                You're all set! Before your AI companion goes live, we just need a
-                little more information from you.
-                This short survey helps us personalize your experience and tailor
-                the persona to your unique style.
+              <p style="margin:0 0 18px 0;font-size:16px;line-height:1.55;color:#b8b8be;text-align:center;">
+                {greeting}
               </p>
-              <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 34px auto;">
-                <tr>
-                  <td align="center" bgcolor="#ff2f7d" style="border-radius:999px;box-shadow:0 10px 28px rgba(255,47,125,0.35);">
-                    <a
-                      href="{survey_url}"
-                      style="display:inline-block;padding:18px 50px;font-size:20px;line-height:1;font-weight:700;font-family:Arial,sans-serif;color:#ffffff;text-decoration:none;border-radius:999px;background:#ff2f7d;"
-                    >
-                      Start Profile Survey
-                    </a>
-                  </td>
-                </tr>
-              </table>
+              <p style="margin:0 0 34px 0;font-size:16px;line-height:1.55;color:#b8b8be;text-align:center;">
+                You've finished your TeaseMe signup. Our designer team is now creating
+                your AI persona — sit tight and we'll reach out as soon as everything
+                is ready.
+              </p>
               <p style="margin:0 0 88px 0;font-size:15px;line-height:1.6;color:#a2a2aa;text-align:center;">
-                If you didn't request this, you can safely ignore the email.<br/>
-                Your persona can't wait to meet you. ❤️
+                Thanks for joining TeaseMe. ❤️
               </p>
               <p style="margin:0;font-size:14px;line-height:1.4;color:#76767d;text-align:center;">
                 © {datetime.now().year} TeaseMe. All rights reserved.
@@ -239,15 +250,11 @@ def send_profile_survey_email(to_email: str, token: str, temp_password: str):
 </html>
 """
     body_text = f"""
-Complete Your TeaseMe Profile
+{greeting}
 
-You're all set! Before your AI companion goes live, we just need a little more info.
+You've finished your TeaseMe signup. Our designer team is now creating your AI persona — sit tight and we'll reach out as soon as everything is ready.
 
-Start your profile survey here:
-{survey_url}
-
-If you didn't request this, you can safely ignore this email.
-Your persona can't wait to meet you. ❤️
+Thanks for joining TeaseMe. ❤️
 
 © {datetime.now().year} TeaseMe. All rights reserved.
     """.strip()
@@ -543,6 +550,98 @@ Open your profile:
     return send_email_via_ses(to_email, subject, body_html, body_text)
 
 
+def send_influencer_published_email(
+    *,
+    to_email: str,
+    influencer: Influencer,
+):
+    subject = "You are published — your profile is now live on TeaseMe."
+    public_url = _influencer_profile_url(str(influencer.id))
+    published_message = subject
+    logo_url = EMAIL_VERIFY_HEADER_URL
+    photo_key = getattr(influencer, "profile_photo_key", None)
+    if photo_key:
+        try:
+            logo_url = compose_email_header_image_url(
+                photo_key=photo_key,
+                background_url=EMAIL_INFLUENCER_HEADER_BG_URL,
+                influencer_id=str(influencer.id),
+            )
+        except Exception:
+            log.warning(
+                "send_influencer_published_email: failed to compose header influencer_id=%s",
+                influencer.id,
+                exc_info=True,
+            )
+
+    body_html = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>You are published</title>
+</head>
+<body style="margin:0;padding:0;background:#0d0d0d;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0d0d0d;padding:28px 0;">
+    <tr>
+      <td align="center">
+        <table width="560" cellpadding="0" cellspacing="0" border="0" style="width:560px;max-width:560px;background:#050505;border-radius:28px;overflow:hidden;box-shadow:0 18px 48px rgba(0,0,0,0.28);">
+          <tr>
+            <td align="center" style="padding:0;background:#050505;">
+              <img
+                src="{logo_url}"
+                alt="TeaseMe"
+                height="{EMAIL_HEADER_SIZE[1]}"
+                style="display:block;width:100%;max-width:560px;height:{EMAIL_HEADER_SIZE[1]}px;border:0;outline:none;text-decoration:none;object-fit:cover;"
+              />
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:36px 42px 18px 42px;background:#050505;">
+              <h1 style="margin:0 0 18px 0;font-family:Arial,sans-serif;font-size:32px;line-height:1.2;font-weight:700;color:#ffffff;">
+                You're live on TeaseMe 🎉
+              </h1>
+              <p style="margin:0 0 34px 0;font-size:16px;line-height:1.55;color:#b8b8be;text-align:center;">
+                {published_message}
+              </p>
+              <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 18px auto;">
+                <tr>
+                  <td align="center" bgcolor="#ff2f7d" style="border-radius:999px;box-shadow:0 10px 28px rgba(255,47,125,0.35);">
+                    <a
+                      href="{public_url}"
+                      style="display:inline-block;padding:18px 44px;font-size:20px;line-height:1;font-weight:700;font-family:Arial,sans-serif;color:#ffffff;text-decoration:none;border-radius:999px;background:#ff2f7d;"
+                    >
+                      View my profile
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:26px 0 88px 0;font-size:15px;line-height:1.6;color:#a2a2aa;text-align:center;">
+                Let's get you discovered. ❤️
+              </p>
+              <p style="margin:0;font-size:14px;line-height:1.4;color:#76767d;text-align:center;">
+                © {datetime.now().year} TeaseMe. All rights reserved.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+"""
+    body_text = f"""
+{published_message}
+
+Open your profile:
+{public_url}
+
+© {datetime.now().year} TeaseMe. All rights reserved.
+""".strip()
+    return send_email_via_ses(to_email, subject, body_html, body_text)
+
+
 def send_influencer_survey_completed_email_to_promoter(
     *,
     to_email: str,
@@ -692,11 +791,12 @@ def send_pre_influencer_converted_admin_email(
 
 
 __all__ = [
+    "send_influencer_published_email",
     "send_influencer_survey_completed_email_to_promoter",
     "send_new_influencer_email",
     "send_new_influencer_email_with_picture",
     "send_password_reset_email",
     "send_pre_influencer_converted_admin_email",
-    "send_profile_survey_email",
+    "send_pre_influencer_signup_complete_email",
     "send_verification_email",
 ]

@@ -25,6 +25,21 @@ async def list_pre_influencer_ids_for_influencer_id(
     return list(result.scalars().all())
 
 
+async def get_pre_influencer_for_influencer_id(
+    db: AsyncSession,
+    *,
+    influencer_id: str,
+) -> PreInfluencer | None:
+    norm = _username_normalized_to_influencer_id_expr()
+    result = await db.execute(
+        select(PreInfluencer)
+        .where(norm == influencer_id)
+        .order_by(PreInfluencer.id.desc())
+        .limit(1)
+    )
+    return result.scalar_one_or_none()
+
+
 async def list_pre_influencers(
     db: AsyncSession,
     *,

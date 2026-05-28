@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 
 from fastapi import HTTPException
 from fastapi.concurrency import run_in_threadpool
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.data.enums import InfluencerPublicationStatus
@@ -40,6 +41,32 @@ _agents_gateway = ElevenLabsAgentsGateway()
 
 def _normalize_influencer_id(username: str) -> str:
     return re.sub(r"[^a-z0-9_]", "", username.lower())
+
+
+async def _resolve_influencer_for_approval(
+    db: AsyncSession,
+    *,
+    influencer_id: str,
+    email: str | None,
+) -> Influencer | None:
+    """Match by username id first, then by unique email (re-approval / username change)."""
+    influencer = await db.get(Influencer, influencer_id)
+    if influencer is not None:
+        return influencer
+    if not email or not str(email).strip():
+        return None
+    result = await db.execute(
+        select(Influencer).where(Influencer.email == str(email).strip())
+    )
+    existing = result.scalar_one_or_none()
+    if existing is not None and existing.id != influencer_id:
+        log.info(
+            "Approval reusing influencer id=%s for pre email=%s (username maps to %s)",
+            existing.id,
+            email,
+            influencer_id,
+        )
+    return existing
 
 
 async def _get_approval_audio_keys(pre_id: int, influencer_id: str) -> list[str]:
@@ -118,7 +145,12 @@ async def approve_pre_influencer(db: AsyncSession, pre_id: int) -> dict:
     if not influencer_id:
         raise HTTPException(400, "Invalid influencer id")
 
-    influencer = await db.get(Influencer, influencer_id)
+    influencer = await _resolve_influencer_for_approval(
+        db,
+        influencer_id=influencer_id,
+        email=pre.email,
+    )
+    storage_influencer_id = influencer.id if influencer else influencer_id
     existing_voice_id = influencer.voice_id if influencer else None
     existing_agent_id = (
         influencer.influencer_agent_id_third_part if influencer else None
@@ -150,12 +182,12 @@ async def approve_pre_influencer(db: AsyncSession, pre_id: int) -> dict:
                 log.warning(
                     "Stale voice_id %s detected for %s, will recreate",
                     voice_id,
-                    influencer_id,
+                    storage_influencer_id,
                 )
                 voice_id = None
                 samples_meta = []
         if not voice_id:
-            keys = await _prepare_approval_audio_keys(pre_id, influencer_id)
+            keys = await _prepare_approval_audio_keys(pre_id, storage_influencer_id)
             if not keys:
                 raise HTTPException(
                     400,
