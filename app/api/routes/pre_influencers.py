@@ -16,7 +16,7 @@ from fastapi import (
     status,
 )
 from pydantic import ValidationError
-from sqlalchemy import or_, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.attributes import flag_modified
 
@@ -241,10 +241,8 @@ async def register_pre_influencer(
 ):
     existing = await db.execute(
         select(PreInfluencer).where(
-            or_(
-                PreInfluencer.email == data.email,
-                PreInfluencer.username == data.username,
-            )
+            (PreInfluencer.email == data.email)
+            | (PreInfluencer.username == data.username)
         )
     )
     if existing.scalar():
