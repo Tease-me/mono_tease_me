@@ -1,7 +1,7 @@
 from datetime import datetime
-from pydantic import BaseModel, EmailStr, ConfigDict
-from typing import Optional, Dict, Any, List
-from typing import Literal
+from typing import Any, Dict, List, Literal, Optional
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 class PreInfluencerRegisterRequest(BaseModel):
     full_name: str
@@ -9,6 +9,7 @@ class PreInfluencerRegisterRequest(BaseModel):
     username: str
     email: EmailStr
     password: str
+    survey_answers: Dict[str, Any] | None = None
     terms_agreement: bool = False
     fp_tid: str | None = None
     parent_ref_id: str | None = None
@@ -24,15 +25,24 @@ class PreInfluencerRegisterResponse(BaseModel):
     user_id: int
     email: EmailStr
     message: str
-    
+    token: str
+    temp_password: str
+    survey_step: int = Field(
+        description="MJ funnel: 0=photo/voice, 1=assets. Legacy personality quiz uses section index."
+    )
+    onboarding_url: str
+
 class PreInfluencerAcceptTermsRequest(BaseModel):
     terms_agreement: Literal[True]
-    
+
+
 class SurveyState(BaseModel):
     pre_influencer_id: int
     username: str
     survey_answers: Dict[str, Any] | None = None
-    survey_step: int
+    survey_step: int = Field(
+        description="MJ funnel: 0=photo/voice, 1=assets. Legacy personality quiz uses section index."
+    )
 
 class SurveySaveRequest(BaseModel):
     survey_answers: Dict[str, Any]
@@ -52,6 +62,10 @@ class PreInfluencerAudioListOut(BaseModel):
 
 class SurveyQuestionsResponse(BaseModel):
     sections: List[Dict[str, Any]]
+    personality_quiz_enabled: bool = Field(
+        default=True,
+        description="False for MJ/referral funnel (no personality quiz sections).",
+    )
 
 class SurveyPromptRequest(BaseModel):
     additional_prompt: Optional[str] = None
@@ -106,9 +120,19 @@ class MJPreInfluencerStepProgressOut(BaseModel):
     exists: bool = True
     pre_influencer_id: int
     username: str
-    survey_step: int
+    survey_step: int = Field(
+        description="MJ progress 1=registered, 2=photo+voice done, 3=assets+terms done."
+    )
     status: str
-    asset_link: str | None = None
+    terms_agreement: bool = False
+    assets_complete: bool = Field(
+        default=False,
+        description="True when asset_link or profile picture + audio upload exist.",
+    )
+    asset_link: str | None = Field(
+        default=None,
+        description="External assets URL from survey_answers.asset_link (e.g. Google Drive).",
+    )
     survey_link: str | None = None
 
 

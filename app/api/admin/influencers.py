@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,7 +20,12 @@ from app.services.use_cases.influencer_detail import build_influencer_detail
 from app.services.use_cases.mjfp_pre_influencer_webhook import (
     schedule_mjfp_pre_influencer_step_webhook,
 )
+from app.services.use_cases.notify_influencer_published import (
+    notify_creator_influencer_published,
+)
 from app.utils.auth.dependencies import get_current_user
+
+log = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Admin Influencers"])
 
@@ -55,6 +62,9 @@ async def update_admin_influencer_publication(
     if not influencer:
         raise HTTPException(status_code=404, detail="Influencer not found")
 
+    was_published = (
+        influencer.publication_status == InfluencerPublicationStatus.PUBLISHED.value
+    )
     influencer.publication_status = (
         InfluencerPublicationStatus.PUBLISHED.value
         if payload.published
@@ -69,6 +79,19 @@ async def update_admin_influencer_publication(
     )
     for pre_id in pre_ids:
         schedule_mjfp_pre_influencer_step_webhook(pre_id)
+
+    if (
+        payload.published
+        and influencer.publication_status == InfluencerPublicationStatus.PUBLISHED.value
+        and not was_published
+    ):
+        try:
+            await notify_creator_influencer_published(db, influencer=influencer)
+        except Exception:
+            log.exception(
+                "Failed to notify creator after publish influencer_id=%s",
+                influencer.id,
+            )
 
     return InfluencerPublicationStatusResponse(
         influencer_id=influencer.id,

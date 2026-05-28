@@ -16,7 +16,14 @@ from app.services.repositories.pre_influencer_repository import (
     get_pre_influencer_by_progress_identity,
     list_pre_influencers as list_pre_influencers_repo,
 )
-from app.services.use_cases.mj_pre_influencer_progress import derive_mj_survey_step
+from app.services.use_cases.mj_pre_influencer_progress import (
+    assets_are_complete,
+    derive_mj_survey_step,
+    has_accepted_terms,
+)
+from app.services.use_cases.pre_influencer_onboarding import (
+    extract_asset_link_from_answers,
+)
 from app.services.use_cases.pre_influencer_output import build_pre_influencer_admin_out
 from app.services.use_cases.pre_influencer_survey_link import (
     build_pre_influencer_survey_link,
@@ -61,11 +68,10 @@ async def _get_pre_influencer_by_mj_lookup(
     )
 
 
-def _get_asset_link(pre) -> str | None:
+async def _get_asset_link(pre) -> str | None:
+    """Return only the user-submitted external asset URL (e.g. Google Drive), not uploads."""
     answers = pre.survey_answers if isinstance(pre.survey_answers, dict) else {}
-    raw_asset_link = answers.get("asset_link")
-    asset_link = raw_asset_link.strip() if isinstance(raw_asset_link, str) else None
-    return asset_link or None
+    return extract_asset_link_from_answers(answers)
 
 
 async def _approve_pre_influencer_for_mj(
@@ -95,18 +101,26 @@ async def get_pre_influencer_step_progress_internal(
 
     derived = await derive_mj_survey_step(db, pre)
     if (settings.MJFP_WEBHOOK_URL or "").strip() and (settings.MJFP_WEBHOOK_SECRET or ""):
+        last_notified_derived_step = getattr(
+            pre,
+            "mjfp_last_notified_derived_step",
+            None,
+        )
         if (
-            pre.mjfp_last_notified_derived_step is None
-            or pre.mjfp_last_notified_derived_step != derived
+            last_notified_derived_step is None
+            or last_notified_derived_step != derived
         ):
             schedule_mjfp_pre_influencer_step_webhook(pre.id)
 
+    answers = pre.survey_answers if isinstance(pre.survey_answers, dict) else {}
     return MJPreInfluencerStepProgressOut(
         pre_influencer_id=pre.id,
         username=pre.username,
         survey_step=derived,
         status=pre.status,
-        asset_link=_get_asset_link(pre),
+        terms_agreement=has_accepted_terms(pre),
+        assets_complete=await assets_are_complete(pre, answers),
+        asset_link=await _get_asset_link(pre),
         survey_link=build_pre_influencer_survey_link(
             token=pre.survey_token,
             temp_password=pre.password,
@@ -131,7 +145,7 @@ async def get_pre_influencer_asset_link_internal(
     return MJPreInfluencerAssetLinkOut(
         pre_influencer_id=pre.id,
         username=pre.username,
-        asset_link=_get_asset_link(pre),
+        asset_link=await _get_asset_link(pre),
     )
 
 
