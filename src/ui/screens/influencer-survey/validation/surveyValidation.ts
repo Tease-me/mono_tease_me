@@ -1,4 +1,4 @@
-import { ERROR_MESSAGES, SOCIAL_PLATFORMS } from '../utils/constants';
+import { ERROR_MESSAGES, REQUIRED_SOCIAL_PLATFORMS, SOCIAL_PLATFORMS } from '../utils/constants';
 
 export interface SurveyQuestion {
   id: string;
@@ -98,15 +98,14 @@ export function validatePictureStep(answers: Record<string, any>): ValidationRes
 export function validateSocialStep(answers: Record<string, any>): ValidationResult {
   const errors: Record<string, string> = {};
 
-  // Check all social platform handles
-  const handles = SOCIAL_PLATFORMS.map((platform) => answers[`social_${platform}`]);
+  for (const platform of REQUIRED_SOCIAL_PLATFORMS) {
+    const handle = answers[`social_${platform}`];
+    const hasHandle = typeof handle === 'string' && handle.trim().length > 0;
 
-  const hasAtLeastOne = handles.some(
-    (handle) => typeof handle === 'string' && handle.trim().length > 0
-  );
-
-  if (!hasAtLeastOne) {
-    errors['social_media'] = ERROR_MESSAGES.SOCIAL_REQUIRED;
+    if (!hasHandle) {
+      errors['social_media'] = ERROR_MESSAGES.SOCIAL_REQUIRED;
+      break;
+    }
   }
 
   // Validate follower count for all platforms with handles
@@ -140,6 +139,19 @@ export function validateAudioStep(audioCount: number): ValidationResult {
   return {
     valid: Object.keys(errors).length === 0,
     errors,
+  };
+}
+
+/** Step 02 — profile photo and at least one voice sample. */
+export function validatePhotoVoiceStep(
+  answers: Record<string, any>,
+  audioCount: number
+): ValidationResult {
+  const picture = validatePictureStep(answers);
+  const audio = validateAudioStep(audioCount);
+  return {
+    valid: picture.valid && audio.valid,
+    errors: { ...picture.errors, ...audio.errors },
   };
 }
 

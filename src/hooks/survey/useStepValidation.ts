@@ -5,9 +5,7 @@ import { useCallback } from 'react';
 import {
   SurveyStep,
   validateSurveyStep,
-  validatePictureStep,
-  validateSocialStep,
-  validateAudioStep,
+  validatePhotoVoiceStep,
   validateAssetStep,
   ValidationResult,
 } from '@/ui/screens/influencer-survey/validation/surveyValidation';
@@ -16,8 +14,6 @@ interface UseStepValidationProps {
   stepIndex: number;
   surveySteps: SurveyStep[];
   pictureStepIndex: number;
-  socialStepIndex: number;
-  audioStepIndex: number;
   assetStepIndex: number;
   answers: Record<string, any>;
   audioCount: number;
@@ -31,56 +27,33 @@ export function useStepValidation({
   stepIndex,
   surveySteps,
   pictureStepIndex,
-  socialStepIndex,
-  audioStepIndex,
   assetStepIndex,
   answers,
   audioCount,
 }: UseStepValidationProps) {
-  /**
-   * Validate the current step
-   */
   const validateCurrentStep = useCallback((): ValidationResult => {
-    // Survey question steps
     if (stepIndex < surveySteps.length) {
       const currentStep = surveySteps[stepIndex];
       if (!currentStep) {
-        // If step doesn't exist but we're within valid range, allow navigation
-        // This prevents being stuck on loading states
         console.warn(`Survey step ${stepIndex} not found, allowing navigation`);
         return { valid: true, errors: {} };
       }
       return validateSurveyStep(currentStep, answers);
     }
 
-    // Picture upload step
     if (stepIndex === pictureStepIndex) {
-      return validatePictureStep(answers);
+      return validatePhotoVoiceStep(answers, audioCount);
     }
 
-    // Social media step
-    if (stepIndex === socialStepIndex) {
-      return validateSocialStep(answers);
-    }
-
-    // Audio upload step
-    if (stepIndex === audioStepIndex) {
-      return validateAudioStep(audioCount);
-    }
-
-    // Asset upload step
     if (stepIndex === assetStepIndex) {
       return validateAssetStep(answers);
     }
 
-    // Unknown step - pass validation
     return { valid: true, errors: {} };
   }, [
     stepIndex,
     surveySteps,
     pictureStepIndex,
-    socialStepIndex,
-    audioStepIndex,
     assetStepIndex,
     answers,
     audioCount,

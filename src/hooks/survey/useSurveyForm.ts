@@ -9,19 +9,6 @@ import {
   normalizeLoadedSurveyAnswers,
 } from '@/ui/screens/influencer-survey/utils/surveyAnswers';
 
-const HIDDEN_SURVEY_QUESTION_IDS = new Set(['q_about_me']);
-
-function filterSurveySteps(steps: SurveyStep[]): SurveyStep[] {
-  return steps
-    .map((step) => ({
-      ...step,
-      questions: step.questions.filter(
-        (question) => !HIDDEN_SURVEY_QUESTION_IDS.has(question.id),
-      ),
-    }))
-    .filter((step) => step.questions.length > 0);
-}
-
 interface SurveyState {
   pre_influencer_id: number;
   username: string;
@@ -157,11 +144,13 @@ export function useSurveyForm({
   const currentStepRef = useRef(0);
 
   const surveyStepsCount = surveySteps.length;
+  /** MJpromoter step 02: photo + voice on one screen. Step 03: assets. */
   const pictureStepIndex = surveyStepsCount;
-  const socialStepIndex = surveyStepsCount + 1;
-  const audioStepIndex = surveyStepsCount + 2;
-  const assetStepIndex = surveyStepsCount + 3;
-  const totalSteps = surveyStepsCount + 4;
+  const socialStepIndex = -1;
+  const audioStepIndex = pictureStepIndex;
+  const assetStepIndex = surveyStepsCount + 1;
+  const totalSteps = surveyStepsCount + 2;
+  const minOnboardingStep = pictureStepIndex;
 
   answersRef.current = answers;
   currentStepRef.current = currentStep;
@@ -188,47 +177,27 @@ export function useSurveyForm({
       }
 
       try {
-        // Fetch survey data and questions in parallel
-        const [surveyResponse, questionsResponse] = await Promise.all([
-          apiClient.get<SurveyState>(Endpoints.pre_influencers.survey, {
+        const { data: surveyData } = await apiClient.get<SurveyState>(
+          Endpoints.pre_influencers.survey,
+          {
             skipAuth: true,
             params: { token, temp_password },
-          }),
-          apiClient.get(Endpoints.pre_influencers.surveyQuestions, {
-            skipAuth: true,
-            params: { token, temp_password },
-          }),
-        ]);
+          }
+        );
 
-        const surveyData = surveyResponse.data;
-        const questionsData = questionsResponse.data;
+        // Referral onboarding: no personality quiz (step 01 is register).
+        setSurveySteps([]);
 
-        // Parse questions data (handle different response formats)
-        const fetchedSteps: SurveyStep[] = Array.isArray(questionsData)
-          ? questionsData
-          : Array.isArray(questionsData?.sections)
-          ? questionsData.sections
-          : Array.isArray(questionsData?.steps)
-          ? questionsData.steps
-          : [];
-
-        const visibleSteps = filterSurveySteps(fetchedSteps);
-
-        if (!visibleSteps.length) {
-          throw new Error(ERROR_MESSAGES.NO_SURVEY_QUESTIONS);
-        }
-
-        // Set survey steps
-        setSurveySteps(visibleSteps);
-
-        // Calculate safe step index
-        const maxStep = visibleSteps.length + 3; // +4 for picture/social/audio/asset, -1 for zero-index
-        const pictureStartStep = visibleSteps.length;
+        const pictureStartStep = 0;
+        const maxStep = 1;
         const prefersPictureStart = startStep === 'picture';
+        const backendStep = surveyData.survey_step || 0;
+        const normalizedBackendStep =
+          backendStep >= pictureStartStep ? Math.min(backendStep, maxStep) : pictureStartStep;
         const requestedStep = prefersPictureStart
-          ? Math.max(surveyData.survey_step || 0, pictureStartStep)
-          : (surveyData.survey_step || 0);
-        const safeStep = Math.min(requestedStep, maxStep);
+          ? Math.max(normalizedBackendStep, pictureStartStep)
+          : normalizedBackendStep;
+        const safeStep = Math.min(Math.max(requestedStep, pictureStartStep), maxStep);
 
         // Set survey data
         setPreInfluencerId(surveyData.pre_influencer_id);
@@ -407,11 +376,11 @@ export function useSurveyForm({
   }, [currentStep, totalSteps]);
 
   const goToPreviousStep = useCallback(() => {
-    if (currentStep > 0) {
+    if (currentStep > minOnboardingStep) {
       setCurrentStep((prev) => prev - 1);
       setIsDirty(true);
     }
-  }, [currentStep]);
+  }, [currentStep, minOnboardingStep]);
 
   const clearFieldError = useCallback((key: string) => {
     setFieldErrors((prev) => {

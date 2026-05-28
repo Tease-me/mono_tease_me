@@ -1,18 +1,25 @@
-import { RegisterResponse, ResendSurveyResponse } from "@/api/models/auth";
-import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
+import { RegisterResponse } from "@/api/models/auth";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
-import React, { useState } from "react";
+import AutocompleteInput from "@/ui/components/inputs/autocomplete/AutocompleteInput";
+import ChipMultiSelect from "@/ui/components/inputs/autocomplete/ChipMultiSelect";
+import React, { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { apiClient } from "@/api/apis";
 import { AuthServicesPreInfluencer } from "@/api/services/AuthServicesPreInfluencer";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
+import { filterCountries, isKnownCountry } from "@/data/countries";
 import { Paths } from "@/routes/path";
-import ResendEmailModal from "@/ui/screens/join/components/ResendEmailModal";
+import {
+  buildRegisterSurveyAnswers,
+  validateRegisterEmail,
+} from "@/ui/screens/join/utils/registerSurveyAnswers";
+import SocialMediaStep from "@/ui/screens/influencer-survey/components/SocialMediaStep";
+import socialStepStyles from "@/ui/screens/influencer-survey/components/SocialMediaStep.module.css";
+import { validateSocialStep } from "@/ui/screens/influencer-survey/validation/surveyValidation";
 import { THANK_YOU_VARIANTS } from "@/ui/screens/join/subscreens/thankYouVariants";
 import { storage } from "@/utils/storage";
 import SvgPack from "@/utils/SvgPack";
-import { validationRules } from "@/utils/validationRules";
 import "./ProfileSurvey.css";
 
 const PreInfluencerAPI = AuthServicesPreInfluencer(apiClient);
@@ -24,33 +31,40 @@ type ProfileSurveyProps = {
 const ProfileSurvey: React.FC<ProfileSurveyProps> = ({ initialEmail = "" }) => {
   const navigate = useNavigate();
 
-  const [name, setName] = useState("");
-  const [location, setLocation] = useState("");
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState(() => {
-    const attribution = storage.getObject<{ inviteeEmail?: string }>(LocalStorageKeys.JoinAttribution);
+  const inviteeEmailFromStorage = useMemo(() => {
+    const attribution = storage.getObject<{ inviteeEmail?: string }>(
+      LocalStorageKeys.JoinAttribution,
+    );
     return initialEmail || attribution?.inviteeEmail || "";
-  });
-  const [mainLanguage, setMainLanguage] = useState("");
-  const [secondaryLanguage, setSecondaryLanguage] = useState("");
+  }, [initialEmail]);
+
+  const [name, setName] = useState("");
+  const [countryQuery, setCountryQuery] = useState("");
+  const [country, setCountry] = useState("");
+  const [username, setUsername] = useState("");
+  const [email] = useState(() => inviteeEmailFromStorage.trim().toLowerCase());
+  const [languages, setLanguages] = useState<string[]>([]);
+  const [socialAnswers, setSocialAnswers] = useState<Record<string, unknown>>({});
+  const [verifyingSocial, setVerifyingSocial] = useState<Record<string, boolean>>(
+    {},
+  );
+  const [socialError, setSocialError] = useState<string | null>(null);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showResendDialog, setShowResendDialog] = useState(false);
-  const [resendEmail, setResendEmail] = useState("");
-  const [resendError, setResendError] = useState("");
-  const [resendSuccess, setResendSuccess] = useState("");
 
   const [errors, setErrors] = useState<{
     name?: string;
-    location?: string;
+    country?: string;
     username?: string;
     email?: string;
-    mainLanguage?: string;
+    languages?: string;
     general?: string;
   }>({});
 
-  const handleBack = () => {
-    navigate(-1);
-  };
+  const countryOptions = useMemo(
+    () => filterCountries(countryQuery || country),
+    [countryQuery, country],
+  );
 
   const generateTempPassword = (length: number = 6): string => {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
@@ -66,36 +80,52 @@ const ProfileSurvey: React.FC<ProfileSurveyProps> = ({ initialEmail = "" }) => {
     storage.remove(LocalStorageKeys.ParentRefId);
   };
 
+  const onSocialAnswerChange = useCallback((key: string, value: unknown) => {
+    setSocialAnswers((prev) => ({ ...prev, [key]: value }));
+    setSocialError(null);
+  }, []);
+
+  const onVerifyingSocialChange = useCallback((platform: string, verifying: boolean) => {
+    setVerifyingSocial((prev) => ({ ...prev, [platform]: verifying }));
+  }, []);
+
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
-    const newErrors: {
-      name?: string;
-      location?: string;
-      username?: string;
-      email?: string;
-      mainLanguage?: string;
-      general?: string;
-    } = {};
+    const newErrors: typeof errors = {};
 
-    // Validation
     if (!name.trim()) newErrors.name = "Full name is required";
-    if (!location.trim()) newErrors.location = "Location is required";
+
+    if (!country.trim() || !isKnownCountry(country)) {
+      newErrors.country = "Please select a country from the list";
+    }
+
     if (!username.trim()) {
       newErrors.username = "Username is required";
     } else if (username.length < 3) {
       newErrors.username = "Username must be at least 3 characters";
     } else if (!/^[a-z0-9_.]+$/.test(username)) {
-      newErrors.username = "Username can only contain lowercase letters, numbers, underscores and dots";
-    }
-    const normalizedEmail = email.trim().toLowerCase();
-    const emailError = validationRules.email(normalizedEmail);
-    if (emailError) newErrors.email = emailError;
-    if (!mainLanguage.trim()) {
-      newErrors.mainLanguage = "Main language is required";
+      newErrors.username =
+        "Use lowercase letters, numbers, underscores and dots (e.g. yourname_stagename)";
     }
 
-    if (Object.keys(newErrors).length) {
+    const emailError = validateRegisterEmail(email, inviteeEmailFromStorage);
+    if (emailError) newErrors.email = emailError;
+
+    if (languages.length === 0) {
+      newErrors.languages = "Add at least one language";
+    }
+
+    const socialValidation = validateSocialStep(socialAnswers as Record<string, any>);
+    if (!socialValidation.valid) {
+      setSocialError(
+        socialValidation.errors.social_media ?? "OnlyFans is required",
+      );
+    } else {
+      setSocialError(null);
+    }
+
+    if (Object.keys(newErrors).length || !socialValidation.valid) {
       setErrors(newErrors);
       return;
     }
@@ -106,17 +136,16 @@ const ProfileSurvey: React.FC<ProfileSurveyProps> = ({ initialEmail = "" }) => {
     try {
       const response: RegisterResponse = await PreInfluencerAPI.register({
         full_name: name.trim(),
-        location: location.trim(),
+        location: country.trim(),
         username: username.trim(),
-        email: normalizedEmail,
+        email,
         password: tempPassword,
-        survey_answers: {
-          q4_country: location.trim(),
-          q5_main_language: mainLanguage.trim(),
-          ...(secondaryLanguage.trim()
-            ? { q6_secondary_language: secondaryLanguage.trim() }
-            : {}),
-        },
+        survey_answers: buildRegisterSurveyAnswers({
+          country: country.trim(),
+          username: username.trim(),
+          languages,
+          socialAnswers,
+        }),
       });
 
       if (response.ok) {
@@ -149,7 +178,7 @@ const ProfileSurvey: React.FC<ProfileSurveyProps> = ({ initialEmail = "" }) => {
 
       setErrors({
         general:
-          (response as any).message ||
+          (response as RegisterResponse & { message?: string }).message ||
           "Registration failed, please try again later",
       });
     } catch (err) {
@@ -162,188 +191,144 @@ const ProfileSurvey: React.FC<ProfileSurveyProps> = ({ initialEmail = "" }) => {
     }
   };
 
-  const handleResendEmail = async () => {
-    setResendError("");
-    setResendSuccess("");
-    const identifier = resendEmail.trim();
-    if (!identifier) {
-      setResendError("Email or username is required to resend");
-      return;
-    }
-
-    try {
-      const response: ResendSurveyResponse =
-        await PreInfluencerAPI.resendSurvey(identifier);
-
-      if (response.ok) {
-        setErrors((prev) => ({ ...prev, general: undefined }));
-        setResendSuccess(
-          response.message || "We sent a new email. Please check your inbox."
-        );
-        return;
-      }
-
-      setResendError(
-        response.message || "Unable to resend email. Please try again later."
-      );
-    } catch (err) {
-      console.error(err);
-      setResendError("Unexpected error, please try again later");
-    }
-  };
+  const emailFieldError =
+    errors.email ||
+    (!email ? "Open this page from your invitation link to continue." : undefined);
 
   return (
     <div className="ps-screen">
       <div className="ps-frame">
         <div className="ps-card">
-          <div className="tm-survey-back-button-container">
-            <NormalButton
-              onClick={handleBack}
-              text="Back"
-              leftIcon={<SvgPack.ArrowLeft />}
-            />
-          </div>
-
-          <h2 className="ps-title">Profile Survey</h2>
-          <p className="ps-subtitle">Complete your basic details</p>
+          <header className="ps-header">
+            <p className="ps-step">Step 1 of 3</p>
+            <h2 className="ps-title">Your profile</h2>
+            <p className="ps-subtitle">
+              Tell us who you are, your languages, and where fans can find you.
+            </p>
+          </header>
 
           {errors.general && (
-            <div className="ps-error ps-error-general">{errors.general}</div>
+            <div className="ps-banner ps-banner--error" role="alert">
+              {errors.general}
+            </div>
           )}
 
-          {/* Full Name */}
-          <div className="ps-field">
-            <label className="ps-label">
-              Full Name <span className="ps-required">*</span>
-            </label>
-            {errors.name && <span className="ps-error">{errors.name}</span>}
-            <input
-              className="ps-input"
-              placeholder="Your full name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
+          <div className="ps-body">
+            <div className="ps-body-main">
+              <div className="ps-field">
+                <label className="ps-label" htmlFor="ps-full-name">
+                  Full Name <span className="ps-required">*</span>
+                </label>
+                {errors.name && <span className="ps-field-error">{errors.name}</span>}
+                <input
+                  id="ps-full-name"
+                  className="ps-input"
+                  placeholder="Your full name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+
+              <div className="ps-field">
+                <label className="ps-label" htmlFor="ps-email">
+                  Email <span className="ps-required">*</span>
+                </label>
+                {emailFieldError && <span className="ps-field-error">{emailFieldError}</span>}
+                <input
+                  id="ps-email"
+                  className="ps-input ps-input--readonly"
+                  value={email}
+                  type="email"
+                  readOnly
+                  disabled
+                  autoComplete="email"
+                />
+              </div>
+
+              <div className="ps-field">
+                <label className="ps-label" htmlFor="ps-username">
+                  Username <span className="ps-required">*</span>
+                </label>
+                <p className="ps-help">Lowercase with underscore, e.g. yourname_stagename</p>
+                {errors.username && <span className="ps-field-error">{errors.username}</span>}
+                <input
+                  id="ps-username"
+                  className="ps-input"
+                  placeholder="yourname_stagename"
+                  value={username}
+                  onChange={(e) => {
+                    const sanitized = e.target.value
+                      .toLowerCase()
+                      .replace(/[^a-z0-9_.]/g, "");
+                    setUsername(sanitized);
+                  }}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                />
+              </div>
+
+              <div className="ps-field">
+                <label className="ps-label" htmlFor="ps-country">
+                  Country <span className="ps-required">*</span>
+                </label>
+                {errors.country && <span className="ps-field-error">{errors.country}</span>}
+                <AutocompleteInput
+                  id="ps-country"
+                  value={countryQuery || country}
+                  onChange={(v) => {
+                    setCountryQuery(v);
+                    if (!v.trim()) setCountry("");
+                  }}
+                  onSelect={(v) => {
+                    setCountry(v);
+                    setCountryQuery(v);
+                  }}
+                  options={countryOptions}
+                  placeholder="Search country"
+                  aria-label="Country"
+                />
+              </div>
+
+              <div className="ps-field ps-field--languages">
+                <label className="ps-label">
+                  Languages <span className="ps-required">*</span>
+                </label>
+                <p className="ps-help">Add all languages you create content in</p>
+                {errors.languages && <span className="ps-field-error">{errors.languages}</span>}
+                <ChipMultiSelect selected={languages} onChange={setLanguages} />
+              </div>
+            </div>
+
+            <aside className="ps-body-side">
+              <h3 className="ps-section-title">Social media</h3>
+              <p className="ps-help">
+                OnlyFans is required. You can also connect other platforms to help us verify your audience.
+              </p>
+              <SocialMediaStep
+                answers={socialAnswers as Record<string, any>}
+                socialError={socialError}
+                verifyingSocial={verifyingSocial}
+                onAnswerChange={onSocialAnswerChange}
+                onVerifyingSocialChange={onVerifyingSocialChange}
+                gridClassName={socialStepStyles.socialGridRegister}
+              />
+            </aside>
           </div>
 
-          {/* Location */}
-          <div className="ps-field">
-            <label className="ps-label">
-              Location <span className="ps-required">*</span>
-            </label>
-            {errors.location && (
-              <span className="ps-error">{errors.location}</span>
-            )}
-            <input
-              className="ps-input"
-              placeholder="Country or Region"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-            />
-          </div>
-
-          {/* Username */}
-          <div className="ps-field">
-            <label className="ps-label">
-              Username <span className="ps-required">*</span>
-            </label>
-            {errors.username && (
-              <span className="ps-error">{errors.username}</span>
-            )}
-            <input
-              className="ps-input"
-              placeholder="yourusername"
-              value={username}
-              onChange={(e) => {
-                const sanitized = e.target.value
-                  .toLowerCase()
-                  .replace(/[^a-z0-9_.]/g, "");
-                setUsername(sanitized);
-              }}
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-            />
-          </div>
-
-          {/* Email */}
-          <div className="ps-field">
-            <label className="ps-label">
-              Email
-              <span className="ps-required"> *</span>
-            </label>
-            {errors.email && <span className="ps-error">{errors.email}</span>}
-            <input
-              className="ps-input"
-              placeholder="Your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              type="email"
-              autoComplete="email"
-            />
-          </div>
-
-          {/* Main Language */}
-          <div className="ps-field">
-            <label className="ps-label">
-              Main Language <span className="ps-required">*</span>
-            </label>
-            {errors.mainLanguage && (
-              <span className="ps-error">{errors.mainLanguage}</span>
-            )}
-            <input
-              className="ps-input"
-              placeholder="Your main language"
-              value={mainLanguage}
-              onChange={(e) => setMainLanguage(e.target.value)}
-            />
-          </div>
-
-          {/* Secondary Language */}
-          <div className="ps-field">
-            <label className="ps-label">Secondary Language</label>
-            <input
-              className="ps-input"
-              placeholder="Optional secondary language"
-              value={secondaryLanguage}
-              onChange={(e) => setSecondaryLanguage(e.target.value)}
-            />
-          </div>
-
-          {/* Next */}
+          <div className="ps-footer">
           <div className="tm-survey-button-container">
             <PrimaryButton
               onClick={handleSubmit}
               text="Next"
               rightIcon={<SvgPack.ArrowRight />}
               loading={isSubmitting}
+              disabled={!email || Boolean(emailFieldError)}
             />
           </div>
-          <div className="ps-secondary-action">
-            <button
-              className="ps-secondary-link"
-              type="button"
-              onClick={() => {
-                setResendEmail(email || username);
-                setResendError("");
-                setResendSuccess("");
-                setShowResendDialog(true);
-              }}
-            >
-              Already started? Resend email
-            </button>
           </div>
-          <div className="spacer-profile"></div>
         </div>
       </div>
-      <ResendEmailModal
-        isOpen={showResendDialog}
-        email={resendEmail}
-        error={resendError}
-        success={resendSuccess}
-        onEmailChange={setResendEmail}
-        onClose={() => setShowResendDialog(false)}
-        onSubmit={handleResendEmail}
-      />
     </div>
   );
 };

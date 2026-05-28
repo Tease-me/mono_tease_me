@@ -534,3 +534,22 @@ textarea.input {
     margin: 1.5rem 0;
   }
 }
+
+.mediaStepStack {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100%;
+}
+
+.inlineAlert {
+  padding: 12px 16px;
+  margin: 8px 0;
+  background-color: rgba(255, 77, 77, 0.15);
+  border: 1px solid rgba(255, 77, 77, 0.4);
+  border-radius: 8px;
+  color: #ff6b6b;
+  font-size: 13px;
+  text-align: center;
+  line-height: 1.4;
+}

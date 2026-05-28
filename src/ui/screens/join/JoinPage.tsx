@@ -1,3 +1,5 @@
+import { LocalStorageKeys } from "@/constants/localStorageKeys";
+import { storage } from "@/utils/storage";
 import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import TeaseMeIncomeCalculatorSection from "./sections/TeaseMeIncomeCalculatorSection";
@@ -7,8 +9,6 @@ import TeaseMeProcessSection from "./sections/TeaseMeProcessSection";
 import TeaseMeVideoSection from "./sections/TeaseMeVideoSection";
 import TeaseMeWhySection from "./sections/TeaseMeWhySection";
 import ProfileSurvey from "./subscreens/ProfileSurvey";
-import { storage } from "@/utils/storage";
-import { LocalStorageKeys } from "@/constants/localStorageKeys";
 
 export default function JoinPage() {
   const [searchParams] = useSearchParams();
