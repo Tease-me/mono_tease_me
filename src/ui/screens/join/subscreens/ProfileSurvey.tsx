@@ -200,7 +200,6 @@ const ProfileSurvey: React.FC<ProfileSurveyProps> = ({ initialEmail = "" }) => {
       <div className="ps-frame">
         <div className="ps-card">
           <header className="ps-header">
-            <p className="ps-step">Step 1 of 3</p>
             <h2 className="ps-title">Your profile</h2>
             <p className="ps-subtitle">
               Tell us who you are, your languages, and where fans can find you.
