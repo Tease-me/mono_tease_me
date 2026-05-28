@@ -1,3 +1,5 @@
+import { LocalStorageKeys } from "@/constants/localStorageKeys";
+import { storage } from "@/utils/storage";
 import { AxiosInstance } from "axios";
 import {
   ForgotPasswordResponse,
@@ -6,8 +8,6 @@ import {
   TokenResponse,
 } from "../models/auth";
 import { Endpoints } from "../urls";
-import { storage } from "@/utils/storage";
-import { LocalStorageKeys } from "@/constants/localStorageKeys";
 
 type JoinAttribution = {
   fpr?: string;
@@ -20,10 +20,14 @@ type JoinAttribution = {
 export const AuthServicesPreInfluencer = (apiClient: AxiosInstance) => ({
   login: async (email: string, password: string): Promise<TokenResponse> => {
     try {
-      const response = await apiClient.post(Endpoints.pre_influencers.login, {
-        email,
-        password,
-      });
+      const response = await apiClient.post(
+        Endpoints.pre_influencers.login,
+        {
+          email,
+          password,
+        },
+        { skipAuth: true },
+      );
       return response.data;
     } catch (error) {
       throw error;
@@ -36,6 +40,7 @@ export const AuthServicesPreInfluencer = (apiClient: AxiosInstance) => ({
     username: string;
     email: string;
     password: string;
+    survey_answers?: Record<string, unknown>;
   }): Promise<RegisterResponse> => {
     try {
       const searchParams = new URLSearchParams(window.location.search);
@@ -84,6 +89,7 @@ export const AuthServicesPreInfluencer = (apiClient: AxiosInstance) => ({
           inviter_email,
           account_manager_email,
         },
+        { skipAuth: true },
       );
       return response.data;
     } catch (error) {
@@ -96,6 +102,7 @@ export const AuthServicesPreInfluencer = (apiClient: AxiosInstance) => ({
         Endpoints.pre_influencers.refreshToken,
         null,
         {
+          skipAuth: true,
           params: {
             refresh_token: refreshToken,
           },
@@ -113,6 +120,7 @@ export const AuthServicesPreInfluencer = (apiClient: AxiosInstance) => ({
         Endpoints.auth.forgotPassword,
         null,
         {
+          skipAuth: true,
           params: {
             email: email,
           },
@@ -131,6 +139,7 @@ export const AuthServicesPreInfluencer = (apiClient: AxiosInstance) => ({
         Endpoints.pre_influencers.resendSurvey,
         null,
         {
+          skipAuth: true,
           params: {
             identifier,
           },
