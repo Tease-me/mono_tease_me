@@ -261,6 +261,9 @@ Thanks for joining TeaseMe. ❤️
     return send_email_via_ses(to_email, subject, body_html, body_text)
 
 
+send_profile_survey_email = send_pre_influencer_signup_complete_email
+
+
 def send_password_reset_email(to_email: str, token: str):
     subject = "Redefine your TeaseMe password"
     reset_url = _password_reset_url(token)
@@ -796,6 +799,7 @@ __all__ = [
     "send_new_influencer_email",
     "send_new_influencer_email_with_picture",
     "send_password_reset_email",
+    "send_profile_survey_email",
     "send_pre_influencer_converted_admin_email",
     "send_pre_influencer_signup_complete_email",
     "send_verification_email",

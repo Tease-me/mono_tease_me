@@ -68,6 +68,8 @@ from app.services.use_cases.pre_influencer_onboarding import (
     seed_register_survey_answers,
     survey_answers_indicate_terms_accepted,
 )
+
+send_profile_survey_email = send_pre_influencer_signup_complete_email
 from app.services.use_cases.pre_influencer_output import build_pre_influencer_admin_out
 from app.services.use_cases.pre_influencer_survey_link import (
     build_pre_influencer_onboarding_path,
