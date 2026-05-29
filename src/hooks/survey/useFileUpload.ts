@@ -39,6 +39,15 @@ interface UploadAudioResult {
   error?: string;
 }
 
+/** Owner segment from list/upload API key (username or legacy numeric id). */
+function getPreInfluencerAudioOwnerFromKey(key: string): string | null {
+  const parts = key.split('/');
+  if (parts[0] === 'pre-influencers' && parts[2] === 'audio' && parts[1]) {
+    return parts[1];
+  }
+  return null;
+}
+
 /**
  * Hook for handling file uploads with validation
  */
@@ -162,7 +171,9 @@ export function useFileUpload() {
       temp_password: string;
     }): Promise<{ success: boolean; error?: string }> => {
       try {
-        await apiClient.delete(Endpoints.pre_influencers.deleteAudio(preInfluencerId), {
+        const owner = getPreInfluencerAudioOwnerFromKey(key) ?? String(preInfluencerId);
+
+        await apiClient.delete(Endpoints.pre_influencers.deleteAudio(owner), {
           skipAuth: true,
           data: { key },
           params: { token, temp_password },
