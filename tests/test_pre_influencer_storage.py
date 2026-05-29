@@ -91,6 +91,11 @@ def test_is_audio_key_for_pre_influencer_accepts_new_prefix_only() -> None:
 def test_is_audio_key_for_pre_influencer_owner_falls_back_to_legacy_id() -> None:
     assert pre_influencer_storage.is_audio_key_for_pre_influencer_owner(
         "pre-influencers/legacy-id/audio/file.webm",
+        username=None,
+        legacy_pre_id="legacy-id",
+    )
+    assert pre_influencer_storage.is_audio_key_for_pre_influencer_owner(
+        "pre-influencers/legacy-id/audio/file.webm",
         username="",
         legacy_pre_id="legacy-id",
     )
@@ -138,6 +143,10 @@ async def test_list_audio_keys_with_legacy_id_uses_legacy_for_empty_or_whitespac
 
     monkeypatch.setattr(pre_influencer_storage, "list_audio_keys", _fake_list_audio_keys)
 
+    keys_none = await pre_influencer_storage.list_audio_keys_with_legacy_id(
+        username=None,
+        legacy_pre_id="legacy-id",
+    )
     keys_empty = await pre_influencer_storage.list_audio_keys_with_legacy_id(
         username="",
         legacy_pre_id="legacy-id",
@@ -147,6 +156,7 @@ async def test_list_audio_keys_with_legacy_id_uses_legacy_for_empty_or_whitespac
         legacy_pre_id="legacy-id",
     )
 
+    assert keys_none == ["pre-influencers/legacy-id/audio/legacy.webm"]
     assert keys_empty == ["pre-influencers/legacy-id/audio/legacy.webm"]
     assert keys_whitespace == ["pre-influencers/legacy-id/audio/legacy.webm"]
-    assert calls == ["legacy-id", "   ", "legacy-id"]
+    assert calls == ["legacy-id", "legacy-id", "   ", "legacy-id"]
