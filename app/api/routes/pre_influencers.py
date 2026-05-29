@@ -930,6 +930,13 @@ async def upload_pre_influencer_audio(
 
     _require_pre_influencer_survey_access(pre, token, temp_password)
 
+    owner_username = pre.username.strip() if pre.username else None
+    if not owner_username:
+        raise HTTPException(
+            status_code=400,
+            detail="Pre-influencer has no username to store audio under",
+        )
+
     file_bytes = await file.read()
     if not file_bytes:
         raise HTTPException(400, "Empty file")
@@ -938,7 +945,7 @@ async def upload_pre_influencer_audio(
         io.BytesIO(file_bytes),
         file.filename or "audio.webm",
         file.content_type or "audio/webm",
-        str(pre.id),
+        owner_username,
     )
 
     schedule_mjfp_pre_influencer_step_webhook(pre.id)
@@ -965,7 +972,10 @@ async def list_pre_influencer_audio(
 
     _require_pre_influencer_survey_access(pre, token, temp_password)
 
-    keys = await pre_influencer_storage.list_audio_keys(str(pre.id))
+    keys = await pre_influencer_storage.list_audio_keys_with_legacy_id(
+        pre.username.strip() if pre.username else None,
+        str(pre.id),
+    )
     files = [
         {
             "key": key,

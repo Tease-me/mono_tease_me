@@ -69,8 +69,15 @@ async def _resolve_influencer_for_approval(
     return existing
 
 
-async def _get_approval_audio_keys(pre_id: int, influencer_id: str) -> list[str]:
-    keys = await pre_influencer_storage.list_audio_keys(str(pre_id))
+async def _get_approval_audio_keys(
+    pre_id: int,
+    username: str,
+    influencer_id: str,
+) -> list[str]:
+    keys = await pre_influencer_storage.list_audio_keys_with_legacy_id(
+        username,
+        str(pre_id),
+    )
     if keys:
         return keys
 
@@ -83,13 +90,18 @@ async def _get_approval_audio_keys(pre_id: int, influencer_id: str) -> list[str]
 
 async def _prepare_approval_audio_keys(
     pre_id: int,
+    username: str,
     influencer_id: str,
 ) -> list[str]:
-    keys = await _get_approval_audio_keys(pre_id, influencer_id)
+    keys = await _get_approval_audio_keys(pre_id, username, influencer_id)
     prepared_keys: list[str] = []
 
     for key in keys:
-        if pre_influencer_storage.is_audio_key_for_pre_influencer(str(pre_id), key):
+        if pre_influencer_storage.is_audio_key_for_pre_influencer_owner(
+            key,
+            username=username,
+            legacy_pre_id=str(pre_id),
+        ):
             copied_key = await copy_pre_influencer_audio_to_influencer_audio(
                 key,
                 influencer_id,
@@ -187,7 +199,11 @@ async def approve_pre_influencer(db: AsyncSession, pre_id: int) -> dict:
                 voice_id = None
                 samples_meta = []
         if not voice_id:
-            keys = await _prepare_approval_audio_keys(pre_id, storage_influencer_id)
+            keys = await _prepare_approval_audio_keys(
+                pre_id,
+                pre.username.strip(),
+                storage_influencer_id,
+            )
             if not keys:
                 raise HTTPException(
                     400,

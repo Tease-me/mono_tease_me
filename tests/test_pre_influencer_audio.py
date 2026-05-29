@@ -20,10 +20,12 @@ class FakePreInfluencer:
         self,
         *,
         pre_id: int,
+        username: str | None = "pre-user",
         survey_token: str = "survey-token",
         password: str = "temporary-password",
     ) -> None:
         self.id = pre_id
+        self.username = username
         self.survey_token = survey_token
         self.password = password
 
@@ -139,11 +141,12 @@ def test_upload_pre_influencer_audio_requires_valid_survey_access() -> None:
 
 
 def test_list_pre_influencer_audio_returns_files(monkeypatch) -> None:
-    db = FakeSession(FakePreInfluencer(pre_id=123))
+    db = FakeSession(FakePreInfluencer(pre_id=123, username="  pre-user-123  "))
     client = TestClient(_build_app(db))
 
-    async def _fake_list(pre_id: str):
-        assert pre_id == "123"
+    async def _fake_list(username: str | None, legacy_pre_id: str):
+        assert username == "pre-user-123"
+        assert legacy_pre_id == "123"
         return [
             "pre-influencers/123/audio/one.webm",
             "pre-influencers/123/audio/two.webm",
@@ -151,7 +154,7 @@ def test_list_pre_influencer_audio_returns_files(monkeypatch) -> None:
 
     monkeypatch.setattr(
         pre_influencers_route.pre_influencer_storage,
-        "list_audio_keys",
+        "list_audio_keys_with_legacy_id",
         _fake_list,
     )
     monkeypatch.setattr(
@@ -183,16 +186,20 @@ def test_list_pre_influencer_audio_returns_files(monkeypatch) -> None:
     assert db.committed is False
 
 
-def test_list_pre_influencer_audio_returns_empty_result_when_missing(monkeypatch) -> None:
-    db = FakeSession(FakePreInfluencer(pre_id=123))
+def test_list_pre_influencer_audio_returns_empty_result_when_missing(
+    monkeypatch,
+) -> None:
+    db = FakeSession(FakePreInfluencer(pre_id=123, username=None))
     client = TestClient(_build_app(db))
 
-    async def _fake_list(_pre_id: str):
+    async def _fake_list(username: str | None, legacy_pre_id: str):
+        assert username is None
+        assert legacy_pre_id == "123"
         return []
 
     monkeypatch.setattr(
         pre_influencers_route.pre_influencer_storage,
-        "list_audio_keys",
+        "list_audio_keys_with_legacy_id",
         _fake_list,
     )
 
