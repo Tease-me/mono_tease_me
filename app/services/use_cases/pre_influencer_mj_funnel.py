@@ -118,11 +118,15 @@ def _has_profile_picture(answers: dict[str, Any]) -> bool:
 async def photo_voice_are_complete(pre: Any, answers: dict[str, Any]) -> bool:
     if not _has_profile_picture(answers):
         return False
+    username = getattr(pre, "username", None)
     pre_id = getattr(pre, "id", None)
-    if pre_id in (None, ""):
+    if pre_id in (None, "") and not (isinstance(username, str) and username.strip()):
         return False
     try:
-        keys = await pre_influencer_storage.list_audio_keys(str(pre_id))
+        keys = await pre_influencer_storage.list_audio_keys_with_legacy_id(
+            username.strip() if isinstance(username, str) and username.strip() else None,
+            str(pre_id) if pre_id not in (None, "") else None,
+        )
     except Exception:
         return False
     return bool(keys)
