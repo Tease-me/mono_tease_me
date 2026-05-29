@@ -86,3 +86,67 @@ def test_is_audio_key_for_pre_influencer_accepts_new_prefix_only() -> None:
         "123",
         "influencer-audio/123/file.webm",
     )
+
+
+def test_is_audio_key_for_pre_influencer_owner_falls_back_to_legacy_id() -> None:
+    assert pre_influencer_storage.is_audio_key_for_pre_influencer_owner(
+        "pre-influencers/legacy-id/audio/file.webm",
+        username="",
+        legacy_pre_id="legacy-id",
+    )
+    assert pre_influencer_storage.is_audio_key_for_pre_influencer_owner(
+        "pre-influencers/legacy-id/audio/file.webm",
+        username="   ",
+        legacy_pre_id="legacy-id",
+    )
+
+
+@pytest.mark.anyio
+async def test_list_audio_keys_with_legacy_id_prefers_username_keys(monkeypatch) -> None:
+    calls: list[str] = []
+
+    async def _fake_list_audio_keys(owner: str) -> list[str]:
+        calls.append(owner)
+        if owner == "username":
+            return ["pre-influencers/username/audio/new.webm"]
+        if owner == "legacy-id":
+            return ["pre-influencers/legacy-id/audio/legacy.webm"]
+        return []
+
+    monkeypatch.setattr(pre_influencer_storage, "list_audio_keys", _fake_list_audio_keys)
+
+    keys = await pre_influencer_storage.list_audio_keys_with_legacy_id(
+        username="username",
+        legacy_pre_id="legacy-id",
+    )
+
+    assert keys == ["pre-influencers/username/audio/new.webm"]
+    assert calls == ["username"]
+
+
+@pytest.mark.anyio
+async def test_list_audio_keys_with_legacy_id_uses_legacy_for_empty_or_whitespace_username(
+    monkeypatch,
+) -> None:
+    calls: list[str] = []
+
+    async def _fake_list_audio_keys(owner: str) -> list[str]:
+        calls.append(owner)
+        if owner == "legacy-id":
+            return ["pre-influencers/legacy-id/audio/legacy.webm"]
+        return []
+
+    monkeypatch.setattr(pre_influencer_storage, "list_audio_keys", _fake_list_audio_keys)
+
+    keys_empty = await pre_influencer_storage.list_audio_keys_with_legacy_id(
+        username="",
+        legacy_pre_id="legacy-id",
+    )
+    keys_whitespace = await pre_influencer_storage.list_audio_keys_with_legacy_id(
+        username="   ",
+        legacy_pre_id="legacy-id",
+    )
+
+    assert keys_empty == ["pre-influencers/legacy-id/audio/legacy.webm"]
+    assert keys_whitespace == ["pre-influencers/legacy-id/audio/legacy.webm"]
+    assert calls == ["legacy-id", "   ", "legacy-id"]
