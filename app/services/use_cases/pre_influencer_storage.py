@@ -69,8 +69,9 @@ async def list_audio_keys_with_legacy_id(
     username: str | None,
     legacy_pre_id: str | None = None,
 ) -> list[str]:
-    if username:
-        keys = await list_audio_keys(username)
+    normalized_username = username.strip() if username else None
+    if normalized_username:
+        keys = await list_audio_keys(normalized_username)
         if keys:
             return keys
     if legacy_pre_id:
