@@ -39,11 +39,15 @@ def _has_profile_picture(answers: dict[str, Any]) -> bool:
 
 
 async def _has_uploaded_audio(pre: Any) -> bool:
+    username = getattr(pre, "username", None)
     pre_id = getattr(pre, "id", None)
-    if pre_id in (None, ""):
+    if pre_id in (None, "") and not (isinstance(username, str) and username.strip()):
         return False
     try:
-        keys = await pre_influencer_storage.list_audio_keys(str(pre_id))
+        keys = await pre_influencer_storage.list_audio_keys_with_legacy_id(
+            username.strip() if isinstance(username, str) and username.strip() else None,
+            str(pre_id) if pre_id not in (None, "") else None,
+        )
     except Exception:
         return False
     return bool(keys)

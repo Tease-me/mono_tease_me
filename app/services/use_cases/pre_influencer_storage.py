@@ -5,7 +5,7 @@ import uuid
 from app.core.config import settings
 from app.services.gateways import s3_gateway
 
-PRE_INFLUENCER_AUDIO_PREFIX = "pre-influencers/{pre_id}/audio/"
+PRE_INFLUENCER_AUDIO_PREFIX = "pre-influencers/{owner}/audio/"
 
 
 def _normalize_ext(filename: str | None, default: str = "webm") -> str:
@@ -14,27 +14,40 @@ def _normalize_ext(filename: str | None, default: str = "webm") -> str:
     return default
 
 
-def build_audio_key(pre_id: str, filename: str | None) -> str:
+def build_audio_key(owner: str, filename: str | None) -> str:
     ext = _normalize_ext(filename)
-    prefix = PRE_INFLUENCER_AUDIO_PREFIX.format(pre_id=pre_id)
+    prefix = PRE_INFLUENCER_AUDIO_PREFIX.format(owner=owner)
     return f"{prefix}{uuid.uuid4()}.{ext}"
 
 
-def audio_prefix(pre_id: str) -> str:
-    return PRE_INFLUENCER_AUDIO_PREFIX.format(pre_id=pre_id)
+def audio_prefix(owner: str) -> str:
+    return PRE_INFLUENCER_AUDIO_PREFIX.format(owner=owner)
 
 
-def is_audio_key_for_pre_influencer(pre_id: str, key: str) -> bool:
-    return key.startswith(audio_prefix(pre_id))
+def is_audio_key_for_pre_influencer(owner: str, key: str) -> bool:
+    return key.startswith(audio_prefix(owner))
+
+
+def is_audio_key_for_pre_influencer_owner(
+    key: str,
+    *,
+    username: str | None,
+    legacy_pre_id: str | None = None,
+) -> bool:
+    if username and is_audio_key_for_pre_influencer(username, key):
+        return True
+    if legacy_pre_id and is_audio_key_for_pre_influencer(legacy_pre_id, key):
+        return True
+    return False
 
 
 async def save_audio(
     file_obj,
     filename: str | None,
     content_type: str,
-    pre_id: str,
+    owner: str,
 ) -> str:
-    key = build_audio_key(pre_id, filename)
+    key = build_audio_key(owner, filename)
     file_obj.seek(0)
     s3_gateway.upload_fileobj(
         file_obj,
@@ -45,11 +58,24 @@ async def save_audio(
     return key
 
 
-async def list_audio_keys(pre_id: str) -> list[str]:
+async def list_audio_keys(owner: str) -> list[str]:
     return s3_gateway.list_objects(
         bucket=settings.BUCKET_NAME,
-        prefix=audio_prefix(pre_id),
+        prefix=audio_prefix(owner),
     )
+
+
+async def list_audio_keys_with_legacy_id(
+    username: str | None,
+    legacy_pre_id: str | None = None,
+) -> list[str]:
+    if username:
+        keys = await list_audio_keys(username)
+        if keys:
+            return keys
+    if legacy_pre_id:
+        return await list_audio_keys(legacy_pre_id)
+    return []
 
 
 def generate_audio_download_url(key: str, expires: int = 3600) -> str:
@@ -60,7 +86,16 @@ def generate_audio_download_url(key: str, expires: int = 3600) -> str:
     )
 
 
-async def delete_audio(pre_id: str, key: str) -> None:
-    if not is_audio_key_for_pre_influencer(pre_id, key):
+async def delete_audio(
+    owner: str,
+    key: str,
+    *,
+    legacy_pre_id: str | None = None,
+) -> None:
+    if not is_audio_key_for_pre_influencer_owner(
+        key,
+        username=owner,
+        legacy_pre_id=legacy_pre_id,
+    ):
         raise ValueError("Invalid audio key for this pre-influencer")
     s3_gateway.delete_object(bucket=settings.BUCKET_NAME, key=key)
