@@ -136,6 +136,8 @@ async def send_verification_email(
                   <td align="center" bgcolor="#ff2f7d" style="border-radius:999px;box-shadow:0 10px 28px rgba(255,47,125,0.35);">
                     <a
                       href="{confirm_url}"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       style="display:inline-block;padding:18px 44px;font-size:20px;line-height:1;font-weight:700;font-family:Arial,sans-serif;color:#ffffff;text-decoration:none;border-radius:999px;background:#ff2f7d;"
                     >
                       Confirm Email
@@ -318,6 +320,8 @@ def send_password_reset_email(to_email: str, token: str):
                   <td align="center" bgcolor="#ff2f7d" style="border-radius:999px;box-shadow:0 10px 28px rgba(255,47,125,0.35);">
                     <a
                       href="{reset_url}"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       style="display:inline-block;padding:18px 44px;font-size:20px;line-height:1;font-weight:700;font-family:Arial,sans-serif;color:#ffffff;text-decoration:none;border-radius:999px;background:#ff2f7d;"
                     >
                       Reset My Password
@@ -410,6 +414,8 @@ def send_new_influencer_email(
                   <td align="center" bgcolor="#ff2f7d" style="border-radius:999px;box-shadow:0 10px 28px rgba(255,47,125,0.35);">
                     <a
                       href="{public_url}"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       style="display:inline-block;padding:18px 44px;font-size:20px;line-height:1;font-weight:700;font-family:Arial,sans-serif;color:#ffffff;text-decoration:none;border-radius:999px;background:#ff2f7d;"
                     >
                       Open My Profile
@@ -533,6 +539,8 @@ def send_new_influencer_email_with_picture(
                   <td align="center" bgcolor="#ff2f7d" style="border-radius:999px;box-shadow:0 10px 28px rgba(255,47,125,0.35);">
                     <a
                       href="{public_url}"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       style="display:inline-block;padding:18px 44px;font-size:20px;line-height:1;font-weight:700;font-family:Arial,sans-serif;color:#ffffff;text-decoration:none;border-radius:999px;background:#ff2f7d;"
                     >
                       View my profile
@@ -626,6 +634,8 @@ def send_influencer_published_email(
                   <td align="center" bgcolor="#ff2f7d" style="border-radius:999px;box-shadow:0 10px 28px rgba(255,47,125,0.35);">
                     <a
                       href="{public_url}"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       style="display:inline-block;padding:18px 44px;font-size:20px;line-height:1;font-weight:700;font-family:Arial,sans-serif;color:#ffffff;text-decoration:none;border-radius:999px;background:#ff2f7d;"
                     >
                       View my profile
@@ -693,7 +703,7 @@ def send_influencer_survey_completed_email_to_promoter(
                 {influencer_line} has finished their TeaseMe profile survey.
               </p>
               <p style="font-size:14px;color:#b8b8be;margin:0 0 16px 0;text-align:center;">
-                Profile link: <a href="{public_url}" style="color:#ff2f7d;text-decoration:none;">{public_url}</a>
+                Profile link: <a href="{public_url}" target="_blank" rel="noopener noreferrer" style="color:#ff2f7d;text-decoration:none;">{public_url}</a>
               </p>
               {f'<p style="font-size:14px;color:#b8b8be;margin:0 0 16px 0;text-align:center;">Influencer email: {influencer_email}</p>' if influencer_email else ""}
               <p style="margin:34px 0 0 0;font-size:12px;color:#76767d;text-align:center;">
@@ -769,7 +779,7 @@ def send_pre_influencer_converted_admin_email(
                     <p style="font-size:14px;color:#b8b8be;margin:0 0 6px 0;">Influencer ID: <span style="color:#ffffff;">{influencer_id}</span><span style="display:none;mso-hide:all;">Influencer ID: {influencer_id}</span></p>
                     {creator_email_row}
                     <p style="font-size:14px;color:#b8b8be;margin:0 0 6px 0;">Publication status: <span style="color:#ffffff;">{status_label}</span><span style="display:none;mso-hide:all;">Publication status: {status_label}</span></p>
-                    <p style="font-size:14px;color:#b8b8be;margin:0;">Profile link: <a href="{public_url}" style="color:#ff2f7d;text-decoration:none;">{public_url}</a></p>
+                    <p style="font-size:14px;color:#b8b8be;margin:0;">Profile link: <a href="{public_url}" target="_blank" rel="noopener noreferrer" style="color:#ff2f7d;text-decoration:none;">{public_url}</a></p>
                   </td>
                 </tr>
               </table>
