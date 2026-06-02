@@ -52,6 +52,7 @@ async def track_mjfp_topup_sale(
 
     result = await fp_track_sale_v2(
         email=user.email,
+        uid=str(user.id),
         amount_cents=amount_cents,
         event_id=event_id,
         username=username,
