@@ -58,7 +58,7 @@ async def track_mjfp_topup_sale(
         username=username,
         plan=MJFP_DEFAULT_SALE_PLAN,
     )
-    if not result:
+    if result is None:
         log.warning(
             "MJFP sale not recorded for event_id=%s influencer_id=%s username=%s",
             event_id,
