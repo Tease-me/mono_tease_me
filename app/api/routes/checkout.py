@@ -311,7 +311,11 @@ async def armloop_webhook(
         if topup.credited:
             if not topup.fp_tracked:
                 retry_user = await db.get(User, topup.user_id)
-                retry_influencer = await db.get(Influencer, topup.influencer_id)
+                retry_influencer = (
+                    await db.get(Influencer, topup.influencer_id)
+                    if topup.influencer_id
+                    else None
+                )
                 if retry_user:
                     try:
                         if await track_mjfp_topup_sale(
