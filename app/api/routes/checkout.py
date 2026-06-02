@@ -19,7 +19,7 @@ from app.services.credit_conversion import (
     get_conversion_rate,
 )
 from app.services.billing import topup_wallet
-from app.services.mjpromoter import fp_track_sale_v2
+from app.services.use_cases.track_mjfp_topup_sale import track_mjfp_topup_sale
 from app.services.gateways import armloop_gateway
 from app.utils.auth.dependencies import get_current_user
 from app.utils.infrastructure.rate_limiter import rate_limit
@@ -145,42 +145,22 @@ async def payment_webhook(
 
     # ── 6. MJFP sale tracking ────────────────────────────────────────
     if not topup.fp_tracked:
-        if not influencer:
-            log.warning(
-                "FP tracking skipped: influencer %s not found for checkout_id=%s",
-                topup.influencer_id,
-                payload.checkout_id,
-            )
-        elif not influencer.fp_ref_id:
-            log.warning(
-                "FP tracking skipped: influencer %s has no fp_ref_id",
-                topup.influencer_id,
-            )
-        else:
-            try:
-                await fp_track_sale_v2(
-                    email=user.email,
-                    uid=str(user.id),
-                    amount_cents=topup.cents,
-                    event_id=payload.checkout_id,
-                    ref_id=influencer.fp_ref_id,
-                    plan="wallet_topup",
-                )
+        try:
+            if await track_mjfp_topup_sale(
+                db,
+                user=user,
+                influencer=influencer,
+                amount_cents=topup.cents,
+                event_id=payload.checkout_id,
+            ):
                 topup.fp_tracked = True
                 db.add(topup)
                 await db.commit()
-                log.info(
-                    "FP sale tracked for checkout_id=%s ref_id=%s amount=%s",
-                    payload.checkout_id,
-                    influencer.fp_ref_id,
-                    topup.cents,
-                )
-            except Exception as e:
-                log.warning(
-                    "FP track sale failed for checkout_id=%s: %s",
-                    payload.checkout_id,
-                    e,
-                )
+        except Exception:
+            log.exception(
+                "MJFP track sale failed for checkout_id=%s",
+                payload.checkout_id,
+            )
 
     return {
         "ok": True,
@@ -329,6 +309,30 @@ async def armloop_webhook(
             continue
 
         if topup.credited:
+            if not topup.fp_tracked:
+                retry_user = await db.get(User, topup.user_id)
+                retry_influencer = (
+                    await db.get(Influencer, topup.influencer_id)
+                    if topup.influencer_id
+                    else None
+                )
+                if retry_user:
+                    try:
+                        if await track_mjfp_topup_sale(
+                            db,
+                            user=retry_user,
+                            influencer=retry_influencer,
+                            amount_cents=topup.cents,
+                            event_id=notification.merchantReference,
+                        ):
+                            topup.fp_tracked = True
+                            db.add(topup)
+                            await db.commit()
+                    except Exception:
+                        log.exception(
+                            "MJFP track sale retry failed for ref=%s",
+                            notification.merchantReference,
+                        )
             log.info(
                 "armloop.webhook duplicate for ref=%s — already processed",
                 notification.merchantReference,
@@ -393,41 +397,21 @@ async def armloop_webhook(
 
         # ── 6. MJFP sale tracking ───────────────────────────────────
         if not topup.fp_tracked:
-            if not influencer:
-                log.warning(
-                    "FP tracking skipped: influencer %s not found for ref=%s",
-                    topup.influencer_id,
-                    notification.merchantReference,
-                )
-            elif not influencer.fp_ref_id:
-                log.warning(
-                    "FP tracking skipped: influencer %s has no fp_ref_id",
-                    topup.influencer_id,
-                )
-            else:
-                try:
-                    await fp_track_sale_v2(
-                        email=user.email,
-                        uid=str(user.id),
-                        amount_cents=topup.cents,
-                        event_id=notification.merchantReference,
-                        ref_id=influencer.fp_ref_id,
-                        plan="wallet_topup",
-                    )
+            try:
+                if await track_mjfp_topup_sale(
+                    db,
+                    user=user,
+                    influencer=influencer,
+                    amount_cents=topup.cents,
+                    event_id=notification.merchantReference,
+                ):
                     topup.fp_tracked = True
                     db.add(topup)
                     await db.commit()
-                    log.info(
-                        "FP sale tracked for ref=%s ref_id=%s amount=%s",
-                        notification.merchantReference,
-                        influencer.fp_ref_id,
-                        topup.cents,
-                    )
-                except Exception as e:
-                    log.warning(
-                        "FP track sale failed for ref=%s: %s",
-                        notification.merchantReference,
-                        e,
-                    )
+            except Exception:
+                log.exception(
+                    "MJFP track sale failed for ref=%s",
+                    notification.merchantReference,
+                )
 
     return {"ok": True, "accepted": True}

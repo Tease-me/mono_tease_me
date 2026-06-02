@@ -10,6 +10,8 @@ import logging
 
 log = logging.getLogger(__name__)
 
+MJFP_DEFAULT_SALE_PLAN = "premium"
+
 
 class MJFPConfig:
     """
@@ -163,18 +165,19 @@ async def fp_get_promoter_v2(promoter_id: int | str) -> dict | None:
 
 
 async def fp_track_sale_v2(
-    *, 
-    email: str | None = None, 
-    uid: str | None = None, 
-    amount_cents: int, 
-    event_id: str, 
-    tid: str | None = None, 
-    ref_id: str | None = None, 
-    plan: str | None = None
+    *,
+    email: str | None = None,
+    uid: str | None = None,
+    amount_cents: int,
+    event_id: str,
+    tid: str | None = None,
+    ref_id: str | None = None,
+    username: str | None = None,
+    plan: str | None = None,
 ) -> dict | None:
     """
     Track a sale/conversion in MJ Promoter
-    
+
     Args:
         email: Customer email (required if uid not provided)
         uid: Customer user ID (required if email not provided)
@@ -182,13 +185,24 @@ async def fp_track_sale_v2(
         event_id: Unique transaction ID from your system
         tid: Tracking ID (optional)
         ref_id: Promoter's ref_id (optional, used for lookup)
+        username: Promoter username in MJFP (optional, used for lookup)
         plan: Subscription plan name (optional)
-        
+
     Returns:
         Response with commission details
     """
     _ensure_mjfp_config_from_settings()
-    log.info(f"[MJFP] Tracking sale: event_id={event_id}, amount=${amount_cents/100:.2f}, email={email}, uid={uid}, ref_id={ref_id}")
+    log.info(
+        "[MJFP] Tracking sale: event_id=%s amount=$%.2f email=%s uid=%s "
+        "ref_id=%s username=%s plan=%s",
+        event_id,
+        amount_cents / 100,
+        email,
+        uid,
+        ref_id,
+        username,
+        plan,
+    )
     token = MJFPConfig.MJFP_TOKEN
     account_id = MJFPConfig.MJFP_ACCOUNT_ID
     base_url = MJFPConfig.get_base_url()
@@ -212,6 +226,8 @@ async def fp_track_sale_v2(
         payload["tid"] = tid
     if ref_id:
         payload["ref_id"] = ref_id
+    if username:
+        payload["username"] = username
     if plan:
         payload["plan"] = plan
 
@@ -235,7 +251,13 @@ async def fp_track_sale_v2(
                 try:
                     error_body = r.json()
                     error_msg = error_body.get("error", "Not found")
-                    log.warning(f"[MJFP] Sale tracking failed: {error_msg} for event_id={event_id}, ref_id={ref_id}")
+                    log.warning(
+                        "[MJFP] Sale tracking failed: %s for event_id=%s ref_id=%s username=%s",
+                        error_msg,
+                        event_id,
+                        ref_id,
+                        username,
+                    )
                 except ValueError:
                     log.error(f"[MJFP] 404 response with non-JSON body from {url}")
                 return None
