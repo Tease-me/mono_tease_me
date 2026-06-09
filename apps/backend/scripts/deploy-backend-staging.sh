@@ -2,7 +2,9 @@
 
 set -euo pipefail
 
-SOURCE_DIR="${GITHUB_WORKSPACE:-$(pwd)}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APP_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+SOURCE_DIR="${STAGING_SOURCE_DIR:-$APP_DIR}"
 TARGET_DIR="${STAGING_APP_DIR:-$HOME/tease-me-backend-staging}"
 STAGING_PORT="${STAGING_PORT:-8001}"
 STAGING_COMPOSE_FILE="${STAGING_COMPOSE_FILE:-compose.staging.yml}"
@@ -19,7 +21,7 @@ fi
 
 mkdir -p "$TARGET_DIR"
 
-echo "Syncing backend staging source into $TARGET_DIR"
+echo "Syncing backend staging source from $SOURCE_DIR into $TARGET_DIR"
 rsync -a --delete \
   --exclude '.git/' \
   --exclude '.github/' \

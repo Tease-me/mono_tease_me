@@ -2,14 +2,17 @@
 
 set -euo pipefail
 
-SOURCE_DIR="${GITHUB_WORKSPACE:-$(pwd)}"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+APP_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+SOURCE_DIR="${STAGING_SOURCE_DIR:-$APP_DIR}"
 TARGET_DIR="${STAGING_APP_DIR:-$HOME/tease-me-staging}"
 PORT="${STAGING_PORT:-4173}"
 PM2_APP_NAME="${STAGING_PM2_APP_NAME:-tease-me-staging}"
-PM2_ECOSYSTEM_PATH="${STAGING_PM2_ECOSYSTEM_PATH:-deploy/pm2/ecosystem.staging.config.cjs}"
+PM2_ECOSYSTEM_PATH="${STAGING_PM2_ECOSYSTEM_PATH:-pm2/ecosystem.staging.config.cjs}"
 
 mkdir -p "$TARGET_DIR"
 
+echo "Syncing frontend staging source from $SOURCE_DIR into $TARGET_DIR"
 rsync -a --delete \
   --exclude ".git/" \
   --exclude ".env" \
@@ -30,7 +33,7 @@ if ! command -v pm2 >/dev/null 2>&1; then
 fi
 
 if [ ! -f "$PM2_ECOSYSTEM_PATH" ]; then
-  echo "PM2 ecosystem file not found: $PM2_ECOSYSTEM_PATH" >&2
+  echo "PM2 ecosystem file not found: $TARGET_DIR/$PM2_ECOSYSTEM_PATH" >&2
   exit 1
 fi
 
