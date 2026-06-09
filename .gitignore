@@ -1,0 +1,69 @@
+# macOS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Environment
+.env
+.env.*
+.cert
+
+# Node
+node_modules/
+dist/
+dist-ssr/
+*.local
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+.tscache/
+
+# Logs
+logs/
+*.log
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+env/
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+.auth/
+
+# Backend runtime artifacts
+apps/backend/backups/db/*
+!apps/backend/backups/db/.gitkeep
+apps/backend/telegram_sessions/
+apps/backend/data/geoip/*
+!apps/backend/data/geoip/.gitkeep
+apps/backend/.agent
+
+# AI assistant files (personal — never commit)
+.claude/
+.kilo/
+CLAUDE.md
+STRUCTURE.md
+MEMORY.md
+GOTCHAS.md
+PROGRESS.md

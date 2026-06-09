@@ -1,4 +1,4 @@
-name: Deploy Staging
+name: Frontend – Deploy Staging
 
 on:
   pull_request:
@@ -6,6 +6,8 @@ on:
       - closed
     branches:
       - staging
+    paths:
+      - 'apps/frontend/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.base.ref }}
@@ -21,6 +23,9 @@ jobs:
     env:
       STAGING_SERVICE_LABEL: com.teaseme.staging-web
       STAGING_PORT: 4173
+    defaults:
+      run:
+        working-directory: apps/frontend
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

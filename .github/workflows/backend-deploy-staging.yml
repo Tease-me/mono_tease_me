@@ -1,4 +1,4 @@
-name: Deploy Backend Staging
+name: Backend – Deploy Staging
 
 on:
   pull_request:
@@ -6,6 +6,8 @@ on:
       - closed
     branches:
       - staging
+    paths:
+      - 'apps/backend/**'
 
 jobs:
   deploy-staging:
@@ -14,7 +16,9 @@ jobs:
       - self-hosted
       - macOS
       - X64
-
+    defaults:
+      run:
+        working-directory: apps/backend
     steps:
       - name: Checkout
         uses: actions/checkout@v4

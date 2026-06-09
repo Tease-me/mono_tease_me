@@ -1,13 +1,17 @@
-name: Lint
+name: Backend – Lint
 
 on:
   pull_request:
+    paths:
+      - 'apps/backend/**'
   workflow_dispatch:
 
 jobs:
   lint:
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: apps/backend
     steps:
       - name: Checkout
         uses: actions/checkout@v4

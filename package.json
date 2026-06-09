@@ -1,0 +1,19 @@
+{
+  "name": "mono-tease-me",
+  "private": true,
+  "workspaces": [
+    "apps/frontend"
+  ],
+  "scripts": {
+    "fe": "yarn workspace tease-me",
+    "fe:start": "yarn workspace tease-me start",
+    "fe:build": "yarn workspace tease-me build",
+    "fe:lint": "yarn workspace tease-me lint",
+    "fe:test": "yarn workspace tease-me test",
+    "be": "cd apps/backend && poetry run",
+    "be:start": "cd apps/backend && poetry run uvicorn app.main:app --reload",
+    "be:lint": "cd apps/backend && make lint",
+    "be:docker": "cd apps/backend && docker compose up"
+  },
+  "packageManager": "yarn@1.22.22"
+}
