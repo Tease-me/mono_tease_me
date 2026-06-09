@@ -1,0 +1,72 @@
+:root {
+  /* starts fluid at your breakpoint, stops around your max layout width */
+  --fluid-min: 32rem;
+  --fluid-max: 80rem;
+
+  /* 0 at 32rem, 1 at 80rem */
+  --fluid-t: calc((100vw - var(--fluid-min)) / (var(--fluid-max) - var(--fluid-min)));
+}
+
+/*:::::::::::::: TERMS PAGE ::::::::::::::*/
+
+.policy-page {
+  height: 100dvh;
+  background-color: #000;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding-bottom: 10rem;;
+
+}
+
+.policy-back-btn {border: 1px solid rgba(255, 255, 255, 0.255); padding: 1rem 2rem; margin-top: 10vh; border-radius: 3rem;}
+
+p, ul {color: rgba(255, 255, 255, 0.7);
+    font-family: "DM Sans";
+    font-size: clamp(1rem, calc(1rem + (1.5rem - 1rem) * var(--fluid-t)), 1rem);
+    font-style: normal;
+    font-weight: 400;
+    line-height: 160%;}
+
+    ul {margin-left:2rem; margin-top:0.5rem;}
+
+
+.policy-inner {        width: 100%;
+        max-width: 125ch; margin: 0 auto;     padding: 2rem;}
+
+.policy-updated {opacity: 1; color: rgba(255, 255, 255, 1); margin-bottom: 2rem;}
+
+h1 {
+    font-family: "Abril Fatface", serif;
+    font-size: clamp(1.7rem, calc(2.7rem + (3rem - 2.7rem) * var(--fluid-t)), 3rem);
+    font-style: normal;
+    font-weight: 400;
+    line-height: 110%;
+    color: #ffffff;
+    margin: 3rem 0 1rem 0;}
+
+h2 {margin-top: 2rem; margin-bottom: 0.5rem; font-size: clamp(1.3rem, calc(2.7rem + (1rem - 2.7rem) * var(--fluid-t)), 1rem); font-weight: 400;}
+
+
+/*        ____________________________
+         |  ________________________  |
+         | |                        | |
+         | |        DESKTOP         | |
+         | |                        | |
+         | |________________________| |
+         |____________________________|
+                   ||      ||
+                   ||______||
+                 .-__________-.
+                /  __________  \
+               /__/__________\__\
+                  /_/      \_\          */
+
+
+
+@media (min-width: 32rem) {
+
+  .policy-inner {        width: 100%;
+        max-width: 125ch; margin: 0 auto;    }
+
+}

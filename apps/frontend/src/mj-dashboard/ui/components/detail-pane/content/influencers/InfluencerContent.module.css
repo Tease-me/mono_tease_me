@@ -1,0 +1,18 @@
+.influencer-content {
+    display: flex;
+    flex: 1;
+}
+
+.user-cell {
+    display: flex;
+    gap: var(--space-px-16);
+    justify-content: center;
+    align-items: center;
+}
+
+.user-cell .avatar {
+    height: 48px;
+    width: 48px;
+    border-radius: 24px;
+    display: block;
+}

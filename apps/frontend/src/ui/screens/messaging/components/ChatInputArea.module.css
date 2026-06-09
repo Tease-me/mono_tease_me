@@ -1,0 +1,121 @@
+.chat-input-area {
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-px-16);
+    align-items: center;
+    border: 1px solid rgba(33, 33, 33, 1);
+    padding: 16px 23px;
+    background-color: var(--color-dark-1);
+    justify-content: center;
+    margin: 0 auto;
+    max-width: calc(var(--max-chat-content-width) + 22px);
+
+    border-radius: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.10);
+    background: linear-gradient(hsla(0, 0%, 0%, 0.83), hsla(0, 0%, 0%, 0.78));
+    box-shadow: 0 -5px 10px 0 rgba(0, 0, 0, 0.20);
+
+    backdrop-filter: blur(8px) brightness(4);
+    margin-bottom: 3dvh;
+    position: relative;
+}
+
+.input-with-badge {
+    display: flex;
+    position: relative;
+    flex: 1;
+}
+
+.input-container {
+    display: flex;
+    position: relative;
+    flex: 1;
+    flex-direction: row;
+    background-color: var(--color-dark-2);
+    color: var(--color-text-secondary);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: var(--Dark-Dark-2, #1F222A);
+    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25) inset;
+    outline: none;
+}
+
+.input-container input {
+    display: flex;
+    padding: 18px 20px;
+    padding-right: 100px;
+    border: none;
+    outline: none;
+    width: 100%;
+}
+
+.credit-badge {
+    display: flex;
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    align-self: center;
+}
+
+.input-container.recording {
+    outline: 1px solid #ffa500;
+}
+
+.input-container.error {
+    outline: 1px solid rgba(255, 77, 103, 1);
+}
+
+.error-message {
+    color: rgba(255, 77, 103, 1);
+    font-size: 14px;
+    padding: 20px 18px;
+}
+
+.input-container input:focus,
+.input-container input:active {
+    outline: none;
+    border-radius: 12px;
+    box-shadow: 0 0 0 2px hsl(0deg 0% 100% / 22%);
+    background-color: var(--color-dark-1);
+}
+
+.input-container canvas {
+    display: flex;
+    flex: 1;
+}
+
+.buttons {
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-px-4);
+}
+
+.buttons.voice-mode {
+    display: flex;
+    flex: 1;
+}
+
+.buttons.voice-mode .send-btn {
+    flex: 0;
+    min-width: 60px;
+}
+
+.call-btn {
+    background-color: #ff4d6d;
+    border: none;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 14px;
+    align-self: center;
+}
+
+@media (max-width: 1024px) {
+    .chat-input-area {
+        border: 1px solid rgba(168, 168, 168, 0.14);
+        padding: 20px 28px 20px 28px;
+        margin-bottom: 0px;
+    }
+}

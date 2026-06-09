@@ -1,0 +1,70 @@
+.page {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 auto;
+  width: 100%;
+  min-height: 100%;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.loading {
+  display: flex;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.list {
+  display: flex;
+  width: 100%;
+  gap: var(--space-px-16);
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+  justify-content: safe center;
+  margin-block: auto;
+}
+
+.edgeFade {
+  mask-image: linear-gradient(90deg, black 90%, transparent);
+}
+
+.chatButton {
+  width: 100%;
+  max-width: 200px;
+  margin: 12px auto 0;
+  text-align: center;
+  height: 64px;
+  border-radius: 100px;
+}
+
+.buttonRow {
+  display: flex;
+  justify-content: center;
+}
+
+.error {
+  color: red;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
+}
+
+@media (min-width: 32rem) {
+  .edgeFade {
+    mask-image: unset;
+  }
+}

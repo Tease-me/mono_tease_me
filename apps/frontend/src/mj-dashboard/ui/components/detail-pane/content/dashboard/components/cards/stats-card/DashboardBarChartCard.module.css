@@ -1,0 +1,19 @@
+.dashboard-stats-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-px-8);
+}
+
+.title {
+    color: var(--color-primary);
+    margin: 0 21px 0px 21px;
+}
+
+.content {
+    display: flex;
+    font-size: 12px;
+    font-weight: 400;
+    margin: 21px 21px 21px 21px;
+    align-items: center;
+    justify-content: center;
+}

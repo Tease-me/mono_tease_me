@@ -1,0 +1,4 @@
+export const constants = {
+  DESKTOP_BREAKPOINT: 1024,
+  DESKTOP_TABLET_BREAKPOINT: 768,
+}

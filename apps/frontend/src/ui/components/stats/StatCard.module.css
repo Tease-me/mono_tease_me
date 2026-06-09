@@ -1,0 +1,21 @@
+.card {
+    background-color: var(--color-dark-2);
+    padding: 20px 20px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.label {
+    color: var(--color-grey-500);
+}
+
+.value {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 120%;
+    color: var(--color-primary);
+    margin-bottom: 12px;
+}

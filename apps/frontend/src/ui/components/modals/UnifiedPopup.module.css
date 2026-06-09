@@ -1,0 +1,108 @@
+.overlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  padding: 56px;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--color-dark-2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  transform: translateY(12px);
+  opacity: 0;
+  transition: transform 0.22s ease-out, opacity 0.22s ease-out;
+}
+
+.container.open {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.header {
+  flex: 0 0 auto;
+}
+
+.spacer {
+  display: flex;
+  height: 1px;
+  margin: 0 var(--space-px-28, 28px) var(--space-px-28, 28px) var(--space-px-28, 28px);
+  flex-direction: column;
+  align-items: flex-start;
+  background: rgba(255, 255, 255, 0.20);
+  gap: var(--space-px-32, 32px);
+  align-self: stretch;
+}
+
+.body {
+  flex: 1 1 auto;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+  min-height: 0;
+  padding: var(--space-px-28, 28px) var(--space-px-28, 28px) var(--space-px-52, 52px) var(--space-px-28, 28px);
+}
+
+.footer {
+  flex: 0 0 auto;
+  position: sticky;
+  padding: 38px var(--space-px-28) var(--space-px-52);
+  bottom: 0;
+  z-index: 1;
+}
+
+.size-sm {
+  max-width: 420px;
+}
+
+.size-md {
+  max-width: 680px;
+}
+
+.size-lg {
+  max-width: 920px;
+}
+
+.size-xl {
+  max-width: 1200px;
+}
+
+.container.horizontalOnDesktop {
+  flex-direction: row;
+}
+
+@media (max-width: 767px) {
+  .overlay {
+    padding: 16px;
+    align-items: flex-end;
+  }
+
+  
+  .container {
+    max-height: 92dvh;
+    border-radius: 16px 16px 0 0;
+    transform: translateY(24px);
+  }
+
+  .container.horizontalOnDesktop {
+    flex-direction: column;
+  }
+
+  .container.horizontalOnDesktop .spacer {
+    height: 100%;
+    width: 1px;
+    margin: 0 var(--space-px-28, 28px) var(--space-px-32, 32px) var(--space-px-28, 28px);
+  }
+}

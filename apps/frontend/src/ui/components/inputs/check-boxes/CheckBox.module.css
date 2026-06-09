@@ -1,0 +1,110 @@
+.wrapper {
+    --cb-size: 24px;
+    --cb-radius: 8px;
+    --cb-border: var(--color-primary);
+    --cb-border-hover: var(--color-pink);
+    --cb-bg: transparent;
+    --cb-bg-checked: var(--color-primary);
+    --cb-check-color: #fff;
+    --cb-focus: #3b82f6;
+
+
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-px-8);
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    color: var(--color-text);
+}
+
+.wrapper:hover {
+    color: var(--color-text-secondary);
+}
+
+.input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    display: none;
+    appearance: none;
+    -webkit-appearance: none;
+    pointer-events: none;
+}
+
+.box {
+    width: var(--cb-size);
+    height: var(--cb-size);
+    border: 3px solid var(--cb-border);
+    border-radius: var(--cb-radius);
+    background: var(--cb-bg);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.checkIcon {
+    width: calc(var(--cb-size) - 10px);
+    height: calc(var(--cb-size) - 10px);
+    opacity: 0;
+    transform: scale(0.6);
+    transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.input:checked+.box .checkIcon {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.input:disabled+.box .checkIcon {
+    fill: #cfcfcf;
+}
+
+
+.wrapper:not(.disabled):hover .box {
+    border-color: var(--cb-border-hover);
+}
+
+.input:focus-visible+.box {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--cb-focus) 40%, transparent);
+    border-color: var(--cb-focus);
+}
+
+.input:checked+.box {
+    background: var(--cb-bg-checked);
+    border-color: var(--cb-bg-checked);
+}
+
+.disabled,
+.input:disabled+.box,
+.input:disabled~.label {
+    cursor: not-allowed;
+}
+
+.disabled {
+    opacity: 0.55;
+}
+
+.input:disabled+.box {
+    background: #f2f2f2;
+    border-color: #d0d0d0;
+}
+
+
+.label {
+    display: flex;
+    gap: var(--space-px-8);
+    align-items: center;
+    line-height: 1.3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .box,
+    .box::after {
+        transition: none;
+    }
+}

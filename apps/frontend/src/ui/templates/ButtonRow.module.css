@@ -1,0 +1,11 @@
+.row {
+    display: flex;
+    width: 100%;
+   gap: var(--space-px-16);
+}
+
+.cell {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}

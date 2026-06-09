@@ -1,0 +1,147 @@
+import { useEffect, useState } from "react";
+import InfluencerRelationCard from "@/ui/components/cards/InfluencerRelationCard";
+import clsx from "clsx";
+
+import IconButton from "@/ui/components/inputs/buttons/IconButton";
+import { RelationshipServices } from "@/api/services/RelationshipServices";
+import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
+import { BalanceServices } from "@/api/services/BalanceServices";
+
+import { apiClient } from "@/api/apis";
+import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
+
+import styles from "./ManageInfluencers.module.css"
+
+const relationshipService = RelationshipServices(apiClient);
+
+type MyInfleuncerProps = {
+  goTo: (id: string, payload?: Record<string, any>) => void;
+  navPayload?: Record<string, any>;
+  goBack?: () => void;
+};
+
+const MyInfluencers: React.FC<MyInfleuncerProps> = ({ goTo }) => {
+  const [items, setItems] = useState<
+    Array<{
+      influencerId: string;
+      name: string;
+      image: string;
+      video: string;
+      balance: number;
+      lastConnected: string;
+      // sentimentDelta: number;
+      status: string;
+      trust: number;
+      safety: number;
+      attraction: number;
+      closeness: number;
+      followingSince: string;
+    }>
+  >([]);
+
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        const followed = await InfluencerRepo().getFollowedInfluencers();
+        const balanceSvc = BalanceServices(apiClient);
+
+        setItems(
+          followed.map((inf) => ({
+            influencerId: inf.id,
+            name: inf.name,
+            image: inf.img,
+            video: (inf as any).videoUrl || inf.videoUrl,
+            balance: 0,
+            lastConnected: "",
+            sentimentDelta: 0,
+            status: "",
+            trust: 0,
+            safety: 0,
+            attraction: 0,
+            closeness: 0,
+            followingSince: inf.created_at,
+          }))
+        );
+        setLoading(false)
+
+
+        const cards = await Promise.all(
+          followed.map(async (inf) => {
+            const [rel, balanceRes] = await Promise.all([
+              relationshipService.getRelationship(inf.id),
+              balanceSvc.getBalance(inf.id).catch(() => null),
+            ]);
+
+            const balanceValue = balanceRes ? balanceRes.balance_credits : 0;
+
+            return {
+              influencerId: inf.id,
+              name: inf.name,
+              image: inf.img,
+              video: (inf as any).videoUrl || inf.videoUrl,
+              balance: balanceValue,
+              lastConnected: rel.last_interaction_at || "",
+              // sentimentDelta: rel.sentiment_delta || 0,
+              status: rel.state,
+              trust: rel.trust,
+              safety: rel.safety,
+              attraction: rel.attraction,
+              closeness: rel.closeness,
+              followingSince: inf.created_at
+            };
+          })
+        );
+        setItems(cards);
+      } catch (e: any) {
+        setError(e?.message || "Failed to load influencer data");
+        console.error(e)
+      }
+    };
+    load();
+  }, []);
+
+
+  const handleViewProfile = (inf: any) => {
+    goTo("influencer_profile", {
+      influencerId: inf.influencerId,
+      name: inf.name,
+      image: inf.image,
+      video: inf.video,
+      balance: inf.balance,
+      lastConnected: inf.lastConnected,
+      trust: inf.trust,
+      safety: inf.safety,
+      status: inf.status,
+      attraction: inf.attraction,
+      closeness: inf.closeness,
+      sentimentDelta: inf.sentimentDelta,
+      followingSince: inf.followingSince,
+    });
+  };
+
+  return (
+    <div className={clsx("u-sidebar-page", styles.container)}>
+      {loading ? <div className={styles.loading} >{<LoadingSpinner />} </div> :
+        <div className={styles.list}>
+          {items.map((inf) => (
+            <div key={inf.influencerId}>
+              <div className={styles.card}>
+                <InfluencerRelationCard {...inf} />
+              </div>
+              <div className={styles.buttonRow}>
+                <IconButton text="View Profile" onClick={() => handleViewProfile(inf)} color="black" className={styles.viewProfile} />
+              </div>
+            </div>
+          ))}
+          <div className={styles.error}>{error}</div>
+        </div>
+      }
+    </div>
+  );
+};
+
+export default MyInfluencers;

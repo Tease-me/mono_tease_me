@@ -1,0 +1,32 @@
+.top-nav {
+    display: flex;
+    position: relative;
+    justify-content: space-evenly;
+    margin-left: 14px;
+    margin-right: 14px;
+    height: 80px;
+}
+
+.top-nav .left-container {
+    display: flex;
+    flex: 1;
+    justify-content: start;
+    align-items: center;
+}
+
+.top-nav .right-container {
+    display: flex;
+    flex: 1;
+    justify-content: end;
+    align-items: center;
+}
+
+.logoWrap {
+    height: 45px;
+    rotate: 6deg;
+}
+
+.logoWrap img {
+    height: 100%;
+    width: auto;
+}

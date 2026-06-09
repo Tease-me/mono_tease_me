@@ -1,0 +1,85 @@
+
+import SvgPack from "@/utils/SvgPack"
+import styles from "./PaymentResult.module.css"
+import IconButton from "../inputs/buttons/IconButton"
+import clsx from "clsx"
+import { formatCentsToDollars } from "@/utils/balance_utils";
+import CreditDisplay from "../stats/CreditDisplay";
+
+
+
+type PaymentResultProps = {
+  isSuccessful: boolean,
+  onBack?: () => void;
+  onContactSupport?: () => void;
+  amount?: number;
+  creditedCredits?: number;
+  influencerName?: string;
+}
+
+export default function PaymentResult({
+  isSuccessful,
+  onBack,
+  amount,
+  creditedCredits,
+  influencerName,
+}: PaymentResultProps) {
+  const hasSuccessContext =
+    Number.isFinite(creditedCredits) || Number.isFinite(amount) || Boolean(influencerName);
+  const formattedAmount = Number.isFinite(amount)
+    ? formatCentsToDollars(Math.round((amount ?? 0) * 100))
+    : undefined;
+  const failureText = `Please check that you have the required funds and try again. Perhaps try with a different payment method. You have not been charged for this transaction.`;
+
+  return (
+    <div className={clsx('u-sidebar-page', styles.container)}>
+      <div className={styles.imageArea}>
+        {/* <div className={styles.imgBg}>
+          <img src={isSuccessful ? PaymentSuccessBg : PaymentFailureBg} />
+        </div> */}
+        <div className={styles.icon}>
+          {isSuccessful ? <SvgPack.PaymentTick /> : <SvgPack.PaymentCross />}
+        </div>
+      </div>
+      <div className={clsx(styles.title, isSuccessful ? styles.success : styles.error)}>
+        <h3 className={isSuccessful ? styles.success : styles.error}>Payment {isSuccessful ? "Successful" : "Unsuccessful"}</h3>
+      </div>
+      <div className={styles.details}>
+        {!isSuccessful && <span className={styles.error}>We cannot make this payment.</span>}<br />
+        {isSuccessful ? (
+          <span>
+            {hasSuccessContext ? (
+              <>
+                You have successfully added{" "}
+                {Number.isFinite(creditedCredits) ? (
+                  <CreditDisplay
+                    credits={creditedCredits}
+                    className={styles.inlineCredit}
+                  />
+                ) : (
+                  "credits"
+                )}{" "}
+                to {influencerName ? `${influencerName}'s` : "your"} balance.
+                {formattedAmount ? ` Payment amount: ${formattedAmount}.` : ""}
+              </>
+            ) : (
+              "Your payment was successful."
+            )}
+          </span>
+        ) : (
+          <span>{failureText}</span>
+        )}
+        <br></br>
+      </div>
+      <div className={clsx('u-sidebar-footer', styles.footer)}>
+        <div className={clsx(styles.footerTxt, isSuccessful ? styles.success : styles.error)}>
+          {isSuccessful ? 'You will be automatically redirected' : 'Still having errors?'}
+        </div>
+        <div className={styles.footerBtnArea}>
+          {/* {!isSuccessful && <IconButton className={styles.btn} color="pink-glass" text="Contact Support" onClick={onContactSupport} />} */}
+          <IconButton className={styles.btn} color="black" text="Back to Profile" onClick={onBack} />
+        </div>
+      </div>
+    </div>
+  )
+}

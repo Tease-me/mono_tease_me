@@ -1,0 +1,480 @@
+.ic-wrapper {
+  width: 100%;
+
+  display: flex;
+  justify-content: center;
+
+  /* background: linear-gradient(180deg,
+      #0d0d0d 0%,
+      #1a1618 40%,
+      #221c20 75%,
+      #29222a 100%);
+  background-image: url("/noise.png"),
+    linear-gradient(180deg, #0d0d0d 0%, #1a1618 40%, #221c20 75%, #29222a 100%);
+  background-blend-mode: overlay; */
+}
+
+.ic-card {
+  width: 100%;
+
+  padding: 3rem 1.7rem;
+  border-radius: 25px;
+  background: rgb(10 10 10 / 53%);
+  border: 1px solid rgba(79, 71, 71, 0.8);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(20px);
+}
+
+.ic-card:before {
+  content: '';
+  content: '';
+  background-image: url(/src/assets/image/noise-bg.jpg);
+  background-repeat: repeat;
+  background-size: 20rem;
+  background-blend-mode: luminosity;
+  filter: invert(1);
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000000;
+  border-radius: 25px;
+  opacity: 0.5;
+  mask-image: linear-gradient(0deg, black 0%, transparent 90%);
+}
+
+.ic-title {
+  font-family: "Abril Fatface", serif;
+  font-weight: 400;
+  letter-spacing: 1px;
+  font-size: 2.125rem;
+  line-height: 1.15;
+  margin: 0 0 12px;
+  color: white;
+}
+
+.ic-question {
+  color: #FFF;
+  font-family: "DM Sans";
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 300;
+  line-height: normal;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 164, 192, 0.11);
+  display: inline-flex;
+  height: 2.3125rem;
+  padding: 0.3125rem 0.625rem;
+  align-items: center;
+  gap: var(--space-px-4);
+  background: rgba(38, 38, 38, 0.20);
+  width: max-content;
+  margin: 0.5rem auto 1.5rem;
+}
+
+.ic-toggle {
+  display: flex;
+  gap: 0;
+  min-width: 67vw;
+  margin-bottom: 2rem;
+}
+
+.tm-converted-value {
+  display: inline-flex;
+  padding: 4px 12px;
+  border-radius: 1rem;
+  border: 1px solid var(--color-primary);
+  background: rgba(239, 6, 78, 0.10);
+  color: var(--color-primary);
+  text-align: center;
+  font-family: "Abril Fatface";
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 400;
+  min-width: 4.5rem;
+  justify-content: center;
+  line-height: 1.25rem;
+}
+
+.ic-toggle-btn-auto {
+  flex: 1;
+  padding: 10px 0;
+  border-radius: 0.5rem 0rem 0rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.3);
+  color: #ddd;
+  font-size: 0.9rem;
+  opacity: 0.7;
+  transition: all 300ms ease;
+}
+
+.ic-toggle-btn-auto.active {
+  border: 1px solid var(--color-primary);
+  border-radius: 0.5rem 0rem 0rem 0.5rem;
+  background: rgba(239, 6, 78, 0.8);
+  color: white;
+  font-size: 1rem;
+  opacity: 1;
+  box-shadow: inset 4px 5px 1px -3.8px hsl(0deg 0% 100% / 58.82%);
+  transition: all 300ms ease;
+}
+
+.ic-toggle-btn-manual {
+  flex: 1;
+  padding: 10px 0;
+  border-radius: 0rem 0.5rem 0.5rem 0rem;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.3);
+  color: #ddd;
+  opacity: 0.7;
+  font-size: 0.9rem;
+  transition: all 300ms ease;
+}
+
+.ic-toggle-btn-manual.active {
+  border: 1px solid var(--color-primary);
+  border-radius: 0rem 0.5rem 0.5rem 0rem;
+  background: rgba(239, 6, 78, 0.8);
+  color: white;
+  font-size: 1rem;
+  opacity: 1;
+  box-shadow: inset -4px 4px 1px -3.8px hsl(0deg 0% 100% / 58.82%);
+  transition: all 300ms ease;
+}
+
+.ic-income-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.ic-income-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-px-8);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.ic-period {
+  background: rgba(0, 0, 0, 0.80);
+
+  border-radius: 0.375rem;
+  border: 1px solid rgba(176, 121, 137, 0.312);
+  padding: 0.6rem 0.75rem;
+  color: var(--color-primary);
+  font-family: "DM Sans";
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: normal;
+  text-transform: uppercase;
+  -webkit-appearance: none;
+  /* Safari */
+  -moz-appearance: none;
+  /* Firefox */
+  appearance: none;
+  /* Remove OS styling */
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%23ef0650' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  padding-right: 32px;
+}
+
+.ic-period option {
+  font-size: 16px !important;
+  font-weight: 500;
+  padding: 10px;
+  color: #fff;
+  background-color: #1a1a1a;
+}
+
+select.ic-period::-webkit-text-size-adjust {
+  font-size: 16px !important;
+}
+
+.ic-period::-webkit-dropdown-menu {
+  font-size: 16px !important;
+}
+
+.ic-mode-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.ic-mode-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.ic-income-value {
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--color-primary);
+  background: var(--color-primary);
+  color: white;
+  text-align: center;
+  font-family: "Abril Fatface";
+  font-size: 2rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 2rem;
+  /* 100% */
+}
+
+.ic-divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.17);
+  margin: 8px 0 16px;
+}
+
+.ic-label {
+  color: #eee;
+  font-size: 14px;
+  margin-top: 8px;
+  display: block;
+}
+
+.req {
+  color: #ff4f81;
+}
+
+.ic-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  margin-top: 6px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.3);
+  color: white;
+  min-height: 3.5rem;
+  font-size: 1rem;
+}
+
+.ic-input:focus,
+.ic-input:focus-visible {
+  outline: none;
+  border-color: hsla(340, 50%, 50%, 0.8);
+  padding-left:1.2rem;
+ box-shadow: -9px 8px 4px -8px hsla(340, 100%, 73.06%, 0.34) inset,
+10px -12px 14px -8px hsla(340, 89.82%, 80.49%, 0.25) inset,
+8px -9px 0 -6px hsla(340, 83.22%, 44.25%, 0.23) inset;
+background: hsla(339, 100%, 10.75%, 0.96);
+transition: all 350ms ease;
+}
+
+.ic-helper {
+  font-size: 12px;
+  opacity: 0.6;
+  margin-top: 4px;
+  margin-bottom: 2rem;
+  text-align: right;
+}
+
+.ic-converted-audience-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.ic-slider {
+  position: relative;
+  margin-top: 2rem;
+  margin-bottom: 3rem;
+  max-width: 15rem;
+  margin-left: auto;
+  margin-right: auto;
+
+  /* give it height so the input can cover thumb + track */
+  height: 3.5rem;
+}
+
+/* track + fill sit in the vertical center */
+.ic-slider-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 10px;
+  background: #000;
+  border-radius: 999px;
+}
+
+.ic-slider-fill {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 10px;
+  border-radius: 0.5rem;
+  background: linear-gradient(
+    90deg,
+    hsl(341deg 95% 48% / 20%),
+    hsl(341, 95%, 48%) 90%,
+    hsl(341, 100%, 66%) 98%,
+    hsl(341, 100%, 80%) 100%
+  );
+  box-shadow: 0 2px 1px 0 #000 inset,
+    0 1px 0 0 rgba(255, 255, 255, 0.12);
+}
+
+/* visual thumb only */
+.ic-slider-thumb {
+  display: flex;
+  width: 3rem;
+  height: 1.8rem;
+  border-radius: 3rem;
+  border: 1px solid rgba(199, 0, 61, 0.40);
+  background: linear-gradient(
+    136deg,
+    #7b0128 11.82%,
+    #88002A 46.38%,
+    #710023 64.17%,
+    #9D0030 74.43%,
+    #710023 82.98%
+  );
+  position: absolute;
+  top: 50%;
+  /* left is driven by inline style */
+  transform: translate(-50%, -50%);
+  box-shadow: -4px 0px 8px hsl(331deg 96% 9% / 60%);
+  transition: transform 300ms ease;
+  pointer-events: none; /* important: don’t block touches */
+}
+
+.ic-slider-thumb-hold {
+  /* grow + slight lift instead of changing width/height/position */
+  transform: translate(-50%, -55%) scale(1.3);
+  opacity: 0.7;
+  background: radial-gradient(
+    136deg,
+    #EF064E 11.82%,
+    #88002A 46.38%,
+    #710023 64.17%,
+    #9D0030 74.43%,
+    #710023 82.98%
+  );
+  background-color: #ef0650;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+}
+
+/* range input: full-height invisible hit area */
+.ic-slider-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;             /* invisible but still interactive */
+  background: transparent;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* WEBKIT (iOS Safari, Chrome Android, etc.) */
+.ic-slider-input::-webkit-slider-runnable-track {
+  -webkit-appearance: none;
+  background: transparent; /* we draw our own track */
+}
+
+.ic-slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 32px;      /* important: NOT 0 */
+  height: 32px;
+  background: transparent;
+  border: none;
+}
+
+/* FIREFOX */
+.ic-slider-input::-moz-range-track {
+  background: transparent;
+}
+
+.ic-slider-input::-moz-range-thumb {
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+}
+
+/* (optional) old Edge / IE */
+.ic-slider-input::-ms-track {
+  background: transparent;
+  border-color: transparent;
+  color: transparent;
+}
+
+.ic-slider-input::-ms-thumb {
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+}
+.ic-cta {
+  width: 100%;
+  margin-top: 24px;
+  padding: 14px;
+  border-radius: 999px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  background: linear-gradient(180deg,
+      #d90048 0%,
+      #d70048 16%,
+      #cc0044 33%,
+      #ff276f 50%,
+      #c20041 72%,
+      #b5003c 100%);
+
+}
+
+@media (min-width: 32rem) {
+
+  .ic-title {
+    font-size: 3rem;
+    text-align: center;
+  }
+
+  .tm-tagline-pill02 {
+    min-width: 16rem;
+  }
+
+  .ic-question {
+    display: flex;
+    margin: 2rem auto 2rem auto
+  }
+
+  .ic-income-row {
+    justify-content: center;
+  }
+
+  .ic-income-label,
+  .ic-period {
+    font-size: 1rem;
+  }
+
+  .ic-slider {
+    max-width: 80%;
+  }
+
+
+
+
+
+}

@@ -1,0 +1,59 @@
+.dashboard-user-list-item {
+    display: grid;
+    grid-template-columns:
+        auto 2fr 5fr 2fr 3fr 3fr auto;
+    align-items: center;
+    column-gap: 12px;
+    -ms-grid-row-align: center;
+    -ms-grid-column-align: center;
+    padding: 8px 12px;
+}
+
+.col {
+    display: flex;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    align-self: center;
+    margin: 0;
+}
+
+.col.image img {
+    height: 48px;
+    width: 48px;
+    border-radius: 24px;
+    display: block;
+}
+
+.col.id {
+    justify-self: center;
+    text-align: center;
+    width: 80px;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+}
+
+.col.user {
+    display: flex;
+    align-items: center;
+    gap: var(--space-px-12);
+    justify-self: start;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.col.user img {
+    height: 48px;
+    width: 48px;
+    border-radius: 24px;
+    display: block;
+}
+
+.col.account-status,
+.col.subsciption-level {
+    justify-self: center;
+}
+
+.col.action {
+    justify-self: end;
+}

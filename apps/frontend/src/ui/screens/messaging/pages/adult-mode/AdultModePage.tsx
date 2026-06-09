@@ -1,0 +1,197 @@
+import styles from "./AdultModePage.module.css";
+import PlayIcon from "@/assets/svg/Play.svg?react";
+import PauseIcon from "@/assets/svg/Pause.svg?react";
+import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
+import avatarImage from "@/assets/image/avatar.png";
+import clsx from "clsx";
+import { InfluencerRepo } from "@/data/repositories/InfluencerRepo";
+import { InfluencerSampleModel } from "@/data/models/InfluencerDataModel";
+import PricingPlanCard from "@/ui/components/cards/PricingPlanCard";
+import { apiClient } from "@/api/apis";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { SubscriptionsServices } from "@/api/services/SubscriptionsServices";
+import { useQuery } from "@tanstack/react-query";
+import NormalButton from "@/ui/components/inputs/buttons/NormalButton";
+import { usePostHog } from "@posthog/react";
+
+
+const waveformBars = new Array(24).fill(0);
+const subscriptionSvc = SubscriptionsServices(apiClient);
+
+type AdultModePageProps = {
+  nobg?: boolean;
+  onSubscribePressed: () => void;
+  influencerId: string;
+  influencerImageUrl: string | null;
+  influencerName: string | null;
+  onBackClicked: () => void;
+};
+
+const AdultModePage = ({
+  nobg,
+  onSubscribePressed,
+  influencerId,
+  influencerImageUrl,
+  influencerName,
+  onBackClicked
+}: AdultModePageProps) => {
+  const posthog = usePostHog();
+  const influencerRepo = useMemo(() => InfluencerRepo(), []);
+  const [samples, setSamples] = useState<InfluencerSampleModel[]>([]);
+  const [samplesError, setSamplesError] = useState<string | null>(null);
+  const [isLoadingSamples, setIsLoadingSamples] = useState(false);
+  const [playingId, setPlayingId] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+
+  const { data: plansData, isLoading: loadingPlan } =
+    useQuery({
+      queryKey: ["subscriptionPlans"],
+      queryFn: () => subscriptionSvc.getPlans(),
+      staleTime: Infinity
+    })
+  const basicPlan = plansData?.recurring.find((p) => p.id === 1);
+
+  useEffect(() => {
+    if (!influencerId) return;
+    let isMounted = true;
+    setIsLoadingSamples(true);
+    setSamplesError(null);
+    influencerRepo
+      .listSamples(influencerId)
+      .then((responseSamples) => {
+        if (!isMounted) return;
+        setSamples(responseSamples);
+      })
+      .catch((error) => {
+        console.error("Failed to load influencer samples", error);
+        if (!isMounted) return;
+        setSamplesError("Unable to load samples.");
+      })
+      .finally(() => {
+        if (!isMounted) return;
+        setIsLoadingSamples(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [influencerId, influencerRepo]);
+
+  const handleTogglePlay = (sample: InfluencerSampleModel) => {
+    if (!sample.url) return;
+    if (!audioRef.current) return;
+    const key = sample.s3_key;
+    if (playingId === key) {
+      audioRef.current.pause();
+      setPlayingId(null);
+      return;
+    }
+    if (audioRef.current.src !== sample.url) {
+      audioRef.current.src = sample.url;
+    }
+    audioRef.current.play().catch((error) => {
+      console.error("Failed to play sample", error);
+    });
+    setPlayingId(key);
+  };
+
+  const resolvedAvatar = influencerImageUrl?.trim() || avatarImage;
+
+  return (
+    <div className={clsx(styles.container, nobg && styles.nobg)}>
+      <div className={styles.innerContainer}>
+        <section className={styles.audioList}>
+          <header className={styles.header}>
+            <span className={styles.headerAccent}>18+</span> Mode
+          </header>
+          <div className={styles.titleContainer}><div className={styles.avatar}>
+            <img src={resolvedAvatar} alt="Influencer avatar" />
+          </div>
+            <div className={styles.cardText}>
+              <div className={styles.title}>Adult Chat</div>
+              <p>
+                Receive access to more adult conversations including explicit
+                messages.
+              </p>
+            </div></div>
+          {isLoadingSamples && (
+            <div className={styles.audioRow}>Loading samples...</div>
+          )}
+          {!isLoadingSamples && samplesError && (
+            <div className={styles.audioRow}>{samplesError}</div>
+          )}
+          {!isLoadingSamples && !samplesError && samples.length === 0 && (
+            <div className={styles.audioRow}>No samples available for {influencerName}</div>
+          )}
+          {samples.map((sample, index) => {
+            const label = influencerName;
+            // sample.original_filename?.trim() ||
+            // `${influencerName || "Influencer"} Sample ${String(index + 1).padStart(2, "0")}`;
+            const isPlaying = playingId === sample.s3_key;
+            return (
+              <div className={styles.audioRow} key={sample.s3_key || `${sample.id}-${index}`}>
+                <div className={styles.avatar}>
+                  <img src={resolvedAvatar} alt="Influencer avatar" />
+                </div>
+                <div className={styles.audioCard}>
+                  <div className={styles.title}>{label} Sample  {index + 1}</div>
+                  <div className={styles.audioPill}>
+                    <button
+                      className={styles.playButton}
+                      type="button"
+                      onClick={() => handleTogglePlay(sample)}
+                      disabled={!sample.url}
+                      aria-pressed={isPlaying}
+                    >
+                      {isPlaying ? <PauseIcon /> : <PlayIcon />}
+                    </button>
+                    <div className={styles.waveform} aria-hidden="true">
+                      {waveformBars.map((_, waveIndex) => (
+                        <span key={`wave-${sample.s3_key ?? sample.id}-${waveIndex}`} />
+                      ))}
+                    </div>
+                    <span className={styles.duration}>15sec</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </section>
+
+        <div className={clsx(styles.bottomSection, nobg && styles.nobg)}>
+          <div className={styles.bottomLeftCol}>   <div className={styles.plansSection}>
+            <PricingPlanCard
+              title={loadingPlan ? "Loading.." : basicPlan?.name ?? "unknown plan"}
+              price={basicPlan ? basicPlan.price_display : ""}
+              callTime={`${basicPlan?.features?.minutes_equivalent ?? 0} mins`}
+              onClick={() => { }}
+            />
+            <div><span className={styles.headerAccent}>18+</span>only</div>
+          </div></div>
+
+
+          <div className={styles.bottomRightCol}>   <p className={styles.tagline}>Let&apos;s heat things up...</p>
+            <div className={styles.subscribeButton}>
+              <PrimaryButton text={basicPlan ? `Subscribe for $${(basicPlan.price_cents / 100).toFixed(2)}` : "Subscribe"} onClick={() => {
+                posthog?.capture("adult_mode_subscribe_clicked", {
+                  influencer_id: influencerId,
+                  influencer_name: influencerName,
+                  plan_price_cents: basicPlan?.price_cents,
+                });
+                onSubscribePressed();
+              }} variant="purple" />
+            </div>
+
+            <div className={styles.footer}>
+              You will be charged, your subscription will auto-renew for the same price and package length until you cancel via account settings, and you agree to our Terms.
+              <br />
+              <NormalButton type="nobg" text="No thank you, take me back" onClick={onBackClicked} className={styles.takeMeBack} />
+            </div></div>
+        </div>
+      </div>
+      <audio ref={audioRef} onEnded={() => setPlayingId(null)} />
+    </div>
+  );
+};
+
+export default AdultModePage;

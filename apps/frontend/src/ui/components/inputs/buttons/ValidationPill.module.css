@@ -1,0 +1,42 @@
+.validationPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-px-4);
+  padding: 5px 25px;
+  min-width: 280px;
+  font-weight: 300;
+  letter-spacing: 0.01em;
+  font-size: 12px;
+  text-align: center;
+  transition: transform 120ms ease, box-shadow 160ms ease;
+  border-radius: 5.5rem;
+  border: 1px solid rgba(255, 164, 192, 0.11);
+  background: rgba(255, 0, 0, 0.17);
+}
+
+.validationPill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.28);
+}
+
+.error {
+  color: hsla(0, 100%, 69%, 1);
+  border-radius: 5.5rem;
+  border: 1px solid rgba(255, 164, 192, 0.11);
+  background: rgba(255, 0, 0, 0.17);
+}
+
+.success {
+  color: hsla(145, 100%, 59%, 1);
+  border-radius: 5.5rem;
+  border: 1px solid #2EFF85;
+  background: rgba(46, 255, 133, 0.20);
+}
+
+.warning {
+  color: hsla(45, 100%, 59%, 1);
+  border-radius: 5.5rem;
+  border: 1px solid #FFCB2E;
+  background: rgba(255, 203, 46, 0.20);
+}

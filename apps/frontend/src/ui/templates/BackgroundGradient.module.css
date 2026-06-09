@@ -1,0 +1,36 @@
+.background-gradient {
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+  position: relative;
+  z-index: 0;
+}
+
+.background-gradient::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(circle at 5% 5%,
+      rgba(255, 77, 103, 30%),
+      transparent 40%),
+    radial-gradient(circle at 95% 10%,
+      rgba(255, 87, 38, 30%), transparent 20%),
+    radial-gradient(circle at 100% 100%,
+      rgba(255, 77, 103, 30%), transparent 30%),
+    radial-gradient(circle at 5% 90%,
+      rgba(255, 87, 38, 30%), transparent 20%),
+    radial-gradient(circle at center,
+      var(--color-dark-1), var(--color-dark-2) 90%);
+  z-index: -1;
+}
+
+@media (max-width: 767px) {
+  .background-gradient::before {
+    background: none;
+    background-color: #181a20;
+  }
+}

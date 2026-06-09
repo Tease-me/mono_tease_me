@@ -1,0 +1,28 @@
+.remainingCreditBadge {
+  color: hsla(142, 69%, 58%, 1);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  border-radius: 0.5rem;
+  border: 1px solid #4ADE80;
+  background: rgba(18, 255, 105, 0.10);
+
+  display: flex;
+  height: 1.6875rem;
+  padding: 0.5rem;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-px-8);
+}
+
+.normal {
+  --badge-color: #2eff85;
+  --badge-glow: rgba(46, 255, 133, 0.35);
+}
+
+.error {
+  --badge-color: #ff4d4f;
+  --badge-glow: rgba(255, 77, 79, 0.35);
+  background: linear-gradient(180deg, rgba(54, 20, 20, 0.9), rgba(22, 10, 10, 0.95));
+}

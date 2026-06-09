@@ -1,0 +1,55 @@
+.ai-cell {
+    display: flex;
+    align-items: center;
+    gap: var(--space-px-16);
+}
+
+.ai-cell .avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 24px;
+}
+
+.ai-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-px-24);
+    height: 100%;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.page-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.create-button {
+    padding: 10px 20px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(255, 77, 103, 0.9), rgba(255, 131, 149, 0.9));
+    color: var(--color-text);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.create-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(255, 77, 103, 0.35);
+}
+
+.table-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}

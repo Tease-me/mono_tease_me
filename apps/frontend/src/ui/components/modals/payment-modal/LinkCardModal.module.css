@@ -1,0 +1,110 @@
+.modal {
+    background-color: rgba(0, 0, 0, 0.9);
+    background-image: url("../../../../assets/background/light_toast.png");
+    background-size: contain;
+    background-repeat: repeat;
+    background-position: 0 0;
+    background-blend-mode: overlay;
+    backdrop-filter: blur(16px);
+    border-radius: 24px;
+    padding: 40px 48px;
+    align-items: center;
+    gap: var(--space-px-32);
+    width: 553px;
+    height: 705px;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: var(--space-px-28);
+}
+
+.logo {
+    color: var(--color-primary);
+}
+
+.heading {
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-px-20);
+}
+
+.inlineFields {
+    display: flex;
+    gap: var(--space-px-16);
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.termsLink {
+    display: inline-flex;
+    justify-content: center;
+    font-size: 0.95rem;
+    letter-spacing: 0.01em;
+    text-decoration: underline;
+    color: var(--color-text-secondary);
+    transition: color 0.2s ease-in-out;
+}
+
+.termsLink:hover {
+    color: var(--color-primary);
+}
+
+.checkbox {
+    justify-content: center;
+    color: var(--color-text-secondary);
+    width: 100%;
+    text-align: center;
+}
+
+.actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-px-16);
+    align-items: center;
+    margin-top: 8px;
+}
+
+.cancelButton {
+    color: var(--color-text);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.linkButton {
+    width: 100%;
+    justify-content: center;
+}
+
+
+.fullWidthInput {
+    width: 100%;
+}
+
+.inlineFieldInput {
+    flex: 1 1 180px;
+}
+
+@media (max-width: 640px) {
+    .modal {
+        padding: 28px 24px;
+    }
+
+    .heading {
+        font-size: 1.5rem;
+    }
+
+    .inlineFields {
+        flex-direction: column;
+    }
+}

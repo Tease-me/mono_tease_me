@@ -1,0 +1,165 @@
+.dialog-screen {
+  width: 100%;
+  min-height: 100vh;
+     overflow-y: scroll;
+  background: linear-gradient(0deg, rgb(247, 8, 72), rgb(247, 8, 72) 65%, black 65%, black);
+  background-position: bottom;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 32px 16px;
+}
+
+.dialog-screen:before {
+  content: '';
+  position: absolute;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  background-image: url(/src/assets/image/noise-bg.jpg);
+  background-repeat: repeat;
+  background-size: 10rem;
+  mix-blend-mode: multiply;
+  z-index: 1;
+  top: 0;
+}
+
+
+.dialog-frame {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.7rem;
+  border-radius: 32px;
+  background: rgba(30, 25, 28, 0.35);
+  border: 1px solid rgb(255 255 255 / 15%);
+  backdrop-filter: blur(10px);
+  z-index: 2;
+}
+
+.thanks-card {
+  height: 83dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+
+  padding: 3rem 1.7rem;
+  border-radius: 25px;
+  background: rgba(3, 3, 3, 0.6);
+  border: 1px solid rgba(79, 71, 71, 0.8);
+
+  backdrop-filter: blur(20px);
+}
+
+.thanks-card:before {
+  content: '';
+  background-image: url(/src/assets/image/noise-bg.jpg);
+  background-repeat: repeat;
+  background-size: 20rem;
+  background-blend-mode: luminosity;
+  filter: invert(1);
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000000;
+  border-radius: 25px;
+  opacity: 0.5;
+  mask-image: linear-gradient(0deg, black 0%, transparent 90%);
+}
+
+
+
+/* icon bubble */
+.thanks-icon {
+  width: 100%;
+
+  border-radius: 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff3b73;
+  font-size: 40px;
+  margin-bottom: 32px;
+  position: relative;
+}
+
+.tm-logo-outline {
+  height: 96px
+}
+
+.thanks-title {
+  font-family: "DM Serif Display", "Playfair Display", serif;
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 0.5rem;
+  text-align: center;
+  letter-spacing: -1px;
+}
+
+.thanks-pill {
+
+  border-radius: 999px;
+  border: 1px solid hsl(145, 100%, 59%);
+  background: hsl(145, 100%, 59%, 0.2);
+  color: hsl(145, 100%, 59%);
+
+
+
+  border-radius: 999px;
+  padding: 10px 24px;
+
+
+  font-family: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  font-size: 1.2rempx;
+  text-align: center;
+ 
+}
+
+.thanks-subtext {
+  margin-top: var(--space-px-16);
+  color: rgba(255, 255, 255, 0.7);
+  font-family: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  font-size: 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.thanks-subtext-primary {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+@media (min-width: 32rem) {
+  .dialog-screen {
+    align-items: center;
+
+  }
+
+  .dialog-screen:before {
+    background: unset;
+  }
+
+  .dialog-frame {
+    width: 40rem;
+   height: auto;
+  }
+
+  .thanks-pill {
+    width: max-content;
+    margin: 0.5rem auto 2rem;
+  }
+
+
+
+}

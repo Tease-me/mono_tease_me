@@ -1,0 +1,21 @@
+.card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: start;
+    gap: var(--space-px-4);
+}
+
+.label {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--color-grey-500);
+}
+
+.value {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 120%;
+    color: var(--color-primary);
+    margin-bottom: 12px;
+}

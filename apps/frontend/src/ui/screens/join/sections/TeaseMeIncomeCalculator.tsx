@@ -1,0 +1,149 @@
+import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
+import { Paths } from "@/routes/path";
+import SvgPack from "@/utils/SvgPack";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import RotatingPill02 from "../components/RotatingPill02";
+import "./TeaseMeIncomeCalculator.css";
+
+const TeaseMeIncomeCalculator: React.FC = () => {
+  const [isHolding, setIsHolding] = useState(false);
+  const navigate = useNavigate();
+  const [period, setPeriod] = useState<"WEEKLY" | "MONTHLY" | "YEARLY">(
+    "WEEKLY"
+  );
+
+
+  const [converted, setConverted] = useState(2);
+  const [followers, setFollowers] = useState<number | "">("");
+
+  const otherPhrases = ["income", "freedom", "fans", "travel"];
+
+  const followerCount = typeof followers === "number" ? followers : 0;
+  const convertingPeople = Math.floor((converted / 100) * followerCount);
+
+  const MINUTES_PER_DAY = 15;
+  const RATE_PER_MINUTE = 0.3;
+
+  const weeklyIncome = convertingPeople * MINUTES_PER_DAY * 7 * RATE_PER_MINUTE;
+  const monthlyIncome =
+    convertingPeople * MINUTES_PER_DAY * 30 * RATE_PER_MINUTE;
+  const yearlyIncome =
+    convertingPeople * MINUTES_PER_DAY * 365 * RATE_PER_MINUTE;
+
+  const rawIncome =
+    period === "WEEKLY"
+      ? weeklyIncome
+      : period === "MONTHLY"
+        ? monthlyIncome
+        : yearlyIncome;
+
+  const formattedIncome =
+    followerCount > 0
+      ? rawIncome.toLocaleString("en-US", {
+        style: "currency",
+        currency: "USD",
+        maximumFractionDigits: 0,
+      })
+      : "$0";
+
+  return (
+    <div className="ic-wrapper" id="ic-anchor">
+      <div className="ic-card">
+        <h2 className="ic-title">
+          Turn influence
+          into <RotatingPill02 phrases={otherPhrases} />
+        </h2>
+
+        <div className="ic-question" >
+          How much could you earn?
+        </div>
+
+        <div className="ic-income-row">
+          <div className="ic-income-label">
+            INCOME PER
+            <select
+              className="ic-period"
+              value={period}
+              onChange={(e) =>
+                setPeriod(e.target.value as "WEEKLY" | "MONTHLY" | "YEARLY")
+              }
+            >
+              <option value="WEEKLY">WEEK</option>
+              <option value="MONTHLY">MONTH</option>
+              <option value="YEARLY">YEAR</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="ic-mode-row">
+          <div className="ic-mode-title">{"Calculate"}</div>
+          <div className="ic-income-value">{formattedIncome}</div>
+        </div>
+
+        <div className="ic-divider" />
+
+        {
+          <>
+            <label className="ic-label">Total Followers</label>
+            <input
+              type="number"
+              className="ic-input"
+              placeholder="Enter number"
+              min={0}
+              value={followers}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val.toString().length > 10) {
+                  return;
+                }
+                setFollowers(
+                  e.target.value === "" ? "" : Number(e.target.value)
+                )
+              }
+              }
+            />
+          </>
+        }
+
+        <label className="ic-label ic-converted-audience-row">
+          Converted Audience{" "}
+          <div className="tm-converted-value">
+            {followerCount > 0 ? convertingPeople.toLocaleString() : 0} People
+          </div>
+        </label>
+        <div className="ic-slider">
+          <div className="ic-slider-track" />
+          <div className="ic-slider-fill" style={{ width: `${converted}%` }} />
+          <div
+            className={`ic-slider-thumb ${isHolding ? "ic-slider-thumb-hold" : ""}`}
+            style={{ left: `${converted}%` }}
+          />
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={converted}
+            onChange={(e) => setConverted(Number(e.target.value))}
+            onMouseDown={() => setIsHolding(true)}
+            onMouseUp={() => setIsHolding(false)}
+            onMouseLeave={() => setIsHolding(false)}
+            onTouchStart={() => setIsHolding(true)}
+            onTouchEnd={() => setIsHolding(false)}
+            className="ic-slider-input"
+          />
+        </div>
+
+        <div className="tm-income-button-container">
+          <PrimaryButton
+            onClick={() => navigate(Paths.joinRegister)}
+            text="Start Building Persona"
+            rightIcon={<SvgPack.ArrowRight />}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default TeaseMeIncomeCalculator;

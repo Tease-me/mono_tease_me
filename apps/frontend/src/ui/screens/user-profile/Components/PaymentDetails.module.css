@@ -1,0 +1,40 @@
+.menu{
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-px-8);
+  margin-top: 10px;
+  width: 100%;
+}
+
+.menu > * {
+  width: 100%;
+}
+
+.cardPreview {
+  background-color: var(--color-dark-1);
+  padding-top: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  margin-bottom: 48px;
+  border-top-left-radius: 20px;
+border-top-right-radius: 20px;
+
+}
+
+.cardImage {
+  width: 100%;
+  max-width: 260px;
+  border-radius: 8px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+}
+
+.addNew {
+    align-items: center;
+    justify-items: center;
+    display:flex;
+    flex-direction: column;
+    margin-top: 1rem;
+}
+

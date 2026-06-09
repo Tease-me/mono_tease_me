@@ -1,0 +1,165 @@
+.button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 28px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.button:active {
+    transform: scale(1.1);
+}
+
+.button.primary {
+    background: linear-gradient(var(--gradient-angle), var(--gradient-start-red-start) -50%, var(--gradient-end-red-end) 150%);
+    color: #fff;
+}
+
+.button.secondary {
+    background: linear-gradient(var(--gradient-angle), var(--gradient-orange-start) -50%, var(--gradient-orange-end) 150%);
+    color: #fff;
+}
+
+.button.tertiary {
+    background: linear-gradient(var(--gradient-angle), var(--gradient-tertiary-start) -50%, var(--gradient-tertiary-end) 150%);
+    color: #fff;
+}
+
+.button.primary:hover {
+    background: linear-gradient(var(--gradient-angle), var(--gradient-start-red-start) 100%, var(--gradient-end-red-end) 0%);
+}
+
+.button.secondary:hover {
+    background: linear-gradient(var(--gradient-angle), var(--gradient-orange-start) 100%, var(--gradient-orange-end) 0%);
+}
+
+.button.tertiary:hover {
+    background: linear-gradient(var(--gradient-angle), var(--gradient-tertiary-start) 100%, var(--gradient-tertiary-end) 0%);
+}
+
+.contents {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-px-8);
+}
+
+.icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+}
+
+.icon-container.xsmall {
+    width: 10px;
+    height: 10px;
+}
+
+.icon-container.small {
+    width: 16px;
+    height: 16px;
+}
+
+.button-with-text-and-icon {
+    display: flex;
+    gap: var(--space-px-8);
+    padding: 18px 16px;
+    flex: 1;
+}
+
+.button-with-text-only {
+    padding: 18px 16px;
+    flex: 1;
+}
+
+.button-with-icon-only {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+}
+
+.button-with-icon-only.xsmall {
+    width: 48px;
+    height: 48px;
+}
+
+.button-with-icon-only.small {
+    width: 57px;
+    height: 57px;
+}
+
+.button-with-icon-only.small>.icon-container {
+    width: 24px;
+    height: 24px;
+}
+
+.icon-container svg {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* Variant styles for buttons with text and/or icons */
+.button-with-text-and-icon.primary,
+.button-with-text-only.primary,
+.button-with-icon-only.primary {
+    background: linear-gradient(var(--gradient-angle), var(--gradient-start-red-start) -50%, var(--gradient-end-red-end) 150%);
+    color: #fff;
+}
+
+.button-with-text-and-icon.secondary,
+.button-with-text-only.secondary,
+.button-with-icon-only.secondary {
+    background: linear-gradient(var(--gradient-angle), var(--gradient-orange-start) -50%, var(--gradient-orange-end) 150%);
+    color: #fff;
+}
+
+.button-with-text-and-icon.tertiary,
+.button-with-text-only.tertiary,
+.button-with-icon-only.tertiary {
+    background: var(--color-dark-3);
+    color: #fff;
+}
+
+.button-with-text-and-icon.primary:hover,
+.button-with-text-only.primary:hover,
+.button-with-icon-only.primary:hover {
+    background: linear-gradient(var(--gradient-angle), var(--gradient-start-red-start) 100%, var(--gradient-end-red-end) 0%);
+}
+
+.button-with-text-and-icon.secondary:hover,
+.button-with-text-only.secondary:hover,
+.button-with-icon-only.secondary:hover {
+    background: linear-gradient(var(--gradient-angle), var(--gradient-orange-start) 100%, var(--gradient-orange-end) 0%);
+}
+
+.button-with-text-and-icon.tertiary:hover,
+.button-with-text-only.tertiary:hover,
+.button-with-icon-only.tertiary:hover {
+    background: var(--color-dark-3);
+}
+
+.button-with-text-and-icon:active,
+.button-with-text-only:active,
+.button-with-icon-only:active {
+    transform: scale(1.1);
+}
+
+.button-with-text-and-icon.small {
+    padding: 12px 10px;
+    gap: var(--space-px-8);
+}
+
+.button-with-text-and-icon.xsmall {
+    padding: 8px 8px;
+    gap: var(--space-px-4);
+}
+
+.button-with-text-only.small {
+    padding: 12px 10px;
+}
+
+.button-with-text-only.xsmall {
+    padding: 8px 8px;
+}

@@ -1,0 +1,139 @@
+.container {
+  padding: 20px 18px 28px;
+  min-height: 100%;
+}
+
+.iconBtn {
+  background: none;
+  border: none;
+  padding: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #f5f5f5;
+}
+
+.statusSuccess,
+.statusError {
+  margin-top: 12px;
+  display: inline-flex;
+  align-self: flex-start;
+  width: fit-content;
+  max-width: 100%;
+  color: #d0f5d7;
+  /* adjust for success/error */
+  background: rgba(46, 204, 113, 0.15);
+  border: 1px solid rgba(46, 204, 113, 0.4);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.statusError {
+  color: #ffd6d6;
+  background: rgba(231, 76, 60, 0.15);
+  border-color: rgba(231, 76, 60, 0.4);
+}
+
+
+
+.pillArea {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+
+.avatarBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 44px;
+  position: relative;
+}
+
+.selectAvatarBtn {
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  min-height: 42px !important;
+  height: 42px !important;
+}
+
+.selectAvatarBtn :global(.button-cta-inner) {
+  padding: 8px 16px !important;
+}
+
+.selectAvatarBtn :global(.button-cta-content-container) {
+  gap: 8px !important;
+}
+
+.selectAvatarBtn :global(.button-text) {
+  font-size: 16px !important;
+}
+
+.hidden {
+  display: none;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-px-12);
+}
+
+.inpArea {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-px-16);
+}
+
+.input {
+  background: #2a2a2a;
+  border-radius: 10px;
+}
+
+.delete {
+  margin: 20px 0 28px;
+  background: none;
+  border: none;
+  color: #ff4c4c;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0 4px;
+  text-align: right;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-px-12);
+  height: 3.1875rem;
+}
+
+.cancel {
+  flex: 1;
+  background: none;
+  border: none;
+  color: #c0c0c0;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.update {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  height: 3.1875rem;
+}
+
+@media (min-width: 768px) {
+  .avatarBlock :global(.profile-container.large) {
+    height: 16rem;
+  }
+}

@@ -1,0 +1,332 @@
+@font-face {
+  font-family: "DM Sans";
+  src: url("./assets/fonts/DMSans-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Sans";
+  src: url("./assets/fonts/DMSans-Italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Sans";
+  src: url("./assets/fonts/DMSans-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Sans";
+  src: url("./assets/fonts/DMSans-MediumItalic.ttf") format("truetype");
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Sans";
+  src: url("./assets/fonts/DMSans-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Sans";
+  src: url("./assets/fonts/DMSans-SemiBoldItalic.ttf") format("truetype");
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Sans";
+  src: url("./assets/fonts/DMSans-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Sans";
+  src: url("./assets/fonts/DMSans-BoldItalic.ttf") format("truetype");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Sans";
+  src: url("./assets/fonts/DMSans-ExtraBold.ttf") format("truetype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Sans";
+  src: url("./assets/fonts/DMSans-ExtraBoldItalic.ttf") format("truetype");
+  font-weight: 800;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Abril Fatface";
+  src: url("./assets/fonts/AbrilFatface-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Urbanist";
+  src: url("./assets/fonts/Urbanist-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Urbanist";
+  src: url("./assets/fonts/Urbanist-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Urbanist";
+  src: url("./assets/fonts/Urbanist-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Urbanist";
+  src: url("./assets/fonts/Urbanist-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Urbanist";
+  src: url("./assets/fonts/Urbanist-ExtraBold.ttf") format("truetype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Urbanist";
+  src: url("./assets/fonts/Urbanist-Black.ttf") format("truetype");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+* {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+:root {
+  --primary-font-family: "DM Sans", sans-serif;
+  --secondary-font-family: "Urbanist", sans-serif;
+  /* Theme tokens (overridable via JS) */
+  --color-text: #FFFFFF;
+  --color-text-secondary: #9E9E9E;
+  --color-black: rgba(0, 0, 0, 1);
+  --color-primary: hsl(341, 95%, 48%);
+  --color-primary-500: #FF4D67;
+  --color-dark-1: hsla(225, 14%, 11%, 1);
+  --color-dark-2: #1F222A;
+  --color-dark-3: #35383F;
+  --color-alert: #DF485E;
+  --color-pink: #EA1E61;
+  --color-deep-orange: #FF5726;
+  --color-grey-50: #FAFAFA;
+  --color-grey-300: rgba(224, 224, 224, 1);
+  --color-grey-500: rgba(158, 158, 158, 1);
+  --color-grey-800: rgba(66, 66, 66, 1);
+  --gradient-angle: 270deg;
+  --gradient-start-red-start: #FF4D67;
+  --gradient-end-red-end: #FF8395;
+  --color-text-selection-bg: color-mix(in srgb, var(--color-primary) 35%, transparent);
+
+  --chat-bubble-gradient-angle: 180deg;
+  --chat-bubble-gradient-start: hsla(347, 100%, 65%, 0.15);
+  --chat-bubble-gradient-mid: hsla(347, 93%, 63%, 0.13);
+  --chat-bubble-gradient-mid02: hsla(349, 97%, 65%, 0.322);
+  --chat-bubble-gradient-end: hsla(351, 100%, 65.9%, 0.47);
+
+  --sidebar-bg-color: rgba(33, 33, 33, 1);
+
+  --gradient-orange-start: #FB9400;
+  --gradient-orange-end: #FFAB38;
+  --max-chat-content-width: 960px;
+
+  --color-success: rgba(74, 222, 128, 1);
+  --color-light-blue: rgba(0, 169, 241, 1);
+  --color-warning: rgba(250, 204, 21, 1);
+
+  --color-purple: #AD4ADE;
+  --color-purple-background: rgba(136, 1, 203, 0.15);
+  --color-purple-light: #CC68FF;
+  --color-purple-deep: #AE21F5;
+  --color-purple-disabled: #72508A;
+  --color-green-background: rgba(18, 255, 105, 0.10);
+
+
+  /* Spacing Tokens */
+  --space-px-4: 0.25rem;
+  --space-px-8: 0.5rem;
+  --space-px-12: 0.75rem;
+  --space-px-16: 1rem;
+  --space-px-20: 1.25rem;
+  --space-px-24: 1.5rem;
+  --space-px-28: 1.75rem;
+  --space-px-32: 2rem;
+  --space-px-44: 2.75rem;
+  --space-px-52: 3.25rem;
+
+
+  
+}
+
+/* Light theme fallbacks (optional preview) */
+:root[data-theme="light"] {
+  --color-text: #0F172A;
+  --color-text-secondary: #475569;
+  --color-primary: #EA1E61;
+  --color-dark-1: #f7f8fc;
+  --color-dark-2: #ffffff;
+  --color-dark-3: #e2e8f0;
+  --color-alert: #e11d48;
+  --color-pink: #EA1E61;
+  --color-deep-orange: #FF5726;
+  --color-success: #16a34a;
+  --color-light-blue: #0284c7;
+  --color-warning: #eab308;
+}
+
+html,
+body {
+  font-family: var(--primary-font-family);
+  background-color: black;
+  color: var(--color-text);
+  outline: 1px solid transparent;
+}
+
+#root {
+  display: flex;
+  flex: 1;
+  min-width: 100dvw;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+  position: relative;
+
+  --max-sidebar-width: 472px;
+  --desktop-breakpoint: 1024px;
+}
+
+/*
+  Default Styles
+*/
+a {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-text);
+  text-decoration: underline;
+}
+
+input,
+button {
+  background: none;
+  border: none;
+  color: var(--color-text);
+  font-size: 1rem;
+}
+
+/* --- Default themed scrollbars (app‑wide) --- */
+* {
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-grey-800) transparent;
+}
+
+/* WebKit-based browsers */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-grey-800);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  /* inset look */
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  opacity: 0.9;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.u-sidebar-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-left: 24px;
+  padding-right: 24px;
+justify-content: flex-start;
+      padding-bottom: 3dvh;
+}
+
+.u-sidebar-page-fullwidth {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.u-sidebar-footer {
+  margin-top: auto;
+  padding-bottom: 16px;
+}

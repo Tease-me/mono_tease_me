@@ -1,0 +1,95 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  font-family: var(--secondary-font-family);
+  font-weight: 500;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.left {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-px-8);
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.infoIcon {
+  cursor: pointer;
+}
+
+.tooltipModal {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  width: fit-content;
+  max-width: 360px;
+  align-self: center;
+}
+
+@media (min-width: 768px) {
+  .tooltipModal {
+    max-width: 600px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tooltipModal {
+    max-width: calc(100vw - 32px);
+  }
+}
+
+.label {
+  color: #f5f5f5;
+  font-family: Urbanist;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
+
+.labelMuted {
+  color: var(--Greyscale-500, #9e9e9e);
+}
+
+.value {
+  color: #f5f5f5;
+  font-family: Urbanist;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.track {
+  width: 100%;
+  height: 19px;
+  border-radius: 30px;
+  background: #282828;
+  overflow: hidden;
+}
+
+.trackCompact {
+  height: 11px;
+}
+
+.fill {
+  height: 100%;
+  border-radius: 20px;
+  background: linear-gradient(90deg, #b2001a 0%, #ff4d67 100%);
+  box-shadow: 0 0 3px 1px rgba(253, 14, 86, 0.5),
+    0 0 0 0.5px rgba(255, 255, 255, 0.25);
+  transition: width 0.5s ease-out;
+}
+
+.fillCompact {
+  border-radius: 14px;
+}

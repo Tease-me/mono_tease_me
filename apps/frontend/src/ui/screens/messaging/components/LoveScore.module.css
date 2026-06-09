@@ -1,0 +1,176 @@
+.loveScore {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: var(--space-px-4);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+  min-height: fit-content;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.loveScore.centered {
+  justify-content: center;
+}
+
+.loveScore>* {
+  flex-shrink: 0;
+}
+
+.loveScoreValue {
+  font-family: "Urbanist", sans-serif;
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 120%;
+  margin-block: unset;
+  transition: opacity 0.8s ease;
+  opacity: 0;
+  pointer-events: none;
+  display: none;
+}
+
+.loveScoreValue.visible {
+  opacity: 1;
+  pointer-events: auto;
+  display: block;
+}
+
+.loveScoreSmall {
+  max-width: 5.5vw;
+  gap: var(--space-px-4);
+}
+
+.loveScoreSmall .loveScoreValue {
+  font-size: 0.85rem;
+  line-height: 120%;
+}
+
+.loveScoreMedium {
+  display: flex;
+}
+
+.loveScoreLarge {
+  gap: var(--space-px-8);
+  justify-content: center;
+  align-items: center;
+}
+
+.loveScoreLarge .loveScoreValue {
+  font-size: 30px;
+  line-height: 125%;
+}
+
+.loveScoreRankUp p {
+  color: var(--alerts-status-success, oklch(80.036% 0.18204 151.736));
+}
+
+.loveScoreRankDown p {
+  color: var(--alerts-status-error, oklch(61.58% 0.18455 24.314 / 0.8));
+}
+
+.rank {
+  position: relative;
+  display: inline-flex;
+  width: 1.3rem;
+  height: 1.5625rem;
+  justify-content: center;
+  align-items: center;
+
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 0.25rem;
+  transition: width 1s ease, height 1s ease, border-color 1s ease, background 1s ease;
+}
+
+.heartAnimation,
+.arrowAnimation {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.8s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.heartAnimation.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.arrowAnimation.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.rankSmall {
+  width: 1.1rem;
+  height: 1.35rem;
+}
+
+.rankMedium {
+  width: 1.3rem;
+  height: 1.5625rem;
+}
+
+.rankLarge {
+  width: 1.5rem;
+  height: 1.85rem;
+  align-self: center;
+}
+
+.rankUp {
+  border-color: oklch(80.036% 0.18204 151.736 / 0.583);
+  background: linear-gradient(180deg,
+      rgba(74, 222, 128, 0.05) 0%,
+      rgba(74, 222, 128, 0.3) 100%);
+}
+
+.rankDown {
+  border-color: oklch(61.58% 0.18455 24.314 / 0.8);
+  background: linear-gradient(180deg,
+      rgba(222, 74, 74, 0.05) 0%,
+      rgba(222, 74, 74, 0.2) 100%);
+}
+
+@media (min-width: 32rem) {
+  .loveScoreValue {
+    font-size: 1.15rem;
+  }
+}
+
+.loveScoreNeutral p {
+  color: var(--text-primary, oklch(80% 0 0));
+}
+
+.rankNeutral {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+}
+
+.rankSmall.rankNeutral {
+  width: 2rem;
+  height: 2rem;
+}
+
+.rankMedium.rankNeutral {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.rankLarge.rankNeutral {
+  width: 3.5rem;
+  height: 3.5rem;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+}

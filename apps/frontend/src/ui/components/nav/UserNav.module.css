@@ -1,0 +1,124 @@
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 28px 12px 25px;
+  background: linear-gradient(180deg, #212121 67.79%, #131313 96.63%, #212121 100%);
+  min-height: 10dvh;
+  position: relative;
+}
+
+.maxWidthSpacer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: var(--max-chat-content-width);
+  width: 100%;
+}
+
+.centerSlot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.callChatIcon {
+  color: white;
+}
+
+.callCallIcon {
+  color: var(----tm-green-color01, hsl(140, 71%, 68%));
+}
+
+.menuButton {
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  border-radius: 8px;
+  padding: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: linear-gradient(180deg, rgba(66, 66, 66, 0.10) 0%, rgba(66, 66, 66, 0.30) 100%);
+}
+
+.menuButtonIcon {
+  height: 28px;
+  width: 28px;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+}
+
+.hidden {
+  opacity: 0;
+  user-select: none;
+}
+
+.closeButton {
+  margin-left: 4px;
+}
+
+.closeButton :global([class*="left-icon"]) {
+  width: 32px;
+  height: 32px;
+}
+
+.closeIcon {
+  width: 32px;
+  height: 32px;
+  color: #fff;
+}
+
+.right-buttons {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.leftSlot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
+}
+
+.logoLeft {
+  display: none;
+}
+
+@media (min-width: 769px) {
+  .logoLeft {
+    display: flex;
+    align-items: center;
+    position: absolute;
+    left: 25px;
+  }
+
+  .logoArea {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .bar {
+    padding: var(--space-px-4) var(--space-px-16) var(--space-px-8) var(--space-px-16);
+  }
+
+  .logoArea {
+    display: none;
+  }
+}
+
+.callButton {
+  justify-self: center;
+}

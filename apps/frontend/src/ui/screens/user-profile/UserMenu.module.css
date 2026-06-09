@@ -1,0 +1,43 @@
+.container {
+    display: flex;
+    flex-direction: column;
+   
+}
+
+.profileCardArea {
+    margin-bottom: 1rem;
+}
+
+.menuArea {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    gap: var(--space-px-12);
+
+}
+
+.menuArea>* {
+    width: 100%;
+}
+
+.logoutButton {
+    color: var(--color-primary-500);
+    align-items: center;
+    justify-content: center;
+    font-family: var(--primary-font-family);
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    display: inline-flex;
+    gap: var(--space-px-8);
+}
+
+.logoutButton:hover {
+    opacity: 0.85;
+}
+
+.versionContainer {
+    margin-top: var(--space-px-12);
+}

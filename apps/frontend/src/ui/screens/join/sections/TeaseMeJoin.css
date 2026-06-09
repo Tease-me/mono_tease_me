@@ -1,0 +1,458 @@
+/* =============== BACKGROUND =============== */
+/* .tm-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+
+  background: radial-gradient(circle at top, #2a0019, #050106 55%, #000 100%);
+  font-family: system-ui, Arial, sans-serif;
+  color: #fff;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  overflow-y: scroll;
+} */
+
+.tm-page::-webkit-scrollbar {
+  display: none;
+  /* Chrome/Safari */
+}
+
+/* =============== MAIN CARD =============== */
+.tm-device {
+  width: 100%;
+
+
+  background: radial-gradient(circle at top,
+      #1f0311,
+      #050106 55%,
+      #030006 100%);
+
+  position: relative;
+  overflow: visible;
+}
+
+
+
+/* =============== TOP LOGO =============== */
+.tm-header {
+  position: relative;
+  height: 10vh;
+  z-index: 4;
+
+
+  margin-bottom: 2rem;
+  justify-content: flex-end;
+  padding: 8px 28px 16px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(180deg, #3d0713 0%, #000 100%);
+
+
+}
+
+.tm-logo {
+  height: 53px;
+}
+
+/* =============== HERO LAYOUT =============== */
+.tm-hero {
+  position: relative;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding-top: 0;
+  /* was 24px */
+  margin-top: -12px;
+  /* pulls title up to match mockup */
+}
+
+/* LEFT (TEXT) */
+.tm-hero-text {
+  position: relative;
+  left: 2rem;
+  z-index: 4;
+
+
+}
+
+/* TITLE */
+.tm-tagline {
+  font-family: "Abril Fatface", serif;
+  font-size: 2.125rem;
+  font-weight: 400;
+
+  line-height: 145%;
+  max-width: 14ch;
+}
+
+.tm-icons-row {
+  display: flex;
+  flex-direction: row;
+ gap: var(--space-px-16);
+  justify-content: space-between;
+  align-items: flex-start;
+  max-width: 9rem;
+  opacity: 0.5;
+}
+
+.tm-integrates-icon {
+  width: 1.5625rem;
+  height: 1.5625rem;
+}
+
+.tm-income-button-container {
+  height: 3.5rem;
+  width: 100%;
+  margin: 0 auto;
+  overflow: clip;
+  border-radius: 88px;
+}
+
+/* =============== PILL =============== */
+.tm-tagline-pill {
+  font-family: "Abril Fatface", serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: -0.2rem;
+  padding: 6px 18px;
+  border-radius: 0rem 1.1rem 0rem 1.1rem;
+  border: 1.6px solid hsla(341, 84%, 44%, 0.618);
+  background: hsla(338, 83%, 23%, 0.47);
+  background-blend-mode: darken;
+  height: 1.3em;
+  min-width: 15rem;
+  overflow: hidden;
+  position: relative;
+  bottom: -2px;
+  left: -12px;
+  box-shadow: 4px -5px 1px -5.5px rgba(255, 255, 255, 0.38) inset, 10px -6px 11px -5.5px rgba(255, 40, 93, 0.33) inset, rgba(255, 247, 247, 0.73) -3px 3px 1px -3.4px inset;
+}
+
+.tm-tagline-pill02 {
+  font-family: "Abril Fatface", serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.2rem;
+  padding: 4px 18px;
+  border-radius: 0rem 1.1rem 0rem 1.1rem;
+  border: 1.6px solid hsla(341, 84%, 44%, 0.618);
+  background: hsla(338, 95%, 16%, 0.524);
+  background-blend-mode: darken;
+  height: 1.35em;
+  min-width: 10.5rem;
+  overflow: hidden;
+  position: relative;
+  bottom: -9px;
+  left: 6px;
+  box-shadow: 4px -5px 1px -5.5px rgba(255, 255, 255, 0.38) inset, 10px -6px 11px -5.5px rgba(255, 40, 93, 0.33) inset, rgba(255, 247, 247, 0.73) -3px 3px 1px -3.4px inset;
+}
+
+
+
+.tm-pill-layer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Base text */
+.tm-pill-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  text-align: center;
+  color: #ef074e;
+  font-weight: 700;
+  font-size: 0.9em;
+}
+
+
+
+/* Current text (resting) */
+.tm-pill-current {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* OUT animation (old text going up) */
+.tm-pill-out {
+  animation: pillOut 0.35s ease-out forwards;
+}
+
+/* IN animation (new text coming from bottom) */
+.tm-pill-in {
+  animation: pillIn 0.35s ease-out forwards;
+}
+
+@keyframes pillOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+}
+
+@keyframes pillIn {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =============== BENEFITS =============== */
+.tm-benefits {
+  list-style: none;
+  padding: 0;
+  margin: 26px 0 22px;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-px-8);
+}
+
+.tm-benefit-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-px-8);
+
+  padding: 0.5rem 1rem;
+  border-radius: 3rem;
+
+  /* Background #262626 @20% */
+  background: rgba(0, 0, 0, 0.4);
+
+  /* Border #FFA4C0 @11% */
+  border: 1px solid rgba(0, 0, 0, 0.8);
+
+  width: fit-content;
+  /* hug width based on content */
+  max-width: 100%;
+
+  font-size: 1rem;
+  font-weight: 400;
+  color: #f5f5f5;
+}
+
+/* bullet icon */
+.tm-benefit-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+
+/* ============= CTA Button =============== */
+
+.ctaContainer {max-width: 17rem;}
+
+/* =============== SOCIALS =============== */
+.tm-integrations {
+  margin-top: 3rem;
+ gap: var(--space-px-16);
+  display: flex;
+  flex-direction: column;
+}
+
+.tm-integrations p {
+  font-size: 0.9rem;
+  opacity: 0.5;
+  font-weight: 300;
+}
+
+
+
+/* =============== MODEL IMAGE =============== */
+.tm-hero-image-wrapper {
+  position: absolute;
+  right: -42vw;
+  bottom: -3vh;
+  pointer-events: none;
+  width: 99%;
+
+}
+
+.tm-hero-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(#ff4f81, transparent 60%);
+  filter: blur(20px);
+  z-index: 0;
+}
+
+.tm-hero-image {
+  width: 100%;
+  z-index: 2;
+  position: relative;
+  left: -15%;
+  bottom: -3rem;
+}
+
+/* =============== CTA BUTTON =============== */
+.tm-bottom-cta {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0.1rem 1rem 1dvh;
+  background: linear-gradient(rgba(239, 6, 81, 0.13), rgba(0, 0, 0, 0.2) 10.5%, black), radial-gradient(rgba(0, 0, 0, 0.2), rgba(107, 2, 42, 1) 87.82%);
+  z-index: 10;
+  bottom: 0;
+  backdrop-filter: blur(0.75rem);
+
+  box-shadow: -4px 5px 1px -2px rgba(255, 255, 255, 0.085) inset, 1.1px 1.2px 1px -1px rgba(255, 255, 255, 0.425) inset;
+  border-radius: 0rem 3.2rem 0 0;
+}
+
+.tm-cta-button-container {
+  height: 3rem;
+  width: 80%;
+  margin: 0 auto;
+  margin-top: -1.5rem;
+}
+
+.tm-bottom-cta .tm-cta {
+  top: -3.7rem;
+  position: relative;
+  margin-bottom: -3rem;
+}
+
+.tm-cta {
+  margin-top: 30px;
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+
+  padding: 18px 26px;
+  /* mais alto, como o Figma */
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-px-12);
+
+
+  /* ★ MULTI-GRADIENT EXACT DO FIGMA ★ */
+  background: linear-gradient(180deg,
+      #d90048 0%,
+      #d70048 16%,
+      #cc0044 33%,
+      #ff276f 50%,
+      #c20041 72%,
+      #b5003c 100%);
+
+  transition: transform 0.15s ease, filter 0.25s ease;
+}
+
+
+
+
+.tm-cta-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+/* =============== SCROLL HINT =============== */
+.tm-scroll-hint {
+  margin-top: 0.5rem;
+  opacity: 1;
+  font-size: 12px;
+  display: flex;
+  justify-content: center;
+  gap: var(--space-px-8);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+}
+
+.tm-scroll-hint p {
+  opacity: 1;
+  color: rgba(255, 182, 208, 0.671);
+}
+
+.tm-scroll-icon {
+  height: 1.5rem;
+  width: 1.5rem;
+  opacity: 0.8;
+}
+
+
+
+
+/*** media query ***/
+@media (min-width: 32rem) {
+
+  .tm-logo {
+    height: 6.25rem;
+  }
+
+
+  .tm-bottom-cta {
+    width: 20rem;
+    right: 3vw;
+    top: 4vh;
+    bottom: unset;
+    background: unset;
+    box-shadow: unset;
+    border-radius: unset;
+    backdrop-filter: unset;
+  }
+
+
+
+  .tm-device {
+    max-width: 80rem;
+    margin-left: auto;
+    margin-right: auto;
+    background: unset;
+  }
+
+  .tm-hero-image-wrapper {
+    right: 3rem;
+    bottom: -7vh;
+    pointer-events: none;
+    width: 36%;
+  }
+
+  .tm-tagline {
+    font-family: "Abril Fatface", serif;
+    max-width: 21ch;
+    font-size: 3rem;
+  }
+
+  .tm-tagline-pill {
+    min-width: 20rem;
+
+  }
+
+  .tm-tagline-pill02 {
+    min-width: 15rem;
+  }
+
+
+
+
+}

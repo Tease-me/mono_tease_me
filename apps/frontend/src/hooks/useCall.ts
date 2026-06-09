@@ -1,0 +1,291 @@
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { Howl } from "howler";
+import { useMicrophonePermission } from "./useMicrophonePermission";
+import { ChatRepository } from "@/data/repositories/ChatRepo";
+import logger from "@/utils/logger";
+import { AuthContext } from "@/context/AuthContext";
+import { useConversation } from "@elevenlabs/react";
+import { showErrorModal } from "@/utils/errorModal";
+import { PublicAssetPaths } from "@/constants/publicAssetPaths";
+
+export default function useCall() {
+  const [status, setStatus] = useState<
+    "connecting" | "connected" | "disconnected" | "idle" | "error"
+  >("idle");
+  const {
+    permissionState,
+    requestMicrophonePermission,
+    releaseMicrophonePermission,
+  } = useMicrophonePermission();
+  const [influencerId, setInfluencerId] = useState<string>();
+
+  const ringtoneRef = useRef<Howl | null>(null);
+
+  const getRingtone = useCallback((): Howl => {
+    if (!ringtoneRef.current) {
+      ringtoneRef.current = new Howl({ src: [PublicAssetPaths.ringtone], loop: true, html5: false });
+    }
+    return ringtoneRef.current;
+  }, []);
+
+  const chatRepo = ChatRepository();
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+  const { user } = useContext(AuthContext);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const startInFlightRef = useRef(false);
+  const startAbortControllerRef = useRef<AbortController | null>(null);
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
+  useEffect(() => {
+    return () => {
+      if (ringtoneRef.current) {
+        ringtoneRef.current.stop();
+        ringtoneRef.current.unload();
+        ringtoneRef.current = null;
+      }
+    };
+  }, []);
+
+  const ring = useCallback(() => {
+    try {
+      getRingtone().play();
+    } catch (err) {
+      console.error("Ringtone playback failed:", err);
+    }
+  }, [getRingtone]);
+
+  const stopRing = useCallback(() => {
+    if (ringtoneRef.current) {
+      ringtoneRef.current.stop();
+    }
+  }, []);
+
+  const [micMuted, setMicMuted] = useState<boolean>(false);
+
+  const conversation = useConversation({
+    micMuted,
+    audio: {
+      constraints: {
+        audio: {
+          noiseSuppression: true,
+          echoCancellation: true,
+          autoGainControl: true,
+          voiceIsolation: true
+        }
+      }
+    },
+    onConnect: () => {
+      setStatus("connected");
+      stopRing();
+    },
+    onDisconnect: () => {
+      setStatus("disconnected");
+    },
+    onError: (error) => {
+      setStatus("error");
+      logger.error(error)
+    },
+    onMessage: (message) => {
+      logger.debug(message);
+    },
+  });
+
+
+  const startConversation = useCallback(async () => {
+    if (!influencerId || startInFlightRef.current) {
+      return;
+    }
+    const abortController = new AbortController();
+    if (startAbortControllerRef.current) {
+      startAbortControllerRef.current.abort();
+    }
+    startAbortControllerRef.current = abortController;
+    startInFlightRef.current = true;
+    setStatus("connecting");
+    ring();
+    try {
+      const hasPermission = await requestMicrophonePermission();
+      if (!hasPermission) {
+        alert("No permission");
+        showErrorModal({
+          title: "Microphone Permission Denied",
+          message:
+            "Microphone access is required to start the call. Please enable microphone permissions in your browser settings and try again.",
+        });
+        setStatus("idle");
+        stopRing();
+        return;
+      }
+      if (abortController.signal.aborted) {
+        return;
+      }
+
+      let signed_url: string | null = null;
+      let credits_remainder_secs = 60;
+      let first_message = "Hey honey, I've been waiting for you, don't be shy, talk to me."
+
+      if (!user || !user.id) {
+        const response = await chatRepo.getFreeSignedUrl(
+          influencerId,
+          abortController.signal,
+        );
+        if (abortController.signal.aborted) {
+          return;
+        }
+        signed_url = response.signed_url;
+        credits_remainder_secs = response.credits_remainder_secs;
+        first_message = response.first_message || first_message;
+      } else {
+        const response = await chatRepo.getSignedUrl(
+          influencerId,
+          user.id ?? 0,
+          abortController.signal,
+        );
+        if (abortController.signal.aborted) {
+          return;
+        }
+        signed_url = response.signed_url;
+        credits_remainder_secs = response.credits_remainder_secs;
+        first_message = response.first_message || first_message;
+      }
+
+      if (!signed_url) {
+        stopRing();
+        setStatus("idle");
+        return;
+      }
+
+      if (credits_remainder_secs <= 0) {
+        alert("You have no remaining credits. Please top up to start a conversation.");
+        stopRing();
+        setStatus("idle");
+        return;
+      }
+
+      const conversationId = await conversation.startSession({
+        signedUrl: signed_url,
+        customLlmExtraBody: {
+          model: "qwen3-30b-a3b",
+        },
+        dynamicVariables: {
+          first_message: first_message,
+        }
+      });
+
+      if (abortController.signal.aborted) {
+        await conversation.endSession();
+        return;
+      }
+
+      if (user && user.id) {
+        await chatRepo.registerConversation(
+          conversationId,
+          {
+            user_id: user?.id ?? 0,
+            influencer_id: influencerId,
+            sid: crypto.randomUUID(),
+          },
+          abortController.signal,
+        );
+      }
+
+      if (abortController.signal.aborted) {
+        await conversation.endSession();
+        return;
+      }
+
+      setTimeRemaining(credits_remainder_secs);
+    } catch (error) {
+      if (!abortController.signal.aborted) {
+        setStatus("error");
+        logger.error(error);
+      }
+    } finally {
+      if (startAbortControllerRef.current === abortController) {
+        startAbortControllerRef.current = null;
+      }
+      startInFlightRef.current = false;
+    }
+  }, [chatRepo, conversation, influencerId, requestMicrophonePermission, ring, stopRing, user]);
+
+  const stopConversation = useCallback(async () => {
+    if (startAbortControllerRef.current) {
+      startAbortControllerRef.current.abort();
+      startAbortControllerRef.current = null;
+    }
+    startInFlightRef.current = false;
+    stopRing();
+    setStatus("idle");
+    setTimeRemaining(null);
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    releaseMicrophonePermission();
+    try {
+      await conversation.endSession();
+    } catch (error) {
+      logger.warn("Failed to end session cleanly", error);
+    }
+  }, [conversation, releaseMicrophonePermission, stopRing]);
+
+  useEffect(() => {
+    if (timeRemaining === null) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      return;
+    }
+
+    if (timeRemaining === 0) {
+      stopConversation();
+      return;
+    }
+
+    if (intervalRef.current) {
+      return;
+    }
+
+    intervalRef.current = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev === null) return null;
+        if (prev <= 1) {
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [timeRemaining, stopConversation]);
+
+  const toggleMute = useCallback(() => {
+    setMicMuted(prev => {
+      const next = !prev;
+      return next;
+    });
+  }, []);
+
+  return {
+    setInfluencerId,
+    startConversation,
+    stopConversation,
+    permissionState,
+    status,
+    timeRemaining,
+    micMuted,
+    toggleMute,
+    setMicMuted,
+  };
+}

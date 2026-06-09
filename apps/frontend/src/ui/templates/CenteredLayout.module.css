@@ -1,0 +1,28 @@
+.container {
+    width: 100dvw;
+    height: 100dvh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .container {
+        align-items: flex-start;
+        padding: 16px 0;
+    }
+
+    .content {
+        width: 100%;
+    }
+}

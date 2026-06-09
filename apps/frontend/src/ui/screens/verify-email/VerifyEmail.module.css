@@ -1,0 +1,52 @@
+.container {
+    display: flex;
+    flex-direction: column;
+}
+
+@media (max-width: 768px) {
+    .container {
+        min-height: calc(100dvh - 32px);
+        justify-content: center;
+        padding: 24px 16px;
+    }
+
+    .buttons-container {
+        width: 200px;
+        align-self: center;
+    }
+}
+
+.buttons-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: var(--space-px-16);
+    margin-top: 32px;
+}
+
+.title {
+    font-size: 28px;
+    margin-bottom: 25px;
+}
+
+.description {
+    margin-bottom: 25px;
+}
+
+.error {
+    color: #ffb0b0;
+    margin-bottom: 25px;
+}
+
+.signing-in-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.signing-in-state .description {
+    margin-bottom: 0;
+    text-align: center;
+}

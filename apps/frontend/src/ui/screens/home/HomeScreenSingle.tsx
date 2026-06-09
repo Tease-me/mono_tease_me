@@ -1,0 +1,404 @@
+import React, {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { SidebarContext } from "@/hooks/useSidebar";
+import { AuthContext } from "@/context/AuthContext";
+import ChatScreenContent from "../messaging/components/ChatScreenContent";
+import SlideDrawerLayout from "@/ui/templates/SlideDrawerLayout";
+import clsx from "clsx";
+import styles from "./HomeScreenSingle.module.css";
+import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { startInfluencerSubscription } from "@/store/subscriptionSlice";
+import { chatScreenActions } from "@/store/chatScreenSlice";
+import { useInfluencerSelection } from "@/hooks/messaging/useInfluencerSelection";
+import type { CallStatus } from "@/hooks/useCallWebRTC";
+import InfluencerSelector from "@/ui/screens/influencer/InfluencerSelector";
+import UserNav from "@/ui/components/nav/UserNav";
+import { constants } from "@/utils/constants";
+import VipDiamondGiftModal from "@/ui/components/modals/vip-diamond-gift/VipDiamondGiftModal";
+
+const UserMenu = React.lazy(() => import("../user-profile/UserMenu"));
+const UserProfile = React.lazy(
+  () => import("../user-profile/Components/UserProfile"),
+);
+const PaymentDetails = React.lazy(
+  () => import("../user-profile/Components/PaymentDetails"),
+);
+const ManageInfluencers = React.lazy(
+  () => import("../user-profile/Components/ManageInfluencers"),
+);
+const InfluencerRelation = React.lazy(
+  () => import("../user-profile/Components/InfluencerRelation"),
+);
+const AddCredits = React.lazy(
+  () => import("../user-profile/Components/AddCredits"),
+);
+const AdultModePage = React.lazy(
+  () => import("../messaging/pages/adult-mode/AdultModePage"),
+);
+const PaymentCheck = React.lazy(
+  () => import("../user-profile/Components/PaymentCheck"),
+);
+const Subscription = React.lazy(
+  () => import("../user-profile/Components/Subscription"),
+);
+const SceneSelector = React.lazy(
+  () => import("../messaging/pages/scene-selector/SceneSelector"),
+);
+
+type SidebarPageId = string;
+type NavPayload = Record<string, any>;
+type NavStackEntry = { id: SidebarPageId; payload?: NavPayload };
+
+type SidebarPage = {
+  id: SidebarPageId;
+  label: string;
+  render: (ctx: {
+    goTo: (id: SidebarPageId, payload?: NavPayload) => void;
+    navPayload: NavPayload;
+    goBack: () => void;
+  }) => React.ReactNode;
+  background?: string;
+};
+
+type ActiveView = "scene-selector" | "girlfriend-mode";
+
+export default function HomeScreenSingle() {
+  const { user } = React.useContext(AuthContext);
+  const dispatch = useAppDispatch();
+  const { isSubscribing } = useAppSelector((state) => state.subscription);
+  const currentInfluencerId = useAppSelector(
+    (state) => state.chatScreen.currentInfluencerId,
+  );
+  const influencerById = useAppSelector(
+    (state) => state.chatScreen.influencerById,
+  );
+  const currentInfluencerName = currentInfluencerId
+    ? influencerById[currentInfluencerId]?.name
+    : undefined;
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [currentPage, setCurrentPage] = useState<SidebarPageId>("home");
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [history, setHistory] = useState<NavStackEntry[]>([]);
+  const [navPayload, setNavPayload] = useState<NavPayload>({});
+  const currentPageRef = useRef<SidebarPageId>("home");
+  const navPayloadRef = useRef<NavPayload>({});
+
+  const [activeView, setActiveView] = useState<ActiveView>("scene-selector");
+  const [showScenarioNavTitle, setShowScenarioNavTitle] = useState(true);
+  const [showVipDiamondGift, setShowVipDiamondGift] = useState(false);
+  const callStatusRef = useRef<CallStatus>("idle");
+
+
+  const {
+    influencer,
+    influencers,
+    hasMultipleInfluencers,
+    isSelectingInfluencer,
+    handleSelect,
+    handleChangeInfluencerClicked,
+  } = useInfluencerSelection(callStatusRef.current);
+
+  const handleCallStatusChange = useCallback((status: CallStatus) => {
+    callStatusRef.current = status;
+  }, []);
+
+  useEffect(() => {
+    if (influencer) {
+      dispatch(chatScreenActions.setCurrentInfluencer(influencer));
+    } else {
+      dispatch(chatScreenActions.setCurrentInfluencer(undefined));
+    }
+  }, [dispatch, influencer]);
+
+  useEffect(() => {
+    currentPageRef.current = currentPage;
+  }, [currentPage]);
+
+  useEffect(() => {
+    navPayloadRef.current = navPayload;
+  }, [navPayload]);
+
+  useEffect(() => {
+    if (activeView === "scene-selector") {
+      setShowScenarioNavTitle(true);
+    }
+  }, [activeView, influencer?.id]);
+
+  useEffect(() => {
+    setShowVipDiamondGift(user?.login_bonus_status === "granted");
+  }, [user?.login_bonus_status]);
+
+  useEffect(() => {
+    if (currentPageRef.current !== "influencer_profile") return;
+    if (!currentInfluencerId) return;
+    if (navPayloadRef.current?.influencerId === currentInfluencerId) return;
+    setNavPayload((p) => ({
+      ...p,
+      influencerId: currentInfluencerId,
+      name: influencerById[currentInfluencerId]?.name,
+      image: influencerById[currentInfluencerId]?.img,
+      video: influencerById[currentInfluencerId]?.videoUrl,
+    }));
+  }, [currentInfluencerId, influencerById]);
+
+  const goTo = useCallback((pageId: SidebarPageId, payload?: NavPayload) => {
+    if (payload) {
+      setNavPayload((p) => ({ ...p, ...payload }));
+    }
+    setHistory((h) => [
+      ...h,
+      { id: currentPageRef.current, payload: navPayloadRef.current },
+    ]);
+    setCurrentPage(pageId);
+  }, []);
+
+  const prevPage = useCallback(() => {
+    setHistory((h) => {
+      const prev = h[h.length - 1];
+      if (prev) {
+        setCurrentPage(prev.id);
+        setNavPayload(prev.payload ?? {});
+      } else {
+        setCurrentPage("home");
+        setNavPayload({});
+      }
+      return h.slice(0, -1);
+    });
+  }, []);
+
+  const handleSidebarSubscribe = useCallback(
+    async (influencerId?: string, goBack?: () => void) => {
+      if (!influencerId || isSubscribing) {
+        return;
+      }
+      const result = await dispatch(
+        startInfluencerSubscription({
+          influencerId,
+          planId: 1,
+        }),
+      );
+      window.alert(result.message);
+      goBack?.();
+    },
+    [dispatch, isSubscribing],
+  );
+
+  const closeSidebar = useCallback(() => {
+    setShowSidebar(false);
+    setCurrentPage("home");
+    setHistory([]);
+    setNavPayload({});
+  }, []);
+
+  const handleUserMenuSwitchInfluencer = useCallback(() => {
+    const isPhone = window.matchMedia(
+      `(max-width: ${constants.DESKTOP_TABLET_BREAKPOINT - 1}px)`,
+    ).matches;
+
+    if (isPhone) {
+      closeSidebar();
+    }
+
+    handleChangeInfluencerClicked();
+  }, [closeSidebar, handleChangeInfluencerClicked]);
+
+  const sidebarPages: SidebarPage[] = useMemo(() => ([
+    {
+      id: "home",
+      label: "User Menu",
+      render: ({ goTo }) => (
+        <UserMenu
+          goTo={goTo}
+          onSwitchInfluencer={
+            hasMultipleInfluencers && !isSelectingInfluencer
+              ? handleUserMenuSwitchInfluencer
+              : undefined
+          }
+        />
+      ),
+    },
+    { id: "profile", label: "User Profile", render: ({ goTo }) => <UserProfile goTo={goTo} /> },
+    { id: "payment", label: "Payment Details", render: ({ goTo }) => <PaymentDetails goTo={goTo} /> },
+    { id: "payment-check", label: "Payment", render: () => <PaymentCheck />, background: "#181A20" },
+    {
+      id: "influencers",
+      label: "Topup",
+      render: ({ goTo, navPayload }) =>
+        <ManageInfluencers
+          goTo={goTo}
+          navPayload={navPayload}
+        />
+    },
+    { id: "influencer_profile", label: "Influencer Profile", render: ({ goTo, navPayload, goBack }) => <InfluencerRelation key={navPayload.influencerId} goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
+    { id: "add_credits", label: "Add Credits", render: ({ goTo, navPayload }) => <AddCredits goTo={goTo} navpayload={navPayload} /> },
+    {
+      id: "subscribe", label: "Adult Mode", render: ({ navPayload, goBack }) => (
+        <AdultModePage
+          influencerId={navPayload.influencerId}
+          influencerImageUrl={navPayload.influencerImageUrl}
+          influencerName={navPayload.influencerName}
+          onSubscribePressed={() => handleSidebarSubscribe(navPayload.influencerId, goBack)}
+          onBackClicked={goBack}
+          nobg
+        />
+      )
+    },
+    { id: "subscription", label: "Subscription", render: ({ goTo, navPayload }) => <Subscription goTo={goTo} navPayload={navPayload} />, background: "linear-gradient(0deg, #131313 0%, #131313 100%), url(<path-to-image>) lightgray -60.714px 0px / 130.206% 89.736% no-repeat" },
+  ]), [
+    handleSidebarSubscribe,
+    handleUserMenuSwitchInfluencer,
+    hasMultipleInfluencers,
+    isSelectingInfluencer,
+  ]);
+
+
+  const active = useMemo(
+    () => sidebarPages.find((p) => p.id === currentPage)!,
+    [currentPage, sidebarPages],
+  );
+
+  const toggleSidebar = useCallback(() => {
+    setShowSidebar((prev) => {
+      const next = !prev;
+      if (!next) {
+        setCurrentPage("home");
+        setHistory([]);
+        setNavPayload({});
+      }
+      return next;
+    });
+  }, []);
+
+  const openSidebar = useCallback(
+    (pageId: string, payload?: Record<string, any>) => {
+      setShowSidebar(true);
+      goTo(pageId, payload);
+    },
+    [goTo],
+  );
+
+  const sidebar = (
+    <div className={styles.sidebarPages}>
+      <div className={clsx(styles.sidebarPage, styles.sidebarPageActive)}>
+        <Suspense
+          fallback={
+            <div className={styles.loadingSpinner}>
+              <LoadingSpinner />
+            </div>
+          }
+        >
+          {active.render({ goTo, navPayload, goBack: prevPage })}
+        </Suspense>
+      </div>
+    </div>
+  );
+
+  const handleGirlfriendModeSelected = useCallback(() => {
+    setActiveView("girlfriend-mode");
+  }, []);
+
+  const handleBackToSceneSelector = useCallback(() => {
+    setActiveView("scene-selector");
+  }, []);
+
+  const mainContent = useMemo(() => {
+    if (isSelectingInfluencer) {
+      return (
+        <div className={styles.viewWithNav}>
+          <UserNav onMenuClick={toggleSidebar} title="Select Influencer" />
+          <InfluencerSelector
+            influencers={influencers}
+            onItemClick={handleSelect}
+          />
+        </div>
+      );
+    }
+
+    if (activeView === "girlfriend-mode") {
+      return (
+        <ChatScreenContent
+          onMenuClick={toggleSidebar}
+          influencer={influencer}
+          influencers={influencers}
+          hasMultipleInfluencers={hasMultipleInfluencers}
+          isSelectingInfluencer={false}
+          onSelectInfluencer={handleSelect}
+          onChangeInfluencer={handleChangeInfluencerClicked}
+          onBackToSceneSelector={handleBackToSceneSelector}
+          onCallStatusChange={handleCallStatusChange}
+        />
+      );
+    }
+
+    return (
+      <div className={styles.viewWithNav}>
+        <UserNav
+          onMenuClick={toggleSidebar}
+          title={showScenarioNavTitle ? "Select a Scenario" : undefined}
+        />
+        {influencer ? (
+          <Suspense fallback={<div className={styles.loadingSpinner}><LoadingSpinner /></div>}>
+            <SceneSelector
+              influencerId={influencer.id}
+              influencerName={influencer.name}
+              influencerImageUrl={influencer.img}
+              influencerVideoUrl={influencer.videoUrl}
+              onGirlfriendModeSelected={handleGirlfriendModeSelected}
+              onListViewChange={setShowScenarioNavTitle}
+            />
+          </Suspense>
+        ) : (
+          <div className={styles.loadingSpinner}><LoadingSpinner /></div>
+        )}
+      </div>
+    );
+  }, [
+    activeView,
+    handleBackToSceneSelector,
+    handleCallStatusChange,
+    handleChangeInfluencerClicked,
+    handleGirlfriendModeSelected,
+    handleSelect,
+    hasMultipleInfluencers,
+    influencer,
+    influencers,
+    isSelectingInfluencer,
+    showScenarioNavTitle,
+    toggleSidebar,
+  ]);
+
+  return (
+    <SidebarContext.Provider value={{ openSidebar }}>
+      <SlideDrawerLayout
+        showSidebar={showSidebar}
+        sidebar={sidebar}
+        onBack={prevPage}
+        onToggle={toggleSidebar}
+        showBack={currentPage !== "home"}
+        title={
+          currentPage === "influencer_profile"
+            ? currentInfluencerName || navPayload?.name
+              ? `Top Up - ${currentInfluencerName ?? navPayload?.name}`
+              : "Top Up"
+            : active.label
+        }
+        background={active.background}
+      >
+        {mainContent}
+      </SlideDrawerLayout>
+      <VipDiamondGiftModal
+        isOpen={showVipDiamondGift && Boolean(influencer)}
+        influencerName={influencer?.name ?? currentInfluencerName}
+        onClose={() => setShowVipDiamondGift(false)}
+      />
+    </SidebarContext.Provider>
+  );
+}
