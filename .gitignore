@@ -1,5 +1,6 @@
 # Design source files (PSDs, AEPs, raw video — keep locally, not in git)
 **/_sourceFiles/
+*.psd
 
 # macOS
 .DS_Store
