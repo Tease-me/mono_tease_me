@@ -1,3 +1,6 @@
+# Design source files (PSDs, AEPs, raw video — keep locally, not in git)
+**/_sourceFiles/
+
 # macOS
 .DS_Store
 Thumbs.db
