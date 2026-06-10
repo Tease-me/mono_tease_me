@@ -1,0 +1,41 @@
+name: Backend – Deploy Production
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+    paths:
+      - 'apps/backend/**'
+  workflow_dispatch:
+
+concurrency:
+  group: backend-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy-production:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    runs-on:
+      - self-hosted
+      - Linux
+      - X64
+    defaults:
+      run:
+        working-directory: apps/backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate deploy script syntax
+        run: bash -n scripts/deploy-backend-production.sh
+
+      - name: Verify production host dependencies
+        run: |
+          command -v rsync
+          command -v docker
+          docker compose version
+
+      - name: Deploy backend production
+        run: ./scripts/deploy-backend-production.sh

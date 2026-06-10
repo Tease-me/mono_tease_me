@@ -51,6 +51,9 @@ GitHub Actions workflows live in `.github/workflows/` and are scoped by path so 
 | `frontend-deploy-staging.yml` | PR merged to `staging` (frontend changes) | Build + deploy via PM2 |
 | `backend-lint.yml` | PR touching `apps/backend/**` | Poetry install → Ruff lint |
 | `backend-deploy-staging.yml` | PR merged to `staging` (backend changes) | Docker Compose deploy |
+| `backend-deploy-production.yml` | PR merged to `main` (backend changes) | EC2 Docker production deploy |
+
+Production setup (Amplify frontend + EC2 backend): [docs/production-deploy.md](docs/production-deploy.md)
 
 ---
 
