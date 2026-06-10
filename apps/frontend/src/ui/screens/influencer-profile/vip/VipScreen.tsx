@@ -33,6 +33,7 @@ import {
   useSearchParams,
 } from "react-router-dom";
 import VipAvatarStep from "./steps/VipAvatarStep";
+import { VIP_INVITE_CODE_LENGTH } from "./components/VipInviteCodeInput";
 import VipLandingStep from "./steps/VipLandingStep";
 import VipProfileStep, {
   InviteProfileErrors,
@@ -52,15 +53,24 @@ type InviteAvatarValues = {
 };
 type ViewerState = "loading" | "guest" | "following" | "not-following";
 type AutoFollowState = "idle" | "pending" | "complete" | "failed";
-type InviteStatus = "loading" | "valid" | "expired" | "invalid";
+type InviteStatus =
+  | "idle"
+  | "loading"
+  | "checking"
+  | "valid"
+  | "expired"
+  | "invalid"
+  | "redirecting";
 
 const influencerServices = InfluencerServices(apiClient);
 const followServices = FollowServices(apiClient);
 const funnelServices = FunnelServices(apiClient);
 const authServices = AuthServices(apiClient);
 
-const isTelegramPlaceholderEmail = (email: string) =>
-  /^telegram-\d+@mjpromoter\.placeholder\.invalid$/.test(email);
+const isMjPromoterPlaceholderEmail = (email: string) =>
+  /^(telegram-\d+|instagram-[a-z0-9._]+)@mjpromoter\.placeholder\.invalid$/.test(
+    email,
+  );
 
 export default function VipScreen() {
   const navigate = useNavigate();
@@ -71,10 +81,20 @@ export default function VipScreen() {
   const { isSignedIn, loadingAuth } = useContext(AuthContext);
 
   const inviteCode = searchParams.get("invite");
-  const token = searchParams.get("t") ?? "";
-  const [inviteStatus, setInviteStatus] = useState<InviteStatus>("loading");
-  const invitationValid = inviteStatus === "valid";
+  const urlToken = searchParams.get("t") ?? "";
+  const [inviteCodeInput, setInviteCodeInput] = useState("");
+  const [activeToken, setActiveToken] = useState(urlToken.trim());
+  const [inviteStatus, setInviteStatus] = useState<InviteStatus>(
+    urlToken.trim() ? "loading" : "idle",
+  );
+  const invitationValid =
+    inviteStatus === "valid" || inviteStatus === "redirecting";
   const invitationExpired = inviteStatus === "expired";
+  const showCodeEntry =
+    inviteStatus === "idle" ||
+    inviteStatus === "checking" ||
+    inviteStatus === "invalid" ||
+    inviteStatus === "redirecting";
   const [step, setStep] = useState<VipStep>("landing");
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [profileValues, setProfileValues] = useState<InviteProfileValues>({
@@ -120,7 +140,7 @@ export default function VipScreen() {
     gender: string | null;
     date_of_birth: string | null;
   }) => {
-    const emailIsPlaceholder = isTelegramPlaceholderEmail(response.email ?? "");
+    const emailIsPlaceholder = isMjPromoterPlaceholderEmail(response.email ?? "");
     setIsEmailEditable(emailIsPlaceholder);
     setProfileValues((prev) => ({
       ...prev,
@@ -148,23 +168,30 @@ export default function VipScreen() {
     }
   }, [inviteCode, viewerState]);
 
+  const validateInviteToken = async (
+    inviteToken: string,
+    influencerId?: string,
+  ) => {
+    const response = await authServices.checkToken(inviteToken, influencerId);
+    applyInvitePrefill(response);
+    return response.ok && response.valid;
+  };
+
   useEffect(() => {
     let cancelled = false;
-    const inviteToken = token.trim();
+    const inviteToken = urlToken.trim();
 
-    setInviteStatus("loading");
-
-    if (!inviteToken) {
-      setInviteStatus("invalid");
+    if (!inviteToken || !influencer?.id) {
       return;
     }
 
-    void authServices
-      .checkToken(inviteToken)
-      .then((response) => {
+    setInviteStatus("loading");
+    setActiveToken(inviteToken);
+
+    void validateInviteToken(inviteToken, influencer.id)
+      .then((isValid) => {
         if (cancelled) return;
-        applyInvitePrefill(response);
-        setInviteStatus(response.ok && response.valid ? "valid" : "invalid");
+        setInviteStatus(isValid ? "valid" : "invalid");
       })
       .catch((error) => {
         logger.debug(error);
@@ -175,7 +202,7 @@ export default function VipScreen() {
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [urlToken, influencer?.id]);
 
   useEffect(() => {
     if (!username) {
@@ -414,6 +441,35 @@ export default function VipScreen() {
     setStep("complete-invite-profile");
   };
 
+  const handleRedeemCode = async () => {
+    const normalizedCode = inviteCodeInput.trim().toUpperCase();
+    if (normalizedCode.length !== VIP_INVITE_CODE_LENGTH || !influencer?.id) {
+      setInviteStatus("invalid");
+      return;
+    }
+
+    setInviteStatus("checking");
+
+    try {
+      const isValid = await validateInviteToken(normalizedCode, influencer.id);
+      if (!isValid) {
+        setInviteStatus("invalid");
+        return;
+      }
+
+      setActiveToken(normalizedCode);
+      setInviteStatus("valid");
+
+      window.setTimeout(() => {
+        setInviteStatus("redirecting");
+        setStep("complete-invite-profile");
+      }, 900);
+    } catch (error: any) {
+      logger.debug(error);
+      setInviteStatus(error?.status === 410 ? "expired" : "invalid");
+    }
+  };
+
   const handleProfileChange = (
     field: keyof InviteProfileValues,
     value: string,
@@ -461,7 +517,7 @@ export default function VipScreen() {
         ? new URL(avatarValues.avatarUrl, window.location.origin).toString()
         : null;
       const response = await authServices.completeProfile({
-        token: token.trim(),
+        token: activeToken.trim(),
         password: profileValues.password,
         influencer_id: influencer.id,
         full_name: profileValues.fullName,
@@ -486,12 +542,7 @@ export default function VipScreen() {
     }
   };
 
-  if (
-    !influencer ||
-    loadingAuth ||
-    viewerState === "loading" ||
-    inviteStatus === "loading"
-  ) {
+  if (!influencer || loadingAuth || viewerState === "loading") {
     return (
       <div className={styles.pageContainer}>
         <BlockingLoader />
@@ -574,15 +625,31 @@ export default function VipScreen() {
                   : ""
             }`}
           >
-            {step === "landing" && (
+            {step === "landing" && inviteStatus === "loading" && (
+              <BlockingLoader />
+            )}
+
+            {step === "landing" && inviteStatus !== "loading" && (
               <VipLandingStep
                 influencer={influencer}
                 profileValues={profileValues}
+                inviteCode={inviteCodeInput}
+                inviteCodeStatus={inviteStatus}
                 invitationValid={invitationValid}
                 invitationExpired={invitationExpired}
                 existingAccountMode={existingAccountMode}
                 existingAccountFollowFailed={existingAccountFollowFailed}
                 showLoginFooter={viewerState === "guest"}
+                showCodeEntry={showCodeEntry}
+                onInviteCodeChange={(value) => {
+                  setInviteCodeInput(value.toUpperCase());
+                  if (inviteStatus === "invalid") {
+                    setInviteStatus("idle");
+                  }
+                }}
+                onRedeemCode={() => {
+                  void handleRedeemCode();
+                }}
                 onRedeemInvite={handleRedeemInvite}
                 onRetryAutoFollow={() => {
                   setAutoFollowState("idle");

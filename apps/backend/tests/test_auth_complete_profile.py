@@ -295,6 +295,42 @@ def test_complete_profile_rejects_already_verified_user(monkeypatch) -> None:
     assert response.json() == {"detail": "User is already verified"}
 
 
+def test_complete_profile_replaces_mjpromoter_placeholder_email(monkeypatch) -> None:
+    db = FakeAsyncSession(
+        user=_user(email="instagram-glaucomp@mjpromoter.placeholder.invalid"),
+    )
+    app = _build_app(db)
+    email_calls: list[str] = []
+
+    async def _fake_send_verification_email(email: str, token: str, **kwargs):
+        email_calls.append(email)
+
+    monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+    monkeypatch.setattr(auth_route.pwd_context, "hash", lambda value: f"hashed::{value}")
+    monkeypatch.setattr(auth_route.secrets, "token_urlsafe", lambda _n: "fresh-verify-token")
+    monkeypatch.setattr(auth_route, "create_follow_if_missing", _fake_follow_recorder([]))
+    monkeypatch.setattr(auth_route.asyncio, "create_task", _close_task)
+    monkeypatch.setattr(auth_route, "send_verification_email", _fake_send_verification_email)
+
+    client = TestClient(app)
+    response = client.post(
+        "/auth/complete-profile",
+        data={
+            "token": "verify-token",
+            "password": "new-password",
+            "email": "test@jamieeeee.com",
+            "full_name": "Jamie",
+            "user_name": "jamieuser",
+            "date_of_birth": "1999-01-02",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["email"] == "test@jamieeeee.com"
+    assert db.user.email == "test@jamieeeee.com"
+    assert email_calls == ["test@jamieeeee.com"]
+
+
 def test_complete_profile_maps_integrity_error_to_conflict(monkeypatch) -> None:
     db = FakeAsyncSession(user=_user(), fail_on_commit=True)
     app = _build_app(db)
