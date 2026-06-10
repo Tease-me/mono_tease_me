@@ -51,6 +51,9 @@ from app.services.repositories.user_repository import get_by_email
 from app.api.deps.influencer import ensure_influencer
 from app.utils.mjpromoter_email import is_mjpromoter_placeholder_email
 from app.api.deps.internal_auth import require_internal_token
+from app.services.use_cases.mjfp_vip_invite_webhook import (
+    schedule_mjfp_vip_invite_status_webhook,
+)
 from app.services.use_cases.preregister_user import preregister_user
 from app.utils.infrastructure.rate_limiter import rate_limit
 from app.utils.infrastructure.country import (
@@ -409,6 +412,12 @@ async def complete_profile(
     except Exception:
         log.exception("Failed to send verification email during profile completion for user %s", user.id)
 
+    schedule_mjfp_vip_invite_status_webhook(
+        user.id,
+        status="in_progress",
+        event="profile_completed",
+    )
+
     return {
         "ok": True,
         "user_id": user.id,
@@ -680,6 +689,11 @@ async def verify_email(
     user.email_token = None
     user.email_token_expires_at = None
     await db.commit()
+    schedule_mjfp_vip_invite_status_webhook(
+        user.id,
+        status="completed",
+        event="email_verified",
+    )
 
     access_token = create_token(
         {"sub": str(user.id)},

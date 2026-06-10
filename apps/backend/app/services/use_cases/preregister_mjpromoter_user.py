@@ -1,5 +1,5 @@
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from fastapi import HTTPException
 from passlib.context import CryptContext
@@ -15,10 +15,10 @@ from app.data.schemas.mjpromoter import (
     MjpromoterPreregisterResponse,
 )
 from app.services.follow import create_follow_if_missing
-from app.utils.vip_invite_code import generate_vip_invite_code
+from app.utils.vip_invite_code import VIP_INVITE_TTL, generate_vip_invite_code
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-TOKEN_TTL = timedelta(days=2)
+TOKEN_TTL = VIP_INVITE_TTL
 MAX_INVITE_CODE_ATTEMPTS = 12
 
 
@@ -95,6 +95,7 @@ async def preregister_mjpromoter_user(
         password_hash=pwd_context.hash(secrets.token_urlsafe(32)),
         is_verified=False,
         email_token=invite_code,
+        vip_invite_code=invite_code,
         email_token_expires_at=token_expires_at,
         full_name=data.full_name,
         telegram_id=data.telegram_id,

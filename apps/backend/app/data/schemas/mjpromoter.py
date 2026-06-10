@@ -55,3 +55,35 @@ class MjpromoterPreregisterResponse(BaseModel):
     invite_code: str
     expires_at: datetime | None = None
     instagram_username: str | None = None
+
+
+class MJVipInviteStatusRequest(BaseModel):
+    user_ids: list[int] | None = None
+    invite_codes: list[str] | None = None
+
+    @model_validator(mode="after")
+    def require_lookup_keys(self) -> "MJVipInviteStatusRequest":
+        has_user_ids = bool(self.user_ids)
+        has_invite_codes = bool(
+            self.invite_codes
+            and any(isinstance(code, str) and code.strip() for code in self.invite_codes)
+        )
+        if not has_user_ids and not has_invite_codes:
+            raise ValueError("user_ids or invite_codes is required")
+        return self
+
+
+class MJVipInviteStatusItem(BaseModel):
+    user_id: int
+    status: str
+    invite_code: str | None = None
+    instagram_username: str | None = None
+    full_name: str | None = None
+    email: str | None = None
+    expires_at: datetime
+    is_verified: bool = False
+
+
+class MJVipInviteStatusResponse(BaseModel):
+    ok: bool = True
+    items: list[MJVipInviteStatusItem]
