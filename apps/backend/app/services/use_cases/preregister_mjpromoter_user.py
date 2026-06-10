@@ -8,7 +8,6 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from app.core.config import settings
 from app.data.models import Influencer, User
 from app.data.schemas.mjpromoter import (
     MjpromoterPreregisterRequest,
