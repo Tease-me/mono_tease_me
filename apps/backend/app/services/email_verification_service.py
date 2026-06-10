@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.data.schemas.auth import CheckEmailTokenResponse
+from app.services.follow import get_follow
 from app.services.repositories.user_repository import get_by_email_token
 from app.utils.storage.s3 import resolve_user_photo_url
 
@@ -13,8 +14,10 @@ from app.utils.storage.s3 import resolve_user_photo_url
 async def check_email_verification_token(
     db: AsyncSession,
     token: str,
+    *,
+    influencer_id: str | None = None,
 ) -> CheckEmailTokenResponse:
-    """Validate that an email verification token matches a user."""
+    """Validate that an email verification token or VIP invite code matches a user."""
     user = await get_by_email_token(db, token)
     if not user:
         raise HTTPException(status_code=400, detail="Invalid or expired token")
@@ -30,6 +33,11 @@ async def check_email_verification_token(
             status_code=410,
             detail="Verification link has expired. Please request a new one.",
         )
+
+    if influencer_id:
+        follow = await get_follow(db, influencer_id, user.id)
+        if not follow:
+            raise HTTPException(status_code=400, detail="Invalid code for this influencer")
 
     profile_photo_url = None
     if user.profile_photo_key:

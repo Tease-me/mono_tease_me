@@ -154,6 +154,29 @@
   text-underline-offset: 2px;
 }
 
+.codeFeedbackInvalid,
+.codeFeedbackValid {
+  width: 100%;
+  margin: 0.75rem 0 0;
+  padding: 0.45rem 0.75rem;
+  border-radius: 0.35rem;
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 140%;
+  text-align: center;
+}
+
+.codeFeedbackInvalid {
+  background: rgba(255, 42, 113, 0.18);
+  color: #ff5f93;
+}
+
+.codeFeedbackValid {
+  background: rgba(34, 197, 94, 0.18);
+  color: #86efac;
+}
+
 .footer {
   position: absolute;
   right: 0;

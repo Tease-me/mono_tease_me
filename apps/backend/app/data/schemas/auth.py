@@ -85,11 +85,21 @@ class CompleteProfileRequest(RegisterRequest):
     email: str | None = None
     token: str
 
+    @field_validator("email", mode="before")
+    @classmethod
+    def empty_email_means_omitted(cls, v: object) -> object:
+        if v is None:
+            return None
+        if isinstance(v, str) and not v.strip():
+            return None
+        return v.strip() if isinstance(v, str) else v
+
     @classmethod
     def as_form(
         cls,
         token: str = Form(...),
         password: str = Form(...),
+        email: str | None = Form(default=None),
         influencer_id: str | None = Form(default=None),
         full_name: str | None = Form(default=None),
         user_name: str | None = Form(default=None),
@@ -102,6 +112,7 @@ class CompleteProfileRequest(RegisterRequest):
         return cls(
             token=token,
             password=password,
+            email=email,
             influencer_id=influencer_id,
             full_name=full_name,
             user_name=user_name,
@@ -134,6 +145,7 @@ class VerifyEmailResponse(BaseModel):
 
 class CheckEmailTokenRequest(BaseModel):
     token: str = Field(min_length=1)
+    influencer_id: str | None = None
 
 
 class CheckEmailTokenResponse(BaseModel):

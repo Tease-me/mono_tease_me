@@ -6,10 +6,11 @@ Business decisions belong in the service layer.
 
 import logging
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.data.models import User
+from app.utils.vip_invite_code import normalize_vip_invite_code
 
 log = logging.getLogger(__name__)
 
@@ -27,8 +28,14 @@ async def get_by_email_token(
     db: AsyncSession,
     token: str,
 ) -> User | None:
-    """Fetch a user by email verification token."""
-    result = await db.execute(select(User).where(User.email_token == token))
+    """Fetch a user by email verification token or VIP invite code."""
+    normalized = normalize_vip_invite_code(token)
+    result = await db.execute(
+        select(User).where(
+            (User.email_token == token)
+            | (func.upper(User.email_token) == normalized)
+        )
+    )
     return result.scalar_one_or_none()
 
 
