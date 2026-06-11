@@ -39,10 +39,15 @@ class FakeAsyncSession:
         *,
         existing_user=None,
         existing_telegram_user=None,
+        existing_instagram_user=None,
         influencer: object | None = None,
         fail_on_commit: bool = False,
     ):
-        self._execute_results = [existing_user, existing_telegram_user]
+        self._execute_results = [
+            existing_user,
+            existing_telegram_user,
+            existing_instagram_user,
+        ]
         self._influencer = influencer
         self._fail_on_commit = fail_on_commit
         self.added: list[object] = []
@@ -167,9 +172,9 @@ def test_mjpromoter_preregister_uses_same_contract(monkeypatch) -> None:
     monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
     monkeypatch.setattr(settings, "FRONTEND_URL", "https://www.teaseme.live")
     monkeypatch.setattr(
-        mjpromoter_preregister_uc.secrets,
-        "token_urlsafe",
-        lambda _n: "generated-verify-token",
+        mjpromoter_preregister_uc,
+        "generate_vip_invite_code",
+        lambda: "ABC234",
     )
     monkeypatch.setattr(
         mjpromoter_preregister_uc,
@@ -190,13 +195,15 @@ def test_mjpromoter_preregister_uses_same_contract(monkeypatch) -> None:
     )
 
     assert response.status_code == 200
-    assert response.json() == {
-        "ok": True,
-        "user_id": 1,
-        "email": "user@example.com",
-        "message": "User preregistered successfully.",
-        "verification_url": "https://www.teaseme.live/loli?t=generated-verify-token",
-    }
+    response_json = response.json()
+    assert response_json["ok"] is True
+    assert response_json["user_id"] == 1
+    assert response_json["email"] == "user@example.com"
+    assert response_json["message"] == "User preregistered successfully."
+    assert response_json["invite_code"] == "ABC234"
+    assert response_json["expires_at"] is not None
+    assert response_json["instagram_username"] is None
+    assert db.added[0].email_token == "ABC234"
     assert db.committed is True
     assert db.refreshed is True
     assert follow_calls == [("loli", 1)]
@@ -210,9 +217,9 @@ def test_mjpromoter_preregister_without_email_succeeds(monkeypatch) -> None:
     monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
     monkeypatch.setattr(settings, "FRONTEND_URL", "https://www.teaseme.live")
     monkeypatch.setattr(
-        mjpromoter_preregister_uc.secrets,
-        "token_urlsafe",
-        lambda _n: "generated-verify-token",
+        mjpromoter_preregister_uc,
+        "generate_vip_invite_code",
+        lambda: "XYZ789",
     )
     monkeypatch.setattr(
         mjpromoter_preregister_uc,
@@ -231,18 +238,112 @@ def test_mjpromoter_preregister_without_email_succeeds(monkeypatch) -> None:
     )
 
     assert response.status_code == 200
-    assert response.json() == {
-        "ok": True,
-        "user_id": 1,
-        "email": None,
-        "message": "User preregistered successfully.",
-        "verification_url": "https://www.teaseme.live/loli?t=generated-verify-token",
-    }
+    response_json = response.json()
+    assert response_json["ok"] is True
+    assert response_json["user_id"] == 1
+    assert response_json["email"] is None
+    assert response_json["message"] == "User preregistered successfully."
+    assert response_json["invite_code"] == "XYZ789"
+    assert response_json["expires_at"] is not None
     created_user = db.added[0]
     assert created_user.email == "telegram-111222333@mjpromoter.placeholder.invalid"
+    assert created_user.email_token == "XYZ789"
     assert db.committed is True
     assert db.refreshed is True
     assert follow_calls == [("loli", 1)]
+
+
+def test_mjpromoter_preregister_with_instagram_username(monkeypatch) -> None:
+    db = FakeAsyncSession(influencer=SimpleNamespace(id="JulianaVal"))
+    app = _build_mj_app(db)
+    follow_calls: list[tuple[str, int]] = []
+    monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+    monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
+    monkeypatch.setattr(settings, "FRONTEND_URL", "https://www.teaseme.live")
+    monkeypatch.setattr(
+        mjpromoter_preregister_uc,
+        "generate_vip_invite_code",
+        lambda: "3DFC6R",
+    )
+    monkeypatch.setattr(
+        mjpromoter_preregister_uc,
+        "create_follow_if_missing",
+        _fake_follow_recorder(follow_calls),
+    )
+
+    client = TestClient(app)
+    response = client.post(
+        "/mjpromoter/preregister",
+        headers={"X-Internal-Token": INTERNAL_TOKEN},
+        json={
+            "full_name": "Jane Doe",
+            "instagram_username": "@jane.doe",
+            "influencer_id": "JulianaVal",
+        },
+    )
+
+    assert response.status_code == 200
+    response_json = response.json()
+    assert response_json["ok"] is True
+    assert response_json["user_id"] == 1
+    assert response_json["email"] is None
+    assert response_json["instagram_username"] == "jane.doe"
+    assert response_json["invite_code"] == "3DFC6R"
+    assert response_json["expires_at"] is not None
+
+    created_user = db.added[0]
+    assert created_user.full_name == "Jane Doe"
+    assert created_user.username == "jane.doe"
+    assert created_user.telegram_id is None
+    assert created_user.email == "instagram-jane.doe@mjpromoter.placeholder.invalid"
+    assert created_user.email_token == "3DFC6R"
+    ttl = created_user.email_token_expires_at - datetime.utcnow()
+    assert 47 * 3600 <= ttl.total_seconds() <= 48 * 3600
+    assert follow_calls == [("JulianaVal", 1)]
+
+
+def test_mjpromoter_preregister_rejects_duplicate_instagram_username(monkeypatch) -> None:
+    db = FakeAsyncSession(
+        existing_instagram_user=SimpleNamespace(id=88, username="jane.doe"),
+        influencer=SimpleNamespace(id="JulianaVal"),
+    )
+    app = _build_mj_app(db)
+    monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+    monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
+
+    client = TestClient(app)
+    response = client.post(
+        "/mjpromoter/preregister",
+        headers={"X-Internal-Token": INTERNAL_TOKEN},
+        json={
+            "full_name": "Jane Doe",
+            "instagram_username": "jane.doe",
+            "influencer_id": "JulianaVal",
+        },
+    )
+
+    assert response.status_code == 409
+    assert response.json() == {"detail": "Instagram username already registered"}
+    assert db.added == []
+
+
+def test_mjpromoter_preregister_requires_telegram_or_instagram(monkeypatch) -> None:
+    db = FakeAsyncSession(influencer=SimpleNamespace(id="loli"))
+    app = _build_mj_app(db)
+    monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+    monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
+
+    client = TestClient(app)
+    response = client.post(
+        "/mjpromoter/preregister",
+        headers={"X-Internal-Token": INTERNAL_TOKEN},
+        json={
+            "full_name": "Jane Doe",
+            "influencer_id": "loli",
+        },
+    )
+
+    assert response.status_code == 422
 
 
 def test_mjpromoter_preregister_empty_string_email_treated_as_omitted(monkeypatch) -> None:
@@ -253,9 +354,9 @@ def test_mjpromoter_preregister_empty_string_email_treated_as_omitted(monkeypatc
     monkeypatch.setattr(settings, "MJFP_TOKEN", INTERNAL_TOKEN)
     monkeypatch.setattr(settings, "FRONTEND_URL", "https://www.teaseme.live")
     monkeypatch.setattr(
-        mjpromoter_preregister_uc.secrets,
-        "token_urlsafe",
-        lambda _n: "generated-verify-token",
+        mjpromoter_preregister_uc,
+        "generate_vip_invite_code",
+        lambda: "QRS456",
     )
     monkeypatch.setattr(
         mjpromoter_preregister_uc,

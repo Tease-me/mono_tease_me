@@ -1,0 +1,31 @@
+.codeRow {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: 1.25rem;
+}
+
+.codeCell {
+  width: 2.75rem;
+  height: 3.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.5rem;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-family: "DM Sans", sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  outline: none;
+}
+
+.codeCell:focus {
+  border-color: rgba(255, 42, 113, 0.8);
+  box-shadow: 0 0 0 1px rgba(255, 42, 113, 0.35);
+}
+
+.codeCell:disabled {
+  opacity: 0.6;
+}
