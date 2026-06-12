@@ -8,14 +8,14 @@
 
 .codeCell {
   width: 2.75rem;
-  height: 3.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 0.5rem;
-  background: rgba(0, 0, 0, 0.55);
+  height: 4.5rem;
+ border: 1px solid var(--colors-tm-text-color11, #3F3F3F);
+border-radius: var(--radius-radius-s, 0.5rem);
+  background: linear-gradient(180deg, var(--colors-tm-neutral-color08, #141414) 0%, var(--colors-tm-text-color12, #2B2B2B) 13.46%, var(--colors-tm-neutral-color08, #141414) 39.42%);
   color: #fff;
   font-family: "DM Sans", sans-serif;
-  font-size: 1.25rem;
-  font-weight: 700;
+ font-size: 1.625rem;
+  font-weight: 600;
   text-align: center;
   text-transform: uppercase;
   outline: none;
