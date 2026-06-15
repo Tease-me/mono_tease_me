@@ -5,7 +5,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 SOURCE_DIR="${PRODUCTION_SOURCE_DIR:-$APP_DIR}"
-TARGET_DIR="${PRODUCTION_APP_DIR:-$HOME/tease-me-backend}"
+TARGET_DIR="${PRODUCTION_APP_DIR:-$HOME/teaseme-backend-starter}"
+COMPOSE_PROJECT="${PRODUCTION_COMPOSE_PROJECT:-teaseme-backend-starter}"
 PRODUCTION_COMPOSE_FILE="${PRODUCTION_COMPOSE_FILE:-compose.production.yml}"
 
 if ! command -v rsync >/dev/null 2>&1; then
@@ -55,9 +56,9 @@ if [ ! -f ".cert/key.pem" ] || [ ! -f ".cert/cert.pem" ]; then
 fi
 
 echo "Validating Docker Compose config"
-docker compose -f "$PRODUCTION_COMPOSE_FILE" config >/dev/null
+docker compose -p "$COMPOSE_PROJECT" -f "$PRODUCTION_COMPOSE_FILE" config >/dev/null
 
 echo "Rebuilding and restarting production stack"
-docker compose -f "$PRODUCTION_COMPOSE_FILE" up -d --build --remove-orphans
+docker compose -p "$COMPOSE_PROJECT" -f "$PRODUCTION_COMPOSE_FILE" up -d --build --remove-orphans
 
 echo "Backend production deploy complete"

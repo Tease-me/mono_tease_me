@@ -1,7 +1,12 @@
 import sys
 import os
+from pathlib import Path
+
+from dotenv import load_dotenv
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config

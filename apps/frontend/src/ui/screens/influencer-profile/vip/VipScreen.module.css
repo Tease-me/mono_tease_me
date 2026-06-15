@@ -154,6 +154,31 @@
   text-underline-offset: 2px;
 }
 
+.codeFeedbackInvalid,
+.codeFeedbackValid {
+  width: 100%;
+  margin: 0.75rem 0 0;
+  padding: 0.45rem 0.75rem;
+  border-radius: 0.35rem;
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 140%;
+  text-align: center;
+  max-width: 31ch;
+}
+
+.codeFeedbackInvalid {
+border-radius: var(--radius-radius-s, 0.25rem);
+border: 1px solid #900;
+color: var(--colors-tm-danger-color05, #FF2A2A);
+background: var(--colors-tm-danger-color12, #600);}
+
+.codeFeedbackValid {
+  background: rgba(34, 197, 94, 0.18);
+  color: #86efac;
+}
+
 .footer {
   position: absolute;
   right: 0;

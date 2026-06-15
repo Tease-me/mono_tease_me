@@ -47,8 +47,13 @@ from app.utils.storage.s3 import (
 from app.services.follow import create_follow_if_missing
 from app.services.billing import topup_wallet
 from app.services.email_verification_service import check_email_verification_token
+from app.services.repositories.user_repository import get_by_email
 from app.api.deps.influencer import ensure_influencer
+from app.utils.mjpromoter_email import is_mjpromoter_placeholder_email
 from app.api.deps.internal_auth import require_internal_token
+from app.services.use_cases.mjfp_vip_invite_webhook import (
+    schedule_mjfp_vip_invite_status_webhook,
+)
 from app.services.use_cases.preregister_user import preregister_user
 from app.utils.infrastructure.rate_limiter import rate_limit
 from app.utils.infrastructure.country import (
@@ -194,7 +199,11 @@ async def check_token(
     data: CheckEmailTokenRequest,
     db: AsyncSession = Depends(get_db),
 ):
-    return await check_email_verification_token(db, data.token)
+    return await check_email_verification_token(
+        db,
+        data.token,
+        influencer_id=data.influencer_id,
+    )
 
 
 @router.post("/preregister", response_model=PreregisterResponse)
@@ -224,8 +233,9 @@ async def complete_profile(
     db: AsyncSession = Depends(get_db),
     file: UploadFile | None = File(default=None),
 ):
-    result = await db.execute(select(User).where(User.email_token == data.token))
-    user = result.scalar_one_or_none()
+    from app.services.repositories.user_repository import get_by_email_token
+
+    user = await get_by_email_token(db, data.token)
     if not user or not user.email_token or not user.email_token_expires_at:
         raise HTTPException(status_code=400, detail="Invalid or expired token")
     if user.is_verified:
@@ -241,6 +251,18 @@ async def complete_profile(
 
     fp_tid = getattr(data, "fp_tid", None) or request.cookies.get("_fprom_tid") or None
     previous_key = user.profile_photo_key
+
+    if data.email and is_mjpromoter_placeholder_email(user.email):
+        new_email = str(data.email).strip()
+        if is_mjpromoter_placeholder_email(new_email):
+            raise HTTPException(
+                status_code=422,
+                detail="A real email address is required",
+            )
+        existing = await get_by_email(db, new_email)
+        if existing is not None and existing.id != user.id:
+            raise HTTPException(status_code=409, detail="Email already registered")
+        user.email = new_email
 
     user.password_hash = pwd_context.hash(data.password)
     if data.full_name is not None:
@@ -389,6 +411,12 @@ async def complete_profile(
         )
     except Exception:
         log.exception("Failed to send verification email during profile completion for user %s", user.id)
+
+    schedule_mjfp_vip_invite_status_webhook(
+        user.id,
+        status="in_progress",
+        event="profile_completed",
+    )
 
     return {
         "ok": True,
@@ -661,6 +689,11 @@ async def verify_email(
     user.email_token = None
     user.email_token_expires_at = None
     await db.commit()
+    schedule_mjfp_vip_invite_status_webhook(
+        user.id,
+        status="completed",
+        event="email_verified",
+    )
 
     access_token = create_token(
         {"sub": str(user.id)},

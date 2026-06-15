@@ -35,11 +35,17 @@ export const AuthServices = (apiClient: AxiosInstance) => ({
       throw error.response?.data || error;
     }
   },
-  checkToken: async (token: string): Promise<CheckTokenResponse> => {
+  checkToken: async (
+    token: string,
+    influencerId?: string,
+  ): Promise<CheckTokenResponse> => {
     try {
       const response = await apiClient.post<CheckTokenResponse>(
         Endpoints.auth.checkToken,
-        { token },
+        {
+          token,
+          ...(influencerId ? { influencer_id: influencerId } : {}),
+        },
       );
       return response.data;
     } catch (error: any) {

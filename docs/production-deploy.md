@@ -62,15 +62,15 @@ Production backend runs on EC2 with Docker Compose and connects to **AWS RDS** (
 On the EC2 host:
 
 ```bash
-mkdir -p "$HOME/tease-me-backend/.cert"
+mkdir -p "$HOME/teaseme-backend-starter/.cert"
 ```
 
 Create the server-local files (never commit these):
 
 ```bash
-$HOME/tease-me-backend/.env          # DB_URL, secrets, APP_ENV=production
-$HOME/tease-me-backend/.cert/key.pem
-$HOME/tease-me-backend/.cert/cert.pem
+$HOME/teaseme-backend-starter/.env          # DB_URL, secrets, APP_ENV=production
+$HOME/teaseme-backend-starter/.cert/key.pem
+$HOME/teaseme-backend-starter/.cert/cert.pem
 ```
 
 Example `.env` entry:
@@ -109,20 +109,20 @@ Get the registration token from **GitHub → mono_tease_me → Settings → Acti
 
 The deploy script:
 
-1. rsyncs `apps/backend/` into `$HOME/tease-me-backend`
+1. rsyncs `apps/backend/` into `$HOME/teaseme-backend-starter`
 2. preserves server-local `.env` and `.cert`
 3. runs `docker compose -f compose.production.yml up -d --build`
 
 Override paths on the server if needed:
 
 ```bash
-PRODUCTION_APP_DIR=/opt/tease-me-backend ./scripts/deploy-backend-production.sh
+PRODUCTION_APP_DIR=/home/ubuntu/teaseme-backend-starter ./scripts/deploy-backend-production.sh
 ```
 
 ### Manual deploy (fallback)
 
 ```bash
-cd "$HOME/tease-me-backend"
+cd "$HOME/teaseme-backend-starter"
 docker compose -f compose.production.yml up -d --build
 ```
 
@@ -131,7 +131,7 @@ See also [apps/backend/docs/BACKUP.md](apps/backend/docs/BACKUP.md) and [apps/ba
 ### Verify after deploy
 
 ```bash
-curl https://teasemebackend.mxjprod.work/health
+curl https://api.teaseme.live/health/
 docker compose -f compose.production.yml logs -f backend
 ```
 
@@ -142,6 +142,6 @@ docker compose -f compose.production.yml logs -f backend
 - [ ] Amplify connected to `mono_tease_me`, app root `apps/frontend`, branch `main`
 - [ ] Amplify production env vars set
 - [ ] EC2 runner registered on `mono_tease_me` with labels `self-hosted,Linux,X64`
-- [ ] `$HOME/tease-me-backend/.env` and TLS certs in place on EC2
+- [ ] `$HOME/teaseme-backend-starter/.env` and TLS certs in place on EC2
 - [ ] Staging deploy verified (`dev` → `staging` merge)
 - [ ] Production deploy tested via `workflow_dispatch` before relying on `main` merges

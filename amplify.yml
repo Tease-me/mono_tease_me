@@ -1,6 +1,13 @@
 version: 1
 applications:
   - appRoot: apps/frontend
+    env:
+      variables:
+        VITE_APP_ENV: production
+        VITE_TEASE_ME_PROTOCOL: https
+        VITE_TEASE_ME_WS_PROTOCOL: wss
+        VITE_TEASE_ME_HOST: api.teaseme.live
+        VITE_PUBLIC_POSTHOG_HOST: https://t.teaseme.live
     frontend:
       phases:
         preBuild:

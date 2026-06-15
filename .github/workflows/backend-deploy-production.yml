@@ -17,10 +17,10 @@ concurrency:
 jobs:
   deploy-production:
     if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
-    runs-on:
-      - self-hosted
-      - Linux
-      - X64
+    runs-on: self-hosted
+    env:
+      PRODUCTION_APP_DIR: /home/ubuntu/teaseme-backend-starter
+      PRODUCTION_COMPOSE_PROJECT: teaseme-backend-starter
     defaults:
       run:
         working-directory: apps/backend

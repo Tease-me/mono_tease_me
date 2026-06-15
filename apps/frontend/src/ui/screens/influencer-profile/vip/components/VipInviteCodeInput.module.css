@@ -1,0 +1,31 @@
+.codeRow {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: 1.25rem;
+}
+
+.codeCell {
+  width: 2.75rem;
+  height: 4.5rem;
+ border: 1px solid var(--colors-tm-text-color11, #3F3F3F);
+border-radius: var(--radius-radius-s, 0.5rem);
+  background: linear-gradient(180deg, var(--colors-tm-neutral-color08, #141414) 0%, var(--colors-tm-text-color12, #2B2B2B) 13.46%, var(--colors-tm-neutral-color08, #141414) 39.42%);
+  color: #fff;
+  font-family: "DM Sans", sans-serif;
+ font-size: 1.625rem;
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
+  outline: none;
+}
+
+.codeCell:focus {
+  border-color: rgba(255, 42, 113, 0.8);
+  box-shadow: 0 0 0 1px rgba(255, 42, 113, 0.35);
+}
+
+.codeCell:disabled {
+  opacity: 0.6;
+}
