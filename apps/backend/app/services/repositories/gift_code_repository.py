@@ -87,7 +87,12 @@ async def count_credited_topups_for_influencer(
 
 
 async def count_pending(db: AsyncSession, influencer_id: str | None = None) -> int:
-    stmt = select(func.count()).select_from(GiftCode).where(GiftCode.status == "pending")
+    now = datetime.now(timezone.utc)
+    stmt = (
+        select(func.count())
+        .select_from(GiftCode)
+        .where(GiftCode.status == "pending", GiftCode.expires_at >= now)
+    )
     if influencer_id:
         stmt = stmt.where(GiftCode.influencer_id == influencer_id)
     result = await db.scalar(stmt)
