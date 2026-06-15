@@ -75,7 +75,12 @@ export default function PromoCodeRedeemSection({
         result = await giftCodeService.redeemMjpPromoCode(trimmed, influencerId);
       } catch (mjpErr: unknown) {
         const status = (mjpErr as { response?: { status?: number } })?.response?.status;
-        if (status !== 404) throw mjpErr;
+        // Fall back to local gift-code redemption when MJ Promoter doesn't know the
+        // code (404), is returning server errors (5xx), or is unreachable (no status /
+        // network timeout). Only hard 4xx errors (400, 409, 422 …) are real rejections
+        // that should surface to the user immediately.
+        const isMjpUnavailable = !status || status === 404 || status >= 500;
+        if (!isMjpUnavailable) throw mjpErr;
         result = await giftCodeService.redeemGiftCode(trimmed);
       }
       setPromoSuccess(`${result.diamonds} diamonds added to your balance`);
