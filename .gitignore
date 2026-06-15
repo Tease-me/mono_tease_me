@@ -72,3 +72,4 @@ MEMORY.md
 GOTCHAS.md
 PROGRESS.md
 yarn.lock
+apps/backend/pgvector/
