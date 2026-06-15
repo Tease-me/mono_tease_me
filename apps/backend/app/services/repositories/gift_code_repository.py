@@ -2,7 +2,7 @@
 
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.data.models import GiftCode, PayPalTopUp, User
@@ -101,6 +101,25 @@ async def mark_sent(db: AsyncSession, gift: GiftCode) -> GiftCode:
     db.add(gift)
     await db.flush()
     return gift
+
+
+async def claim_sent(db: AsyncSession, gift: GiftCode) -> bool:
+    """Atomically transition the gift code from 'sent' to 'accepted'.
+
+    Issues a conditional UPDATE that only matches rows still in the 'sent'
+    state, so at most one concurrent request can win the race.  The caller
+    must check the return value; False means another request already claimed
+    the code.  The UPDATE acquires a row-level lock for the remainder of the
+    caller's transaction, so subsequent wallet-credit work is protected.
+    """
+    now = datetime.now(timezone.utc)
+    result = await db.execute(
+        update(GiftCode)
+        .where(GiftCode.id == gift.id, GiftCode.status == "sent")
+        .values(status="accepted", redeemed_at=now)
+    )
+    await db.flush()
+    return result.rowcount == 1
 
 
 async def mark_redeemed(db: AsyncSession, gift: GiftCode) -> GiftCode:

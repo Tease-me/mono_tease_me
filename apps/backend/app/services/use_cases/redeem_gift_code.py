@@ -55,6 +55,14 @@ async def redeem_gift_code(
     if gift.status != "sent":
         raise HTTPException(status_code=400, detail="Promo code is not yet available to redeem")
 
+    # Atomically transition sent → accepted before touching the wallet.
+    # The conditional UPDATE acquires a row-level lock for this transaction,
+    # so concurrent requests that reach this point will block and then see
+    # rowcount=0, preventing double-credit.
+    claimed = await repo.claim_sent(db, gift)
+    if not claimed:
+        raise HTTPException(status_code=409, detail="Promo code already redeemed")
+
     cents = credits_to_cents(gift.diamonds)
     source = f"gift_code:{gift.code}"
 
@@ -67,7 +75,6 @@ async def redeem_gift_code(
         is_18=False,
     )
 
-    await repo.mark_redeemed(db, gift)
     await db.commit()
 
     redeemed_at = datetime.now(timezone.utc)

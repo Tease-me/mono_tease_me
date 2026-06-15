@@ -70,7 +70,14 @@ export default function PromoCodeRedeemSection({
     setPromoSuccess(null);
 
     try {
-      const result = await giftCodeService.redeemMjpPromoCode(trimmed, influencerId);
+      let result;
+      try {
+        result = await giftCodeService.redeemMjpPromoCode(trimmed, influencerId);
+      } catch (mjpErr: unknown) {
+        const status = (mjpErr as { response?: { status?: number } })?.response?.status;
+        if (status !== 404) throw mjpErr;
+        result = await giftCodeService.redeemGiftCode(trimmed);
+      }
       setPromoSuccess(`${result.diamonds} diamonds added to your balance`);
       setPromoCode("");
       await onRedeemSuccess?.();

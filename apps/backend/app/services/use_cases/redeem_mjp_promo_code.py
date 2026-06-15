@@ -6,7 +6,7 @@ import httpx
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.data.models import User
+from app.data.models import Influencer, User
 from app.services.billing import topup_wallet
 from app.services.credit_conversion import balance_cents_to_credits
 from app.services.gateways.mjp_promo_gateway import verify_mjp_promo_code
@@ -43,6 +43,14 @@ async def redeem_mjp_promo_code(
     successful call, so this function must not be called more than once per
     user submission (the route layer is responsible for that guarantee).
     """
+    influencer_id = (influencer_id or "").strip()
+    if not influencer_id:
+        raise HTTPException(status_code=400, detail="Missing influencer_id")
+
+    infl = await db.get(Influencer, influencer_id)
+    if not infl:
+        raise HTTPException(status_code=404, detail="Influencer not found")
+
     normalized = promo_code.strip().upper()
 
     try:
