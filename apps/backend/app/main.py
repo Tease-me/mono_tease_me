@@ -17,6 +17,8 @@ from app.api.routes.checkout import router as checkout_router
 from app.api.routes.elevenlabs import router as elevenlabs_router
 from app.api.routes.follow import router as follow_router
 from app.api.routes.funnel import router as funnel_router
+from app.api.routes.gift_codes import router as gift_codes_router
+from app.api.routes.promo_codes import router as promo_codes_router
 from app.api.routes.health_router import router as health_router
 from app.api.routes.influencer import router as influencer_router
 from app.api.routes.influencer_subscriptions import (
@@ -147,3 +149,5 @@ app.include_router(verification_router)
 app.include_router(telegram_admin_router)
 app.include_router(system_prompts_router)
 app.include_router(funnel_router)
+app.include_router(gift_codes_router)
+app.include_router(promo_codes_router)

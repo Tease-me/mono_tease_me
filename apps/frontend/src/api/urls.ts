@@ -215,6 +215,15 @@ export const Endpoints = {
   funnel: {
     event: "/funnel/event",
   },
+  giftCodes: {
+    activity: "/gift-codes/activity",
+    pendingCount: "/gift-codes/pending-count",
+    redeem: "/gift-codes/redeem",
+    send: (userId: number) => `/gift-codes/${userId}/send`,
+  },
+  promoCodes: {
+    redeem: "/promo-codes/redeem",
+  },
 } as const;
 
 export const WsEndpoints = {

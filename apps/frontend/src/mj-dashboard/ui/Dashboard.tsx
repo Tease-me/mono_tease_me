@@ -12,6 +12,7 @@ const InfluencerContent = lazy(() => import('./components/detail-pane/content/in
 const AiContent = lazy(() => import('./components/detail-pane/content/ai/AiContent'));
 const ConversationPoolContent = lazy(() => import('./components/detail-pane/content/conversation-pool/ConversationPoolContent'));
 const BillingContent = lazy(() => import('./components/detail-pane/content/billing/BillingContent'));
+const GiftActivityContent = lazy(() => import('./components/detail-pane/content/gift-activity/GiftActivityContent'));
 const IssueReportContent = lazy(() => import('./components/detail-pane/content/issue-reports/IssueReportContent'));
 const BlockingLoader = lazy(() => import('@/ui/components/loading/BlockingLoader'));
 
@@ -68,6 +69,12 @@ const MJDashboard: React.FC<MJDashboardProps> = ({ }) => {
             leftIcon: <SvgPack.Chat />,
             label: "Conversation Pool",
             content: <ConversationPoolContent />
+        },
+        {
+            leftIcon: <SvgPack.Star />,
+            label: "Gift Activity",
+            title: "Gift Activity",
+            content: <GiftActivityContent />
         },
         {
             label: "Support"

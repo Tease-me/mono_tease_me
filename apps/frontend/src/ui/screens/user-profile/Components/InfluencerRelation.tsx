@@ -24,6 +24,7 @@ import LoadingSpinner from "@/ui/components/loading/LoadingSpinner";
 import { RELATIONSHIP_MODE_AVAILABLE } from "@/constants/featureFlags";
 import { centsToCredits } from "@/utils/balance_utils";
 import CreditDisplay from "@/ui/components/stats/CreditDisplay";
+import PromoCodeRedeemSection from "./PromoCodeRedeemSection";
 
 const billingService = BillingServices(apiClient);
 const subscriptionService = SubscriptionsServices(apiClient);
@@ -307,9 +308,30 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
             onClick={handleAddCredits}
             className={styles.btn}
           />
+          <PromoCodeRedeemSection
+            influencerId={data.id}
+            onRedeemSuccess={async () => {
+              if (!data.id) return;
+              try {
+                const adultSummary =
+                  await billingService.getAdultCharacterSummary(data.id);
+                setData((current) => ({
+                  ...current,
+                  balance:
+                    adultSummary?.balance_credits ?? current.balance,
+                  estimatedRemainingCallSeconds:
+                    adultSummary?.estimated_remaining_call_seconds ?? null,
+                }));
+              } catch (error) {
+                logger.error("Failed to refresh balance after promo redeem", {
+                  influencerId: data.id,
+                  error,
+                });
+              }
+            }}
+          />
         </div>
       </div>
-
 
       {showCallInfoModal && (
         <Modal isOpen onClose={() => setShowCallInfoModal(false)} className={styles.callInfoModal}>

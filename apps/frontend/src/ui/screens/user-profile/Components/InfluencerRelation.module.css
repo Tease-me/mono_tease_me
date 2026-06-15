@@ -108,7 +108,7 @@
   flex-direction: column;
   gap: var(--space-px-24);
   align-items: center;
-  padding: 0 16px 16px;
+  padding: 0 16px 24px;
   max-width: 360px;
   width: 100%;
   margin: 0 auto;

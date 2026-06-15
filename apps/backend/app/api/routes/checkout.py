@@ -20,6 +20,7 @@ from app.services.credit_conversion import (
 )
 from app.services.billing import topup_wallet
 from app.services.use_cases.track_mjfp_topup_sale import track_mjfp_topup_sale
+from app.services.use_cases.generate_first_deposit_gift import generate_first_deposit_gift
 from app.services.gateways import armloop_gateway
 from app.utils.auth.dependencies import get_current_user
 from app.utils.infrastructure.rate_limiter import rate_limit
@@ -123,6 +124,9 @@ async def payment_webhook(
             asyncio.create_task(
                 track_first_payment(topup.user_id, topup.influencer_id, topup.cents)
             )
+        asyncio.create_task(
+            generate_first_deposit_gift(topup.user_id, topup.influencer_id)
+        )
     except HTTPException:
         await db.rollback()
         raise
@@ -375,6 +379,10 @@ async def armloop_webhook(
             topup.credited = True
             db.add(topup)
             await db.commit()
+
+            asyncio.create_task(
+                generate_first_deposit_gift(topup.user_id, topup.influencer_id)
+            )
         except HTTPException:
             await db.rollback()
             raise

@@ -1,0 +1,245 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-bottom: 24px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filterLabel {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+}
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.searchInput {
+  flex: 1;
+}
+
+.giftBadge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 20px;
+}
+
+.giftBadgeCount {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #ff4d4f;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sectionTitle {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.listLoading {
+  min-height: 240px;
+}
+
+.row {
+  padding: 18px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.rowMain {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.userBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.userName {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.userMeta {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 12px;
+}
+
+.userEmail {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 13px;
+}
+
+.amountBlock {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.lifetime {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 13px;
+}
+
+.lifetime span,
+.lastDeposit {
+  color: #4ade80;
+  font-weight: 700;
+}
+
+.lastDeposit {
+  font-size: 16px;
+}
+
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.giftButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffb347 0%, #ff8c00 100%);
+  color: #111;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.giftButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.giftedBadge {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 999px;
+  background: #22c55e;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.firstDepositBadge,
+.statusAccepted,
+.statusDeposit,
+.statusExpired {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.firstDepositBadge {
+  color: #fbbf24;
+}
+
+.statusAccepted,
+.statusDeposit {
+  color: #4ade80;
+}
+
+.statusExpired {
+  color: #f87171;
+}
+
+.promoPanel {
+  margin-top: 14px;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.promoTitle {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.promoDescription {
+  margin: 8px 0 12px;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 13px;
+}
+
+.promoCodeBox {
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-family: monospace;
+  font-size: 18px;
+  letter-spacing: 0.12em;
+}
+
+.copyButton {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.loaderWrap,
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+@media (max-width: 767px) {
+  .rowMain {
+    flex-direction: column;
+  }
+
+  .amountBlock {
+    text-align: left;
+  }
+}
