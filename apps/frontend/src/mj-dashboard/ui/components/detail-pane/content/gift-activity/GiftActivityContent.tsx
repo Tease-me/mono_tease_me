@@ -165,8 +165,10 @@ const GiftActivityContent: React.FC = () => {
     return () => window.clearTimeout(timer);
   }, [search]);
 
-  const loadActivity = useCallback(async () => {
-    setLoading(true);
+  const loadActivity = useCallback(async (options?: { silent?: boolean }) => {
+    if (!options?.silent) {
+      setLoading(true);
+    }
     setError(null);
     try {
       const response = await giftActivityService.getGiftActivity(
@@ -175,14 +177,25 @@ const GiftActivityContent: React.FC = () => {
       setItems(response.items);
       setPendingCount(response.pending_count);
     } catch {
-      setError("Unable to load gift activity");
+      if (!options?.silent) {
+        setError("Unable to load gift activity");
+      }
     } finally {
-      setLoading(false);
+      if (!options?.silent) {
+        setLoading(false);
+      }
     }
   }, [debouncedSearch]);
 
   useEffect(() => {
     void loadActivity();
+  }, [loadActivity]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      void loadActivity({ silent: true });
+    }, 10_000);
+    return () => window.clearInterval(interval);
   }, [loadActivity]);
 
   const handleSendGift = async (userId: number, influencerId: string) => {

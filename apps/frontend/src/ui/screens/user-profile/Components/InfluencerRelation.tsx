@@ -238,7 +238,10 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
       <div className={styles.balanceCard}>
         <div className={styles.balanceArea}>
           <div className={styles.balanceBadge}>
-            <BalanceBadge balance={data.balance ? data.balance : 0} />
+            <BalanceBadge
+              balance={data.balance ? data.balance : 0}
+              animateValue
+            />
           </div>
           {RELATIONSHIP_MODE_AVAILABLE && (
             <NormalButton
@@ -310,8 +313,14 @@ export default function InfluencerRelation({ navPayload, goTo }: Props) {
           />
           <PromoCodeRedeemSection
             influencerId={data.id}
-            onRedeemSuccess={async () => {
+            onRedeemSuccess={async (result) => {
               if (!data.id) return;
+
+              setData((current) => ({
+                ...current,
+                balance: result.new_balance_credits ?? current.balance,
+              }));
+
               try {
                 const adultSummary =
                   await billingService.getAdultCharacterSummary(data.id);

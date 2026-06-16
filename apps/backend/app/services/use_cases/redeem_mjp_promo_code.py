@@ -10,6 +10,7 @@ from app.data.models import Influencer, User
 from app.services.billing import topup_wallet
 from app.services.credit_conversion import balance_cents_to_credits
 from app.services.gateways.mjp_promo_gateway import verify_mjp_promo_code
+from app.services.repositories import gift_code_repository as gift_repo
 
 log = logging.getLogger(__name__)
 
@@ -87,6 +88,10 @@ async def redeem_mjp_promo_code(
     diamonds = int(result.get("diamonds") or 0)
     cents = _diamonds_to_cents(diamonds)
     source = f"mjp_promo:{normalized}"
+
+    gift = await gift_repo.get_by_code(db, normalized)
+    if gift and gift.user_id == user.id and gift.status == "sent":
+        await gift_repo.claim_sent(db, gift)
 
     new_balance = await topup_wallet(
         db,

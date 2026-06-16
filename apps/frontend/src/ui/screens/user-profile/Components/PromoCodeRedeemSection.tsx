@@ -6,7 +6,10 @@ import CloseIconButton from "@/ui/components/inputs/buttons/CloseIconButton";
 import { Modal } from "@/ui/components/modals/Modal";
 import { terms } from "@/ui/screens/terms/termsContent";
 import { apiClient } from "@/api/apis";
-import { GiftCodeServices } from "@/api/services/GiftCodeServices";
+import {
+  GiftCodeServices,
+  RedeemGiftCodeResponse,
+} from "@/api/services/GiftCodeServices";
 import { extractApiError } from "@/utils/extractApiError";
 import styles from "./PromoCodeRedeemSection.module.css";
 
@@ -44,7 +47,7 @@ const paymentTermsDocuments: PolicyDocument[] = [
 type PromoCodeRedeemSectionProps = {
   influencerId: string;
   showPaymentTerms?: boolean;
-  onRedeemSuccess?: () => void | Promise<void>;
+  onRedeemSuccess?: (result: RedeemGiftCodeResponse) => void | Promise<void>;
 };
 
 export default function PromoCodeRedeemSection({
@@ -85,7 +88,7 @@ export default function PromoCodeRedeemSection({
       }
       setPromoSuccess(`${result.diamonds} diamonds added to your balance`);
       setPromoCode("");
-      await onRedeemSuccess?.();
+      await onRedeemSuccess?.(result);
     } catch (err: unknown) {
       setPromoError(extractApiError(err, "Unable to redeem promo code"));
     } finally {
