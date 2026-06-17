@@ -31,6 +31,11 @@ QWEN_FAST = ChatOpenAI(
 def apply_fallback(model: Runnable, fallback_model: Runnable | None) -> Runnable:
     return model.with_fallbacks([fallback_model]) if fallback_model else model
 
+
+def apply_fallbacks(model: Runnable, *fallback_models: Runnable | None) -> Runnable:
+    fallbacks = [fallback for fallback in fallback_models if fallback is not None]
+    return model.with_fallbacks(fallbacks) if fallbacks else model
+
 # --- Primary Models ---
 
 MODEL_BASE = ChatOpenAI(
@@ -42,14 +47,6 @@ MODEL_BASE = ChatOpenAI(
 )
 MODEL = apply_fallback(MODEL_BASE, QWEN_FLAGSHIP)
 
-FACT_EXTRACTOR_BASE = ChatXAI(
-    xai_api_key=settings.XAI_API_KEY,
-    model="grok-4-1-fast-reasoning",
-    temperature=0.5,
-    max_tokens=512,
-)
-FACT_EXTRACTOR = apply_fallback(FACT_EXTRACTOR_BASE, QWEN_FAST)
-
 CONVO_ANALYZER_BASE = ChatOpenAI(
     openai_api_key=settings.OPENAI_API_KEY,
     model="gpt-4o-mini",
@@ -58,6 +55,18 @@ CONVO_ANALYZER_BASE = ChatOpenAI(
     store=False
 )
 CONVO_ANALYZER = apply_fallback(CONVO_ANALYZER_BASE, QWEN_FAST)
+
+FACT_EXTRACTOR_BASE = ChatXAI(
+    xai_api_key=settings.XAI_API_KEY,
+    model="grok-4-1-fast-non-reasoning",
+    temperature=0.5,
+    max_tokens=512,
+)
+FACT_EXTRACTOR = apply_fallbacks(
+    FACT_EXTRACTOR_BASE,
+    CONVO_ANALYZER_BASE,
+    QWEN_FAST,
+)
 
 XAI_MODEL_BASE = ChatXAI(
     xai_api_key=settings.XAI_API_KEY,

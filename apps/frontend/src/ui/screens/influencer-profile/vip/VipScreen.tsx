@@ -696,13 +696,15 @@ export default function VipScreen() {
           </section>
         </div>
       </div>
-      <AvatarPicker
-        isOpen={showAvatarPicker}
-        onClose={() => setShowAvatarPicker(false)}
-        onSelect={(avatarUrl) => {
-          setAvatarValues((prev) => ({ ...prev, avatarUrl }));
-        }}
-      />
+      {showAvatarPicker ? (
+        <AvatarPicker
+          isOpen={showAvatarPicker}
+          onClose={() => setShowAvatarPicker(false)}
+          onSelect={(avatarUrl) => {
+            setAvatarValues((prev) => ({ ...prev, avatarUrl }));
+          }}
+        />
+      ) : null}
     </>
   );
 }
