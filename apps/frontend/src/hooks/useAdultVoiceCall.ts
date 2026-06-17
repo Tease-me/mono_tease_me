@@ -35,7 +35,6 @@ export default function useAdultVoiceCall(options?: UseAdultVoiceCallOptions) {
   const micCaptureRef = useRef<MicCapture | null>(null);
   const playerRef = useRef<PcmPlayer | null>(null);
   const stopRequestedRef = useRef(false);
-  const endAckResolverRef = useRef<(() => void) | null>(null);
   const ringtoneRef = useRef(createCallRingtoneController());
 
   const { permissionState, requestMicrophonePermission, releaseMicrophonePermission } =
@@ -79,24 +78,6 @@ export default function useAdultVoiceCall(options?: UseAdultVoiceCallOptions) {
     setRemainingSeconds(null);
   }, []);
 
-  const waitForStopAck = useCallback(() => {
-    return new Promise<void>((resolve) => {
-      let settled = false;
-      const finish = () => {
-        if (settled) {
-          return;
-        }
-        settled = true;
-        endAckResolverRef.current = null;
-        window.clearTimeout(timeoutId);
-        resolve();
-      };
-
-      endAckResolverRef.current = finish;
-      const timeoutId = window.setTimeout(finish, 2000);
-    });
-  }, []);
-
   const stopCall = useCallback(async () => {
     stopRequestedRef.current = true;
     stopPing();
@@ -104,13 +85,12 @@ export default function useAdultVoiceCall(options?: UseAdultVoiceCallOptions) {
     const socket = socketRef.current;
     if (socket?.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify({ type: "stop_call" }));
-      await waitForStopAck();
     }
     closeSocket(1000, "client_stop");
     setSocketStatus("closed");
     setCallState("ended");
     await teardownAudio();
-  }, [closeSocket, stopPing, teardownAudio, waitForStopAck]);
+  }, [closeSocket, stopPing, teardownAudio]);
 
   const setTransportError = useCallback(
     async (nextError: AdultVoiceError, shouldCloseSocket: boolean = true) => {
@@ -171,7 +151,6 @@ export default function useAdultVoiceCall(options?: UseAdultVoiceCallOptions) {
           }
           setCallState(message.state);
           if (message.state === "ended") {
-            endAckResolverRef.current?.();
             setSocketStatus("closed");
             await teardownAudio();
           }

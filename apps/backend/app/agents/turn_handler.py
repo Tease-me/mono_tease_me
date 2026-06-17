@@ -11,7 +11,6 @@ from app.core.config import settings
 from app.agents.memory import find_similar_memories, store_facts_batch
 from app.agents.prompts import MODEL, FACT_EXTRACTOR, CONVO_ANALYZER, get_fact_prompt
 from app.core.session import SessionLocal
-from app.utils.llm_provider import log_fact_extraction_failure
 from app.services.knowledge_rag import retrieve_knowledge_chunks
 from app.agents.prompt_utils import (
     get_global_prompt,
@@ -199,12 +198,7 @@ async def extract_and_store_facts_for_turn(
                 log.info("[%s] fact_extract.no_facts chat=%s", cid, chat_id)
                 
         except Exception as ex:
-            log_fact_extraction_failure(
-                log,
-                f"[{cid}] fact_extract",
-                ex,
-                chat_id=chat_id,
-            )
+            log.error("[%s] Fact extraction failed: %s", cid, ex, exc_info=True)
 
 
 
@@ -445,9 +439,8 @@ async def handle_turn(
         )
         # Add done callback to log any exceptions
         fact_task.add_done_callback(
-            lambda t: log.warning("[%s] fact_extract.task_failed err=%s", cid, t.exception())
-            if t.exception()
-            else None
+            lambda t: log.error("[%s] Fact extraction failed: %s", cid, t.exception()) 
+            if t.exception() else None
         )
     except Exception as ex:
         log.error("[%s] Failed to schedule fact extraction: %s", cid, ex, exc_info=True)
