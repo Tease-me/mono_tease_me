@@ -27,7 +27,7 @@ async def generate_first_deposit_gift(user_id: int, influencer_id: str | None) -
                 user_id,
                 influencer_id,
             )
-            if credited_count < 1:
+            if credited_count != 1:
                 return
 
             await repo.create_gift_code(
