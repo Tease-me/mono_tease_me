@@ -89,6 +89,10 @@ class Settings(BaseSettings):
     MJFP_WEBHOOK_URL: str | None = None
     MJFP_WEBHOOK_SECRET: str | None = None
     MJFP_VIP_INVITE_WEBHOOK_URL: str | None = None
+    MJFP_GIFT_REDEEMED_WEBHOOK_URL: str | None = None
+    MJFP_VERIFY_PROMO_CODE_URL: str = (
+        "https://www.mjpromoter.com/api/webhooks/teaseme/verify-promo-code"
+    )
 
     # Didit Identity Verification (v3 API)
     DIDIT_BASE_URL: str = "https://verification.didit.me/v3"

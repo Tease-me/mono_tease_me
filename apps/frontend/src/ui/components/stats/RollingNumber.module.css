@@ -1,0 +1,88 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+  vertical-align: baseline;
+}
+
+.digit {
+  --roll-duration: 750ms;
+  width: 1ch;
+  height: 1em;
+  overflow: hidden;
+  display: inline-flex;
+  position: relative;
+}
+
+.hiddenValue {
+  color: transparent;
+  user-select: none;
+}
+
+.scale {
+  user-select: none;
+  position: absolute;
+  inset: 0 auto auto 0;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform var(--roll-duration) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.scale span {
+  height: 1em;
+  line-height: 1em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.digit[data-value="\200b"] .scale {
+  transform: translateY(10%);
+}
+
+.digit[data-value="0"] .scale {
+  transform: translateY(0);
+}
+
+.digit[data-value="1"] .scale {
+  transform: translateY(-10%);
+}
+
+.digit[data-value="2"] .scale {
+  transform: translateY(-20%);
+}
+
+.digit[data-value="3"] .scale {
+  transform: translateY(-30%);
+}
+
+.digit[data-value="4"] .scale {
+  transform: translateY(-40%);
+}
+
+.digit[data-value="5"] .scale {
+  transform: translateY(-50%);
+}
+
+.digit[data-value="6"] .scale {
+  transform: translateY(-60%);
+}
+
+.digit[data-value="7"] .scale {
+  transform: translateY(-70%);
+}
+
+.digit[data-value="8"] .scale {
+  transform: translateY(-80%);
+}
+
+.digit[data-value="9"] .scale {
+  transform: translateY(-90%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scale {
+    transition: none;
+  }
+}

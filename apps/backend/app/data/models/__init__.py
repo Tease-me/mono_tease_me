@@ -48,6 +48,7 @@ from .billing import (
     InfluencerSubscriptionPayment,
     PayPalTopUp,
 )
+from .gift_code import GiftCode
 
 # Relationship models
 from .relationship import RelationshipState
@@ -101,6 +102,7 @@ __all__ = [
     "InfluencerSubscriptionAddonPurchase",
     "InfluencerSubscriptionPayment",
     "PayPalTopUp",
+    "GiftCode",
     # Relationship
     "RelationshipState",
     # Content
