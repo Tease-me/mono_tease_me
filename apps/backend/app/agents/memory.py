@@ -8,7 +8,6 @@ from app.core.config import settings
 import logging
 from app.core.session import SessionLocal
 from app.agents.callbacks import UsageTrackingCallback
-from app.utils.llm_provider import log_fact_extraction_failure
 
 log = logging.getLogger(__name__)
 
@@ -91,13 +90,7 @@ async def extract_memories_from_transcript(
                         lines = [ln.strip("- ").strip() for ln in txt.split("\n") if ln.strip()]
                         return [ln for ln in lines if ln.lower() != "no new memories."]
                 except Exception as e:
-                    log_fact_extraction_failure(
-                        log,
-                        "[MEMORY-BG] chunk_extract",
-                        e,
-                        conversation_id=conversation_id,
-                        chat_id=chat_id,
-                    )
+                    log.warning("Chunk extraction failed: %s", e)
                 return []
 
             # Concurrently extract from all chunks (typically 2-3 tasks)
@@ -135,12 +128,9 @@ async def extract_memories_from_transcript(
                 )
 
         except Exception as exc:
-            log_fact_extraction_failure(
-                log,
-                "[MEMORY-BG] fact_extract",
-                exc,
-                conversation_id=conversation_id,
-                chat_id=chat_id,
+            log.error(
+                "[MEMORY-BG] fact extraction failed conv=%s chat=%s err=%s",
+                conversation_id, chat_id, exc, exc_info=True,
             )
 
 
