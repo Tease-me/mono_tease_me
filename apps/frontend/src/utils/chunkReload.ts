@@ -18,15 +18,24 @@ export function isStaleChunkError(error: unknown): boolean {
   );
 }
 
-function reloadForStaleChunk(source: string): void {
+function reloadForStaleChunk(source: string): boolean {
   if (sessionStorage.getItem(RELOAD_FLAG_KEY) === "1") {
     logger.warn("Stale JS chunk detected (%s) but reload was already attempted", source);
-    return;
+    return false;
   }
 
   sessionStorage.setItem(RELOAD_FLAG_KEY, "1");
   logger.info("Reloading app after stale JS chunk (%s)", source);
   window.location.reload();
+  return true;
+}
+
+export function tryReloadForStaleChunk(error: unknown, source: string): boolean {
+  if (!isStaleChunkError(error)) {
+    return false;
+  }
+
+  return reloadForStaleChunk(source);
 }
 
 export function clearStaleChunkReloadFlag(): void {
@@ -44,21 +53,19 @@ export function setupStaleChunkRecovery(): void {
   });
 
   window.addEventListener("unhandledrejection", (event) => {
-    if (!isStaleChunkError(event.reason)) {
+    if (!tryReloadForStaleChunk(event.reason, "unhandledrejection")) {
       return;
     }
     event.preventDefault();
-    reloadForStaleChunk("unhandledrejection");
   });
 
   window.addEventListener(
     "error",
     (event) => {
-      if (!isStaleChunkError(event.error ?? event.message)) {
+      if (!tryReloadForStaleChunk(event.error ?? event.message, "error")) {
         return;
       }
       event.preventDefault();
-      reloadForStaleChunk("error");
     },
     true,
   );

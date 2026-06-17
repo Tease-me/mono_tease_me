@@ -19,6 +19,7 @@ import {
   isStaleChunkError,
   setupStaleChunkRecovery,
 } from "@/utils/chunkReload";
+import StaleChunkErrorFallback from "@/ui/components/errors/StaleChunkErrorFallback";
 
 const sentryDsn: string | undefined = import.meta.env.VITE_SENTRY_DSN;
 
@@ -112,7 +113,14 @@ if (rootElement) {
   );
 
   const sentryWrappedAppTree = (
-    <Sentry.ErrorBoundary fallback={<p>Something went wrong</p>}>
+    <Sentry.ErrorBoundary
+      fallback={({ error }) => (
+        <StaleChunkErrorFallback
+          error={error}
+          fallback={<p>Something went wrong</p>}
+        />
+      )}
+    >
       {appTree}
     </Sentry.ErrorBoundary>
   );
