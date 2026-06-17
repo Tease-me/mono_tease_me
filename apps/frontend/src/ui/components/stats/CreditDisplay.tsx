@@ -9,18 +9,22 @@ const DotLottieWC = "dotlottie-wc" as unknown as React.ComponentType<{
 }>;
 import lottieDiamondUrl from "@/assets/lottie/lottieDiamond.lottie?url";
 import { formatCredits } from "@/utils/balance_utils";
+import RollingNumber from "./RollingNumber";
 import styles from "./CreditDisplay.module.css";
 
 type CreditDisplayProps = {
   credits: number | null | undefined;
   className?: string;
+  animateValue?: boolean;
 };
 
 export default function CreditDisplay({
   credits,
   className,
+  animateValue = false,
 }: Readonly<CreditDisplayProps>) {
-  const value = formatCredits(credits);
+  const numericCredits = Math.max(0, Math.round(credits ?? 0));
+  const value = formatCredits(numericCredits);
 
   return (
     <span
@@ -37,7 +41,13 @@ export default function CreditDisplay({
           width="100%"
         />
       </span>
-      <span className={styles.value}>{value}</span>
+      <span className={styles.value}>
+        {animateValue ? (
+          <RollingNumber value={numericCredits} className={styles.rollingValue} />
+        ) : (
+          value
+        )}
+      </span>
     </span>
   );
 }
