@@ -14,13 +14,35 @@ import posthog from "posthog-js";
 import { PostHogErrorBoundary, PostHogProvider } from "@posthog/react";
 import { IS_PRODUCTION } from "./env";
 import { APP_VERSION } from "@/version";
+import {
+  clearStaleChunkReloadFlag,
+  isStaleChunkError,
+  setupStaleChunkRecovery,
+} from "@/utils/chunkReload";
 
 const sentryDsn: string | undefined = import.meta.env.VITE_SENTRY_DSN;
+
+if (import.meta.env.PROD) {
+  setupStaleChunkRecovery();
+}
 
 Sentry.init({
   dsn: sentryDsn,
   enabled: IS_PRODUCTION && Boolean(sentryDsn),
   sendDefaultPii: false,
+  beforeSend(event, hint) {
+    const original = hint.originalException;
+    if (isStaleChunkError(original) || isStaleChunkError(event.message)) {
+      return null;
+    }
+
+    const exceptionMessage = event.exception?.values?.[0]?.value;
+    if (isStaleChunkError(exceptionMessage)) {
+      return null;
+    }
+
+    return event;
+  },
 });
 
 const posthogToken: string | undefined = import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN;
@@ -74,6 +96,7 @@ logger.info(`App version: ${APP_VERSION}`);
 if (rootElement) {
   if (import.meta.env.PROD) {
     cleanupPwaArtifacts();
+    window.addEventListener("load", clearStaleChunkReloadFlag, { once: true });
   }
   const appTree = (
     <StrictMode>

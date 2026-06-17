@@ -24,9 +24,23 @@ from app.services.use_cases.adult.adult_conversation_token import (
     create_adult_conversation_token,
 )
 from app.utils.auth.dependencies import get_current_user
+from app.utils.websocket_client import (
+    is_client_websocket_disconnect,
+    safe_close_websocket,
+    safe_send_websocket_json,
+)
 
 router = APIRouter(prefix="/adult", tags=["Adult Calls"])
 log = logging.getLogger(__name__)
+
+
+async def _stop_voice_session(
+    session: AdultBrowserVoiceSession | None,
+    *,
+    reason: str,
+) -> None:
+    if session:
+        await session.stop(reason=reason)
 
 
 @router.get(
@@ -156,12 +170,15 @@ async def websocket_adult_voice(
                 }
             )
     except WebSocketDisconnect:
-        if session:
-            await session.stop(reason="client_disconnect")
+        log.info(
+            "[ADULT-VOICE] Client disconnected influencer=%s user=%s",
+            influencer_id,
+            user_id,
+        )
+        await _stop_voice_session(session, reason="client_disconnect")
     except HTTPException as exc:
         detail = exc.detail
-        if session:
-            await session.stop(reason="setup_error")
+        await _stop_voice_session(session, reason="setup_error")
         payload = {
             "type": "error",
             "error": "HTTP_ERROR",
@@ -173,34 +190,31 @@ async def websocket_adult_voice(
             for key in ("needed_cents", "free_left", "influencer_id"):
                 if key in detail:
                     payload[key] = detail[key]
-        try:
-            await ws.send_json(payload)
-        except Exception:
-            pass
-        try:
-            close_code = 4403 if exc.status_code in (402, 403) else 4400
-            await ws.close(code=close_code)
-        except Exception:
-            pass
+        await safe_send_websocket_json(ws, payload)
+        close_code = 4403 if exc.status_code in (402, 403) else 4400
+        await safe_close_websocket(ws, code=close_code)
     except Exception as exc:
+        if is_client_websocket_disconnect(exc):
+            log.info(
+                "[ADULT-VOICE] Client disconnected influencer=%s user=%s",
+                influencer_id,
+                user_id,
+            )
+            await _stop_voice_session(session, reason="client_disconnect")
+            return
+
         log.exception(
             "[ADULT-VOICE] Unexpected error influencer=%s user=%s",
             influencer_id,
             user_id,
         )
-        if session:
-            await session.stop(reason="server_error")
-        try:
-            await ws.send_json(
-                {
-                    "type": "error",
-                    "error": "SERVER_ERROR",
-                    "message": str(exc),
-                }
-            )
-        except Exception:
-            pass
-        try:
-            await ws.close(code=4003)
-        except Exception:
-            pass
+        await _stop_voice_session(session, reason="server_error")
+        await safe_send_websocket_json(
+            ws,
+            {
+                "type": "error",
+                "error": "SERVER_ERROR",
+                "message": str(exc),
+            },
+        )
+        await safe_close_websocket(ws, code=4003)

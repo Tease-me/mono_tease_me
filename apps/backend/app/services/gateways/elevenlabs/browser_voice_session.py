@@ -26,6 +26,7 @@ from app.services.use_cases.elevenlabs_call_persistence import (
 from app.services.use_cases.elevenlabs_credit_guard import (
     end_conversation_after_credits,
 )
+from app.utils.websocket_client import is_client_websocket_disconnect
 
 log = logging.getLogger(__name__)
 
@@ -192,6 +193,8 @@ class AdultBrowserVoiceSession:
             self._startup_event.set()
             if await self._handle_upstream_close(exc):
                 return
+            if is_client_websocket_disconnect(exc):
+                return
             log.exception(
                 "adult_browser_voice.convai_error influencer=%s user=%s",
                 self.influencer_id,
@@ -297,7 +300,7 @@ class AdultBrowserVoiceSession:
                 )
             )
 
-        await self.client_ws.send_json(
+        await self._send_client_json(
             {
                 "type": "call_started",
                 "chat_id": self.chat_id,
@@ -327,7 +330,7 @@ class AdultBrowserVoiceSession:
             self._flush_held_audio_task.cancel()
 
         await self._send_state("agent_speaking")
-        await self.client_ws.send_json(
+        await self._send_client_json(
             {
                 "type": "output_audio_chunk",
                 "audio": audio_b64,
@@ -404,9 +407,10 @@ class AdultBrowserVoiceSession:
             remaining = 1
         try:
             while self._is_active and remaining >= 0:
-                await self.client_ws.send_json(
+                if not await self._send_client_json(
                     {"type": "remaining_time", "seconds": remaining}
-                )
+                ):
+                    break
                 sleep_for = 1 if remaining <= 10 else 5
                 await asyncio.sleep(sleep_for)
                 remaining -= sleep_for
@@ -414,33 +418,38 @@ class AdultBrowserVoiceSession:
                 await self.stop(reason="credit_timeout")
         except asyncio.CancelledError:
             pass
-        except Exception:
+        except Exception as exc:
+            if is_client_websocket_disconnect(exc):
+                return
             log.exception(
                 "adult_browser_voice.remaining_time_error influencer=%s user=%s",
                 self.influencer_id,
                 self.user_id,
             )
 
+    async def _send_client_json(self, payload: dict) -> bool:
+        try:
+            await self.client_ws.send_json(payload)
+            return True
+        except Exception as exc:
+            if is_client_websocket_disconnect(exc):
+                return False
+            return False
+
     async def _send_state(self, state: str, *, reason: str | None = None) -> None:
         payload: dict[str, object] = {"type": "state", "state": state}
         if reason:
             payload["reason"] = reason
-        try:
-            await self.client_ws.send_json(payload)
-        except Exception:
-            pass
+        await self._send_client_json(payload)
 
     async def _send_error(self, code: str, message: str) -> None:
-        try:
-            await self.client_ws.send_json(
-                {
-                    "type": "error",
-                    "error": code,
-                    "message": message,
-                }
-            )
-        except Exception:
-            pass
+        await self._send_client_json(
+            {
+                "type": "error",
+                "error": code,
+                "message": message,
+            }
+        )
 
     async def _handle_upstream_close(self, exc: Exception) -> bool:
         if not self._is_upstream_close_exception(exc):
