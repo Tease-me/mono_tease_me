@@ -4,9 +4,7 @@ from starlette.websockets import WebSocketDisconnect
 
 from app.utils.websocket_client import is_client_websocket_disconnect
 
-
-class ConnectionClosedOK(Exception):
-    pass
+ConnectionClosedOK = type("ConnectionClosedOK", (Exception,), {})
 
 
 def test_is_client_websocket_disconnect_for_starlette_disconnect() -> None:
