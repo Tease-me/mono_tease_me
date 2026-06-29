@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AdultVoiceCallState, AdultVoiceError, AdultVoiceServerMessage, AdultVoiceSocketStatus } from "@/api/models/adultVoice";
+import { AdultVoiceCallState, AdultVoiceError, AdultVoiceSceneUpdate, AdultVoiceServerMessage, AdultVoiceSocketStatus } from "@/api/models/adultVoice";
 import { WsEndpoints } from "@/api/urls";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { useMicrophonePermission } from "./useMicrophonePermission";
@@ -29,6 +29,7 @@ export default function useAdultVoiceCall(options?: UseAdultVoiceCallOptions) {
   const [isMicStreaming, setIsMicStreaming] = useState(false);
   const [isPlaybackActive, setIsPlaybackActive] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [activeScene, setActiveScene] = useState<AdultVoiceSceneUpdate | null>(null);
 
   const socketRef = useRef<WebSocket | null>(null);
   const pingIntervalRef = useRef<number | null>(null);
@@ -76,6 +77,7 @@ export default function useAdultVoiceCall(options?: UseAdultVoiceCallOptions) {
     setConversationId(null);
     setChatId(null);
     setRemainingSeconds(null);
+    setActiveScene(null);
   }, []);
 
   const stopCall = useCallback(async () => {
@@ -89,6 +91,7 @@ export default function useAdultVoiceCall(options?: UseAdultVoiceCallOptions) {
     closeSocket(1000, "client_stop");
     setSocketStatus("closed");
     setCallState("ended");
+    setActiveScene(null);
     await teardownAudio();
   }, [closeSocket, stopPing, teardownAudio]);
 
@@ -176,6 +179,20 @@ export default function useAdultVoiceCall(options?: UseAdultVoiceCallOptions) {
           }
           return;
         case "pong":
+          return;
+        case "scene_update":
+          setActiveScene({
+            stage_index: message.stage_index,
+            variant_index: message.variant_index,
+            stage_tag: message.stage_tag ?? null,
+            tags: message.tags ?? [],
+            title: message.title,
+            description: message.description,
+            video_mp4_url: message.video_mp4_url,
+            video_webm_url: message.video_webm_url,
+            poster_url: message.poster_url,
+            match_distance: message.match_distance,
+          });
           return;
         default:
           return;
@@ -389,6 +406,7 @@ export default function useAdultVoiceCall(options?: UseAdultVoiceCallOptions) {
     isMicStreaming,
     isPlaybackActive,
     isMuted,
+    activeScene,
     status: uiStatus,
   };
 }

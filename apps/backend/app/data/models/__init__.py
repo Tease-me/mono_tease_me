@@ -26,6 +26,9 @@ from .user import User
 from .influencer import Influencer, InfluencerFollower, PreInfluencer
 from .adult_character import AdultCharacter
 from .influencer_character_meta import InfluencerCharacterMeta
+from .character_stage_video import CharacterStageVideo
+from .character_stage_video_candidate import CharacterStageVideoCandidate
+from .user_unlocked_stage_video import UserUnlockedStageVideo
 from .knowledge import (
     InfluencerKnowledgeDocument,
     InfluencerKnowledgeChunk,
@@ -81,6 +84,9 @@ __all__ = [
     "PreInfluencer",
     "AdultCharacter",
     "InfluencerCharacterMeta",
+    "CharacterStageVideo",
+    "CharacterStageVideoCandidate",
+    "UserUnlockedStageVideo",
     "InfluencerKnowledgeDocument",
     "InfluencerKnowledgeChunk",
     "InfluencerKnowledgeSync",

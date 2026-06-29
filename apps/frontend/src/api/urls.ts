@@ -107,6 +107,8 @@ export const Endpoints = {
   uploadCsv: "persona/import-csv",
   admin: {
     influencers: `admin/influencers`,
+    galleryStagesConfig: (influencerId: string, characterId: number) =>
+      `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/gallery/stages-config`,
     influencerPublication: (influencerId: string) =>
       `admin/influencers/${encodeURIComponent(influencerId)}/publication`,
     adultCharacters: {
@@ -125,6 +127,43 @@ export const Endpoints = {
         `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/samples?sample_type=${sampleType}`,
       deleteSample: (influencerId: string, characterId: number, sampleType: string, s3Key: string) =>
         `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/samples/${sampleType}/${s3Key}`,
+      gallery: (influencerId: string, characterId: number) =>
+        `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/gallery`,
+      galleryVariant: (
+        influencerId: string,
+        characterId: number,
+        stageIndex: number,
+        variantIndex: number
+      ) =>
+        `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/gallery/stages/${stageIndex}/variants/${variantIndex}`,
+      galleryAsset: (
+        influencerId: string,
+        characterId: number,
+        stageIndex: number,
+        variantIndex: number,
+        assetType: string
+      ) =>
+        `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/gallery/stages/${stageIndex}/variants/${variantIndex}/assets/${assetType}`,
+      gallerySourcePhoto: (influencerId: string, characterId: number, stageIndex: number) =>
+        `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/gallery/stages/${stageIndex}/source-photo`,
+      galleryClearStage: (influencerId: string, characterId: number, stageIndex: number) =>
+        `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/gallery/stages/${stageIndex}/clear`,
+      galleryGenerate: (influencerId: string, characterId: number, stageIndex: number) =>
+        `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/gallery/stages/${stageIndex}/generate`,
+      galleryApproveCandidate: (
+        influencerId: string,
+        characterId: number,
+        candidateId: number
+      ) =>
+        `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/gallery/candidates/${candidateId}/approve`,
+      galleryRejectCandidate: (
+        influencerId: string,
+        characterId: number,
+        candidateId: number
+      ) =>
+        `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/gallery/candidates/${candidateId}/reject`,
+      galleryReembedSceneDescriptions: (influencerId: string, characterId: number) =>
+        `admin/influencer/${encodeURIComponent(influencerId)}/adult-characters/${characterId}/gallery/reembed-scene-descriptions`,
     },
     influencerLandingAssets: (influencerId: string) =>
       `admin/influencer/${encodeURIComponent(influencerId)}/landing-assets`,
@@ -211,6 +250,7 @@ export const Endpoints = {
     usage: (id: string) => `/user/${id}/usage`,
     profile: (id: number | string) => `/user/${id}/profile`,
     photo: (id: number | string) => `/user/${id}/photo`,
+    gallery: "/user/me/gallery",
   },
   funnel: {
     event: "/funnel/event",

@@ -30,6 +30,19 @@ export type AdultVoiceClientMessage =
       type: "stop_call";
     };
 
+export type AdultVoiceSceneUpdate = {
+  stage_index: number;
+  variant_index: number;
+  stage_tag: string | null;
+  tags: string[];
+  title: string;
+  description: string;
+  video_mp4_url: string | null;
+  video_webm_url: string | null;
+  poster_url: string | null;
+  match_distance?: number;
+};
+
 export type AdultVoiceServerMessage =
   | {
       type: "state";
@@ -59,7 +72,10 @@ export type AdultVoiceServerMessage =
     }
   | {
       type: "pong";
-    };
+    }
+  | ({
+      type: "scene_update";
+    } & AdultVoiceSceneUpdate);
 
 export type AdultVoiceError = {
   code: string;

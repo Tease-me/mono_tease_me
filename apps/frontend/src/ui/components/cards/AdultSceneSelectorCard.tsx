@@ -16,6 +16,8 @@ type Props = {
   samples?: { normal: string[]; explicit: string[] };
   ageVerified?: boolean;
   onLockedClick?: () => void;
+  preview?: boolean;
+  opaque?: boolean;
 };
 
 export default function AdultSceneSelector({
@@ -28,6 +30,8 @@ export default function AdultSceneSelector({
   samples,
   ageVerified = false,
   onLockedClick,
+  preview = false,
+  opaque = false,
 }: Props) {
   const [imageFailed, setImageFailed] = useState(false);
   const normalUrl = samples?.normal[0] ?? null;
@@ -44,7 +48,7 @@ export default function AdultSceneSelector({
   }, [imageSmallSrc, imageLargeSrc]);
 
   return (
-    <div className={styles.card}>
+    <div className={`${styles.card}${preview ? ` ${styles.previewCard}` : ""}${opaque ? ` ${styles.opaqueCard}` : ""}`}>
       <div className={styles.upperBody}>
         <div className={`${styles.imageArea}${isRelationship ? ` ${styles.relationship}` : ""}`}>
           {titlePlaceholder != null ? (
@@ -70,7 +74,7 @@ export default function AdultSceneSelector({
         </div>
         <div className={`${styles.name}${isRelationship ? ` ${styles.relationshipName}` : ""}`}>{name}</div>
       </div>
-      <div className={styles.lowerBody}>
+      {!preview && <div className={styles.lowerBody}>
         <div className={styles.description}>{description}</div>
         {hasSamples && (
           <div className={`${styles.samplesList}${ageVerified && explicitUrl ? ` ${styles.samplesListNsfw}` : ""}`}>
@@ -88,7 +92,7 @@ export default function AdultSceneSelector({
             )}
           </div>
         )}
-      </div>
+      </div>}
     </div>
   );
 }

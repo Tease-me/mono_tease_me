@@ -1,4 +1,16 @@
 import { AxiosInstance } from "axios";
+import type {
+  CharacterGalleryApprovePayload,
+  CharacterGalleryGeneratePayload,
+  CharacterGalleryReembedResponse,
+  CharacterGalleryResponse,
+  CharacterGalleryUpsertPayload,
+  GalleryAssetType,
+} from "@/api/models/characterGallery";
+import type {
+  GalleryStagesConfigPayload,
+  GalleryStagesConfigResponse,
+} from "@/api/models/galleryStages";
 import { Endpoints } from "../urls";
 
 export type AdminUserRow = {
@@ -381,6 +393,7 @@ export type AdminInfluencerCharacter = {
   video_mp4_url: string | null;
   video_webm_url: string | null;
   video_preview_png_url: string | null;
+  default_artwork_url: string | null;
   has_photo: boolean;
   has_complete_video_set: boolean;
   resolved_lottie_text: string | null;
@@ -669,6 +682,209 @@ export const AdminServices = (apiClient: AxiosInstance) => ({
   ): Promise<AdminInfluencerCharacter[]> => {
     const response = await apiClient.get(
       Endpoints.admin.influencerAdultCharacters.list(influencerId)
+    );
+    return response.data;
+  },
+
+  getGalleryStagesConfig: async (
+    influencerId: string,
+    characterId: number
+  ): Promise<GalleryStagesConfigResponse> => {
+    const response = await apiClient.get(
+      Endpoints.admin.galleryStagesConfig(influencerId, characterId)
+    );
+    return response.data;
+  },
+
+  saveGalleryStagesConfig: async (
+    influencerId: string,
+    characterId: number,
+    payload: GalleryStagesConfigPayload
+  ): Promise<GalleryStagesConfigResponse> => {
+    const response = await apiClient.put(
+      Endpoints.admin.galleryStagesConfig(influencerId, characterId),
+      payload
+    );
+    return response.data;
+  },
+
+  getCharacterGallery: async (
+    influencerId: string,
+    characterId: number
+  ): Promise<CharacterGalleryResponse> => {
+    const response = await apiClient.get(
+      Endpoints.admin.influencerAdultCharacters.gallery(influencerId, characterId)
+    );
+    return response.data;
+  },
+
+  upsertCharacterGalleryVariant: async (
+    influencerId: string,
+    characterId: number,
+    stageIndex: number,
+    variantIndex: number,
+    payload: CharacterGalleryUpsertPayload
+  ) => {
+    const response = await apiClient.put(
+      Endpoints.admin.influencerAdultCharacters.galleryVariant(
+        influencerId,
+        characterId,
+        stageIndex,
+        variantIndex
+      ),
+      payload
+    );
+    return response.data;
+  },
+
+  uploadCharacterGalleryAsset: async (
+    influencerId: string,
+    characterId: number,
+    stageIndex: number,
+    variantIndex: number,
+    assetType: GalleryAssetType,
+    file: File
+  ) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await apiClient.post(
+      Endpoints.admin.influencerAdultCharacters.galleryAsset(
+        influencerId,
+        characterId,
+        stageIndex,
+        variantIndex,
+        assetType
+      ),
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+    return response.data;
+  },
+
+  deleteCharacterGalleryVariant: async (
+    influencerId: string,
+    characterId: number,
+    stageIndex: number,
+    variantIndex: number
+  ) => {
+    await apiClient.delete(
+      Endpoints.admin.influencerAdultCharacters.galleryVariant(
+        influencerId,
+        characterId,
+        stageIndex,
+        variantIndex
+      )
+    );
+  },
+
+  uploadGallerySourcePhoto: async (
+    influencerId: string,
+    characterId: number,
+    stageIndex: number,
+    file: File,
+    options?: { mergeFaceWithOutfit?: boolean }
+  ): Promise<CharacterGalleryResponse> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append(
+      "merge_face_with_outfit",
+      String(options?.mergeFaceWithOutfit ?? true)
+    );
+    const response = await apiClient.post(
+      Endpoints.admin.influencerAdultCharacters.gallerySourcePhoto(
+        influencerId,
+        characterId,
+        stageIndex
+      ),
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" }, timeout: 180000 }
+    );
+    return response.data;
+  },
+
+  clearGalleryStage: async (
+    influencerId: string,
+    characterId: number,
+    stageIndex: number
+  ): Promise<CharacterGalleryResponse> => {
+    const response = await apiClient.delete(
+      Endpoints.admin.influencerAdultCharacters.galleryClearStage(
+        influencerId,
+        characterId,
+        stageIndex
+      )
+    );
+    return response.data;
+  },
+
+  generateGalleryVariations: async (
+    influencerId: string,
+    characterId: number,
+    stageIndex: number,
+    payload: CharacterGalleryGeneratePayload & { facePhoto?: File | null }
+  ): Promise<CharacterGalleryResponse> => {
+    const formData = new FormData();
+    if (payload.facePhoto) {
+      formData.append("face_photo", payload.facePhoto);
+    }
+    if (payload.prompt?.trim()) {
+      formData.append("prompt", payload.prompt.trim());
+    }
+    formData.append("variation_count", String(payload.variation_count ?? 1));
+    const response = await apiClient.post(
+      Endpoints.admin.influencerAdultCharacters.galleryGenerate(
+        influencerId,
+        characterId,
+        stageIndex
+      ),
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" }, timeout: 900_000 }
+    );
+    return response.data;
+  },
+
+  approveGalleryCandidate: async (
+    influencerId: string,
+    characterId: number,
+    candidateId: number,
+    payload: CharacterGalleryApprovePayload
+  ): Promise<CharacterGalleryResponse> => {
+    const response = await apiClient.post(
+      Endpoints.admin.influencerAdultCharacters.galleryApproveCandidate(
+        influencerId,
+        characterId,
+        candidateId
+      ),
+      payload
+    );
+    return response.data;
+  },
+
+  rejectGalleryCandidate: async (
+    influencerId: string,
+    characterId: number,
+    candidateId: number
+  ): Promise<CharacterGalleryResponse> => {
+    const response = await apiClient.post(
+      Endpoints.admin.influencerAdultCharacters.galleryRejectCandidate(
+        influencerId,
+        characterId,
+        candidateId
+      )
+    );
+    return response.data;
+  },
+
+  reembedGallerySceneDescriptions: async (
+    influencerId: string,
+    characterId: number,
+    syncFromConfig: boolean = true
+  ): Promise<CharacterGalleryReembedResponse> => {
+    const response = await apiClient.post(
+      `${Endpoints.admin.influencerAdultCharacters.galleryReembedSceneDescriptions(
+        influencerId,
+        characterId
+      )}?sync_from_config=${syncFromConfig ? "true" : "false"}`
     );
     return response.data;
   },

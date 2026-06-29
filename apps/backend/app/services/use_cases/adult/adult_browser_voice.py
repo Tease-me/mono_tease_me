@@ -126,5 +126,6 @@ async def prepare_adult_browser_voice_call(
         native_language=influencer.native_language or "en",
         influencer_id=payload.influencer_id,
         character_id=payload.character_id,
+        character_slug=character.slug,
         max_duration_secs=compute_max_duration(credits_remainder_secs),
     )

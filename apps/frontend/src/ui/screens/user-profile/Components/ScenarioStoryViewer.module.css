@@ -1,0 +1,146 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+}
+
+.topBar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px 0;
+}
+
+.progressRow {
+  display: flex;
+  gap: 4px;
+}
+
+.progressSegment {
+  flex: 1;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.24);
+  overflow: hidden;
+}
+
+.progressSegmentFill,
+.progressSegmentActiveFill {
+  height: 100%;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.progressSegmentFill {
+  width: 100%;
+}
+
+.progressSegmentActiveFill {
+  width: 0%;
+  animation-name: storyProgress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes storyProgress {
+  from {
+    width: 0%;
+  }
+
+  to {
+    width: 100%;
+  }
+}
+
+.closeButton {
+  align-self: flex-end;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.86);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mediaArea {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.videoWrap {
+  position: relative;
+  width: min(100%, 480px);
+  height: min(72vh, 720px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.videoStack {
+  width: 100%;
+  height: 100%;
+}
+
+.navZoneLeft,
+.navZoneRight {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 28%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.navZoneLeft {
+  left: 0;
+}
+
+.navZoneRight {
+  right: 0;
+}
+
+.navZoneLeft:disabled,
+.navZoneRight:disabled {
+  cursor: default;
+}
+
+.footer {
+  padding: 16px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.scenarioName {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.58);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.stageTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.stageDescription {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.stageCounter {
+  margin-top: 4px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.48);
+}

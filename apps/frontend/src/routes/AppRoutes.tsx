@@ -92,6 +92,9 @@ const AdminInfluencerCharacter = lazy(
   () =>
     import("@/ui/screens/admin/influencer-character/AdminInfluencerCharacter"),
 );
+const AdminGallery = lazy(
+  () => import("@/ui/screens/admin/gallery/AdminGallery"),
+);
 const AdminInfluencerAssets = lazy(
   () => import("@/ui/screens/admin/influencer-assets/AdminInfluencerAssets"),
 );
@@ -241,6 +244,7 @@ function AppRoutes() {
       path: Paths.admin.influencerCharacter,
       element: <AdminInfluencerCharacter />,
     },
+    { path: Paths.admin.gallery, element: <AdminGallery /> },
     { path: Paths.admin.influencerAssets, element: <AdminInfluencerAssets /> },
     { path: Paths.admin.emailAssets, element: <AdminEmailAssets /> },
     { path: Paths.admin.influencer, element: <CreateInfluencer /> },

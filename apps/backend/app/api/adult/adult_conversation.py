@@ -111,6 +111,7 @@ async def websocket_adult_voice(
             user_id=user_id,
             influencer_id=influencer_id,
             character_id=session_config.character_id,
+            character_slug=session_config.character_slug,
             agent_id=session_config.agent_id,
             voice_id=session_config.voice_id,
             prompt=session_config.prompt,

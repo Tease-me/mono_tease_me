@@ -113,6 +113,7 @@ export default function useAdultCallTransport(
     callState: backendCallState,
     error: backendError,
     conversationId: backendConversationId,
+    activeScene: backendActiveScene,
   } = useAdultVoiceCall({
     onInsufficientCredits: options?.onInsufficientCredits,
   });
@@ -393,6 +394,7 @@ export default function useAdultCallTransport(
     postCallSummary,
     pendingSummaryRefresh,
     showPostCallSummary,
+    activeScene: transport === "backend_voice" ? backendActiveScene : null,
     isStartDisabled:
       transport === "backend_voice"
         ? socketStatus === "connecting" || pendingSummaryRefresh

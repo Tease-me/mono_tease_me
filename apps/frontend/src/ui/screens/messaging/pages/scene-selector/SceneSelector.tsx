@@ -1,4 +1,4 @@
-import { Suspense, lazy, useContext, useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useContext, useEffect, useMemo, useRef, useState } from "react";
 import avatarFallback from "@/assets/empty-profile.png";
 import { AuthContext } from "@/context/AuthContext";
 import { apiClient } from "@/api/apis";
@@ -17,6 +17,9 @@ import { Modal } from "@/ui/components/modals/Modal";
 import { useAgeVerification } from "@/hooks/useAgeVerification";
 import { RELATIONSHIP_MODE_AVAILABLE } from "@/constants/featureFlags";
 import CreditDisplay from "@/ui/components/stats/CreditDisplay";
+import CrossfadeLoopVideo from "./CrossfadeLoopVideo";
+import SceneSwipeDeck from "./SceneSwipeDeck";
+import { useIsMobile } from "@/hooks/layout/useIsDesktop";
 
 const AdultTermsModal = lazy(() => import("@/ui/components/modals/adult-terms/AdultTermsModal"));
 
@@ -127,9 +130,12 @@ export default function SceneSelector({
   onListViewChange,
 }: SceneSelectorProps) {
   const { user } = useContext(AuthContext);
+  const isMobile = useIsMobile();
   const scenesListRef = useRef<HTMLDivElement | null>(null);
+  const deckRef = useRef<HTMLDivElement | null>(null);
   const lastSceneListScrollLeftRef = useRef(0);
   const lastSelectedSceneIdRef = useRef<number | null>(null);
+  const [mobileSceneIndex, setMobileSceneIndex] = useState(0);
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [selectedScene, setSelectedScene] = useState<Scene | null>(null);
   const [sessionState, setSessionState] = useState<SessionState>("preview");
@@ -153,6 +159,7 @@ export default function SceneSelector({
     isCallActive,
     postCallSummary,
     showPostCallSummary,
+    activeScene,
     isStartDisabled,
     error: callError,
   } = useAdultCallTransport({
@@ -166,14 +173,47 @@ export default function SceneSelector({
     setSessionState("preview");
     setIsLoading(true);
     setLoadErrorMessage(null);
+    setMobileSceneIndex(0);
   }, [influencerId]);
+
+  const visibleScenes = useMemo(
+    () => scenes.filter((scene) => RELATIONSHIP_MODE_AVAILABLE || scene.slug !== "relationship"),
+    [scenes],
+  );
+
+  const showMobileDeck = isMobile && visibleScenes.length > 1;
+
+  useEffect(() => {
+    setMobileSceneIndex((currentIndex) =>
+      Math.min(currentIndex, Math.max(visibleScenes.length - 1, 0)),
+    );
+  }, [visibleScenes.length]);
+
+  useEffect(() => {
+    if (!showMobileDeck || !deckRef.current) {
+      return;
+    }
+
+    deckRef.current
+      .querySelectorAll<HTMLAudioElement>("audio")
+      .forEach((audio) => {
+        audio.pause();
+        audio.currentTime = 0;
+      });
+  }, [mobileSceneIndex, showMobileDeck]);
 
   useEffect(() => {
     if (!selectedScene) {
       requestAnimationFrame(() => {
-        if (scenesListRef.current) {
-          const targetSceneId = lastSelectedSceneIdRef.current;
-          if (targetSceneId != null) {
+        const targetSceneId = lastSelectedSceneIdRef.current;
+        if (targetSceneId != null) {
+          const targetIndex = visibleScenes.findIndex((scene) => scene.id === targetSceneId);
+          if (targetIndex >= 0 && showMobileDeck) {
+            setMobileSceneIndex(targetIndex);
+            return;
+          }
+
+          if (scenesListRef.current) {
             const targetCard = scenesListRef.current.querySelector<HTMLElement>(
               `[data-scene-id="${targetSceneId}"]`,
             );
@@ -185,16 +225,22 @@ export default function SceneSelector({
               return;
             }
           }
+        }
+
+        if (scenesListRef.current) {
           scenesListRef.current.scrollLeft = lastSceneListScrollLeftRef.current;
         }
       });
       return;
     }
 
-    if (scenesListRef.current) {
+    const activeContainer = showMobileDeck ? deckRef.current : scenesListRef.current;
+    if (activeContainer) {
       lastSelectedSceneIdRef.current = selectedScene.id;
-      lastSceneListScrollLeftRef.current = scenesListRef.current.scrollLeft;
-      scenesListRef.current
+      if (scenesListRef.current) {
+        lastSceneListScrollLeftRef.current = scenesListRef.current.scrollLeft;
+      }
+      activeContainer
         .querySelectorAll<HTMLAudioElement>("audio")
         .forEach((audio) => {
           audio.pause();
@@ -203,7 +249,7 @@ export default function SceneSelector({
     }
 
     setSessionState(isCallActive || showPostCallSummary ? "active" : "preview");
-  }, [isCallActive, selectedScene, showPostCallSummary]);
+  }, [isCallActive, selectedScene, showMobileDeck, showPostCallSummary, visibleScenes]);
 
   useEffect(() => {
     onListViewChange?.(!selectedScene);
@@ -353,8 +399,47 @@ export default function SceneSelector({
 
   const isRelationshipScene = selectedScene?.slug === "relationship";
 
-  const showVideo =
-    Boolean(selectedScene?.video.webm) || Boolean(selectedScene?.video.mp4);
+  const displayScene = isCallActive ? activeScene : null;
+  const useStageMedia = Boolean(
+    displayScene?.video_mp4_url || displayScene?.video_webm_url,
+  );
+
+  const liveVideoMp4 = useStageMedia
+    ? displayScene?.video_mp4_url ?? null
+    : selectedScene?.video.mp4 ?? null;
+  const liveVideoWebm = useStageMedia
+    ? displayScene?.video_webm_url ?? null
+    : selectedScene?.video.webm ?? null;
+  const liveVideoPoster = useStageMedia
+    ? displayScene?.poster_url ?? selectedScene?.video.image ?? null
+    : selectedScene?.video.image ?? null;
+
+  const loopVideoSource = useMemo(
+    () => ({
+      key: displayScene
+        ? (() => {
+            const assetUrl =
+              displayScene.video_mp4_url ?? displayScene.video_webm_url ?? "";
+            const assetId =
+              assetUrl.split("?")[0]?.split("/").pop() ?? "none";
+            const tagSlug = displayScene.stage_tag ?? `stage-${displayScene.stage_index}`;
+            return `${tagSlug}-${displayScene.variant_index}-${assetId}`;
+          })()
+        : `preview-${selectedScene?.id ?? "none"}`,
+      mp4: liveVideoMp4,
+      webm: liveVideoWebm,
+      poster: liveVideoPoster,
+    }),
+    [
+      displayScene,
+      liveVideoMp4,
+      liveVideoPoster,
+      liveVideoWebm,
+      selectedScene?.id,
+    ],
+  );
+
+  const showVideo = Boolean(liveVideoWebm) || Boolean(liveVideoMp4);
 
   const hasConfirmedSummary =
     postCallSummary?.confirmedDurationSeconds != null &&
@@ -379,6 +464,45 @@ export default function SceneSelector({
     influencerImageUrl ??
     avatarFallback;
 
+  const renderSceneSelector = (scene: Scene, options?: { preview?: boolean; opaque?: boolean }) => (
+    <AdultSceneSelector
+      name={scene.name}
+      description={scene.description}
+      imageSmallSrc={scene.image.small}
+      imageLargeSrc={scene.image.large}
+      titlePlaceholder={scene.titlePlaceholder}
+      isRelationship={scene.slug === "relationship"}
+      samples={scene.samples}
+      ageVerified={!needsGate && !verificationRequired}
+      onLockedClick={() => setPendingGate({ scene, action: "unlock-samples" })}
+      preview={options?.preview}
+      opaque={options?.opaque}
+    />
+  );
+
+  const renderSceneCard = (scene: Scene, options?: { under?: boolean; inDeck?: boolean; stack?: boolean }) => (
+    <div
+      key={scene.id}
+      data-scene-id={scene.id}
+      className={`${styles.sceneItem}${options?.inDeck ? ` ${styles.deckSceneItem}` : ""}${options?.stack ? ` ${styles.deckStackItem}` : ""}${scene.slug === "relationship" ? ` ${styles.relationshipSceneItem}` : ""}`}
+    >
+      {renderSceneSelector(scene, {
+        opaque: true,
+        preview: options?.stack,
+      })}
+      {!options?.under ? (
+        <IconButton
+          onClick={scene.slug === "vibrator" ? undefined : () => handleSelectScenario(scene)}
+          text={scene.slug === "vibrator" ? "Coming Soon" : "Select Scenario"}
+          color="purple-glass"
+          type="pill"
+          disabled={scene.slug === "vibrator"}
+          className={styles.sceneButton}
+        />
+      ) : null}
+    </div>
+  );
+
   return (
     <div className={styles.container}>
       {isLoading ? (
@@ -396,40 +520,25 @@ export default function SceneSelector({
       ) : (
         <>
           <div className={`${styles.page1}${selectedScene ? ` ${styles.page1Hidden}` : ""}`}>
-            <div className={styles.selectionArea}>
-              <div
-                ref={scenesListRef}
-                className={`${styles.scenesList} ${scenes.length > 1 ? styles.edgeFade : ""}`}
-              >
-                {scenes.filter((scene) => RELATIONSHIP_MODE_AVAILABLE || scene.slug !== "relationship").map((scene) => (
-                  <div
-                    key={scene.id}
-                    data-scene-id={scene.id}
-                    className={`${styles.sceneItem}${scene.slug === "relationship" ? ` ${styles.relationshipSceneItem}` : ""}`}
-                  >
-                    <AdultSceneSelector
-                      name={scene.name}
-                      description={scene.description}
-                      imageSmallSrc={scene.image.small}
-                      imageLargeSrc={scene.image.large}
-                      titlePlaceholder={scene.titlePlaceholder}
-                      isRelationship={scene.slug === "relationship"}
-                      samples={scene.samples}
-                      ageVerified={!needsGate && !verificationRequired}
-                      onLockedClick={() => setPendingGate({ scene, action: "unlock-samples" })}
-                    />
-                    <IconButton
-                      onClick={scene.slug === "vibrator" ? undefined : () => handleSelectScenario(scene)}
-                      text={scene.slug === "vibrator" ? "Coming Soon" : "Select Scenario"}
-                      color="purple-glass"
-                      type="pill"
-                      disabled={scene.slug === "vibrator"}
-                      className={styles.sceneButton}
-                    />
-                  </div>
-                ))}
+            {showMobileDeck ? (
+              <SceneSwipeDeck
+                deckRef={deckRef}
+                items={visibleScenes}
+                index={mobileSceneIndex}
+                onIndexChange={setMobileSceneIndex}
+                renderCard={(scene) => renderSceneCard(scene, { inDeck: true })}
+                renderUnderCard={(scene) => renderSceneCard(scene, { under: true, inDeck: true })}
+              />
+            ) : (
+              <div className={styles.selectionArea}>
+                <div
+                  ref={scenesListRef}
+                  className={`${styles.scenesList} ${visibleScenes.length > 1 ? styles.edgeFade : ""}`}
+                >
+                  {visibleScenes.map((scene) => renderSceneCard(scene))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
           {selectedScene && (
             <div
@@ -444,25 +553,13 @@ export default function SceneSelector({
                 />
                 <div className={styles.sessionMedia}>
                   {showVideo ? (
-                    <video
-                      poster={selectedScene.video.image ?? undefined}
-                      className={`${styles.sessionVideo} ${sessionState === "preview" ? styles.previewVideo : styles.activeVideo}`}
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                    >
-                      {selectedScene.video.webm && (
-                        <source src={selectedScene.video.webm} type="video/webm" />
-                      )}
-                      {selectedScene.video.mp4 && (
-                        <source src={selectedScene.video.mp4} type="video/mp4" />
-                      )}
-                      Your browser does not support the video tag.
-                    </video>
-                  ) : selectedScene.video.image ? (
+                    <CrossfadeLoopVideo
+                      source={loopVideoSource}
+                      videoClassName={`${styles.sessionVideo} ${sessionState === "preview" ? styles.previewVideo : styles.activeVideo}`}
+                    />
+                  ) : liveVideoPoster ? (
                     <img
-                      src={selectedScene.video.image}
+                      src={liveVideoPoster}
                       alt={selectedScene.name}
                       className={`${styles.sessionVideo} ${sessionState === "preview" ? styles.previewVideo : styles.activeVideo}`}
                     />
@@ -573,7 +670,14 @@ export default function SceneSelector({
                         </div>
                       ) : (
                         <>
-                          <div className={styles.subtitle}>{activeStatusLabel}</div>
+                          <div className={styles.subtitle}>
+                            {displayScene?.title ?? activeStatusLabel}
+                          </div>
+                          {displayScene?.description && (
+                            <div className={styles.sessionDescription}>
+                              {displayScene.description}
+                            </div>
+                          )}
                           <div className={styles.sessionTimer}>
                             {formatTime(elapsedSeconds)}
                           </div>

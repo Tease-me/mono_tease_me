@@ -73,6 +73,7 @@ def test_prepare_adult_browser_voice_call_returns_browser_session_config(monkeyp
         _async_return(
             SimpleNamespace(
                 is_active=True,
+                slug="girlfriend",
                 first_messages=["hola"],
                 prompt_template="Hi {user_name}, I am {influencer_name}",
             )
@@ -143,6 +144,7 @@ def test_create_adult_conversation_token_returns_unit_price_cents(monkeypatch) -
             SimpleNamespace(
                 id=4,
                 is_active=True,
+                slug="girlfriend",
                 first_messages=["hola"],
                 prompt_template="Hi {user_name}, I am {influencer_name}",
             )
@@ -207,6 +209,7 @@ def test_browser_voice_session_builds_turn_detection_override() -> None:
         user_id=7,
         influencer_id="inf_1",
         character_id=4,
+        character_slug="girlfriend",
         agent_id="agent_1",
         voice_id="voice_1",
         prompt="prompt text",
@@ -238,6 +241,7 @@ def test_browser_voice_session_registers_conversation_without_blocking_client(mo
         user_id=7,
         influencer_id="inf_1",
         character_id=4,
+        character_slug="girlfriend",
         agent_id="agent_1",
         voice_id="voice_1",
         prompt="prompt text",
@@ -305,6 +309,7 @@ def test_browser_voice_session_flushes_held_audio_after_ai_stops(monkeypatch) ->
         user_id=7,
         influencer_id="inf_1",
         character_id=4,
+        character_slug="girlfriend",
         agent_id="agent_1",
         voice_id="voice_1",
         prompt="prompt text",

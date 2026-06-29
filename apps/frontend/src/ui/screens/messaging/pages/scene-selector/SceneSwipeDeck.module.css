@@ -1,0 +1,208 @@
+.deck {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: min(21.25rem, calc(100vw - 32px));
+  max-width: min(21.25rem, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 0 12px 0 0;
+  box-sizing: border-box;
+}
+
+.stack {
+  position: relative;
+  width: 100%;
+  min-height: 0;
+  padding-bottom: 12px;
+  isolation: isolate;
+}
+
+.stackHasMore::before,
+.stackHasMore::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  pointer-events: none;
+  transform-origin: center top;
+}
+
+.stackHasMore::before {
+  z-index: 0;
+  transform: translate(14px, 10px) scale(0.93);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(180deg, #1a1a1e 0%, #121214 100%);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.stackHasMore::after {
+  z-index: 0;
+  transform: translate(7px, 5px) scale(0.965);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, #1c1c20 0%, #131316 100%);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.32);
+}
+
+.underCard {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  transform-origin: center top;
+  will-change: transform;
+}
+
+.topCard {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  transform-origin: center center;
+  filter: drop-shadow(0 14px 32px rgba(0, 0, 0, 0.45));
+  touch-action: none;
+  cursor: grab;
+  background: #121214;
+  border-radius: 16px;
+  will-change: transform;
+  user-select: none;
+}
+
+.topCardDragging {
+  cursor: grabbing;
+}
+
+.topCardHidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.swipeHintNext,
+.swipeHintPrev {
+  position: absolute;
+  top: 18px;
+  z-index: 5;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 2px solid currentColor;
+  font-family: Urbanist, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  pointer-events: none;
+}
+
+.swipeHintNext {
+  right: 16px;
+  color: #9b59ff;
+  transform: rotate(12deg);
+}
+
+.swipeHintPrev {
+  left: 16px;
+  color: #28ff70;
+  transform: rotate(-12deg);
+}
+
+.swipeSurface {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 6;
+  touch-action: none;
+  cursor: grab;
+}
+
+.topCardHidden .swipeSurface {
+  pointer-events: none;
+}
+
+.topCardDragging .swipeSurface {
+  cursor: grabbing;
+}
+
+.enteringCard,
+.departingCard {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  pointer-events: none;
+  transform-origin: center center;
+  filter: drop-shadow(0 14px 32px rgba(0, 0, 0, 0.45));
+  will-change: transform;
+  background: #121214;
+  border-radius: 16px;
+}
+
+.departingCard {
+  z-index: 4;
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 8px;
+  padding-right: 12px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.dot,
+.dotActive {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  transition:
+    background 240ms ease,
+    width 240ms ease;
+}
+
+.dot {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.dotActive {
+  width: 18px;
+  background: #9b59ff;
+}
+
+.counter {
+  color: #fff;
+  font-family: Urbanist, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.hint {
+  color: rgba(255, 255, 255, 0.45);
+  font-family: Urbanist, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .topCard,
+  .underCard,
+  .enteringCard,
+  .departingCard {
+    transition: none !important;
+  }
+
+  .dot,
+  .dotActive {
+    transition: none;
+  }
+}

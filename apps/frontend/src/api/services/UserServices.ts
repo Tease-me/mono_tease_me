@@ -1,5 +1,6 @@
 import { Endpoints } from "../urls";
 import { UserDetailResponse, SingleInfluencerUsageResponse } from "../models/user";
+import { UserGalleryResponse } from "../models/userGallery";
 import { AxiosInstance } from "axios";
 
 export const UserServices = (apiClient: AxiosInstance) => ({
@@ -21,6 +22,12 @@ export const UserServices = (apiClient: AxiosInstance) => ({
             params: influencerId ? { influencer_id: influencerId } : undefined,
         });
 
+        return response.data;
+    },
+    getUserGallery: async (influencerId: string): Promise<UserGalleryResponse> => {
+        const response = await apiClient.get(Endpoints.user.gallery, {
+            params: { influencer_id: influencerId },
+        });
         return response.data;
     },
 })

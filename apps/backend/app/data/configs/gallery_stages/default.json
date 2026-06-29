@@ -1,0 +1,44 @@
+{
+  "stages": [
+    {
+      "stage_index": 1,
+      "title": "Stage 1 — Introduction",
+      "description": "Opening mood. Friendly, welcoming, getting comfortable.",
+      "scene_description": "introduction, greeting, friendly, welcoming, getting comfortable, warm smile",
+      "tags": ["introduction", "greeting", "friendly", "welcoming", "getting comfortable", "warm smile"],
+      "video_prompt": "Warm welcoming expression. Friendly soft smile, relaxed natural look."
+    },
+    {
+      "stage_index": 2,
+      "title": "Stage 2 — Building rapport",
+      "description": "Conversation opens up. More expressive, engaged eye contact.",
+      "scene_description": "building rapport, conversation, engaged, expressive, eye contact, playful",
+      "tags": ["building rapport", "conversation", "engaged", "expressive", "eye contact", "playful"],
+      "video_prompt": "Engaged expressive look. Playful smile, attentive eye contact."
+    },
+    {
+      "stage_index": 3,
+      "title": "Stage 3 — Flirting",
+      "description": "Playful tension, teasing energy, closer connection.",
+      "scene_description": "flirting, teasing, playful tension, seductive glance, closer connection",
+      "tags": ["flirting", "teasing", "playful tension", "seductive glance", "closer connection"],
+      "video_prompt": "Flirty teasing expression. Seductive glance, soft confident smile."
+    },
+    {
+      "stage_index": 4,
+      "title": "Stage 4 — Intimacy",
+      "description": "Deeper emotional connection, softer and more personal.",
+      "scene_description": "intimacy, emotional connection, soft, personal, intimate eye contact",
+      "tags": ["intimacy", "emotional connection", "soft", "personal", "intimate eye contact"],
+      "video_prompt": "Soft intimate expression. Gentle personal eye contact, warm mood."
+    },
+    {
+      "stage_index": 5,
+      "title": "Stage 5 — Peak moment",
+      "description": "Highest intensity for the scenario arc.",
+      "scene_description": "peak moment, intense emotion, heightened reaction, climax energy",
+      "tags": ["peak moment", "intense emotion", "heightened reaction", "climax energy"],
+      "video_prompt": "Heightened emotional expression settling into calm satisfaction."
+    }
+  ]
+}

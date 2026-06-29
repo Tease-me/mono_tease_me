@@ -21,6 +21,8 @@ from app.data.schemas.user import (
     UserOut,
     UserUpdate,
 )
+from app.data.schemas.user_gallery import UserGalleryOut
+from app.services.repositories.user_gallery_repository import list_user_gallery
 from app.services.credit_conversion import amount_cents_to_credits
 from app.utils.auth.dependencies import get_current_user
 from app.utils.storage.s3 import (
@@ -33,6 +35,20 @@ from app.utils.storage.s3 import (
 log = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/user", tags=["User"])
+
+
+@router.get("/me/gallery", response_model=UserGalleryOut)
+async def get_my_gallery(
+    influencer_id: str = Query(..., description="Influencer id for gallery scope"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    state = await list_user_gallery(
+        db,
+        user_id=current_user.id,
+        influencer_id=influencer_id,
+    )
+    return UserGalleryOut(**state)
 
 
 @router.get("/{id}/usage")

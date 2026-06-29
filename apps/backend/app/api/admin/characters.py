@@ -84,6 +84,11 @@ async def _build_admin_influencer_adult_characters(
     for character in characters:
         overlay = overlays.get(character.id)
         asset_state = await get_influencer_character_asset_state(influencer_id, character.id)
+        base_asset_state = await get_adult_character_asset_state(
+            character.id,
+            character.default_artwork_key,
+            character.lottie_text,
+        )
         items.append(
             AdminInfluencerAdultCharacterAssetOut(
                 id=character.id,
@@ -99,6 +104,7 @@ async def _build_admin_influencer_adult_characters(
                 video_mp4_url=asset_state["video_mp4_url"],
                 video_webm_url=asset_state["video_webm_url"],
                 video_preview_png_url=asset_state["video_preview_png_url"],
+                default_artwork_url=base_asset_state["default_artwork_url"],
                 has_photo=asset_state["has_photo"],
                 has_complete_video_set=asset_state["has_complete_video_set"],
                 resolved_lottie_text=character.lottie_text,

@@ -48,6 +48,9 @@ const PaymentCheck = React.lazy(
 const Subscription = React.lazy(
   () => import("../user-profile/Components/Subscription"),
 );
+const UserGalleryPage = React.lazy(
+  () => import("../user-profile/Components/UserGalleryPage"),
+);
 const SceneSelector = React.lazy(
   () => import("../messaging/pages/scene-selector/SceneSelector"),
 );
@@ -238,6 +241,13 @@ export default function HomeScreenSingle() {
         />
     },
     { id: "influencer_profile", label: "Influencer Profile", render: ({ goTo, navPayload, goBack }) => <InfluencerRelation key={navPayload.influencerId} goTo={goTo} navPayload={navPayload} goBack={goBack} /> },
+    {
+      id: "user_gallery",
+      label: "Gallery",
+      render: ({ navPayload }) => (
+        <UserGalleryPage influencerId={navPayload.influencerId} />
+      ),
+    },
     { id: "add_credits", label: "Add Credits", render: ({ goTo, navPayload }) => <AddCredits goTo={goTo} navpayload={navPayload} /> },
     {
       id: "subscribe", label: "Adult Mode", render: ({ navPayload, goBack }) => (

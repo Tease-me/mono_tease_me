@@ -98,6 +98,13 @@ export default function UserMenu({ goTo, onSwitchInfluencer }: UserMenuProps) {
     });
   };
 
+  const handleGalleryClick = () => {
+    if (!storedId) return;
+    goTo("user_gallery", {
+      influencerId: storedId,
+    });
+  };
+
   // const handleManageInfluencersClick = () => {
   //   goTo("influencers")
   // }
@@ -129,11 +136,18 @@ export default function UserMenu({ goTo, onSwitchInfluencer }: UserMenuProps) {
             onClick={handlePaymentDetailsClick}
           /> */}
           {storedId && (
-            <NavigationRow
-              title="Topup"
-              subtitle="Topup your account"
-              onClick={handlePTopupClick}
-            />
+            <>
+              <NavigationRow
+                title="Topup"
+                subtitle="Topup your account"
+                onClick={handlePTopupClick}
+              />
+              <NavigationRow
+                title="Gallery"
+                subtitle="Rewatch unlocked scenes by scenario"
+                onClick={handleGalleryClick}
+              />
+            </>
           )}
           {onSwitchInfluencer && (
             <NavigationRow

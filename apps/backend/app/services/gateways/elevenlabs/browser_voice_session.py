@@ -40,6 +40,7 @@ class AdultBrowserVoiceSession:
         user_id: int,
         influencer_id: str,
         character_id: int,
+        character_slug: str,
         agent_id: str,
         voice_id: str | None,
         prompt: str,
@@ -54,6 +55,7 @@ class AdultBrowserVoiceSession:
         self.user_id = user_id
         self.influencer_id = influencer_id
         self.character_id = character_id
+        self.character_slug = character_slug
         self.agent_id = agent_id
         self.voice_id = voice_id
         self.prompt = prompt
@@ -82,6 +84,11 @@ class AdultBrowserVoiceSession:
         self._metadata_logged = False
         self._first_convai_audio_logged = False
         self._first_frontend_audio_logged = False
+        self._current_stage_index: int | None = None
+        self._current_variant_index: int | None = None
+        self._agent_transcript_buffer: list[str] = []
+        self._user_transcript_buffer: list[str] = []
+        self._scene_match_task: asyncio.Task | None = None
 
     @property
     def conversation_id(self) -> str | None:
@@ -136,6 +143,9 @@ class AdultBrowserVoiceSession:
             and not self._convai_task.done()
         ):
             self._convai_task.cancel()
+
+        if self._scene_match_task and self._scene_match_task is not current:
+            self._scene_match_task.cancel()
 
         await self._send_state("ended", reason=reason)
 
@@ -259,6 +269,150 @@ class AdultBrowserVoiceSession:
             )
             await self._send_error("UPSTREAM_ERROR", "Voice service error.")
             await self.stop(reason="upstream_error")
+            return
+
+        if msg_type == "user_transcript":
+            transcript = msg.get("user_transcription_event", {}).get("user_transcript", "")
+            if transcript:
+                await self._on_transcript(transcript, source="user")
+            return
+
+        if msg_type == "agent_response":
+            response = msg.get("agent_response_event", {}).get("agent_response", "")
+            if response:
+                await self._on_transcript(response, source="agent")
+            return
+
+        if msg_type in {"tentative_user_transcript", "interruption"}:
+            return
+
+        log.debug(
+            "adult_browser_voice.unhandled_convai_message influencer=%s type=%s",
+            self.influencer_id,
+            msg_type,
+        )
+
+    async def _on_transcript(self, text: str, *, source: str) -> None:
+        cleaned = text.strip()
+        if not cleaned:
+            return
+        buffer = (
+            self._agent_transcript_buffer
+            if source == "agent"
+            else self._user_transcript_buffer
+        )
+        buffer.append(cleaned)
+        if len(buffer) > 4:
+            buffer.pop(0)
+        if self._scene_match_task and not self._scene_match_task.done():
+            self._scene_match_task.cancel()
+        self._scene_match_task = asyncio.create_task(self._debounced_scene_match())
+
+    async def _debounced_scene_match(self) -> None:
+        try:
+            await asyncio.sleep(0.45)
+            agent_text = " ".join(self._agent_transcript_buffer).strip()
+            user_text = " ".join(self._user_transcript_buffer).strip()
+            transcript = " ".join(part for part in (agent_text, user_text) if part).strip()
+            if not transcript or not self._is_active:
+                return
+
+            from app.services.use_cases.adult.scene_matcher import match_scene_from_transcript
+
+            async with SessionLocal() as db:
+                payload = await match_scene_from_transcript(
+                    db,
+                    influencer_id=self.influencer_id,
+                    character_id=self.character_id,
+                    character_slug=self.character_slug,
+                    transcript=transcript,
+                    agent_text=agent_text,
+                    user_text=user_text,
+                    current_stage_index=self._current_stage_index,
+                    current_variant_index=self._current_variant_index,
+                )
+            if payload:
+                await self._send_scene_update(payload)
+        except asyncio.CancelledError:
+            pass
+        except Exception:
+            log.exception(
+                "adult_browser_voice.scene_match_failed influencer=%s character=%s",
+                self.influencer_id,
+                self.character_id,
+            )
+
+    async def _send_initial_scene(self) -> None:
+        try:
+            from app.services.use_cases.adult.scene_matcher import get_initial_scene_update
+
+            async with SessionLocal() as db:
+                payload = await get_initial_scene_update(
+                    db,
+                    influencer_id=self.influencer_id,
+                    character_id=self.character_id,
+                    character_slug=self.character_slug,
+                )
+            if payload:
+                await self._send_scene_update(payload)
+            else:
+                log.warning(
+                    "adult_browser_voice.no_gallery_videos influencer=%s character=%s",
+                    self.influencer_id,
+                    self.character_id,
+                )
+        except Exception:
+            log.exception(
+                "adult_browser_voice.initial_scene_failed influencer=%s character=%s",
+                self.influencer_id,
+                self.character_id,
+            )
+
+    async def _send_scene_update(self, payload: dict) -> None:
+        self._current_stage_index = payload.get("stage_index")
+        self._current_variant_index = payload.get("variant_index")
+        try:
+            await self.client_ws.send_json(payload)
+            log.info(
+                "adult_browser_voice.scene_update influencer=%s character=%s stage=%s variant=%s method=%s",
+                self.influencer_id,
+                self.character_id,
+                self._current_stage_index,
+                self._current_variant_index,
+                payload.get("match_method"),
+            )
+            asyncio.create_task(self._record_scene_unlock(payload))
+        except Exception:
+            log.exception(
+                "adult_browser_voice.scene_update_send_failed influencer=%s character=%s",
+                self.influencer_id,
+                self.character_id,
+            )
+
+    async def _record_scene_unlock(self, payload: dict) -> None:
+        stage_index = payload.get("stage_index")
+        variant_index = payload.get("variant_index")
+        if stage_index is None or variant_index is None:
+            return
+        try:
+            from app.services.repositories.user_gallery_repository import unlock_stage_video
+
+            async with SessionLocal() as db:
+                await unlock_stage_video(
+                    db,
+                    user_id=self.user_id,
+                    influencer_id=self.influencer_id,
+                    character_id=self.character_id,
+                    stage_index=int(stage_index),
+                    variant_index=int(variant_index),
+                    conversation_id=self._conversation_id,
+                )
+        except Exception:
+            log.exception(
+                "adult_browser_voice.scene_unlock_failed influencer=%s character=%s",
+                self.influencer_id,
+                self.character_id,
+            )
 
     async def _handle_conversation_metadata(self, msg: dict) -> None:
         meta = msg.get("conversation_initiation_metadata_event", {})
@@ -306,6 +460,7 @@ class AdultBrowserVoiceSession:
             }
         )
         await self._send_state("listening")
+        asyncio.create_task(self._send_initial_scene())
 
     async def _handle_audio(self, msg: dict) -> None:
         audio_b64 = msg.get("audio_event", {}).get("audio_base_64")

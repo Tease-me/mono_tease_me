@@ -9,6 +9,11 @@ class Settings(BaseSettings):
     DB_URL: str
     OPENAI_API_KEY: str
     XAI_API_KEY: str
+    XAI_IMAGINE_IMAGE_MODEL: str = "grok-imagine-image"
+    XAI_IMAGINE_VIDEO_MODEL: str = "grok-imagine-video-1.5"
+    XAI_IMAGINE_VIDEO_DURATION: int = 6
+    XAI_IMAGINE_VIDEO_RESOLUTION: str = "720p"
+    XAI_IMAGINE_VIDEO_ASPECT_RATIO: str = "auto"
     QWEN_API_KEY: str | None = None
     QWEN_BASE_URL: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
     REDIS_URL: str

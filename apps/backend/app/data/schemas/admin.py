@@ -34,6 +34,7 @@ class AdminInfluencerAdultCharacterAssetOut(BaseModel):
     video_mp4_url: Optional[str] = None
     video_webm_url: Optional[str] = None
     video_preview_png_url: Optional[str] = None
+    default_artwork_url: Optional[str] = None
     has_photo: bool = False
     has_complete_video_set: bool = False
     resolved_lottie_text: Optional[str] = None

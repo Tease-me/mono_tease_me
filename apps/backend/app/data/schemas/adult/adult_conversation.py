@@ -35,4 +35,5 @@ class AdultBrowserVoiceSessionResponse(BaseModel):
     native_language: str = "en"
     influencer_id: str
     character_id: int
+    character_slug: str
     max_duration_secs: int
