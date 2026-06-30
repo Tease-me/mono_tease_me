@@ -1,4 +1,5 @@
 import "./polyfills";
+import "@lottiefiles/dotlottie-wc";
 import * as Sentry from "@sentry/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -35,15 +36,45 @@ function isThirdPartyNoiseError(error: unknown): boolean {
         ? error
         : String(error ?? "");
 
-  return message.includes("EmptyRanges");
+  return (
+    message.includes("EmptyRanges") ||
+    message.includes("take ownership of Rust value while it was borrowed")
+  );
+}
+
+function isDotLottieWasmNoiseEvent(event: Sentry.ErrorEvent): boolean {
+  const exceptionValues = event.exception?.values ?? [];
+  const messages = exceptionValues.map((value) => value.value ?? "").join("\n");
+  if (messages.includes("take ownership of Rust value while it was borrowed")) {
+    return true;
+  }
+
+  return exceptionValues.some((value) =>
+    (value.stacktrace?.frames ?? []).some((frame) => {
+      const filename = frame.filename ?? "";
+      return (
+        filename.includes("lottiefiles/web") ||
+        filename.includes("dotlottie-wc") ||
+        filename.includes("@lottiefiles")
+      );
+    }),
+  );
 }
 
 Sentry.init({
   dsn: sentryDsn,
   enabled: IS_PRODUCTION && Boolean(sentryDsn),
   sendDefaultPii: false,
-  ignoreErrors: ["Can't find variable: EmptyRanges"],
+  ignoreErrors: [
+    "Can't find variable: EmptyRanges",
+    "attempted to take ownership of Rust value while it was borrowed",
+  ],
+  denyUrls: [/unpkg\.com\/@lottiefiles/i, /@lottiefiles\/web/i],
   beforeSend(event, hint) {
+    if (isDotLottieWasmNoiseEvent(event)) {
+      return null;
+    }
+
     const original = hint.originalException;
     if (isStaleChunkError(original) || isStaleChunkError(event.message)) {
       return null;
