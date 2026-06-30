@@ -27,18 +27,34 @@ if (import.meta.env.PROD) {
   setupStaleChunkRecovery();
 }
 
+function isThirdPartyNoiseError(error: unknown): boolean {
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === "string"
+        ? error
+        : String(error ?? "");
+
+  return message.includes("EmptyRanges");
+}
+
 Sentry.init({
   dsn: sentryDsn,
   enabled: IS_PRODUCTION && Boolean(sentryDsn),
   sendDefaultPii: false,
+  ignoreErrors: ["Can't find variable: EmptyRanges"],
   beforeSend(event, hint) {
     const original = hint.originalException;
     if (isStaleChunkError(original) || isStaleChunkError(event.message)) {
       return null;
     }
 
+    if (isThirdPartyNoiseError(original) || isThirdPartyNoiseError(event.message)) {
+      return null;
+    }
+
     const exceptionMessage = event.exception?.values?.[0]?.value;
-    if (isStaleChunkError(exceptionMessage)) {
+    if (isStaleChunkError(exceptionMessage) || isThirdPartyNoiseError(exceptionMessage)) {
       return null;
     }
 
