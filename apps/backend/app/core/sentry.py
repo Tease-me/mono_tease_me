@@ -19,6 +19,10 @@ def _is_expected_upstream_unavailable(exc: BaseException) -> bool:
     )
 
 
+def _is_client_websocket_disconnect(exc: BaseException) -> bool:
+    return isinstance(exc, RuntimeError) and "WebSocket is not connected" in str(exc)
+
+
 def _before_send(event, hint):
     exc_info = hint.get("exc_info")
     if exc_info and exc_info[1] is not None:
@@ -26,12 +30,16 @@ def _before_send(event, hint):
             return None
         if isinstance(exc_info[1], httpx.RequestError):
             return None
+        if _is_client_websocket_disconnect(exc_info[1]):
+            return None
 
     original = hint.get("original_exception")
     if original is not None:
         if _is_expected_upstream_unavailable(original):
             return None
         if isinstance(original, httpx.RequestError):
+            return None
+        if _is_client_websocket_disconnect(original):
             return None
 
     return event

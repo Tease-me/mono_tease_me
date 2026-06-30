@@ -29,3 +29,8 @@ def test_before_send_drops_httpx_request_error():
 def test_before_send_keeps_unexpected_errors():
     exc = HTTPException(status_code=500, detail="Unexpected failure")
     assert _before_send({}, {"exc_info": (HTTPException, exc, None)}) == {}
+
+
+def test_before_send_drops_client_websocket_disconnect():
+    exc = RuntimeError('WebSocket is not connected. Need to call "accept" first.')
+    assert _before_send({}, {"exc_info": (RuntimeError, exc, None)}) is None
