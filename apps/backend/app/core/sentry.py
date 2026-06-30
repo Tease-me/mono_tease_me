@@ -8,6 +8,8 @@ from sentry_sdk.integrations.logging import LoggingIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from sentry_sdk.integrations.starlette import StarletteIntegration
 
+from app.utils.websocket_client import is_client_websocket_disconnect
+
 log = logging.getLogger(__name__)
 
 
@@ -19,10 +21,6 @@ def _is_expected_upstream_unavailable(exc: BaseException) -> bool:
     )
 
 
-def _is_client_websocket_disconnect(exc: BaseException) -> bool:
-    return isinstance(exc, RuntimeError) and "WebSocket is not connected" in str(exc)
-
-
 def _before_send(event, hint):
     exc_info = hint.get("exc_info")
     if exc_info and exc_info[1] is not None:
@@ -30,7 +28,7 @@ def _before_send(event, hint):
             return None
         if isinstance(exc_info[1], httpx.RequestError):
             return None
-        if _is_client_websocket_disconnect(exc_info[1]):
+        if is_client_websocket_disconnect(exc_info[1]):
             return None
 
     original = hint.get("original_exception")
@@ -39,7 +37,7 @@ def _before_send(event, hint):
             return None
         if isinstance(original, httpx.RequestError):
             return None
-        if _is_client_websocket_disconnect(original):
+        if is_client_websocket_disconnect(original):
             return None
 
     return event

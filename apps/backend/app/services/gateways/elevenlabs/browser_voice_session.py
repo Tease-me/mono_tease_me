@@ -300,14 +300,17 @@ class AdultBrowserVoiceSession:
                 )
             )
 
-        await self._send_client_json(
+        if not await self._send_client_json(
             {
                 "type": "call_started",
                 "chat_id": self.chat_id,
                 "conversation_id": self._conversation_id,
                 "credits_remainder_secs": self.credits_remainder_secs,
             }
-        )
+        ):
+            await self.stop(reason="client_disconnect")
+            return
+
         await self._send_state("listening")
 
     async def _handle_audio(self, msg: dict) -> None:
