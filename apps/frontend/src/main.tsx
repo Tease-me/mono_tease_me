@@ -1,4 +1,5 @@
 import "./polyfills";
+import "@lottiefiles/dotlottie-wc";
 import * as Sentry from "@sentry/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -14,13 +15,82 @@ import posthog from "posthog-js";
 import { PostHogErrorBoundary, PostHogProvider } from "@posthog/react";
 import { IS_PRODUCTION } from "./env";
 import { APP_VERSION } from "@/version";
+import {
+  clearStaleChunkReloadFlag,
+  isStaleChunkError,
+  setupStaleChunkRecovery,
+} from "@/utils/chunkReload";
+import StaleChunkErrorFallback from "@/ui/components/errors/StaleChunkErrorFallback";
 
 const sentryDsn: string | undefined = import.meta.env.VITE_SENTRY_DSN;
+
+if (import.meta.env.PROD) {
+  setupStaleChunkRecovery();
+}
+
+function isThirdPartyNoiseError(error: unknown): boolean {
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === "string"
+        ? error
+        : String(error ?? "");
+
+  return (
+    message.includes("EmptyRanges") ||
+    message.includes("take ownership of Rust value while it was borrowed")
+  );
+}
+
+function isDotLottieWasmNoiseEvent(event: Sentry.ErrorEvent): boolean {
+  const exceptionValues = event.exception?.values ?? [];
+  const messages = exceptionValues.map((value) => value.value ?? "").join("\n");
+  if (messages.includes("take ownership of Rust value while it was borrowed")) {
+    return true;
+  }
+
+  return exceptionValues.some((value) =>
+    (value.stacktrace?.frames ?? []).some((frame) => {
+      const filename = frame.filename ?? "";
+      return (
+        filename.includes("lottiefiles/web") ||
+        filename.includes("dotlottie-wc") ||
+        filename.includes("@lottiefiles")
+      );
+    }),
+  );
+}
 
 Sentry.init({
   dsn: sentryDsn,
   enabled: IS_PRODUCTION && Boolean(sentryDsn),
   sendDefaultPii: false,
+  ignoreErrors: [
+    "Can't find variable: EmptyRanges",
+    "attempted to take ownership of Rust value while it was borrowed",
+  ],
+  denyUrls: [/unpkg\.com\/@lottiefiles/i, /@lottiefiles\/web/i],
+  beforeSend(event, hint) {
+    if (isDotLottieWasmNoiseEvent(event)) {
+      return null;
+    }
+
+    const original = hint.originalException;
+    if (isStaleChunkError(original) || isStaleChunkError(event.message)) {
+      return null;
+    }
+
+    if (isThirdPartyNoiseError(original) || isThirdPartyNoiseError(event.message)) {
+      return null;
+    }
+
+    const exceptionMessage = event.exception?.values?.[0]?.value;
+    if (isStaleChunkError(exceptionMessage) || isThirdPartyNoiseError(exceptionMessage)) {
+      return null;
+    }
+
+    return event;
+  },
 });
 
 const posthogToken: string | undefined = import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN;
@@ -74,6 +144,7 @@ logger.info(`App version: ${APP_VERSION}`);
 if (rootElement) {
   if (import.meta.env.PROD) {
     cleanupPwaArtifacts();
+    window.addEventListener("load", clearStaleChunkReloadFlag, { once: true });
   }
   const appTree = (
     <StrictMode>
@@ -89,7 +160,14 @@ if (rootElement) {
   );
 
   const sentryWrappedAppTree = (
-    <Sentry.ErrorBoundary fallback={<p>Something went wrong</p>}>
+    <Sentry.ErrorBoundary
+      fallback={({ error }) => (
+        <StaleChunkErrorFallback
+          error={error}
+          fallback={<p>Something went wrong</p>}
+        />
+      )}
+    >
       {appTree}
     </Sentry.ErrorBoundary>
   );
