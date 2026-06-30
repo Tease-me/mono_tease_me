@@ -34,8 +34,11 @@ class ElevenLabsConversationGateway:
                     headers=self._headers(),
                 )
         except httpx.RequestError as exc:
-            log.exception(
-                "conversation_token.network_error agent=%s err=%s", agent_id, exc
+            log.warning(
+                "conversation_token.network_error agent=%s type=%s err=%r",
+                agent_id,
+                type(exc).__name__,
+                exc,
             )
             raise HTTPException(status_code=502, detail="Upstream unavailable")
 
@@ -68,7 +71,12 @@ class ElevenLabsConversationGateway:
                     headers=self._headers(),
                 )
         except httpx.RequestError as exc:
-            log.exception("Network error getting signed URL: %s", exc)
+            log.warning(
+                "conversation_signed_url.network_error agent=%s type=%s err=%r",
+                agent_id,
+                type(exc).__name__,
+                exc,
+            )
             raise HTTPException(status_code=502, detail="Upstream unavailable")
 
         if resp.status_code != 200:
@@ -95,7 +103,12 @@ class ElevenLabsConversationGateway:
                     headers=self._headers(),
                 )
         except httpx.RequestError as exc:
-            log.exception("Network error fetching conversation snapshot: %s", exc)
+            log.warning(
+                "conversation_snapshot.network_error conversation_id=%s type=%s err=%r",
+                conversation_id,
+                type(exc).__name__,
+                exc,
+            )
             raise HTTPException(status_code=502, detail="Upstream unavailable")
 
         if resp.status_code == 404:
@@ -121,9 +134,10 @@ class ElevenLabsConversationGateway:
                     headers=self._headers(),
                 )
         except httpx.RequestError as exc:
-            log.exception(
-                "conversation_end.network_error conv=%s err=%s",
+            log.warning(
+                "conversation_end.network_error conv=%s type=%s err=%r",
                 conversation_id,
+                type(exc).__name__,
                 exc,
             )
             raise HTTPException(status_code=502, detail="Upstream unavailable")
