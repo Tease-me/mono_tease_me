@@ -77,6 +77,7 @@ async def get_pre_influencer_by_progress_identity(
         PreInfluencer.survey_answers["__meta"]["invite_code"].as_string()
         == invite_code,
         or_(
+            func.lower(PreInfluencer.email) == invitee_email,
             func.lower(
                 PreInfluencer.survey_answers["__meta"]["invitee_email"].as_string()
             )

@@ -77,14 +77,20 @@ async function writeJson(filePath, value) {
 }
 
 async function syncArtifacts(version, packageName) {
-  const packageLock = await readJson(packageLockPath);
-  packageLock.version = version;
+  try {
+    const packageLock = await readJson(packageLockPath);
+    packageLock.version = version;
 
-  if (packageLock.packages?.[""]) {
-    packageLock.packages[""].version = version;
+    if (packageLock.packages?.[""]) {
+      packageLock.packages[""].version = version;
+    }
+
+    await writeJson(packageLockPath, packageLock);
+  } catch (error) {
+    if (error?.code !== "ENOENT") {
+      throw error;
+    }
   }
-
-  await writeJson(packageLockPath, packageLock);
 
   await writeJson(publicVersionPath, {
     name: packageName,
