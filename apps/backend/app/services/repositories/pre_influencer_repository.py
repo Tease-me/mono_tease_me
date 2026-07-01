@@ -91,3 +91,38 @@ async def get_pre_influencer_by_progress_identity(
 
     result = await db.execute(query)
     return result.scalar_one_or_none()
+
+
+async def get_pre_influencer_for_invite_flow(
+    db: AsyncSession,
+    *,
+    invite_code: str,
+    invitee_email: str,
+) -> PreInfluencer | None:
+    """Resolve an invited pre-influencer for resume/register update.
+
+    MJ may re-send invite links with a new ``invite_code`` for the same email.
+    Match stored meta first; fall back to an existing registration for that email
+    when step 1 is already complete (``survey_token`` + ``password``).
+    """
+    email = invitee_email.strip().lower()
+    code = invite_code.strip()
+    if not email or not code:
+        return None
+
+    pre = await get_pre_influencer_by_progress_identity(
+        db,
+        invite_code=code,
+        invitee_email=email,
+    )
+    if pre is not None:
+        return pre
+
+    by_email = await get_pre_influencer_for_email(db, email=email)
+    if by_email is None:
+        return None
+    if not by_email.survey_token or not by_email.password:
+        return None
+    if (by_email.email or "").strip().lower() != email:
+        return None
+    return by_email

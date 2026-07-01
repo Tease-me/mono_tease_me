@@ -72,7 +72,7 @@ from app.services.use_cases.pre_influencer_onboarding import (
 
 from app.services.use_cases.pre_influencer_output import build_pre_influencer_admin_out
 from app.services.repositories.pre_influencer_repository import (
-    get_pre_influencer_by_progress_identity,
+    get_pre_influencer_for_invite_flow,
 )
 from app.services.use_cases.pre_influencer_survey_link import (
     build_pre_influencer_onboarding_path,
@@ -248,7 +248,7 @@ async def resume_invited_pre_influencer(
     if not normalized_invite_code:
         return PreInfluencerInviteResumeResponse(registered=False)
 
-    pre = await get_pre_influencer_by_progress_identity(
+    pre = await get_pre_influencer_for_invite_flow(
         db,
         invite_code=normalized_invite_code,
         invitee_email=email,
@@ -311,7 +311,7 @@ async def register_pre_influencer(
             registration_meta=registration_meta,
         )
 
-        existing_pre = await get_pre_influencer_by_progress_identity(
+        existing_pre = await get_pre_influencer_for_invite_flow(
             db,
             invite_code=data.invite_code.strip(),
             invitee_email=str(data.email).strip().lower(),
