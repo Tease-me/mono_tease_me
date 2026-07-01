@@ -3,7 +3,7 @@ import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import AutocompleteInput from "@/ui/components/inputs/autocomplete/AutocompleteInput";
 import ChipMultiSelect from "@/ui/components/inputs/autocomplete/ChipMultiSelect";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { apiClient } from "@/api/apis";
 import { Endpoints } from "@/api/urls";
@@ -31,20 +31,25 @@ type ProfileSurveyProps = {
 
 const ProfileSurvey: React.FC<ProfileSurveyProps> = ({ initialEmail = "" }) => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const inviteeEmailFromStorage = useMemo(() => {
+    const inviteeEmailFromUrl = searchParams.get("inviteeEmail");
+    if (inviteeEmailFromUrl?.trim()) return inviteeEmailFromUrl.trim();
     const attribution = storage.getObject<{ inviteeEmail?: string }>(
       LocalStorageKeys.JoinAttribution,
     );
     return initialEmail || attribution?.inviteeEmail || "";
-  }, [initialEmail]);
+  }, [initialEmail, searchParams]);
 
-  const inviteCodeFromStorage = useMemo(() => {
+  const inviteCode = useMemo(() => {
+    const inviteCodeFromUrl = searchParams.get("inviteCode");
+    if (inviteCodeFromUrl?.trim()) return inviteCodeFromUrl.trim();
     const attribution = storage.getObject<{ inviteCode?: string }>(
       LocalStorageKeys.JoinAttribution,
     );
-    return attribution?.inviteCode || "";
-  }, []);
+    return attribution?.inviteCode?.trim() || "";
+  }, [searchParams]);
 
   const [name, setName] = useState("");
   const [countryQuery, setCountryQuery] = useState("");
@@ -115,7 +120,8 @@ const ProfileSurvey: React.FC<ProfileSurveyProps> = ({ initialEmail = "" }) => {
 
     (async () => {
       const normalizedEmail = inviteeEmailFromStorage.trim().toLowerCase();
-      if (!normalizedEmail) {
+      const normalizedInviteCode = inviteCode.trim();
+      if (!normalizedEmail || !normalizedInviteCode) {
         setIsCheckingResume(false);
         return;
       }
@@ -128,9 +134,7 @@ const ProfileSurvey: React.FC<ProfileSurveyProps> = ({ initialEmail = "" }) => {
           skipAuth: true,
           params: {
             invitee_email: normalizedEmail,
-            ...(inviteCodeFromStorage
-              ? { invite_code: inviteCodeFromStorage }
-              : {}),
+            invite_code: normalizedInviteCode,
           },
         });
 
@@ -155,7 +159,7 @@ const ProfileSurvey: React.FC<ProfileSurveyProps> = ({ initialEmail = "" }) => {
     return () => {
       cancelled = true;
     };
-  }, [inviteeEmailFromStorage, inviteCodeFromStorage, redirectToOnboarding]);
+  }, [inviteeEmailFromStorage, inviteCode, redirectToOnboarding]);
 
   const onSocialAnswerChange = useCallback((key: string, value: unknown) => {
     setSocialAnswers((prev) => ({ ...prev, [key]: value }));

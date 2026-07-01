@@ -73,7 +73,6 @@ from app.services.use_cases.pre_influencer_onboarding import (
 from app.services.use_cases.pre_influencer_output import build_pre_influencer_admin_out
 from app.services.repositories.pre_influencer_repository import (
     get_pre_influencer_by_progress_identity,
-    get_pre_influencer_for_email,
 )
 from app.services.use_cases.pre_influencer_survey_link import (
     build_pre_influencer_onboarding_path,
@@ -241,35 +240,24 @@ async def accept_pre_influencer_terms(
 @router.get("/invite/resume", response_model=PreInfluencerInviteResumeResponse)
 async def resume_invited_pre_influencer(
     invitee_email: str = Query(...),
-    invite_code: str | None = Query(None),
+    invite_code: str = Query(..., min_length=1),
     db: AsyncSession = Depends(get_db),
 ):
     email = invitee_email.strip().lower()
-    normalized_invite_code = (invite_code or "").strip()
-    pre = None
+    normalized_invite_code = invite_code.strip()
+    if not normalized_invite_code:
+        return PreInfluencerInviteResumeResponse(registered=False)
 
-    if normalized_invite_code:
-        pre = await get_pre_influencer_by_progress_identity(
-            db,
-            invite_code=normalized_invite_code,
-            invitee_email=email,
-        )
-    if pre is None:
-        pre = await get_pre_influencer_for_email(db, email=email)
+    pre = await get_pre_influencer_by_progress_identity(
+        db,
+        invite_code=normalized_invite_code,
+        invitee_email=email,
+    )
 
     if pre is None or not pre.survey_token or not pre.password:
         return PreInfluencerInviteResumeResponse(registered=False)
 
-    if normalized_invite_code:
-        answers = pre.survey_answers if isinstance(pre.survey_answers, dict) else {}
-        meta = answers.get("__meta")
-        if isinstance(meta, dict):
-            stored_code = meta.get("invite_code")
-            if isinstance(stored_code, str) and stored_code.strip():
-                if stored_code.strip() != normalized_invite_code:
-                    return PreInfluencerInviteResumeResponse(registered=False)
-
-    is_mj_register = bool(normalized_invite_code) or is_mj_referral_pre_influencer(pre)
+    is_mj_register = is_mj_referral_pre_influencer(pre)
     onboarding_url = build_pre_influencer_onboarding_path(
         token=pre.survey_token,
         temp_password=pre.password,
@@ -287,7 +275,6 @@ async def register_pre_influencer(
     db: AsyncSession = Depends(get_db),
 ):
     is_mj_register = bool((data.invite_code or "").strip())
-    is_invited_register = is_mj_register or bool((data.invitee_email or "").strip())
 
     if is_mj_register:
         try:
@@ -324,12 +311,25 @@ async def register_pre_influencer(
             registration_meta=registration_meta,
         )
 
-    if is_invited_register:
-        existing_by_email = await db.execute(
-            select(PreInfluencer).where(PreInfluencer.email == data.email)
+        existing_pre = await get_pre_influencer_by_progress_identity(
+            db,
+            invite_code=data.invite_code.strip(),
+            invitee_email=str(data.email).strip().lower(),
         )
-        existing_pre = existing_by_email.scalar_one_or_none()
         if existing_pre is not None:
+            if data.username != existing_pre.username:
+                username_taken = await db.execute(
+                    select(PreInfluencer).where(
+                        PreInfluencer.username == data.username,
+                        PreInfluencer.id != existing_pre.id,
+                    )
+                )
+                if username_taken.scalar_one_or_none():
+                    raise HTTPException(
+                        status_code=200,
+                        detail="Username or email already registered as pre-influencer",
+                    )
+
             incoming_answers = dict(seeded_answers) if isinstance(seeded_answers, dict) else {}
             if data.location:
                 incoming_answers["q4_country"] = data.location
@@ -349,13 +349,13 @@ async def register_pre_influencer(
             existing_pre.terms_agreement = bool(data.terms_agreement) or (
                 survey_answers_indicate_terms_accepted(existing_pre.survey_answers)
             )
-            flag_modified(existing_pre, "survey_answers")
+            if isinstance(existing_pre, PreInfluencer):
+                flag_modified(existing_pre, "survey_answers")
             db.add(existing_pre)
             await db.commit()
             await db.refresh(existing_pre)
             schedule_mjfp_pre_influencer_step_webhook(existing_pre.id)
 
-            onboarding_start_step = "picture" if is_mj_register else None
             return PreInfluencerRegisterResponse(
                 ok=True,
                 user_id=existing_pre.id,
@@ -367,7 +367,7 @@ async def register_pre_influencer(
                 onboarding_url=build_pre_influencer_onboarding_path(
                     token=existing_pre.survey_token,
                     temp_password=data.password,
-                    start_step=onboarding_start_step,
+                    start_step="picture",
                 )
                 or "",
             )
