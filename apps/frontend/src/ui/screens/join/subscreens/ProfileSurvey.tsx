@@ -2,10 +2,11 @@ import { RegisterResponse } from "@/api/models/auth";
 import PrimaryButton from "@/ui/components/inputs/buttons/PrimaryButton";
 import AutocompleteInput from "@/ui/components/inputs/autocomplete/AutocompleteInput";
 import ChipMultiSelect from "@/ui/components/inputs/autocomplete/ChipMultiSelect";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { apiClient } from "@/api/apis";
+import { Endpoints } from "@/api/urls";
 import { AuthServicesPreInfluencer } from "@/api/services/AuthServicesPreInfluencer";
 import { LocalStorageKeys } from "@/constants/localStorageKeys";
 import { filterCountries, isKnownCountry } from "@/data/countries";
@@ -38,6 +39,13 @@ const ProfileSurvey: React.FC<ProfileSurveyProps> = ({ initialEmail = "" }) => {
     return initialEmail || attribution?.inviteeEmail || "";
   }, [initialEmail]);
 
+  const inviteCodeFromStorage = useMemo(() => {
+    const attribution = storage.getObject<{ inviteCode?: string }>(
+      LocalStorageKeys.JoinAttribution,
+    );
+    return attribution?.inviteCode || "";
+  }, []);
+
   const [name, setName] = useState("");
   const [countryQuery, setCountryQuery] = useState("");
   const [country, setCountry] = useState("");
@@ -51,6 +59,7 @@ const ProfileSurvey: React.FC<ProfileSurveyProps> = ({ initialEmail = "" }) => {
   const [socialError, setSocialError] = useState<string | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingResume, setIsCheckingResume] = useState(true);
 
   const [errors, setErrors] = useState<{
     name?: string;
@@ -79,6 +88,74 @@ const ProfileSurvey: React.FC<ProfileSurveyProps> = ({ initialEmail = "" }) => {
     storage.remove(LocalStorageKeys.JoinAttribution);
     storage.remove(LocalStorageKeys.ParentRefId);
   };
+
+  const redirectToOnboarding = useCallback(
+    (onboardingUrl: string) => {
+      clearJoinAttribution();
+
+      try {
+        const nextUrl = new URL(onboardingUrl, window.location.origin);
+        nextUrl.searchParams.set("start_step", "picture");
+        window.location.assign(nextUrl.toString());
+        return;
+      } catch {
+        const nextUrl = new URL(
+          onboardingUrl.startsWith("/") ? onboardingUrl : `/${onboardingUrl}`,
+          window.location.origin,
+        );
+        nextUrl.searchParams.set("start_step", "picture");
+        navigate(`${nextUrl.pathname}${nextUrl.search}`);
+      }
+    },
+    [navigate],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      const normalizedEmail = inviteeEmailFromStorage.trim().toLowerCase();
+      if (!normalizedEmail) {
+        setIsCheckingResume(false);
+        return;
+      }
+
+      try {
+        const { data } = await apiClient.get<{
+          registered: boolean;
+          onboarding_url?: string | null;
+        }>(Endpoints.pre_influencers.inviteResume, {
+          skipAuth: true,
+          params: {
+            invitee_email: normalizedEmail,
+            ...(inviteCodeFromStorage
+              ? { invite_code: inviteCodeFromStorage }
+              : {}),
+          },
+        });
+
+        if (
+          !cancelled &&
+          data.registered &&
+          typeof data.onboarding_url === "string" &&
+          data.onboarding_url.trim()
+        ) {
+          redirectToOnboarding(data.onboarding_url.trim());
+          return;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+
+      if (!cancelled) {
+        setIsCheckingResume(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [inviteeEmailFromStorage, inviteCodeFromStorage, redirectToOnboarding]);
 
   const onSocialAnswerChange = useCallback((key: string, value: unknown) => {
     setSocialAnswers((prev) => ({ ...prev, [key]: value }));
@@ -153,20 +230,8 @@ const ProfileSurvey: React.FC<ProfileSurveyProps> = ({ initialEmail = "" }) => {
         clearJoinAttribution();
 
         if (onboardingUrl) {
-          try {
-            const nextUrl = new URL(onboardingUrl);
-            nextUrl.searchParams.set("start_step", "picture");
-            window.location.assign(nextUrl.toString());
-            return;
-          } catch {
-            const nextUrl = new URL(
-              onboardingUrl.startsWith("/") ? onboardingUrl : `/${onboardingUrl}`,
-              window.location.origin,
-            );
-            nextUrl.searchParams.set("start_step", "picture");
-            navigate(`${nextUrl.pathname}${nextUrl.search}`);
-            return;
-          }
+          redirectToOnboarding(onboardingUrl);
+          return;
         }
 
         if (response.token && response.temp_password) {
@@ -201,6 +266,10 @@ const ProfileSurvey: React.FC<ProfileSurveyProps> = ({ initialEmail = "" }) => {
   const emailFieldError =
     errors.email ||
     (!email ? "Open this page from your invitation link to continue." : undefined);
+
+  if (isCheckingResume) {
+    return null;
+  }
 
   return (
     <div className="ps-screen">

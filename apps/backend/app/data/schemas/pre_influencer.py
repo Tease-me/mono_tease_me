@@ -32,6 +32,11 @@ class PreInfluencerRegisterResponse(BaseModel):
     )
     onboarding_url: str
 
+
+class PreInfluencerInviteResumeResponse(BaseModel):
+    registered: bool
+    onboarding_url: str | None = None
+
 class PreInfluencerAcceptTermsRequest(BaseModel):
     terms_agreement: Literal[True]
 

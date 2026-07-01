@@ -19,6 +19,7 @@ export const Endpoints = {
   pre_influencers: {
     login: "/pre-influencers/login",
     register: "/pre-influencers/register",
+    inviteResume: "/pre-influencers/invite/resume",
     refreshToken: "/pre-influencers/refresh",
     forgotPassword: "/pre-influencers/forgot-password",
     resendSurvey: "/pre-influencers/resend-survey",
