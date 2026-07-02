@@ -9,6 +9,10 @@ applications:
         headers:
           - key: Cache-Control
             value: 'no-cache, no-store, must-revalidate'
+      - pattern: 'version.json'
+        headers:
+          - key: Cache-Control
+            value: 'no-cache, no-store, must-revalidate'
       - pattern: '/assets/**'
         headers:
           - key: Cache-Control
