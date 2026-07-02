@@ -75,7 +75,6 @@ export function isStaleChunkError(error: unknown): boolean {
 
 type SentryLikeEvent = {
   message?: string;
-  logger?: string;
   exception?: {
     values?: Array<{ value?: string; type?: string } | undefined>;
   };
@@ -97,10 +96,6 @@ export function shouldSuppressStaleChunkSentryEvent(
     if (isStaleChunkError(value?.value) || isStaleChunkError(value?.type)) {
       return true;
     }
-  }
-
-  if (event.logger === "console" && isStaleChunkError(originalException)) {
-    return true;
   }
 
   return false;
