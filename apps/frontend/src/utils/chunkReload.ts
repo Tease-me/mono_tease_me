@@ -2,21 +2,108 @@ import logger from "@/utils/logger";
 
 const RELOAD_FLAG_KEY = "tease-me:chunk-reload";
 
-function errorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
+const STALE_CHUNK_MESSAGE_MARKERS = [
+  "failed to fetch dynamically imported module",
+  "importing a module script failed",
+  "error loading dynamically imported module",
+  "unable to preload css",
+] as const;
+
+export const STALE_CHUNK_IGNORE_ERRORS: Array<string | RegExp> = [
+  /failed to fetch dynamically imported module/i,
+  /importing a module script failed/i,
+  /error loading dynamically imported module/i,
+  /unable to preload css/i,
+];
+
+function isStaleChunkMessage(message: string): boolean {
+  const normalized = message.toLowerCase();
+  return STALE_CHUNK_MESSAGE_MARKERS.some((marker) => normalized.includes(marker));
+}
+
+function collectErrorMessages(error: unknown, depth = 0, seen = new Set<unknown>()): string[] {
+  if (error == null || depth > 4) {
+    return [];
   }
-  return String(error ?? "");
+
+  if (typeof error === "string") {
+    return [error];
+  }
+
+  if (typeof error === "object" || typeof error === "function") {
+    if (seen.has(error)) {
+      return [];
+    }
+    seen.add(error);
+  }
+
+  if (error instanceof Error) {
+    const messages = [error.message];
+    if (error.cause !== undefined) {
+      messages.push(...collectErrorMessages(error.cause, depth + 1, seen));
+    }
+    return messages;
+  }
+
+  if (Array.isArray(error)) {
+    return error.flatMap((item) => collectErrorMessages(item, depth + 1, seen));
+  }
+
+  if (typeof error === "object") {
+    const record = error as Record<string, unknown>;
+    const messages: string[] = [];
+
+    if (typeof record.message === "string") {
+      messages.push(record.message);
+    }
+
+    for (const key of ["cause", "reason", "error"] as const) {
+      if (key in record) {
+        messages.push(...collectErrorMessages(record[key], depth + 1, seen));
+      }
+    }
+
+    return messages;
+  }
+
+  return [String(error)];
 }
 
 export function isStaleChunkError(error: unknown): boolean {
-  const message = errorMessage(error).toLowerCase();
-  return (
-    message.includes("failed to fetch dynamically imported module") ||
-    message.includes("importing a module script failed") ||
-    message.includes("error loading dynamically imported module") ||
-    message.includes("unable to preload css")
-  );
+  return collectErrorMessages(error).some(isStaleChunkMessage);
+}
+
+type SentryLikeEvent = {
+  message?: string;
+  logger?: string;
+  exception?: {
+    values?: Array<{ value?: string; type?: string } | undefined>;
+  };
+};
+
+export function shouldSuppressStaleChunkSentryEvent(
+  event: SentryLikeEvent,
+  originalException: unknown,
+): boolean {
+  if (isStaleChunkError(originalException)) {
+    return true;
+  }
+
+  if (isStaleChunkError(event.message)) {
+    return true;
+  }
+
+  for (const value of event.exception?.values ?? []) {
+    if (isStaleChunkError(value?.value) || isStaleChunkError(value?.type)) {
+      return true;
+    }
+  }
+
+  if (event.logger === "console" && isStaleChunkError(originalException)) {
+    return true;
+  }
+
+  return false;
 }
 
 function reloadForStaleChunk(source: string): boolean {
