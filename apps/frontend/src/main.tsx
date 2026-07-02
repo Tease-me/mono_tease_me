@@ -17,15 +17,18 @@ import { IS_PRODUCTION } from "./env";
 import { APP_VERSION } from "@/version";
 import {
   clearStaleChunkReloadFlag,
-  isStaleChunkError,
   setupStaleChunkRecovery,
+  shouldSuppressStaleChunkSentryEvent,
+  STALE_CHUNK_IGNORE_ERRORS,
 } from "@/utils/chunkReload";
 import StaleChunkErrorFallback from "@/ui/components/errors/StaleChunkErrorFallback";
+import { setupVersionPolling } from "@/utils/versionPolling";
 
 const sentryDsn: string | undefined = import.meta.env.VITE_SENTRY_DSN;
 
 if (import.meta.env.PROD) {
   setupStaleChunkRecovery();
+  setupVersionPolling();
 }
 
 function isThirdPartyNoiseError(error: unknown): boolean {
@@ -68,6 +71,7 @@ Sentry.init({
   ignoreErrors: [
     "Can't find variable: EmptyRanges",
     "attempted to take ownership of Rust value while it was borrowed",
+    ...STALE_CHUNK_IGNORE_ERRORS,
   ],
   denyUrls: [/unpkg\.com\/@lottiefiles/i, /@lottiefiles\/web/i],
   beforeSend(event, hint) {
@@ -76,7 +80,7 @@ Sentry.init({
     }
 
     const original = hint.originalException;
-    if (isStaleChunkError(original) || isStaleChunkError(event.message)) {
+    if (shouldSuppressStaleChunkSentryEvent(event, original)) {
       return null;
     }
 
@@ -85,7 +89,7 @@ Sentry.init({
     }
 
     const exceptionMessage = event.exception?.values?.[0]?.value;
-    if (isStaleChunkError(exceptionMessage) || isThirdPartyNoiseError(exceptionMessage)) {
+    if (isThirdPartyNoiseError(exceptionMessage)) {
       return null;
     }
 
